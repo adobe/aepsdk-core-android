@@ -26,18 +26,18 @@ jobs:
     steps:
       # Checkout the code as the first step.
       - checkout
-      # - run:
-      #     name: assemble-phone
-      #     command: make assemble-phone
-      # - run:
-      #     name: JavaDoc
-      #     command: make javadoc
-      # - run:
-      #     name: unit-test
-      #     command: make unit-test
-      # - store_artifacts:
-      #     path: code/android-core-library/build/reports/tests/testPhoneDebugUnitTest
-      # Create an AVD named "myavd"
+      - run:
+          name: assemble-phone
+          command: make assemble-phone
+      - run:
+          name: JavaDoc
+          command: make javadoc
+      - run:
+          name: unit-test
+          command: make unit-test
+      - store_artifacts:
+          path: code/android-core-library/build/reports/tests/testPhoneDebugUnitTest
+      
       - android/start-emulator-and-run-tests:
           #   It should match the name seen in the "sdkmanager --list" output
           system-image: system-images;android-29;default;x86

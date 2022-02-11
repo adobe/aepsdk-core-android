@@ -39,9 +39,9 @@ jobs:
   
   functional-test:
       executor:
-      name: android/android-machine
-      resource-class: large
-      tag: 2022.01.1
+        name: android/android-machine
+        resource-class: large
+        tag: 2022.01.1
 
       steps:
       # Checkout the code as the first step.

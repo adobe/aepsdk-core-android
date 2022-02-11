@@ -15,23 +15,23 @@ clean:
 	  (./code/gradlew clean)
 
 checkstyle:
-		(./code/gradlew android-core-library:checkstyle)
+		(./code/gradlew -p code/android-core-library checkstyle)
 
 assemble-phone:
-		(./code/gradlew android-core-library:assemblePhone)
+		(./code/gradlew -p code/android-core-library assemblePhone)
 
 assemble-phone-release:
-		(./code/gradlew android-core-library:assemblePhoneRelease)
+		(./code/gradlew -p code/android-core-library assemblePhoneRelease)
 
 unit-test:
-		(./code/gradlew android-core-library:testPhoneDebugUnitTest)
+		(./code/gradlew -p code/android-core-library testPhoneDebugUnitTest)
 
 functional-test:
-		(./code/gradlew android-core-library:uninstallPhoneDebugAndroidTest)
-		(./code/gradlew android-core-library:connectedPhoneDebugAndroidTest)
+		(./code/gradlew -p code/android-core-library uninstallPhoneDebugAndroidTest)
+		(./code/gradlew -p code/android-core-library connectedPhoneDebugAndroidTest)
 
 javadoc:
-		(./code/gradlew android-core-library:Javadoc)
+		(./code/gradlew -p code/android-core-library Javadoc)
 
 
 build-third-party-extension:

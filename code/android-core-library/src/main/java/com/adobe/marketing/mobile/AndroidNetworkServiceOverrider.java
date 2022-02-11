@@ -53,7 +53,7 @@ public final class AndroidNetworkServiceOverrider {
 		}
 
 		/**
-		 * Determines if the provided URL & Method should be overridden by this instance.  Used by
+		 * Determines if the provided URL and Method should be overridden by this instance.  Used by
 		 * {@link AndroidNetworkService} in-order to proxy the {@code shouldOverride(String, String)} call.
 		 *
 		 * @param url {@code String} containing the url for the request.

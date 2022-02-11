@@ -30,6 +30,9 @@ jobs:
           name: assemble-phone
           command: make assemble-phone
       - run:
+          name: JavaDoc
+          command: make javadoc
+      - run:
           name: unit-test
           command: make unit-test
       # Create an AVD named "myavd"

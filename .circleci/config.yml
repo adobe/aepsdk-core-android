@@ -45,6 +45,8 @@ jobs:
           post-emulator-launch-assemble-command: make assemble-phone
           #   The test command
           test-command: make functional-test
+          - store_artifacts:
+          path: code/android-core-library/build/reports/androidTests/connected/flavors/PHONE
       
 
 # Invoke jobs via workflows

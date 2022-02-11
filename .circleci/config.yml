@@ -35,6 +35,8 @@ jobs:
       - run:
           name: unit-test
           command: make unit-test
+      - store_artifacts:
+          path: code/android-core-library/build/reports/tests/testPhoneDebugUnitTest
       # Create an AVD named "myavd"
       - android/create-avd:
           avd-name: myavd

@@ -1,0 +1,28 @@
+
+//
+//jacoco {
+//    toolVersion = "0.8.7"
+//}
+//
+//task jacocoTestReport(type: JacocoReport, dependsOn: ['testPhoneDebugUnitTest', 'createPhoneDebugCoverageReport']) {
+//    sourceDirectories.from = files(android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles)
+//    executionData.setFrom(fileTree(dir: "$buildDir", includes: [
+//            "outputs/unit_test_code_coverage/phoneDebugUnitTest/testPhoneDebugUnitTest.exec",
+//            "outputs/code_coverage/phoneDebugAndroidTest/connected/Pixel_4_API_31(AVD) - 12-coverage.ec"
+//    ]))
+//    classDirectories.from = fileTree(dir: "$buildDir/intermediates/javac/phoneDebug/classes/com/adobe/marketing/mobile")
+////    reports {
+////        xml.enabled = true
+////        html.enabled = true
+////    }
+////
+////    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', 'android/**/*.*']
+////    def debugTree = fileTree(dir: "${buildDir}/intermediates/javac/phoneDebug/classes", excludes: fileFilter)
+////    def mainSrc = "${project.projectDir}/src/main/java"
+////
+////    sourceDirectories.setFrom(files([mainSrc]))
+////    classDirectories.setFrom(files([debugTree]))
+////    executionData.setFrom(fileTree(dir: "$buildDir", includes: [
+////            "outputs/unit_test_code_coverage/phoneDebugUnitTest.exec"
+////    ]))
+//}

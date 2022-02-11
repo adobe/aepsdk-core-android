@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">TestApp</string>
+    <string name="events_processed_0">Events processed # 0</string>
+    <string name="tab_mobile_core">Mobile Core</string>
+    <string name="tab_ui_services">UI Services</string>
+    <string name="tab_platform_services">Platform Services</string>
+    <string name="test_alert_title">Test alert</string>
+    <string name="test_alert_message">Testing alert dialog</string>
+    <string name="test_alert_positive_text">Done</string>
+    <string name="test_alert_negative_text">Cancel</string>
+    <string name="test_notification_title">Test title</string>
+    <string name="test_notification_content">Test content</string>
+    <string name="test_fullscreen_html">This is a full screen message</string>
+    <string name="test_url">http://www.google.com</string>
+</resources>

@@ -1,0 +1,28 @@
+apply plugin: "checkstyle"
+
+checkstyle {
+    configFile rootProject.file('checkstyle.xml')
+    ignoreFailures false
+    showViolations true
+    toolVersion = "8.15"
+}
+
+/** Checkstyle task for new files (not in exclude list). Fail build if a check fails **/
+task checkstyle(type: Checkstyle) {
+    configFile rootProject.file('checkstyle.xml')
+
+    //fail early
+    ignoreFailures false
+    showViolations true
+
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+    exclude '**/test/**'
+    exclude '**/legacy/**'
+    exclude '**/androidTest/**'
+    exclude '**/R.java'
+    exclude '**/BuildConfig.java'
+//    exclude rootProject.file('checkstyle/checkstyle-exclude-list.txt') as String[]
+    classpath = files()
+}

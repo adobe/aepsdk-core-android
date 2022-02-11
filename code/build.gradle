@@ -1,0 +1,30 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        mavenCentral()
+        google()
+    }
+    dependencies {
+        //noinspection AndroidGradlePluginVersion
+        classpath 'com.android.tools.build:gradle:4.0.1'
+        classpath "org.jacoco:org.jacoco.core:0.8.7"
+    }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        google()
+    }
+    apply plugin: 'maven-publish'
+    if (project.hasProperty("sonatypeUser") && project.hasProperty("sonatypePass")) {
+        ext["ossrhUsername"] = "$sonatypeUser"
+        ext["ossrhPassword"] = "$sonatypePass"
+    } else {
+        ext["ossrhUsername"] = ""
+        ext["ossrhPassword"] = ""
+    }
+}
+

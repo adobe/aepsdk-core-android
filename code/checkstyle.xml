@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+		"-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+		"http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+
+<module name="Checker">	
+ 	<module name="SuppressWarningsFilter" />
+	<module name="TreeWalker">
+		<module name="SuppressWarningsHolder" />
+		<module name="FinalParameters"/>
+		<module name="BooleanExpressionComplexity"/>
+		<module name="EqualsAvoidNull"/>
+		<module name="FallThrough"/>
+		<module name="NestedForDepth"/>
+		<module name="NestedIfDepth"/>
+		<module name="NestedTryDepth"/>
+		<module name="MagicNumber"/>
+		<module name="AvoidStaticImport"/>
+	</module>
+</module>

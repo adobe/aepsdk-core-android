@@ -75,7 +75,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testPhoneDebugUnitTest','
             "outputs/code_coverage/phoneDebugAndroidTest/connected/*coverage.ec"
     ])
     reports {
-        xml.enabled false
+        xml.enabled true
         csv.enabled false
         html.enabled true
     }

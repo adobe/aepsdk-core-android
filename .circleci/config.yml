@@ -11,7 +11,7 @@ orbs:
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
   # Below is the definition of your job to build and test your app, you can rename and customize it as you want.
-  build-and-test:
+  build-and-unit-test:
     # These next lines define the Android machine image executor.
     # See: https://circleci.com/docs/2.0/executor-types/
     # The Android machine image: https://circleci.com/docs/2.0/android-machine-image/
@@ -36,12 +36,31 @@ jobs:
           command: make unit-test
       - store_test_results:
           path: code/android-core-library/build/test-results/testPhoneDebugUnitTest
-      
+  
+  functional-test:
+      executor:
+      name: android/android-machine
+      resource-class: large
+      tag: 2022.01.1
+
+      steps:
+      # Checkout the code as the first step.
+        - checkout
+        
+        - android/start-emulator-and-run-tests:
+          #   It should match the name seen in the "sdkmanager --list" output
+            system-image: system-images;android-29;default;x86
+          #   The command to be run, while waiting for emulator startup
+            post-emulator-launch-assemble-command: make assemble-phone
+          #   The test command
+            test-command: make functional-test
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
+  version: 2
   aepsdk-core-ci: # This is the name of the workflow, feel free to change it to better match your workflow.
     # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - build-and-test
+      - build-and-unit-test
+      - functional-test

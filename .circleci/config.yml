@@ -27,8 +27,8 @@ jobs:
       # Checkout the code as the first step.
       - checkout
       - run:
-          name: assemble-phone
-          command: make assemble-phone
+          name: assemble-phone-release
+          command: make assemble-phone-release
       - run:
           name: JavaDoc
           command: make javadoc

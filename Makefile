@@ -12,7 +12,7 @@ setup:
 
 clean:
 	  (rm -rf ci)
-	  (./code/gradlew clean)
+	  (./code/gradlew -p code clean)
 
 checkstyle:
 		(./code/gradlew -p code/android-core-library checkstyle)

@@ -16,8 +16,9 @@ import java.util.List;
  * Class to handle the mustache token Operand.
  */
 public class OperandMustacheToken<T> implements Operand<T> {
+	private static final String LOG_TAG = "OperandMustacheToken";
 	private final MustacheToken mustacheToken;
-
+	private final Class<T> tClass;
 
 	/**
 	 * Constructor.
@@ -32,27 +33,19 @@ public class OperandMustacheToken<T> implements Operand<T> {
 	 * 3. some{{region.city}}  - (this string does not start with a valid token)
 	 *
 	 * @param tokenString string representing a mustache token operand
+	 * @param tClass string representing a mustache token operand
 	 */
-	public OperandMustacheToken(final String tokenString) {
-
-		// if token string is invalid make the mustache Token null.
-		// There by the operand always returns null on resolve. This is equivalent to OperandNone in swift.
-		if (tokenString == null || tokenString.isEmpty()) {
-			mustacheToken = null;
-			return;
-		}
-
+	public OperandMustacheToken(final String tokenString, Class<T> tClass) {
+		MustacheToken mustacheToken = null;
+		// Mustache token operands must have only one token, ignore others.
 		final List<Segment> segmentList = TemplateParser.parse(tokenString);
-
-		// Mustache token operands must have only one token.
-		// Hence we ignore other
 		if (segmentList.size() > 0 && segmentList.get(0) instanceof SegmentToken) {
 			SegmentToken segmentToken = (SegmentToken) segmentList.get(0);
 			mustacheToken = segmentToken.getMustacheToken();
-			return;
 		}
 
-		mustacheToken = new MustacheToken(tokenString);
+		this.mustacheToken = mustacheToken;
+		this.tClass = tClass;
 	}
 
 
@@ -69,7 +62,13 @@ public class OperandMustacheToken<T> implements Operand<T> {
 			return null;
 		}
 
-		return (T) mustacheToken.resolve(context.tokenFinder, context.transformer);
+		Object resolvedValue = mustacheToken.resolve(context.tokenFinder, context.transformer);
+		try {
+			return tClass.cast(resolvedValue);
+		} catch (ClassCastException ex) {
+			Log.debug(LOG_TAG, "resolve: Error casting value to type " + tClass.toString());
+			return null;
+		}
 	}
 
 }

@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.rulesengine;
 
+@FunctionalInterface
 public interface TransformerBlock<T> {
 	T transform(final Object e);
 }

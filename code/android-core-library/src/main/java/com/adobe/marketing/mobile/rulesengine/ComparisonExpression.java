@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile.rulesengine;
 
 /**
- * {@link ComparisonExpression} allows for comparision of two operands and evaluates to a True or False.
+ * {@link ComparisonExpression} allows for comparison of two operands and evaluates to a True or False.
  * Comparison operators include LessThan, LessThanOrEqual to, Equal, NotEqual,
  * GreaterThan, GreaterThanOrEqual to, Contains and notContains.
  */

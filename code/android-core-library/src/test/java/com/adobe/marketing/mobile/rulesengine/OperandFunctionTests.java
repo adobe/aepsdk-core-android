@@ -25,18 +25,12 @@ public class OperandFunctionTests {
 	public void test_OperandFunction() {
 		// setup
 		final Operand stringOperand = new OperandLiteral("bossbaby");
-		final OperandFunction<String> functionOperator = new OperandFunction<String>(new FunctionBlock() {
-			@Override
-			public String execute(Object... args) {
-				StringBuilder builder = new StringBuilder();
-
-				for (Object each : args) {
-					builder.append(each.toString());
-				}
-
-				return builder.toString();
+		final OperandFunction<String> functionOperator = new OperandFunction<>((Object... args) -> {
+			StringBuilder builder = new StringBuilder();
+			for (Object each : args) {
+				builder.append(each.toString());
 			}
-
+			return builder.toString();
 		}, "boss", "baby");
 
 		// test

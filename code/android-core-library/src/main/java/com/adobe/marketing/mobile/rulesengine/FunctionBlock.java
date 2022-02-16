@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.rulesengine;
 
+@FunctionalInterface
 public interface FunctionBlock<T> {
 	T execute(final Object... e);
 }

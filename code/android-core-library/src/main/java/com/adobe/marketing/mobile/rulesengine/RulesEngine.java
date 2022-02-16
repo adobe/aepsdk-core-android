@@ -22,13 +22,14 @@ public class RulesEngine<T extends Rule> {
 	public RulesEngine(final Evaluating evaluator, final Transforming transformer) {
 		this.evaluator = evaluator;
 		this.transformer = transformer;
+		this.rules = new ArrayList<>();
 	}
 
-	public List<Rule> evaluate(final TokenFinder tokenFinder) {
+	public List<T> evaluate(final TokenFinder tokenFinder) {
 		final Context context = new Context(tokenFinder, evaluator, transformer);
-		List<Rule> triggerRules = new ArrayList<>();
+		List<T> triggerRules = new ArrayList<>();
 
-		for (final Rule rule : rules) {
+		for (final T rule : rules) {
 			if (rule.getEvaluable().evaluate(context).isSuccess()) {
 				triggerRules.add(rule);
 			}
@@ -44,5 +45,4 @@ public class RulesEngine<T extends Rule> {
 	public void clearRules() {
 		rules.clear();
 	}
-
 }

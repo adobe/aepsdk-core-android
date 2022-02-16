@@ -18,7 +18,7 @@ import java.util.HashMap;
 
 import static org.junit.Assert.*;
 
-public class MustacheTokenTests {
+public class OperandMustacheTokenTests {
 
 	private ConditionEvaluator defaultEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.DEFAULT);
 
@@ -28,9 +28,9 @@ public class MustacheTokenTests {
 	@Test
 	public void Operand_MustacheToken() {
 		// setup
-		final OperandMustacheToken<String> tokenString = new OperandMustacheToken("{{Hero}}");
-		final OperandMustacheToken<Number> tokenInteger = new OperandMustacheToken("{{integerToken}}");
-		final OperandMustacheToken<Boolean> tokenBoolean = new OperandMustacheToken("{{booleanToken}}");
+		final OperandMustacheToken<String> tokenString = new OperandMustacheToken("{{Hero}}", String.class);
+		final OperandMustacheToken<Number> tokenInteger = new OperandMustacheToken("{{integerToken}}", Number.class);
+		final OperandMustacheToken<Boolean> tokenBoolean = new OperandMustacheToken("{{booleanToken}}", Boolean.class);
 
 		// test
 		final String result1 = tokenString.resolve(defaultContext(defaultEvaluator));
@@ -46,7 +46,7 @@ public class MustacheTokenTests {
 	@Test
 	public void Operand_MustacheToken_multipleToken() {
 		// setup
-		final OperandMustacheToken<String> operand = new OperandMustacheToken("{{Beer}}{{Corona}}");
+		final OperandMustacheToken<String> operand = new OperandMustacheToken("{{Beer}}{{Corona}}", String.class);
 
 		// test
 		final Object result = operand.resolve(defaultContext(defaultEvaluator));
@@ -58,11 +58,11 @@ public class MustacheTokenTests {
 	@Test
 	public void Operand_MustacheToken_InvalidToken() {
 		// setup
-		final OperandMustacheToken<String> example1 = new OperandMustacheToken("{{Beer");
-		final OperandMustacheToken<String> example2 = new OperandMustacheToken("Beer{{Hero}}");
-		final OperandMustacheToken<String> example3 = new OperandMustacheToken("onlyString");
-		final OperandMustacheToken<String> example4 = new OperandMustacheToken("");
-		final OperandMustacheToken<String> example5 = new OperandMustacheToken(null);
+		final OperandMustacheToken<String> example1 = new OperandMustacheToken("{{Beer", String.class);
+		final OperandMustacheToken<String> example2 = new OperandMustacheToken("Beer{{Hero}}", String.class);
+		final OperandMustacheToken<String> example3 = new OperandMustacheToken("onlyString", String.class);
+		final OperandMustacheToken<String> example4 = new OperandMustacheToken("", String.class);
+		final OperandMustacheToken<String> example5 = new OperandMustacheToken(null, String.class);
 
 		// test and verify
 		assertNull(example1.resolve(defaultContext(defaultEvaluator)));
@@ -75,19 +75,19 @@ public class MustacheTokenTests {
 	@Test
 	public void Operand_WrongDataType_Token() {
 		// setup
-		final OperandMustacheToken<String> wrongToken = new OperandMustacheToken("{{booleanToken}}");
+		final OperandMustacheToken<String> wrongToken = new OperandMustacheToken("{{booleanToken}}", String.class);
 
 		// test
-		final Object result1 = wrongToken.resolve(defaultContext(defaultEvaluator));
+		final Object result = wrongToken.resolve(defaultContext(defaultEvaluator));
 
 		// verify
-		assertTrue(result1 instanceof Boolean);
+		assertNull(result);
 	}
 
 	@Test
 	public void testComparisonExpression_MustacheToken() {
 		// setup
-		final Operand lhs = new OperandMustacheToken("{{Hero}}");
+		final Operand lhs = new OperandMustacheToken("{{Hero}}", String.class);
 		final Operand rhs = new OperandLiteral("Soldier");
 
 		// test
@@ -101,7 +101,7 @@ public class MustacheTokenTests {
 	@Test
 	public void testComparisonExpression_MustacheFunction() {
 		// setup
-		final Operand lhs = new OperandMustacheToken("{{addExtraString(Beer)}}");
+		final Operand lhs = new OperandMustacheToken("{{addExtraString(Beer)}}", String.class);
 		final Operand rhs = new OperandLiteral("Corona extra");
 
 		// test
@@ -115,8 +115,8 @@ public class MustacheTokenTests {
 	@Test
 	public void testComparisonExpression_MustacheFunction_and_Token() {
 		// setup
-		final Operand lhs = new OperandMustacheToken("{{addExtraString(Beer)}}");
-		final Operand rhs = new OperandMustacheToken("{{answer}}");
+		final Operand lhs = new OperandMustacheToken("{{addExtraString(Beer)}}", String.class);
+		final Operand rhs = new OperandMustacheToken("{{answer}}", String.class);
 
 		// test
 		final ComparisonExpression expression = new ComparisonExpression(lhs, "equals", rhs);

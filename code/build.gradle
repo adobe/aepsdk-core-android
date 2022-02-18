@@ -10,6 +10,7 @@ buildscript {
         //noinspection AndroidGradlePluginVersion
         classpath 'com.android.tools.build:gradle:4.0.1'
         classpath "org.jacoco:org.jacoco.core:0.8.7"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 

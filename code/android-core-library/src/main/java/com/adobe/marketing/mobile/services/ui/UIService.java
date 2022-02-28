@@ -33,6 +33,8 @@ public interface UIService {
 
 	boolean showUrl(String url);
 
+	void setURIHandler(URIHandler uriHandler);
+
 	/**
 	 * Creates a floating button instance
 	 *

@@ -32,6 +32,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.ui.URIHandler;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -153,4 +155,23 @@ public class AndroidUIServiceTests {
 		verify(mockMessagesMonitor).displayed();
 
 	}
+
+	public void setURIHandlerUsage(){
+		ServiceProvider.getInstance().setURIHandler(new URIHandler() {
+			@Override
+			public Intent uriTarget(String uri) {
+				if (uri !=null && uri.startsWith("my_company_links_prefix")){
+					Context applicationContext = null;
+					Intent intent = new Intent(applicationContext, MyCompanyLinkHandlerClass.class);
+					return intent;
+				}
+				return null;
+			}
+		});
+	}
+
+
+}
+class MyCompanyLinkHandlerClass{
+
 }

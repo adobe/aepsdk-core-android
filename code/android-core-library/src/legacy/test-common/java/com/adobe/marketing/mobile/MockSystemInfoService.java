@@ -54,6 +54,12 @@ public class MockSystemInfoService implements SystemInfoService {
 		return applicationCacheDir;
 	}
 
+	public File applicationFilesDir;
+	@Override
+	public File getApplicationFilesDir() {
+		return applicationFilesDir;
+	}
+
 	public InputStream assetStream;
 	public Map<String, InputStream> assetStreams = new HashMap<>();
 	@Override

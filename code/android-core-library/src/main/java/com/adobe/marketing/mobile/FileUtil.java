@@ -80,4 +80,33 @@ final class FileUtil {
 	static boolean isValidDirectory(final File directory) {
 		return directory != null && directory.isDirectory() && directory.canWrite();
 	}
+
+	/**
+	 * Copies the contents from {@code src} to {@code dest}.
+	 *
+	 * @param src {@link File} from which the contents are read
+	 * @param dest {@link File} to which contents are written to
+	 * @throws IOException if {@code src} or {@code dest} is not present or it does not have read permissions
+	 */
+	static void copyFile(final File src, final File dest) throws IOException, NullPointerException{
+		final String logPrefix = "File Copy";
+		final int STREAM_READ_BUFFER_SIZE = 1024;
+
+		InputStream input = new FileInputStream(src);
+		try {
+			OutputStream output = new FileOutputStream(dest);
+			try {
+				byte[] buffer = new byte[STREAM_READ_BUFFER_SIZE];
+				int length;
+				while ((length = input.read(buffer)) != -1) {
+					output.write(buffer, 0, length);
+				}
+				Log.debug(logPrefix, "Successfully copied (%s) to (%s)", src.getCanonicalPath(), dest.getCanonicalPath());
+			} finally {
+				output.close();
+			}
+		} finally {
+			input.close();
+		}
+	}
 }

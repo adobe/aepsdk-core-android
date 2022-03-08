@@ -91,6 +91,9 @@ public class MobileCore {
 		V4ToV5Migration migrationTool = new V4ToV5Migration();
 		migrationTool.migrate();
 
+		CacheToFilesDatabaseMigration dbMigration = new CacheToFilesDatabaseMigration();
+		dbMigration.migrate();
+
 		if (core == null) {
 			synchronized (mutex) {
 				if (platformServices == null) {

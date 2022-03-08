@@ -39,9 +39,9 @@ final class SQLiteDataQueue implements DataQueue {
 	private boolean isClose = false;
 	private final Object dbMutex = new Object();
 
-	SQLiteDataQueue(final File cacheDir, final String databaseName, final SQLiteDatabaseHelper databaseHelper) {
+	SQLiteDataQueue(final File filesDir, final String databaseName, final SQLiteDatabaseHelper databaseHelper) {
 		this.databaseHelper = databaseHelper;
-		this.databasePath = new File(cacheDir, removeRelativePath(databaseName)).getPath();
+		this.databasePath = new File(filesDir, removeRelativePath(databaseName)).getPath();
 		createTableIfNotExists();
 	}
 

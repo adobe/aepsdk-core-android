@@ -33,12 +33,35 @@ public class TestUtils {
 		}
 	}
 
+	public static void deleteAllFilesInFilesDir(Context appContext) {
+		if (appContext == null) {
+			return;
+		}
+
+		File filesDir = appContext.getFilesDir();
+		File[] files = filesDir.listFiles();
+
+		if (files != null) {
+			for (File file : files) {
+				file.delete();
+			}
+		}
+	}
+
 	public static String getCacheDir(Context appContext) {
 		if (appContext == null) {
 			return null;
 		}
 
 		return appContext.getCacheDir().getPath();
+	}
+
+	public static String getFilesDir(Context appContext) {
+		if (appContext == null) {
+			return null;
+		}
+
+		return appContext.getFilesDir().getPath();
 	}
 
 	public static boolean almostEqual(long actual, long expected, long tolerance) {

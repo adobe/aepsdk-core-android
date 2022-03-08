@@ -60,14 +60,14 @@ public class AndroidDatabaseTests {
 	public void beforeEach() {
 		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 		androidDatabaseService = new AndroidDatabaseService(null);
-		androidDatabase = androidDatabaseService.openDatabase(TestUtils.getCacheDir(
+		androidDatabase = androidDatabaseService.openDatabase(TestUtils.getFilesDir(
 							  InstrumentationRegistry.getInstrumentation().getTargetContext()) + "/" +
 						  name.getMethodName());
 	}
 
 	@After
 	public void afterEach() {
-		TestUtils.deleteAllFilesInCacheDir(InstrumentationRegistry.getInstrumentation().getTargetContext());
+		TestUtils.deleteAllFilesInFilesDir(InstrumentationRegistry.getInstrumentation().getTargetContext());
 
 		if (queryResult != null) {
 			queryResult.close();

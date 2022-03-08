@@ -69,13 +69,13 @@ class AndroidDatabaseService implements DatabaseService {
 
 		final String cleanedPath = removeRelativePath(filePath);
 
-		if (this.systemInfoService != null && this.systemInfoService.getApplicationCacheDir() != null) {
+		if (this.systemInfoService != null && this.systemInfoService.getApplicationFilesDir() != null) {
 			try {
-				final String cacheDirCanonicalPath = this.systemInfoService.getApplicationCacheDir().getCanonicalPath();
+				final String filesDirCanonicalPath = this.systemInfoService.getApplicationFilesDir().getCanonicalPath();
 				final File file = new File(cleanedPath);
 				final String dbFileCanonicalPath = file.getCanonicalPath();
 
-				if (!dbFileCanonicalPath.startsWith(cacheDirCanonicalPath)) {
+				if (!dbFileCanonicalPath.startsWith(filesDirCanonicalPath)) {
 					Log.warning(TAG, "Invalid database file path (%s)", cleanedPath);
 					return null;
 				}

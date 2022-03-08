@@ -43,7 +43,7 @@ class DataQueueService implements DataQueuing {
 				dataQueue = dataQueueCache.get(databaseName);
 
 				if (dataQueue == null) {
-					final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+					final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationFilesDir();
 
 					if (cacheDir == null) {
 						MobileCore.log(LoggingMode.WARNING, LOG_TAG,

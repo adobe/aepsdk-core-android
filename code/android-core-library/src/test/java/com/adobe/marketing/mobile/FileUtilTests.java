@@ -16,7 +16,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 
+import static com.adobe.marketing.mobile.FileTestHelper.FILE_DIRECTORY;
 import static com.adobe.marketing.mobile.FileTestHelper.MOCK_CONFIG_JSON;
 import static com.adobe.marketing.mobile.FileTestHelper.MOCK_FILE_NAME;
 import static org.junit.Assert.*;
@@ -34,7 +36,7 @@ public class FileUtilTests {
 	@After
 	public void tearDown() {
 		fileTestHelper.deleteTempCacheDirectory();
-
+		fileTestHelper.deleteTempCacheDirectory(FILE_DIRECTORY);
 	}
 
 	@Test
@@ -95,5 +97,56 @@ public class FileUtilTests {
 		String content = FileUtil.readStringFromFile(fileTestHelper.placeSampleCacheDirectory("testDirectory",
 						 "testFileName"));
 		assertNull(content);
+	}
+
+	// =================================================================================================================
+	// protected void copyFile(final File src, final File dest)
+	// =================================================================================================================
+	@Test
+	public void testCopyFile_When_ValidSrcFile_And_ValidEmptyDestFile() throws Exception {
+		File src = fileTestHelper.placeSampleCacheFile();
+		File dest = fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName");
+		assertTrue(StringUtils.isNullOrEmpty(FileUtil.readStringFromFile(dest)));
+		FileUtil.copyFile(src, dest);
+		assertEquals(MOCK_CONFIG_JSON, FileUtil.readStringFromFile(dest));
+	}
+
+	@Test
+	public void testCopyFile_When_ValidSrcFile_And_ValidNonEmptyDestFile() throws Exception{
+		File src = fileTestHelper.placeSampleCacheFile();
+		File dest = fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName");
+		fileTestHelper.writeToFile(dest, "testContent");
+		assertEquals("testContent", FileUtil.readStringFromFile(dest));
+		FileUtil.copyFile(src, dest);
+		assertEquals(MOCK_CONFIG_JSON, FileUtil.readStringFromFile(dest));
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testCopyFile_When_ValidSrcFile_And_NullDestFile() throws Exception {
+		File src = fileTestHelper.placeSampleCacheFile();
+		FileUtil.copyFile(src, null);
+	}
+
+	@Test(expected = IOException.class)
+	public void testCopyFile_When_ValidSrcFile_And_InvalidDestFile() throws Exception {
+		File src = fileTestHelper.placeSampleCacheFile();
+		File dest = fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName");
+		fileTestHelper.deleteTempCacheDirectory(FILE_DIRECTORY);
+		FileUtil.copyFile(src, dest);
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void testCopyFile_When_NullSrcFile() throws Exception {
+		File src = fileTestHelper.placeSampleCacheFile();
+		File dest = fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName");
+		FileUtil.copyFile(null, dest);
+	}
+
+	@Test(expected = IOException.class)
+	public void testCopyFile_When_InvalidSrcFile() throws Exception {
+		File src = fileTestHelper.placeSampleCacheFile();
+		File dest = fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName");
+		fileTestHelper.deleteTempCacheDirectory();
+		FileUtil.copyFile(src, dest);
 	}
 }

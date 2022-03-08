@@ -71,6 +71,17 @@ class AndroidSystemInfoService implements SystemInfoService {
 	}
 
 	@Override
+	public File getApplicationFilesDir() {
+		Context context = App.getAppContext();
+
+		if (context == null) {
+			return null;
+		}
+
+		return context.getFilesDir();
+	}
+
+	@Override
 	public InputStream getAsset(String fileName) {
 		Context context = App.getAppContext();
 

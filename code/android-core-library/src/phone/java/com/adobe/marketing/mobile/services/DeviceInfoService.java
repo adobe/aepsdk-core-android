@@ -286,6 +286,17 @@ class DeviceInfoService implements DeviceInforming {
 	}
 
 	@Override
+	public File getApplicationFilesDir() {
+		final Context context = getApplicationContext();
+
+		if (context == null) {
+			return null;
+		}
+
+		return context.getFilesDir();
+	}
+
+	@Override
 	public InputStream getAsset(String fileName) {
 		final Context context = getApplicationContext();
 

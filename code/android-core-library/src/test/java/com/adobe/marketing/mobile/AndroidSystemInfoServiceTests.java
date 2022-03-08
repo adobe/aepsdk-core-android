@@ -147,6 +147,22 @@ public class AndroidSystemInfoServiceTests {
 	}
 
 	@Test
+	public void testGetApplicationFilesDir_Happy() throws Exception {
+		AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
+		File testFilesDir = new File("testFilesDir");
+		when(mockContext.getFilesDir()).thenReturn(testFilesDir);
+		assertEquals(testFilesDir, systemInfoService.getApplicationFilesDir());
+	}
+
+	@Test
+	public void testGetApplicationFilesDir_NullContext() throws Exception {
+		AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
+		App.setAppContext(null);
+		Runtime.getRuntime().gc();
+		assertNull(systemInfoService.getApplicationFilesDir());
+	}
+
+	@Test
 	public void testGetApplicationName_Happy() throws Exception {
 		AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
 		when(mockContext.getPackageName()).thenReturn("com.adobe.mobile.testPackage");

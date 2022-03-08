@@ -199,11 +199,8 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 
 		if (resolvedLhs == null || resolvedRhs == null) {
 			return false;
-		} else if (resolvedLhs >= resolvedRhs) {
-			return true;
 		}
-
-		return false;
+		return resolvedLhs >= resolvedRhs;
 	}
 
 	private boolean lesserThan(final A lhs, final  B rhs) {
@@ -212,11 +209,8 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 
 		if (resolvedLhs == null || resolvedRhs == null) {
 			return false;
-		} else if (resolvedLhs < resolvedRhs) {
-			return true;
 		}
-
-		return false;
+		return resolvedLhs < resolvedRhs;
 	}
 
 	private boolean lesserThanOrEqual(final A lhs, final  B rhs) {
@@ -225,11 +219,8 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 
 		if (resolvedLhs == null || resolvedRhs == null) {
 			return false;
-		} else if (resolvedLhs <= resolvedRhs) {
-			return true;
 		}
-
-		return false;
+		return resolvedLhs <= resolvedRhs;
 	}
 
 	private boolean contains(final A lhs, final  B rhs) {
@@ -243,9 +234,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 				rhsValue = rhsValue.toLowerCase();
 			}
 
-			if (lhsValue.contains(rhsValue)) {
-				return true;
-			}
+			return lhsValue.contains(rhsValue);
 		}
 
 		return false;

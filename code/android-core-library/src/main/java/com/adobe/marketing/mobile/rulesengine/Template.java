@@ -14,20 +14,20 @@ package com.adobe.marketing.mobile.rulesengine;
 import java.util.List;
 
 public class Template {
-	private final List<Segment> tokens;
+	private final List<Segment> segments;
 
 	public Template(final String templateString) {
-		this.tokens = TemplateParser.parse(templateString);
+		this.segments = TemplateParser.parse(templateString);
 	}
 
 	public Template(final String templateString, DelimiterPair delimiterPair) {
-		this.tokens = TemplateParser.parse(templateString, delimiterPair);
+		this.segments = TemplateParser.parse(templateString, delimiterPair);
 	}
 
 	public String render(final TokenFinder tokenFinder, final Transforming transformer) {
 		StringBuilder stringBuilder = new StringBuilder();
 
-		for (Segment eachSegment : tokens) {
+		for (Segment eachSegment : segments) {
 			stringBuilder.append(eachSegment.getContent(tokenFinder, transformer));
 		}
 

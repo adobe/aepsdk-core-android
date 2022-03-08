@@ -86,28 +86,28 @@ public class TestApp extends Application {
 		//					}
 		//				}).start();
 
-		try {
-
-
-			PackageInfo packageInfo = this.getApplicationContext().getPackageManager().getPackageInfo(
-										  this.getApplicationContext().getPackageName(), 0);
-			Method method = packageInfo.getClass().getDeclaredMethod("getLongVersionCode");
-			Long reflectVer = (Long)method.invoke(packageInfo);
-			Log.d("X", "********" + (reflectVer & 0x00000000ffffffff));
-
-			long version = this.getApplicationContext().getPackageManager().getPackageInfo(
-							   this.getApplicationContext().getPackageName(), 0).getLongVersionCode();
-			int versionCodeMajor = (int)(version >> 32);
-			int versionCode = (int)version;
-			Log.d("X", "-----" + this.getApplicationContext().getPackageManager().getPackageInfo(
-					  this.getApplicationContext().getPackageName(), 0).versionCode);
-			Log.d("X", "!!!!!!!!" + (version >> 32));
-			Log.d("X", "++++++" + (version & 0x00000000ffffffff));
-
-		} catch (PackageManager.NameNotFoundException | NoSuchMethodException | IllegalAccessException |
-					 InvocationTargetException e) {
-			e.printStackTrace();
-		}
+//		try {
+//
+//
+//			PackageInfo packageInfo = this.getApplicationContext().getPackageManager().getPackageInfo(
+//										  this.getApplicationContext().getPackageName(), 0);
+//			Method method = packageInfo.getClass().getDeclaredMethod("getLongVersionCode");
+//			Long reflectVer = (Long)method.invoke(packageInfo);
+//			Log.d("X", "********" + (reflectVer & 0x00000000ffffffff));
+//
+//			long version = this.getApplicationContext().getPackageManager().getPackageInfo(
+//							   this.getApplicationContext().getPackageName(), 0).getLongVersionCode();
+//			int versionCodeMajor = (int)(version >> 32);
+//			int versionCode = (int)version;
+//			Log.d("X", "-----" + this.getApplicationContext().getPackageManager().getPackageInfo(
+//					  this.getApplicationContext().getPackageName(), 0).versionCode);
+//			Log.d("X", "!!!!!!!!" + (version >> 32));
+//			Log.d("X", "++++++" + (version & 0x00000000ffffffff));
+//
+//		} catch (PackageManager.NameNotFoundException | NoSuchMethodException | IllegalAccessException |
+//					 InvocationTargetException e) {
+//			e.printStackTrace();
+//		}
 
 
 

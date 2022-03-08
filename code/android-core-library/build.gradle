@@ -110,6 +110,7 @@ apply from: 'release.gradle'
 dependencies {
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:27.1.1'
+    //noinspection GradleDependency
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     // unit tests
     testImplementation "junit:junit:4.13.2"
@@ -124,8 +125,4 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     // instrumentation tests
     androidTestImplementation "com.android.support.test:rules:1.0.2"
-}
-
-repositories {
-    mavenCentral()
 }

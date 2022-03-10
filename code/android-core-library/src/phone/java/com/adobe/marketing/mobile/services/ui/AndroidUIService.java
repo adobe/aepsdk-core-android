@@ -48,6 +48,7 @@ public class AndroidUIService implements UIService {
 	public static final int NOTIFICATION_SENDER_CODE = 750183;
 	public static final String NOTIFICATION_REQUEST_CODE_KEY = "NOTIFICATION_REQUEST_CODE";
 	public static final String NOTIFICATION_TITLE = "NOTIFICATION_TITLE";
+	private URIHandler uriHandler;
 
 	MessagesMonitor messagesMonitor = MessagesMonitor.getInstance();
 
@@ -255,6 +256,11 @@ public class AndroidUIService implements UIService {
 		return false;
 	}
 
+	@Override
+	public void setURIHandler(URIHandler uriHandler){
+		this.uriHandler = uriHandler;
+	}
+
 	/**
 	 * Creates a new instance of an {@code Intent} with its {@code data} set to the {@code URI} parsed from the {@code url} passed in.
 	 * @param url The {@link String} url that needs to be set as data.
@@ -263,8 +269,23 @@ public class AndroidUIService implements UIService {
 	 * @throws NullPointerException If the url is null
 	 */
 	protected Intent getIntentWithUrl(String url) {
-		final Intent intent = new Intent(Intent.ACTION_VIEW);
-		intent.setData(Uri.parse(url));
+		return this.getIntentWithURI(url);
+	}
+
+	@Override
+	public Intent getIntentWithURI(String uri) {
+		URIHandler handler = this.uriHandler;
+		Intent intent = null;
+		if (handler != null){
+			intent = handler.getURIDestination(uri);
+			if (intent == null){
+				MobileCore.log(LoggingMode.DEBUG, LOG_TAG,  String.format("%s is not handled with a custom Intent, use SDK's default Intent instead.", uri));
+			}
+		}
+		if (intent == null){
+			intent = new Intent(Intent.ACTION_VIEW);
+			intent.setData(Uri.parse(uri));
+		}
 		return intent;
 	}
 

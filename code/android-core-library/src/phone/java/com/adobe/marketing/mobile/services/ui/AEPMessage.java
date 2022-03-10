@@ -198,8 +198,7 @@ public class AEPMessage implements FullscreenMessage {
 		}
 
 		try {
-			final Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setData(Uri.parse(url));
+			final Intent intent = ServiceProvider.getInstance().getUIService().getIntentWithURI(url);
 			App.getInstance().getCurrentActivity().startActivity(intent);
 		} catch (final NullPointerException ex) {
 			MobileCore.log(LoggingMode.WARNING, TAG, "Could not open the url from the message " + ex.getMessage());

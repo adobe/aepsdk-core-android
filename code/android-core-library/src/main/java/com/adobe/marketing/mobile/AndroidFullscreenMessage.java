@@ -34,6 +34,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import com.adobe.marketing.mobile.internal.context.App;
 
@@ -127,8 +128,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
 	@Override
 	public void openUrl(final String url) {
 		try {
-			final Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setData(Uri.parse(url));
+			final Intent intent = ServiceProvider.getInstance().getUIService().getIntentWithURI(url);
 
 			if (messageFullScreenActivity != null) {
 				messageFullScreenActivity.startActivity(intent);

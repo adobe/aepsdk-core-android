@@ -16,6 +16,7 @@ import android.content.Context;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 import com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate;
 import com.adobe.marketing.mobile.services.ui.UIService;
+import com.adobe.marketing.mobile.services.ui.URIHandler;
 
 import java.lang.ref.WeakReference;
 
@@ -157,6 +158,14 @@ public class ServiceProvider {
 	 */
 	public void setMessageDelegate(final FullscreenMessageDelegate messageDelegate) {
 		this.messageDelegate = messageDelegate;
+	}
+
+	/**
+	 * Provides an {@link URIHandler} to decide the destination of the given URI
+	 * @param uriHandler An {@link URIHandler} instance used to decide the Android link's destination
+	 */
+	public void setURIHandler(URIHandler uriHandler){
+		this.getUIService().setURIHandler(uriHandler);
 	}
 
 	/**

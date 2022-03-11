@@ -246,7 +246,7 @@ public class AndroidUIService implements UIService {
 		}
 
 		try {
-			final Intent intent = getIntentWithUrl(url);
+			final Intent intent = getIntentWithURI(url);
 			currentActivity.startActivity(intent);
 			return true;
 		} catch (Exception ex) {
@@ -259,17 +259,6 @@ public class AndroidUIService implements UIService {
 	@Override
 	public void setURIHandler(URIHandler uriHandler){
 		this.uriHandler = uriHandler;
-	}
-
-	/**
-	 * Creates a new instance of an {@code Intent} with its {@code data} set to the {@code URI} parsed from the {@code url} passed in.
-	 * @param url The {@link String} url that needs to be set as data.
-	 * @return A new instance of an {@link Intent}
-	 *
-	 * @throws NullPointerException If the url is null
-	 */
-	protected Intent getIntentWithUrl(String url) {
-		return this.getIntentWithURI(url);
 	}
 
 	@Override

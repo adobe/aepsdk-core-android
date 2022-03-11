@@ -351,7 +351,7 @@ public class AndroidUIServiceTests {
 		doNothing().when(mockActivity).startActivity(intentArgumentCaptor.capture());
 
 		AndroidUIService spyUIService = spy(new AndroidUIService());
-		doReturn(mockIntent).when(spyUIService).getIntentWithUrl("myappscheme://host");
+		doReturn(mockIntent).when(spyUIService).getIntentWithURI("myappscheme://host");
 		//test
 		spyUIService.showUrl("myappscheme://host");
 		//verify
@@ -366,7 +366,7 @@ public class AndroidUIServiceTests {
 
 		appContextProvider.setContext(mockContext);
 		AndroidUIService spyUIService = spy(new AndroidUIService());
-		doReturn(mockIntent).when(spyUIService).getIntentWithUrl(anyString());
+		doReturn(mockIntent).when(spyUIService).getIntentWithURI(anyString());
 		//test
 		spyUIService.showUrl(null);
 		//verify

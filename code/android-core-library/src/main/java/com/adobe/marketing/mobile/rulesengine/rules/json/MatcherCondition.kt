@@ -11,10 +11,7 @@
 
 package com.adobe.marketing.mobile.rulesengine.rules.json
 
-import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
-import com.adobe.marketing.mobile.rulesengine.Evaluable
-import com.adobe.marketing.mobile.rulesengine.OperandLiteral
-import com.adobe.marketing.mobile.rulesengine.OperandMustacheToken
+import com.adobe.marketing.mobile.rulesengine.*
 
 internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition() {
 
@@ -45,7 +42,10 @@ internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition(
         return when (values.size) {
             0 -> convert(definition.key, definition.matcher, "")
             1 -> convert(definition.key, definition.matcher, values[0])
-            in 1..Int.MAX_VALUE -> convert(definition.key, definition.matcher, values[0])
+            in 1..Int.MAX_VALUE -> {
+                val operands = values.map { convert(definition.key, definition.matcher, it) }
+                if (operands.isEmpty()) null else LogicalExpression(operands, "or")
+            }
             else -> null
         }
     }

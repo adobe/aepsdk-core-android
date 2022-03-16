@@ -13,4 +13,4 @@ package com.adobe.marketing.mobile.rulesengine.rules
 
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 
-data class LaunchRule(val condition: Evaluable, val consequence: List<RuleConsequence>)
+data class LaunchRule(val condition: Evaluable, val consequenceList: List<RuleConsequence>)

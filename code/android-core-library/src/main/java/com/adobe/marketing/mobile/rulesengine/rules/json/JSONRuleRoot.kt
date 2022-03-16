@@ -12,26 +12,31 @@
 package com.adobe.marketing.mobile.rulesengine.rules.json
 
 import com.adobe.marketing.mobile.rulesengine.rules.LaunchRule
+import org.json.JSONArray
 import org.json.JSONObject
 
-internal class JSONRuleRoot private constructor(val jsonObject: JSONObject) {
+internal class JSONRuleRoot private constructor(val version: String, val jsonArray: JSONArray) {
     companion object {
         private const val KEY_VERSION = "version"
         private const val KEY_RULES = "rules"
         operator fun invoke(jsonObject: JSONObject): JSONRuleRoot? {
-            jsonObject?.let {
-                if (it.has(KEY_VERSION) && (it.optString(KEY_RULES) != null) && it.has(KEY_RULES) && (it.optJSONArray(
-                        KEY_RULES
-                    ) != null)
-                ) {
-                    return JSONRuleRoot(jsonObject)
-                }
-            }
-            return null
+            val version = jsonObject.optString(KEY_VERSION, "0")
+            val rules = jsonObject.optJSONArray(KEY_RULES)
+            if (rules !is JSONArray) return null
+            return JSONRuleRoot(version, rules)
         }
     }
 
-    fun toLaunchRules(): List<LaunchRule> {
-        return listOf()
+    fun toLaunchRules(): List<LaunchRule>? {
+        try {
+            val launchRules = (0 until jsonArray.length()).associate {
+                val launchRule = JSONRule(jsonArray.getJSONObject(it))?.toLaunchRule()
+                Pair(it, launchRule)
+            }.filterValues { it != null }.values.toList() as? List<LaunchRule>
+            return launchRules
+        } catch (e: Exception) {
+            //TODO: logging error
+        }
+        return null
     }
 }

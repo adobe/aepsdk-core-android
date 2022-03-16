@@ -12,12 +12,28 @@
 package com.adobe.marketing.mobile.rulesengine.rules.json
 
 import com.adobe.marketing.mobile.rulesengine.Evaluable
-import org.json.JSONObject
+import com.adobe.marketing.mobile.rulesengine.LogicalExpression
+import java.util.*
 
 internal class GroupCondition(val definition: JSONDefinition) : JSONCondition() {
+    companion object {
+        private val LOGICAL_OPERATORS = listOf("or", "and")
+
+    }
 
     override fun toEvaluable(): Evaluable? {
-        TODO("Not yet implemented")
+
+        if (definition.logic !is String || definition.conditions !is List<*> || definition.conditions.isEmpty()) {
+            return null
+        }
+        val logicalOperator = definition.logic.toLowerCase(Locale.ROOT)
+
+        if (logicalOperator !in LOGICAL_OPERATORS) {
+            //TODO: logging error
+            return null
+        }
+        val evaluableList = definition.conditions.map { it.toEvaluable() }
+        return LogicalExpression(evaluableList, logicalOperator)
     }
 
 }

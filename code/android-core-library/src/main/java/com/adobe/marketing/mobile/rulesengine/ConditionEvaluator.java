@@ -13,7 +13,6 @@
 package com.adobe.marketing.mobile.rulesengine;
 import java.util.regex.Pattern;
 
-
 public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 	private final Option option;
 	private  static final String OPERATOR_EQUALS                 = "equals";

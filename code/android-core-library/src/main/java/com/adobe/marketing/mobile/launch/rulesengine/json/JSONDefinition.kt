@@ -10,6 +10,12 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.internal.utility.map
+import com.adobe.marketing.mobile.internal.utility.toMap
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+
 internal data class JSONDefinition(
     val logic: String?,
     val conditions: List<JSONCondition>?,
@@ -21,4 +27,66 @@ internal data class JSONDefinition(
     val from: Int?,
     val to: Int?,
     val searchType: String?,
-)
+) {
+    companion object {
+        private const val DEFINITION_KEY_LOGIC = "logic"
+        private const val DEFINITION_KEY_CONDITIONS = "conditions"
+        private const val DEFINITION_KEY_KEY = "key"
+        private const val DEFINITION_KEY_MATCHER = "matcher"
+        private const val DEFINITION_KEY_VALUES = "values"
+        private const val DEFINITION_KEY_EVENTS = "events"
+        private const val DEFINITION_KEY_VALUE = "value"
+        private const val DEFINITION_KEY_FROM = "from"
+        private const val DEFINITION_KEY_TO = "to"
+        private const val DEFINITION_KEY_SEARCH_TYPE = "searchType"
+
+        @JvmSynthetic
+        internal fun buildDefinitionFromJSON(jsonObject: JSONObject): JSONDefinition {
+            val logic = jsonObject.opt(DEFINITION_KEY_LOGIC) as? String
+            val conditions =
+                buildConditionList(jsonObject.optJSONArray(DEFINITION_KEY_CONDITIONS))
+            val key = jsonObject.opt(DEFINITION_KEY_KEY) as? String
+            val matcher = jsonObject.opt(DEFINITION_KEY_MATCHER) as? String
+            val values =
+                buildAnyList(jsonObject.optJSONArray(DEFINITION_KEY_VALUES))
+            val events =
+                buildMapList(jsonObject.optJSONArray(DEFINITION_KEY_EVENTS))
+            val value = jsonObject.opt(DEFINITION_KEY_VALUE)
+            val from = jsonObject.opt(DEFINITION_KEY_FROM) as? Int
+            val to = jsonObject.opt(DEFINITION_KEY_TO) as? Int
+            val searchType = jsonObject.opt(DEFINITION_KEY_SEARCH_TYPE) as? String
+            return JSONDefinition(
+                logic,
+                conditions,
+                key,
+                matcher,
+                values,
+                events,
+                value,
+                from,
+                to,
+                searchType
+            )
+        }
+
+        private fun buildConditionList(jsonArray: JSONArray?): List<JSONCondition>? {
+            return jsonArray?.map {
+                JSONCondition.build(it as? JSONObject)
+                    ?: throw JSONException("Unsupported [rule.condition] JSON format: $it ")
+            }
+        }
+
+        private fun buildAnyList(jsonArray: JSONArray?): List<Any?>? {
+            return jsonArray?.map { it }
+        }
+
+        private fun buildMapList(jsonArray: JSONArray?): List<Map<String, Any?>>? {
+            return jsonArray?.map {
+                (it as? JSONObject)?.toMap()
+                    ?: throw JSONException("Unsupported [rule.condition.historical.events] JSON format: $it ")
+            }
+        }
+
+    }
+}
+

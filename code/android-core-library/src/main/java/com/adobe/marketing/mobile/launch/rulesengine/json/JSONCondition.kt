@@ -13,11 +13,7 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.utility.map
-import com.adobe.marketing.mobile.internal.utility.toMap
 import com.adobe.marketing.mobile.rulesengine.Evaluable
-import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 
 internal abstract class JSONCondition {
@@ -29,16 +25,6 @@ internal abstract class JSONCondition {
         private const val TYPE_VALUE_GROUP = "group"
         private const val TYPE_VALUE_MATCHER = "matcher"
         private const val TYPE_VALUE_HISTORICAL = "historical"
-        private const val DEFINITION_KEY_LOGIC = "logic"
-        private const val DEFINITION_KEY_CONDITIONS = "conditions"
-        private const val DEFINITION_KEY_KEY = "key"
-        private const val DEFINITION_KEY_MATCHER = "matcher"
-        private const val DEFINITION_KEY_VALUES = "values"
-        private const val DEFINITION_KEY_EVENTS = "events"
-        private const val DEFINITION_KEY_VALUE = "value"
-        private const val DEFINITION_KEY_FROM = "from"
-        private const val DEFINITION_KEY_TO = "to"
-        private const val DEFINITION_KEY_SEARCH_TYPE = "searchType"
 
         @JvmSynthetic
         internal fun build(jsonCondition: JSONObject?): JSONCondition? {
@@ -46,21 +32,25 @@ internal abstract class JSONCondition {
             return try {
                 when (val type = jsonCondition.getString(KEY_TYPE)) {
                     TYPE_VALUE_GROUP -> GroupCondition(
-                        buildDefinition(
+                        JSONDefinition.buildDefinitionFromJSON(
                             jsonCondition.getJSONObject(
                                 KEY_DEFINITION
                             )
                         )
                     )
                     TYPE_VALUE_MATCHER -> MatcherCondition(
-                        buildDefinition(
+                        JSONDefinition.buildDefinitionFromJSON(
                             jsonCondition.getJSONObject(
                                 KEY_DEFINITION
                             )
                         )
                     )
                     TYPE_VALUE_HISTORICAL -> HistoricalCondition(
-                        buildDefinition(jsonCondition.getJSONObject(KEY_DEFINITION))
+                        JSONDefinition.buildDefinitionFromJSON(
+                            jsonCondition.getJSONObject(
+                                KEY_DEFINITION
+                            )
+                        )
                     )
                     else -> {
                         MobileCore.log(
@@ -79,50 +69,6 @@ internal abstract class JSONCondition {
                 )
                 null
             }
-        }
-
-        private fun buildConditionList(jsonArray: JSONArray?): List<JSONCondition>? {
-            return jsonArray?.map {
-                build(it as? JSONObject)
-                    ?: throw JSONException("Unsupported [rule.condition] JSON format: $it ")
-            }
-        }
-
-        private fun buildAnyList(jsonArray: JSONArray?): List<Any?>? {
-            return jsonArray?.map { it }
-        }
-
-        private fun buildMapList(jsonArray: JSONArray?): List<Map<String, Any?>>? {
-            return jsonArray?.map {
-                (it as? JSONObject)?.toMap()
-                    ?: throw JSONException("Unsupported [rule.condition.historical.events] JSON format: $it ")
-            }
-        }
-
-        private fun buildDefinition(jsonObject: JSONObject): JSONDefinition {
-
-            val logic = jsonObject.opt(DEFINITION_KEY_LOGIC) as? String
-            val conditions = buildConditionList(jsonObject.optJSONArray(DEFINITION_KEY_CONDITIONS))
-            val key = jsonObject.opt(DEFINITION_KEY_KEY) as? String
-            val matcher = jsonObject.opt(DEFINITION_KEY_MATCHER) as? String
-            val values = buildAnyList(jsonObject.optJSONArray(DEFINITION_KEY_VALUES))
-            val events = buildMapList(jsonObject.optJSONArray(DEFINITION_KEY_EVENTS))
-            val value = jsonObject.opt(DEFINITION_KEY_VALUE)
-            val from = jsonObject.opt(DEFINITION_KEY_FROM) as? Int
-            val to = jsonObject.opt(DEFINITION_KEY_TO) as? Int
-            val searchType = jsonObject.opt(DEFINITION_KEY_SEARCH_TYPE) as? String
-            return JSONDefinition(
-                logic,
-                conditions,
-                key,
-                matcher,
-                values,
-                events,
-                value,
-                from,
-                to,
-                searchType
-            )
         }
     }
 

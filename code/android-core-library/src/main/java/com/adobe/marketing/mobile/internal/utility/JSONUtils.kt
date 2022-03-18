@@ -36,7 +36,7 @@ internal fun JSONObject.toMap(): Map<String, Any?> {
 }
 
 @JvmSynthetic
-internal fun JSONArray.toList(): List<Any?>? {
+internal fun JSONArray.toList(): List<Any?> {
     val list = mutableListOf<Any?>()
     (0 until this.length()).forEach { index ->
         when (val value = this.get(index)) {

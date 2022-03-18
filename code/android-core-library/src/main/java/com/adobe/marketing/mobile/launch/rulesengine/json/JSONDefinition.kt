@@ -8,14 +8,17 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.rulesengine.rules.json
+package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import com.adobe.marketing.mobile.rulesengine.Evaluable
-import org.json.JSONObject
-
-internal class HistoricalCondition(val definition: JSONDefinition) : JSONCondition() {
-
-    override fun toEvaluable(): Evaluable? {
-        TODO("Not yet implemented")
-    }
-}
+internal data class JSONDefinition(
+    val logic: String?,
+    val conditions: List<JSONCondition>?,
+    val key: String?,
+    val matcher: String?,
+    val values: List<Any?>?,
+    val events: List<Map<String, Any?>>?,
+    val value: Any?,
+    val from: Int?,
+    val to: Int?,
+    val searchType: String?,
+)

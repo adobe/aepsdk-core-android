@@ -9,24 +9,8 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.rulesengine.rules.json
+package com.adobe.marketing.mobile.launch.rulesengine
 
-import org.junit.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import com.adobe.marketing.mobile.rulesengine.Evaluable
 
-class JSONRulesParserTests {
-    @Test
-    fun testEmptyJson(){
-        val result = JSONRulesParser.parse("")
-        assertNotNull(result)
-        assertTrue(result.isEmpty())
-    }
-    @Test
-    fun testNullJson(){
-        val result = JSONRulesParser.parse(null)
-        assertNotNull(result)
-        assertTrue(result.isEmpty())
-    }
-
-}
+data class LaunchRule(val condition: Evaluable, val consequenceList: List<RuleConsequence>)

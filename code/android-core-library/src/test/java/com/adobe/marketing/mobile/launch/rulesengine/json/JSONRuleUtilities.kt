@@ -8,9 +8,20 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
+package com.adobe.marketing.mobile.launch.rulesengine.json
 
-package com.adobe.marketing.mobile.rulesengine.rules
+import org.json.JSONArray
+import org.json.JSONObject
+import org.json.JSONTokener
 
-import com.adobe.marketing.mobile.rulesengine.Evaluable
+internal fun buildJSONObject(jsonObject: String): JSONObject {
+    val jsonObj = JSONTokener(jsonObject).nextValue() as? JSONObject
+    if (jsonObj !is JSONObject) throw IllegalArgumentException()
+    return jsonObj
+}
 
-data class LaunchRule(val condition: Evaluable, val consequenceList: List<RuleConsequence>)
+internal fun buildJSONArray(jsonArray: String): JSONArray {
+    val jsonAry = JSONTokener(jsonArray).nextValue() as? JSONArray
+    if (jsonAry !is JSONArray) throw IllegalArgumentException()
+    return jsonAry
+}

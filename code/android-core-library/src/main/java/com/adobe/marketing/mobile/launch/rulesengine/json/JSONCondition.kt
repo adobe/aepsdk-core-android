@@ -9,15 +9,21 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.rulesengine.rules.json
+package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.utility.map
+import com.adobe.marketing.mobile.internal.utility.toMap
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 
 internal abstract class JSONCondition {
 
     companion object {
+        private const val LOG_TAG = "JSONCondition"
         private const val KEY_TYPE = "type"
         private const val KEY_DEFINITION = "definition"
         private const val TYPE_VALUE_GROUP = "group"
@@ -34,50 +40,63 @@ internal abstract class JSONCondition {
         private const val DEFINITION_KEY_TO = "to"
         private const val DEFINITION_KEY_SEARCH_TYPE = "searchType"
 
-        fun build(jsonObject: JSONObject): JSONCondition? {
+        @JvmSynthetic
+        internal fun build(jsonCondition: JSONObject?): JSONCondition? {
+            if (jsonCondition !is JSONObject) return null
             return try {
-                when (jsonObject.getString(KEY_TYPE)) {
+                when (val type = jsonCondition.getString(KEY_TYPE)) {
                     TYPE_VALUE_GROUP -> GroupCondition(
                         buildDefinition(
-                            jsonObject.getJSONObject(
+                            jsonCondition.getJSONObject(
                                 KEY_DEFINITION
                             )
                         )
                     )
                     TYPE_VALUE_MATCHER -> MatcherCondition(
                         buildDefinition(
-                            jsonObject.getJSONObject(
+                            jsonCondition.getJSONObject(
                                 KEY_DEFINITION
                             )
                         )
                     )
                     TYPE_VALUE_HISTORICAL -> HistoricalCondition(
-                        buildDefinition(jsonObject.getJSONObject(KEY_DEFINITION))
+                        buildDefinition(jsonCondition.getJSONObject(KEY_DEFINITION))
                     )
                     else -> {
-                        //TODO: logging error
+                        MobileCore.log(
+                            LoggingMode.ERROR,
+                            LOG_TAG,
+                            "Unsupported condition type - $type"
+                        )
                         null
                     }
                 }
             } catch (e: Exception) {
-                //TODO: logging error
+                MobileCore.log(
+                    LoggingMode.ERROR,
+                    LOG_TAG,
+                    "Failed to parse [rule.condition] JSON, the error is: ${e.message}"
+                )
                 null
             }
         }
 
         private fun buildConditionList(jsonArray: JSONArray?): List<JSONCondition>? {
-            //TODO:
-            return null
+            return jsonArray?.map {
+                build(it as? JSONObject)
+                    ?: throw JSONException("Unsupported [rule.condition] JSON format: $it ")
+            }
         }
 
         private fun buildAnyList(jsonArray: JSONArray?): List<Any?>? {
-            //TODO:
-            return null
+            return jsonArray?.map { it }
         }
 
         private fun buildMapList(jsonArray: JSONArray?): List<Map<String, Any?>>? {
-            //TODO:
-            return null
+            return jsonArray?.map {
+                (it as? JSONObject)?.toMap()
+                    ?: throw JSONException("Unsupported [rule.condition.historical.events] JSON format: $it ")
+            }
         }
 
         private fun buildDefinition(jsonObject: JSONObject): JSONDefinition {
@@ -107,6 +126,7 @@ internal abstract class JSONCondition {
         }
     }
 
+    @JvmSynthetic
     abstract fun toEvaluable(): Evaluable?
 }
 

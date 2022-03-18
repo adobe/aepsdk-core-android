@@ -9,34 +9,39 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.rulesengine.rules.json
+package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import com.adobe.marketing.mobile.rulesengine.rules.LaunchRule
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.utility.map
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
 import org.json.JSONArray
 import org.json.JSONObject
 
 internal class JSONRuleRoot private constructor(val version: String, val jsonArray: JSONArray) {
     companion object {
+        private const val LOG_TAG = "JSONRuleRoot"
         private const val KEY_VERSION = "version"
         private const val KEY_RULES = "rules"
         operator fun invoke(jsonObject: JSONObject): JSONRuleRoot? {
             val version = jsonObject.optString(KEY_VERSION, "0")
             val rules = jsonObject.optJSONArray(KEY_RULES)
-            if (rules !is JSONArray) return null
+            if (rules !is JSONArray) {
+                MobileCore.log(
+                    LoggingMode.ERROR,
+                    LOG_TAG,
+                    "Failed to extract [launch_json.rules]"
+                )
+                return null
+            }
             return JSONRuleRoot(version, rules)
         }
     }
 
-    fun toLaunchRules(): List<LaunchRule>? {
-        try {
-            val launchRules = (0 until jsonArray.length()).associate {
-                val launchRule = JSONRule(jsonArray.getJSONObject(it))?.toLaunchRule()
-                Pair(it, launchRule)
-            }.filterValues { it != null }.values.toList() as? List<LaunchRule>
-            return launchRules
-        } catch (e: Exception) {
-            //TODO: logging error
+    @JvmSynthetic
+    fun toLaunchRules(): List<LaunchRule> {
+        return jsonArray.map {
+            JSONRule(it as? JSONObject)?.toLaunchRule() ?: throw Exception()
         }
-        return null
     }
 }

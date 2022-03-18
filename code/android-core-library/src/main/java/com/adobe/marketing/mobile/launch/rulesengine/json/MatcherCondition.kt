@@ -9,13 +9,17 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.rulesengine.rules.json
+package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.rulesengine.*
 
 internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition() {
 
     companion object {
+        private const val LOG_TAG = "MatcherCondition"
+        private const val OPERATION_NAME_OR = "or"
         private val MATCHER_MAPPING = mapOf(
             "eq" to "equals",
             "ne" to "notEquals",
@@ -32,19 +36,23 @@ internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition(
         )
     }
 
+    @JvmSynthetic
     override fun toEvaluable(): Evaluable? {
         if (definition.matcher !is String || definition.key !is String) {
-            //TODO: logging error
+            MobileCore.log(
+                LoggingMode.ERROR,
+                LOG_TAG,
+                "[key] or [matcher] is not String, failed to build Evaluable from definition JSON: \n $definition"
+            )
             return null
         }
-        // || definition.values !is List<*>
         val values: List<Any?> = definition.values ?: listOf()
         return when (values.size) {
             0 -> convert(definition.key, definition.matcher, "")
             1 -> convert(definition.key, definition.matcher, values[0])
             in 1..Int.MAX_VALUE -> {
                 val operands = values.map { convert(definition.key, definition.matcher, it) }
-                if (operands.isEmpty()) null else LogicalExpression(operands, "or")
+                if (operands.isEmpty()) null else LogicalExpression(operands, OPERATION_NAME_OR)
             }
             else -> null
         }
@@ -53,33 +61,37 @@ internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition(
     private fun convert(key: String, matcher: String, value: Any?): Evaluable? {
         val operationName = MATCHER_MAPPING[matcher]
         if (operationName !is String) {
-            //TODO: logging error
+            MobileCore.log(
+                LoggingMode.ERROR,
+                LOG_TAG,
+                "Failed to build Evaluable from [type:matcher] json, [definition.matcher = $matcher] is not supported."
+            )
             return null
         }
         return when (value) {
             is String -> ComparisonExpression(
-                //TODO: ?????
-                OperandMustacheToken("{{$key}}", String.javaClass),
+                OperandMustacheToken("{{$key}}", String::class.java),
                 operationName,
                 OperandLiteral(value)
             )
             is Int -> ComparisonExpression(
-                OperandMustacheToken("{{$key}}", Int.javaClass),
+                OperandMustacheToken("{{$key}}", Number::class.java),
                 operationName,
                 OperandLiteral(value)
             )
             is Double -> ComparisonExpression(
-                OperandMustacheToken("{{$key}}", Double.javaClass),
+                OperandMustacheToken("{{$key}}", Number::class.java),
                 operationName,
                 OperandLiteral(value)
             )
             is Boolean -> ComparisonExpression(
-                OperandMustacheToken("{{$key}}", Boolean.javaClass),
+                //note: Kotlin.Boolean is not mapped to java.lang.Boolean correctly
+                OperandMustacheToken("{{$key}}", java.lang.Boolean::class.java),
                 operationName,
                 OperandLiteral(value)
             )
             is Float -> ComparisonExpression(
-                OperandMustacheToken("{{$key}}", Float.javaClass),
+                OperandMustacheToken("{{$key}}", Number::class.java),
                 operationName,
                 OperandLiteral(value)
             )

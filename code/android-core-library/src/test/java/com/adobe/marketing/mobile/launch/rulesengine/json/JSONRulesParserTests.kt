@@ -9,29 +9,27 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.rulesengine.rules.json
+package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import com.adobe.marketing.mobile.rulesengine.rules.LaunchRule
-import org.json.JSONException
-import org.json.JSONObject
-import org.json.JSONTokener
+import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
-internal object JSONRulesParser {
-    @JvmStatic
-    fun parse(jsonString: String?): List<LaunchRule> {
-        try {
-            val jsonObject = JSONTokener(jsonString).nextValue() as? JSONObject
-            jsonObject?.let {
-//                return JSONRules(it)?.toLaunchRules()
-            }
-        } catch (e: JSONException) {
-
-        } catch (e: Throwable) {
-
-        }
-        return listOf()
+class JSONRulesParserTests {
+    @Test
+    fun testBadJSONFormat() {
+        val result = JSONRulesParser.parse("")
+        assertNull(result)
     }
+
+    @Test
+    fun testNormal() {
+        val fileTxt = this::class.java.classLoader.getResource("rules_parser/launch_rule_root.json")
+            .readText()
+        val result = JSONRulesParser.parse(fileTxt)
+        assertNotNull(result)
+        assertEquals(1, result.size)
+    }
+
 }
-
-
-

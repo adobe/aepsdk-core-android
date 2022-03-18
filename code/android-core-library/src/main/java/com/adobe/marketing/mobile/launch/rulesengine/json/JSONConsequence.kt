@@ -9,11 +9,14 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.rulesengine.rules.json
+//@file:JvmSynthetic
+//TODO: Kotlin 1.5 starts to support FILE target for JvmSynthetic annotation
 
-import com.adobe.marketing.mobile.rulesengine.rules.RuleConsequence
+package com.adobe.marketing.mobile.launch.rulesengine.json
+
+import com.adobe.marketing.mobile.internal.utility.toMap
+import com.adobe.marketing.mobile.launch.rulesengine.RuleConsequence
 import org.json.JSONObject
-import java.lang.Exception
 
 internal class JSONConsequence private constructor(
     private val id: String,
@@ -24,21 +27,18 @@ internal class JSONConsequence private constructor(
         private const val KEY_ID = "id"
         private const val KEY_TYPE = "type"
         private const val KEY_DETAIL = "detail"
-        operator fun invoke(jsonObject: JSONObject): JSONConsequence? {
-            return try {
-                JSONConsequence(
-                    jsonObject.optString(KEY_ID),
-                    jsonObject.optString(KEY_TYPE),
-                    JSONUtils.jsonObjectToMap(jsonObject.optJSONObject(KEY_DETAIL))
-                )
-            } catch (e: Exception) {
-                //TODO: logging error
-                null
-            }
+        operator fun invoke(jsonObject: JSONObject?): JSONConsequence? {
+            if (jsonObject !is JSONObject) return null
+            return JSONConsequence(
+                jsonObject.optString(KEY_ID),
+                jsonObject.optString(KEY_TYPE),
+                jsonObject.optJSONObject(KEY_DETAIL)?.toMap()
+            )
         }
     }
 
-    fun toRuleConsequences(): RuleConsequence {
+    @JvmSynthetic
+    internal fun toRuleConsequence(): RuleConsequence {
         return RuleConsequence(this.id, this.type, this.detail)
     }
 }

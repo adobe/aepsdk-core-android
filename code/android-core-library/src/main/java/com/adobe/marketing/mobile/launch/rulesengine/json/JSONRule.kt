@@ -9,11 +9,13 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.rulesengine.rules.json
+package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.utility.map
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
 import com.adobe.marketing.mobile.rulesengine.Evaluable
-import com.adobe.marketing.mobile.rulesengine.rules.LaunchRule
-import com.adobe.marketing.mobile.rulesengine.rules.RuleConsequence
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -22,26 +24,43 @@ internal class JSONRule private constructor(
     val consequences: JSONArray
 ) {
     companion object {
+
+        private const val LOG_TAG = "JSONRule"
         private const val KEY_CONDITION = "condition"
         private const val KEY_CONSEQUENCES = "consequences"
-        operator fun invoke(jsonObject: JSONObject): JSONRule? {
+
+        operator fun invoke(jsonObject: JSONObject?): JSONRule? {
+            if (jsonObject !is JSONObject) return null
             val condition = jsonObject.getJSONObject(KEY_CONDITION)
             val consequences = jsonObject.getJSONArray(KEY_CONSEQUENCES)
-            if (condition !is JSONObject || consequences !is JSONArray) return null
-
+            if (condition !is JSONObject || consequences !is JSONArray) {
+                MobileCore.log(
+                    LoggingMode.ERROR,
+                    LOG_TAG,
+                    "Failed to extract [rule.condition] or [rule.consequences]."
+                )
+                return null
+            }
             return JSONRule(condition, consequences)
         }
+
     }
 
-    fun toLaunchRule(): LaunchRule? {
+    @JvmSynthetic
+    internal fun toLaunchRule(): LaunchRule? {
         val evaluable = JSONCondition.build(condition)?.toEvaluable()
-
-        val consequenceList = (0 until consequences.length()).associate {
-            Pair(it, JSONConsequence(consequences.getJSONObject(it))?.toRuleConsequences())
-        }.filterValues { it != null }.values.toList() as? List<RuleConsequence>
-        if (evaluable !is Evaluable) return null
-        if (consequenceList !is List<*>) return null
-
+        if (evaluable !is Evaluable) {
+            MobileCore.log(
+                LoggingMode.ERROR,
+                LOG_TAG,
+                "Failed to build LaunchRule from JSON, the [rule.condition] can't be parsed to Evaluable."
+            )
+            return null
+        }
+        val consequenceList = consequences.map {
+            JSONConsequence(it as? JSONObject)?.toRuleConsequence() ?: throw Exception()
+        }
         return LaunchRule(evaluable, consequenceList)
     }
+
 }

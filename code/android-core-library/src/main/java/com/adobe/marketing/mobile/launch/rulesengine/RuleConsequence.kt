@@ -8,17 +8,11 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.rulesengine.rules.json
 
-internal data class JSONDefinition(
-    val logic: String?,
-    val conditions: List<JSONCondition>?,
-    val key: String?,
-    val matcher: String?,
-    val values: List<Any?>?,
-    val events: List<Map<String, Any?>>?,
-    val value: Any?,
-    val from: Int?,
-    val to: Int?,
-    val searchType: String?,
+package com.adobe.marketing.mobile.launch.rulesengine
+
+data class RuleConsequence(
+    val id: String,
+    val type: String,
+    var detail: Map<String, Any?>? = null
 )

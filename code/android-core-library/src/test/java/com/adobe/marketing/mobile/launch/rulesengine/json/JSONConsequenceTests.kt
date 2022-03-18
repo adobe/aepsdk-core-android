@@ -8,10 +8,8 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.rulesengine.rules.json
+package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import org.json.JSONObject
-import org.json.JSONTokener
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -33,8 +31,9 @@ class JSONConsequenceTests {
           }
         }   
         """
-        val jsonObject = JSONTokener(jsonString).nextValue() as? JSONObject
-        val consequence = jsonObject?.let { JSONConsequence(it)?.toRuleConsequences() }
+
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
         assertEquals("RCa839e401f54a459a9049328f9b609a07", consequence?.id)
         assertEquals("add", consequence?.type)
         assertNotNull(consequence?.detail)

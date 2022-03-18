@@ -9,18 +9,21 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.rulesengine.rules.json
+package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.LogicalExpression
 import java.util.*
 
 internal class GroupCondition(val definition: JSONDefinition) : JSONCondition() {
     companion object {
+        private const val LOG_TAG = "GroupCondition"
         private val LOGICAL_OPERATORS = listOf("or", "and")
-
     }
 
+    @JvmSynthetic
     override fun toEvaluable(): Evaluable? {
 
         if (definition.logic !is String || definition.conditions !is List<*> || definition.conditions.isEmpty()) {
@@ -29,7 +32,11 @@ internal class GroupCondition(val definition: JSONDefinition) : JSONCondition() 
         val logicalOperator = definition.logic.toLowerCase(Locale.ROOT)
 
         if (logicalOperator !in LOGICAL_OPERATORS) {
-            //TODO: logging error
+            MobileCore.log(
+                LoggingMode.ERROR,
+                LOG_TAG,
+                "Unsupported logical operator: $logicalOperator"
+            )
             return null
         }
         val evaluableList = definition.conditions.map { it.toEvaluable() }

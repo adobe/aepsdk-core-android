@@ -15,6 +15,9 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.rulesengine.*
 
+/**
+ * The class representing a matcher condition
+ */
 internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition() {
 
     companion object {
@@ -50,7 +53,7 @@ internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition(
         return when (values.size) {
             0 -> convert(definition.key, definition.matcher, "")
             1 -> convert(definition.key, definition.matcher, values[0])
-            in 1..Int.MAX_VALUE -> {
+            in 2..Int.MAX_VALUE -> {
                 val operands = values.map { convert(definition.key, definition.matcher, it) }
                 if (operands.isEmpty()) null else LogicalExpression(operands, OPERATION_NAME_OR)
             }
@@ -60,7 +63,7 @@ internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition(
 
     private fun convert(key: String, matcher: String, value: Any?): Evaluable? {
         val operationName = MATCHER_MAPPING[matcher]
-        if (operationName !is String) {
+        if (operationName == null) {
             MobileCore.log(
                 LoggingMode.ERROR,
                 LOG_TAG,
@@ -68,34 +71,23 @@ internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition(
             )
             return null
         }
-        return when (value) {
-            is String -> ComparisonExpression(
-                OperandMustacheToken("{{$key}}", String::class.java),
-                operationName,
-                OperandLiteral(value)
-            )
-            is Int -> ComparisonExpression(
-                OperandMustacheToken("{{$key}}", Number::class.java),
-                operationName,
-                OperandLiteral(value)
-            )
-            is Double -> ComparisonExpression(
-                OperandMustacheToken("{{$key}}", Number::class.java),
-                operationName,
-                OperandLiteral(value)
-            )
-            is Boolean -> ComparisonExpression(
-                //note: Kotlin.Boolean is not mapped to java.lang.Boolean correctly
-                OperandMustacheToken("{{$key}}", java.lang.Boolean::class.java),
-                operationName,
-                OperandLiteral(value)
-            )
-            is Float -> ComparisonExpression(
-                OperandMustacheToken("{{$key}}", Number::class.java),
-                operationName,
-                OperandLiteral(value)
-            )
+        val javaClass: Any? = when (value) {
+            is String -> String::class.java
+            is Int -> Number::class.java
+            is Double -> Number::class.java
+            //note: Kotlin.Boolean is not mapped to java.lang.Boolean correctly
+            is Boolean -> java.lang.Boolean::class.java
+            is Float -> Number::class.java
             else -> null
+        }
+        return if (javaClass != null) {
+            ComparisonExpression(
+                OperandMustacheToken("{{$key}}", javaClass as Class<*>),
+                operationName,
+                OperandLiteral(value)
+            )
+        } else {
+            null
         }
     }
 }

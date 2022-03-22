@@ -16,6 +16,21 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
+/**
+ * The class representing a Rule condition's definition
+ *
+ * @property logic the `logic` filed of the JSON object
+ * @property conditions the `conditions` filed of the JSON object
+ * @property key the `key` filed of the JSON object
+ * @property matcher the `matcher` filed of the JSON object
+ * @property values the `values` filed of the JSON object
+ * @property events the `events` filed of the JSON object
+ * @property value the `value` filed of the JSON object
+ * @property from the `from` filed of the JSON object
+ * @property to the `to` filed of the JSON object
+ * @property searchType the `searchType` filed of the JSON object
+ * @constructor Constructs a new [JSONDefinition]
+ */
 internal data class JSONDefinition(
     val logic: String?,
     val conditions: List<JSONCondition>?,
@@ -40,6 +55,12 @@ internal data class JSONDefinition(
         private const val DEFINITION_KEY_TO = "to"
         private const val DEFINITION_KEY_SEARCH_TYPE = "searchType"
 
+        /**
+         * Builds a new [JSONDefinition]
+         *
+         * @param jsonObject a [JSONObject] of a Rule condition's definition
+         * @return a new [JSONDefinition]
+         */
         @JvmSynthetic
         internal fun buildDefinitionFromJSON(jsonObject: JSONObject): JSONDefinition {
             val logic = jsonObject.opt(DEFINITION_KEY_LOGIC) as? String
@@ -48,9 +69,9 @@ internal data class JSONDefinition(
             val key = jsonObject.opt(DEFINITION_KEY_KEY) as? String
             val matcher = jsonObject.opt(DEFINITION_KEY_MATCHER) as? String
             val values =
-                buildAnyList(jsonObject.optJSONArray(DEFINITION_KEY_VALUES))
+                buildValueList(jsonObject.optJSONArray(DEFINITION_KEY_VALUES))
             val events =
-                buildMapList(jsonObject.optJSONArray(DEFINITION_KEY_EVENTS))
+                buildValueMapList(jsonObject.optJSONArray(DEFINITION_KEY_EVENTS))
             val value = jsonObject.opt(DEFINITION_KEY_VALUE)
             val from = jsonObject.opt(DEFINITION_KEY_FROM) as? Int
             val to = jsonObject.opt(DEFINITION_KEY_TO) as? Int
@@ -76,11 +97,11 @@ internal data class JSONDefinition(
             }
         }
 
-        private fun buildAnyList(jsonArray: JSONArray?): List<Any?>? {
+        private fun buildValueList(jsonArray: JSONArray?): List<Any?>? {
             return jsonArray?.map { it }
         }
 
-        private fun buildMapList(jsonArray: JSONArray?): List<Map<String, Any?>>? {
+        private fun buildValueMapList(jsonArray: JSONArray?): List<Map<String, Any?>>? {
             return jsonArray?.map {
                 (it as? JSONObject)?.toMap()
                     ?: throw JSONException("Unsupported [rule.condition.historical.events] JSON format: $it ")

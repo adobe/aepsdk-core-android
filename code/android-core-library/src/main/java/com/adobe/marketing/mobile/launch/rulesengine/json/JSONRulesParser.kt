@@ -17,9 +17,18 @@ import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
 import org.json.JSONObject
 import org.json.JSONTokener
 
+/**
+ * Parses the JSON string to a list of [LaunchRule]s
+ */
 object JSONRulesParser {
     private const val LOG_TAG = "JSONRulesParser"
 
+    /**
+     * Parses a set of JSON rules to a list of [LaunchRule]s
+     *
+     * @param jsonString a JSON string
+     * @return a list of [LaunchRule]s
+     */
     @JvmStatic
     fun parse(jsonString: String): List<LaunchRule>? {
         try {

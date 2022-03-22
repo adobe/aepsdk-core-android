@@ -18,6 +18,9 @@ import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
 import org.json.JSONArray
 import org.json.JSONObject
 
+/**
+ * The class representing a set of Rules
+ */
 internal class JSONRuleRoot private constructor(val version: String, val jsonArray: JSONArray) {
     companion object {
         private const val LOG_TAG = "JSONRuleRoot"
@@ -38,6 +41,11 @@ internal class JSONRuleRoot private constructor(val version: String, val jsonArr
         }
     }
 
+    /**
+     * Converts itself to a list of [LaunchRule]s
+     *
+     * @return a list of [LaunchRule]s
+     */
     @JvmSynthetic
     fun toLaunchRules(): List<LaunchRule> {
         return jsonArray.map {

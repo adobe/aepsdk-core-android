@@ -9,15 +9,15 @@
   governing permissions and limitations under the License.
  */
 
-//@file:JvmSynthetic
-//TODO: Kotlin 1.5 starts to support FILE target for JvmSynthetic annotation
-
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.internal.utility.toMap
 import com.adobe.marketing.mobile.launch.rulesengine.RuleConsequence
 import org.json.JSONObject
 
+/**
+ * The class representing a Rule's consequence
+ */
 internal class JSONConsequence private constructor(
     private val id: String,
     private val type: String,
@@ -37,6 +37,11 @@ internal class JSONConsequence private constructor(
         }
     }
 
+    /**
+     * Converts itself to a [RuleConsequence] object
+     *
+     * @return an object of [RuleConsequence]
+     */
     @JvmSynthetic
     internal fun toRuleConsequence(): RuleConsequence {
         return RuleConsequence(this.id, this.type, this.detail)

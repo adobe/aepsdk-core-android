@@ -19,6 +19,9 @@ import com.adobe.marketing.mobile.rulesengine.Evaluable
 import org.json.JSONArray
 import org.json.JSONObject
 
+/**
+ * The class representing a Rule
+ */
 internal class JSONRule private constructor(
     val condition: JSONObject,
     val consequences: JSONArray
@@ -29,6 +32,12 @@ internal class JSONRule private constructor(
         private const val KEY_CONDITION = "condition"
         private const val KEY_CONSEQUENCES = "consequences"
 
+        /**
+         * Optionally constructs a new [JSONRule]
+         *
+         * @param jsonObject a [JSONObject] of the Rule
+         * @return a new [JSONRule] or null
+         */
         operator fun invoke(jsonObject: JSONObject?): JSONRule? {
             if (jsonObject !is JSONObject) return null
             val condition = jsonObject.getJSONObject(KEY_CONDITION)
@@ -46,6 +55,11 @@ internal class JSONRule private constructor(
 
     }
 
+    /**
+     * Converts itself to a [LaunchRule]
+     *
+     * @return an object of [LaunchRule]
+     */
     @JvmSynthetic
     internal fun toLaunchRule(): LaunchRule? {
         val evaluable = JSONCondition.build(condition)?.toEvaluable()

@@ -17,6 +17,9 @@ import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.LogicalExpression
 import java.util.*
 
+/**
+ * The class representing a group of [JSONCondition]s
+ */
 internal class GroupCondition(val definition: JSONDefinition) : JSONCondition() {
     companion object {
         private const val LOG_TAG = "GroupCondition"

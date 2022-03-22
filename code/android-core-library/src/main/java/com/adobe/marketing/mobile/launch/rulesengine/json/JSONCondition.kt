@@ -16,6 +16,11 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import org.json.JSONObject
 
+/**
+ * The class representing a Rule's condition
+ *
+ * @constructor Constructs a new [JSONCondition]
+ */
 internal abstract class JSONCondition {
 
     companion object {
@@ -26,6 +31,12 @@ internal abstract class JSONCondition {
         private const val TYPE_VALUE_MATCHER = "matcher"
         private const val TYPE_VALUE_HISTORICAL = "historical"
 
+        /**
+         * Build a subclass of [JSONCondition]
+         *
+         * @param jsonCondition a JSON object of a Rule's condition
+         * @return a subclass of [JSONCondition]
+         */
         @JvmSynthetic
         internal fun build(jsonCondition: JSONObject?): JSONCondition? {
             if (jsonCondition !is JSONObject) return null
@@ -72,6 +83,11 @@ internal abstract class JSONCondition {
         }
     }
 
+    /**
+     * Converts itself to a [Evaluable]
+     *
+     * @return an optional [Evaluable]
+     */
     @JvmSynthetic
     abstract fun toEvaluable(): Evaluable?
 }

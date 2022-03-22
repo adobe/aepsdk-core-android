@@ -14,11 +14,20 @@ package com.adobe.marketing.mobile.internal.utility
 import org.json.JSONArray
 import org.json.JSONObject
 
+/**
+ * Returns a list containing the results of applying the given [transform] function
+ * to each element in the [JSONArray].
+ *
+ */
 @JvmSynthetic
 internal fun <T> JSONArray.map(transform: (Any) -> T): List<T> {
     return (0 until this.length()).asSequence().map { transform(this.get(it)) }.toList()
 }
 
+/**
+ * Converts the [JSONObject] to a map of the contained contents.
+ *
+ */
 @JvmSynthetic
 internal fun JSONObject.toMap(): Map<String, Any?> {
     return this.keys().asSequence().associateWith { key ->
@@ -35,6 +44,11 @@ internal fun JSONObject.toMap(): Map<String, Any?> {
     }
 }
 
+/**
+ * Converts the [JSONArray] to a list of the contained contents,
+ * the list could contains [JSONObject], [JSONArray], `null` or the `primitive types`.
+ *
+ */
 @JvmSynthetic
 internal fun JSONArray.toList(): List<Any?> {
     val list = mutableListOf<Any?>()

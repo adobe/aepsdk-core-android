@@ -11,6 +11,14 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
+/**
+ * The data class representing a rule's consequence object
+ *
+ * @property id the consequence id
+ * @property type the consequence type
+ * @property detail the meta data of the consequence object
+ * @constructor Constructs a new [RuleConsequence]
+ */
 data class RuleConsequence(
     val id: String,
     val type: String,

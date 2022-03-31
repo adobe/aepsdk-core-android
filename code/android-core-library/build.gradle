@@ -89,8 +89,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testPhoneDebugUnitTest','
 
 android.libraryVariants.all { variant ->
     tasks.withType(Javadoc) { task ->
-        // Classpath should have classes compiled from Kotlin so that javadoc can find them.
-        dependsOn "compilePhoneReleaseKotlin"
+        
         source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
 

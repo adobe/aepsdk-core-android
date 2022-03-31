@@ -55,16 +55,7 @@ class Core {
 	 */
 	void registerExtension(final Class<? extends Extension> extensionClass,
 						   final ExtensionErrorCallback<ExtensionError> errorCallback) {
-		try {
-			eventHub.registerExtension(extensionClass);
-		} catch (InvalidModuleException e) {
-			Log.debug(LOG_TAG, "Core.registerExtension - Failed to register extension class %s (%s)",
-					  extensionClass.getSimpleName(), e);
-
-			if (errorCallback != null) {
-				errorCallback.error(ExtensionError.UNEXPECTED_ERROR);
-			}
-		}
+		eventHub.registerExtensionWithCallback(extensionClass, errorCallback);
 	}
 
 	/**

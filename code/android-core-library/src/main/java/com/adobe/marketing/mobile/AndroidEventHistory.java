@@ -11,6 +11,11 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.eventhub.EventHistory;
+import com.adobe.marketing.mobile.internal.eventhub.EventHistoryRequest;
+import com.adobe.marketing.mobile.internal.eventhub.EventHistoryResultHandler;
+import com.adobe.marketing.mobile.internal.utility.StringEncoder;
+
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -85,11 +90,9 @@ class AndroidEventHistory implements EventHistory {
 
 				for (final EventHistoryRequest request : eventHistoryRequests) {
 					final long from = (enforceOrder
-									   && previousEventOldestOccurrence != 0) ? previousEventOldestOccurrence : request.fromDate;
-					final long to = request.toDate == 0 ? System.currentTimeMillis() : request.toDate;
-					final Map<String, Variant> flattenedMask = EventDataFlattener.getFlattenedEventDataMask(request.mask);
-					final SortedMap<String, Variant> sortedMap = new TreeMap<>(flattenedMask);
-					final long eventHash = StringEncoder.convertMapToDecimalHash(sortedMap);
+									   && previousEventOldestOccurrence != 0) ? previousEventOldestOccurrence : request.getFromDate();
+					final long to = request.getToDate() == 0 ? System.currentTimeMillis() : request.getToDate();
+					final long eventHash = request.getMaskAsDecimalHash();
 					final DatabaseService.QueryResult result = androidEventHistoryDatabase.select(eventHash, from, to);
 
 					try { // columns are index 0: count, index 1: oldest, index 2: newest
@@ -143,12 +146,10 @@ class AndroidEventHistory implements EventHistory {
 
 				for (final EventHistoryRequest request : eventHistoryRequests) {
 					// if no "from" date is provided, delete from the beginning of the database
-					final long from = request.fromDate == 0 ? 0 : request.fromDate;
+					final long from = request.getFromDate() == 0 ? 0 : request.getFromDate();
 					// if no "to" date is provided, delete until the end of the database
-					final long to = request.toDate == 0 ? System.currentTimeMillis() : request.toDate;
-					final Map<String, Variant> flattenedMask = EventDataFlattener.getFlattenedEventDataMask(request.mask);
-					final SortedMap<String, Variant> sortedMap = new TreeMap<>(flattenedMask);
-					final long eventHash = StringEncoder.convertMapToDecimalHash(sortedMap);
+					final long to = request.getToDate() == 0 ? System.currentTimeMillis() : request.getToDate();
+					final long eventHash = request.getMaskAsDecimalHash();
 					deletedRows += androidEventHistoryDatabase.delete(eventHash, from, to);
 				}
 

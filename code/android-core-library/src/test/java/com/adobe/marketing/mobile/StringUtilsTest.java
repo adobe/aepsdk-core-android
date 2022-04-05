@@ -14,11 +14,10 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.*;
+
+import com.adobe.marketing.mobile.internal.utility.StringEncoder;
 
 
 public class StringUtilsTest {

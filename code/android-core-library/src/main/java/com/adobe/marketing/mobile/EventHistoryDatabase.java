@@ -11,13 +11,15 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.eventhub.EventHistoryResultHandler;
+
 import java.util.List;
 
 @SuppressWarnings("unused")
 /**
  * Interface defining a database to be used by the SDK for storing event history.
  */
-interface EventHistoryDatabase {
+public interface EventHistoryDatabase {
 
 	/**
 	 * Opens an {#EventHistoryDatabase} database file if it exists, otherwise creates a new one in the cache directory.

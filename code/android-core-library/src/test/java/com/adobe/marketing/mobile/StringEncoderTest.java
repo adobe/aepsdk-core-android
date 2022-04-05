@@ -14,6 +14,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import com.adobe.marketing.mobile.internal.utility.StringEncoder;
+
 public class StringEncoderTest {
 
 	@Test

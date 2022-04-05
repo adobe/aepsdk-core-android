@@ -22,6 +22,7 @@ import android.database.sqlite.SQLiteStatement;
 import com.adobe.marketing.mobile.DatabaseService.Database.ColumnConstraint;
 import com.adobe.marketing.mobile.DatabaseService.Database.ColumnDataType;
 import com.adobe.marketing.mobile.DatabaseService.QueryResult;
+import com.adobe.marketing.mobile.internal.eventhub.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;

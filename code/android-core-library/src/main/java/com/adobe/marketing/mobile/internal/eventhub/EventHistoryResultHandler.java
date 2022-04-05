@@ -9,21 +9,12 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.eventhub;
 
-import java.util.Map;
 
 /**
- * This object is used to make select or delete queries with the {@link EventHistoryDatabase}.
+ * Interface defining a callback which contains the result of {@link EventHistoryDatabase} operations.
  */
-final class EventHistoryRequest {
-	Map<String, Variant> mask;
-	long fromDate;
-	long toDate;
-
-	EventHistoryRequest(final Map<String, Variant> mask, final long fromDate, final long toDate) {
-		this.mask = mask;
-		this.fromDate = fromDate;
-		this.toDate = toDate;
-	}
+public interface EventHistoryResultHandler<T> {
+	void call(final T value);
 }

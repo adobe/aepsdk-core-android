@@ -9,12 +9,14 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.eventhub;
+
+import com.adobe.marketing.mobile.Event;
 
 /**
  * Defines an interface for performing database operations on an {@link EventHistoryDatabase}.
  */
-interface EventHistory {
+public interface EventHistory {
 
 	/**
 	 * Record an event in the {@link EventHistoryDatabase}.

@@ -19,6 +19,8 @@ import java.util.Map;
 import static com.adobe.marketing.mobile.DatabaseService.Database.ColumnDataType;
 import static com.adobe.marketing.mobile.DatabaseService.Database.ColumnConstraint;
 
+import com.adobe.marketing.mobile.internal.eventhub.EventHistoryDatabase;
+
 public class FakeEventHistoryDatabase implements EventHistoryDatabase {
 	private Connection connection;
 	private final Object dbMutex = new Object();

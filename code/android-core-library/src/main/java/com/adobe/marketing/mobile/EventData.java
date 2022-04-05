@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.utility.StringEncoder;
+
 import java.util.*;
 
 /**

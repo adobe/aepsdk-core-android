@@ -69,10 +69,11 @@ abstract class RuleCondition {
 		} else if (conditionJson.getString(RULE_CONDITION_TYPE_KEY_JSON).equals(RULE_CONDITION_TYPE_MATCHER_JSON)) {
 			ruleCondition = RuleConditionMatcher.ruleConditionMatcherFromJson(conditionJson.getJSONObject(
 								RULE_CONDITION_DEFINITION_KEY_JSON));
-		} else if (conditionJson.getString(RULE_CONDITION_TYPE_KEY_JSON).equals(RULE_CONDITION_TYPE_HISTORICAL_JSON)) {
-			ruleCondition = RuleConditionHistorical.historicalConditionFromJsonObject(conditionJson.getJSONObject(
-								RULE_CONDITION_DEFINITION_KEY_JSON));
 		}
+//		else if (conditionJson.getString(RULE_CONDITION_TYPE_KEY_JSON).equals(RULE_CONDITION_TYPE_HISTORICAL_JSON)) {
+//			ruleCondition = RuleConditionHistorical.historicalConditionFromJsonObject(conditionJson.getJSONObject(
+//								RULE_CONDITION_DEFINITION_KEY_JSON));
+//		}
 
 		if (ruleCondition == null) {
 			throw new UnsupportedConditionException("Could not create a condition instance!");

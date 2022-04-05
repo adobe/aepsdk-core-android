@@ -19,6 +19,7 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.adobe.marketing.mobile.internal.eventhub.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import org.junit.Before;

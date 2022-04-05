@@ -39,8 +39,8 @@ internal data class JSONDefinition(
     val values: List<Any?>?,
     val events: List<Map<String, Any?>>?,
     val value: Any?,
-    val from: Int?,
-    val to: Int?,
+    val from: Long?,
+    val to: Long?,
     val searchType: String?,
 ) {
     companion object {
@@ -73,8 +73,8 @@ internal data class JSONDefinition(
             val events =
                 buildValueMapList(jsonObject.optJSONArray(DEFINITION_KEY_EVENTS))
             val value = jsonObject.opt(DEFINITION_KEY_VALUE)
-            val from = jsonObject.opt(DEFINITION_KEY_FROM) as? Int
-            val to = jsonObject.opt(DEFINITION_KEY_TO) as? Int
+            val from = jsonObject.opt(DEFINITION_KEY_FROM) as? Long
+            val to = jsonObject.opt(DEFINITION_KEY_TO) as? Long
             val searchType = jsonObject.opt(DEFINITION_KEY_SEARCH_TYPE) as? String
             return JSONDefinition(
                 logic,

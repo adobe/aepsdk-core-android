@@ -9,12 +9,12 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.eventhub;
 
 /**
  * Defines a class for setting or retrieving an {@link EventHistory} service.
  */
-class EventHistoryProvider {
+public class EventHistoryProvider {
 	private static EventHistory eventHistory;
 
 	/**

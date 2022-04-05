@@ -23,7 +23,7 @@ internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition(
     companion object {
         private const val LOG_TAG = "MatcherCondition"
         private const val OPERATION_NAME_OR = "or"
-        private val MATCHER_MAPPING = mapOf(
+        internal val MATCHER_MAPPING = mapOf(
             "eq" to "equals",
             "ne" to "notEquals",
             "gt" to "greaterThan",

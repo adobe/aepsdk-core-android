@@ -12,7 +12,7 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.eventhub.EventHistoryRequest
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
 import com.adobe.marketing.mobile.launch.rulesengine.historicalEventsQuerying
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable

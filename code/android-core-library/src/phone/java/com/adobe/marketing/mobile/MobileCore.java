@@ -15,7 +15,9 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
-import com.adobe.marketing.mobile.internal.eventhub.EventHistoryProvider;
+import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryDatabaseCreationException;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryProvider;
 
 import java.util.Date;
 import java.util.Map;

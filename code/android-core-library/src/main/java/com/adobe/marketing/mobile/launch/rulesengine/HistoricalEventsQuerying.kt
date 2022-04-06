@@ -12,8 +12,8 @@ package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.eventhub.EventHistoryProvider
-import com.adobe.marketing.mobile.internal.eventhub.EventHistoryRequest
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryProvider
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 

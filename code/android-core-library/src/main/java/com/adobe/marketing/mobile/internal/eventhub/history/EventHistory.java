@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.internal.eventhub;
+package com.adobe.marketing.mobile.internal.eventhub.history;
 
 import com.adobe.marketing.mobile.Event;
 

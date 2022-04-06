@@ -20,6 +20,7 @@ import static com.adobe.marketing.mobile.DatabaseService.Database.ColumnDataType
 import static com.adobe.marketing.mobile.DatabaseService.Database.ColumnConstraint;
 
 import com.adobe.marketing.mobile.internal.eventhub.EventHistoryDatabase;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryDatabase;
 
 public class FakeEventHistoryDatabase implements EventHistoryDatabase {
 	private Connection connection;

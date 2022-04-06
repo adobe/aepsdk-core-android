@@ -23,6 +23,9 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.adobe.marketing.mobile.internal.eventhub.EventHistoryDatabase;
+import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistoryDatabase;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryDatabase;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryDatabaseCreationException;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import org.junit.Before;

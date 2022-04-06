@@ -10,9 +10,9 @@
  */
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.eventhub.EventHistory;
-import com.adobe.marketing.mobile.internal.eventhub.EventHistoryProvider;
-import com.adobe.marketing.mobile.internal.eventhub.EventHistoryResultHandler;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryProvider;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
 
 import java.lang.reflect.Constructor;
 import java.util.*;

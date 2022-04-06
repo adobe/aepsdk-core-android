@@ -33,6 +33,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 
+import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
+
 @RunWith(MockitoJUnitRunner.class)
 public class SqliteDataQueueTests {
 

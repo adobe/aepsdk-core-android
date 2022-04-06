@@ -15,6 +15,8 @@ import android.content.ContentValues;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

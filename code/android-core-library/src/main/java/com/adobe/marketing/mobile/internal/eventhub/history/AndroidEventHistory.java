@@ -12,11 +12,10 @@
 package com.adobe.marketing.mobile.internal.eventhub.history;
 
 import android.database.Cursor;
-
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-
+import com.adobe.marketing.mobile.internal.utility.MapUtilsKt;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -48,7 +47,7 @@ public class AndroidEventHistory implements EventHistory {
      *                the database operation was successful
      */
     public void recordEvent(final Event event, final EventHistoryResultHandler<Boolean> handler) {
-        final long fnv1aHash = EventDataHelper.toFnv1aHash(event.getEventData(), event.getMask());
+        final long fnv1aHash = MapUtilsKt.convertMapToFnv1aHash(event.getEventData(), event.getMask());
 
         if (fnv1aHash == 0) {
             MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("The event with name \"%s\" has a fnv1a hash equal to 0. The event will not be recorded.", event.getName()));

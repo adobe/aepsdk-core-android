@@ -62,29 +62,6 @@ final public class StringEncoder {
         return hash;
     }
 
-//    /**
-//     * Converts the given {@link Map<String,  Variant >} mask into a decimal representation of the signed 2's complement FNV1a 32-bit hash.
-//     *
-//     * @param mask {@link Map<String, Variant>} to be hashed
-//     * @return a {@code long} containing the decimal FNV1a 32-bit hash
-//     */
-//    static long convertMapToDecimalHash(final Map<String, Variant> mask) {
-//        StringBuilder kvpStringBuilder = new StringBuilder();
-//
-//        if (mask != null && !mask.isEmpty()) {
-//            for (String key : mask.keySet()) {
-//                try {
-//                    kvpStringBuilder.append(key + ":" + mask.get(key).convertToString());
-//                } catch (final VariantException variantException) {
-//                    Log.trace(LOG_TAG, "Unable to convert variant %s to string.", mask.get(key));
-//                    continue;
-//                }
-//            }
-//        }
-//
-//        return convertStringToDecimalHash(kvpStringBuilder.toString());
-//    }
-
     /**
      * Converts the given {@code String} into a decimal representation of the signed 2's complement FNV1a 32-bit hash.
      *

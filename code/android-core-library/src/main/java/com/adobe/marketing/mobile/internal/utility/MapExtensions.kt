@@ -12,10 +12,21 @@
 package com.adobe.marketing.mobile.internal.utility
 
 @JvmSynthetic
-internal fun Map<String, Any?>.fnv1a32(): Long {
+internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
     val flattenedMap = this.flattening()
-
-    return 0
+    val kvPairs = StringBuilder()
+    masks?.let {
+        it.sortedArray().forEach { mask ->
+            if (mask.isNotEmpty() && flattenedMap.containsKey(mask)) {
+                kvPairs.append(mask).append(":").append(flattenedMap[mask].toString())
+            }
+        }
+    } ?: run {
+        flattenedMap.forEach { entry ->
+            kvPairs.append(entry.key).append(":").append(entry.value.toString())
+        }
+    }
+    return StringEncoder.convertStringToDecimalHash(kvPairs.toString())
 }
 
 @JvmSynthetic

@@ -31,6 +31,8 @@ import java.util.Calendar;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -44,6 +46,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -348,7 +351,7 @@ public class AndroidUIServiceTests {
 		doNothing().when(mockActivity).startActivity(intentArgumentCaptor.capture());
 
 		AndroidUIService spyUIService = spy(new AndroidUIService());
-		doReturn(mockIntent).when(spyUIService).getIntentWithUrl("myappscheme://host");
+		doReturn(mockIntent).when(spyUIService).getIntentWithURI("myappscheme://host");
 		//test
 		spyUIService.showUrl("myappscheme://host");
 		//verify
@@ -363,7 +366,7 @@ public class AndroidUIServiceTests {
 
 		appContextProvider.setContext(mockContext);
 		AndroidUIService spyUIService = spy(new AndroidUIService());
-		doReturn(mockIntent).when(spyUIService).getIntentWithUrl(anyString());
+		doReturn(mockIntent).when(spyUIService).getIntentWithURI(anyString());
 		//test
 		spyUIService.showUrl(null);
 		//verify
@@ -420,6 +423,25 @@ public class AndroidUIServiceTests {
 		//verify
 		verify(mockMessagesMonitor, times(0)).displayed();
 
+	}
+
+	@Test
+	public void testSetURIHandler(){
+		final String specialURI  = "abc.com";
+		Intent specialIntent = new Intent();
+		ServiceProvider.getInstance().setURIHandler(new URIHandler() {
+			@Override
+			public Intent getURIDestination(String uri) {
+				if(specialURI.equals(uri)){
+					return specialIntent;
+				}
+				return null;
+			}
+		});
+		Intent intent = ServiceProvider.getInstance().getUIService().getIntentWithURI("abc.com");
+		assertSame(specialIntent, intent);
+		Intent defaultIntent = ServiceProvider.getInstance().getUIService().getIntentWithURI("xyz.com");
+		assertNotSame(specialIntent, defaultIntent);
 	}
 
 	private long getTriggerTimeForFireDate(long fireDate) {

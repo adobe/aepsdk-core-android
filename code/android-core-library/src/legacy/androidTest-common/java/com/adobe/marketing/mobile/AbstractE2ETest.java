@@ -14,7 +14,7 @@ package com.adobe.marketing.mobile;
 import android.app.Application;
 import android.app.Instrumentation;
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Rule;
 import org.junit.rules.TestName;

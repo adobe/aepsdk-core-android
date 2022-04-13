@@ -22,8 +22,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
@@ -34,6 +34,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import com.adobe.marketing.mobile.internal.context.App;
 
@@ -127,8 +128,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
 	@Override
 	public void openUrl(final String url) {
 		try {
-			final Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setData(Uri.parse(url));
+			final Intent intent = ServiceProvider.getInstance().getUIService().getIntentWithURI(url);
 
 			if (messageFullScreenActivity != null) {
 				messageFullScreenActivity.startActivity(intent);

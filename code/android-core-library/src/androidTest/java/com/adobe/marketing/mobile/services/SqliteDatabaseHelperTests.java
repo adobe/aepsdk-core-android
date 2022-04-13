@@ -12,8 +12,8 @@
 package com.adobe.marketing.mobile.services;
 
 import android.content.ContentValues;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -38,7 +38,7 @@ public class SqliteDatabaseHelperTests {
 
 	@Before
 	public void setUp() {
-		dbPath = new File(InstrumentationRegistry.getContext().getCacheDir(), "test.sqlite").getPath();
+		dbPath = new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite").getPath();
 		sqLiteDatabaseHelper = new SQLiteDatabaseHelper();
 		createTable();
 	}

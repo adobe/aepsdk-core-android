@@ -21,8 +21,8 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import android.content.res.Resources;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -151,7 +151,7 @@ public class AndroidCompressedFileServiceTests {
 
 	void prepareZipFile(String filename) {
 		try {
-			Resources res =     InstrumentationRegistry.getContext().getResources();
+			Resources res =     InstrumentationRegistry.getInstrumentation().getContext().getResources();
 			InputStream instream = res.getAssets().open(filename);
 
 			tempSource = folder.newFile();

@@ -33,7 +33,7 @@ final public class StringEncoder {
     private StringEncoder() {
     }
 
-    static String getSha1HashedString(final String inputString) {
+    public static String getSha1HashedString(final String inputString) {
         if (inputString == null || inputString.isEmpty()) {
             return null;
         }

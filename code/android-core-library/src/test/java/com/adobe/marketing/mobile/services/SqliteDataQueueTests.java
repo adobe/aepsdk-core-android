@@ -58,7 +58,7 @@ public class SqliteDataQueueTests {
 
 	@Before
 	public void setUp() {
-		dataQueue = new SQLiteDataQueue(null, DATABASE_NAME, database);
+		dataQueue = new SQLiteDataQueue(null, DATABASE_NAME);
 	}
 
 

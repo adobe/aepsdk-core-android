@@ -29,6 +29,18 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
     return StringEncoder.convertStringToDecimalHash(kvPairs.toString())
 }
 
+/**
+ * Return a `flattened` [Map] which will not contain any [Map<String, Any?>] map
+ * For example, an input [Map] of:
+ *  `[rootKey: [key1: value1, key2: value2]]`
+ * will return a [Map] represented as:
+ *  `[rootKey.key1: value1, rootKey.key2: value2]`
+ *
+ *  This method uses recursion.
+ *
+ * @param prefix a prefix to append to the front of the key
+ * @return flattened [Map]
+ */
 @JvmSynthetic
 internal fun Map<String, Any?>.flattening(prefix: String = ""): Map<String, Any?> {
     val keyPrefix = if (prefix.isNotEmpty()) "$prefix." else prefix
@@ -36,13 +48,9 @@ internal fun Map<String, Any?>.flattening(prefix: String = ""): Map<String, Any?
     this.forEach { entry ->
         val expandedKey = keyPrefix + entry.key
         val value = entry.value
-        if (value is Map<*, *>) {
-            try {
-                @Suppress("UNCHECKED_CAST")
-                flattenedMap.putAll((value as Map<String, Any?>).flattening(expandedKey))
-            } catch (e: Exception) {
-                // logging errors
-            }
+        if (value is Map<*, *> && value.keys.isAllString()) {
+            @Suppress("UNCHECKED_CAST")
+            flattenedMap.putAll((value as Map<String, Any?>).flattening(expandedKey))
         } else {
             flattenedMap[expandedKey] = value
         }
@@ -50,3 +58,9 @@ internal fun Map<String, Any?>.flattening(prefix: String = ""): Map<String, Any?
     return flattenedMap
 }
 
+private fun Set<*>.isAllString(): Boolean {
+    this.forEach {
+        if (it !is String) return false
+    }
+    return true
+}

@@ -11,21 +11,28 @@
 
 package com.adobe.marketing.mobile.internal.utility
 
-object EventDataMerger {
+internal object EventDataMerger {
     private const val WILD_CARD_SUFFIX_FOR_LIST = "[*]"
 
-    @Suppress("UNCHECKED_CAST")
+    /**
+     * Merge one [Map] into another
+     *
+     * @param from the map containing new data
+     * @param to the map to be merged to
+     * @param overwrite true, if the from map should take priority
+     * @return the merged [Map]
+     */
     @JvmStatic
     fun merge(
         from: Map<String, Any?>?,
         to: Map<String, Any?>?,
         overwrite: Boolean
     ): Map<String, Any?> {
-        return merge(from, to, overwrite, fun(fromValue, toValue): Any? {
+        return innerMerge(from, to, overwrite, fun(fromValue, toValue): Any? {
             if (fromValue is Map<*, *> && toValue is Map<*, *>) {
-                return merge(
-                    fromValue as? MutableMap<String, Any?>,
-                    toValue as? MutableMap<String, Any?>,
+                return mergeWithoutType(
+                    fromValue,
+                    toValue,
                     overwrite
                 )
             }
@@ -34,16 +41,15 @@ object EventDataMerger {
             }
             if (fromValue is Collection<*> && toValue is Collection<*>) {
                 return mergeCollection(
-                    fromValue as? Collection<Any?>?,
-                    toValue as? Collection<Any?>?
+                    fromValue,
+                    toValue
                 )
             }
             return fromValue
         })
     }
 
-    @JvmStatic
-    private fun mergeCollection(from: Collection<Any?>?, to: Collection<Any?>?): Collection<Any?> {
+    private fun mergeCollection(from: Collection<*>?, to: Collection<*>?): Collection<Any?> {
         return object : ArrayList<Any?>() {
             init {
                 from?.let { addAll(it) }
@@ -53,8 +59,34 @@ object EventDataMerger {
     }
 
     @Suppress("UNCHECKED_CAST")
-    @JvmStatic
-    private fun merge(
+    private fun mergeWithoutType(
+        from: Map<*, *>?,
+        to: Map<*, *>?,
+        overwrite: Boolean
+    ): Map<*, *>? {
+        from?.let {
+            if (!from.keys.isAllString())
+                return to
+        }
+        to?.let {
+            if (!to.keys.isAllString())
+                return to
+        }
+        return try {
+            merge(from as? Map<String, Any?>, to as? Map<String, Any?>, overwrite)
+        } catch (e: Exception) {
+            to
+        }
+    }
+
+    private fun Set<*>.isAllString(): Boolean {
+        this.forEach {
+            if (it !is String) return false
+        }
+        return true
+    }
+
+    private fun innerMerge(
         from: Map<String, Any?>?,
         to: Map<String, Any?>?,
         overwrite: Boolean,
@@ -69,14 +101,22 @@ object EventDataMerger {
             } else if (k.endsWith(WILD_CARD_SUFFIX_FOR_LIST)) {
                 val wildCardKey = k.dropLast(WILD_CARD_SUFFIX_FOR_LIST.length)
                 if (returnMap[wildCardKey] is Collection<*> && v is Map<*, *>) {
-                    val targetList = returnMap[wildCardKey] as? Collection<Any>
-                    val wildCardValue = v as? Map<String, Any?>
+                    val targetList = returnMap[wildCardKey] as? Collection<*>
+                    val wildCardValue = v as? Map<*, *>
                     wildCardValue?.let {
                         targetList?.let { list ->
-                            val newList = ArrayList<Any>()
+                            val newList = ArrayList<Any?>()
                             list.forEach {
-                                val itMap = it as? Map<String, Any?>
-                                itMap?.let { newList.add(merge(wildCardValue, itMap, overwrite)) }
+                                val itMap = it as? Map<*, *>
+                                itMap?.let {
+                                    newList.add(
+                                        mergeWithoutType(
+                                            wildCardValue,
+                                            itMap,
+                                            overwrite
+                                        )
+                                    )
+                                }
                                     ?: run {
                                         newList.add(it)
                                     }
@@ -84,7 +124,6 @@ object EventDataMerger {
                             returnMap[wildCardKey] = newList
                         }
                     }
-
                 }
             } else {
                 returnMap[k] = v
@@ -92,6 +131,5 @@ object EventDataMerger {
         }
         return returnMap
     }
-
 
 }

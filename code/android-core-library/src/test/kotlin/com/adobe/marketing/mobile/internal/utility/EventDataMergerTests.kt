@@ -15,6 +15,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class EventDataMergerTests {
+
     @Test
     fun testSimpleMerge() {
         val fromMap = mapOf(
@@ -195,7 +196,7 @@ class EventDataMergerTests {
         val result = EventDataMerger.merge(fromMap, toMap, true)
         assertEquals(1, result.keys.size)
         assertTrue(result.containsKey("inner"))
-        val innerMap = result["inner"] as? Map<*,*>
+        val innerMap = result["inner"] as? Map<*, *>
         assertTrue(innerMap?.containsKey("list") == true)
         val mergedList = innerMap?.get("list") as? List<*>
         val item0 = mergedList?.get(0) as? Map<*, *>
@@ -402,5 +403,53 @@ class EventDataMergerTests {
         assertEquals("oldValue", item0innerMap?.get("inner_k1"))
         assertEquals("oldValue", item0innerMap?.get("key"))
         assertEquals("newValue", item0innerMap?.get("newKey"))
+    }
+
+    @Test
+    fun testFromMapWithNonStringKey() {
+        val toMap = mapOf(
+            "k1" to "v1",
+            "k2" to "v2",
+            "nested" to mapOf(
+                1 to "ValueForIntKey",
+                "k1" to "v1"
+            )
+        )
+        val fromMap = mapOf(
+            "nested" to mapOf(
+                "k1" to "v11",
+                "k2" to "v2"
+            )
+        )
+        val result = EventDataMerger.merge(fromMap, toMap, true)
+        assertEquals(3, result.keys.size)
+        val nestedMap = result["nested"] as? Map<*, *>
+        assertEquals(2, nestedMap?.keys?.size)
+        assertEquals("v1", nestedMap?.get("k1"))
+        assertEquals("ValueForIntKey", nestedMap?.get(1))
+    }
+
+    @Test
+    fun testToMapWithNonStringKey() {
+        val toMap = mapOf(
+            "k1" to "v1",
+            "k2" to "v2",
+            "nested" to mapOf(
+                "k1" to "v1",
+                "k2" to "v2"
+            )
+        )
+        val fromMap = mapOf(
+            "nested" to mapOf(
+                1 to "ValueForIntKey",
+                "k1" to "v11"
+            )
+        )
+        val result = EventDataMerger.merge(fromMap, toMap, true)
+        assertEquals(3, result.keys.size)
+        val nestedMap = result["nested"] as? Map<*, *>
+        assertEquals(2, nestedMap?.keys?.size)
+        assertEquals("v1", nestedMap?.get("k1"))
+        assertEquals("v2", nestedMap?.get("k2"))
     }
 }

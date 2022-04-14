@@ -97,7 +97,7 @@ internal object EventDataMerger {
     }
 
     /**
-     * If the map contains the specific key and its value is [Iterable], merge `data` to each item of the [Iterable] object
+     * If the map contains the specific key and its value is a [Collection], merge `data` to each item of the [Collection]
      *
      * For example:
      * for the wildcard key: `list[*]`, merge the following data:
@@ -120,7 +120,7 @@ internal object EventDataMerger {
     ) {
         val targetKey = wildcardKey.dropLast(WILD_CARD_SUFFIX_FOR_LIST.length)
         val targetValueAsList = targetMap[targetKey]
-        if (targetValueAsList is Iterable<*>) {
+        if (targetValueAsList is Collection<*>) {
             val newList = ArrayList<Any?>()
             targetValueAsList.forEach {
                 val itMap = it as? Map<*, *>

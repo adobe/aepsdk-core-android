@@ -30,7 +30,7 @@ internal object EventDataMerger {
     ): Map<String, Any?> {
         return innerMerge(from, to, overwrite, fun(fromValue, toValue): Any? {
             if (fromValue is Map<*, *> && toValue is Map<*, *>) {
-                return mergeWithoutType(fromValue, toValue, overwrite)
+                return mergeWildcardMaps(fromValue, toValue, overwrite)
             }
             if (!overwrite) {
                 return toValue
@@ -52,7 +52,7 @@ internal object EventDataMerger {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun mergeWithoutType(
+    private fun mergeWildcardMaps(
         from: Map<*, *>?,
         to: Map<*, *>?,
         overwrite: Boolean
@@ -124,7 +124,7 @@ internal object EventDataMerger {
             val newList = ArrayList<Any?>()
             targetValueAsList.forEach {
                 val itMap = it as? Map<*, *>
-                itMap?.let { newList.add(mergeWithoutType(data, itMap, overwrite)) }
+                itMap?.let { newList.add(mergeWildcardMaps(data, itMap, overwrite)) }
                     ?: run { newList.add(it) }
             }
             targetMap[targetKey] = newList

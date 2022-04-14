@@ -107,8 +107,8 @@ internal object EventDataMerger {
      * the result is:
      *     {"list":[{"k1":"v1","k":"v"},{"k2":"v2","k":"v"}]}
      *
-     * @param targetMap may be merged with the given `data` if it contains wildcard key
-     * @param wildcardKey the string of the wildcard key with suffix `[*]`
+     * @param targetMap the [Map] to be merged with the given `data` if it contains the target key
+     * @param wildcardKey the target key with suffix `[*]`
      * @param data the new data to be merged to the `targetMap`
      * @param overwrite true, if the new data should take priority
      */

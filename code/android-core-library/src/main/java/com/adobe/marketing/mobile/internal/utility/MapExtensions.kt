@@ -11,6 +11,12 @@
 
 package com.adobe.marketing.mobile.internal.utility
 
+/**
+ * Convert map to a decimal FNV1a 32-bit hash. If a mask is provided, only use keys in the provided mask and alphabetize their order.
+ *
+ * @param masks contain keys to be hashed.
+ * @return the decimal FNV1a 32-bit hash.
+ */
 @JvmSynthetic
 internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
     val flattenedMap = this.flattening()
@@ -30,13 +36,12 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
 }
 
 /**
- * Return a `flattened` [Map] which will not contain any [Map<String, Any?>] map
+ * Flatten nested [Map]s and concatenate [String] keys
  * For example, an input [Map] of:
  *  `[rootKey: [key1: value1, key2: value2]]`
  * will return a [Map] represented as:
  *  `[rootKey.key1: value1, rootKey.key2: value2]`
  *
- *  This method uses recursion.
  *
  * @param prefix a prefix to append to the front of the key
  * @return flattened [Map]

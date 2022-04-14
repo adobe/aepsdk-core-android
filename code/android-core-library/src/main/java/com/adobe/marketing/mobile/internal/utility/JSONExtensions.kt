@@ -15,17 +15,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * Returns a list containing the results of applying the given [transform] function
- * to each element in the [JSONArray].
- *
- */
-@JvmSynthetic
-internal fun <T> JSONArray.map(transform: (Any) -> T): List<T> {
-    return (0 until this.length()).asSequence().map { transform(this.get(it)) }.toList()
-}
-
-/**
- * Converts the [JSONObject] to a map of the contained contents.
+ * Convert the [JSONObject] to a map of the contained contents.
  *
  */
 @JvmSynthetic
@@ -45,25 +35,34 @@ internal fun JSONObject.toMap(): Map<String, Any?> {
 }
 
 /**
- * Converts the [JSONArray] to a list of the contained contents,
+ * Return a list containing the results of applying the given [transform] function
+ * to each element in the [JSONArray].
+ *
+ */
+@JvmSynthetic
+internal fun <T> JSONArray.map(transform: (Any) -> T): List<T> {
+    return (0 until this.length()).asSequence().map { transform(this.get(it)) }.toList()
+}
+
+/**
+ * Convert the [JSONArray] to a list of the contained contents,
  * the list could contains [JSONObject], [JSONArray], `null` or the `primitive types`.
  *
  */
 @JvmSynthetic
 internal fun JSONArray.toList(): List<Any?> {
-    val list = mutableListOf<Any?>()
-    (0 until this.length()).forEach { index ->
-        when (val value = this.get(index)) {
+    return this.map {
+        when (it) {
             is JSONObject -> {
-                list.add(value.toMap())
+                it.toMap()
             }
             is JSONArray -> {
-                list.add(value.toList())
+                it.toList()
             }
-            JSONObject.NULL -> list.add(null)
-            else -> list.add(value)
+            JSONObject.NULL -> null
+            else -> it
         }
     }
-    return list
 }
+
 

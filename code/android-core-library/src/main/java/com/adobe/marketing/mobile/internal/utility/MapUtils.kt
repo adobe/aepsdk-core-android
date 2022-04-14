@@ -10,6 +10,13 @@
  */
 package com.adobe.marketing.mobile.internal.utility
 
+/**
+ * Convert map to a decimal FNV1a 32-bit hash. If a mask is provided, only use keys in the provided mask and alphabetize their order.
+ *
+ * @param map the [Map] to be converted to FNV1a 32-bit hash
+ * @param masks contain keys to be hashed.
+ * @return the decimal FNV1a 32-bit hash.
+ */
 internal fun convertMapToFnv1aHash(map: Map<String, Any?>?, masks: Array<String>?): Long {
     if (map == null) return -1
     return map.fnv1a32(masks)

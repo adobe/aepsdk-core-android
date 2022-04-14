@@ -18,14 +18,14 @@ import java.lang.reflect.Modifier;
 
 import static org.junit.Assert.*;
 
-class TestHelper {
+public class TestHelper {
 
 	/**
 	 * Verifies that an utility class is well defined.
 	 *
 	 * @param clazz utility class to verify.
 	 */
-	static void assertUtilityClassWellDefined(final Class<?> clazz) throws NoSuchMethodException, InvocationTargetException,
+	public static void assertUtilityClassWellDefined(final Class<?> clazz) throws NoSuchMethodException, InvocationTargetException,
 		InstantiationException, IllegalAccessException {
 		assertTrue("Class must be final", Modifier.isFinal(clazz.getModifiers()));
 		assertEquals("There must be only one constructor", 1, clazz.getDeclaredConstructors().length);

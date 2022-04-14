@@ -9,45 +9,40 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.services;
+package com.adobe.marketing.mobile.internal.utility;
 
 import android.content.ContentValues;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-
-import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
-
+import com.adobe.marketing.mobile.services.DataEntity;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RunWith(AndroidJUnit4.class)
-public class SqliteDatabaseHelperTests {
+public class SQLiteDatabaseHelperTests {
 
 	private static final String TABLE_NAME = "TB_AEP_DATA_ENTITY";
 	private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
 	private static final String TB_KEY_TIMESTAMP = "timestamp";
 	private static final String TB_KEY_DATA = "data";
-	private SQLiteDatabaseHelper sqLiteDatabaseHelper;
 	private String dbPath;
 
 	@Before
 	public void setUp() {
 		dbPath = new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite").getPath();
-		sqLiteDatabaseHelper = new SQLiteDatabaseHelper();
 		createTable();
 	}
 
 	@After
 	public void dispose() {
-		sqLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
+		SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
 	}
 
 	private void createTable() {
@@ -57,13 +52,13 @@ public class SqliteDatabaseHelperTests {
 										  "timestamp INTEGER NOT NULL, " +
 										  "data TEXT);";
 
-		sqLiteDatabaseHelper.createTableIfNotExist(dbPath, tableCreationQuery);
+		SQLiteDatabaseHelper.createTableIfNotExist(dbPath, tableCreationQuery);
 	}
 
 	@Test
 	public void testTableIsEmptyInitially() {
 		//Action
-		int size = sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
+		int size = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
 
 		//Assert
 		Assert.assertEquals(size, 0);
@@ -79,10 +74,10 @@ public class SqliteDatabaseHelperTests {
 		row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
 		//Action
-		Assert.assertTrue(sqLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
+		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
 
 		//Assert
-		Assert.assertEquals(sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME), 1);
+		Assert.assertEquals(SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME), 1);
 	}
 
 	@Test
@@ -97,10 +92,10 @@ public class SqliteDatabaseHelperTests {
 		String incorrectDbPath = "incorrect_db_path";
 
 		//Action
-		Assert.assertFalse(sqLiteDatabaseHelper.insertRow(incorrectDbPath, TABLE_NAME, row));
+		Assert.assertFalse(SQLiteDatabaseHelper.insertRow(incorrectDbPath, TABLE_NAME, row));
 
 		//Assert
-		Assert.assertEquals(sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME), 0);
+		Assert.assertEquals(SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME), 0);
 	}
 
 	@Test
@@ -114,9 +109,9 @@ public class SqliteDatabaseHelperTests {
 		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
 
 		//Action
-		Assert.assertTrue(sqLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
+		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
 
-		List<ContentValues> contentValues = sqLiteDatabaseHelper.query(dbPath, TABLE_NAME, new String[] {TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_TIMESTAMP, TB_KEY_DATA},
+		List<ContentValues> contentValues = SQLiteDatabaseHelper.query(dbPath, TABLE_NAME, new String[] {TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_TIMESTAMP, TB_KEY_DATA},
 											1);
 
 		//Assert
@@ -139,9 +134,9 @@ public class SqliteDatabaseHelperTests {
 
 		String incorrectDbPath = "incorrect_db_path";
 		//Action
-		Assert.assertFalse(sqLiteDatabaseHelper.insertRow(incorrectDbPath, TABLE_NAME, row));
+		Assert.assertFalse(SQLiteDatabaseHelper.insertRow(incorrectDbPath, TABLE_NAME, row));
 
-		List<ContentValues> contentValues = sqLiteDatabaseHelper.query(incorrectDbPath, TABLE_NAME, new String[] {TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_TIMESTAMP, TB_KEY_DATA},
+		List<ContentValues> contentValues = SQLiteDatabaseHelper.query(incorrectDbPath, TABLE_NAME, new String[] {TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_TIMESTAMP, TB_KEY_DATA},
 											1);
 
 		//Assert
@@ -159,9 +154,9 @@ public class SqliteDatabaseHelperTests {
 		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
 
 		//Action
-		Assert.assertTrue(sqLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
+		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
 
-		int tableSize = sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
+		int tableSize = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
 
 		//Assert
 		Assert.assertEquals(tableSize, 1);
@@ -181,10 +176,10 @@ public class SqliteDatabaseHelperTests {
 		final String incorrectDbPath = "incorrect_database_path";
 
 		//Action
-		Assert.assertFalse(sqLiteDatabaseHelper.insertRow(incorrectDbPath, TABLE_NAME, row));
+		Assert.assertFalse(SQLiteDatabaseHelper.insertRow(incorrectDbPath, TABLE_NAME, row));
 
 		//Action
-		Assert.assertEquals(sqLiteDatabaseHelper.getTableSize(incorrectDbPath, TABLE_NAME), 0);
+		Assert.assertEquals(SQLiteDatabaseHelper.getTableSize(incorrectDbPath, TABLE_NAME), 0);
 	}
 
 	@Test
@@ -198,12 +193,12 @@ public class SqliteDatabaseHelperTests {
 		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
 
 		//Action
-		Assert.assertTrue(sqLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-		Assert.assertEquals(1, sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
+		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 
-		sqLiteDatabaseHelper.removeRows(dbPath, TABLE_NAME, "id", 1);
+		SQLiteDatabaseHelper.removeRows(dbPath, TABLE_NAME, "id", 1);
 
-		int tableSize = sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
+		int tableSize = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
 
 		//Assert
 		Assert.assertEquals(tableSize, 0);
@@ -220,13 +215,13 @@ public class SqliteDatabaseHelperTests {
 		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
 
 		//Action
-		Assert.assertTrue(sqLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-		Assert.assertEquals(1, sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
+		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 
 		final String incorrectDbPath = "incorrect_db_path";
 
-		Assert.assertEquals(-1, sqLiteDatabaseHelper.removeRows(incorrectDbPath, TABLE_NAME, "id", 1));
-		Assert.assertEquals(1, sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+		Assert.assertEquals(-1, SQLiteDatabaseHelper.removeRows(incorrectDbPath, TABLE_NAME, "id", 1));
+		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 	}
 
 	@Test
@@ -240,14 +235,14 @@ public class SqliteDatabaseHelperTests {
 		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
 
 		//Action
-		Assert.assertTrue(sqLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-		Assert.assertEquals(1, sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
+		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 
-		sqLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
+		SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
 
 		//Assert
-		Assert.assertTrue(sqLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME));
-		Assert.assertEquals(0, sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+		Assert.assertTrue(SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME));
+		Assert.assertEquals(0, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 	}
 
 	@Test
@@ -261,14 +256,14 @@ public class SqliteDatabaseHelperTests {
 		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
 
 		//Action
-		Assert.assertTrue(sqLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-		Assert.assertEquals(1, sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
+		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 
 
 		String incorrectDBPath = "incorrect_database_path";
 
 		//Assert
-		Assert.assertFalse(sqLiteDatabaseHelper.clearTable(incorrectDBPath, TABLE_NAME));
-		Assert.assertEquals(1, sqLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+		Assert.assertFalse(SQLiteDatabaseHelper.clearTable(incorrectDBPath, TABLE_NAME));
+		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 	}
 }

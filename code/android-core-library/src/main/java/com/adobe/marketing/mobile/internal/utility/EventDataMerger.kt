@@ -30,20 +30,13 @@ internal object EventDataMerger {
     ): Map<String, Any?> {
         return innerMerge(from, to, overwrite, fun(fromValue, toValue): Any? {
             if (fromValue is Map<*, *> && toValue is Map<*, *>) {
-                return mergeWithoutType(
-                    fromValue,
-                    toValue,
-                    overwrite
-                )
+                return mergeWithoutType(fromValue, toValue, overwrite)
             }
             if (!overwrite) {
                 return toValue
             }
             if (fromValue is Collection<*> && toValue is Collection<*>) {
-                return mergeCollection(
-                    fromValue,
-                    toValue
-                )
+                return mergeCollection(fromValue, toValue)
             }
             return fromValue
         })
@@ -64,14 +57,8 @@ internal object EventDataMerger {
         to: Map<*, *>?,
         overwrite: Boolean
     ): Map<*, *>? {
-        from?.let {
-            if (!from.keys.isAllString())
-                return to
-        }
-        to?.let {
-            if (!to.keys.isAllString())
-                return to
-        }
+        from?.let { if (!it.keys.isAllString()) return to }
+        to?.let { if (!it.keys.isAllString()) return to }
         return try {
             merge(from as? Map<String, Any?>, to as? Map<String, Any?>, overwrite)
         } catch (e: Exception) {
@@ -80,9 +67,7 @@ internal object EventDataMerger {
     }
 
     private fun Set<*>.isAllString(): Boolean {
-        this.forEach {
-            if (it !is String) return false
-        }
+        this.forEach { if (it !is String) return false }
         return true
     }
 
@@ -92,44 +77,58 @@ internal object EventDataMerger {
         overwrite: Boolean,
         overwriteStrategy: (fromValue: Any?, toValue: Any?) -> Any?
     ): Map<String, Any?> {
-        val returnMap = HashMap<String, Any?>()
-        to?.let(returnMap::putAll)
+        val mergedMap = HashMap<String, Any?>()
+        to?.let(mergedMap::putAll)
         from?.forEach { (k, v) ->
-            if (returnMap.containsKey(k)) {
-                val resolvedValue = overwriteStrategy(v, returnMap[k])
-                resolvedValue?.let { returnMap[k] = resolvedValue } ?: returnMap.remove(k)
-            } else if (k.endsWith(WILD_CARD_SUFFIX_FOR_LIST)) {
-                val wildCardKey = k.dropLast(WILD_CARD_SUFFIX_FOR_LIST.length)
-                if (returnMap[wildCardKey] is Collection<*> && v is Map<*, *>) {
-                    val targetList = returnMap[wildCardKey] as? Collection<*>
-                    val wildCardValue = v as? Map<*, *>
-                    wildCardValue?.let {
-                        targetList?.let { list ->
-                            val newList = ArrayList<Any?>()
-                            list.forEach {
-                                val itMap = it as? Map<*, *>
-                                itMap?.let {
-                                    newList.add(
-                                        mergeWithoutType(
-                                            wildCardValue,
-                                            itMap,
-                                            overwrite
-                                        )
-                                    )
-                                }
-                                    ?: run {
-                                        newList.add(it)
-                                    }
-                            }
-                            returnMap[wildCardKey] = newList
-                        }
-                    }
+            when {
+                mergedMap.containsKey(k) -> {
+                    val resolvedValue = overwriteStrategy(v, mergedMap[k])
+                    resolvedValue?.let { mergedMap[k] = resolvedValue } ?: mergedMap.remove(k)
                 }
-            } else {
-                returnMap[k] = v
+                k.endsWith(WILD_CARD_SUFFIX_FOR_LIST) -> {
+                    if (v is Map<*, *>) handleWildcardMerge(mergedMap, k, v, overwrite)
+                }
+                else -> {
+                    mergedMap[k] = v
+                }
             }
         }
-        return returnMap
+        return mergedMap
+    }
+
+    /**
+     * If the map contains the specific key and its value is [Iterable], merge `data` to each item of the [Iterable] object
+     *
+     * For example:
+     * for the wildcard key: `list[*]`, merge the following data:
+     *      {"k":"v"}
+     * to the target [Map]:
+     *     {"list":[{"k1":"v1"},{"k2":"v2"}]}
+     * the result is:
+     *     {"list":[{"k1":"v1","k":"v"},{"k2":"v2","k":"v"}]}
+     *
+     * @param targetMap may be merged with the given `data` if it contains wildcard key
+     * @param wildcardKey the string of the wildcard key with suffix `[*]`
+     * @param data the new data to be merged to the `targetMap`
+     * @param overwrite true, if the new data should take priority
+     */
+    private fun handleWildcardMerge(
+        targetMap: HashMap<String, Any?>,
+        wildcardKey: String,
+        data: Map<*, *>,
+        overwrite: Boolean
+    ) {
+        val targetKey = wildcardKey.dropLast(WILD_CARD_SUFFIX_FOR_LIST.length)
+        val targetValueAsList = targetMap[targetKey]
+        if (targetValueAsList is Iterable<*>) {
+            val newList = ArrayList<Any?>()
+            targetValueAsList.forEach {
+                val itMap = it as? Map<*, *>
+                itMap?.let { newList.add(mergeWithoutType(data, itMap, overwrite)) }
+                    ?: run { newList.add(it) }
+            }
+            targetMap[targetKey] = newList
+        }
     }
 
 }

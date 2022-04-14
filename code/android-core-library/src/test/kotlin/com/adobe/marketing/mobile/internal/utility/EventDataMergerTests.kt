@@ -40,11 +40,12 @@ class EventDataMergerTests {
             "newKey" to "newValue",
             "donotdelete" to null
         )
-        val result = EventDataMerger.merge(fromMap, toMap, false)
-        assertEquals(3, result.keys.size)
-        assertTrue(result.containsKey("key"))
-        assertTrue(result.containsKey("newKey"))
-        assertEquals("value", result["donotdelete"])
+        val expectedMap = mapOf(
+            "key" to "oldValue",
+            "donotdelete" to "value",
+            "newKey" to "newValue"
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, false))
     }
 
     @Test
@@ -59,12 +60,13 @@ class EventDataMergerTests {
                 "newKey" to "newValue"
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        val nestedMap = result["nested"] as? Map<*, *>
-        assertEquals(2, nestedMap?.keys?.size)
-        assertEquals("oldValue", nestedMap?.get("key"))
-        assertEquals("newValue", nestedMap?.get("newKey"))
+        val expectedMap = mapOf(
+            "nested" to mapOf(
+                "key" to "oldValue",
+                "newKey" to "newValue"
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -81,12 +83,13 @@ class EventDataMergerTests {
                 "toBeDeleted" to null
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        val nestedMap = result["nested"] as? Map<*, *>
-        assertEquals(2, nestedMap?.keys?.size)
-        assertEquals("oldValue", nestedMap?.get("key"))
-        assertEquals("newValue", nestedMap?.get("newKey"))
+        val expectedMap = mapOf(
+            "nested" to mapOf(
+                "key" to "oldValue",
+                "newKey" to "newValue"
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -97,14 +100,10 @@ class EventDataMergerTests {
         val toMap = mapOf(
             "key" to listOf("0", "1")
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("key"))
-        val mergedList = result["key"] as? List<Any?>
-        assertEquals("abc", mergedList?.get(0))
-        assertEquals("def", mergedList?.get(1))
-        assertEquals("0", mergedList?.get(2))
-        assertEquals("1", mergedList?.get(3))
+        val expectedMap = mapOf(
+            "key" to listOf("abc", "def", "0", "1")
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -115,14 +114,10 @@ class EventDataMergerTests {
         val toMap = mapOf(
             "key" to listOf("abc", "1")
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("key"))
-        val mergedList = result["key"] as? List<Any?>
-        assertEquals("abc", mergedList?.get(0))
-        assertEquals("def", mergedList?.get(1))
-        assertEquals("abc", mergedList?.get(2))
-        assertEquals("1", mergedList?.get(3))
+        val expectedMap = mapOf(
+            "key" to listOf("abc", "def", "abc", "1")
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -133,18 +128,14 @@ class EventDataMergerTests {
         val toMap = mapOf(
             "key" to listOf(0, 1)
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("key"))
-        val mergedList = result["key"] as? List<Any?>
-        assertEquals("abc", mergedList?.get(0))
-        assertEquals("def", mergedList?.get(1))
-        assertEquals(0, mergedList?.get(2))
-        assertEquals(1, mergedList?.get(3))
+        val expectedMap = mapOf(
+            "key" to listOf("abc", "def", 0, 1)
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
-    fun testWildCardSimpleMerge() {
+    fun testWildCardMergeBasic() {
         val toMap = mapOf(
             "list" to listOf(
                 mapOf(
@@ -160,16 +151,19 @@ class EventDataMergerTests {
                 "newKey" to "newValue"
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("list"))
-        val mergedList = result["list"] as? List<*>
-        val item0 = mergedList?.get(0) as? Map<*, *>
-        assertEquals("v1", item0?.get("k1"))
-        assertEquals("newValue", item0?.get("newKey"))
-        val item1 = mergedList?.get(1) as? Map<*, *>
-        assertEquals("v2", item1?.get("k2"))
-        assertEquals("newValue", item1?.get("newKey"))
+        val expectedMap = mapOf(
+            "list" to listOf(
+                mapOf(
+                    "k1" to "v1",
+                    "newKey" to "newValue"
+                ),
+                mapOf(
+                    "k2" to "v2",
+                    "newKey" to "newValue"
+                )
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -193,18 +187,21 @@ class EventDataMergerTests {
                 )
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("inner"))
-        val innerMap = result["inner"] as? Map<*, *>
-        assertTrue(innerMap?.containsKey("list") == true)
-        val mergedList = innerMap?.get("list") as? List<*>
-        val item0 = mergedList?.get(0) as? Map<*, *>
-        assertEquals("v1", item0?.get("k1"))
-        assertEquals("newValue", item0?.get("newKey"))
-        val item1 = mergedList?.get(1) as? Map<*, *>
-        assertEquals("v2", item1?.get("k2"))
-        assertEquals("newValue", item1?.get("newKey"))
+        val expectedMap = mapOf(
+            "inner" to mapOf(
+                "list" to listOf(
+                    mapOf(
+                        "k1" to "v1",
+                        "newKey" to "newValue"
+                    ),
+                    mapOf(
+                        "k2" to "v2",
+                        "newKey" to "newValue"
+                    )
+                )
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -224,16 +221,17 @@ class EventDataMergerTests {
                 "newKey" to "newValue"
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("list"))
-        val mergedList = result["list"] as? List<*>
-        val item0 = mergedList?.get(0) as? Map<*, *>
-        assertEquals(1, item0?.size)
-        assertEquals("v1", item0?.get("k1"))
-        val item1 = mergedList?.get(1) as? Map<*, *>
-        assertEquals(1, item1?.size)
-        assertEquals("v2", item1?.get("k2"))
+        val expectedMap = mapOf(
+            "list" to listOf(
+                mapOf(
+                    "k1" to "v1"
+                ),
+                mapOf(
+                    "k2" to "v2"
+                )
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -254,18 +252,19 @@ class EventDataMergerTests {
                 "key" to "newValue"
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("list"))
-        val mergedList = result["list"] as? List<*>
-        val item0 = mergedList?.get(0) as? Map<*, *>
-        assertEquals(2, item0?.size)
-        assertEquals("v1", item0?.get("k1"))
-        assertEquals("newValue", item0?.get("key"))
-        val item1 = mergedList?.get(1) as? Map<*, *>
-        assertEquals(2, item1?.size)
-        assertEquals("v2", item1?.get("k2"))
-        assertEquals("newValue", item1?.get("key"))
+        val expectedMap = mapOf(
+            "list" to listOf(
+                mapOf(
+                    "k1" to "v1",
+                    "key" to "newValue"
+                ),
+                mapOf(
+                    "k2" to "v2",
+                    "key" to "newValue"
+                )
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -284,15 +283,16 @@ class EventDataMergerTests {
                 "key" to "newValue"
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("list"))
-        val mergedList = result["list"] as? List<*>
-        val item0 = mergedList?.get(0) as? Map<*, *>
-        assertEquals(2, item0?.size)
-        assertEquals("v1", item0?.get("k1"))
-        assertEquals("newValue", item0?.get("key"))
-        assertEquals("none_map_item", mergedList?.get(1))
+        val expectedMap = mapOf(
+            "list" to listOf(
+                mapOf(
+                    "k1" to "v1",
+                    "key" to "newValue"
+                ),
+                "none_map_item"
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -313,18 +313,19 @@ class EventDataMergerTests {
                 "key" to "newValue"
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, false)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("list"))
-        val mergedList = result["list"] as? List<*>
-        val item0 = mergedList?.get(0) as? Map<*, *>
-        assertEquals(2, item0?.size)
-        assertEquals("v1", item0?.get("k1"))
-        assertEquals("oldValue", item0?.get("key"))
-        val item1 = mergedList?.get(1) as? Map<*, *>
-        assertEquals(2, item1?.size)
-        assertEquals("v2", item1?.get("k2"))
-        assertEquals("newValue", item1?.get("key"))
+        val expectedMap = mapOf(
+            "list" to listOf(
+                mapOf(
+                    "k1" to "v1",
+                    "key" to "oldValue"
+                ),
+                mapOf(
+                    "k2" to "v2",
+                    "key" to "newValue"
+                )
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, false))
     }
 
     @Test
@@ -352,18 +353,28 @@ class EventDataMergerTests {
                 )
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("list"))
-        val mergedList = result["list"] as? List<*>
-        val item0 = mergedList?.get(0) as? Map<*, *>
-        assertEquals(3, item0?.size)
-        assertEquals("v1", item0?.get("k1"))
-        assertEquals("newValue", item0?.get("key"))
-        val item0innerMap = item0?.get("inner") as? Map<*, *>
-        assertEquals("newValue", item0innerMap?.get("inner_k1"))
-        assertEquals("oldValue", item0innerMap?.get("key"))
-        assertEquals("newValue", item0innerMap?.get("newKey"))
+        val expectedMap = mapOf(
+            "list" to listOf(
+                mapOf(
+                    "k1" to "v1",
+                    "inner" to mapOf(
+                        "inner_k1" to "newValue",
+                        "key" to "oldValue",
+                        "newKey" to "newValue"
+                    ),
+                    "key" to "newValue"
+                ),
+                mapOf(
+                    "k2" to "v2",
+                    "key" to "newValue",
+                    "inner" to mapOf(
+                        "inner_k1" to "newValue",
+                        "newKey" to "newValue"
+                    )
+                )
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -391,18 +402,28 @@ class EventDataMergerTests {
                 )
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, false)
-        assertEquals(1, result.keys.size)
-        assertTrue(result.containsKey("list"))
-        val mergedList = result["list"] as? List<*>
-        val item0 = mergedList?.get(0) as? Map<*, *>
-        assertEquals(3, item0?.size)
-        assertEquals("v1", item0?.get("k1"))
-        assertEquals("newValue", item0?.get("key"))
-        val item0innerMap = item0?.get("inner") as? Map<*, *>
-        assertEquals("oldValue", item0innerMap?.get("inner_k1"))
-        assertEquals("oldValue", item0innerMap?.get("key"))
-        assertEquals("newValue", item0innerMap?.get("newKey"))
+        val expectedMap = mapOf(
+            "list" to listOf(
+                mapOf(
+                    "k1" to "v1",
+                    "inner" to mapOf(
+                        "inner_k1" to "oldValue",
+                        "key" to "oldValue",
+                        "newKey" to "newValue"
+                    ),
+                    "key" to "newValue",
+                ),
+                mapOf(
+                    "k2" to "v2",
+                    "key" to "newValue",
+                    "inner" to mapOf(
+                        "inner_k1" to "newValue",
+                        "newKey" to "newValue"
+                    )
+                )
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, false))
     }
 
     @Test
@@ -421,12 +442,15 @@ class EventDataMergerTests {
                 "k2" to "v2"
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(3, result.keys.size)
-        val nestedMap = result["nested"] as? Map<*, *>
-        assertEquals(2, nestedMap?.keys?.size)
-        assertEquals("v1", nestedMap?.get("k1"))
-        assertEquals("ValueForIntKey", nestedMap?.get(1))
+        val expectedMap = mapOf(
+            "k1" to "v1",
+            "k2" to "v2",
+            "nested" to mapOf(
+                1 to "ValueForIntKey",
+                "k1" to "v1"
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 
     @Test
@@ -445,11 +469,14 @@ class EventDataMergerTests {
                 "k1" to "v11"
             )
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(3, result.keys.size)
-        val nestedMap = result["nested"] as? Map<*, *>
-        assertEquals(2, nestedMap?.keys?.size)
-        assertEquals("v1", nestedMap?.get("k1"))
-        assertEquals("v2", nestedMap?.get("k2"))
+        val expectedMap = mapOf(
+            "k1" to "v1",
+            "k2" to "v2",
+            "nested" to mapOf(
+                "k1" to "v1",
+                "k2" to "v2"
+            )
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
     }
 }

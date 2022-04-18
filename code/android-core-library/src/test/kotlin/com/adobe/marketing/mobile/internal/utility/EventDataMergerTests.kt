@@ -24,10 +24,12 @@ class EventDataMergerTests {
         val toMap = mapOf(
             "newKey" to "newValue"
         )
-        val result = EventDataMerger.merge(fromMap, toMap, true)
-        assertEquals(2, result?.keys?.size)
-        assertTrue(result.containsKey("key"))
-        assertTrue(result.containsKey("newKey"))
+        val expectedMap = mapOf(
+            "key" to "oldValue",
+            "newKey" to "newValue"
+        )
+        assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
+
     }
 
     @Test

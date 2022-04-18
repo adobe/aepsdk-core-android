@@ -11,12 +11,31 @@
 
 package com.adobe.marketing.mobile.utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Utility to read data from {@code Event} data which is represented as {@code Map<String, Object>} in a type safe way.
+ *
+ * <p>The value of an {@code Event} data key can be obtained in multiple ways:</p>
+ * <ul>
+ *     <li>
+ *         The {@code DataReader.optXyz(...)} methods are typically the best choice for users. These
+ *         methods return the value as an {@code xyz}. If the value is missing or is not an
+ *         {@code xyz}, the method will return a default value. Implicit conversions between types
+ *         are not performed, except between numeric types. No implicit conversions even between numeric
+ *         types are performed when reading as {@code Map} or {@code List}.
+ *     </li>
+ *     <li>
+ *         The {@code DataReader.getXyz(...)} methods return the value as an {@code xyz}. If the value
+ *         is missing or is not an {@code xyz} the method will throw. Implicit conversions between
+ *         types are not performed, except between numeric types. No implicit conversions even between
+ *         numeric types are performed when reading as {@code Map} or {@code List}.
+ *     </li>
+ *
+ * </ul>
+ *
+ */
 public class DataReader {
 
     private static boolean checkOverflow(Class clazz, Number n) {
@@ -114,7 +133,7 @@ public class DataReader {
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException if value is not gettable as a {@code T}
      */
-    public static <T> T getTypedObject(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
+    private static <T> T getTypedObject(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
         if (map == null || key == null) {
             throw new IllegalArgumentException("Map or key is null");
         }
@@ -135,7 +154,7 @@ public class DataReader {
      * not gettable as a {@code T}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
-    public static <T> T optTypedObject(Class<T> tClass, Map<String, ?> map, String key, T fallback) {
+    private static <T> T optTypedObject(Class<T> tClass, Map<String, ?> map, String key, T fallback) {
         T ret = null;
         try {
             ret = getTypedObject(tClass, map, key);
@@ -168,15 +187,14 @@ public class DataReader {
             throw new DataReaderException("Value is not a map");
         }
 
-        Map<String, T> ret = new HashMap<>();
         Map<?, ?> valueAsMap = (Map<?, ?>)value;
         for (Map.Entry<?, ?> kv : valueAsMap.entrySet()) {
-            String k = kv.getKey().toString();
-            T v = castObject(tClass, kv.getValue());
-            ret.put(k, v);
+            if (!(kv.getKey() instanceof String) ||
+                    !tClass.isInstance(kv.getValue())) {
+                throw new DataReaderException("Map entry is not of expected type");
+            }
         }
-
-        return ret;
+        return (Map<String, T>) valueAsMap;
     }
 
     /**
@@ -220,18 +238,18 @@ public class DataReader {
             return null;
         }
 
-        if (!(value instanceof Collection)) {
-            throw new DataReaderException("Value is not a collection");
+        if (!(value instanceof List)) {
+            throw new DataReaderException("Value is not a list");
         }
 
-        Collection<?> valueAsCollection = (Collection<?>) value;
-        List<T> ret = new ArrayList<>();
-        for (Object obj : valueAsCollection) {
-            T objAsT = castObject(tClass, obj);
-            ret.add(objAsT);
+        List<?> valueAsList = (List<?>) value;
+        for (Object obj : valueAsList) {
+            if (!tClass.isInstance(obj)) {
+                throw new DataReaderException("List entry is not of expected type");
+            }
         }
 
-        return ret;
+        return (List<T>) valueAsList;
     }
 
     /**

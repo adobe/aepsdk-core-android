@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.utils.ObjectUtils;
+import com.adobe.marketing.mobile.utils.EventDataUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -135,7 +135,7 @@ public final class Event {
 			throwIfAlreadyBuilt();
 
 			try {
-				event.data = (Map<String, Object>)ObjectUtils.deepClone(data);
+				event.data = EventDataUtils.immutableClone(data);
 			} catch (final Exception e) {
 				Log.warning("EventBuilder", "Event data couldn't be serialized, empty data was set instead %s", e);
 			}
@@ -179,7 +179,7 @@ public final class Event {
 			throwIfAlreadyBuilt();
 			// Todo - Remove this method once all EventData usage is removed from Core.
 			try {
-				event.data = (Map<String, Object>)ObjectUtils.deepClone(data.toObjectMap());
+				event.data = EventDataUtils.immutableClone(data.toObjectMap());
 			} catch (Exception ex) {
 				Log.error("Error", ex.toString());
 			}
@@ -329,14 +329,7 @@ public final class Event {
 	 * 			or if an error occurred while processing
 	 */
 	public Map<String, Object> getEventData() {
-		try {
-			return (Map<String, Object>) ObjectUtils.deepClone(data);
-		} catch (final Exception e) {
-			Log.warning("EventBuilder", "An error occurred while retrieving the event data for %s and %s, %s", type.getName(),
-						source.getName(), e);
-		}
-
-		return new HashMap<>();
+		return data;
 	}
 
 	/**
@@ -367,11 +360,11 @@ public final class Event {
 	EventData getData() {
 		// Todo - Remove this method once all EventData usage is removed from Core.
 		try {
-			return EventData.fromObjectMap((Map<String, Object>)ObjectUtils.deepClone(data));
+			return EventData.fromObjectMap(data);
 		} catch (Exception ex) {
-			Log.error("Error", ex.toString());
+			Log.warning("Event", "Error creating EventData instance %s", ex);
+			return new EventData();
 		}
-		return new EventData();
 	}
 
 	/**

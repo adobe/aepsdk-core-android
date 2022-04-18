@@ -29,7 +29,9 @@ public class DataReaderTests {
     final String NULL_VALUE_ERROR_MSG = "Map contains null value for key";
     final String OVERFLOW_ERROR_MSG = "Value overflows type ";
     final String MAP_ERROR_MSG = "Value is not a map";
-    final String COLLECTION_ERROR_MSG = "Value is not a collection";
+    final String MAP_ENTRY_ERROR_MSG = "Map entry is not of expected type";
+    final String LIST_ERROR_MSG = "Value is not a list";
+    final String LIST_ENTRY_ERROR_MSG = "List entry is not of expected type";
 
     final double DELTA = 0.000001d;
 
@@ -342,12 +344,6 @@ public class DataReaderTests {
         map = DataReader.getStringMap(data, "EMPTY_MAP");
         assertEquals(map, new HashMap<>());
 
-        map = DataReader.getStringMap(data, "INT_MAP");
-        assertEquals(map,  new HashMap<String, String>() {{
-            put("a", "1");
-            put("b", "2");
-        }});
-
         map = DataReader.getStringMap(data, "STRING_MAP");
         assertEquals(map,  new HashMap<String, String>() {{
             put("a", "a");
@@ -355,6 +351,7 @@ public class DataReaderTests {
         }});
 
         checkExceptionMessage((key) -> DataReader.getStringMap(data, key), Arrays.asList("STRING", "INT", "STRING_LIST"), MAP_ERROR_MSG);
+        checkExceptionMessage((key) -> DataReader.getStringMap(data, key), Arrays.asList("INT_MAP"), MAP_ENTRY_ERROR_MSG);
         checkIllegalArgumentException(DataReader::getStringMap);
     }
 
@@ -369,17 +366,14 @@ public class DataReaderTests {
         map = DataReader.optStringMap(data, "EMPTY_MAP", defaultMap);
         assertEquals(map, new HashMap<>());
 
-        map = DataReader.optStringMap(data, "INT_MAP", defaultMap);
-        assertEquals(map,  new HashMap<String, String>() {{
-            put("a", "1");
-            put("b", "2");
-        }});
-
         map = DataReader.optStringMap(data, "STRING_MAP", defaultMap);
         assertEquals(map,  new HashMap<String, String>() {{
             put("a", "a");
             put("b", "b");
         }});
+
+        map = DataReader.optStringMap(data, "INT_MAP", defaultMap);
+        assertEquals(map, defaultMap);
 
         map = DataReader.optStringMap(data, "STRING", defaultMap);
         assertEquals(map, defaultMap);
@@ -394,13 +388,11 @@ public class DataReaderTests {
         list = DataReader.getStringList(data, "EMPTY_LIST");
         assertEquals(list, new ArrayList<>());
 
-        list = DataReader.getStringList(data, "INT_LIST");
-        assertEquals(list,  Arrays.asList("1", "2"));
-
         list = DataReader.getStringList(data, "STRING_LIST");
         assertEquals(list, Arrays.asList("a", "b"));
 
-        checkExceptionMessage((key) -> DataReader.getStringList(data, key), Arrays.asList("STRING", "INT", "STRING_MAP"), COLLECTION_ERROR_MSG);
+        checkExceptionMessage((key) -> DataReader.getStringList(data, key), Arrays.asList("STRING", "INT", "STRING_MAP"), LIST_ERROR_MSG);
+        checkExceptionMessage((key) -> DataReader.getStringList(data, key), Arrays.asList("INT_LIST"), LIST_ENTRY_ERROR_MSG);
         checkIllegalArgumentException(DataReader::getStringList);
     }
 
@@ -411,12 +403,11 @@ public class DataReaderTests {
         list = DataReader.optStringList(data, "EMPTY_LIST", defaultList);
         assertEquals(list, new ArrayList<>());
 
-        list = DataReader.optStringList(data, "INT_LIST", defaultList);
-        assertEquals(list,  Arrays.asList("1", "2"));
-
         list = DataReader.optStringList(data, "STRING_LIST", defaultList);
         assertEquals(list, Arrays.asList("a", "b"));
 
+        list = DataReader.optStringList(data, "INT_LIST", defaultList);
+        assertEquals(list, defaultList);
         list = DataReader.optStringList(data, "STRING", defaultList);
         assertEquals(list, defaultList);
         list = DataReader.optStringList(data, "STRING_MAP", defaultList);
@@ -434,7 +425,7 @@ public class DataReaderTests {
         }});
 
         checkExceptionMessage((key) -> DataReader.getTypedMap(Integer.class, data, key), Arrays.asList("STRING", "INT", "STRING_LIST"), MAP_ERROR_MSG);
-        checkCastException((key) -> DataReader.getTypedMap(Integer.class, data, key), Arrays.asList("STRING_MAP"));
+        checkExceptionMessage((key) -> DataReader.getTypedMap(Integer.class, data, key), Arrays.asList("STRING_MAP"), MAP_ENTRY_ERROR_MSG);
         checkIllegalArgumentException((m, k) -> DataReader.getTypedMap(Integer.class, m, k));
     }
 
@@ -464,8 +455,8 @@ public class DataReaderTests {
         List<Integer> list = DataReader.getTypedList(Integer.class, data, "INT_LIST");
         assertEquals(list,  Arrays.asList(1, 2));
 
-        checkExceptionMessage((key) -> DataReader.getTypedList(Integer.class, data, key), Arrays.asList("STRING", "INT", "STRING_MAP"), COLLECTION_ERROR_MSG);
-        checkCastException((key) -> DataReader.getTypedList(Integer.class, data, key), Arrays.asList("STRING_LIST"));
+        checkExceptionMessage((key) -> DataReader.getTypedList(Integer.class, data, key), Arrays.asList("STRING", "INT", "STRING_MAP"), LIST_ERROR_MSG);
+        checkExceptionMessage((key) -> DataReader.getTypedList(Integer.class, data, key), Arrays.asList("STRING_LIST"), LIST_ENTRY_ERROR_MSG);
         checkIllegalArgumentException((m, k) -> DataReader.getTypedList(Integer.class, m, k));
     }
 
@@ -486,12 +477,13 @@ public class DataReaderTests {
 
     @Test
     public void testReadNestedValue() throws Exception {
-        Map<String, Integer> map = DataReader.getTypedMap(Integer.class, data, "INT_MAP");
+        Map<String, Object> clonedData = EventDataUtils.immutableClone(data);
+
+        Map<String, Integer> map = DataReader.getTypedMap(Integer.class, clonedData, "INT_MAP");
         int value = DataReader.getInt(map, "a");
         assertEquals(value, 1);
 
-        Map<String, String> map1 = DataReader.getStringMap(data, "STRING_MAP");
-        String value1 = DataReader.getString(map1, "a");
-        assertEquals(value1, "a");
+        List<String> stringList = DataReader.getStringList(clonedData, "STRING_LIST");
+        assertEquals("a", stringList.get(0) );
     }
 }

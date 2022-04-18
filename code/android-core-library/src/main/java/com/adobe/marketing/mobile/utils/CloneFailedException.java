@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile.utils;
 
 /**
- * Exception thrown by {@link ObjectUtils#deepClone(Object)} to indicate that an
+ * Exception thrown by {@link EventDataUtils} to indicate that an
  * exception occurred during deep clone.
  */
 public class CloneFailedException extends Exception {

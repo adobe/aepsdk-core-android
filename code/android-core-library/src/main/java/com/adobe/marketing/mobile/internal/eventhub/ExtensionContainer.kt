@@ -105,18 +105,18 @@ internal class ExtensionContainer constructor(
         taskExecutor.submit {
             val extension = extensionClass.initWith(extensionRuntime)
             if (extension == null) {
-                callback(EventHubError.extensionInitializationFailure)
+                callback(EventHubError.ExtensionInitializationFailure)
                 return@submit
             }
 
             if (extension.name == null) {
-                callback(EventHubError.invalidExtensionName)
+                callback(EventHubError.InvalidExtensionName)
                 return@submit
             }
 
             // We set this circular reference because ExtensionApi exposes an API to get the underlying extension.
             extensionRuntime.extension = extension
-            callback(EventHubError.none)
+            callback(EventHubError.None)
         }
     }
 

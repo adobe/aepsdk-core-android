@@ -49,7 +49,7 @@ internal class EventHubTests {
 
     // Helper to register extensions
     fun registerExtension(extensionClass: Class<out Extension>): EventHubError {
-        var ret: EventHubError = EventHubError.unknown;
+        var ret: EventHubError = EventHubError.Unknown;
 
         val latch = CountDownLatch(1)
         EventHub.shared.registerExtension(extensionClass) { error ->
@@ -61,7 +61,7 @@ internal class EventHubTests {
     }
 
     fun unregisterExtension(extensionClass: Class<out Extension>): EventHubError {
-        var ret: EventHubError = EventHubError.unknown;
+        var ret: EventHubError = EventHubError.Unknown;
 
         val latch = CountDownLatch(1)
         EventHub.shared.unregisterExtension(extensionClass) { error ->
@@ -82,10 +82,10 @@ internal class EventHubTests {
     fun testRegisterExtensionSuccess() {
 
         var ret = registerExtension(MockExtension::class.java)
-        assertEquals(EventHubError.none, ret)
+        assertEquals(EventHubError.None, ret)
 
         ret = registerExtension(MockExtensions.MockExtensionKotlin::class.java)
-        assertEquals(EventHubError.none, ret)
+        assertEquals(EventHubError.None, ret)
     }
 
     @Test
@@ -93,25 +93,25 @@ internal class EventHubTests {
         registerExtension(MockExtension::class.java)
 
         var ret = registerExtension(MockExtension::class.java)
-        assertEquals(EventHubError.duplicateExtensionName, ret)
+        assertEquals(EventHubError.DuplicateExtensionName, ret)
     }
 
     @Test
     fun testRegisterExtensionFailure_ExtensionInitialization() {
         var ret = registerExtension(MockExtensions.MockExtensionInitFailure::class.java)
-        assertEquals(EventHubError.extensionInitializationFailure, ret)
+        assertEquals(EventHubError.ExtensionInitializationFailure, ret)
 
         ret = registerExtension(MockExtensions.MockExtensionInvalidConstructor::class.java)
-        assertEquals(EventHubError.extensionInitializationFailure, ret)
+        assertEquals(EventHubError.ExtensionInitializationFailure, ret)
     }
 
     @Test
     fun testRegisterExtensionFailure_InvalidExceptionName() {
         var ret = registerExtension(MockExtensions.MockExtensionNullName::class.java)
-        assertEquals(EventHubError.invalidExtensionName, ret)
+        assertEquals(EventHubError.InvalidExtensionName, ret)
 
         ret = registerExtension(MockExtensions.MockExtensionNameException::class.java)
-        assertEquals(EventHubError.invalidExtensionName, ret)
+        assertEquals(EventHubError.InvalidExtensionName, ret)
     }
 
 
@@ -120,13 +120,13 @@ internal class EventHubTests {
         registerExtension(MockExtensions.MockExtensionKotlin::class.java)
 
         var ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
-        assertEquals(EventHubError.none, ret)
+        assertEquals(EventHubError.None, ret)
     }
 
     @Test
     fun testUnregisterExtensionFailure() {
         var ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
-        assertEquals(EventHubError.extensionNotRegistered, ret)
+        assertEquals(EventHubError.ExtensionNotRegistered, ret)
     }
 
     @Test
@@ -134,10 +134,10 @@ internal class EventHubTests {
         registerExtension(MockExtensions.MockExtensionKotlin::class.java)
 
         var ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
-        assertEquals(EventHubError.none, ret)
+        assertEquals(EventHubError.None, ret)
 
         ret = registerExtension(MockExtensions.MockExtensionKotlin::class.java)
-        assertEquals(EventHubError.none, ret)
+        assertEquals(EventHubError.None, ret)
     }
 
 }

@@ -442,13 +442,13 @@ class EventHub {
 		com.adobe.marketing.mobile.internal.eventhub.EventHub.Companion.getShared().registerExtension(extensionClass, new Function1<EventHubError, Unit>() {
 			@Override
 			public Unit invoke(EventHubError e) {
-				if (errorCallback == null || EventHubError.none.equals(e)) {
+				if (errorCallback == null || EventHubError.None.equals(e)) {
 					return null;
 				}
 
-				if (EventHubError.invalidExtensionName.equals(e)) {
+				if (EventHubError.InvalidExtensionName.equals(e)) {
 					errorCallback.error(ExtensionError.BAD_NAME);
-				} else if (EventHubError.duplicateExtensionName.equals(e)) {
+				} else if (EventHubError.DuplicateExtensionName.equals(e)) {
 					errorCallback.error(ExtensionError.DUPLICATE_NAME);
 				} else {
 					errorCallback.error(ExtensionError.UNEXPECTED_ERROR);

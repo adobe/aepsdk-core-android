@@ -42,13 +42,13 @@ internal class EventHub {
     fun registerExtension(extensionClass: Class<out Extension>?, completion: (error: EventHubError) -> Unit) {
         eventHubExecutor.submit {
             if (extensionClass == null) {
-                completion(EventHubError.extensionInitializationFailure)
+                completion(EventHubError.ExtensionInitializationFailure)
                 return@submit
             }
 
             val extensionName = extensionClass.extensionTypeName
             if (registeredExtensions.containsKey(extensionName)) {
-                completion(EventHubError.duplicateExtensionName)
+                completion(EventHubError.DuplicateExtensionName)
                 return@submit
             }
 
@@ -70,9 +70,9 @@ internal class EventHub {
             if (container != null) {
                 container?.shutdown()
                 shareEventHubSharedState()
-                completion(EventHubError.none)
+                completion(EventHubError.None)
             } else {
-                completion(EventHubError.extensionNotRegistered)
+                completion(EventHubError.ExtensionNotRegistered)
             }
         }
     }

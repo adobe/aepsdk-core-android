@@ -34,7 +34,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
         // verify flattened map string "key:value"
-        final long expectedHash = 4007910315l;
+        final long expectedHash = 4007910315L;
         assertEquals(expectedHash, hash);
     }
 
@@ -49,7 +49,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
         // verify flattened map string "key:552"
-        final long expectedHash = 874166902;
+        final long expectedHash = 874166902L;
         assertEquals(expectedHash, hash);
     }
 
@@ -64,7 +64,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
         // verify flattened map string "key:false"
-        final long expectedHash = 138493769;
+        final long expectedHash = 138493769L;
         assertEquals(expectedHash, hash);
     }
 
@@ -82,7 +82,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
         // verify flattened map string "UpperCase:abc_underscore:scorekey:valuenumber:1234"
-        final long expectedHash = 960895195;
+        final long expectedHash = 960895195L;
         assertEquals(expectedHash, hash);
     }
 
@@ -98,7 +98,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
         // verify flattened map string "aaa:1zzz:true"
-        final long expectedHash = 3251025831l;
+        final long expectedHash = 3251025831L;
         assertEquals(expectedHash, hash);
     }
 
@@ -115,9 +115,9 @@ public class MapUtilsTests {
         };
         final String[] mask = new String[]{"c", "m"};
         // test
-        final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
+        final long hash = MapUtilsKt.convertMapToFnv1aHash(map, mask);
         // verify flattened map string "c:2m:1.11"
-        final long expectedHash = 2718815288l;
+        final long expectedHash = 2718815288L;
         assertEquals(expectedHash, hash);
     }
 
@@ -136,7 +136,7 @@ public class MapUtilsTests {
                 put("double", 1.5);
             }
         };
-        final List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        final List<Map<String, Object>> list = new ArrayList<>();
         list.add(map1);
         list.add(map2);
         final Map<String, Object> map = new HashMap<String, Object>() {
@@ -146,8 +146,8 @@ public class MapUtilsTests {
         };
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
-        // verify flattened map string "key:[{"aaa":"1","zzz":true},{"number":123,"double":1.5}]"
-        final long expectedHash = 3841285024l;
+        // verify flattened map string "key:[{aaa=1, zzz=true}, {number=123, double=1.5}]"
+        final long expectedHash = 2052811266L;
         assertEquals(expectedHash, hash);
     }
 
@@ -176,8 +176,8 @@ public class MapUtilsTests {
         };
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
-        // verify flattened map string "key:[["aaa","zzz",111],["2"]]"
-        final long expectedHash = 1785496830l;
+        // verify flattened map string "key:[[aaa, zzz, 111], [2]]"
+        final long expectedHash = 390515610L;
         assertEquals(expectedHash, hash);
     }
 
@@ -200,7 +200,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
         // verify flattened map string "aaa:1inner.bbb:5inner.hhh:falsezzz:true"
-        final long expectedHash = 4230384023l;
+        final long expectedHash = 4230384023L;
         assertEquals(expectedHash, hash);
     }
 
@@ -230,7 +230,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
         // verify flattened map string "aaa:1inner.bbb:5inner.hhh:falseinner.secondInner.ccc:10inner.secondInner.iii:1.1zzz:true"
-        final long expectedHash = 1786696518;
+        final long expectedHash = 1786696518L;
         assertEquals(expectedHash, hash);
     }
 
@@ -246,7 +246,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, new String[]{});
         // verify flattened map string "a:1b:2"
-        final long expectedHash = 3371500665l;
+        final long expectedHash = 3371500665L;
         assertEquals(expectedHash, hash);
     }
 
@@ -288,7 +288,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
         // verify flattened map string "1:1222:222A:2Ba:4Bc:10R:8Z:5a:1ba:3bc:9r:7z:6"
-        final long expectedHash = 2933724447l;
+        final long expectedHash = 2933724447L;
         assertEquals(expectedHash, hash);
     }
 
@@ -314,7 +314,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, new String[]{"A", "a", "ba", "Ba", "bc", "Bc", "1"});
         // verify flattened map string "1:1A:2Ba:4Bc:10a:1ba:3bc:9"
-        final long expectedHash = 3344627991l;
+        final long expectedHash = 3344627991L;
         assertEquals(expectedHash, hash);
     }
 }

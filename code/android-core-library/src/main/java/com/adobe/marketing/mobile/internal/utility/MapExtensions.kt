@@ -21,14 +21,16 @@ package com.adobe.marketing.mobile.internal.utility
 internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
     val flattenedMap = this.flattening()
     val kvPairs = StringBuilder()
-    masks?.let {
+    var innerMasks = masks
+    if (innerMasks?.isEmpty() == true) innerMasks = null
+    innerMasks?.let {
         it.sortedArray().forEach { mask ->
             if (mask.isNotEmpty() && flattenedMap.containsKey(mask)) {
                 kvPairs.append(mask).append(":").append(flattenedMap[mask].toString())
             }
         }
     } ?: run {
-        flattenedMap.forEach { entry ->
+        flattenedMap.toSortedMap().forEach { entry ->
             kvPairs.append(entry.key).append(":").append(entry.value.toString())
         }
     }

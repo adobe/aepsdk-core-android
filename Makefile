@@ -17,6 +17,12 @@ clean:
 checkstyle:
 		(./code/gradlew -p code/android-core-library checkstyle)
 
+check-format:
+		(./code/gradlew -p code/android-core-library ktlintCheck)
+
+format:
+		(./code/gradlew -p code/android-core-library ktlintFormat)
+
 assemble-phone:
 		(./code/gradlew -p code/android-core-library assemblePhone)
 
@@ -31,7 +37,7 @@ functional-test:
 		(./code/gradlew -p code/android-core-library connectedPhoneDebugAndroidTest)
 
 javadoc:
-		(./code/gradlew -p code/android-core-library Javadoc)
+		(./code/gradlew -p code/android-core-library dokkaJavadoc)
 
 
 build-third-party-extension:

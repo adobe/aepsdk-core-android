@@ -133,7 +133,7 @@ class DataQueueService implements DataQueuing {
 				}
 				MobileCore.log(LoggingMode.DEBUG,
 						LOG_TAG,
-						String.format("Successfully copied (%s) to (%s)", src.getCanonicalPath(), dest.getCanonicalPath()));
+						String.format("Successfully copied (%s) to (%s)", src.getAbsolutePath(), dest.getAbsolutePath()));
 			}
 		}
 	}

@@ -25,7 +25,7 @@ abstract class AbstractHitsDatabase {
 	// ========================================================================================
 	private static final String LOG_TAG = "HitsDatabase";
 	private DatabaseService structuredDataService;
-	private File databaseFile;
+	private String databaseFilePath;
 
 	// ========================================================================================
 	// package-private fields
@@ -53,15 +53,15 @@ abstract class AbstractHitsDatabase {
 	// Constructor
 	// ========================================================================================
 	/**
-	 * Constructor which sets internal {@link #structuredDataService}, {@link #databaseFile}, and {@link #tableName} properties.
+	 * Constructor which sets internal {@link #structuredDataService}, {@link #databaseFilePath}, and {@link #tableName} properties.
 	 *
 	 * @param databaseService {@code DatabaseService} instance used for interfacing with a native database
-	 * @param databaseFile {@code File} of the underlying database
+	 * @param databaseFilePath {@code String} path of the underlying database
 	 * @param tableName {@code String} containing the name of the table in the database
 	 */
-	AbstractHitsDatabase(final DatabaseService databaseService, final File databaseFile, final String tableName) {
+	AbstractHitsDatabase(final DatabaseService databaseService, final String databaseFilePath, final String tableName) {
 		this.structuredDataService = databaseService;
-		this.databaseFile = databaseFile;
+		this.databaseFilePath = databaseFilePath;
 		this.tableName = tableName;
 	}
 
@@ -88,7 +88,7 @@ abstract class AbstractHitsDatabase {
 		synchronized (dbMutex) {
 			if (database == null) {
 				Log.warning(LOG_TAG, "%s (Database), couldn't delete hits, db file path: %s", Log.UNEXPECTED_NULL_VALUE,
-							databaseFile.getAbsolutePath());
+							databaseFilePath);
 				return;
 			}
 
@@ -116,7 +116,7 @@ abstract class AbstractHitsDatabase {
 		synchronized (dbMutex) {
 			if (database == null) {
 				Log.warning(LOG_TAG, "Couldn't delete hit, %s (Database) - Path to db: %s", Log.UNEXPECTED_NULL_VALUE,
-							databaseFile.getAbsolutePath());
+							databaseFilePath);
 				return false;
 			}
 
@@ -130,7 +130,7 @@ abstract class AbstractHitsDatabase {
 	}
 
 	/**
-	 * Opens the existing database at the location represented by {@link #databaseFile}, or creates a new one.
+	 * Opens the existing database at the location represented by {@link #databaseFilePath}, or creates a new one.
 	 * <p>
 	 * Logs an error if create or open operation failed.
 	 */
@@ -138,7 +138,7 @@ abstract class AbstractHitsDatabase {
 		synchronized (dbMutex) {
 			closeDatabase();
 
-			if (databaseFile == null) {
+			if (StringUtils.isNullOrEmpty(databaseFilePath)) {
 				Log.debug(LOG_TAG, "Database creation failed, %s - database file", Log.UNEXPECTED_NULL_VALUE);
 				return;
 			}
@@ -148,11 +148,11 @@ abstract class AbstractHitsDatabase {
 				return;
 			}
 
-			Log.trace(LOG_TAG, "Trying to open database file located at %s", databaseFile.getAbsolutePath());
-			database = structuredDataService.openDatabase(databaseFile.getPath());
+			Log.trace(LOG_TAG, "Trying to open database file located at %s", databaseFilePath);
+			database = structuredDataService.openDatabase(databaseFilePath);
 
 			if (database == null) {
-				Log.debug(LOG_TAG, "Database creation failed for %s", databaseFile.getPath());
+				Log.debug(LOG_TAG, "Database creation failed for %s", databaseFilePath);
 			} else {
 				initializeDatabase();
 			}
@@ -185,7 +185,7 @@ abstract class AbstractHitsDatabase {
 		synchronized (dbMutex) {
 			if (database == null) {
 				Log.debug(LOG_TAG, "Couldn't get size, %s (database) - Filepath: %s", Log.UNEXPECTED_NULL_VALUE,
-						  databaseFile.getAbsolutePath());
+						  databaseFilePath);
 				return 0;
 			}
 
@@ -214,14 +214,14 @@ abstract class AbstractHitsDatabase {
 	/**
 	 * Resets the underlying {@link #database}, usually as a result of a {@link DatabaseStatus#FATAL_ERROR}.
 	 * <p>
-	 * This method removes the existing database and creates a new one with the same {@link #databaseFile} and structure.
+	 * This method removes the existing database and creates a new one with the same {@link #databaseFilePath} and structure.
 	 */
 	protected final void reset() {
 		Log.error(LOG_TAG, "Database in unrecoverable state, resetting.");
 
 		synchronized (dbMutex) {
-			if (databaseFile != null && databaseFile.exists() && !structuredDataService.deleteDatabase(databaseFile.getPath())) {
-				Log.debug(LOG_TAG, String.format("Failed to delete database file(%s).", databaseFile.getAbsolutePath()));
+			if (databaseFilePath != null && new File(databaseFilePath).exists() && !structuredDataService.deleteDatabase(databaseFilePath)) {
+				Log.debug(LOG_TAG, String.format("Failed to delete database file(%s).", databaseFilePath));
 				databaseStatus = DatabaseStatus.FATAL_ERROR;
 				return;
 			}

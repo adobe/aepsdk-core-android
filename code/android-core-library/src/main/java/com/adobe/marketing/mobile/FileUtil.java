@@ -15,7 +15,7 @@ import java.io.*;
 
 final class FileUtil {
 
-	private final static String LOG_TAG = "com.adobe.marketing.mobile.FileUtil";
+	private final static String LOG_TAG = "FileUtil";
 
 	private FileUtil() {}
 
@@ -82,25 +82,4 @@ final class FileUtil {
 		return directory != null && directory.isDirectory() && directory.canWrite();
 	}
 
-	/**
-	 * Copies the contents from {@code src} to {@code dest}.
-	 *
-	 * @param src {@link File} from which the contents are read
-	 * @param dest {@link File} to which contents are written to
-	 * @throws IOException if {@code src} or {@code dest} is not present or it does not have read permissions
-	 */
-	static void copyFile(final File src, final File dest) throws IOException, NullPointerException{
-		final int STREAM_READ_BUFFER_SIZE = 1024;
-
-		try (InputStream input = new FileInputStream(src)) {
-			try (OutputStream output = new FileOutputStream(dest)) {
-				byte[] buffer = new byte[STREAM_READ_BUFFER_SIZE];
-				int length;
-				while ((length = input.read(buffer)) != -1) {
-					output.write(buffer, 0, length);
-				}
-				Log.debug(LOG_TAG, "Successfully copied (%s) to (%s)", src.getCanonicalPath(), dest.getCanonicalPath());
-			}
-		}
-	}
 }

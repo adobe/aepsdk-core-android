@@ -56,7 +56,6 @@ public class PlatformServicesFragment extends Fragment implements View.OnClickLi
 				stringBuffer.append("\ngetApplicationVersionCode() - " + deviceInforming.getApplicationVersionCode());
 				stringBuffer.append("\ngetApplicationBaseDir() - " + deviceInforming.getApplicationBaseDir());
 				stringBuffer.append("\ngetApplicationCacheDir() - " + deviceInforming.getApplicationCacheDir());
-				stringBuffer.append("\ngetApplicationFilesDir() - " + deviceInforming.getApplicationFilesDir());
 				stringBuffer.append("\ngetActiveLocale() - " + deviceInforming.getActiveLocale());
 				stringBuffer.append("\ngetCanonicalPlatformName() - " + deviceInforming.getCanonicalPlatformName());
 //				stringBuffer.append("\ngetCoreVersion() - " + deviceInforming.getCoreVersion());

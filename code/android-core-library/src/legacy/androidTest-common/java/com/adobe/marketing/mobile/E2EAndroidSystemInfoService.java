@@ -12,12 +12,4 @@ public class E2EAndroidSystemInfoService extends AndroidSystemInfoService {
 		tempDir.mkdir();
 		return tempDir;
 	}
-
-	@Override
-	public File getApplicationFilesDir() {
-		File systemFilesDir = super.getApplicationFilesDir();
-		File tempDir = new File(systemFilesDir, String.valueOf(UUID.randomUUID()).replaceAll("-", ""));
-		tempDir.mkdir();
-		return tempDir;
-	}
 }

@@ -39,9 +39,9 @@ final class SQLiteDataQueue implements DataQueue {
 	private boolean isClose = false;
 	private final Object dbMutex = new Object();
 
-	SQLiteDataQueue(final File filesDir, final String databaseName, final SQLiteDatabaseHelper databaseHelper) {
+	SQLiteDataQueue(final String databasePath, final SQLiteDatabaseHelper databaseHelper) {
 		this.databaseHelper = databaseHelper;
-		this.databasePath = new File(filesDir, removeRelativePath(databaseName)).getPath();
+		this.databasePath = databasePath;
 		createTableIfNotExists();
 	}
 
@@ -220,28 +220,5 @@ final class SQLiteDataQueue implements DataQueue {
 
 		MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX,
 					   String.format("createTableIfNotExists - Error creating/accessing table (%s)  ", TABLE_NAME));
-	}
-
-	/**
-	 * Removes the relative part of the file name(if exists).
-	 * <p>
-	 * for ex: File name `/mydatabase/../../database1` will be converted to `mydatabase_database1`
-	 * <p/>
-	 *
-	 * @param filePath the file name
-	 * @return file name without relative path
-	 */
-	private String removeRelativePath(final String filePath) {
-		if (filePath == null || filePath.isEmpty()) {
-			return filePath;
-		}
-
-		try {
-			String result = filePath.replaceAll("\\.[/\\\\]", "\\.");
-			result = result.replaceAll("[/\\\\](\\.{2,})", "_");
-			return result;
-		} catch (IllegalArgumentException e) {
-			return filePath;
-		}
 	}
 }

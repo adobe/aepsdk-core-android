@@ -33,19 +33,13 @@ public class TestUtils {
 		}
 	}
 
-	public static void deleteAllFilesInFilesDir(Context appContext) {
+	public static void deleteDatabaseInDatabaseDir(Context appContext, String databaseName) {
 		if (appContext == null) {
 			return;
 		}
 
-		File filesDir = appContext.getFilesDir();
-		File[] files = filesDir.listFiles();
-
-		if (files != null) {
-			for (File file : files) {
-				file.delete();
-			}
-		}
+		File databasePath = appContext.getDatabasePath(databaseName);
+		databasePath.delete();
 	}
 
 	public static String getCacheDir(Context appContext) {
@@ -56,12 +50,12 @@ public class TestUtils {
 		return appContext.getCacheDir().getPath();
 	}
 
-	public static String getFilesDir(Context appContext) {
+	public static String getDatabasePathInDatabaseDir(Context appContext, String databaseName) {
 		if (appContext == null) {
 			return null;
 		}
 
-		return appContext.getFilesDir().getPath();
+		return appContext.getDatabasePath(databaseName).getPath();
 	}
 
 	public static boolean almostEqual(long actual, long expected, long tolerance) {

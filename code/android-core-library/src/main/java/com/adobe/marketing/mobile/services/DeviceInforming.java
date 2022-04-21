@@ -110,15 +110,6 @@ public interface DeviceInforming {
 	File getApplicationCacheDir();
 
 	/**
-	 * Returns the application specific directory where files are created and stored.
-	 * The application will be able to read and write to the directory and
-	 * the files stored in the directory are persisted (it is not deleted by the system).
-	 *
-	 * @return A {@link File} representing the application file directory, or null if not available on the platform.
-	 */
-	File getApplicationFilesDir();
-
-	/**
 	 * Open the requested asset returns an InputStream to read its contents.
 	 *
 	 * @param fileName asset's name which is to be retrieved

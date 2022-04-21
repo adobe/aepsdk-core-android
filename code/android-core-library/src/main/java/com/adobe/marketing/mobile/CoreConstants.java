@@ -100,19 +100,4 @@ final class CoreConstants {
 		}
 	}
 
-	static class ExtensionNames {
-
-		private ExtensionNames() {}
-
-		/**
-		 * Hold extension name for the {@code Edge} module.
-		 */
-		static final class Edge {
-			static final String EDGE_EXTENSION_NAME = "com.adobe.edge";
-
-			private Edge() {
-			}
-		}
-	}
-
 }

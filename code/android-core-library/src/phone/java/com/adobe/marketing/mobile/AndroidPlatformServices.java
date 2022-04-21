@@ -40,7 +40,7 @@ class AndroidPlatformServices implements PlatformServices {
 		systemInfoService = new AndroidSystemInfoService();
 		networkService = new AndroidNetworkService(ServiceProvider.getInstance().getNetworkService());
 		loggingService = new AndroidLoggingService();
-		databaseService = new AndroidDatabaseService(systemInfoService);
+		databaseService = new AndroidDatabaseService();
 		uiService = new AndroidUIService();
 		localStorageService = new AndroidLocalStorageService();
 		deepLinkService = new AndroidDeepLinkService();

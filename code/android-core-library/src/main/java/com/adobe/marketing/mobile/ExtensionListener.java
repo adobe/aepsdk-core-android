@@ -11,32 +11,39 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.eventhub.ExtensionRuntime;
+
 /**
  * Abstract class that defines the {@code Event} listener for an {@code Extension}.
  *
  * @author Adobe Systems Incorporated
  * @version 5.0
  */
-public abstract class ExtensionListener extends ModuleEventListener<ExtensionApi> {
-	private static final String LOG_TAG = ExtensionListener.class.getSimpleName();
+public abstract class ExtensionListener {
+	private static final String LOG_TAG = "ExtensionListener";
+	private final ExtensionApi extensionApi;
+	private final String type;
+	private final String source;
 
 	/**
 	 * Extension listener constructor. Must be implemented by any extending classes and must be called from all
 	 * the implementors
 	 *
-	 * @param extension parent {@link ExtensionApi} that owns this listener
+	 * @param extensionApi parent {@link ExtensionApi} that owns this listener
 	 * @param type   	{@link String} event type to register this listener for
 	 * @param source 	{@link String} event source to register this listener for
 	 */
-	protected ExtensionListener(final ExtensionApi extension, final String type, final String source) {
-		super(extension, EventType.get(type), EventSource.get(source));
+	protected ExtensionListener(final ExtensionApi extensionApi, final String type, final String source) {
+		this.extensionApi = extensionApi;
+		this.type = type;
+		this.source = source;
 	}
 
-	@Override
 	public void onUnregistered() {
-		String logTag = super.parentModule != null ? super.parentModule.getLogTag() : LOG_TAG;
-		Log.debug(logTag, "Extension listener was unregistered successfully");
+		Log.debug(LOG_TAG, "Extension listener was unregistered successfully");
 	}
+
+	public abstract void hear(Event event);
 
 	/**
 	 * This provides access to the parent extension that registered this listener in order to process
@@ -48,8 +55,6 @@ public abstract class ExtensionListener extends ModuleEventListener<ExtensionApi
 	 * @return the {@link Extension} registered with the {@link EventHub}
 	 */
 	protected Extension getParentExtension() {
-		return super.parentModule.getExtension();
+		return ((ExtensionRuntime)this.extensionApi).getExtension();
 	}
-
-
 }

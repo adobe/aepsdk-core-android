@@ -10,10 +10,15 @@
  */
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
+
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 /**
  * defines a core event loop for sdk activity
@@ -432,80 +437,27 @@ class EventHub {
 	 * When the registration is completed, the extension class will be initialized with the {@link ExtensionApi}
 	 *
 	 * @param extensionClass a class that extends {@link Extension}
-	 * @param <T>            type of the extension class
-	 * @throws InvalidModuleException will be thrown if the {@code extensionClass} is null
 	 */
-	final <T extends Extension>
-	void registerExtension(final Class<T> extensionClass) throws InvalidModuleException {
-		if (extensionClass == null) {
-			throw new InvalidModuleException(LOG_CLASS_WAS_NULL);
-		}
-
-		// register the module on the event hub thread
-		final EventHub hub = this;
-		this.eventHubThreadService.submit(new Runnable() {
+	void registerExtensionWithCallback(final Class<? extends Extension> extensionClass, final ExtensionErrorCallback<ExtensionError> errorCallback) {
+		com.adobe.marketing.mobile.internal.eventhub.EventHub.Companion.getShared().registerExtension(extensionClass, new Function1<EventHubError, Unit>() {
 			@Override
-			public void run() {
-				try {
-					ExtensionApi module = new ExtensionApi(hub);
-
-					Constructor<T> moduleConstructor = extensionClass.getDeclaredConstructor(ExtensionApi.class);
-					moduleConstructor.setAccessible(true);
-					final Extension extension = moduleConstructor.newInstance(module);
-
-
-					if (StringUtils.isNullOrEmpty(extension.getName())) {
-						Log.error(logPrefix, "Failed to register extension, extension name should not be null or empty",
-								  extension.getName());
-						extension.onUnexpectedError(new ExtensionUnexpectedError(
-														String.format("Failed to register extension with name (%s), %s class",
-																extension.getName(), extensionClass.getSimpleName()),
-														ExtensionError.BAD_NAME));
-						return;
-					}
-
-					if (isRegisteredModule(extension.getName())) {
-						Log.error(logPrefix, "Failed to register extension, an extension with the same name (%s) already exists",
-								  extension.getName());
-						extension.onUnexpectedError(new ExtensionUnexpectedError(
-														String.format("Failed to register extension with name %s, %s class",
-																extension.getName(), extensionClass.getSimpleName()),
-														ExtensionError.DUPLICATE_NAME));
-						return;
-					}
-
-					activeModules.put(normalizeName(extension.getName()), module);
-
-					moduleListeners.putIfAbsent(module, new ConcurrentLinkedQueue<EventListener>());
-
-					module.setExtension(extension);
-
-					// add external module details to event hub shared state
-					module.setModuleDetails(new ModuleDetails() {
-						@Override
-						public String getName() {
-							return extension.getFriendlyName();
-						}
-
-						@Override
-						public String getVersion() {
-							return extension.getVersion();
-						}
-
-						@Override
-						public Map<String, String> getAdditionalInfo() {
-							return new HashMap<String, String>();
-						}
-					});
-					addModuleToEventHubSharedState(module);
-
-					Log.debug(logPrefix, "Extension with name %s was registered successfully", module.getModuleName());
-				} catch (Exception e) {
-					Log.error(logPrefix, "Unable to create instance of provided extension %s: %s", extensionClass.getSimpleName(), e);
+			public Unit invoke(EventHubError e) {
+				if (errorCallback == null || EventHubError.None.equals(e)) {
+					return null;
 				}
+
+				if (EventHubError.InvalidExtensionName.equals(e)) {
+					errorCallback.error(ExtensionError.BAD_NAME);
+				} else if (EventHubError.DuplicateExtensionName.equals(e)) {
+					errorCallback.error(ExtensionError.DUPLICATE_NAME);
+				} else {
+					errorCallback.error(ExtensionError.UNEXPECTED_ERROR);
+				}
+				return null;
 			}
 		});
 	}
+
 
 	/**
 	 * Unregisters a Module
@@ -633,9 +585,9 @@ class EventHub {
 
 							// if this is an extension, call the error callback
 							if (ExtensionApi.class.isAssignableFrom(module.getClass())) {
-								ExtensionApi ext = (ExtensionApi) module;
-								ext.getExtension().onUnexpectedError(new ExtensionUnexpectedError("Failed to register listener",
-																	 ExtensionError.UNEXPECTED_ERROR));
+								//ExtensionApi ext = (ExtensionApi) module;
+								//ext.getExtension().onUnexpectedError(new ExtensionUnexpectedError("Failed to register listener",
+								//									 ExtensionError.UNEXPECTED_ERROR));
 							}
 						}
 					}
@@ -667,12 +619,12 @@ class EventHub {
 						Log.error(logPrefix, "Failed to register listener for class %s (%s)",
 								  listenerClass.getSimpleName(), e);
 
-						// if this is an extension, call the error callback
-						if (ExtensionApi.class.isAssignableFrom(module.getClass())) {
-							ExtensionApi ext = (ExtensionApi) module;
-							ext.getExtension().onUnexpectedError(new ExtensionUnexpectedError("Failed to register listener", e,
-																 ExtensionError.UNEXPECTED_ERROR));
-						}
+//						// if this is an extension, call the error callback
+//						if (ExtensionApi.class.isAssignableFrom(module.getClass())) {
+//							ExtensionApi ext = (ExtensionApi) module;
+//							ext.getExtension().onUnexpectedError(new ExtensionUnexpectedError("Failed to register listener", e,
+//																 ExtensionError.UNEXPECTED_ERROR));
+//						}
 					}
 				}
 			}

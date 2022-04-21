@@ -14,8 +14,6 @@ package com.adobe.marketing.mobile;
 /**
  * Abstract class that defines an {@code Extension}
  *
- * @author Adobe Systems Incorporated
- * @version 5.0
  */
 public abstract class Extension {
 	private ExtensionApi extensionApi;
@@ -89,11 +87,10 @@ public abstract class Extension {
 	}
 
 	/**
-	 * Get the log tag for this extension. If {@code extensionApi} is not null, then the result of
-	 * {@link ExtensionApi#getLogTag()} is returned. Otherwise, the result of {@link #getName()} is returned.
+	 * Get the log tag for this extension.
 	 * @return a log tag for this extension
 	 */
 	private String getLogTag() {
-		return extensionApi != null ? extensionApi.getLogTag() : getName();
+		return getName() + "(" + getVersion() + ")";
 	}
 }

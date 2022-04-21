@@ -44,7 +44,6 @@ public class AndroidCursorTests {
 
 	private DatabaseService androidDatabaseService;
 	private DatabaseService.Database    androidDatabase;
-	private String filesDir;
 	private DatabaseService.QueryResult queryResult;
 	private Query testQuery;
 

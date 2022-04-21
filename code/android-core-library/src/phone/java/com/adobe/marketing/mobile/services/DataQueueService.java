@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services;
 
+import android.content.Context;
+
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 
@@ -48,29 +50,38 @@ class DataQueueService implements DataQueuing {
 				dataQueue = dataQueueCache.get(databaseName);
 
 				if (dataQueue == null) {
+					Context appContext = ServiceProvider.getInstance().getApplicationContext();
+
+					if(appContext == null) {
+						MobileCore.log(LoggingMode.WARNING,
+								LOG_TAG,
+								String.format("Failed to create DataQueue for database (%s), the ApplicationContext is null", databaseName));
+						return null;
+					}
+
 					final String cleanedDatabasePath = removeRelativePath(databaseName);
 					final File databaseDirDataQueue = ServiceProvider.getInstance().getApplicationContext().getDatabasePath(cleanedDatabasePath);
 
 					final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-					if (cacheDir != null) {
+					if (!databaseDirDataQueue.exists() && cacheDir != null) {
 						final File cacheDirDataQueue = new File(cacheDir, cleanedDatabasePath);
 						if (cacheDirDataQueue.exists()) {
 							try {
 								if(databaseDirDataQueue.createNewFile()) {
 									copyFile(cacheDirDataQueue, databaseDirDataQueue);
+									MobileCore.log(LoggingMode.DEBUG,
+											LOG_TAG,
+											String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
 								}
 							} catch (Exception e) {
 								MobileCore.log(LoggingMode.WARNING,
 										LOG_TAG,
-										String.format("Failed in moving DataQueue for database (%s), could not create new file in database directory.", databaseName));
+										String.format("Failed to move DataQueue for database (%s), could not create new file in database directory", databaseName));
 								return null;
 							}
 						}
 					}
 					dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath(), databaseHelper);
-					MobileCore.log(LoggingMode.DEBUG,
-							LOG_TAG,
-							String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
 					dataQueueCache.put(databaseName, dataQueue);
 				}
 			}
@@ -88,7 +99,7 @@ class DataQueueService implements DataQueuing {
 	 * @param filePath the file name
 	 * @return file name without relative path
 	 */
-	private String removeRelativePath(final String filePath) {
+	String removeRelativePath(final String filePath) {
 		if (filePath == null || filePath.isEmpty()) {
 			return filePath;
 		}
@@ -96,6 +107,7 @@ class DataQueueService implements DataQueuing {
 		try {
 			String result = filePath.replaceAll("\\.[/\\\\]", "\\.");
 			result = result.replaceAll("[/\\\\](\\.{2,})", "_");
+			result = result.replaceAll("/","");
 			return result;
 		} catch (IllegalArgumentException e) {
 			return filePath;

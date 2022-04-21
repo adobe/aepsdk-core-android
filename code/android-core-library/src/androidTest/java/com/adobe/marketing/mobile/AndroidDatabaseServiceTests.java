@@ -39,11 +39,6 @@ public class AndroidDatabaseServiceTests {
 		App.setAppContext(appContext);
 	}
 
-	@After
-	public void afterEach() {
-		appContext.getFilesDir().delete();
-	}
-
 	@Test
 	public void testOpenDatabase_Happy() throws Exception {
 		assertNotNull(androidDatabaseService.openDatabase(appContext.getDatabasePath("testOpenDatabase_Happy").getPath()));

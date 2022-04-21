@@ -36,7 +36,6 @@ public class FileUtilTests {
 	@After
 	public void tearDown() {
 		fileTestHelper.deleteTempCacheDirectory();
-		fileTestHelper.deleteTempCacheDirectory(FILE_DIRECTORY);
 	}
 
 	@Test

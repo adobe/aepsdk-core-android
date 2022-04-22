@@ -109,46 +109,7 @@ final class UrlUtilities {
 	 * @return the encoded {@code String}
 	 */
 	public static String urlEncode(final String unencodedString) {
-		// bail fast
-		if (unencodedString == null) {
-			return null;
-		}
-
-		try {
-			final byte[] stringBytes = unencodedString.getBytes("UTF-8");
-			final int len = stringBytes.length;
-			int curIndex = 0;
-
-			// iterate looking for any characters that don't match our "safe" mask
-			while (curIndex < len && utf8Mask[stringBytes[curIndex] & ALL_BITS_ENABLED]) {
-				curIndex++;
-			}
-
-			// if our iterator got all the way to the end of the string, no unsafe characters existed
-			// and it's safe to return the original value that was passed in
-			if (curIndex == len) {
-				return unencodedString;
-			}
-
-			// if we get here we know there's at least one character we need to encode
-			final StringBuilder encodedString = new StringBuilder(stringBytes.length << 1);
-
-			// if i > than 1 then we have some characters we can just "paste" in
-			if (curIndex > 0) {
-				encodedString.append(new String(stringBytes, 0, curIndex, "UTF-8"));
-			}
-
-			// rip through the rest of the string character by character
-			for (; curIndex < len; curIndex++) {
-				encodedString.append(encodedChars[stringBytes[curIndex] & ALL_BITS_ENABLED]);
-			}
-
-			// return the completed string
-			return encodedString.toString();
-		} catch (UnsupportedEncodingException e) {
-			Log.debug(LOG_TAG, "Failed to url encode string %s (%s)", unencodedString, e);
-			return null;
-		}
+		return com.adobe.marketing.mobile.internal.utility.UrlUtilities.urlEncode(unencodedString);
 	}
 
 	/**

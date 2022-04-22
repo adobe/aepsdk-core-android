@@ -1,3 +1,14 @@
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
+
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import org.junit.Test
@@ -6,6 +17,34 @@ import java.util.HashMap
 import org.junit.Assert.*
 
 class LaunchRuleTransformerTests {
+
+    @Test
+    fun transform_ReturnsEncodedURL_WhenTransformingStringToUrlEnc() {
+        val transformer = LaunchRuleTransformer.createTransforming()
+        val result = transformer.transform("urlenc", "this is a test string")
+        assertEquals("transform should return url encoded string when url encoding string", "this%20is%20a%20test%20string", result)
+    }
+
+    @Test
+    fun transform_ReturnsInt_WhenTransformingIntToUrlEnc() {
+        val transformer = LaunchRuleTransformer.createTransforming()
+        val result = transformer.transform("urlenc", 3)
+        assertEquals("transform should return int when url encoding int", 3, result)
+    }
+
+    @Test
+    fun transform_ReturnsDouble_WhenTransformingDoubleToUrlEnc() {
+        val transformer = LaunchRuleTransformer.createTransforming()
+        val result = transformer.transform("urlenc", 3.33)
+        assertEquals("transform should return double when url encoding double", 3.33, result)
+    }
+
+    @Test
+    fun transform_ReturnsBoolean_WhenTransformingBooleanToUrlEnc() {
+        val transformer = LaunchRuleTransformer.createTransforming()
+        val result = transformer.transform("urlenc", true)
+        assertEquals("transform should return boolean when url encoding boolean", true, result)
+    }
 
     @Test
     fun transform_ReturnsInt_WhenTransformingIntToInt() {
@@ -36,10 +75,10 @@ class LaunchRuleTransformerTests {
     }
 
     @Test
-    fun transform_ReturnsNull_WhenTransformingInvalidStringToInt() {
+    fun transform_ReturnsInt_WhenTransformingInvalidStringToInt() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("int", "something")
-        assertNull("transform should return null when transforming invalid string to int", result)
+        assertEquals("transform should return value when transforming invalid string to int", "something", result)
     }
 
     @Test
@@ -134,10 +173,10 @@ class LaunchRuleTransformerTests {
     }
 
     @Test
-    fun transform_ReturnsNull_WhenTransformingInvalidStringToDouble() {
+    fun transform_ReturnsDouble_WhenTransformingInvalidStringToDouble() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("double", "something")
-        assertNull("transform should return null when transforming invalid string to double", result)
+        assertEquals("transform should return value when transforming invalid string to double", "something", result)
     }
 
     @Test

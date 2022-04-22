@@ -12,25 +12,17 @@
 package com.adobe.marketing.mobile;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-import static com.adobe.marketing.mobile.E2ETestableNetworkService.NetworkRequest;
 import static com.adobe.marketing.mobile.E2ETestableNetworkService.NetworkResponse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

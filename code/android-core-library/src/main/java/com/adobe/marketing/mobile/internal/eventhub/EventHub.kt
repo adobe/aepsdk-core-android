@@ -116,6 +116,8 @@ internal class EventHub {
     }
 }
 
-// / Helper to get extension type name
+/**
+ * Helper to get extension type name
+ */
 private val Class<out Extension>.extensionTypeName
     get() = this.name

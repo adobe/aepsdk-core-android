@@ -19,9 +19,11 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import java.lang.Exception
 
-// / Type extensions for [Extension] to allow for easier usage
+// Type extensions for [Extension] to allow for easier usage
 
-// / Function to initialize Extension with [ExtensionApi]
+/**
+ *  Function to initialize Extension with [ExtensionApi]
+ */
 internal fun Class<out Extension>.initWith(extensionApi: ExtensionApi): Extension? {
     try {
         val extensionConstructor = this.getDeclaredConstructor(ExtensionApi::class.java)
@@ -34,26 +36,36 @@ internal fun Class<out Extension>.initWith(extensionApi: ExtensionApi): Extensio
     return null
 }
 
-// / Property to get Extension name
+/**
+ * Property to get Extension name
+ */
 internal val Extension.name: String?
     get() = ExtensionHelper.getName(this)
 
-// / Property to get Extension version
+/**
+ * Property to get Extension version
+ */
 internal val Extension.version: String?
     get() = ExtensionHelper.getVersion(this)
 
-// / Property to get Extension friendly name
+/**
+ * Property to get Extension friendly name
+ */
 internal val Extension.friendlyName: String?
     get() = ExtensionHelper.getFriendlyName(this)
 
-// / Function to notify that the Extension has been unregistered
+/**
+ * Function to notify that the Extension has been unregistered
+ */
 internal fun Extension.onUnregistered() {
     ExtensionHelper.onUnregistered(this)
 }
 
-// / Type extensions for [ExtensionListener] to allow for easier usage
+// Type extensions for [ExtensionListener] to allow for easier usage
 
-// / Function to initialize ExtensionListener with [ExtensionApi], type and source.
+/**
+ * Function to initialize ExtensionListener with [ExtensionApi], type and source.
+ */
 internal fun Class<out ExtensionListener>.initWith(extensionApi: ExtensionApi, type: String, source: String): ExtensionListener? {
     try {
         val extensionListenerConstructor = this.getDeclaredConstructor(ExtensionApi::class.java, String::class.java, String::class.java)

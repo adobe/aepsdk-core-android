@@ -11,7 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
-import java.io.UnsupportedEncodingException;
+import static com.adobe.marketing.mobile.internal.utility.UrlUtilities.urlEncode;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -100,16 +101,6 @@ final class UrlUtilities {
 		}
 
 		return sBuilder.toString();
-	}
-
-	/**
-	 * Encodes an URL given as {@code String}.
-	 *
-	 * @param unencodedString nullable {@link String} value to be encoded
-	 * @return the encoded {@code String}
-	 */
-	public static String urlEncode(final String unencodedString) {
-		return com.adobe.marketing.mobile.internal.utility.UrlUtilities.urlEncode(unencodedString);
 	}
 
 	/**

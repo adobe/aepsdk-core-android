@@ -22,7 +22,6 @@ internal object LaunchRuleTransformer {
      *
      * @return instance of [Transforming]
      **/
-    @JvmStatic
     fun createTransforming(): Transforming {
         val transformer = Transformer()
         addConsequenceTransform(transformer)
@@ -77,7 +76,7 @@ internal object LaunchRuleTransformer {
                         value
                     }
                 }
-                is Int -> value.toDouble()
+                is Number -> value.toDouble()
                 is Boolean -> if (value) 1.0 else 0.0
                 else -> value
             }
@@ -85,8 +84,7 @@ internal object LaunchRuleTransformer {
         transformer.register(LaunchRulesConstants.Transform.TRANSFORM_TO_BOOL) { value ->
             when (value) {
                 is String -> java.lang.Boolean.parseBoolean(value)
-                is Int -> value == 1
-                is Number -> value == 1.0
+                is Number -> (value.toLong() == 1L && value.toDouble() == 1.0)
                 else -> value
             }
         }

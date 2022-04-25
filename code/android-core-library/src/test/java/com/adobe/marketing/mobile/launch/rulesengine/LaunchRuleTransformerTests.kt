@@ -204,70 +204,70 @@ class LaunchRuleTransformerTests {
     fun transform_ReturnsFalse_WhenTransformingInt0ToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", 0)
-        assertEquals("transform should false when transforming int 0 to boolean", false, result)
+        assertEquals("transform should return false when transforming int 0 to boolean", false, result)
     }
 
     @Test
     fun transform_ReturnsTrue_WhenTransformingInt1ToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", 1)
-        assertEquals("transform should true when transforming int 1 to boolean", true, result)
+        assertEquals("transform should return true when transforming int 1 to boolean", true, result)
     }
 
     @Test
     fun transform_ReturnsFalse_WhenTransformingIntRandomToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", 3)
-        assertEquals("transform should false when transforming random int to boolean", false, result)
+        assertEquals("transform should return false when transforming random int to boolean", false, result)
     }
 
     @Test
     fun transform_ReturnsBoolean_WhenTransformingBooleanToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", true)
-        assertEquals("transform should boolean when transforming boolean to boolean", true, result)
+        assertEquals("transform should return boolean when transforming boolean to boolean", true, result)
     }
 
     @Test
     fun transform_ReturnsFalse_WhenTransformingDouble0ToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", 0.0)
-        assertEquals("transform should false when transforming double 0.0 to boolean", false, result)
+        assertEquals("transform should return false when transforming double 0.0 to boolean", false, result)
     }
 
     @Test
     fun transform_ReturnsTrue_WhenTransformingDouble1ToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", 1.0)
-        assertEquals("transform should true when transforming double 1.0 to boolean", true, result)
+        assertEquals("transform should return true when transforming double 1.0 to boolean", true, result)
     }
 
     @Test
     fun transform_ReturnsFalse_WhenTransformingDoubleRandomToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", 1.123)
-        assertEquals("transform should boolean when transforming random double to boolean", false, result)
+        assertEquals("transform should return boolean when transforming random double to boolean", false, result)
     }
 
     @Test
     fun transform_ReturnsFalse_WhenTransformingValidStringFalseToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", "false")
-        assertEquals("transform should false when transforming valid string false to boolean", false, result)
+        assertEquals("transform should return false when transforming valid string false to boolean", false, result)
     }
 
     @Test
     fun transform_ReturnsTrue_WhenTransformingValidStringTrueToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", "true")
-        assertEquals("transform should true when transforming valid string true to boolean", true, result)
+        assertEquals("transform should return true when transforming valid string true to boolean", true, result)
     }
 
     @Test
     fun transform_ReturnsFalse_WhenTransformingInvalidStringToBoolean() {
         val transformer = LaunchRuleTransformer.createTransforming()
         val result = transformer.transform("bool", "something")
-        assertEquals("transform should false when transforming invalid string to boolean", false, result)
+        assertEquals("transform should return false when transforming invalid string to boolean", false, result)
     }
 
     @Test

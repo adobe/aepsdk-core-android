@@ -26,7 +26,7 @@ import java.io.IOException;
 
 class AndroidEventHistoryDatabase implements EventHistoryDatabase {
     private static final String LOG_TAG = "AndroidEventHistoryDatabase";
-    private static final String DATABASE_NAME = "EventHistory";
+    private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
     private static final String TABLE_NAME = "Events";
     private static final String COLUMN_HASH = "eventHash";
     private static final String COLUMN_TIMESTAMP = "timestamp";
@@ -46,6 +46,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
      */
     AndroidEventHistoryDatabase() throws EventHistoryDatabaseCreationException {
         try {
+            //TODO: we will create a utility method: Context.getDatabasePath(), we need to  refactor the following code after that.
             final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
             if (applicationCacheDir != null) {
                 final String cacheDirCanonicalPath = applicationCacheDir.getCanonicalPath();

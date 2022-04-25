@@ -53,6 +53,7 @@ public class MobileCore {
     }
 
     public static EventHistory getEventHistory() {
+        if (core == null) return null;
         return core.getEventHistory();
     }
 

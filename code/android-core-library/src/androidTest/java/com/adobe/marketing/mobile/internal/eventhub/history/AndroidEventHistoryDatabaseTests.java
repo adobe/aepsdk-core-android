@@ -80,7 +80,7 @@ public class AndroidEventHistoryDatabaseTests {
 			assertTrue(androidEventHistoryDatabase.insert(222222222));
 		}
 
-		String dbPath = "/data/data/com.adobe.marketing.mobile.test/cache/EventHistory";
+		String dbPath = "/data/data/com.adobe.marketing.mobile.test/cache/com.adobe.marketing.db.eventhistory";
 		SQLiteDatabase database = SQLiteDatabaseHelper.openDatabase(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
 		long dbSize = DatabaseUtils.queryNumEntries(database,"Events");
 		SQLiteDatabaseHelper.closeDatabase(database);

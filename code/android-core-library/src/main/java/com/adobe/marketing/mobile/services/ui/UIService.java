@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
+import android.content.Intent;
+
 /**
  * Interface for displaying alerts, local notifications, and fullscreen web views.
  */
@@ -32,6 +34,19 @@ public interface UIService {
 	void showLocalNotification(final NotificationSetting notificationSetting);
 
 	boolean showUrl(String url);
+
+	/**
+	 * Provides an {@link URIHandler} to decide the destination of the given URI
+	 * @param uriHandler An {@link URIHandler} instance used to decide the Android link's destination
+	 */
+	void setURIHandler(URIHandler uriHandler);
+
+	/**
+	 * Returns a destination Intent for the given URI.
+	 * @param uri the URI to open
+	 * @return an {@link Intent} instance
+	 */
+	Intent getIntentWithURI(String uri);
 
 	/**
 	 * Creates a floating button instance

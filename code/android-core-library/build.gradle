@@ -10,7 +10,7 @@ android {
         targetSdkVersion 30
         //Include the Proguard rules for Core Extension in the aar
         consumerProguardFiles 'lib-proguard-rules.pro'
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     sourceSets {
@@ -109,14 +109,12 @@ apply from: 'release.gradle'
 
 dependencies {
     //noinspection GradleCompatible
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    //noinspection GradleDependency
+    implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     // unit tests
     testImplementation "junit:junit:4.13.2"
     //noinspection GradleDependency
     testImplementation "org.mockito:mockito-core:2.22.0"
-    testImplementation "org.mockito.kotlin:mockito-kotlin:2.2.11"
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.0'
     testImplementation 'org.powermock:powermock-module-junit4:2.0.0'
     testImplementation 'commons-codec:commons-codec:1.15'
@@ -125,5 +123,10 @@ dependencies {
     testImplementation 'org.json:json:20160810'
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     // instrumentation tests
-    androidTestImplementation "com.android.support.test:rules:1.0.2"
+    androidTestImplementation 'androidx.test:rules:1.1.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+}
+
+repositories {
+    mavenCentral()
 }

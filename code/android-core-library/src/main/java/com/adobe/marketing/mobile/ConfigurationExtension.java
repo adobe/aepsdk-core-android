@@ -11,6 +11,9 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine;
+import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -102,6 +105,8 @@ class ConfigurationExtension extends InternalModule {
 	private AtomicBoolean needToProcessEvents = new AtomicBoolean(true);
 
 	private final ExecutorService rulesDownloadExecutor;
+
+	private final LaunchRulesEngine launchRulesEngine;
 	/**
 	 * Returns an instance of the ConfigurationExtension Module.  Adds a RequestContentListener to the provided EventHub
 	 *
@@ -132,6 +137,7 @@ class ConfigurationExtension extends InternalModule {
 
 		rulesDownloadExecutor = Executors.newSingleThreadExecutor();
 		this.cachedEvents = Collections.synchronizedList(new ArrayList<Event>());
+		this.launchRulesEngine = new LaunchRulesEngine();
 	}
 
 	ConfigurationDispatcherConfigurationResponseIdentity createResponseIdentityDispatcher() {
@@ -1154,40 +1160,7 @@ class ConfigurationExtension extends InternalModule {
 		final String rulesFilePath = rulesDirectory.getPath() + File.separator + RULES_JSON_FILE_NAME;
 		final File rulesFile = new File(rulesFilePath);
 		final String jsonString = readFromFile(rulesFile);
-
-		// read new object
-		final JsonUtilityService.JSONObject rulesJsonObject = getPlatformServices()
-				.getJsonUtilityService()
-				.createJSONObject(jsonString);
-
-		replaceRulesAndReprocessEvents(parseRulesFromJsonObject(rulesJsonObject));
-
-	}
-
-
-	/**
-	 * Call this method to replace module rules in Event hub, then notify Event hub to reprocess
-	 * (cached) custom events with given rules if it's the fist time you call this method.
-	 *
-	 * @param rules loaded from remote or local files
-	 */
-	void replaceRulesAndReprocessEvents(final List<Rule> rules) {
-		if (this.needToProcessEvents.getAndSet(false)) {
-			replaceRulesAndEvaluateEvents(rules, new ReprocessEventsHandler() {
-				@Override
-				public List<Event> getEvents() {
-					return new ArrayList<Event>(cachedEvents);
-				}
-
-				@Override
-				public void onEventReprocessingComplete() {
-					unregisterWildcardListener();
-					cachedEvents.clear();
-				}
-			});
-		} else {
-			replaceRules(rules);
-		}
+		this.launchRulesEngine.replaceRules(JSONRulesParser.parse(jsonString));
 	}
 
 	/**
@@ -1220,86 +1193,6 @@ class ConfigurationExtension extends InternalModule {
 		}
 
 		return json;
-	}
-
-	/**
-	 * Parses all rules and resulting consequence events from the jsonObject
-	 *
-	 * @param jsonObject {@code JSONObject} containing the list of rules and consequences
-	 *
-	 * @return a {@code List} of {@code Rule} objects that were parsed from the input object
-	 */
-	private List<Rule> parseRulesFromJsonObject(final JsonUtilityService.JSONObject jsonObject) {
-		final List<Rule> parsedRules = new ArrayList<Rule>();
-
-		if (jsonObject == null) {
-			return parsedRules;
-		}
-
-		JsonUtilityService.JSONArray rulesJsonArray;
-
-		try {
-			rulesJsonArray = jsonObject.getJSONArray(RULES_JSON_KEY);
-		} catch (final JsonException e) {
-			Log.debug(LOG_SOURCE, "Unable to parse rules. Exception: (%s)", e);
-			return parsedRules;
-		}
-
-		// loop through each rule definition
-		for (int i = 0; i < rulesJsonArray.length(); i++) {
-			try {
-				// get individual rule json object
-				final JsonUtilityService.JSONObject ruleObject = rulesJsonArray.getJSONObject(i);
-				// get rule condition
-				final JsonUtilityService.JSONObject ruleConditionJsonObject = ruleObject.getJSONObject(RULES_JSON_CONDITION_KEY);
-				final RuleCondition condition = RuleCondition.ruleConditionFromJson(ruleConditionJsonObject);
-				// get consequences
-				final List<Event> consequences = generateConsequenceEvents(ruleObject.getJSONArray(RULES_JSON_CONSEQUENCES_KEY));
-
-				parsedRules.add(new Rule(condition, consequences));
-			} catch (final JsonException e) {
-				Log.debug(LOG_SOURCE, "Unable to parse individual rule json. Exception: (%s)", e);
-			} catch (final UnsupportedConditionException e) {
-				Log.debug(LOG_SOURCE, "Unable to parse individual rule conditions. Exception: (%s)", e);
-			} catch (final IllegalArgumentException e) {
-				Log.debug(LOG_SOURCE, "Unable to create rule object. Exception: (%s)", e);
-			}
-		}
-
-		return parsedRules;
-	}
-
-	/**
-	 * Parses consequence objects from rules definition and converts them into a list of Events
-	 *
-	 * @param consequenceJsonArray {@code JSONArray} object containing 1 or more rule consequence definitions
-	 *
-	 * @return a {@code List} of consequence {@code Event} objects.
-	 *
-	 * @throws JsonException if errors occur during parsing
-	 */
-	private List<Event> generateConsequenceEvents(final JsonUtilityService.JSONArray consequenceJsonArray) throws
-		JsonException {
-		final List<Event> parsedEvents = new ArrayList<Event>();
-
-		if (consequenceJsonArray == null) {
-			return  parsedEvents;
-		}
-
-		for (int i = 0; i < consequenceJsonArray.length(); i++) {
-			final RuleConsequence consequence = RuleConsequence.consequenceFromJson(consequenceJsonArray.getJSONObject(i),
-												getPlatformServices().getJsonUtilityService());
-
-			if (consequence != null) {
-				final Event event = new Event.Builder("Rules Event", EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT)
-				.setData(consequence.generateEventData())
-				.build();
-
-				parsedEvents.add(event);
-			}
-		}
-
-		return parsedEvents;
 	}
 
 	private void retrieveCachedRules(final String remoteRulesURL) {

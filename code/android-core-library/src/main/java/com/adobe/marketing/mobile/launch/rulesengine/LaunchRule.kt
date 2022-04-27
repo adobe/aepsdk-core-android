@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.rulesengine.Evaluable
+import com.adobe.marketing.mobile.rulesengine.Rule
 
 /**
  * The data class representing the given [Evaluable] and a list of [RuleConsequence] objects.
@@ -20,4 +21,8 @@ import com.adobe.marketing.mobile.rulesengine.Evaluable
  * @property consequenceList a list of [RuleConsequence] objects
  * @constructor Constructs a new [LaunchRule]
  */
-data class LaunchRule(val condition: Evaluable, val consequenceList: List<RuleConsequence>)
+data class LaunchRule(val condition: Evaluable, val consequenceList: List<RuleConsequence>) : Rule {
+    override fun getEvaluable(): Evaluable? {
+        return null
+    }
+}

@@ -8,27 +8,9 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-
 package com.adobe.marketing.mobile;
 
-/**
- * A rule condition matcher which evaluates if this matcher's {@code key} does not exist within a set of given values
- */
-final class MatcherNotExists extends MatcherExists {
-
-	/**
-	 * Evaluates if this matcher's {@code key} does not exist in the triggering {@code Event}'s data.
-	 *
-	 * @param value the value to match
-	 *
-	 * @return {@code boolean} indicating whether this matcher's {@code key} does not exist in the {@code Event} data
-	 */
-	@Override
-	public boolean matches(final Object value) {
-		return !super.matches(value);
-	}
-
-	@Override public String toString() {
-		return "(" + key + " NOT EXISTS)";
-	}
+@FunctionalInterface
+public interface EventPreprocessor {
+    Event process(final Event event);
 }

@@ -132,39 +132,6 @@ abstract class Module {
 	}
 
 	/**
-	 * Registers a rule with the {@code EventHub} for this module.
-	 *
-	 * @param rule rule definition object containing the conditions to be met and the consequence events to be published.
-	 */
-	protected final void registerRule(final Rule rule) {
-		try {
-			parentHub.registerModuleRule(this, rule);
-		} catch (final InvalidModuleException e) {
-			Log.debug(moduleName, "Failed to register rule (%s)", e);
-		}
-	}
-
-	protected final void replaceRules(final List<Rule> rules) {
-		try {
-			parentHub.replaceModuleRules(this, rules);
-		} catch (final InvalidModuleException e) {
-			Log.debug(moduleName, "Failed to register rule (%s)", e);
-		}
-	}
-
-	/**
-	 * Re-evaluates custom events with the provided rules, then registers the rules for this module
-	 *
-	 * @param rules {@code Rule} to register
-	 * @param reprocessEventsHandler handler to return custom events
-	 */
-	protected final void replaceRulesAndEvaluateEvents(final List<Rule> rules,
-			final ReprocessEventsHandler reprocessEventsHandler) {
-		parentHub.replaceRulesAndEvaluateEvents(this, rules, reprocessEventsHandler);
-	}
-
-
-	/**
 	 * Registers a wild card event listener for this module.
 	 *
 	 * <p>

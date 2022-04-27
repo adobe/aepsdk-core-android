@@ -91,6 +91,3 @@ internal abstract class JSONCondition {
     @JvmSynthetic
     abstract fun toEvaluable(): Evaluable?
 }
-
-
-

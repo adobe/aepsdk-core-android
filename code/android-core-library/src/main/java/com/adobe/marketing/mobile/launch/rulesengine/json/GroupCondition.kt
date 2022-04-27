@@ -15,7 +15,7 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.LogicalExpression
-import java.util.*
+import java.util.Locale
 
 /**
  * The class representing a group of [JSONCondition]s
@@ -45,5 +45,4 @@ internal class GroupCondition(val definition: JSONDefinition) : JSONCondition() 
         val evaluableList = definition.conditions.map { it.toEvaluable() }
         return LogicalExpression(evaluableList, logicalOperator)
     }
-
 }

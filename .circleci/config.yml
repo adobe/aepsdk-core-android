@@ -31,9 +31,9 @@ jobs:
       - run:
           name: assemble-phone-release
           command: make assemble-phone-release
-#      - run:
-#          name: JavaDoc
-#          command: make javadoc
+      - run:
+          name: JavaDoc
+          command: make javadoc
       - run:
           name: unit-test
           command: make unit-test

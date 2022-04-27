@@ -11,10 +11,11 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
-import org.junit.Test
 import java.util.ArrayList
 import java.util.HashMap
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
 
 class LaunchRuleTransformerTests {
 

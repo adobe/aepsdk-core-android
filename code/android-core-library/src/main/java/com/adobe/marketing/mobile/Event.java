@@ -175,6 +175,7 @@ public final class Event {
 		 * @return this Event {@link Builder}
 		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
 		 */
+		@Deprecated
 		Builder setData(final EventData data) {
 			throwIfAlreadyBuilt();
 			// Todo - Remove this method once all EventData usage is removed from Core.

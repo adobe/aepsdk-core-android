@@ -84,7 +84,7 @@ public class EventDataUtils {
         for (Map.Entry<?, ?> kv : map.entrySet()) {
 
             Object key = kv.getKey();
-            if (key != null) {
+            if (key != null && key instanceof String) {
                 Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
                 ret.put(key.toString(), clonedValue);
             }

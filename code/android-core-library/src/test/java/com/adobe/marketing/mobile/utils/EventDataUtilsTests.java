@@ -114,8 +114,6 @@ public class EventDataUtilsTests {
         data.put("map", nestedMap);
 
         Map<String, Object> expectedNestedMap = new HashMap<>();
-        expectedNestedMap.put("1", 1);
-        expectedNestedMap.put("1.1", 1d);
         expectedNestedMap.put("string", "hello");
         Map<String, Object> expectedData = new HashMap<>();
         expectedData.put("map", expectedNestedMap);

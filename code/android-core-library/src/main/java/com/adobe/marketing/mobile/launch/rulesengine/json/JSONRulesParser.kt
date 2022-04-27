@@ -46,6 +46,3 @@ object JSONRulesParser {
         return null
     }
 }
-
-
-

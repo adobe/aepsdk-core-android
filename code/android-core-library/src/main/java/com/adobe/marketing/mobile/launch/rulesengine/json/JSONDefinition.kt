@@ -41,7 +41,7 @@ internal data class JSONDefinition(
     val value: Any?,
     val from: Int?,
     val to: Int?,
-    val searchType: String?,
+    val searchType: String?
 ) {
     companion object {
         private const val DEFINITION_KEY_LOGIC = "logic"
@@ -107,7 +107,5 @@ internal data class JSONDefinition(
                     ?: throw JSONException("Unsupported [rule.condition.historical.events] JSON format: $it ")
             }
         }
-
     }
 }
-

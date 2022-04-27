@@ -13,7 +13,11 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.rulesengine.*
+import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
+import com.adobe.marketing.mobile.rulesengine.Evaluable
+import com.adobe.marketing.mobile.rulesengine.LogicalExpression
+import com.adobe.marketing.mobile.rulesengine.OperandLiteral
+import com.adobe.marketing.mobile.rulesengine.OperandMustacheToken
 
 /**
  * The class representing a matcher condition
@@ -75,7 +79,7 @@ internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition(
             is String -> String::class.java
             is Int -> Number::class.java
             is Double -> Number::class.java
-            //note: Kotlin.Boolean is not mapped to java.lang.Boolean correctly
+            // note: Kotlin.Boolean is not mapped to java.lang.Boolean correctly
             is Boolean -> java.lang.Boolean::class.java
             is Float -> Number::class.java
             else -> null

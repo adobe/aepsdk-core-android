@@ -66,4 +66,3 @@ internal fun JSONArray.toList(): List<Any?> {
     }
     return list
 }
-

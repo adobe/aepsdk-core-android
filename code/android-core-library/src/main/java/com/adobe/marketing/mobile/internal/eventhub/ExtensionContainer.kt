@@ -19,6 +19,7 @@ import com.adobe.marketing.mobile.ExtensionErrorCallback
 import com.adobe.marketing.mobile.ExtensionListener
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import kotlin.Exception
 
@@ -218,22 +219,30 @@ internal class ExtensionContainer constructor(
         data: MutableMap<String, Any?>?,
         version: Int
     ): Boolean {
-        val stateManager: SharedStateManager = sharedStateManagers[sharedStateType] ?: return false
-        val isPending = (data == null)
+        if (taskExecutor.isShutdown) return false
 
-        // Attempt to create the state first and then attempt to update it if creation fails.
-        return stateManager.createSharedState(data, version, isPending) ||
-                stateManager.updateSharedState(data, version, isPending)
+        return taskExecutor.submit(Callable<Boolean> {
+            val stateManager: SharedStateManager = sharedStateManagers[sharedStateType] ?: return@Callable false
+            val isPending = (data == null)
+
+            // Attempt to create the state first and then attempt to update it if creation fails.
+            return@Callable stateManager.createSharedState(data, version, isPending) ||
+                    stateManager.updateSharedState(data, version, isPending)
+        }).get()
     }
 
     /**
      * Clears the shares states of type [sharedStateType] for this extension.
      *
-     * @return true always unless an exception occurs clearing the state
+     * @return true unless an exception occurs clearing the state or if the extension is unregistered
      */
     fun clearSharedState(sharedStateType: SharedStateType): Boolean {
-        sharedStateManagers[sharedStateType]?.clearSharedState()
-        return true
+        if (taskExecutor.isShutdown) return false
+
+        return taskExecutor.submit(Callable<Boolean> {
+            sharedStateManagers[sharedStateType]?.clearSharedState()
+            return@Callable true
+        }).get()
     }
 
     /**
@@ -243,13 +252,17 @@ internal class ExtensionContainer constructor(
      * @param sharedStateType the type of the shared state that need to be retrieved
      * @param version the version of the pending shared state to be retrieved
      * @return shared state at [version] if it exists or the most recent shared state before [version].
-     *         null If no state at or before [version] is found, or if the state fetched above is pending.
+     *         null If no state at or before [version] is found, or if the state fetched above is pending,
+     *         or if the extension is unregistered
      */
     fun getSharedState(
         sharedStateType: SharedStateType,
         version: Int
     ): Map<String, Any?>? {
+        if (taskExecutor.isShutdown) return null
 
-        return sharedStateManagers[sharedStateType]?.getSharedState(version)
+        return taskExecutor.submit(Callable {
+            return@Callable sharedStateManagers[sharedStateType]?.getSharedState(version)
+        }).get()
     }
 }

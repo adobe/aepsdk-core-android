@@ -37,9 +37,9 @@ internal class SharedStateManager {
     /**
      * Records the shared state for the extension at [version] as [data] if it does not already exist.
      *
-     * @param [data] the content that the shared state needs to be populated with
-     * @param [version] the version of the shared state to be created
-     * @param [isPending] a boolean to indicate if the state content is not final (i.e will be updated later)
+     * @param data the content that the shared state needs to be populated with
+     * @param version the version of the shared state to be created
+     * @param isPending a boolean to indicate if the state content is not final (i.e will be updated later)
      * @return true - if a new shared state has been created at [version], false otherwise
      */
     @Synchronized
@@ -73,9 +73,9 @@ internal class SharedStateManager {
      * Updates a previously existing pending shared state for the extension at
      * [version] as [data]. If such a pending state does not exists, no operation is done.
      *
-     * @param [data] the content that the shared state needs to be updated with
-     * @param [version] the version of the pending shared state to be updated
-     * @param [isPending] a boolean to indicate if the new state content is not final
+     * @param data the content that the shared state needs to be updated with
+     * @param version the version of the pending shared state to be updated
+     * @param isPending a boolean to indicate if the new state content is not final
      * @return true - if a new shared state has been created at [version], false otherwise
      */
     @Synchronized
@@ -120,7 +120,7 @@ internal class SharedStateManager {
      * Retrieves data for shared state at [version]. If such a version does not exist,
      * retrieves the most recent version of the shared state available.
      *
-     * @param [version] the version of the shared state to be retrieved
+     * @param version the version of the shared state to be retrieved
      * @return shared state at [version] if it exists, or the most recent shared state before [version].
      *         null - If no state at or before [version] is found, or if the state fetched above is pending.
      */

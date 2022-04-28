@@ -209,8 +209,8 @@ internal class ExtensionContainer constructor(
      * If a pending shared state at [version] already exists, an attempt will be made to update it.
      *
      * @param sharedStateType the type of the shared state that need to be set
-     * @param [data] the content that the shared state needs to be populated with
-     * @param [version] the version of the shared state to be set
+     * @param data the content that the shared state needs to be populated with
+     * @param version the version of the shared state to be set
      * @return true - if a new shared state has been created or updated at [version], false otherwise
      */
     fun setSharedState(
@@ -241,7 +241,7 @@ internal class ExtensionContainer constructor(
      * if it is unavailable.
      *
      * @param sharedStateType the type of the shared state that need to be retrieved
-     * @param [version] the version of the pending shared state to be retrieved
+     * @param version the version of the pending shared state to be retrieved
      * @return shared state at [version] if it exists or the most recent shared state before [version].
      *         null If no state at or before [version] is found, or if the state fetched above is pending.
      */

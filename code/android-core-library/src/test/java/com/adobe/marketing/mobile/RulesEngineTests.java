@@ -470,7 +470,6 @@ public class RulesEngineTests extends BaseTest {
 	// =================================================================================================================
 	// protected List<Event> evaluateRules(final Event triggerEvent)
 	// =================================================================================================================
-	@Test
 	public void evaluateRules_When_Happy_Then_ShouldProperlyHandleVariousRuleConsequenceTypes() throws Exception {
 		// setup
 		final Event triggeringEvent = GetTriggeringEvent();
@@ -824,7 +823,6 @@ public class RulesEngineTests extends BaseTest {
 	// =================================================================================================================
 	// protected void processAttachDataConsequence(final Map<String, Variant> consequenceMap, final Event triggeringEvent)
 	// =================================================================================================================
-	@Test
 	public void processAttachDataConsequence_When_Happy_Then_ShouldAttachDataButNotOverwriteExistingData() throws
 		Exception {
 		// setup
@@ -995,7 +993,7 @@ public class RulesEngineTests extends BaseTest {
 	// =================================================================================================================
 	// protected void processModifyDataConsequence(final Map<String, Variant> consequenceMap, final Event triggeringEvent)
 	// =================================================================================================================
-	@Test
+
 	public void processModifyDataConsequence_When_Happy_Then_ShouldAttachDataButNotOverwriteExistingData() throws
 		Exception {
 		// setup
@@ -1026,7 +1024,6 @@ public class RulesEngineTests extends BaseTest {
 		assertFalse(newData.containsKey("aList"));
 	}
 
-	@Test
 	public void processModifyDataConsequence_With_ListOfObjects_ShouldAttachDataButNotOverwriteExistingData() throws
 		Exception {
 		// setup

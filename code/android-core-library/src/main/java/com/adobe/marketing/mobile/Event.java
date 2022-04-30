@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.utility.MapUtilsKt;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -460,7 +462,7 @@ public final class Event {
 		sb.append("    timestamp: ").append(timestamp).append(COMMA).append(NEWLINE);
 		sb.append("    data: ").append(data.prettyString(2)).append(NEWLINE);
 		sb.append("    mask: ").append(Arrays.toString(mask)).append(COMMA).append(NEWLINE);
-		sb.append("    fnv1aHash: ").append(data.toFnv1aHash(mask)).append(NEWLINE);
+		sb.append("    fnv1aHash: ").append(MapUtilsKt.convertMapToFnv1aHash(data.toObjectMap(),mask)).append(NEWLINE);
 		sb.append("}");
 
 		return sb.toString();

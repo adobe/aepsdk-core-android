@@ -10,11 +10,53 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
+import com.adobe.marketing.mobile.launch.rulesengine.historicalEventsQuerying
+import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
+import com.adobe.marketing.mobile.rulesengine.OperandFunction
+import com.adobe.marketing.mobile.rulesengine.OperandLiteral
 
 internal class HistoricalCondition(val definition: JSONDefinition) : JSONCondition() {
 
+    companion object {
+        private const val LOG_TAG = "HistoricalCondition"
+    }
+
     override fun toEvaluable(): Evaluable? {
-        TODO("Not yet implemented")
+        val matcher = definition.matcher
+        val valueAsInt = definition.value
+        if (definition.events !is List<*> ||
+            matcher !is String ||
+            matcher !in MatcherCondition.MATCHER_MAPPING ||
+            valueAsInt !is Int
+        ) {
+            MobileCore.log(
+                LoggingMode.ERROR,
+                LOG_TAG,
+                "Failed to build Evaluable from definition JSON: \n $definition"
+            )
+            return null
+        }
+        val fromDate = definition.from ?: 0
+        val toDate = definition.to ?: 0
+        val searchType = definition.searchType ?: "any"
+        val requestEvents = definition.events.map {
+            EventHistoryRequest(it, fromDate, toDate)
+        }
+        return ComparisonExpression(
+            OperandFunction<Int>({
+                try {
+                    @Suppress("UNCHECKED_CAST")
+                    historicalEventsQuerying(it[0] as List<EventHistoryRequest>, it[1] as String)
+                } catch (e: Exception) {
+                    0
+                }
+            }, requestEvents, searchType),
+            matcher,
+            OperandLiteral(valueAsInt)
+        )
     }
 }

@@ -15,13 +15,10 @@ import android.content.Context;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.utility.StringUtils;
+import com.adobe.marketing.mobile.services.utility.FileUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +38,7 @@ class DataQueueService implements DataQueuing {
 		databaseHelper = new SQLiteDatabaseHelper();
 	}
 
+	//TODO add @NonNUll annotation after merging with dev-v2.0.0 branch
 	@Override
 	public DataQueue getDataQueue(final String databaseName) {
 		DataQueue dataQueue = dataQueueCache.get(databaseName);
@@ -59,28 +57,12 @@ class DataQueueService implements DataQueuing {
 						return null;
 					}
 
-					final String cleanedDatabasePath = removeRelativePath(databaseName);
-					final File databaseDirDataQueue = ServiceProvider.getInstance().getApplicationContext().getDatabasePath(cleanedDatabasePath);
+					final File databaseDirDataQueue = migrateDataQueueService(databaseName);
 
-					final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-					if (!databaseDirDataQueue.exists() && cacheDir != null) {
-						final File cacheDirDataQueue = new File(cacheDir, cleanedDatabasePath);
-						if (cacheDirDataQueue.exists()) {
-							try {
-								if(databaseDirDataQueue.createNewFile()) {
-									copyFile(cacheDirDataQueue, databaseDirDataQueue);
-									MobileCore.log(LoggingMode.DEBUG,
-											LOG_TAG,
-											String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
-								}
-							} catch (Exception e) {
-								MobileCore.log(LoggingMode.WARNING,
-										LOG_TAG,
-										String.format("Failed to move DataQueue for database (%s), could not create new file in database directory", databaseName));
-								return null;
-							}
-						}
+					if(databaseDirDataQueue == null){
+						return null;
 					}
+
 					dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath(), databaseHelper);
 					dataQueueCache.put(databaseName, dataQueue);
 				}
@@ -90,51 +72,37 @@ class DataQueueService implements DataQueuing {
 		return dataQueue;
 	}
 
-	/**
-	 * Removes the relative part of the file name(if exists).
-	 * <p>
-	 * for ex: File name `/mydatabase/../../database1` will be converted to `mydatabase_database1`
-	 * <p/>
-	 *
-	 * @param filePath the file name
-	 * @return file name without relative path
-	 */
-	String removeRelativePath(final String filePath) {
-		if (filePath == null || filePath.isEmpty()) {
-			return filePath;
+	private File migrateDataQueueService(String databaseName) {
+		final String cleanedDatabaseName = FileUtil.removeRelativePath(databaseName);
+
+		if(StringUtils.isNullOrEmpty(databaseName)) {
+			MobileCore.log(LoggingMode.WARNING,
+					LOG_TAG,
+					"Failed to create DataQueue, database name is null");
+			return null;
 		}
 
-		try {
-			String result = filePath.replaceAll("\\.[/\\\\]", "\\.");
-			result = result.replaceAll("[/\\\\](\\.{2,})", "_");
-			result = result.replaceAll("/","");
-			return result;
-		} catch (IllegalArgumentException e) {
-			return filePath;
-		}
-	}
+		final File databaseDirDataQueue = ServiceProvider.getInstance().getApplicationContext().getDatabasePath(cleanedDatabaseName);
 
-	/**
-	 * Copies the contents from {@code src} to {@code dest}.
-	 *
-	 * @param src {@link File} from which the contents are read
-	 * @param dest {@link File} to which contents are written to
-	 * @throws IOException if {@code src} or {@code dest} is not present or it does not have read permissions
-	 */
-	private void copyFile(final File src, final File dest) throws IOException, NullPointerException{
-		final int STREAM_READ_BUFFER_SIZE = 1024;
-
-		try (InputStream input = new FileInputStream(src)) {
-			try (OutputStream output = new FileOutputStream(dest)) {
-				byte[] buffer = new byte[STREAM_READ_BUFFER_SIZE];
-				int length;
-				while ((length = input.read(buffer)) != -1) {
-					output.write(buffer, 0, length);
+		final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+		if (!databaseDirDataQueue.exists() && cacheDir != null) {
+			final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
+			if (cacheDirDataQueue.exists()) {
+				try {
+					if(databaseDirDataQueue.createNewFile()) {
+						FileUtil.copyFile(cacheDirDataQueue, databaseDirDataQueue);
+						MobileCore.log(LoggingMode.DEBUG,
+								LOG_TAG,
+								String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
+					}
+				} catch (Exception e) {
+					MobileCore.log(LoggingMode.WARNING,
+							LOG_TAG,
+							String.format("Failed to move DataQueue for database (%s), could not create new file in database directory", databaseName));
+					return null;
 				}
-				MobileCore.log(LoggingMode.DEBUG,
-						LOG_TAG,
-						String.format("Successfully copied (%s) to (%s)", src.getAbsolutePath(), dest.getAbsolutePath()));
 			}
 		}
+		return databaseDirDataQueue;
 	}
 }

@@ -8,6 +8,8 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.adobe.marketing.mobile.services.utility.FileUtil;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,7 +86,7 @@ public class DataQueueServiceTests {
         dataQueue.add(new DataEntity("{}"));
 
         assertEquals(dataQueueService.getDataQueue("/mydatabase\\..\\..\\database1").count(), 1);
-        ServiceProvider.getInstance().getApplicationContext().getDatabasePath(dataQueueService.removeRelativePath("/mydatabase\\..\\..\\database1")).delete();
+        ServiceProvider.getInstance().getApplicationContext().getDatabasePath(FileUtil.removeRelativePath("/mydatabase\\..\\..\\database1")).delete();
     }
 
     @Test
@@ -94,7 +96,7 @@ public class DataQueueServiceTests {
         dataQueue.add(new DataEntity("{}"));
 
         assertEquals(dataQueueService.getDataQueue("/mydatabase/../../database1").count(), 1);
-        ServiceProvider.getInstance().getApplicationContext().getDatabasePath(dataQueueService.removeRelativePath("/mydatabase/../../database1")).delete();
+        ServiceProvider.getInstance().getApplicationContext().getDatabasePath(FileUtil.removeRelativePath("/mydatabase/../../database1")).delete();
     }
 
     @Test
@@ -104,7 +106,7 @@ public class DataQueueServiceTests {
         dataQueue.add(new DataEntity("{}"));
 
         assertEquals(dataQueueService.getDataQueue("/mydatabase/../../database1").count(), 1);
-        ServiceProvider.getInstance().getApplicationContext().getDatabasePath(dataQueueService.removeRelativePath("/mydatabase/../../database1")).delete();
+        ServiceProvider.getInstance().getApplicationContext().getDatabasePath(FileUtil.removeRelativePath("/mydatabase/../../database1")).delete();
     }
 
     @Test
@@ -114,7 +116,7 @@ public class DataQueueServiceTests {
         dataQueue.add(new DataEntity("{}"));
 
         assertEquals(dataQueueService.getDataQueue("/mydatabase/../database1").count(), 1);
-        ServiceProvider.getInstance().getApplicationContext().getDatabasePath(dataQueueService.removeRelativePath("/mydatabase/../database1")).delete();
+        ServiceProvider.getInstance().getApplicationContext().getDatabasePath(FileUtil.removeRelativePath("/mydatabase/../database1")).delete();
     }
 
     private boolean createDataQueue(File dataQueueFile, int numberOfEntities) {

@@ -13,13 +13,9 @@ package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.DatabaseService.QueryResult;
 import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.utility.FileUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
 
 /**
@@ -360,22 +356,11 @@ class HitQueue<T extends AbstractHit, E extends AbstractHitSchema<T>> extends Ab
 		final int STREAM_READ_BUFFER_SIZE = 1024;
 		final File newHitQueueFile = App.getInstance().getAppContext().getDatabasePath(newDBName);
 
-
-		try (InputStream input = new FileInputStream(src)) {
+		try {
 			newHitQueueFile.createNewFile();
-			try (OutputStream output = new FileOutputStream(newHitQueueFile)) {
-				byte[] buffer = new byte[STREAM_READ_BUFFER_SIZE];
-				int length;
-				while ((length = input.read(buffer)) != -1) {
-					output.write(buffer, 0, length);
-				}
-				Log.debug(LOG_TAG, "Successfully copied (%s) to database folder", src.getAbsolutePath());
-				return true;
-			} catch (Exception e) {
-				Log.debug(LOG_TAG, "Failed to copy database (%s) to database folder", src.getAbsolutePath());
-				return false;
-			}
-		} catch (Exception e) {
+			FileUtil.copyFile(src, newHitQueueFile);
+			return true;
+		}  catch (Exception e) {
 			Log.debug(LOG_TAG, "Failed to copy database (%s) to database folder", src.getAbsolutePath());
 			return false;
 		}

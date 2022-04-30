@@ -36,5 +36,3 @@ private fun convertToString(value: Any?): String {
         else -> value.toString()
     }
 }
-
-

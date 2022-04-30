@@ -153,52 +153,6 @@ public class UrlUtilitiesTest {
 	}
 
 	@Test
-	public void urlEncodeWithNoEncodedNeeded() {
-		assertEquals(UrlUtilities.urlEncode("thisisateststring"), "thisisateststring");
-	}
-
-	@Test
-	public void urlEncodeWithSpaces() {
-		assertEquals(UrlUtilities.urlEncode("this is a test string"), "this%20is%20a%20test%20string");
-	}
-
-	@Test
-	public void urlEncodeStartsWithSpace() {
-		assertEquals(UrlUtilities.urlEncode(" afterspace"), "%20afterspace");
-	}
-
-	@Test
-	public void urlEncodeOnlyUnicode() {
-		assertEquals(UrlUtilities.urlEncode("网"), "%E7%BD%91");
-	}
-
-	@Test
-	public void urlEncodeStartsWithUnicode() {
-		assertEquals(UrlUtilities.urlEncode("网test"), "%E7%BD%91test");
-	}
-
-	@Test
-	public void urlEncodeEndsWithUnicode() {
-		assertEquals(UrlUtilities.urlEncode("test网"), "test%E7%BD%91");
-	}
-
-	@Test
-	public void urlEncodeBlankString() {
-		assertEquals(UrlUtilities.urlEncode(""), "");
-	}
-
-	@Test
-	public void urlEncodeDeathString() {
-		assertEquals(UrlUtilities.urlEncode("~!@#$%^&*()-+=|}{][\\/.<,>"),
-					 "~%21%40%23%24%25%5E%26%2A%28%29-%2B%3D%7C%7D%7B%5D%5B%5C%2F.%3C%2C%3E");
-	}
-
-	@Test
-	public void testURLEncodeNull() {
-		Assert.assertNull(UrlUtilities.urlEncode(null));
-	}
-
-	@Test
 	public void testJoin_when_validDelimiterAndTokens_happy() throws Exception {
 		List<String> tokens = new ArrayList<String>();
 		tokens.add("my");

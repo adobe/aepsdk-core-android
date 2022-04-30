@@ -8,15 +8,18 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.internal.eventhub
 
-import kotlin.test.assertEquals
-import org.junit.Test
+package com.adobe.marketing.mobile.launch.rulesengine
 
-internal class EventHubTests {
+internal object LaunchRulesConstants {
+    const val LOG_MODULE_PREFIX = "Launch Rules Engine"
+    const val DATA_STORE_PREFIX = "com.adobe.module.rulesengine"
 
-    @Test
-    fun testVersion() {
-        assertEquals(EventHub.version, "2.0.0")
+    internal object Transform {
+        const val URL_ENCODING_FUNCTION = "urlenc"
+        const val TRANSFORM_TO_INT = "int"
+        const val TRANSFORM_TO_DOUBLE = "double"
+        const val TRANSFORM_TO_STRING = "string"
+        const val TRANSFORM_TO_BOOL = "bool"
     }
 }

@@ -1539,37 +1539,7 @@ public class ConfigurationModuleTest extends SystemTest {
 		eventHub.dispatch(new Event.Builder("Test3", EventType.ACQUISITION, EventSource.NONE).build());
 		ConfigurationExtension configuration = (ConfigurationExtension) eventHub.getActiveModules().iterator().next();
 		super.sleep(EVENTHUB_WAIT_MS);
-		configuration.replaceRulesAndReprocessEvents(new ArrayList<Rule>());
-		List<Event> events = eventHub.reprocessEventsHandler.getEvents();
-		int size = 0;
-
-		for (Event event : events) {
-			if (event.getEventType() == EventType.ACQUISITION) {
-				size ++;
-			}
-		}
-
-		assertEquals(3, size);
-	}
-
-	@Test
-	public void reprocessEvent_When_SecondAppLaunch() throws  Exception {
-		eventHub.registerModule(ConfigurationExtension.class);
-		super.sleep(EVENTHUB_WAIT_MS);
-		eventHub.finishModulesRegistration(null);
-		eventHub.dispatch(new Event.Builder("Test1", EventType.ACQUISITION, EventSource.NONE).build());
-		eventHub.dispatch(new Event.Builder("Test2", EventType.ACQUISITION, EventSource.NONE).build());
-		eventHub.dispatch(new Event.Builder("Test3", EventType.ACQUISITION, EventSource.NONE).build());
-		ConfigurationExtension configuration = (ConfigurationExtension) eventHub.getActiveModules().iterator().next();
-		int size = eventHub.getModuleListeners(configuration).size();
-		super.sleep(EVENTHUB_WAIT_MS);
-		configuration.replaceRulesAndReprocessEvents(new ArrayList<Rule>());
-		super.sleep(EVENTHUB_WAIT_MS);
-		eventHub.replaceRulesAndEvaluateEventsHasBeenCalled = false;
-		configuration.replaceRulesAndReprocessEvents(new ArrayList<Rule>());
-		assertEquals(0, eventHub.reprocessEventsHandler.getEvents().size());
-		assertFalse(eventHub.replaceRulesAndEvaluateEventsHasBeenCalled);
-		assertEquals(size - 1, eventHub.getModuleListeners(configuration).size());
+		assertEquals(4, eventHub.getAllEventsCount());
 	}
 
 	@After

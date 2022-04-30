@@ -15,34 +15,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RulesEngine<T extends Rule> {
-	Evaluating evaluator;
-	Transforming transformer;
-	List<T> rules;
+    private final Object rulesEngineMutex = new Object();
+    private final Evaluating evaluator;
+    private final Transforming transformer;
+    private List<T> rules;
 
-	public RulesEngine(final Evaluating evaluator, final Transforming transformer) {
-		this.evaluator = evaluator;
-		this.transformer = transformer;
-		this.rules = new ArrayList<>();
-	}
+    public RulesEngine(final Evaluating evaluator, final Transforming transformer) {
+        this.evaluator = evaluator;
+        this.transformer = transformer;
+        this.rules = new ArrayList<>();
+    }
 
-	public List<T> evaluate(final TokenFinder tokenFinder) {
-		final Context context = new Context(tokenFinder, evaluator, transformer);
-		List<T> triggerRules = new ArrayList<>();
+    public List<T> evaluate(final TokenFinder tokenFinder) {
+        synchronized (rulesEngineMutex) {
+            final Context context = new Context(tokenFinder, evaluator, transformer);
+            List<T> triggerRules = new ArrayList<>();
 
-		for (final T rule : rules) {
-			if (rule.getEvaluable().evaluate(context).isSuccess()) {
-				triggerRules.add(rule);
-			}
-		}
+            for (final T rule : rules) {
+                if (rule.getEvaluable().evaluate(context).isSuccess()) {
+                    triggerRules.add(rule);
+                }
+            }
+            return triggerRules;
+        }
+    }
 
-		return triggerRules;
-	}
-
-	public void addRules(final List<T> newRules) {
-		rules.addAll(newRules);
-	}
-
-	public void clearRules() {
-		rules.clear();
-	}
+    public void replaceRules(final List<T> newRules) {
+        synchronized (rulesEngineMutex) {
+            rules.clear();
+            rules = newRules;
+        }
+    }
 }

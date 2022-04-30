@@ -14,6 +14,8 @@ package com.adobe.marketing.mobile;
 import java.net.URL;
 import java.util.Map;
 
+import com.adobe.marketing.mobile.internal.utility.UrlUtilities;
+
 /**
  * A class providing a better way to construct a url.
  */

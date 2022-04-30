@@ -37,6 +37,11 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 		this.option = option;
 	}
 
+	public ConditionEvaluator() {
+		this.option = Option.DEFAULT;
+	}
+
+
 	/**
 	 * Runs operation on the operands.
 	 *

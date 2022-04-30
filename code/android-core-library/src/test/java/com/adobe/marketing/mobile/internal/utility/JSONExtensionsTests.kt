@@ -10,12 +10,12 @@
  */
 package com.adobe.marketing.mobile.internal.utility
 
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class JSONExtensionsTests {
 

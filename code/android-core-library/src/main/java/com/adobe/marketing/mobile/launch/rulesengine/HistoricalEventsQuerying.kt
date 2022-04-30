@@ -18,8 +18,7 @@ import java.util.concurrent.TimeUnit
 
 private const val LOG_TAG = "historicalEventsQuerying"
 private const val SEARCH_TYPE_ANY = "any"
-private const val ASYNC_TIMEOUT = 1000L;
-
+private const val ASYNC_TIMEOUT = 1000L
 
 @JvmSynthetic
 internal fun historicalEventsQuerying(

@@ -10,9 +10,8 @@
  */
 package com.adobe.marketing.mobile.internal.utility
 
-import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.junit.Test
 
 class EventDataMergerTests {
 
@@ -29,7 +28,6 @@ class EventDataMergerTests {
             "newKey" to "newValue"
         )
         assertEquals(expectedMap, EventDataMerger.merge(fromMap, toMap, true))
-
     }
 
     @Test
@@ -413,7 +411,7 @@ class EventDataMergerTests {
                         "key" to "oldValue",
                         "newKey" to "newValue"
                     ),
-                    "key" to "newValue",
+                    "key" to "newValue"
                 ),
                 mapOf(
                     "k2" to "v2",

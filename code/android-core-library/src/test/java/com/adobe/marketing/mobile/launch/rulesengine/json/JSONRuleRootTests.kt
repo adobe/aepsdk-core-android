@@ -11,9 +11,9 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class JSONRuleRootTests {
     @Test

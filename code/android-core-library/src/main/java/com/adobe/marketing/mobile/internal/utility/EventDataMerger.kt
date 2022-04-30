@@ -130,5 +130,4 @@ internal object EventDataMerger {
             targetMap[targetKey] = newList
         }
     }
-
 }

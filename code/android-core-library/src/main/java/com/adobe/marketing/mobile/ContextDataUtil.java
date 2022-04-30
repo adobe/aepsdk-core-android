@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.utility.UrlUtilities;
+
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.regex.Matcher;

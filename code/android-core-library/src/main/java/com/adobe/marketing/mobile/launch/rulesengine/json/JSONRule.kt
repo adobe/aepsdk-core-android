@@ -52,7 +52,6 @@ internal class JSONRule private constructor(
             }
             return JSONRule(condition, consequences)
         }
-
     }
 
     /**
@@ -76,5 +75,4 @@ internal class JSONRule private constructor(
         }
         return LaunchRule(evaluable, consequenceList)
     }
-
 }

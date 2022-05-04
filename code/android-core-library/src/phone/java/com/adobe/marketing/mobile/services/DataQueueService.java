@@ -11,8 +11,12 @@
 
 package com.adobe.marketing.mobile.services;
 
+import android.content.Context;
+
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.utility.StringUtils;
+import com.adobe.marketing.mobile.services.utility.FileUtil;
 
 import java.io.File;
 import java.util.HashMap;
@@ -34,6 +38,7 @@ class DataQueueService implements DataQueuing {
 		databaseHelper = new SQLiteDatabaseHelper();
 	}
 
+	//TODO add @NonNUll annotation after merging with dev-v2.0.0 branch
 	@Override
 	public DataQueue getDataQueue(final String databaseName) {
 		DataQueue dataQueue = dataQueueCache.get(databaseName);
@@ -43,20 +48,61 @@ class DataQueueService implements DataQueuing {
 				dataQueue = dataQueueCache.get(databaseName);
 
 				if (dataQueue == null) {
-					final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+					Context appContext = ServiceProvider.getInstance().getApplicationContext();
 
-					if (cacheDir == null) {
-						MobileCore.log(LoggingMode.WARNING, LOG_TAG,
-									   String.format("Failed in creating DataQueue for database (%s), Cache dir is null.", databaseName));
+					if(appContext == null) {
+						MobileCore.log(LoggingMode.WARNING,
+								LOG_TAG,
+								String.format("Failed to create DataQueue for database (%s), the ApplicationContext is null", databaseName));
 						return null;
 					}
 
-					dataQueue = new SQLiteDataQueue(cacheDir, databaseName, databaseHelper);
+					final File databaseDirDataQueue = migrateDataQueueService(databaseName);
+
+					if(databaseDirDataQueue == null){
+						return null;
+					}
+
+					dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath(), databaseHelper);
 					dataQueueCache.put(databaseName, dataQueue);
 				}
 			}
 		}
 
 		return dataQueue;
+	}
+
+	private File migrateDataQueueService(String databaseName) {
+		final String cleanedDatabaseName = FileUtil.removeRelativePath(databaseName);
+
+		if(StringUtils.isNullOrEmpty(databaseName)) {
+			MobileCore.log(LoggingMode.WARNING,
+					LOG_TAG,
+					"Failed to create DataQueue, database name is null");
+			return null;
+		}
+
+		final File databaseDirDataQueue = ServiceProvider.getInstance().getApplicationContext().getDatabasePath(cleanedDatabaseName);
+
+		final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+		if (!databaseDirDataQueue.exists() && cacheDir != null) {
+			final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
+			if (cacheDirDataQueue.exists()) {
+				try {
+					if(databaseDirDataQueue.createNewFile()) {
+						FileUtil.copyFile(cacheDirDataQueue, databaseDirDataQueue);
+						MobileCore.log(LoggingMode.DEBUG,
+								LOG_TAG,
+								String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
+					}
+				} catch (Exception e) {
+					MobileCore.log(LoggingMode.WARNING,
+							LOG_TAG,
+							String.format("Failed to move DataQueue for database (%s), could not create new file in database directory", databaseName));
+					return null;
+				}
+			}
+		}
+		return databaseDirDataQueue;
 	}
 }

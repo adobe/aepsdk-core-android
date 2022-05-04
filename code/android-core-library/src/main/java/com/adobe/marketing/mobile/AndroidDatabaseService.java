@@ -22,77 +22,32 @@ import java.util.Map;
  * AndroidDatabaseService class implements DatabaseService Interface to manage a SQLite database.
  */
 class AndroidDatabaseService implements DatabaseService {
-	private final SystemInfoService systemInfoService;
 	private final Object dbServiceMutex = new Object();
 	private static final String TAG = AndroidDatabaseService.class.getSimpleName();
 	private Map<String, Database> map = new HashMap<>();
 
-	AndroidDatabaseService(final SystemInfoService systemInfoService) {
-		this.systemInfoService = systemInfoService;
-
-		if (systemInfoService == null) {
-			Log.warning(TAG, "Unable to access system info service while creating the database service");
-		}
-	}
-
-	private String removeRelativePath(final String filePath) {
-		try {
-			// we don't want to leave any extra "/" or "\" but also can't touch existing slashes
-			// first use a regex to find all of the ".\" and "./" and turn them into "."
-			// (\\. is escape for ., \\\\ is escape for \\, which means \ in a String)
-			// for example: /data/user/0/com.adobe.marketing.mobile.test/cache/mydatabase/../../database1
-			// will become /data/user/0/com.adobe.marketing.mobile.test/cache/mydatabase/....database1
-			String result = filePath.replaceAll("\\.[/\\\\]", "\\.");
-			// now use a regex to find all of the "/.." and "\.." and turn into "_", any "." occurs more than 2 times will be counted
-			// for example : /data/user/0/com.adobe.marketing.mobile.test/cache/mydatabase/....database1
-			// will become /data/user/0/com.adobe.marketing.mobile.test/cache/mydatabase_database1
-			result = result.replaceAll("[/\\\\](\\.{2,})", "_");
-			return result;
-		} catch (IllegalArgumentException e) {
-			return filePath;
-		}
-	}
-
 	/**
 	 * Opens a database if it exists, otherwise creates a new one at the specified path.
 	 *
-	 * @param filePath {@link String} containing the database file path
+	 * @param databasePath {@link String} containing the database file path
 	 *
 	 * @return {@link Database} instance, or null if error occurs
 	 */
 	@Override
-	public Database openDatabase(final String filePath) {
-		if (StringUtils.isNullOrEmpty(filePath)) {
+	public Database openDatabase(final String databasePath) {
+		if (StringUtils.isNullOrEmpty(databasePath)) {
 			Log.debug(TAG, "Failed to open database - filepath is null or empty");
 			return null;
 		}
 
-		final String cleanedPath = removeRelativePath(filePath);
-
-		if (this.systemInfoService != null && this.systemInfoService.getApplicationCacheDir() != null) {
-			try {
-				final String cacheDirCanonicalPath = this.systemInfoService.getApplicationCacheDir().getCanonicalPath();
-				final File file = new File(cleanedPath);
-				final String dbFileCanonicalPath = file.getCanonicalPath();
-
-				if (!dbFileCanonicalPath.startsWith(cacheDirCanonicalPath)) {
-					Log.warning(TAG, "Invalid database file path (%s)", cleanedPath);
-					return null;
-				}
-			} catch (Exception e) {
-				Log.warning(TAG, "Failed to read database file (%s)", e);
-				return null;
-			}
-		}
-
 		synchronized (dbServiceMutex) {
 			try {
-				SQLiteDatabase database = SQLiteDatabase.openDatabase(cleanedPath,
+				SQLiteDatabase database = SQLiteDatabase.openDatabase(databasePath,
 										  null,
 										  SQLiteDatabase.NO_LOCALIZED_COLLATORS | SQLiteDatabase.CREATE_IF_NECESSARY);
 
 				AndroidDatabase androidDatabase = new AndroidDatabase(database);
-				map.put(cleanedPath, androidDatabase);
+				map.put(databasePath, androidDatabase);
 				return androidDatabase;
 			} catch (Exception e) {
 				Log.error(TAG, "Failed to open database (%s)", e);
@@ -104,24 +59,22 @@ class AndroidDatabaseService implements DatabaseService {
 	/**
 	 * Delete database at the specified path, if it exists.
 	 *
-	 * @param filePath {@link String} containing the database file path
+	 * @param databasePath {@link String} containing the database file path
 	 *
 	 * @return {@code boolean} indicating whether the database file delete operation was successful
 	 */
 	@Override
-	public boolean deleteDatabase(final String filePath) {
-		if (StringUtils.isNullOrEmpty(filePath)) {
+	public boolean deleteDatabase(final String databasePath) {
+		if (StringUtils.isNullOrEmpty(databasePath)) {
 			Log.debug(TAG, "Failed to delete database - filepath is null or empty");
 			return false;
 		}
 
-		String cleanedPath = removeRelativePath(filePath);
-
 		synchronized (dbServiceMutex) {
-			if (map.containsKey(cleanedPath)) {
+			if (map.containsKey(databasePath)) {
 				try {
-					File databaseFile = new File(cleanedPath);
-					map.remove(cleanedPath);
+					File databaseFile = new File(databasePath);
+					map.remove(databasePath);
 					return databaseFile.delete();
 				} catch (SecurityException e) {
 					Log.error(TAG, "Failed to delete database (%s)", e);

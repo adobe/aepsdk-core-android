@@ -8,9 +8,9 @@ class MockHitQueue<T extends AbstractHit, E extends AbstractHitSchema<T>> extend
 		this(services, null, null, null, null);
 	}
 
-	MockHitQueue(PlatformServices services, File dbFile, String tableName, E hitSchema,
+	MockHitQueue(PlatformServices services, String dbFilePath, String tableName, E hitSchema,
 				 IHitProcessor hitProcessor) {
-		super(services, dbFile, tableName, hitSchema, hitProcessor);
+		super(services, dbFilePath, tableName, hitSchema, hitProcessor);
 	}
 
 	boolean selectOldestHitWasCalled;

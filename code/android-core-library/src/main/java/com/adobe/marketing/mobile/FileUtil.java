@@ -15,6 +15,8 @@ import java.io.*;
 
 final class FileUtil {
 
+	private final static String LOG_TAG = "FileUtil";
+
 	private FileUtil() {}
 
 	/**
@@ -25,15 +27,14 @@ final class FileUtil {
 	 * 			or if the file do not have read permission
 	 */
 	static String readStringFromFile(final File file) {
-		final String logPrefix = "File Reader";
 
 		try {
 			if (file == null || !file.exists() || !file.canRead() || !file.isFile()) {
-				Log.warning(logPrefix, "Write to file - File does not exist or don't have read permission (%s)", file);
+				Log.warning(LOG_TAG, "Write to file - File does not exist or don't have read permission (%s)", file);
 				return null;
 			}
 		} catch (SecurityException e) {
-			Log.debug(logPrefix, "Failed to read file (%s)", e);
+			Log.debug(LOG_TAG, "Failed to read file (%s)", e);
 			return null;
 		}
 
@@ -54,7 +55,7 @@ final class FileUtil {
 
 			return builder.toString();
 		} catch (IOException e) {
-			Log.debug(logPrefix, "Failed to close file (%s)", e);
+			Log.debug(LOG_TAG, "Failed to close file (%s)", e);
 			return null;
 		} finally {
 			try {
@@ -66,7 +67,7 @@ final class FileUtil {
 					bufferedReader.close();
 				}
 			} catch (IOException e) {
-				Log.debug(logPrefix, "Failed to close file (%s)", e);
+				Log.debug(LOG_TAG, "Failed to close file (%s)", e);
 			}
 		}
 	}
@@ -80,4 +81,5 @@ final class FileUtil {
 	static boolean isValidDirectory(final File directory) {
 		return directory != null && directory.isDirectory() && directory.canWrite();
 	}
+
 }

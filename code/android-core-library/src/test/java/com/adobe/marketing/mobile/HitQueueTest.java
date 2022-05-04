@@ -10,19 +10,71 @@
  */
 package com.adobe.marketing.mobile;
 
+import static com.adobe.marketing.mobile.FileTestHelper.FILE_DIRECTORY;
+import static com.adobe.marketing.mobile.FileTestHelper.MOCK_CONFIG_JSON;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
+import android.app.Activity;
+import android.content.Context;
+
+import com.adobe.marketing.mobile.internal.context.App;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class HitQueueTest {
+    @Mock
+    private Context mockContext;
+
+    private static AppContextProvider appContextProvider = new AppContextProvider();
+
+    private static class AppContextProvider implements App.AppContextProvider {
+
+        private Context context;
+
+        private Activity currentActivity;
+        public void setContext(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        public Context getAppContext() {
+            return this.context;
+        }
+
+        @Override
+        public Activity getCurrentActivity() {
+            return this.currentActivity;
+        }
+    }
+
+    private FileTestHelper fileTestHelper;
+
+    @Before
+    public void setup() {
+        fileTestHelper = new FileTestHelper();
+        App.getInstance().initializeApp(appContextProvider);
+    }
+
+    @After
+    public void tearDown() {
+        fileTestHelper.deleteTempCacheDirectory();
+    }
+
 //	private static final String TEST_TABLE = "test_table";
 //	private static final String TEST_DATABASE_FILE = "test_file.sqlite";
 //	private static final String COL_ID = "ID";
@@ -377,4 +429,55 @@ public class HitQueueTest {
 //		Thread.sleep(1000);
 //		assertFalse(fakeHitDatabase.hitWasProcessed);
 //	}
+
+    // =================================================================================================================
+    // static void migrate(final File src, final String newDBName)
+    // =================================================================================================================
+    @Test
+    public void testMigrate_When_ValidSrcFile_And_DestFileDoesNotExist() {
+        when(mockContext.getDatabasePath("testFileName")).thenReturn(fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName"));
+        appContextProvider.setContext(mockContext);
+        File src = fileTestHelper.placeSampleCacheFile();
+        assertTrue(HitQueue.migrate(src, "testFileName"));
+        assertEquals(MOCK_CONFIG_JSON, FileUtil.readStringFromFile(appContextProvider.getAppContext().getDatabasePath("testFileName")));
+    }
+
+    @Test
+    public void testMigrate_When_ValidSrcFile_And_ValidNonEmptyDestFile() {
+        when(mockContext.getDatabasePath("testFileName")).thenReturn(fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName"));
+        appContextProvider.setContext(mockContext);
+        File src = fileTestHelper.placeSampleCacheFile();        File dest = fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName");
+        fileTestHelper.writeToFile(dest, "testContent");
+        assertEquals("testContent", FileUtil.readStringFromFile(dest));
+        assertTrue(HitQueue.migrate(src, "testFileName"));
+        assertEquals(MOCK_CONFIG_JSON, FileUtil.readStringFromFile(dest));
+    }
+
+    @Test
+    public void testMigrate_When_ValidSrcFile_And_NullDestFile() {
+        when(mockContext.getDatabasePath("testFileName")).thenReturn(fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName"));
+        appContextProvider.setContext(mockContext);
+        File src = fileTestHelper.placeSampleCacheFile();
+        assertFalse(HitQueue.migrate(src, null));
+    }
+
+    @Test
+    public void testMigrate_When_ValidSrcFile_And_EmptyDestFile() {
+        when(mockContext.getDatabasePath("testFileName")).thenReturn(fileTestHelper.createEmptyFile(FILE_DIRECTORY, "testFileName"));
+        appContextProvider.setContext(mockContext);
+        File src = fileTestHelper.placeSampleCacheFile();
+        assertFalse(HitQueue.migrate(src, ""));
+    }
+
+    @Test
+    public void testCopyFile_When_NullSrcFile() {
+         assertFalse(HitQueue.migrate(null, "testFileName"));
+    }
+
+    @Test
+    public void testCopyFile_When_InvalidSrcFile() {
+        File src = fileTestHelper.placeSampleCacheFile();
+        fileTestHelper.deleteTempCacheDirectory();
+        assertFalse(HitQueue.migrate(src, "testFileName"));
+    }
 }

@@ -30,31 +30,25 @@ import static junit.framework.Assert.assertTrue;
 public class AndroidDatabaseServiceTests {
 
 	private AndroidDatabaseService androidDatabaseService;
-	private String                 cacheDir;
 	private Context                appContext;
 
 	@Before
 	public void beforeEach() {
 		appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		cacheDir = appContext.getCacheDir().getPath();
-		androidDatabaseService = new AndroidDatabaseService(null);
+		androidDatabaseService = new AndroidDatabaseService();
 		App.setAppContext(appContext);
-	}
-
-	@After
-	public void afterEach() {
-		appContext.getCacheDir().delete();
 	}
 
 	@Test
 	public void testOpenDatabase_Happy() throws Exception {
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/testOpenDatabase_Happy"));
+		assertNotNull(androidDatabaseService.openDatabase(appContext.getDatabasePath("testOpenDatabase_Happy").getPath()));
+		appContext.getDatabasePath("testOpenDatabase_Happy").delete();
 	}
 
 	@Test
 	public void testOpenDatabase_Exists() throws Exception {
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/testOpenDatabase_Happy"));
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/testOpenDatabase_Happy"));
+		assertNotNull(androidDatabaseService.openDatabase(appContext.getDatabasePath("testOpenDatabase_Happy").getPath()));
+		appContext.getDatabasePath("testOpenDatabase_Happy").delete();
 	}
 
 	@Test
@@ -69,13 +63,13 @@ public class AndroidDatabaseServiceTests {
 
 	@Test
 	public void testDeleteDatabase_Happy() {
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/testDeleteDatabase_Happy"));
-		assertTrue(androidDatabaseService.deleteDatabase(cacheDir + "/testDeleteDatabase_Happy"));
+		assertNotNull(androidDatabaseService.openDatabase(appContext.getDatabasePath("testOpenDatabase_Happy").getPath()));
+		assertTrue(androidDatabaseService.deleteDatabase(appContext.getDatabasePath("testOpenDatabase_Happy").getPath()));
 	}
 
 	@Test
 	public void testDeleteDatabase_DoesNotExist() {
-		assertFalse(androidDatabaseService.deleteDatabase(cacheDir + "/testDeleteDatabase_DoesNotExist"));
+		assertFalse(androidDatabaseService.deleteDatabase(appContext.getDatabasePath("testDeleteDatabase_DoesNotExist").getPath()));
 	}
 
 	@Test
@@ -89,47 +83,11 @@ public class AndroidDatabaseServiceTests {
 	}
 
 	@Test
-	public void testDeleteDatabase_RelativePathBackslashClearnedUp() {
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/mydatabase\\..\\..\\database1"));
-		assertTrue(androidDatabaseService.deleteDatabase(cacheDir + "/mydatabase\\..\\..\\database1"));
-	}
-
-	@Test
-	public void testDeleteDatabase_RelativePathForwardslashClearnedUp() {
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/mydatabase/../../database1"));
-		assertTrue(androidDatabaseService.deleteDatabase(cacheDir + "/mydatabase/../../database1"));
-	}
-
-	@Test
-	public void testDeleteDatabase_RelativePathBackslashDoesNotChangeDir() {
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/mydatabase\\..\\database1"));
-		assertFalse(androidDatabaseService.deleteDatabase(cacheDir + "/database1"));
-	}
-
-	@Test
-	public void testDeleteDatabase_RelativePathForwardslashDoesNotChangeDir() {
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/mydatabase/../database1"));
-		assertFalse(androidDatabaseService.deleteDatabase(cacheDir + "/database1"));
-	}
-
-	@Test
-	public void testDeleteDatabase_RelativePathMixedWorkTheSameWhenNotMatch() {
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/mydatabase\\..\\database1"));
-		assertTrue(androidDatabaseService.deleteDatabase(cacheDir + "/mydatabase/../../database1"));
-	}
-
-	@Test
-	public void testDeleteDatabase_RelativePathMixedWorkTheSameWhenMatch() {
-		assertNotNull(androidDatabaseService.openDatabase(cacheDir + "/mydatabase\\..\\database1"));
-		assertTrue(androidDatabaseService.deleteDatabase(cacheDir + "/mydatabase/../database1"));
-	}
-
-	@Test
 	public void testDeleteDatabase_RelativePathMixedWorkTheSameWhenMatch1() {
 
 		AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-		androidDatabaseService = new AndroidDatabaseService(systemInfoService);
-		assertNull(androidDatabaseService.openDatabase("/invalid/file/path"));
+		androidDatabaseService = new AndroidDatabaseService();
+		assertNull(androidDatabaseService.openDatabase(appContext.getDatabasePath("/invalid/file/path").getPath()));
 	}
 
 	//

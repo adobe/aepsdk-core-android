@@ -33,12 +33,29 @@ public class TestUtils {
 		}
 	}
 
+	public static void deleteDatabaseInDatabaseDir(Context appContext, String databaseName) {
+		if (appContext == null) {
+			return;
+		}
+
+		File databasePath = appContext.getDatabasePath(databaseName);
+		databasePath.delete();
+	}
+
 	public static String getCacheDir(Context appContext) {
 		if (appContext == null) {
 			return null;
 		}
 
 		return appContext.getCacheDir().getPath();
+	}
+
+	public static String getDatabasePathInDatabaseDir(Context appContext, String databaseName) {
+		if (appContext == null) {
+			return null;
+		}
+
+		return appContext.getDatabasePath(databaseName).getPath();
 	}
 
 	public static boolean almostEqual(long actual, long expected, long tolerance) {

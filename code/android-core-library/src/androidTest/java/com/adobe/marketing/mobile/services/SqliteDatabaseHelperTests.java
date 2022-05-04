@@ -38,7 +38,7 @@ public class SqliteDatabaseHelperTests {
 
 	@Before
 	public void setUp() {
-		dbPath = new File(InstrumentationRegistry.getContext().getCacheDir(), "test.sqlite").getPath();
+		dbPath = InstrumentationRegistry.getContext().getDatabasePath( "test.sqlite").getPath();
 		sqLiteDatabaseHelper = new SQLiteDatabaseHelper();
 		createTable();
 	}

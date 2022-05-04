@@ -44,16 +44,15 @@ public class AndroidCursorTests {
 
 	private DatabaseService androidDatabaseService;
 	private DatabaseService.Database    androidDatabase;
-	private String                            cacheDir;
 	private DatabaseService.QueryResult queryResult;
 	private Query testQuery;
 
 	@Before
 	public void beforeEach() {
-		androidDatabaseService = new AndroidDatabaseService(null);
-		androidDatabase = androidDatabaseService.openDatabase(TestUtils.getCacheDir(
-							  InstrumentationRegistry.getInstrumentation().getTargetContext()) + "/" +
-						  name.getMethodName());
+		androidDatabaseService = new AndroidDatabaseService();
+		androidDatabase = androidDatabaseService.openDatabase(TestUtils.getDatabasePathInDatabaseDir(
+				InstrumentationRegistry.getInstrumentation().getTargetContext(),
+				name.getMethodName()));
 	}
 
 	@After
@@ -62,7 +61,8 @@ public class AndroidCursorTests {
 			queryResult.close();
 		}
 
-		TestUtils.deleteAllFilesInCacheDir(InstrumentationRegistry.getInstrumentation().getTargetContext());
+		TestUtils.deleteDatabaseInDatabaseDir(InstrumentationRegistry.getInstrumentation().getTargetContext(),
+				name.getMethodName());
 	}
 
 	@Test

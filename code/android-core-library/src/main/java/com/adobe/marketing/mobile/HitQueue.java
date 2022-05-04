@@ -12,6 +12,8 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.DatabaseService.QueryResult;
+import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.utility.FileUtil;
 
 import java.io.File;
 import java.util.Map;
@@ -44,7 +46,7 @@ class HitQueue<T extends AbstractHit, E extends AbstractHitSchema<T>> extends Ab
 	}
 
 	/**
-	 * Constructor calls {@link AbstractHitsDatabase#AbstractHitsDatabase(DatabaseService, File, String)} then calls
+	 * Constructor calls {@link AbstractHitsDatabase#AbstractHitsDatabase(DatabaseService, String, String)} then calls
 	 * {@link #openOrCreateDatabase()} after initializing the following fields:
 	 * <ul>
 	 *     <li>{@link #bgThreadActive}</li>
@@ -55,14 +57,14 @@ class HitQueue<T extends AbstractHit, E extends AbstractHitSchema<T>> extends Ab
 	 * </ul>
 	 *
 	 * @param services     the {@code PlatformServices} instance
-	 * @param dbFile       the {@code File} representing the underlying database
+	 * @param dbFilePath   the {@code String} representing the path of the underlying database
 	 * @param tableName    {@code String} containing the database table name
 	 * @param hitSchema    {@code AbstractHitSchema} containing the database table definition
 	 * @param hitProcessor object implementing the {@code IHitProcessor} responsible for processing hits
 	 */
-	HitQueue(final PlatformServices services, final File dbFile, final String tableName,
+	HitQueue(final PlatformServices services, final String dbFilePath, final String tableName,
 			 final E hitSchema, final IHitProcessor<T> hitProcessor) {
-		super(services.getDatabaseService(), dbFile, tableName);
+		super(services.getDatabaseService(), dbFilePath, tableName);
 		bgThreadActive = false;
 		isSuspended = false;
 		this.systemInfoService = services.getSystemInfoService();
@@ -335,5 +337,32 @@ class HitQueue<T extends AbstractHit, E extends AbstractHitSchema<T>> extends Ab
 		 * @return {@link RetryType} indicating whether the hit should be re-processed
 		 */
 		RetryType process(T hit);
+	}
+
+	static boolean migrate(final File src, final String newDBName){
+		if(src == null) {
+			Log.warning(LOG_TAG, "Failed to copy database to database folder. Source file is null");
+			return false;
+		}
+		if(!src.exists()){
+			Log.warning(LOG_TAG, "Failed to copy database to database folder. Source file (%s) does not exist", src.getAbsolutePath());
+			return false;
+		}
+		if(StringUtils.isNullOrEmpty(newDBName)) {
+			Log.warning(LOG_TAG, "Failed to copy database to database folder. New database name is null or empty");
+			return false;
+		}
+
+		final int STREAM_READ_BUFFER_SIZE = 1024;
+		final File newHitQueueFile = App.getInstance().getAppContext().getDatabasePath(newDBName);
+
+		try {
+			newHitQueueFile.createNewFile();
+			FileUtil.copyFile(src, newHitQueueFile);
+			return true;
+		}  catch (Exception e) {
+			Log.debug(LOG_TAG, "Failed to copy database (%s) to database folder", src.getAbsolutePath());
+			return false;
+		}
 	}
 }

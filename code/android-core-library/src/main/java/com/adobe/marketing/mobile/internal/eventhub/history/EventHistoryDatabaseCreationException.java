@@ -9,11 +9,16 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.eventhub.history;
 
-/**
- * Interface defining a callback which contains the result of {@link EventHistoryDatabase} operations.
- */
-interface EventHistoryResultHandler<T> {
-	void call(final T value);
+public class EventHistoryDatabaseCreationException extends Exception {
+
+	/**
+	 * Constructor.
+	 *
+	 * @param message a {@code String} containing the {@link EventHistoryDatabase} creation exception details.
+	 */
+	EventHistoryDatabaseCreationException(final String message) {
+		super(message);
+	}
 }

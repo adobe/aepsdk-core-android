@@ -39,9 +39,9 @@ internal data class JSONDefinition(
     val values: List<Any?>?,
     val events: List<Map<String, Any?>>?,
     val value: Any?,
-    val from: Int?,
-    val to: Int?,
-    val searchType: String?,
+    val from: Long?,
+    val to: Long?,
+    val searchType: String?
 ) {
     companion object {
         private const val DEFINITION_KEY_LOGIC = "logic"
@@ -73,8 +73,8 @@ internal data class JSONDefinition(
             val events =
                 buildValueMapList(jsonObject.optJSONArray(DEFINITION_KEY_EVENTS))
             val value = jsonObject.opt(DEFINITION_KEY_VALUE)
-            val from = jsonObject.opt(DEFINITION_KEY_FROM) as? Int
-            val to = jsonObject.opt(DEFINITION_KEY_TO) as? Int
+            val from = jsonObject.opt(DEFINITION_KEY_FROM) as? Long
+            val to = jsonObject.opt(DEFINITION_KEY_TO) as? Long
             val searchType = jsonObject.opt(DEFINITION_KEY_SEARCH_TYPE) as? String
             return JSONDefinition(
                 logic,
@@ -107,7 +107,5 @@ internal data class JSONDefinition(
                     ?: throw JSONException("Unsupported [rule.condition.historical.events] JSON format: $it ")
             }
         }
-
     }
 }
-

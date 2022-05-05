@@ -11,8 +11,17 @@
 
 package com.adobe.marketing.mobile.services;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteException;
+
+import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,227 +30,223 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.anyString;
-
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({SQLiteDatabaseHelper.class})
 public class SqliteDataQueueTests {
 
-	private DataQueue dataQueue;
+    private DataQueue dataQueue;
 
-	@Mock
-	private SQLiteDatabaseHelper database;
+    @Mock
+    ContentValues contentValues;
 
-	@Mock
-	ContentValues contentValues;
+    private static final String DATABASE_NAME = "test.sqlite";
+    private static final String TABLE_NAME = "TB_AEP_DATA_ENTITY";
+    private static final String EMPTY_JSON_STRING = "{}";
+    private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
+    private static final String TB_KEY_TIMESTAMP = "timestamp";
+    private static final String TB_KEY_DATA = "data";
 
-	private static final String DATABASE_NAME = "test.sqlite";
-	private static final String TABLE_NAME = "TB_AEP_DATA_ENTITY";
-	private static final String EMPTY_JSON_STRING = "{}";
-	private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
-	private static final String TB_KEY_TIMESTAMP = "timestamp";
-	private static final String TB_KEY_DATA = "data";
+    public SqliteDataQueueTests() {
+    }
 
-	public SqliteDataQueueTests() {
-	}
+    @Before
+    public void setUp() {
+        PowerMockito.mockStatic(SQLiteDatabaseHelper.class);
+        PowerMockito.when(SQLiteDatabaseHelper.createTableIfNotExist(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        dataQueue = new SQLiteDataQueue(null, DATABASE_NAME);
 
-	@Before
-	public void setUp() {
-		dataQueue = new SQLiteDataQueue(null, DATABASE_NAME, database);
-	}
+    }
 
+    @Test
+    public void addDataEntitySuccess() {
+        //Setup
+        DataEntity dataEntity = new DataEntity(EMPTY_JSON_STRING);
 
-	@Test
-	public void addDataEntitySuccess() {
-		//Setup
-		DataEntity dataEntity = new DataEntity(EMPTY_JSON_STRING);
-		Mockito.when(database.insertRow(Mockito.anyString(), Mockito.anyString(),
-										Mockito.<String, Object>anyMap())).thenReturn(true);
+        PowerMockito.when(SQLiteDatabaseHelper.insertRow(Mockito.anyString(), Mockito.anyString(),
+                Mockito.<String, Object>anyMap())).thenReturn(true);
 
-		//Actions
-		boolean result = dataQueue.add(dataEntity);
+        //Actions
+        boolean result = dataQueue.add(dataEntity);
 
-		//Assertions
-		assertTrue(result);
+        //Assertions
+        assertTrue(result);
 
-	}
+    }
 
-	@Test
-	public void addDataEntityFailure() {
-		//Setup
+    @Test
+    public void addDataEntityFailure() {
+        //Setup
 
-		DataEntity dataEntity = new DataEntity(EMPTY_JSON_STRING);
-		Mockito.when(database.insertRow(Mockito.anyString(), Mockito.anyString(),
-										Mockito.<String, Object>anyMap())).thenReturn(false);
+        DataEntity dataEntity = new DataEntity(EMPTY_JSON_STRING);
+        Mockito.when(SQLiteDatabaseHelper.insertRow(Mockito.anyString(), Mockito.anyString(),
+                Mockito.<String, Object>anyMap())).thenReturn(false);
 
-		//Action
-		boolean result = dataQueue.add(dataEntity);
+        //Action
+        boolean result = dataQueue.add(dataEntity);
 
-		//Assertions
-		assertFalse(result);
-	}
+        //Assertions
+        assertFalse(result);
+    }
 
-	@Test
-	public void testPeekSuccess() {
-		//Setup
+    @Test
+    public void testPeekSuccess() {
+        //Setup
 
-		Mockito.when(contentValues.getAsString(TB_KEY_UNIQUE_IDENTIFIER)).thenReturn(TB_KEY_UNIQUE_IDENTIFIER);
-		Mockito.when(contentValues.getAsLong(TB_KEY_TIMESTAMP)).thenReturn(System.currentTimeMillis());
-		Mockito.when(contentValues.getAsString(TB_KEY_DATA)).thenReturn(EMPTY_JSON_STRING);
-		Mockito.when(database.query(anyString(), anyString(), (String[]) Mockito.any(),
-									anyInt())).thenReturn(Arrays.asList(contentValues));
+        Mockito.when(contentValues.getAsString(TB_KEY_UNIQUE_IDENTIFIER)).thenReturn(TB_KEY_UNIQUE_IDENTIFIER);
+        Mockito.when(contentValues.getAsLong(TB_KEY_TIMESTAMP)).thenReturn(System.currentTimeMillis());
+        Mockito.when(contentValues.getAsString(TB_KEY_DATA)).thenReturn(EMPTY_JSON_STRING);
+        Mockito.when(SQLiteDatabaseHelper.query(anyString(), anyString(), (String[]) Mockito.any(),
+                anyInt())).thenReturn(Arrays.asList(contentValues));
 
-		//Actions
-		DataEntity dataEntity = dataQueue.peek();
+        //Actions
+        DataEntity dataEntity = dataQueue.peek();
 
-		//Assertions
-		assertTrue(dataEntity != null);
+        //Assertions
+        assertTrue(dataEntity != null);
 
-	}
+    }
 
 
-	@Test
-	public void testPeekNSuccess() {
-		//Setup
-		Mockito.when(contentValues.getAsString(TB_KEY_UNIQUE_IDENTIFIER)).thenReturn(TB_KEY_UNIQUE_IDENTIFIER);
-		Mockito.when(contentValues.getAsLong(TB_KEY_TIMESTAMP)).thenReturn(System.currentTimeMillis());
-		Mockito.when(contentValues.getAsString(TB_KEY_DATA)).thenReturn(EMPTY_JSON_STRING);
-		Mockito.when(database.query(anyString(), anyString(), (String[]) Mockito.any(),
-									anyInt())).thenReturn(Arrays.asList(contentValues, contentValues));
+    @Test
+    public void testPeekNSuccess() {
+        //Setup
+        Mockito.when(contentValues.getAsString(TB_KEY_UNIQUE_IDENTIFIER)).thenReturn(TB_KEY_UNIQUE_IDENTIFIER);
+        Mockito.when(contentValues.getAsLong(TB_KEY_TIMESTAMP)).thenReturn(System.currentTimeMillis());
+        Mockito.when(contentValues.getAsString(TB_KEY_DATA)).thenReturn(EMPTY_JSON_STRING);
+        Mockito.when(SQLiteDatabaseHelper.query(anyString(), anyString(), (String[]) Mockito.any(),
+                anyInt())).thenReturn(Arrays.asList(contentValues, contentValues));
 
-		//Actions
-		List<DataEntity> dataEntityList = dataQueue.peek(2);
+        //Actions
+        List<DataEntity> dataEntityList = dataQueue.peek(2);
 
-		//Assertions
-		assertEquals(2, dataEntityList.size());
+        //Assertions
+        assertEquals(2, dataEntityList.size());
 
-	}
+    }
 
-	@Test
-	public void testRemoveRows() {
-		//setup
-		Mockito.when(database.removeRows(anyString(), anyString(), anyString(), anyInt())).thenReturn(1);
+    @Test
+    public void testRemoveRows() {
+        //setup
+        Mockito.when(SQLiteDatabaseHelper.removeRows(anyString(), anyString(), anyString(), anyInt())).thenReturn(1);
 
-		//Action
-		boolean result = dataQueue.remove();
+        //Action
+        boolean result = dataQueue.remove();
 
-		//Assertions
-		assertTrue(result);
-	}
+        //Assertions
+        assertTrue(result);
+    }
 
-	@Test
-	public void testRemoveNRows() {
-		//Setup
-		Mockito.when(database.removeRows(anyString(), anyString(), anyString(), anyInt())).thenReturn(1);
+    @Test
+    public void testRemoveNRows() {
+        //Setup
+        Mockito.when(SQLiteDatabaseHelper.removeRows(anyString(), anyString(), anyString(), anyInt())).thenReturn(1);
 
-		//Actions
-		boolean result = dataQueue.remove(1);
+        //Actions
+        boolean result = dataQueue.remove(1);
 
-		//Assertions
-		assertTrue(result);
-	}
+        //Assertions
+        assertTrue(result);
+    }
 
-	@Test
-	public void testClearTable() {
-		//etup
-		Mockito.when(database.clearTable(anyString(), anyString())).thenReturn(true);
+    @Test
+    public void testClearTable() {
+        //etup
+        Mockito.when(SQLiteDatabaseHelper.clearTable(anyString(), anyString())).thenReturn(true);
 
-		//Actions
-		boolean result = database.clearTable(DATABASE_NAME, TABLE_NAME);
+        //Actions
+        boolean result = SQLiteDatabaseHelper.clearTable(DATABASE_NAME, TABLE_NAME);
 
-		//Assertions
-		assertTrue(result);
-	}
+        //Assertions
+        assertTrue(result);
+    }
 
-	@Test
-	public void testTableCount() {
-		//Setup
-		final int mockedTableSize = 10;
-		Mockito.when(database.getTableSize(anyString(), anyString())).thenReturn(mockedTableSize);
+    @Test
+    public void testTableCount() {
+        //Setup
+        final int mockedTableSize = 10;
+        Mockito.when(SQLiteDatabaseHelper.getTableSize(anyString(), anyString())).thenReturn(mockedTableSize);
 
-		//Actions
-		int tableSize = database.getTableSize(DATABASE_NAME, TABLE_NAME);
+        //Actions
+        int tableSize = SQLiteDatabaseHelper.getTableSize(DATABASE_NAME, TABLE_NAME);
 
-		//Assertions
-		assertEquals(tableSize, mockedTableSize);
-	}
+        //Assertions
+        assertEquals(tableSize, mockedTableSize);
+    }
 
-	@Test
-	public void testClose() {
-		//Actions
-		dataQueue.close();
+    @Test
+    public void testClose() {
+        //Actions
+        dataQueue.close();
 
-		//Assertions
-		assertFalse(dataQueue.add(new DataEntity(EMPTY_JSON_STRING)));
-		assertNull(dataQueue.peek());
-		assertNull(dataQueue.peek(10));
-		assertFalse(dataQueue.remove());
-		assertFalse(dataQueue.remove(10));
-		assertFalse(dataQueue.clear());
-		assertEquals(dataQueue.count(), 0);
-	}
+        //Assertions
+        assertFalse(dataQueue.add(new DataEntity(EMPTY_JSON_STRING)));
+        assertNull(dataQueue.peek());
+        assertNull(dataQueue.peek(10));
+        assertFalse(dataQueue.remove());
+        assertFalse(dataQueue.remove(10));
+        assertFalse(dataQueue.clear());
+        assertEquals(dataQueue.count(), 0);
+    }
 
-	//Unit test failure in opening database in different scenarios.
+    //Unit test failure in opening database in different scenarios.
 
-	@Test
-	public void addDataEntityWithDatabaseOpenError() {
+    @Test
+    public void addDataEntityWithDatabaseOpenError() {
 
-		Mockito.when(database.insertRow(anyString(), anyString(),
-										ArgumentMatchers.<String, Object>anyMap())).thenCallRealMethod();
-		Mockito.when(database.openDatabase(DATABASE_NAME,
-										   SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE)).thenThrow(SQLiteException.class);
+        Mockito.when(SQLiteDatabaseHelper.insertRow(anyString(), anyString(),
+                ArgumentMatchers.<String, Object>anyMap())).thenCallRealMethod();
+        Mockito.when(SQLiteDatabaseHelper.openDatabase(DATABASE_NAME,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE)).thenThrow(SQLiteException.class);
 
-		boolean result = dataQueue.add(new DataEntity(EMPTY_JSON_STRING));
+        boolean result = dataQueue.add(new DataEntity(EMPTY_JSON_STRING));
 
-		//Assertions
-		Assert.assertFalse(result);
-	}
+        //Assertions
+        Assert.assertFalse(result);
+    }
 
-	@Test
-	public void peekNWithDatabaseOpenError() {
+    @Test
+    public void peekNWithDatabaseOpenError() {
 
-		Mockito.when(database.removeRows(anyString(), anyString(), anyString(), anyInt())).thenCallRealMethod();
-		Mockito.when(database.openDatabase(DATABASE_NAME,
-										   SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE)).thenThrow(SQLiteException.class);
+        Mockito.when(SQLiteDatabaseHelper.removeRows(anyString(), anyString(), anyString(), anyInt())).thenCallRealMethod();
+        Mockito.when(SQLiteDatabaseHelper.openDatabase(DATABASE_NAME,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE)).thenThrow(SQLiteException.class);
 
-		boolean result = dataQueue.remove(2);
+        boolean result = dataQueue.remove(2);
 
-		//Assertions
-		Assert.assertFalse(result);
-	}
+        //Assertions
+        Assert.assertFalse(result);
+    }
 
-	@Test
-	public void clearTableWithDatabaseOpenError() {
+    @Test
+    public void clearTableWithDatabaseOpenError() {
 
-		Mockito.when(database.clearTable(anyString(), anyString())).thenCallRealMethod();
-		Mockito.when(database.openDatabase(DATABASE_NAME,
-										   SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE)).thenThrow(SQLiteException.class);
+        Mockito.when(SQLiteDatabaseHelper.clearTable(anyString(), anyString())).thenCallRealMethod();
+        Mockito.when(SQLiteDatabaseHelper.openDatabase(DATABASE_NAME,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE)).thenThrow(SQLiteException.class);
 
-		boolean result = dataQueue.clear();
+        boolean result = dataQueue.clear();
 
-		//Assertions
-		Assert.assertFalse(result);
-	}
+        //Assertions
+        Assert.assertFalse(result);
+    }
 
-	@Test
-	public void getTableSizeWithDatabaseOpenError() {
+    @Test
+    public void getTableSizeWithDatabaseOpenError() {
 
-		Mockito.when(database.getTableSize(anyString(), anyString())).thenCallRealMethod();
-		Mockito.when(database.openDatabase(DATABASE_NAME,
-										   SQLiteDatabaseHelper.DatabaseOpenMode.READ_ONLY)).thenThrow(SQLiteException.class);
+        Mockito.when(SQLiteDatabaseHelper.getTableSize(anyString(), anyString())).thenCallRealMethod();
+        Mockito.when(SQLiteDatabaseHelper.openDatabase(DATABASE_NAME,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_ONLY)).thenThrow(SQLiteException.class);
 
-		int result = dataQueue.count();
+        int result = dataQueue.count();
 
-		//Assertions
-		Assert.assertEquals(result, 0);
-	}
+        //Assertions
+        Assert.assertEquals(result, 0);
+    }
 }

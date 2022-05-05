@@ -10,6 +10,9 @@
  */
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
+
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.concurrent.*;
@@ -180,7 +183,7 @@ class EventHub {
 				this.eventHubThreadService.submit(new EventRunnable(e));
 			}
 
-			final EventHistory eventHistory = EventHistoryProvider.getEventHistory();
+			final EventHistory eventHistory = MobileCore.getEventHistory();
 
 			// record the event in the event history  database if the event has a mask
 			if (eventHistory != null && e.getMask() != null) {

@@ -15,6 +15,7 @@ import android.content.ContentValues;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,12 +36,10 @@ final class SQLiteDataQueue implements DataQueue {
 	private static final String LOG_PREFIX = "SQLiteDataQueue";
 
 	private final String databasePath;
-	private final SQLiteDatabaseHelper databaseHelper;
 	private boolean isClose = false;
 	private final Object dbMutex = new Object();
 
-	SQLiteDataQueue(final File cacheDir, final String databaseName, final SQLiteDatabaseHelper databaseHelper) {
-		this.databaseHelper = databaseHelper;
+	SQLiteDataQueue(final File cacheDir, final String databaseName) {
 		this.databasePath = new File(cacheDir, removeRelativePath(databaseName)).getPath();
 		createTableIfNotExists();
 	}
@@ -63,7 +62,7 @@ final class SQLiteDataQueue implements DataQueue {
 		dataToInsert.put(TB_KEY_DATA, dataEntity.getData() != null ? dataEntity.getData() : "");
 
 		synchronized (dbMutex) {
-			boolean result = databaseHelper.insertRow(databasePath, TABLE_NAME, dataToInsert);
+			boolean result = SQLiteDatabaseHelper.insertRow(databasePath, TABLE_NAME, dataToInsert);
 			MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, String.format("add - Successfully added DataEntity (%s) to DataQueue",
 						   dataEntity.toString()));
 			return result;
@@ -85,7 +84,7 @@ final class SQLiteDataQueue implements DataQueue {
 		List<ContentValues> rows;
 
 		synchronized (dbMutex) {
-			rows = databaseHelper.query(databasePath, TABLE_NAME, new String[] {TB_KEY_TIMESTAMP, TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_DATA},
+			rows = SQLiteDatabaseHelper.query(databasePath, TABLE_NAME, new String[] {TB_KEY_TIMESTAMP, TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_DATA},
 										n);
 		}
 
@@ -145,7 +144,7 @@ final class SQLiteDataQueue implements DataQueue {
 		}
 
 		synchronized (dbMutex) {
-			int count = databaseHelper.removeRows(databasePath, TABLE_NAME, "id ASC", n);
+			int count = SQLiteDatabaseHelper.removeRows(databasePath, TABLE_NAME, "id ASC", n);
 			MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, String.format("remove n - Successfully removed %d DataEntities",
 						   count));
 			return count != -1;
@@ -170,7 +169,7 @@ final class SQLiteDataQueue implements DataQueue {
 		}
 
 		synchronized (dbMutex) {
-			boolean result = databaseHelper.clearTable(databasePath, TABLE_NAME);
+			boolean result = SQLiteDatabaseHelper.clearTable(databasePath, TABLE_NAME);
 			MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, String.format("clear - %s in clearing Table %s",
 						   (result ? "Successful" : "Failed"), TABLE_NAME));
 			return result;
@@ -185,7 +184,7 @@ final class SQLiteDataQueue implements DataQueue {
 		}
 
 		synchronized (dbMutex) {
-			return databaseHelper.getTableSize(databasePath, TABLE_NAME);
+			return SQLiteDatabaseHelper.getTableSize(databasePath, TABLE_NAME);
 		}
 	}
 
@@ -198,12 +197,6 @@ final class SQLiteDataQueue implements DataQueue {
 	 * Creates a Table with name {@link #TABLE_NAME}, if not already exists in database at path {@link #databasePath}.
 	 */
 	private void createTableIfNotExists() {
-		if (databaseHelper == null) {
-			MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, String.format("Unable to create table (%s), database helper is null",
-						   TABLE_NAME));
-			return;
-		}
-
 		final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
 										  " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, " +
 										  "uniqueIdentifier TEXT NOT NULL UNIQUE, " +
@@ -211,7 +204,7 @@ final class SQLiteDataQueue implements DataQueue {
 										  "data TEXT);";
 
 		synchronized (dbMutex) {
-			if (databaseHelper.createTableIfNotExist(databasePath, tableCreationQuery)) {
+			if (SQLiteDatabaseHelper.createTableIfNotExist(databasePath, tableCreationQuery)) {
 				MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX,
 							   String.format("createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME));
 				return;

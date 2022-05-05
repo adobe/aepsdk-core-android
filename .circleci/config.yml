@@ -26,11 +26,14 @@ jobs:
       # Checkout the code as the first step.
       - checkout
       - run:
+          name: check-format
+          command: make check-format
+      - run:
           name: assemble-phone-release
           command: make assemble-phone-release
-      - run:
-          name: JavaDoc
-          command: make javadoc
+      # - run:
+      #     name: JavaDoc
+      #     command: make javadoc
       - run:
           name: unit-test
           command: make unit-test

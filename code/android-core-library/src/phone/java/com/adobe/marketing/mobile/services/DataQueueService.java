@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.services;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
 
 import java.io.File;
 import java.util.HashMap;
@@ -27,11 +28,9 @@ class DataQueueService implements DataQueuing {
 
 	private static final String LOG_TAG = "DataQueueService";
 	private Map<String, DataQueue> dataQueueCache;
-	private final SQLiteDatabaseHelper databaseHelper;
 
 	DataQueueService() {
 		dataQueueCache = new HashMap<>();
-		databaseHelper = new SQLiteDatabaseHelper();
 	}
 
 	@Override
@@ -51,7 +50,7 @@ class DataQueueService implements DataQueuing {
 						return null;
 					}
 
-					dataQueue = new SQLiteDataQueue(cacheDir, databaseName, databaseHelper);
+					dataQueue = new SQLiteDataQueue(cacheDir, databaseName);
 					dataQueueCache.put(databaseName, dataQueue);
 				}
 			}

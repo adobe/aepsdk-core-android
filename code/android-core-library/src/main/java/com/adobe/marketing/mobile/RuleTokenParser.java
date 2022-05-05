@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.utility.UrlUtilities;
+
 import java.lang.reflect.Method;
 import java.security.SecureRandom;
 import java.util.*;
@@ -386,7 +388,7 @@ class RuleTokenParser {
 				}
 
 				final Map<String, Variant> eventDataAsObjectMap = EventDataFlattener.getFlattenedDataMap(e.getData());
-				return UrlUtilities.serializeToQueryString(eventDataAsObjectMap);
+				return com.adobe.marketing.mobile.UrlUtilities.serializeToQueryString(eventDataAsObjectMap);
 			}
 		});
 

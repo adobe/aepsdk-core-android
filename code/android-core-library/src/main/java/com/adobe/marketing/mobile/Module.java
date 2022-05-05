@@ -189,18 +189,6 @@ abstract class Module {
 	}
 
 	/**
-	 * Unregisters all {@code Rule} objects that have been registered by this {@code Module} instance with the parent
-	 * {@code EventHub} object.
-	 */
-	protected final void unregisterAllRules() {
-		try {
-			parentHub.unregisterModuleRules(this);
-		} catch (final InvalidModuleException e) {
-			Log.debug(moduleName, "Failed ot unregister rules for module (%s)", e);
-		}
-	}
-
-	/**
 	 * Creates a shared state for this module, then sends an event ( the event and the state will have the same event number )
 	 * @param sharedState {@code EventData} object containing the state to save
 	 * @param event the event to be dispatched to {@code EventHub}

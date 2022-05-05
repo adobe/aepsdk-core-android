@@ -66,7 +66,6 @@ class EventHub {
     private static final String LOG_MODULE_NOT_REGISTERED = "Module (%s) is not registered";
     private static final long DEFAULT_THREAD_POOL_KEEP_ALIVE_TIME_SECONDS = 60L;
     private static final int ONE_TIME_LISTENER_TIMEOUT_DEFAULT_MILLISECONDS = 5000;
-    public static final int REPROCESS_EVENTS_AMOUNT_LIMIT = 100;
     private static final String SDK_VERSION_DELIMITER = "-";
 
     // instance variables
@@ -351,19 +350,6 @@ class EventHub {
             }
         });
     }
-
-    /**
-     * Unregisters all rules registered by the given {@code Module}
-     *
-     * @param module module instance to unregister rules for
-     * @throws InvalidModuleException if module is null
-     */
-    final void unregisterModuleRules(final Module module) throws InvalidModuleException {
-        if (module == null) {
-            throw new InvalidModuleException(LOG_PROVIDED_MODULE_WAS_NULL);
-        }
-    }
-
 
     /**
      * Registers a module with the event hub. Modules must extend {@code Module}

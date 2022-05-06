@@ -524,7 +524,6 @@ class ConfigurationExtension extends InternalModule {
         class State extends Object {
             public boolean isListenerRegistered = false;
         }
-        ;
 
         final State state = new State();
 

@@ -23,10 +23,19 @@ public class LaunchRulesEngine {
         ruleRulesEngine = new RulesEngine<>(new ConditionEvaluator(), LaunchRuleTransformer.INSTANCE.createTransforming());
     }
 
+    /**
+     * Set a new set of rules, the new rules replace the current rules.
+     * @param rules a list of {@link LaunchRule}s
+     */
     public void replaceRules(final List<LaunchRule> rules) {
         ruleRulesEngine.replaceRules(rules);
     }
 
+    /**
+     * Evaluates all the current rules against the supplied {@link Event}.
+     * @param event the {@link Event} against which to evaluate the rules
+     * @return the  processed {@link Event}
+     */
     public Event process(Event event) {
         ruleRulesEngine.evaluate(new LaunchTokenFinder(event));
         return event;

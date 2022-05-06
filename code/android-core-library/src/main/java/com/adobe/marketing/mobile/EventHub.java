@@ -59,7 +59,6 @@ class EventHub {
 
     private static final String STANDARD_STATE_CHANGE_EVENTNAME = "Shared state change";
     private static final String XDM_STATE_CHANGE_EVENTNAME = "Shared state change (XDM)";
-    private static final String LOG_PROVIDED_MODULE_WAS_NULL = "Provided module was null";
     private static final String LOG_MODULE_WAS_NULL = "Module was null";
     private static final String LOG_CLASS_WAS_NULL = "Extension class was null";
     private static final String LOG_STATENAME_WAS_NULL = "StateName was null";
@@ -83,14 +82,11 @@ class EventHub {
     protected final EventData eventHubSharedState;
     protected final String coreVersion;
     private WrapperType wrapperType = WrapperType.NONE;
-
     private ScheduledExecutorService scheduledThreadPool;
     private final Object scheduledThreadPoolMutex = new Object();
     protected boolean isBooted; // locked on bootMutex
     private final Object bootMutex = new Object();
-
     private final EventBus eventBus;
-
     private final List<EventPreprocessor> preprocessors = Collections.synchronizedList(new ArrayList<>());
 
 
@@ -179,8 +175,14 @@ class EventHub {
         });
     }
 
+    /**
+     * Register an event preprocessor
+     * @param preprocessor a {@link EventPreprocessor} that processes each event before dispatching it to the EventHub
+     */
     void registerPreprocessor(final EventPreprocessor preprocessor) {
-        preprocessors.add(preprocessor);
+        synchronized (bootMutex) {
+            preprocessors.add(preprocessor);
+        }
     }
 
 

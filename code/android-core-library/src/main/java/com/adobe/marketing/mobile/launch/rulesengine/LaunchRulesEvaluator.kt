@@ -48,7 +48,6 @@ internal class LaunchRulesEvaluator(val name: String) : EventPreprocessor {
         cachedEvents = null
     }
 
-
     private fun cacheEvent(event: Event) {
         cachedEvents?.let {
             if (cachedEvents?.size ?: -1 > CACHED_EVENT_MAX) {
@@ -63,7 +62,11 @@ internal class LaunchRulesEvaluator(val name: String) : EventPreprocessor {
         }
     }
 
-
+    /**
+     * Reset the current [LaunchRule]s. A RulesEngine Reset [Event] will be dispatched to reprocess the cached events.
+     *
+     * @param rules a list of [LaunchRule]s
+     */
     fun replaceRules(rules: List<LaunchRule?>?) {
         launchRulesEngine.replaceRules(rules)
         MobileCore.dispatchEvent(

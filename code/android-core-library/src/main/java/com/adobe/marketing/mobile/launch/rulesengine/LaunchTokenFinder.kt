@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.launch.rulesengine
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
 
-internal class LaunchTokenFinder(event: Event):TokenFinder {
+internal class LaunchTokenFinder(event: Event) : TokenFinder {
     override fun get(key: String?): Any {
         TODO("Not yet implemented")
     }

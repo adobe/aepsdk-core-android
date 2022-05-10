@@ -134,8 +134,7 @@ internal class EventHub {
         val setSharedStateCallable: Callable<Boolean> = Callable<Boolean> {
 
             if (extensionName.isNullOrEmpty() || extensionName.isBlank()) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG,
-                        String.format("Unable to set SharedState for extension: [%s]. ExtensionName is invalid.", extensionName))
+                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Unable to set SharedState for extension: [$extensionName]. ExtensionName is invalid.")
 
                 errorCallback?.error(ExtensionError.BAD_NAME)
                 return@Callable false
@@ -144,8 +143,7 @@ internal class EventHub {
             val extensionContainer: ExtensionContainer? = registeredExtensions[extensionName]
 
             if (extensionContainer == null) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG,
-                        String.format("Error seting SharedState for extension: [%s]. Extension may not have been registered.", extensionName))
+                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Error setting SharedState for extension: [$extensionName]. Extension may not have been registered.")
 
                 errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return@Callable false
@@ -161,7 +159,7 @@ internal class EventHub {
                 getEventNumber(event) ?: lastEventNumber.incrementAndGet()
             }
 
-            val wasSet: Boolean = extensionContainer.setSharedState(sharedStateType, data, version)
+            val wasSet: Boolean = extensionContainer.setSharedState(sharedStateType, data, version) == SharedState.Status.SET
 
             // Check if the new state can be dispatched as a state change event(currently implies a
             // non null/non pending state according to the ExtensionAPI)
@@ -199,7 +197,7 @@ internal class EventHub {
 
         val getSharedStateCallable: Callable<Map<String, Any?>?> = Callable {
             if (extensionName.isNullOrEmpty() || extensionName.isBlank()) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG, String.format("Unable to get SharedState. State name [%s] is invalid.", extensionName))
+                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Unable to get SharedState. State name [$extensionName] is invalid.")
 
                 errorCallback?.error(ExtensionError.BAD_NAME)
                 return@Callable null
@@ -208,9 +206,8 @@ internal class EventHub {
             val extensionContainer: ExtensionContainer? = registeredExtensions[extensionName]
 
             if (extensionContainer == null) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG,
-                        String.format("Error retrieving SharedState for extension: [%s]." +
-                        "Extension may not have been registered.", extensionName))
+                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Error retrieving SharedState for extension: [$extensionName]." +
+                        "Extension may not have been registered.")
                 errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return@Callable null
             }
@@ -224,7 +221,7 @@ internal class EventHub {
                 getEventNumber(event) ?: SharedStateManager.VERSION_LATEST
             }
 
-            return@Callable extensionContainer.getSharedState(sharedStateType, version)
+            return@Callable extensionContainer.getSharedState(sharedStateType, version)?.data
         }
 
         return eventHubExecutor.submit(getSharedStateCallable).get()
@@ -236,6 +233,7 @@ internal class EventHub {
      * @param sharedStateType the type of shared state that needs to be cleared.
      * @param extensionName the name of the extension for which the state is being cleared
      * @param errorCallback the callback which will be notified in the event of an error
+     * @return true - if the shared state has been cleared, false otherwise
      */
     fun clearSharedState(
         sharedStateType: SharedStateType,
@@ -244,7 +242,7 @@ internal class EventHub {
     ): Boolean {
         val clearSharedStateCallable: Callable<Boolean> = Callable {
             if (extensionName.isNullOrEmpty() || extensionName.isBlank()) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG, String.format("Unable to clear SharedState. State name [%s] is invalid.", extensionName))
+                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Unable to clear SharedState. State name [$extensionName] is invalid.")
 
                 errorCallback?.error(ExtensionError.BAD_NAME)
                 return@Callable null
@@ -254,8 +252,7 @@ internal class EventHub {
 
             if (extensionContainer == null) {
                 MobileCore.log(LoggingMode.ERROR,
-                        LOG_TAG,
-                        String.format("Error clearing SharedState for extension: [%s]. Extension may not have been registered."))
+                        LOG_TAG, "Error clearing SharedState for extension: [$extensionName]. Extension may not have been registered.")
                 errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return@Callable false
             }

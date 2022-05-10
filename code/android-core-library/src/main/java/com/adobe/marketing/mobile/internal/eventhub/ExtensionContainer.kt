@@ -68,9 +68,9 @@ internal class ExtensionRuntime() : ExtensionApi() {
     ): Boolean {
         try {
             return EventHub.shared.setSharedState(SharedStateType.XDM, extensionName, state, event, errorCallback)
-        } catch (ex: Exception) {
+        } catch (exception: Exception) {
             MobileCore.log(LoggingMode.ERROR, getTag(),
-                    String.format("Failed to set shared state at EventID: %s. %s", event?.uniqueIdentifier, ex))
+                    "Failed to set shared state at EventID: ${event?.uniqueIdentifier}. $exception")
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
         }
 
@@ -84,9 +84,9 @@ internal class ExtensionRuntime() : ExtensionApi() {
     ): Boolean {
         try {
             return EventHub.shared.setSharedState(SharedStateType.XDM, extensionName, state, event, errorCallback)
-        } catch (ex: Exception) {
+        } catch (exception: Exception) {
             MobileCore.log(LoggingMode.ERROR, getTag(),
-                    String.format("Failed to set XDM shared state at EventID: %s. %s", event?.uniqueIdentifier, ex))
+                    "Failed to set XDM shared state at EventID: ${event?.uniqueIdentifier}. $exception")
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
         }
 
@@ -96,8 +96,8 @@ internal class ExtensionRuntime() : ExtensionApi() {
     override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         try {
             EventHub.shared.clearSharedState(SharedStateType.STANDARD, extensionName, errorCallback)
-        } catch (ex: Exception) {
-            MobileCore.log(LoggingMode.ERROR, getTag(), String.format("Failed to clear shared state. %s", ex))
+        } catch (exception: Exception) {
+            MobileCore.log(LoggingMode.ERROR, getTag(), "Failed to clear shared state. $exception")
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
         }
 
@@ -107,8 +107,8 @@ internal class ExtensionRuntime() : ExtensionApi() {
     override fun clearXDMSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         try {
             EventHub.shared.clearSharedState(SharedStateType.XDM, extensionName, errorCallback)
-        } catch (ex: Exception) {
-            MobileCore.log(LoggingMode.ERROR, getTag(), String.format("Failed to clear XDM shared state. %s", ex))
+        } catch (exception: Exception) {
+            MobileCore.log(LoggingMode.ERROR, getTag(), "Failed to clear XDM shared state. $exception")
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
         }
 
@@ -122,9 +122,9 @@ internal class ExtensionRuntime() : ExtensionApi() {
     ): Map<String, Any?>? {
         try {
             return EventHub.shared.getSharedState(SharedStateType.STANDARD, stateName, event, errorCallback)
-        } catch (ex: Exception) {
+        } catch (exception: Exception) {
             MobileCore.log(LoggingMode.ERROR, getTag(),
-                    String.format("Failed to get shared state at EventID: %s. %s", event?.uniqueIdentifier, ex))
+                    "Failed to get shared state at EventID: ${event?.uniqueIdentifier}. $exception")
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
         }
         return null
@@ -137,9 +137,9 @@ internal class ExtensionRuntime() : ExtensionApi() {
     ): Map<String, Any?>? {
         try {
             return EventHub.shared.getSharedState(SharedStateType.STANDARD, stateName, event, errorCallback)
-        } catch (ex: Exception) {
+        } catch (exception: Exception) {
             MobileCore.log(LoggingMode.ERROR, getTag(),
-                    String.format("Failed to get XDM shared state at EventID: %s. %s", event?.uniqueIdentifier, ex))
+                    "Failed to get XDM shared state at EventID: ${event?.uniqueIdentifier}. $exception")
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
         }
 
@@ -157,7 +157,7 @@ internal class ExtensionRuntime() : ExtensionApi() {
         if (extension == null) {
             return LOG_TAG
         }
-        return String.format("%s-%s", extensionName, extensionVersion)
+        return "$extensionName-$extensionVersion"
     }
 }
 
@@ -212,29 +212,43 @@ internal class ExtensionContainer constructor(
      * @param sharedStateType the type of the shared state that need to be set
      * @param data the content that the shared state needs to be populated with
      * @param version the version of the shared state to be set
-     * @return true - if a new shared state has been created or updated at [version], false otherwise
+     * @return [SharedState.Status.SET] if a new shared state has been created or updated at [version],
+     *         [SharedState.Status.PENDING] if the shared state is set to pending,
+     *         [SharedState.Status.NOT_SET] if the shared state was not set.
      */
     fun setSharedState(
         sharedStateType: SharedStateType,
         data: MutableMap<String, Any?>?,
         version: Int
-    ): Boolean {
-        if (taskExecutor.isShutdown) return false
+    ): SharedState.Status {
+        if (taskExecutor.isShutdown) return SharedState.Status.NOT_SET
 
-        return taskExecutor.submit(Callable<Boolean> {
-            val stateManager: SharedStateManager = sharedStateManagers[sharedStateType] ?: return@Callable false
-            val isPending = (data == null)
+        return taskExecutor.submit(Callable<SharedState.Status> {
+            val stateManager: SharedStateManager = sharedStateManagers[sharedStateType]
+                    ?: return@Callable SharedState.Status.NOT_SET
 
-            // Attempt to create the state first and then attempt to update it if creation fails.
-            return@Callable stateManager.createSharedState(data, version, isPending) ||
-                    stateManager.updateSharedState(data, version, isPending)
+            // Existing public API infers a pending state as one with no data
+            val isPending: Boolean = (data == null)
+
+            // Attempt to create the state first
+            val createResult: SharedState.Status = stateManager.createSharedState(data, version, isPending)
+
+            if (createResult != SharedState.Status.NOT_SET) {
+                // If the creation was successful i.e the result of the operation was either SET or
+                // PENDING, return the result.
+                return@Callable createResult
+            } else {
+                // else, attempt to update it and return the update result.
+                return@Callable stateManager.updateSharedState(data, version, isPending)
+            }
         }).get()
     }
 
     /**
      * Clears the shares states of type [sharedStateType] for this extension.
      *
-     * @return true unless an exception occurs clearing the state or if the extension is unregistered
+     * @return false if an exception occurs clearing the state or if the extension is unregistered,
+     *         true otherwise.
      */
     fun clearSharedState(sharedStateType: SharedStateType): Boolean {
         if (taskExecutor.isShutdown) return false
@@ -251,14 +265,13 @@ internal class ExtensionContainer constructor(
      *
      * @param sharedStateType the type of the shared state that need to be retrieved
      * @param version the version of the pending shared state to be retrieved
-     * @return shared state at [version] if it exists or the most recent shared state before [version].
-     *         null If no state at or before [version] is found, or if the state fetched above is pending,
-     *         or if the extension is unregistered
+     * @return [SharedState] at [version] or the most recent shared state before [version] if state at [version] does not exist.
+     *         null - if no state at or before [version] is found or, if the extension is unregistered
      */
     fun getSharedState(
         sharedStateType: SharedStateType,
         version: Int
-    ): Map<String, Any?>? {
+    ): SharedState? {
         if (taskExecutor.isShutdown) return null
 
         return taskExecutor.submit(Callable {

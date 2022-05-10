@@ -40,33 +40,36 @@ internal class SharedStateManager {
      * @param data the content that the shared state needs to be populated with
      * @param version the version of the shared state to be created
      * @param isPending a boolean to indicate if the state content is not final (i.e will be updated later)
-     * @return true - if a new shared state has been created at [version], false otherwise
+     * @return [SharedState.Status.SET] - if a new shared state has been created at [version],
+     *         [SharedState.Status.PENDING] - if a pending shared state has been created at version [version],
+     *         [SharedState.Status.NOT_SET] otherwise
      */
     @Synchronized
     fun createSharedState(
         data: Map<String, Any?>?,
         version: Int,
         isPending: Boolean
-    ): Boolean {
+    ): SharedState.Status {
 
         // Check if there exists a state at a version equal to, or higher than the one provided.
         if (states.ceilingEntry(version) != null) {
-            MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, String.format("Cannot create state st version %d. More recent state exists.", version))
+            MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Cannot create state st version $version. More recent state exists.")
             // If such a state exists a new state cannot be created, it can be updated, if pending,
             // via SharedStateManager#updateSharedState(..)
-            return false
+            return SharedState.Status.NOT_SET
         }
 
         // At this point, there does not exist a state at the provided version. Create one and add it to cache
         // TODO: USE EventDataUtils.cloneMap to do an immutable clone when available
-        val sharedState = SharedState(data?.toMap(), version, isPending)
+        val status: SharedState.Status = if (isPending) SharedState.Status.PENDING else SharedState.Status.SET
+        val sharedState = SharedState(data?.toMap(), status)
         states[version] = sharedState
         cache.put(version, sharedState)
 
         // Only update the VERSION_LATEST to the cache. Not to the state store!
         cache.put(VERSION_LATEST, sharedState)
 
-        return true
+        return status
     }
 
     /**
@@ -76,36 +79,35 @@ internal class SharedStateManager {
      * @param data the content that the shared state needs to be updated with
      * @param version the version of the pending shared state to be updated
      * @param isPending a boolean to indicate if the new state content is not final
-     * @return true - if a new shared state has been created at [version], false otherwise
+     * @return [SharedState.Status.SET] - if shared state has been updated at [version],
+     *         [SharedState.Status.NOT_SET] otherwise
      */
     @Synchronized
     fun updateSharedState(
         data: Map<String, Any?>?,
         version: Int,
         isPending: Boolean
-    ): Boolean {
+    ): SharedState.Status {
 
-        // Check if new state is pending. A state cannot be overwritten by another pending state
+        // Check if new state is pending. A pending state cannot be overwritten by another pending state
         if (isPending) {
-            MobileCore.log(LoggingMode.VERBOSE, LOG_TAG,
-                    String.format("Cannot update pending state at version %d. With a pending state.", version))
-            return false
+            MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Cannot update pending state at version $version with a pending state.")
+            return SharedState.Status.NOT_SET
         }
 
         // Check if state exists at the exact version provided for updating.
-        val stateAtVersion = states[version] ?: return false
+        val stateAtVersion = states[version] ?: return SharedState.Status.NOT_SET
 
         // Check there is a valid pending state for updating.
-        if (!stateAtVersion.isPending) {
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG,
-                    String.format("Cannot update a non pending state state version %d.", version))
-            return false
+        if (stateAtVersion.status != SharedState.Status.PENDING) {
+            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Cannot update a non pending state state version $version.")
+            return SharedState.Status.NOT_SET
         }
 
         // At this point, there exists a previously recorded state at the version provided.
         // Overwrite its value with a confirmed state.
         // TODO: USE EventDataUtils.cloneMap to do an immutable clone when available
-        val sharedState = SharedState(data?.toMap(), version, false)
+        val sharedState = SharedState(data?.toMap(), SharedState.Status.SET)
         states[version] = sharedState
         cache.put(version, sharedState)
 
@@ -113,7 +115,7 @@ internal class SharedStateManager {
         // should only happen on a state that exists in the tree. If we reach a point where
         // VERSION_LATEST should be updated, it means it is already in the cache
 
-        return true
+        return SharedState.Status.SET
     }
 
     /**
@@ -121,11 +123,12 @@ internal class SharedStateManager {
      * retrieves the most recent version of the shared state available.
      *
      * @param version the version of the shared state to be retrieved
-     * @return shared state at [version] if it exists, or the most recent shared state before [version].
-     *         null - If no state at or before [version] is found, or if the state fetched above is pending.
+     * @return shared state at [version] if it exists, or the most recent shared state before [version] if
+     *         shared state at [version] does not exist,
+     *         null - If no state at or before [version] is found
      */
     @Synchronized
-    fun getSharedState(version: Int): Map<String, Any?>? {
+    fun getSharedState(version: Int): SharedState? {
 
         if (states.isEmpty()) {
             // No states have been added to the state store yet.
@@ -137,25 +140,18 @@ internal class SharedStateManager {
         val stateAtVersion = cache.get(version) ?: states[version]
 
         if (stateAtVersion != null) {
-            return if (stateAtVersion.isPending) {
-                // State is yet to be set (is pending)
-                null
-            } else {
-                // If shared state at exact version exists and it is not pending, use it
-                stateAtVersion.data
-            }
+            return stateAtVersion
         }
 
         // Otherwise, find state at the highest version less than the version being queried for
         val resolvedSharedState: SharedState? = states.floorEntry(version)?.value
 
-        // If the resolved state is not set or is pending, return null. Otherwise return the state
-        return if (resolvedSharedState == null || resolvedSharedState.isPending) {
-            null
-        } else {
-            cache.put(resolvedSharedState.version, resolvedSharedState)
-            resolvedSharedState.data
+        if (resolvedSharedState != null) {
+            cache.put(version, resolvedSharedState)
         }
+
+        // If the resolved state is not set, return null. Otherwise return the state
+        return resolvedSharedState
     }
 
     /**
@@ -172,7 +168,17 @@ internal class SharedStateManager {
  * Internal representation of a shared event state.
  * Allows associating version and pending behavior with the state data in a queryable way.
  */
-private data class SharedState constructor(val data: Map<String, Any?>?, val version: Int, val isPending: Boolean)
+internal data class SharedState constructor(val data: Map<String, Any?>?, val status: Status) {
+
+    /**
+     * Represents the status of an extensions shared state, typically associated with a version.
+     */
+    internal enum class Status {
+        SET,
+        PENDING,
+        NOT_SET
+    }
+}
 
 /**
  * Represents the types of shared state that are supported.

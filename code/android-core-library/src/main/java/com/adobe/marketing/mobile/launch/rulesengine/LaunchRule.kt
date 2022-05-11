@@ -22,7 +22,7 @@ import com.adobe.marketing.mobile.rulesengine.Rule
  * @constructor Constructs a new [LaunchRule]
  */
 data class LaunchRule(val condition: Evaluable, val consequenceList: List<RuleConsequence>) : Rule {
-    override fun getEvaluable(): Evaluable? {
-        return null
+    override fun getEvaluable(): Evaluable {
+        return condition
     }
 }

@@ -12,20 +12,23 @@ package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.MobileCore
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.any
 import org.mockito.BDDMockito
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
 import org.powermock.reflect.Whitebox
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @RunWith(PowerMockRunner::class)
 @PrepareForTest(MobileCore::class)
@@ -113,10 +116,10 @@ class LaunchRulesEvaluatorTests {
         assertNotNull(eventCaptor.value)
         assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
         assertEquals("com.adobe.eventsource.requestreset", eventCaptor.value.source)
-        reset(launchRulesEngine)
+        Mockito.reset(launchRulesEngine)
         launchRulesEvaluator.process(eventCaptor.value)
         val cachedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        verify(launchRulesEngine, times(10)).process(cachedEventCaptor.capture())
+        verify(launchRulesEngine, Mockito.times(10)).process(cachedEventCaptor.capture())
         assertEquals(10, cachedEventCaptor.allValues.size)
         cachedEventCaptor.allValues.forEachIndexed { index, element ->
             assertEquals("event-$index", element.name)
@@ -139,5 +142,4 @@ class LaunchRulesEvaluatorTests {
         PowerMockito.verifyNoMoreInteractions(MobileCore::class.java)
         assertEquals(10, cachedEvents.size)
     }
-
 }

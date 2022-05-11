@@ -59,7 +59,6 @@ internal class LaunchRulesEvaluator(
         cachedEvents = null
     }
 
-
     private fun cacheEvent(event: Event) {
         cachedEvents?.let {
             if ((cachedEvents?.size ?: -1) > CACHED_EVENT_MAX) {

@@ -13,12 +13,14 @@ package com.adobe.marketing.mobile.launch.rulesengine;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator;
 import com.adobe.marketing.mobile.rulesengine.RulesEngine;
+import com.adobe.marketing.mobile.rulesengine.TokenFinder;
 
 import java.util.List;
 
 public class LaunchRulesEngine {
     private final RulesEngine<LaunchRule> ruleRulesEngine;
 
+    @SuppressWarnings("rawtypes")
     public LaunchRulesEngine() {
         ruleRulesEngine = new RulesEngine<>(new ConditionEvaluator(), LaunchRuleTransformer.INSTANCE.createTransforming());
     }

@@ -15,16 +15,22 @@ import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 
-internal class LaunchRulesEvaluator(val name: String) : EventPreprocessor {
-    private val launchRulesEngine = LaunchRulesEngine()
+internal class LaunchRulesEvaluator(
+    private val name: String,
+    private val launchRulesEngine: LaunchRulesEngine
+) : EventPreprocessor {
+
+    constructor(name: String) : this(name, LaunchRulesEngine())
+
     private var cachedEvents: MutableList<Event>? = mutableListOf()
-    private val logTag = "JSONRulesParser_$name"
+    private val logTag = "LaunchRulesEvaluator_$name"
 
     companion object {
         const val CACHED_EVENT_MAX = 99
+
         // TODO: we should move the following event type/event source values to the public EventType/EventSource classes once we have those.
-        const val EVENT_SOURCE = "com.adobe.eventSource.requestReset"
-        const val EVENT_TYPE = "com.adobe.eventType.rulesEngine"
+        const val EVENT_SOURCE = "com.adobe.eventsource.requestreset"
+        const val EVENT_TYPE = "com.adobe.eventtype.rulesengine"
     }
 
     override fun process(event: Event?): Event? {
@@ -45,13 +51,19 @@ internal class LaunchRulesEvaluator(val name: String) : EventPreprocessor {
             launchRulesEngine.process(event)
             // TODO: handle rules consequence
         }
+        clearCachedEvents()
+    }
+
+    private fun clearCachedEvents() {
+        cachedEvents?.clear()
         cachedEvents = null
     }
 
+
     private fun cacheEvent(event: Event) {
         cachedEvents?.let {
-            if (cachedEvents?.size ?: -1 > CACHED_EVENT_MAX) {
-                cachedEvents = null
+            if ((cachedEvents?.size ?: -1) > CACHED_EVENT_MAX) {
+                clearCachedEvents()
                 MobileCore.log(
                     LoggingMode.WARNING,
                     logTag,
@@ -68,6 +80,7 @@ internal class LaunchRulesEvaluator(val name: String) : EventPreprocessor {
      * @param rules a list of [LaunchRule]s
      */
     fun replaceRules(rules: List<LaunchRule?>?) {
+        if (rules == null) return
         launchRulesEngine.replaceRules(rules)
         MobileCore.dispatchEvent(
             Event.Builder(

@@ -52,7 +52,7 @@ android {
 
     buildTypes {
         debug {
-            testCoverageEnabled true
+            testCoverageEnabled false
             debuggable true
         }
         release {
@@ -107,7 +107,6 @@ android.libraryVariants.all { variant ->
 
 apply from: 'checkStyle.gradle'
 apply from: 'release.gradle'
-//apply from: 'jacoco.gradle'
 
 dependencies {
     //noinspection GradleCompatible
@@ -124,6 +123,7 @@ dependencies {
     //noinspection GradleDependency
     testImplementation 'org.json:json:20160810'
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testImplementation project(path: ':android-core-library')
     // instrumentation tests
     androidTestImplementation 'androidx.test:rules:1.1.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

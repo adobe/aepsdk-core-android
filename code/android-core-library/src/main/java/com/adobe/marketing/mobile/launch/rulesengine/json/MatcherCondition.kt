@@ -22,7 +22,7 @@ import com.adobe.marketing.mobile.rulesengine.OperandMustacheToken
 /**
  * The class representing a matcher condition
  */
-internal class MatcherCondition(val definition: JSONDefinition) : JSONCondition() {
+internal class MatcherCondition(private val definition: JSONDefinition) : JSONCondition() {
 
     companion object {
         private const val LOG_TAG = "MatcherCondition"

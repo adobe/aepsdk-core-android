@@ -19,7 +19,7 @@ import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.OperandFunction
 import com.adobe.marketing.mobile.rulesengine.OperandLiteral
 
-internal class HistoricalCondition(val definition: JSONDefinition) : JSONCondition() {
+internal class HistoricalCondition(private val definition: JSONDefinition) : JSONCondition() {
 
     companion object {
         private const val LOG_TAG = "HistoricalCondition"

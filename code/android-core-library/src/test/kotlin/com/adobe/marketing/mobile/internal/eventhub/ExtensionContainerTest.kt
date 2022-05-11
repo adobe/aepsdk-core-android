@@ -44,17 +44,10 @@ class ExtensionContainerTest {
     private lateinit var mockErrorCallback: (EventHubError) -> Unit
 
     private lateinit var extensionContainer: ExtensionContainer
-    private val xdmStateManager: SharedStateManager = SharedStateManager()
-    private val standardStateManager: SharedStateManager = SharedStateManager()
 
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
-
-        val stateManagerMap: Map<SharedStateType, SharedStateManager> = mapOf(
-                SharedStateType.XDM to xdmStateManager,
-                SharedStateType.STANDARD to standardStateManager
-        )
 
         doAnswer(Answer {
             // Create a mock Future to return
@@ -66,7 +59,7 @@ class ExtensionContainerTest {
         }).`when`(mockExecutorService).submit(any(Callable::class.java))
 
         extensionContainer = ExtensionContainer(MockExtension::class.java,
-                mockExtensionRuntime, stateManagerMap, mockExecutorService, mockErrorCallback)
+                mockExtensionRuntime, mockExecutorService, mockErrorCallback)
     }
 
     @Test

@@ -80,12 +80,7 @@ internal class EventHub {
             }
 
             val executor = Executors.newSingleThreadExecutor()
-            val stateManagers: Map<SharedStateType, SharedStateManager> = mapOf(
-                    SharedStateType.STANDARD to SharedStateManager(),
-                    SharedStateType.XDM to SharedStateManager()
-            )
-
-            val container = ExtensionContainer(extensionClass, ExtensionRuntime(), stateManagers, executor, completion)
+            val container = ExtensionContainer(extensionClass, ExtensionRuntime(), executor, completion)
             registeredExtensions[extensionName] = container
         }
     }

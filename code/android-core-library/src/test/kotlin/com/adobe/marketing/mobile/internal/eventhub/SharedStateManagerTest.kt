@@ -19,7 +19,7 @@ import org.junit.Test
 
 internal class SharedStateManagerTest {
 
-    private val sharedStateManager: SharedStateManager = SharedStateManager()
+    private val sharedStateManager: SharedStateManager = SharedStateManager("SampleStateName")
 
     @Before
     fun setUp() {

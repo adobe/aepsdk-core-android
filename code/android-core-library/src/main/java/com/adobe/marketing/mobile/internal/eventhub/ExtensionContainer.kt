@@ -67,7 +67,7 @@ internal class ExtensionRuntime() : ExtensionApi() {
         errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): Boolean {
         try {
-            return EventHub.shared.setSharedState(SharedStateType.XDM, extensionName, state, event, errorCallback)
+            return EventHub.shared.setSharedState(SharedStateType.STANDARD, extensionName, state, event, errorCallback)
         } catch (exception: Exception) {
             MobileCore.log(LoggingMode.ERROR, getTag(),
                     "Failed to set shared state at EventID: ${event?.uniqueIdentifier}. $exception")
@@ -164,7 +164,6 @@ internal class ExtensionRuntime() : ExtensionApi() {
 internal class ExtensionContainer constructor(
     private val extensionClass: Class<out Extension>,
     private val extensionRuntime: ExtensionRuntime,
-    private val sharedStateManagers: Map<SharedStateType, SharedStateManager>,
     private val taskExecutor: ExecutorService,
     callback: (EventHubError) -> Unit
 ) {
@@ -177,6 +176,11 @@ internal class ExtensionContainer constructor(
 
     val version: String?
         get() = extensionRuntime.extensionVersion
+
+    private val sharedStateManagers: Map<SharedStateType, SharedStateManager> = mapOf(
+            SharedStateType.XDM to SharedStateManager(sharedStateName ?: ""),
+            SharedStateType.STANDARD to SharedStateManager(sharedStateName ?: "")
+    )
 
     init {
         taskExecutor.submit {

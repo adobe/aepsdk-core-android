@@ -1,221 +1,210 @@
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
+
 package com.adobe.marketing.mobile
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import com.adobe.marketing.mobile.internal.utility.TimeUtil
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchTokenFinder
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
 
-import org.junit.Assert.*
+class LaunchTokenFinderTest : BaseTest() {
 
-class LaunchTokenFinderTest: BaseTest() {
-
-    private lateinit var configuration: TestableConfigurationExtension
+    private lateinit var extensionApi: ExtensionApi
 
     @Before
-    @Throws(MissingPlatformServicesException::class)
     fun setup() {
         super.beforeEach()
-        configuration = TestableConfigurationExtension(eventHub, platformServices)
+        extensionApi = ExtensionApi(eventHub)
     }
 
     @Test
-    fun get_ReturnsNull_When_KeyIsEmpty() {
-        //setup
+    fun `LaunchTokenFinder should return null on empty input string`() {
+        // setup
         val testEvent = getDefaultEvent()
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration, platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("")
-        //verify
-        assertNull("get should return null on empty input string", result)
+        // verify
+        assertNull(result)
     }
 
     @Test
-    fun get_ReturnsEventType_When_KeyIsType() {
-        //setup
+    fun `get should return Event Type on valid Event`() {
+        // setup
         val testEvent = getDefaultEvent()
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration, platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~type")
-        //verify
-        assertEquals("get should return Event Type on valid Event", "com.adobe.eventtype.analytics", result)
+        // verify
+        assertEquals( "com.adobe.eventtype.analytics", result)
     }
 
     @Test
-    fun get_ReturnsEventSource_When_KeyIsSource() {
-        //setup
+    fun `get should return Event Source on valid Event`() {
+        // setup
         val testEvent = getDefaultEvent()
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration, platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~source")
-        //verify
-        assertEquals("get should return Event Source on valid Event", "com.adobe.eventsource.requestcontent", result)
+        // verify
+        assertEquals("com.adobe.eventsource.requestcontent", result)
     }
 
     @Test
-    fun get_ReturnsCurrentUnixTimestamp_When_KeyPrefixIsTimestampu() {
-        //setup
+    fun `get should return current unix timestamp on valid event`() {
+        // setup
         val testEvent = getDefaultEvent()!!
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration!!,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~timestampu")
-        //verify
-        assertEquals("get should return current unix timestamp on valid event", TimeUtil.getUnixTimeInSeconds().toString(), result)
+        // verify
+        assertEquals(TimeUtil.getUnixTimeInSeconds().toString(), result)
     }
 
     @Test
-    fun get_ReturnsCurrentISO8601Timestamp_When_KeyPrefixIsTimestampz() {
-        //setup
+    fun `get should return current ISO8601 timestamp on valid event`() {
+        // setup
         val testEvent = getDefaultEvent()!!
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration!!,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~timestampz")
-        //verify
-        assertEquals("get should return current ISO8601 timestamp on valid event", TimeUtil.getIso8601Date(), result)
+        // verify
+        assertEquals(TimeUtil.getIso8601Date(), result)
     }
 
     @Test
-    fun get_ReturnsCurrentIso8601DateTimeZone_When_KeyPrefixIsTimestampp() {
-        //setup
+    fun `get should return current ISO8601 date timezone on valid event`() {
+        // setup
         val testEvent = getDefaultEvent()!!
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration!!,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~timestampp")
-        //verify
-        assertEquals("get should return current ISO8601 date timezone on valid event",
-                TimeUtil.getIso8601DateTimeZoneISO8601(), result)
+        // verify
+        assertEquals(TimeUtil.getIso8601DateTimeZoneISO8601(), result)
     }
 
     @Test
-    fun expandKey_ReturnsCurrentSdkVersion_When_KeyPrefixIsSdkVersion() {
-        //setup
+    fun `get should return current sdk version on valid event`() {
+        // setup
         val testEvent = getDefaultEvent()!!
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration!!,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~sdkver")
-        //verify
-        assertEquals("get should return current sdk version on valid event", "mockSdkVersion", result)
+        // verify
+        assertEquals(MobileCore.extensionVersion(), result)
     }
 
     @Test
-    fun get_ReturnsRandomNumber_When_KeyPrefixIsCachebust() {
-        //setup
+    fun `get should return random cachebust on valid event`() {
+        // setup
         val testEvent = getDefaultEvent()
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~cachebust") as? String
-        //verify
-        try {
-            if (result != null) {
-                assertTrue("get should return random cachebust on valid event", result.toInt() < 100000000)
-            }
-        } catch (ex: VariantException) {
+        // verify
+        if (result != null) {
+            assertTrue(result.toInt() < 100000000)
         }
     }
 
     @Test
-    fun get_ReturnsUrlEncoded_When_KeyPrefixIsAllUrlStringOrNull() {
-        //setup
+    fun `get should return all string variables on valid event encoded in url format`() {
+        // setup
         val testEventData = EventData()
         testEventData.putString("key1", "value 1")
         testEventData.putNull("key8")
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~all_url")
-        //verify
-        assertEquals("get should return all variables on valid event encoded in url format",
-                "&key1=value%201",
-                result)
+        // verify
+        assertEquals("&key1=value%201", result)
     }
 
     @Test
-    fun get_ReturnsUrlEncoded_When_KeyPrefixIsAllUrlAndEventDataIsIntOrLong() {
-        //setup
+    fun `get should return all numeric variables on valid event encoded in url format`() {
+        // setup
         val testEventData = EventData()
         testEventData.putInteger("key3", 123)
         testEventData.putLong("key4", -456L)
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~all_url")
-        //verify
-        assertTrue("get should return all list variables on valid event encoded in url format",
-                "&key3=123&key4=-456" == result || "&key4=-456&key3=123" == result)
+        // verify
+        assertTrue("&key3=123&key4=-456" == result || "&key4=-456&key3=123" == result)
     }
 
     @Test
-    fun get_ReturnsUrlEncoded_When_KeyPrefixIsAllUrlAndEventDataIsDoubleOrBoolean() {
-        //setup
+    fun `get should return all boolean variables on valid event encoded in url format`() {
+        // setup
         val testEventData = EventData()
         testEventData.putBoolean("key2", true)
         testEventData.putDouble("key5", -123.456)
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~all_url")
-        //verify
-        assertTrue("get should return all list variables on valid event encoded in url format",
-                "&key2=true&key5=-123.456" == result || "&key5=-123.456&key2=true" == result)
+        // verify
+        assertTrue("&key2=true&key5=-123.456" == result || "&key5=-123.456&key2=true" == result)
     }
 
     @Test
-    fun get_ReturnsUrlEncoded_When_KeyPrefixIsAllUrlAndEventDataIsList() {
-        //setup
+    fun `get should return all list variables on valid event encoded in url format`() {
+        // setup
         val testEventData = EventData()
         val stringList: MutableList<String> = ArrayList()
         stringList.add("String1")
         stringList.add("String2")
         testEventData.putStringList("key6", stringList)
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~all_url")
-        //verify
-        assertEquals("get should return all list variables on valid event encoded in url format",
-                "&key6=String1%2CString2",
-                result)
+        // verify
+        assertEquals("&key6=String1%2CString2", result)
     }
 
     @Test
-    fun get_ReturnsUrlEncoded_When_KeyPrefixIsAllUrlAndEventDataIsMap() {
-        //setup
+    fun `get should return all map variables on valid event encoded in url format`() {
+        // setup
         val testEventData = EventData()
         val stringMap: MutableMap<String?, String?> = HashMap()
         stringMap["innerKey1"] = "inner val1"
         stringMap["innerKey2"] = "innerVal2"
         testEventData.putStringMap("key7", stringMap)
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~all_url")
-        //verify
-        assertTrue("get should return all map variables on valid event encoded in url format",
-                "&key7.innerKey1=inner%20val1&key7.innerKey2=innerVal2" == result || "&key7.innerKey2=innerVal2&key7.innerKey1=inner%20val1" == result)
+        // verify
+        assertTrue("&key7.innerKey1=inner%20val1&key7.innerKey2=innerVal2" == result || "&key7.innerKey2=innerVal2&key7.innerKey1=inner%20val1" == result)
     }
 
     @Test
-    fun get_ReturnsEmptyString_When_KeyPrefixIsAllUrlEventDataIsNull() {
-        //setup
+    fun `get should return empty string on event with no event data for url`() {
+        // setup
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~all_url")
-        //verify
-        assertEquals("get should return empty string on event with no event data", "", result)
+        // verify
+        assertEquals("", result)
     }
 
-    /* @Test
+    /*@Test
     @Throws(JSONException::class)
     fun get_ReturnsJson_When_KeyPrefixIsAllJson() {
         //setup
@@ -234,50 +223,46 @@ class LaunchTokenFinderTest: BaseTest() {
         stringMap["key22"] = "22"
         testEventData.putStringMap("key8", stringMap)
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent!!, configuration!!,
-                platformServices)
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         //test
         val result = launchTokenFinder.get("~all_json")
         val resultObj = JSONObject(result as String)
         val expectedObj = JSONObject("{\"key1\":\"value1\",\"key2\":true,\"key5\":-123.456,\"key6\":null,\"key3\":123,\"key4\":-456,\"key7\":[\"String1\",\"String2\"],\"key8\":{\"key22\":\"22\"}}")
 
         //verify
-        assertTrue("get should return all variables on valid event encoded in json format",
-                expectedObj.similar(resultObj))
+        assertEquals(expectedObj, resultObj)
     } */
 
     @Test
-    fun get_ReturnsEmptyString_When_KeyPrefixIsAllJsonEventDataIsNull() {
-        //setup
+    fun `get should return empty string on event with no event data for json`() {
+        // setup
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~all_json")
-        //verify
-        assertEquals("get should return empty string on event with no event data", "", result)
+        // verify
+        assertEquals("", result)
     }
 
     @Test
-    fun get_ReturnsSharedStateKey_When_KeyPrefixIsState() {
-        //setup
+    fun `get should return nested value from shared state of the module on valid event`() {
+        // setup
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
         val lcdata = EventData()
         val lifecycleSharedState: MutableMap<String?, String?> = HashMap()
         lifecycleSharedState["akey"] = "avalue"
         lcdata.putStringMap("analytics.contextData", lifecycleSharedState)
         eventHub.setSharedState("com.adobe.marketing.mobile.Analytics", lcdata)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData.akey")
-        //verify
-        assertEquals("get should return shared state of the module on valid event", "avalue", result)
+        // verify
+        assertEquals("avalue", result)
     }
 
     @Test
-    fun get_ReturnsSharedStateList_When_KeyPrefixIsStateAndValueIsList() {
-        //setup
+    fun `get should return shared state list of the module on valid event`() {
+        // setup
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
         val lcdata = EventData()
         val identitySharedState: MutableList<String?> = ArrayList()
@@ -285,145 +270,135 @@ class LaunchTokenFinderTest: BaseTest() {
         identitySharedState.add("vid2")
         lcdata.putStringList("visitoridslist", identitySharedState)
         eventHub.setSharedState("com.adobe.marketing.mobile.identity", lcdata)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.identity/visitoridslist")
-        //verify
-        assertEquals("get should return shared state list of the module on valid event", identitySharedState, result)
+        // verify
+        assertEquals(identitySharedState, result)
     }
 
     @Test
-    fun get_ReturnsSharedStateMap_When_KeyPrefixIsStateAndValueIsMap() {
-        //setup
+    fun `get should return shared state of the module on valid event`() {
+        // setup
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
         val lcdata = EventData()
         val lifecycleSharedState: MutableMap<String?, String?> = HashMap()
         lifecycleSharedState["akey"] = "avalue"
         lcdata.putStringMap("analytics.contextData", lifecycleSharedState)
         eventHub.setSharedState("com.adobe.marketing.mobile.Analytics", lcdata)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData")
-        //verify
-        assertEquals("get should return shared state of the module on valid event", lifecycleSharedState, result)
+        // verify
+        assertEquals(lifecycleSharedState, result)
     }
 
     @Test
-    fun get_ReturnsNull_When_KeyPrefixIsStateAndMissingSharedStateKeyName() {
-        //setup
+    fun `get should return null when key does not have shared state name`() {
+        // setup
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~state.")
-        //verify
-        assertNull("get should return null when key does not have shared state name", result)
+        // verify
+        assertNull(result)
     }
 
     @Test
-    fun get_ReturnsNull_When_KeyPrefixIsStateAndMissingKeyName() {
-        //setup
+    fun `get should return null when key does not have shared state key name`() {
+        // setup
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/")
-        //verify
-        assertNull("get should return null when key does not have shared state key name", result)
+        // verify
+        assertNull(result)
     }
 
     @Test
-    fun get_ReturnsNull_When_KeyPrefixIsStateAndIncorrectFormat() {
-        //setup
+    fun `get should return null when key does not have valid format`() {
+        // setup
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~state.com.adobe/.marketing.mobile.Analytics/analytics.contextData.akey")
-        //verify
-        assertNull("get should return null when key does not have valid format", result)
+        // verify
+        assertNull(result)
     }
 
     @Test
-    fun get_ReturnsNull_When_KeyPrefixIsStateAndKeyNotExist() {
-        //setup
+    fun `get should return null when key does not exist in shared state`() {
+        // setup
         val testEventData = EventData()
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData.akey")
-        //verify
-        assertNull("get should return null when key does not exist in shared state", result)
+        // verify
+        assertNull(result)
     }
 
     @Test
-    fun get_ReturnsEventDataValue_When_KeyIsNotSpecialKey() {
-        //setup
+    fun `get should return value of the key from event data on valid event`() {
+        // setup
         val testEvent = getDefaultEvent()
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("key1")
-        //verify
-        assertEquals("get should return value of the key from event data on valid event", "value1", result)
+        // verify
+        assertEquals("value1", result)
     }
 
     @Test
-    fun get_ReturnsEmptyString_When_KeyIsNotSpecialKeyAndEventDataIsNull() {
-        //setup
+    fun `get should return empty string when event data is null on valid event`() {
+        // setup
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("key1")
-        //verify
-        assertEquals("get should return empty string when event data is null on valid event", "", result)
+        // verify
+        assertEquals("", result)
+
     }
 
     @Test
-    fun get_ReturnsNull_When_KeyIsNotSpecialKeyAndDoesNotExist() {
-        //setup
+    fun `get should return null when key does not exist in event data on valid event`() {
+        // setup
         val testEvent = getDefaultEvent()
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("abc")
-        //verify
-        assertNull("get should return null when key does not exist in event data on valid event", result)
+        // verify
+        assertNull(result)
     }
 
     @Test
-    fun get_ReturnsNull_When_KeyIsNotSpecialKeyAndValueIsNull() {
-        //setup
+    fun `get should return null when value for the key in event data is null on valid event`() {
+        // setup
         val testEventData = EventData()
         testEventData.putNull("key1")
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("key1")
-        //verify
-        assertNull("get should return null when value for the key in event data is null on valid event", result)
+        // verify
+        assertNull(result)
     }
 
     @Test
-    fun get_ReturnsList_When_KeyIsNotSpecialKeyAndValueIsList() {
-        //setup
+    fun `get should return empty string on list`() {
+        // setup
         val testEventData = EventData()
         val stringList: MutableList<String?> = ArrayList()
         stringList.add("String1")
         stringList.add("String2")
         testEventData.putStringList("key6", stringList)
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("key6")
-        //verify
-        assertEquals("get should return empty string on list variant", stringList, result)
+        // verify
+        assertEquals(stringList, result)
     }
 
     /* @Test
@@ -441,36 +416,34 @@ class LaunchTokenFinderTest: BaseTest() {
     } */
 
     @Test
-    fun get_ReturnsMap_When_KeyIsNotSpecialKeyAndValueIsMap() {
-        //setup
+    fun `get should return map on map`() {
+        // setup
         val testEventData = EventData()
         val stringMap: MutableMap<String?, String?> = HashMap()
         stringMap["innerKey1"] = "inner val1"
         testEventData.putStringMap("key1", stringMap)
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("key1")
-        //verify
-        assertEquals("get should return map on map variant", stringMap, result)
+        // verify
+        assertEquals(stringMap, result)
     }
 
     @Test
-    fun get_ReturnsNestedValue_When_KeyIsFlattenedNestedKey() {
-        //setup
+    fun `get should return nested value for valid flattened key on a valid event`() {
+        // setup
         val testEventData = EventData()
         val stringMap: MutableMap<String?, String?> = HashMap()
         stringMap["innerKey1"] = "inner val1"
         stringMap["innerKey2"] = "innerVal2"
         testEventData.putStringMap("key7", stringMap)
         val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, configuration,
-                platformServices)
-        //test
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
         val result = launchTokenFinder.get("key7.innerKey1")
-        //verify
-        assertEquals("get should return nested value for valid flattened key on a valid event", "inner val1", result)
+        // verify
+        assertEquals("inner val1", result)
     }
 
     private fun getEvent(type: EventType?, source: EventSource?, eventData: EventData?): Event {

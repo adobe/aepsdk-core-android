@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.utility.TimeUtil;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

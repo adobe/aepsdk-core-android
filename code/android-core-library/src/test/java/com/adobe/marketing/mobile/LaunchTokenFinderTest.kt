@@ -48,7 +48,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~type")
         // verify
-        assertEquals( "com.adobe.eventtype.analytics", result)
+        assertEquals("com.adobe.eventtype.analytics", result)
     }
 
     @Test
@@ -358,7 +358,6 @@ class LaunchTokenFinderTest : BaseTest() {
         val result = launchTokenFinder.get("key1")
         // verify
         assertEquals("", result)
-
     }
 
     @Test

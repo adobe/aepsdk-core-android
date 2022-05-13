@@ -25,20 +25,22 @@ import org.json.JSONObject
 
 internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionApi) {
 
-    private val LOG_TAG = "LaunchTokenFinder"
-    private val KEY_EVENT_TYPE = "~type"
-    private val KEY_EVENT_SOURCE = "~source"
-    private val KEY_TIMESTAMP_UNIX = "~timestampu"
-    private val KEY_TIMESTAMP_ISO8601 = "~timestampz"
-    private val KEY_TIMESTAMP_PLATFORM = "~timestampp"
-    private val KEY_SDK_VERSION = "~sdkver"
-    private val KEY_CACHEBUST = "~cachebust"
-    private val KEY_ALL_URL = "~all_url"
-    private val KEY_ALL_JSON = "~all_json"
-    private val KEY_SHARED_STATE = "~state."
-    private val EMPTY_STRING = ""
-    private val RANDOM_INT_BOUNDARY = 100000000
-    private val SHARED_STATE_KEY_DELIMITER = "/"
+    companion object {
+        private const val LOG_TAG = "LaunchTokenFinder"
+        private const val KEY_EVENT_TYPE = "~type"
+        private const val KEY_EVENT_SOURCE = "~source"
+        private const val KEY_TIMESTAMP_UNIX = "~timestampu"
+        private const val KEY_TIMESTAMP_ISO8601 = "~timestampz"
+        private const val KEY_TIMESTAMP_PLATFORM = "~timestampp"
+        private const val KEY_SDK_VERSION = "~sdkver"
+        private const val KEY_CACHEBUST = "~cachebust"
+        private const val KEY_ALL_URL = "~all_url"
+        private const val KEY_ALL_JSON = "~all_json"
+        private const val KEY_SHARED_STATE = "~state."
+        private const val EMPTY_STRING = ""
+        private const val RANDOM_INT_BOUNDARY = 100000000
+        private const val SHARED_STATE_KEY_DELIMITER = "/"
+    }
 
     // ========================================================
     // public methods

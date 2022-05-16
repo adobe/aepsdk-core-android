@@ -38,7 +38,7 @@ public class LaunchRulesEngine {
      * @param event the {@link Event} against which to evaluate the rules
      * @return the  processed {@link Event}
      */
-    public Event process(Event event) {
+    public Event process(final Event event) {
         ruleRulesEngine.evaluate(new LaunchTokenFinder(event));
         return event;
     }

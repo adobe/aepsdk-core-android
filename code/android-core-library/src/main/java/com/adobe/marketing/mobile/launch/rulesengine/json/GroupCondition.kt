@@ -20,7 +20,7 @@ import java.util.Locale
 /**
  * The class representing a group of [JSONCondition]s
  */
-internal class GroupCondition(val definition: JSONDefinition) : JSONCondition() {
+internal class GroupCondition(private val definition: JSONDefinition) : JSONCondition() {
     companion object {
         private const val LOG_TAG = "GroupCondition"
         private val LOGICAL_OPERATORS = listOf("or", "and")

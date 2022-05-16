@@ -8,27 +8,13 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
+package com.adobe.marketing.mobile.launch.rulesengine
 
-package com.adobe.marketing.mobile;
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.rulesengine.TokenFinder
 
-public class InAccessibleMatcher extends Matcher {
-
-	private InAccessibleMatcher() {
-
-	}
-
-	@Override
-	protected boolean matches(Object value) {
-		return super.matches(value);
-	}
-
-	@Override
-	protected Double tryParseDouble(Object value) {
-		return super.tryParseDouble(value);
-	}
-
-	@Override
-	public String toString() {
-		return null;
-	}
+internal class LaunchTokenFinder(event: Event) : TokenFinder {
+    override fun get(key: String?): Any {
+        TODO("Not yet implemented")
+    }
 }

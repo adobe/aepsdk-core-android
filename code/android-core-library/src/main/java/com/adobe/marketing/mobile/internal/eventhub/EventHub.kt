@@ -106,6 +106,7 @@ internal class EventHub {
 
     /**
      * Sets the shared state for the extension - [extensionName] with [data]
+     * TODO : Make the [data] parameter immutable when EventData#toImmutableMap() is implemented.
      *
      * @param sharedStateType the type of shared state that needs to be set.
      * @param extensionName the name of the extension for which the state is being set

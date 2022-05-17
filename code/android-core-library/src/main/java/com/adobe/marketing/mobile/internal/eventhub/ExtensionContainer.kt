@@ -83,6 +83,7 @@ internal class ExtensionRuntime() : ExtensionApi() {
         errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): Boolean {
         try {
+            // TODO : Convert the [state] parameter to be immutable before propagating when EventData#toImmutableMap() is implemented.
             return EventHub.shared.setSharedState(SharedStateType.XDM, extensionName, state, event, errorCallback)
         } catch (exception: Exception) {
             MobileCore.log(LoggingMode.ERROR, getTag(),
@@ -250,6 +251,7 @@ internal class ExtensionContainer constructor(
 
     /**
      * Clears the shares states of type [sharedStateType] for this extension.
+     * @param sharedStateType the type of shared state that needs to be cleared
      *
      * @return false if an exception occurs clearing the state or if the extension is unregistered,
      *         true otherwise.

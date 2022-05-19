@@ -41,15 +41,6 @@ interface PlatformServices {
 	LocalStorageService getLocalStorageService();
 
 	/**
-	 * Returns the Structured Data Service implementation from the Platform.
-	 *
-	 * @return DatabaseService implementation, if the platform provides any. null otherwise.
-	 *
-	 * @see DatabaseService
-	 */
-	DatabaseService getDatabaseService();
-
-	/**
 	 * Returns the System Notification service implementation from the Platform.
 	 *
 	 * @return SystemNotificationService implementation, if the platform provides any. null otherwise.

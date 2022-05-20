@@ -130,7 +130,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~all_url")
         // verify
-        assertEquals("&key1=value%201", result)
+        assertEquals("key1=value%201", result)
     }
 
     @Test
@@ -144,7 +144,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~all_url")
         // verify
-        assertTrue("&key3=123&key4=-456" == result || "&key4=-456&key3=123" == result)
+        assertTrue("key3=123&key4=-456" == result || "key4=-456&key3=123" == result)
     }
 
     @Test
@@ -158,7 +158,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~all_url")
         // verify
-        assertTrue("&key2=true&key5=-123.456" == result || "&key5=-123.456&key2=true" == result)
+        assertTrue("key2=true&key5=-123.456" == result || "key5=-123.456&key2=true" == result)
     }
 
     @Test
@@ -174,7 +174,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~all_url")
         // verify
-        assertEquals("&key6=String1%2CString2", result)
+        assertEquals("key6=String1%2CString2", result)
     }
 
     @Test
@@ -190,7 +190,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~all_url")
         // verify
-        assertTrue("&key7.innerKey1=inner%20val1&key7.innerKey2=innerVal2" == result || "&key7.innerKey2=innerVal2&key7.innerKey1=inner%20val1" == result)
+        assertTrue("key7.innerKey1=inner%20val1&key7.innerKey2=innerVal2" == result || "key7.innerKey2=innerVal2&key7.innerKey1=inner%20val1" == result)
     }
 
     @Test

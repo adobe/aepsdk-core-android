@@ -20,6 +20,7 @@ import java.util.List;
 public class LaunchRulesEngine {
     private final RulesEngine<LaunchRule> ruleRulesEngine;
 
+    // TODO pass in extensionApi to the constructor
     @SuppressWarnings("rawtypes")
     public LaunchRulesEngine() {
         ruleRulesEngine = new RulesEngine<>(new ConditionEvaluator(), LaunchRuleTransformer.INSTANCE.createTransforming());
@@ -39,7 +40,8 @@ public class LaunchRulesEngine {
      * @return the  processed {@link Event}
      */
     public Event process(final Event event) {
-        ruleRulesEngine.evaluate(new LaunchTokenFinder(event));
+        // TODO pass in extensionApi in call to LaunchTokenFinder
+        // ruleRulesEngine.evaluate(new LaunchTokenFinder(event));
         return event;
     }
 }

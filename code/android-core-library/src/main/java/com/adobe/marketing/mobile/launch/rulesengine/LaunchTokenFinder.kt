@@ -20,10 +20,11 @@ import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import com.adobe.marketing.mobile.internal.utility.flattening
 import com.adobe.marketing.mobile.internal.utility.getFlattenedDataMap
 import com.adobe.marketing.mobile.internal.utility.serializeToQueryString
+import com.adobe.marketing.mobile.rulesengine.TokenFinder
 import java.security.SecureRandom
 import org.json.JSONObject
 
-internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionApi) {
+internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionApi) : TokenFinder {
 
     companion object {
         private const val LOG_TAG = "LaunchTokenFinder"
@@ -58,7 +59,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
      *
      * @return [Any] containing value to be substituted for the [key], null if the key does not exist
      */
-    fun get(key: String): Any? {
+    override fun get(key: String): Any? {
         if (StringUtils.isNullOrEmpty(key)) {
             return null
         }
@@ -69,9 +70,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             KEY_TIMESTAMP_UNIX -> TimeUtil.getUnixTimeInSeconds().toString()
             KEY_TIMESTAMP_ISO8601 -> TimeUtil.getIso8601Date()
             KEY_TIMESTAMP_PLATFORM -> TimeUtil.getIso8601DateTimeZoneISO8601()
-            KEY_SDK_VERSION -> {
-                MobileCore.extensionVersion()
-            }
+            KEY_SDK_VERSION -> MobileCore.extensionVersion()
             KEY_CACHEBUST -> SecureRandom().nextInt(RANDOM_INT_BOUNDARY).toString()
             KEY_ALL_URL -> {
                 if (event.eventData == null) {
@@ -93,7 +92,15 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
                     )
                     return EMPTY_STRING
                 }
-                JSONObject(event.eventData).toString()
+                try {
+                    JSONObject(event.eventData).toString()
+                } catch (e: Exception) {
+                    MobileCore.log(LoggingMode.DEBUG,
+                        LOG_TAG,
+                        "Failed to generate a json string ${e.message}"
+                    )
+                    return EMPTY_STRING
+                }
             }
             else -> {
                 if (key.startsWith(KEY_SHARED_STATE)) {
@@ -123,12 +130,10 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
         if (StringUtils.isNullOrEmpty(sharedStateKeyString)) {
             return null
         }
-        val index = sharedStateKeyString.indexOf(SHARED_STATE_KEY_DELIMITER)
-        if (index == -1) {
+        if (!sharedStateKeyString.contains(SHARED_STATE_KEY_DELIMITER)) {
             return null
         }
-        val sharedStateName = sharedStateKeyString.substring(0, index)
-        val dataKeyName = sharedStateKeyString.substring(index + 1)
+        val (sharedStateName, dataKeyName) = sharedStateKeyString.split(SHARED_STATE_KEY_DELIMITER)
         val sharedStateMap = extensionApi.getSharedEventState(sharedStateName, event) {
             MobileCore.log(LoggingMode.DEBUG,
                 LOG_TAG,
@@ -158,10 +163,6 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             return EMPTY_STRING
         }
         val eventDataMap = event.eventData.getFlattenedDataMap()
-        if (!eventDataMap.containsKey(key)) {
-            return null
-        }
         return eventDataMap[key]
     }
 }
-

@@ -105,7 +105,7 @@ internal fun Map<String, Any?>.serializeToQueryString(): String {
     val builder = StringBuilder()
     for ((key, value) in this.entries) {
         val encodedKey = urlEncode(key) ?: continue
-        var encodedValue: String? = null
+        var encodedValue: String?
 
         // TODO add serializing for custom objects
         if (value is List<*>) {
@@ -120,7 +120,7 @@ internal fun Map<String, Any?>.serializeToQueryString(): String {
         }
     }
 
-    return builder.toString()
+    return builder.substring(1).toString()
 }
 
 private fun Set<*>.isAllString(): Boolean {
@@ -143,14 +143,7 @@ private fun serializeKeyValuePair(key: String?, value: String?): String? {
     if (key == null || value == null || key.isEmpty()) {
         return null
     }
-
-    val builder = StringBuilder()
-    builder.append("&")
-    builder.append(key)
-    builder.append("=")
-    builder.append(value)
-
-    return builder.toString()
+    return "&$key=$value"
 }
 
 /**

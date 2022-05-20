@@ -157,9 +157,9 @@ class MapExtensionsTests {
         dict["key2"] = "val2"
         dict["key3"] = "val3"
         val valueUnderTest = dict.serializeToQueryString()
-        assertTrue(valueUnderTest.contains("&key3=val3"))
-        assertTrue(valueUnderTest.contains("&key2=val2"))
-        assertTrue(valueUnderTest.contains("&key1=val1"))
+        assertTrue(valueUnderTest.contains("key3=val3"))
+        assertTrue(valueUnderTest.contains("key2=val2"))
+        assertTrue(valueUnderTest.contains("key1=val1"))
     }
 
     @Test
@@ -175,8 +175,8 @@ class MapExtensionsTests {
         dict["key1"] = "val1"
         dict["key2"] = null
         val valueUnderTest = dict.serializeToQueryString()
-        assertTrue(valueUnderTest.contains("&key1=val1"))
-        assertFalse(valueUnderTest.contains("&key2=val2"))
+        assertTrue(valueUnderTest.contains("key1=val1"))
+        assertFalse(valueUnderTest.contains("key2=val2"))
     }
 
     @Test
@@ -185,8 +185,8 @@ class MapExtensionsTests {
         dict["key1"] = "val1"
         dict[""] = "val2"
         val valueUnderTest = dict.serializeToQueryString()
-        assertTrue(valueUnderTest.contains("&key1=val1"))
-        assertFalse(valueUnderTest.contains("&key2=val2"))
+        assertTrue(valueUnderTest.contains("key1=val1"))
+        assertFalse(valueUnderTest.contains("key2=val2"))
     }
 
     @Test
@@ -195,8 +195,8 @@ class MapExtensionsTests {
         dict["key1"] = "val1"
         dict["key2"] = ""
         val valueUnderTest = dict.serializeToQueryString()
-        assertTrue(valueUnderTest.contains("&key1=val1"))
-        assertTrue(valueUnderTest.contains("&key2="))
+        assertTrue(valueUnderTest.contains("key1=val1"))
+        assertTrue(valueUnderTest.contains("key2="))
     }
 
     @Test
@@ -204,7 +204,7 @@ class MapExtensionsTests {
         val dict = HashMap<String, Any?>()
         dict["key1"] = 5
         val valueUnderTest = dict.serializeToQueryString()
-        assertEquals("&key1=5", valueUnderTest)
+        assertEquals("key1=5", valueUnderTest)
     }
 
     @Test
@@ -218,7 +218,7 @@ class MapExtensionsTests {
         dict["key1"] = list
         val valueUnderTest = dict.serializeToQueryString()
         assertEquals(
-            "&key1=TestArrayList1%2CTestArrayList2%2CTestArrayList3%2CTestArrayList4",
+            "key1=TestArrayList1%2CTestArrayList2%2CTestArrayList3%2CTestArrayList4",
             valueUnderTest
         )
     }
@@ -234,7 +234,7 @@ class MapExtensionsTests {
         dict["key1"] = list
         val valueUnderTest = dict.serializeToQueryString()
         assertEquals(
-            "&key1=TestArrayList1%2CTestArrayList2%2Cnull%2CTestArrayList4",
+            "key1=TestArrayList1%2CTestArrayList2%2Cnull%2CTestArrayList4",
             valueUnderTest
         )
     }
@@ -250,7 +250,7 @@ class MapExtensionsTests {
         dict["key1"] = list
         val valueUnderTest = dict.serializeToQueryString()
         assertEquals(
-            "&key1=TestArrayList1%2CTestArrayList2%2C%2CTestArrayList4",
+            "key1=TestArrayList1%2CTestArrayList2%2C%2CTestArrayList4",
             valueUnderTest
         )
     }

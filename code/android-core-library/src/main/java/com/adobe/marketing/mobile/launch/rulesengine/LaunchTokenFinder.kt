@@ -150,7 +150,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
      */
     private fun getValueFromEvent(key: String): Any? {
         if (event.eventData == null) {
-            MobileCore.log(LoggingMode.DEBUG,
+            MobileCore.log(
+                LoggingMode.DEBUG,
                 LOG_TAG,
                 String.format("Unable to replace the token %s, triggering event data is null", key)
             )
@@ -163,3 +164,4 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
         return eventDataMap[key]
     }
 }
+

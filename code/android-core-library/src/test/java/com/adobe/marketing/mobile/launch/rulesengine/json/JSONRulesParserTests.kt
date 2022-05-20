@@ -25,8 +25,9 @@ class JSONRulesParserTests {
 
     @Test
     fun testNormal() {
-        val fileTxt = this::class.java.classLoader.getResource("rules_parser/launch_rule_root.json")
-            .readText()
+        val fileTxt = this::class.java.classLoader?.getResource("rules_parser/launch_rule_root.json")
+            ?.readText()
+        assertNotNull(fileTxt)
         val result = JSONRulesParser.parse(fileTxt)
         assertNotNull(result)
         assertEquals(1, result.size)

@@ -206,17 +206,6 @@ public class MockEventHubModuleTest extends EventHub {
 		return events;
 	}
 
-	public void replaceRulesAndEvaluateEvents(final Module module, final List<Rule> rules,
-			final ReprocessEventsHandler reprocessEventsHandler) {
-		this.reprocessEventsHandler = reprocessEventsHandler;
-		this.replaceRulesAndEvaluateEventsHasBeenCalled = true;
-		super.replaceRulesAndEvaluateEvents(module, rules, reprocessEventsHandler);
-	}
-
-
-
-
-
 	public void ignoreStateChangeEvents(final String stateName) {
 		ignoredStateNames.add(stateName);
 	}

@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.internal.utility;
 
 import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -27,6 +28,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
 public class SQLiteDatabaseHelperTests {
@@ -78,8 +80,8 @@ public class SQLiteDatabaseHelperTests {
         row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
         //Action
-        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (connected, database) -> {
-            Assert.assertTrue(connected);
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
             return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
         });
 
@@ -103,8 +105,8 @@ public class SQLiteDatabaseHelperTests {
         final String incorrectDbPath = "incorrect_database_path";
 
         //Action
-        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (connected, database) -> {
-            Assert.assertTrue(connected);
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
             return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
         });
 
@@ -123,8 +125,8 @@ public class SQLiteDatabaseHelperTests {
         row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
         //Action
-        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (connected, database) -> {
-            Assert.assertTrue(connected);
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
             return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
         });
         Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
@@ -147,8 +149,8 @@ public class SQLiteDatabaseHelperTests {
         row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
         //Action
-        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (connected, database) -> {
-            Assert.assertTrue(connected);
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
             return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
         });
         Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
@@ -160,6 +162,38 @@ public class SQLiteDatabaseHelperTests {
         Assert.assertFalse(SQLiteDatabaseHelper.clearTable(incorrectDBPath, TABLE_NAME));
         Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
     }
+
+    @Test
+    public void testProcessShouldCloseDatabase() {
+        final AtomicReference<SQLiteDatabase> processedDatabase = new AtomicReference<>(null);
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
+            Assert.assertTrue(database.isOpen());
+            processedDatabase.set(database);
+            return true;
+        });
+        Assert.assertNotNull(processedDatabase.get());
+        Assert.assertFalse(processedDatabase.get().isOpen());
+    }
+
+    @Test
+    public void testProcessShouldCatchException_badDatabaseConnection() {
+        boolean result = SQLiteDatabaseHelper.process("xxx", SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNull(database);
+            return false;
+        });
+        Assert.assertFalse(result);
+    }
+
+    @Test
+    public void testProcessShouldCatchException_badDatabaseOperations() {
+        boolean result = SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
+            throw new RuntimeException("xxxx");
+        });
+        Assert.assertFalse(result);
+    }
+
 
     private ContentValues getContentValueFromMap(final Map<String, Object> values) {
         ContentValues contentValues = new ContentValues();

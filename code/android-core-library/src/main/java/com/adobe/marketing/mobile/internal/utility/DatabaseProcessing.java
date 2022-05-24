@@ -13,7 +13,15 @@ package com.adobe.marketing.mobile.internal.utility;
 
 import android.database.sqlite.SQLiteDatabase;
 
+import androidx.annotation.Nullable;
+
 @FunctionalInterface
 public interface DatabaseProcessing {
-    boolean execute(final boolean connected, final SQLiteDatabase database);
+    /**
+     * Performs the database operations with the {@link SQLiteDatabase} connection.
+     *
+     * @param database the (nullable) newly opened database
+     * @return the result of the database operations.
+     */
+    boolean execute(@Nullable final SQLiteDatabase database);
 }

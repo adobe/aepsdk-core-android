@@ -18,11 +18,6 @@ import android.database.sqlite.SQLiteException;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 
-import org.jetbrains.annotations.NotNull;
-
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
-
 /**
  * Helper class for performing atomic operation on SQLite Database.
  */
@@ -154,11 +149,19 @@ public class SQLiteDatabaseHelper {
         MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, "closeDatabase - Successfully closed the database.");
     }
 
+    /**
+     * Open the database and begin processing database operations in {@link DatabaseProcessing#execute(SQLiteDatabase)}, then disconnecting the database.
+     *
+     * @param filePath           path to database
+     * @param dbOpenMode         an instance of {@link DatabaseOpenMode}
+     * @param databaseProcessing the function interface to include database operations
+     * @return the result of the {@link DatabaseProcessing#execute(SQLiteDatabase)}
+     */
     public static boolean process(final String filePath, final DatabaseOpenMode dbOpenMode, final DatabaseProcessing databaseProcessing) {
         SQLiteDatabase database = null;
         try {
             database = openDatabase(filePath, dbOpenMode);
-            return databaseProcessing.execute(database != null, database);
+            return databaseProcessing.execute(database);
         } catch (Exception e) {
             MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "Failed to open database -" + e.getLocalizedMessage());
             return false;

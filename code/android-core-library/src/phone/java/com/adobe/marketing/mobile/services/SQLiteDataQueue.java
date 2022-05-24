@@ -60,16 +60,19 @@ final class SQLiteDataQueue implements DataQueue {
 
         synchronized (dbMutex) {
             return SQLiteDatabaseHelper.process(databasePath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
-                    (connected, database) -> {
-                        if (connected && database != null) {
-                            SQLiteStatement insertStatement = database.compileStatement(
-                                    "INSERT INTO " + TABLE_NAME + " (uniqueIdentifier, timestamp, data) VALUES (?, ?, ?)");
+                    database -> {
+                        if (database == null) {
+                            return false;
+                        }
+                        try (SQLiteStatement insertStatement = database.compileStatement(
+                                "INSERT INTO " + TABLE_NAME + " (uniqueIdentifier, timestamp, data) VALUES (?, ?, ?)")) {
                             insertStatement.bindString(1, dataEntity.getUniqueIdentifier());
                             insertStatement.bindLong(2, dataEntity.getTimestamp().getTime());
                             insertStatement.bindString(3, dataEntity.getData() != null ? dataEntity.getData() : "");
                             long rowId = insertStatement.executeInsert();
                             return rowId >= 0;
-                        } else {
+                        } catch (Exception e) {
+                            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "add - Returning false: " + e.getLocalizedMessage());
                             return false;
                         }
                     });
@@ -92,31 +95,28 @@ final class SQLiteDataQueue implements DataQueue {
 
         synchronized (dbMutex) {
             SQLiteDatabaseHelper.process(databasePath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_ONLY,
-                    (connected, database) -> {
-                        if (connected && database != null) {
-                            Cursor cursor = null;
+                    database -> {
+                        if (database == null) {
+                            return false;
+                        }
 
-                            try {
-                                cursor = database.query(TABLE_NAME, new String[]{TB_KEY_TIMESTAMP, TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_DATA},
-                                        null, null, null, null, "id ASC", String.valueOf(n));
+                        try (Cursor cursor = database.query(TABLE_NAME, new String[]{TB_KEY_TIMESTAMP, TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_DATA},
+                                null, null, null, null, "id ASC", String.valueOf(n))) {
 
-                                if (cursor.moveToFirst()) {
-                                    do {
-                                        ContentValues contentValues = new ContentValues();
-                                        DatabaseUtils.cursorRowToContentValues(cursor, contentValues);
-                                        rows.add(contentValues);
-                                    } while (cursor.moveToNext());
-                                }
-
-                                MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, String.format("query - Successfully read %d rows from table(%s)",
-                                        rows.size(), TABLE_NAME));
-                                return true;
-                            } catch (final SQLiteException e) {
-                                MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX,
-                                        String.format("query - Error in querying database table (%s). Error: (%s)", TABLE_NAME, e.getMessage()));
-                                return false;
+                            if (cursor.moveToFirst()) {
+                                do {
+                                    ContentValues contentValues = new ContentValues();
+                                    DatabaseUtils.cursorRowToContentValues(cursor, contentValues);
+                                    rows.add(contentValues);
+                                } while (cursor.moveToNext());
                             }
-                        } else {
+
+                            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, String.format("query - Successfully read %d rows from table(%s)",
+                                    rows.size(), TABLE_NAME));
+                            return true;
+                        } catch (final SQLiteException e) {
+                            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX,
+                                    String.format("query - Error in querying database table (%s). Error: (%s)", TABLE_NAME, e.getLocalizedMessage()));
                             return false;
                         }
                     });
@@ -181,15 +181,13 @@ final class SQLiteDataQueue implements DataQueue {
 
         synchronized (dbMutex) {
             return SQLiteDatabaseHelper.process(databasePath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
-                    (connected, database) -> {
-                        if (!connected && database == null) {
+                    database -> {
+                        if (database == null) {
                             return false;
                         }
-                        SQLiteStatement statement = null;
-                        try {
-                            StringBuilder builder = new StringBuilder("DELETE FROM ").append(
-                                    TABLE_NAME).append(" WHERE id in (").append("SELECT id from ").append(TABLE_NAME).append(" order by id ASC").append(" limit ").append(n).append(')');
-                            statement = database.compileStatement(builder.toString());
+                        String builder = "DELETE FROM " +
+                                TABLE_NAME + " WHERE id in (" + "SELECT id from " + TABLE_NAME + " order by id ASC" + " limit " + n + ')';
+                        try (SQLiteStatement statement = database.compileStatement(builder)) {
                             deletedRowsCount.set(statement.executeUpdateDelete());
                             MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, String.format("remove n - Removed %d DataEntities",
                                     deletedRowsCount));
@@ -199,10 +197,6 @@ final class SQLiteDataQueue implements DataQueue {
                                     String.format("removeRows - Error in deleting rows from table(%s). Returning 0. Error: (%s)", TABLE_NAME,
                                             e.getMessage()));
                             return false;
-                        } finally {
-                            if (statement != null) {
-                                statement.close();
-                            }
                         }
                     });
         }

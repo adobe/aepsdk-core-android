@@ -18,7 +18,6 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.StringUtils
 import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import com.adobe.marketing.mobile.internal.utility.flattening
-import com.adobe.marketing.mobile.internal.utility.getFlattenedDataMap
 import com.adobe.marketing.mobile.internal.utility.serializeToQueryString
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
 import java.security.SecureRandom
@@ -134,7 +133,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             return null
         }
         val (sharedStateName, dataKeyName) = sharedStateKeyString.split(SHARED_STATE_KEY_DELIMITER)
-        val sharedStateMap = extensionApi.getSharedEventState(sharedStateName, event) {
+        // TODO uncomment once map flattening logic is finalized
+        /* val sharedStateMap = extensionApi.getSharedEventState(sharedStateName, event) {
             MobileCore.log(LoggingMode.DEBUG,
                 LOG_TAG,
                 String.format("Unable to replace the token %s, token not found in shared state for the event", key)
@@ -143,7 +143,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
         if (sharedStateMap == null || sharedStateMap.isEmpty() || StringUtils.isNullOrEmpty(dataKeyName) || !sharedStateMap.containsKey(dataKeyName)) {
             return null
         }
-        return sharedStateMap[dataKeyName]
+        return sharedStateMap[dataKeyName] */
+        return null
     }
 
     /**
@@ -162,7 +163,9 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             )
             return EMPTY_STRING
         }
-        val eventDataMap = event.eventData.getFlattenedDataMap()
-        return eventDataMap[key]
+        // TODO uncomment once map flattening logic is finalized
+        /* val eventDataMap = event.eventData.getFlattenedDataMap()
+        return eventDataMap[key] */
+        return EMPTY_STRING
     }
 }

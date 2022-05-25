@@ -67,6 +67,8 @@ internal fun Map<String, Any?>.flattening(prefix: String = ""): Map<String, Any?
     return flattenedMap
 }
 
+// TODO need to decide if we need to keep top level keys or implement similar to iOS
+/*
 /**
  * Returns a [Map] which has been flattened in the following way:
  * The Keys are of the format "eventdataKey"."nestedMapKeyOrFlatDictionaryKey"....
@@ -92,7 +94,7 @@ internal fun Map<String, Any?>.getFlattenedDataMap(prefix: String = ""): Map<Str
         }
     }
     return flattenedMap
-}
+}*/
 
 /**
  * Serializes a map to key value pairs for url string.

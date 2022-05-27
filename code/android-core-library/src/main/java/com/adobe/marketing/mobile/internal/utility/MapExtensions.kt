@@ -110,10 +110,10 @@ internal fun Map<String, Any?>.serializeToQueryString(): String {
         var encodedValue: String?
 
         // TODO add serializing for custom objects
-        if (value is List<*>) {
-            encodedValue = urlEncode(join(value, ","))
+        encodedValue = if (value is List<*>) {
+            urlEncode(join(value, ","))
         } else {
-            encodedValue = urlEncode(value?.toString())
+            urlEncode(value?.toString())
         }
 
         val serializedKVP = serializeKeyValuePair(encodedKey, encodedValue)
@@ -142,7 +142,7 @@ private fun Set<*>.isAllString(): Boolean {
  * @return [String] containing key/value pair encoded in URL format
  */
 private fun serializeKeyValuePair(key: String?, value: String?): String? {
-    if (key == null || value == null || key.isEmpty()) {
+    if (key.isNullOrBlank() || value == null) {
         return null
     }
     return "&$key=$value"

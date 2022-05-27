@@ -59,11 +59,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
      * @return [Any] containing value to be substituted for the [key], null if the key does not exist
      */
     override fun get(key: String): Any? {
-        if (StringUtils.isNullOrEmpty(key)) {
-            return null
-        }
-
-        return when (key) {
+        return when (key.trim()) {
+            EMPTY_STRING -> null
             KEY_EVENT_TYPE -> event.type
             KEY_EVENT_SOURCE -> event.source
             KEY_TIMESTAMP_UNIX -> TimeUtil.getUnixTimeInSeconds().toString()

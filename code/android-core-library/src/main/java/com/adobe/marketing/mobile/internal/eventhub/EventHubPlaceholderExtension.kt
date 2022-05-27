@@ -22,4 +22,5 @@ internal class EventHubPlaceholderExtension(val extensionApi: ExtensionApi) : Ex
     override fun getName() = EventHubConstants.NAME
     override fun getFriendlyName() = EventHubConstants.FRIENDLY_NAME
     override fun getVersion() = EventHubConstants.VERSION_NUMBER
+    
 }

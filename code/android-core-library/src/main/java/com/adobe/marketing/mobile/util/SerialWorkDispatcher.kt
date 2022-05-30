@@ -28,7 +28,7 @@ import java.util.concurrent.Future
  * that process work items with the queue that they are fetched from to allow sub-classes to be
  * agnostic of worker thread management.
  */
-abstract class SerialWorkDispatcher<T>(private val name: String) {
+open class SerialWorkDispatcher<T>(private val name: String, private val workHandler: WorkHandler<T>) {
 
     companion object {
         const val LOG_TAG = "WorkDispatcher"
@@ -55,6 +55,19 @@ abstract class SerialWorkDispatcher<T>(private val name: String) {
          * will be accepted.
          */
         SHUTDOWN
+    }
+
+    /**
+     * Represents the functional interface that is responsible for doing the desired work on each item of the [workQueue].
+     * [WorkHandler.doWork] is called from the background worker thread that the [SerialWorkDispatcher] maintains.
+     */
+    fun interface WorkHandler<W> {
+        /**
+         * Handles processing on [item]
+         *
+         * @param item  the work item on which is dispatched for processing.
+         */
+        fun doWork(item: W)
     }
 
     /**
@@ -88,7 +101,7 @@ abstract class SerialWorkDispatcher<T>(private val name: String) {
     private var state: State = State.NOT_STARTED
 
     /**
-     * Used for guarding the "activeness" logic. Should never be used to wrap [workQueue]
+     * Used for guarding the "activeness" logic.
      */
     private val activenessMutex: Any = Any()
 
@@ -105,17 +118,10 @@ abstract class SerialWorkDispatcher<T>(private val name: String) {
         // not being made while a state change operation start/resume/stop is being done.
         synchronized(activenessMutex) {
             if (state == State.SHUTDOWN) return false
+            workQueue.offer(item)
         }
 
-        // Read the state again in-case a context switch happens immediately after the sync block above.
-        // [state] being volatile allows us to prevent locking on the queue while also being sure that
-        // the new item being added to the queue, after a context switch (if any), is processed correctly
-        // (lazily) in [resume].
-        // This in turn allows achieving the ability to add new work items to the queue while another
-        // item is being processed via [doWork].
         if (state != State.SHUTDOWN) {
-            workQueue.offer(item)
-
             // resume the processing the work items in the queue if necessary
             resume()
             return true
@@ -147,12 +153,12 @@ abstract class SerialWorkDispatcher<T>(private val name: String) {
     fun start(): Boolean {
         synchronized(activenessMutex) {
             if (state == State.ACTIVE) {
-                MobileCore.log(LoggingMode.VERBOSE, getTag(), "WorkDispatcher ($name) is already active.")
+                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) is already active.")
                 return false
             }
 
             if (state == State.SHUTDOWN) {
-                throw IllegalStateException("Cannot start WorkDispatcher ($name). Already shutdown.")
+                throw IllegalStateException("Cannot start SerialWorkDispatcher ($name). Already shutdown.")
             }
 
             state = State.ACTIVE
@@ -196,14 +202,6 @@ abstract class SerialWorkDispatcher<T>(private val name: String) {
     private fun getWorkItem(): T? {
         return workQueue.poll()
     }
-
-    /**
-     * Performs processing on the [item].
-     * This is invoked from the background worker thread that the [SerialWorkDispatcher] maintains.
-     *
-     * @param item foremost work item in the queue that currently being processed.
-     */
-    protected abstract fun doWork(item: T)
 
     /**
      * Resumes processing the work items in the [workQueue] if the [SerialWorkDispatcher]
@@ -252,9 +250,9 @@ abstract class SerialWorkDispatcher<T>(private val name: String) {
             val activeTask: Future<*>? = workProcessorFuture
             activeTask?.cancel(true)
             workProcessorFuture = null
+            workQueue.clear()
         }
 
-        workQueue.clear()
         executorService.shutdownNow()
         cleanup()
     }
@@ -277,12 +275,14 @@ abstract class SerialWorkDispatcher<T>(private val name: String) {
             while (!Thread.interrupted() && canWork() && hasWork()) {
                 try {
                     val workItem = getWorkItem() ?: return
-                    doWork(workItem)
+                    workHandler.doWork(workItem)
                 } catch (exception: Exception) {
                     Thread.currentThread().interrupt()
-                    MobileCore.log(LoggingMode.ERROR,
-                            getTag(),
-                            "Exception encountered while processing item. $exception")
+                    MobileCore.log(
+                        LoggingMode.ERROR,
+                        getTag(),
+                        "Exception encountered while processing item. $exception"
+                    )
                 }
             }
         }

@@ -12,28 +12,25 @@
 package com.adobe.marketing.mobile.util
 
 import com.adobe.marketing.mobile.Event
-import java.lang.IllegalStateException
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Future
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.test.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.stubbing.Answer
 import org.powermock.modules.junit4.PowerMockRunner
 import org.powermock.reflect.Whitebox
+import java.lang.IllegalStateException
+import java.util.concurrent.ExecutorService
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 @RunWith(PowerMockRunner::class)
 class SerialWorkDispatcherTest {
@@ -41,16 +38,14 @@ class SerialWorkDispatcherTest {
     /**
      * A test implementation of [SerialWorkDispatcher] that enables testing internal state logic.
      */
-    class TestSerialWorkDispatcher(name: String) : SerialWorkDispatcher<Event>(name) {
+    class TestSerialWorkDispatcher(name: String, workHandler: WorkHandler<Event>) : SerialWorkDispatcher<Event>(name, workHandler) {
         var processedEvents: ArrayList<Event>? = null
+            private set
+
         var blockWork: Boolean = false
 
         override fun prepare() {
-            processedEvents = ArrayList<Event>()
-        }
-
-        override fun doWork(item: Event) {
-            processedEvents?.add(item)
+            processedEvents = ArrayList()
         }
 
         override fun cleanup() {
@@ -62,28 +57,26 @@ class SerialWorkDispatcherTest {
         }
     }
 
+    private val workHandler: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler {
+        serialWorkDispatcher.processedEvents?.add(it)
+    }
+
     @Mock
     private lateinit var mockExecutorService: ExecutorService
 
-    private val serialWorkDispatcher: TestSerialWorkDispatcher = TestSerialWorkDispatcher("TestImpl")
+    private val serialWorkDispatcher: TestSerialWorkDispatcher = TestSerialWorkDispatcher("TestImpl", workHandler)
 
     @Before
     fun setUp() {
-        //
         Whitebox.setInternalState(serialWorkDispatcher, "executorService", mockExecutorService)
 
-        Mockito.doAnswer(Answer {
-            val runnable = it.getArgument<Runnable>(0)
-            runnable.run()
-            return@Answer null
-        }).`when`(mockExecutorService).submit(any(Runnable::class.java))
-
-        Mockito.doAnswer(Answer {
-            val mockFuture: Future<*> = Mockito.mock(Future::class.java)
-            val callable = it.getArgument<Callable<Any>>(0)
-            `when`(mockFuture.get()).then { callable.call() }
-            return@Answer mockFuture
-        }).`when`(mockExecutorService).submit(any(Callable::class.java))
+        Mockito.doAnswer(
+            Answer {
+                val runnable = it.getArgument<Runnable>(0)
+                runnable.run()
+                return@Answer null
+            }
+        ).`when`(mockExecutorService).submit(any(Runnable::class.java))
     }
 
     @Test

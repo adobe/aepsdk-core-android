@@ -41,18 +41,21 @@ internal class EventHub {
     private var hubStarted = false
 
     /**
-     * Responsible for handling and processing each event. Dispatching of an [Event] "e" is regarded complete when
-     * [SerialWorkDispatcher.doWork] finishes for "e".
+     * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching
+     * an [Event] "e". Dispatch is regarded complete when [SerialWorkDispatcher.WorkHandler.doWork] finishes for "e".
      */
-    private val eventDispatcher: SerialWorkDispatcher<Event> = object : SerialWorkDispatcher<Event>("EventHub") {
-        override fun doWork(item: Event) {
-            // TODO: Perform pre-processing
+    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler {
+        // TODO: Perform pre-processing
 
-            // TODO: Notify response event listeners
+        // TODO: Notify response event listeners
 
-            // TODO: Send Event to each Extension Container
-        }
+        // TODO: Send Event to each Extension Container
     }
+
+    /**
+     * Responsible for processing and dispatching each event.
+     */
+    private val eventDispatcher: SerialWorkDispatcher<Event> = SerialWorkDispatcher<Event>("EventHub", dispatchJob)
 
     /**
      * A cache that maps UUID of an Event to an internal sequence of its dispatch.
@@ -238,8 +241,11 @@ internal class EventHub {
             val extensionContainer: ExtensionContainer? = registeredExtensions[extensionName]
 
             if (extensionContainer == null) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Error retrieving SharedState for extension: [$extensionName]." +
-                        "Extension may not have been registered.")
+                MobileCore.log(
+                    LoggingMode.ERROR, LOG_TAG,
+                    "Error retrieving SharedState for extension: [$extensionName]." +
+                        "Extension may not have been registered."
+                )
                 errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return@Callable null
             }
@@ -283,8 +289,10 @@ internal class EventHub {
             val extensionContainer: ExtensionContainer? = registeredExtensions[extensionName]
 
             if (extensionContainer == null) {
-                MobileCore.log(LoggingMode.ERROR,
-                        LOG_TAG, "Error clearing SharedState for extension: [$extensionName]. Extension may not have been registered.")
+                MobileCore.log(
+                    LoggingMode.ERROR,
+                    LOG_TAG, "Error clearing SharedState for extension: [$extensionName]. Extension may not have been registered."
+                )
                 errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return@Callable false
             }

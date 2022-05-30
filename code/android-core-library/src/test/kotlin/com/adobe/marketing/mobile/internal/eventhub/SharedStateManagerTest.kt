@@ -11,11 +11,11 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
+import org.junit.Before
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import org.junit.Before
-import org.junit.Test
 
 internal class SharedStateManagerTest {
 
@@ -108,8 +108,10 @@ internal class SharedStateManagerTest {
         sharedStateManager.createSharedState(mapOf(), 7, false)
 
         // Verify that pending state cannot be updated when no pending state exists at the version
-        assertEquals(SharedState.Status.NOT_SET,
-                sharedStateManager.updateSharedState(mapOf("One" to 1, "Yes" to true), 7, false))
+        assertEquals(
+            SharedState.Status.NOT_SET,
+            sharedStateManager.updateSharedState(mapOf("One" to 1, "Yes" to true), 7, false)
+        )
     }
 
     @Test
@@ -118,8 +120,10 @@ internal class SharedStateManagerTest {
         sharedStateManager.createSharedState(null, 7, true)
 
         // Verify that pending state can be updated when pending state exists at the version
-        assertEquals(SharedState.Status.SET,
-                sharedStateManager.updateSharedState(mapOf("One" to 1, "Yes" to true), 7, false))
+        assertEquals(
+            SharedState.Status.SET,
+            sharedStateManager.updateSharedState(mapOf("One" to 1, "Yes" to true), 7, false)
+        )
     }
 
     @Test

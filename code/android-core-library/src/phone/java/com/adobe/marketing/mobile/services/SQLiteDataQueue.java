@@ -25,7 +25,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * SQLite backed implementation of {@link DataQueue}.
@@ -177,21 +176,20 @@ final class SQLiteDataQueue implements DataQueue {
             return false;
         }
 
-        AtomicInteger deletedRowsCount = new AtomicInteger(-1);
-
         synchronized (dbMutex) {
             return SQLiteDatabaseHelper.process(databasePath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
                     database -> {
+                        int deletedRowsCount = -1;
                         if (database == null) {
                             return false;
                         }
                         String builder = "DELETE FROM " +
                                 TABLE_NAME + " WHERE id in (" + "SELECT id from " + TABLE_NAME + " order by id ASC" + " limit " + n + ')';
                         try (SQLiteStatement statement = database.compileStatement(builder)) {
-                            deletedRowsCount.set(statement.executeUpdateDelete());
+                            deletedRowsCount = statement.executeUpdateDelete();
                             MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, String.format("remove n - Removed %d DataEntities",
                                     deletedRowsCount));
-                            return deletedRowsCount.get() > -1;
+                            return deletedRowsCount > -1;
                         } catch (final SQLiteException e) {
                             MobileCore.log(LoggingMode.WARNING, LOG_PREFIX,
                                     String.format("removeRows - Error in deleting rows from table(%s). Returning 0. Error: (%s)", TABLE_NAME,
@@ -275,6 +273,7 @@ final class SQLiteDataQueue implements DataQueue {
      * @param filePath the file name
      * @return file name without relative path
      */
+    //TODO: This method is moved to an internal utility class in another branch, need to remove it once the utility class is merged to the dev branch https://github.com/adobe/aepsdk-core-android/blob/0ea895adf692b9b96855472d7fd027f79b0c524c/code/android-core-library/src/phone/java/com/adobe/marketing/mobile/services/utility/FileUtil.kt#L26
     private String removeRelativePath(final String filePath) {
         if (filePath == null || filePath.isEmpty()) {
             return filePath;

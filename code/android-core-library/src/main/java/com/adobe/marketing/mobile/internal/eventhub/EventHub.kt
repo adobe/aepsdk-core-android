@@ -91,8 +91,19 @@ internal class EventHub {
             eventNumberMap[event.uniqueIdentifier] = lastEventNumber.incrementAndGet()
 
             // Offer event to the serial dispatcher to perform operations on the event.
-            eventDispatcher.offer(event)
-            MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Dispatching Event #${eventNumberMap[event.uniqueIdentifier]} - ($event)")
+            if (eventDispatcher.offer(event)) {
+                MobileCore.log(
+                    LoggingMode.VERBOSE,
+                    LOG_TAG,
+                    "Dispatching Event #${eventNumberMap[event.uniqueIdentifier]} - ($event)"
+                )
+            } else {
+                MobileCore.log(
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    "Failed to dispatch event #${eventNumberMap[event.uniqueIdentifier]} - ($event)"
+                )
+            }
 
             // TODO: Record event to event history database if required.
         }

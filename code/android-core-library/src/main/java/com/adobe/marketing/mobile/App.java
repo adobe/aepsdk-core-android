@@ -26,199 +26,211 @@ import java.lang.ref.WeakReference;
  */
 class App {
 
-	private static final String DATASTORE_NAME             = "ADOBE_MOBILE_APP_STATE";
-	private static final String SMALL_ICON_RESOURCE_ID_KEY = "SMALL_ICON_RESOURCE_ID";
-	private static final String LARGE_ICON_RESOURCE_ID_KEY = "LARGE_ICON_RESOURCE_ID";
+    private static final String DATASTORE_NAME = "ADOBE_MOBILE_APP_STATE";
+    private static final String SMALL_ICON_RESOURCE_ID_KEY = "SMALL_ICON_RESOURCE_ID";
+    private static final String LARGE_ICON_RESOURCE_ID_KEY = "LARGE_ICON_RESOURCE_ID";
+    private static volatile Context appContext;
+    private static volatile PlatformServices platformServices;
+    private static volatile WeakReference<Activity> currentActivity;
+    private static volatile WeakReference<Application> application;
+    private static volatile int smallIconResourceID = -1;
+    private static volatile int largeIconResourceID = -1;
 
-	private static volatile Context                    appContext;
-	private static volatile WeakReference<Activity>    currentActivity;
-	private static volatile WeakReference<Application> application;
-	private static volatile int smallIconResourceID = -1;
-	private static volatile int largeIconResourceID = -1;
+    private App() {
+    }
 
-	private App() {}
+    /**
+     * Registers {@code Application.ActivityLifecycleCallbacks} to the {@code Application} instance,
+     * and the context variable.
+     *
+     * @param app the current {@code Application}
+     */
+    static void setApplication(Application app) {
+        if (application != null && application.get() != null) {
+            return;
+        }
 
-	/**
-	 * Registers {@code Application.ActivityLifecycleCallbacks} to the {@code Application} instance,
-	 * and the context variable.
-	 *
-	 * @param app the current {@code Application}
-	 */
-	static void setApplication(Application app) {
-		if (application != null && application.get() != null) {
-			return;
-		}
+        application = new WeakReference<Application>(app);
+        AppLifecycleListener.getInstance().registerActivityLifecycleCallbacks(app);
+        setAppContext(app);
+        ServiceProvider.getInstance().setContext(app);
+    }
 
-		application = new WeakReference<Application>(app);
-		AppLifecycleListener.getInstance().registerActivityLifecycleCallbacks(app);
-		setAppContext(app);
-		ServiceProvider.getInstance().setContext(app);
-	}
+    static Application getApplication() {
+        return application != null ? application.get() : null;
+    }
 
-	static Application getApplication() {
-		return application != null ? application.get() : null;
-	}
 
-	/**
-	 * Sets the {@code context} variable.
-	 * @param context  the current {@code Context}
-	 */
-	static void setAppContext(Context context) {
-		appContext = context != null ? context.getApplicationContext() : null;
-	}
+    static PlatformServices getPlatformServices() {
+        return platformServices;
+    }
 
-	/**
-	 * Returns the {@code Context} which was set either by {@code setApplication} or {@code setAppContext}.
-	 *
-	 * @return the current {@code Context}
-	 */
-	static Context getAppContext() {
-		return appContext;
-	}
+    static void setPlatformServices(PlatformServices platformServices) {
+        App.platformServices = platformServices;
+    }
 
-	/**
-	 * Sets the  {@code activity} variable and also update the  {@code context} variable
-	 * @param activity  the current {@code Activity}
-	 */
-	static void setCurrentActivity(Activity activity) {
-		if (activity == null) {
-			return;
-		}
+    /**
+     * Sets the {@code context} variable.
+     *
+     * @param context the current {@code Context}
+     */
+    static void setAppContext(Context context) {
+        appContext = context != null ? context.getApplicationContext() : null;
+    }
 
-		currentActivity = new WeakReference<Activity>(activity);
-		setAppContext(activity);
-		ServiceProvider.getInstance().setCurrentActivity(currentActivity.get());
-	}
+    /**
+     * Returns the {@code Context} which was set either by {@code setApplication} or {@code setAppContext}.
+     *
+     * @return the current {@code Context}
+     */
+    static Context getAppContext() {
+        return appContext;
+    }
 
-	/**
-	 * Returns the {@code Activity} which was set by {@code setCurrentActivity}.
-	 *
-	 * @return the current {@code Activity}
-	 */
-	static Activity getCurrentActivity() {
-		if (currentActivity == null) {
-			return null;
-		}
+    /**
+     * Sets the  {@code activity} variable and also update the  {@code context} variable
+     *
+     * @param activity the current {@code Activity}
+     */
+    static void setCurrentActivity(Activity activity) {
+        if (activity == null) {
+            return;
+        }
 
-		return currentActivity.get();
-	}
+        currentActivity = new WeakReference<Activity>(activity);
+        setAppContext(activity);
+        ServiceProvider.getInstance().setCurrentActivity(currentActivity.get());
+    }
 
-	/**
-	 * Returns the current orientation of the device.
-	 *
-	 * @return a {@code int} value indicates the orientation. 0 for unknown, 1 for portrait and 2 for landscape
-	 */
-	static int getCurrentOrientation() {
-		if (currentActivity == null || currentActivity.get() == null) {
-			return 0; //neither landscape nor portrait
-		}
+    /**
+     * Returns the {@code Activity} which was set by {@code setCurrentActivity}.
+     *
+     * @return the current {@code Activity}
+     */
+    static Activity getCurrentActivity() {
+        if (currentActivity == null) {
+            return null;
+        }
 
-		return currentActivity.get().getResources().getConfiguration().orientation;
-	}
+        return currentActivity.get();
+    }
 
-	/**
-	 * Returns the resource Id for small icon if it was set by {@code setSmallIconResourceID}.
-	 *
-	 * @return a {@code int} value if it has been set, otherwise -1
-	 */
-	static int getSmallIconResourceID() {
-		if (smallIconResourceID == -1) {
-			AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-			LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
+    /**
+     * Returns the current orientation of the device.
+     *
+     * @return a {@code int} value indicates the orientation. 0 for unknown, 1 for portrait and 2 for landscape
+     */
+    static int getCurrentOrientation() {
+        if (currentActivity == null || currentActivity.get() == null) {
+            return 0; //neither landscape nor portrait
+        }
 
-			if (dataStore != null) {
-				smallIconResourceID = dataStore.getInt(SMALL_ICON_RESOURCE_ID_KEY, -1);
-			}
-		}
+        return currentActivity.get().getResources().getConfiguration().orientation;
+    }
 
-		return smallIconResourceID;
-	}
+    /**
+     * Returns the resource Id for small icon if it was set by {@code setSmallIconResourceID}.
+     *
+     * @return a {@code int} value if it has been set, otherwise -1
+     */
+    static int getSmallIconResourceID() {
+        if (smallIconResourceID == -1) {
+            AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
+            LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
 
-	/**
-	 * Sets the resource Id for small icon.
-	 *
-	 * @param resourceID the resource Id of the icon
-	 */
-	static void setSmallIconResourceID(int resourceID) {
-		smallIconResourceID = resourceID;
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-		LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
+            if (dataStore != null) {
+                smallIconResourceID = dataStore.getInt(SMALL_ICON_RESOURCE_ID_KEY, -1);
+            }
+        }
 
-		if (dataStore != null) {
-			dataStore.setInt(SMALL_ICON_RESOURCE_ID_KEY, smallIconResourceID);
-		}
-	}
+        return smallIconResourceID;
+    }
 
-	/**
-	 * Returns the resource Id for large icon if it was set by {@code setLargeIconResourceID}.
-	 *
-	 * @return a {@code int} value if it has been set, otherwise -1
-	 */
-	static int getLargeIconResourceID() {
-		if (largeIconResourceID == -1) {
-			AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-			LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
+    /**
+     * Sets the resource Id for small icon.
+     *
+     * @param resourceID the resource Id of the icon
+     */
+    static void setSmallIconResourceID(int resourceID) {
+        smallIconResourceID = resourceID;
+        AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
+        LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
 
-			if (dataStore != null) {
-				largeIconResourceID = dataStore.getInt(LARGE_ICON_RESOURCE_ID_KEY, -1);
-			}
-		}
+        if (dataStore != null) {
+            dataStore.setInt(SMALL_ICON_RESOURCE_ID_KEY, smallIconResourceID);
+        }
+    }
 
-		return largeIconResourceID;
-	}
+    /**
+     * Returns the resource Id for large icon if it was set by {@code setLargeIconResourceID}.
+     *
+     * @return a {@code int} value if it has been set, otherwise -1
+     */
+    static int getLargeIconResourceID() {
+        if (largeIconResourceID == -1) {
+            AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
+            LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
 
-	/**
-	 * Sets the resource Id for large icon.
-	 *
-	 * @param resourceID the resource Id of the icon
-	 */
-	static void setLargeIconResourceID(int resourceID) {
-		largeIconResourceID = resourceID;
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-		LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
+            if (dataStore != null) {
+                largeIconResourceID = dataStore.getInt(LARGE_ICON_RESOURCE_ID_KEY, -1);
+            }
+        }
 
-		if (dataStore != null) {
-			dataStore.setInt(LARGE_ICON_RESOURCE_ID_KEY, largeIconResourceID);
-		}
-	}
+        return largeIconResourceID;
+    }
 
-	/**
-	 * For testing.
-	 * Clear this App of all held variables and object references.
-	 * Method clears the {@link Application}, {@link Context}, {@link Activity},
-	 * notification icon resources and clears the icons in local persistent storage.
-	 */
-	static void clearAppResources() {
-		if (appContext != null) {
-			appContext = null;
-		}
+    /**
+     * Sets the resource Id for large icon.
+     *
+     * @param resourceID the resource Id of the icon
+     */
+    static void setLargeIconResourceID(int resourceID) {
+        largeIconResourceID = resourceID;
+        AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
+        LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
 
-		if (application != null) {
-			Application app = application.get();
+        if (dataStore != null) {
+            dataStore.setInt(LARGE_ICON_RESOURCE_ID_KEY, largeIconResourceID);
+        }
+    }
 
-			if (app != null) {
-				app.unregisterActivityLifecycleCallbacks(AppLifecycleListener.getInstance());
-			}
+    /**
+     * For testing.
+     * Clear this App of all held variables and object references.
+     * Method clears the {@link Application}, {@link Context}, {@link Activity},
+     * notification icon resources and clears the icons in local persistent storage.
+     */
+    static void clearAppResources() {
+        if (appContext != null) {
+            appContext = null;
+        }
 
-			application.clear();
-			application = null;
-		}
+        if (application != null) {
+            Application app = application.get();
 
-		if (currentActivity != null) {
-			currentActivity.clear();
-			currentActivity = null;
-		}
+            if (app != null) {
+                app.unregisterActivityLifecycleCallbacks(AppLifecycleListener.getInstance());
+            }
 
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-		LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
+            application.clear();
+            application = null;
+        }
 
-		if (dataStore != null) {
-			dataStore.remove(SMALL_ICON_RESOURCE_ID_KEY);
-			dataStore.remove(LARGE_ICON_RESOURCE_ID_KEY);
-		}
+        if (currentActivity != null) {
+            currentActivity.clear();
+            currentActivity = null;
+        }
 
-		smallIconResourceID = -1;
-		largeIconResourceID = -1;
-	}
+        AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
+        LocalStorageService.DataStore dataStore = localStorageService.getDataStore(DATASTORE_NAME);
+
+        if (dataStore != null) {
+            dataStore.remove(SMALL_ICON_RESOURCE_ID_KEY);
+            dataStore.remove(LARGE_ICON_RESOURCE_ID_KEY);
+        }
+
+        smallIconResourceID = -1;
+        largeIconResourceID = -1;
+    }
 
 }

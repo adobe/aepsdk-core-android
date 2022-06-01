@@ -22,34 +22,34 @@ import java.util.Map;
  * @see EventHub
  * @see EventSource
  */
-final class EventType {
+public final class EventType {
 	private static final String ADOBE_PREFIX = "com.adobe.eventType.";
 	private static final Map<String, EventType> knownTypes = new HashMap<String, EventType>();
 	private static final Object knownTypesMutex = new Object();
 
-	static final EventType ACQUISITION = get(ADOBE_PREFIX + "acquisition");
-	static final EventType ANALYTICS = get(ADOBE_PREFIX + "analytics");
-	static final EventType AUDIENCEMANAGER = get(ADOBE_PREFIX + "audienceManager");
-	static final EventType CAMPAIGN = get(ADOBE_PREFIX + "campaign");
-	static final EventType CONFIGURATION = get(ADOBE_PREFIX + "configuration");
-	static final EventType CUSTOM = get(ADOBE_PREFIX + "custom");
-	static final EventType HUB = get(ADOBE_PREFIX + "hub");
-	static final EventType IDENTITY = get(ADOBE_PREFIX + "identity");
-	static final EventType LIFECYCLE = get(ADOBE_PREFIX + "lifecycle");
-	static final EventType LOCATION = get(ADOBE_PREFIX + "location");
-	static final EventType PII = get(ADOBE_PREFIX + "pii");
-	static final EventType RULES_ENGINE = get(ADOBE_PREFIX + "rulesEngine");
-	static final EventType SIGNAL = get(ADOBE_PREFIX + "signal");
-	static final EventType SYSTEM = get(ADOBE_PREFIX + "system");
-	static final EventType TARGET = get(ADOBE_PREFIX + "target");
-	static final EventType USERPROFILE = get(ADOBE_PREFIX + "userProfile");
-	static final EventType PLACES = get(ADOBE_PREFIX + "places");
-	static final EventType GENERIC_TRACK = get(ADOBE_PREFIX + "generic.track");
-	static final EventType GENERIC_LIFECYLE = get(ADOBE_PREFIX + "generic.lifecycle");
-	static final EventType GENERIC_IDENTITY = get(ADOBE_PREFIX + "generic.identity");
-	static final EventType GENERIC_PII = get(ADOBE_PREFIX + "generic.pii");
-	static final EventType GENERIC_DATA = get(ADOBE_PREFIX + "generic.data");
-	static final EventType WILDCARD = get(ADOBE_PREFIX + "_wildcard_");
+	public static final EventType ACQUISITION = get(ADOBE_PREFIX + "acquisition");
+	public static final EventType ANALYTICS = get(ADOBE_PREFIX + "analytics");
+	public static final EventType AUDIENCEMANAGER = get(ADOBE_PREFIX + "audienceManager");
+	public static final EventType CAMPAIGN = get(ADOBE_PREFIX + "campaign");
+	public static final EventType CONFIGURATION = get(ADOBE_PREFIX + "configuration");
+	public static final EventType CUSTOM = get(ADOBE_PREFIX + "custom");
+	public static final EventType HUB = get(ADOBE_PREFIX + "hub");
+	public static final EventType IDENTITY = get(ADOBE_PREFIX + "identity");
+	public static final EventType LIFECYCLE = get(ADOBE_PREFIX + "lifecycle");
+	public static final EventType LOCATION = get(ADOBE_PREFIX + "location");
+	public static final EventType PII = get(ADOBE_PREFIX + "pii");
+	public static final EventType RULES_ENGINE = get(ADOBE_PREFIX + "rulesEngine");
+	public static final EventType SIGNAL = get(ADOBE_PREFIX + "signal");
+	public static final EventType SYSTEM = get(ADOBE_PREFIX + "system");
+	public static final EventType TARGET = get(ADOBE_PREFIX + "target");
+	public static final EventType USERPROFILE = get(ADOBE_PREFIX + "userProfile");
+	public static final EventType PLACES = get(ADOBE_PREFIX + "places");
+	public static final EventType GENERIC_TRACK = get(ADOBE_PREFIX + "generic.track");
+	public static final EventType GENERIC_LIFECYLE = get(ADOBE_PREFIX + "generic.lifecycle");
+	public static final EventType GENERIC_IDENTITY = get(ADOBE_PREFIX + "generic.identity");
+	public static final EventType GENERIC_PII = get(ADOBE_PREFIX + "generic.pii");
+	public static final EventType GENERIC_DATA = get(ADOBE_PREFIX + "generic.data");
+	public static final EventType WILDCARD = get(ADOBE_PREFIX + "_wildcard_");
 
 
 	private final String name;
@@ -96,7 +96,7 @@ final class EventType {
 	 *
 	 * @return the {@link String} representation of this {@code EventType}
 	 */
-	String getName() {
+	public String getName() {
 		return name;
 	}
 

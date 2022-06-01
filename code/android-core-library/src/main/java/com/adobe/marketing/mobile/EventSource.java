@@ -22,25 +22,25 @@ import java.util.Map;
  * @see EventHub
  * @see EventType
  */
-final class EventSource {
+public final class EventSource {
 	private static final String ADOBE_PREFIX = "com.adobe.eventSource.";
 	private static final Map<String, EventSource> knownSources = new HashMap<String, EventSource>();
 	private static final Object knownSourcesMutex = new Object();
 
-	static final EventSource BOOTED = get(ADOBE_PREFIX + "booted");
-	static final EventSource NONE = get(ADOBE_PREFIX + "none");
-	static final EventSource OS = get(ADOBE_PREFIX + "os");
-	static final EventSource REQUEST_CONTENT = get(ADOBE_PREFIX + "requestContent");
-	static final EventSource REQUEST_IDENTITY = get(ADOBE_PREFIX + "requestIdentity");
-	static final EventSource REQUEST_PROFILE = get(ADOBE_PREFIX + "requestProfile");
-	static final EventSource REQUEST_RESET = get(ADOBE_PREFIX + "requestReset");
-	static final EventSource RESPONSE_CONTENT = get(ADOBE_PREFIX + "responseContent");
-	static final EventSource RESPONSE_IDENTITY = get(ADOBE_PREFIX + "responseIdentity");
-	static final EventSource RESPONSE_PROFILE = get(ADOBE_PREFIX + "responseProfile");
-	static final EventSource SHARED_STATE = get(ADOBE_PREFIX + "sharedState");
-	static final EventSource WILDCARD = get(ADOBE_PREFIX + "_wildcard_");
-	static final EventSource APPLICATION_LAUNCH = get(ADOBE_PREFIX + "applicationLaunch");
-	static final EventSource APPLICATION_CLOSE = get(ADOBE_PREFIX + "applicationClose");
+	public static final EventSource BOOTED = get(ADOBE_PREFIX + "booted");
+	public static final EventSource NONE = get(ADOBE_PREFIX + "none");
+	public static final EventSource OS = get(ADOBE_PREFIX + "os");
+	public static final EventSource REQUEST_CONTENT = get(ADOBE_PREFIX + "requestContent");
+	public static final EventSource REQUEST_IDENTITY = get(ADOBE_PREFIX + "requestIdentity");
+	public static final EventSource REQUEST_PROFILE = get(ADOBE_PREFIX + "requestProfile");
+	public static final EventSource REQUEST_RESET = get(ADOBE_PREFIX + "requestReset");
+	public static final EventSource RESPONSE_CONTENT = get(ADOBE_PREFIX + "responseContent");
+	public static final EventSource RESPONSE_IDENTITY = get(ADOBE_PREFIX + "responseIdentity");
+	public static final EventSource RESPONSE_PROFILE = get(ADOBE_PREFIX + "responseProfile");
+	public static final EventSource SHARED_STATE = get(ADOBE_PREFIX + "sharedState");
+	public static final EventSource WILDCARD = get(ADOBE_PREFIX + "_wildcard_");
+	public static final EventSource APPLICATION_LAUNCH = get(ADOBE_PREFIX + "applicationLaunch");
+	public static final EventSource APPLICATION_CLOSE = get(ADOBE_PREFIX + "applicationClose");
 
 
 	private final String name;
@@ -87,7 +87,7 @@ final class EventSource {
 	 *
 	 * @return the {@link String} representation of this {@link EventSource}
 	 */
-	String getName() {
+	public String getName() {
 		return name;
 	}
 }

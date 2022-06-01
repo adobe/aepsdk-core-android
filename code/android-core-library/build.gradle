@@ -28,6 +28,7 @@ android {
         }
         androidTest{
             java.srcDirs += "src/legacy/androidTest-common/java"
+            java.srcDirs += "src/androidTest/kotlin"
         }
     }
 
@@ -127,6 +128,7 @@ dependencies {
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     // instrumentation tests
     androidTestImplementation "com.android.support.test:rules:1.0.2"
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_version"
 }
 
 repositories {

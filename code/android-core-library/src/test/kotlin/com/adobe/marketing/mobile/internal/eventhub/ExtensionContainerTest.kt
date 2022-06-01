@@ -11,12 +11,6 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Future
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,6 +25,12 @@ import org.mockito.MockitoAnnotations
 import org.mockito.stubbing.Answer
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @RunWith(PowerMockRunner::class)
 @PrepareForTest(ExtensionRuntime::class)
@@ -49,17 +49,21 @@ class ExtensionContainerTest {
     fun setUp() {
         MockitoAnnotations.initMocks(this)
 
-        doAnswer(Answer {
-            // Create a mock Future to return
-            val mockFuture: Future<*> = Mockito.mock(Future::class.java)
-            // Make it so that the Callable passed to the ExecutorService is run when future result is queried via get()
-            val callableArgument = it.getArgument<Callable<Any>>(0)
-            `when`(mockFuture.get()).thenReturn(callableArgument.call())
-            return@Answer mockFuture
-        }).`when`(mockExecutorService).submit(any(Callable::class.java))
+        doAnswer(
+            Answer {
+                // Create a mock Future to return
+                val mockFuture: Future<*> = Mockito.mock(Future::class.java)
+                // Make it so that the Callable passed to the ExecutorService is run when future result is queried via get()
+                val callableArgument = it.getArgument<Callable<Any>>(0)
+                `when`(mockFuture.get()).thenReturn(callableArgument.call())
+                return@Answer mockFuture
+            }
+        ).`when`(mockExecutorService).submit(any(Callable::class.java))
 
-        extensionContainer = ExtensionContainer(MockExtension::class.java,
-                mockExtensionRuntime, mockExecutorService, mockErrorCallback)
+        extensionContainer = ExtensionContainer(
+            MockExtension::class.java,
+            mockExtensionRuntime, mockExecutorService, mockErrorCallback
+        )
     }
 
     @Test

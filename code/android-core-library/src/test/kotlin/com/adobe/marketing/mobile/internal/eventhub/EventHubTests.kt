@@ -13,12 +13,12 @@ package com.adobe.marketing.mobile.internal.eventhub
 
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
+import org.junit.Before
+import org.junit.Test
 import java.lang.Exception
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
-import org.junit.Before
-import org.junit.Test
 
 private object MockExtensions {
     class MockExtensionInvalidConstructor(api: ExtensionApi, name: String?) : Extension(api) {

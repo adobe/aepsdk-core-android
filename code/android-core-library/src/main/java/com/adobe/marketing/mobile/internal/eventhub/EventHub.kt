@@ -11,12 +11,14 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
+import android.support.annotation.NonNull
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionError
 import com.adobe.marketing.mobile.ExtensionErrorCallback
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
@@ -40,6 +42,23 @@ internal class EventHub {
     private var hubStarted = false
 
     /**
+     * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching
+     * an [Event] "e". Dispatch is regarded complete when [SerialWorkDispatcher.WorkHandler.doWork] finishes for "e".
+     */
+    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler {
+        // TODO: Perform pre-processing
+
+        // TODO: Notify response event listeners
+
+        // TODO: Send Event to each Extension Container
+    }
+
+    /**
+     * Responsible for processing and dispatching each event.
+     */
+    private val eventDispatcher: SerialWorkDispatcher<Event> = SerialWorkDispatcher<Event>("EventHub", dispatchJob)
+
+    /**
      * A cache that maps UUID of an Event to an internal sequence of its dispatch.
      */
     private val eventNumberMap: ConcurrentHashMap<String, Int> = ConcurrentHashMap<String, Int>()
@@ -54,9 +73,40 @@ internal class EventHub {
     fun start() {
         eventHubExecutor.submit {
             this.hubStarted = true
-
+            this.eventDispatcher.start()
             this.shareEventHubSharedState()
             MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Event Hub successfully started")
+        }
+    }
+
+    /**
+     * Dispatches a new [Event] to all listeners who have registered for the event type and source.
+     * If the `event` has a `mask`, this method will attempt to record the `event` in `eventHistory`.
+     * See [eventDispatcher] for more details.
+     *
+     * @param event the [Event] to be dispatched to listeners
+     */
+    fun dispatch(@NonNull event: Event) {
+        eventHubExecutor.submit {
+            // Assign the next available event number to the event.
+            eventNumberMap[event.uniqueIdentifier] = lastEventNumber.incrementAndGet()
+
+            // Offer event to the serial dispatcher to perform operations on the event.
+            if (eventDispatcher.offer(event)) {
+                MobileCore.log(
+                    LoggingMode.VERBOSE,
+                    LOG_TAG,
+                    "Dispatching Event #${eventNumberMap[event.uniqueIdentifier]} - ($event)"
+                )
+            } else {
+                MobileCore.log(
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    "Failed to dispatch event #${eventNumberMap[event.uniqueIdentifier]} - ($event)"
+                )
+            }
+
+            // TODO: Record event to event history database if required.
         }
     }
 
@@ -94,8 +144,9 @@ internal class EventHub {
         eventHubExecutor.submit {
             val extensionName = extensionClass?.extensionTypeName
             val container = registeredExtensions.remove(extensionName)
+
             if (container != null) {
-                container?.shutdown()
+                container.shutdown()
                 shareEventHubSharedState()
                 completion(EventHubError.None)
             } else {
@@ -202,8 +253,11 @@ internal class EventHub {
             val extensionContainer: ExtensionContainer? = registeredExtensions[extensionName]
 
             if (extensionContainer == null) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Error retrieving SharedState for extension: [$extensionName]." +
-                        "Extension may not have been registered.")
+                MobileCore.log(
+                    LoggingMode.ERROR, LOG_TAG,
+                    "Error retrieving SharedState for extension: [$extensionName]." +
+                        "Extension may not have been registered."
+                )
                 errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return@Callable null
             }
@@ -247,8 +301,10 @@ internal class EventHub {
             val extensionContainer: ExtensionContainer? = registeredExtensions[extensionName]
 
             if (extensionContainer == null) {
-                MobileCore.log(LoggingMode.ERROR,
-                        LOG_TAG, "Error clearing SharedState for extension: [$extensionName]. Extension may not have been registered.")
+                MobileCore.log(
+                    LoggingMode.ERROR,
+                    LOG_TAG, "Error clearing SharedState for extension: [$extensionName]. Extension may not have been registered."
+                )
                 errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return@Callable false
             }
@@ -263,10 +319,10 @@ internal class EventHub {
      * Stops processing events and shuts down all registered extensions.
      */
     fun shutdown() {
-        // Todo : Stop event processing
-
         // Shutdown and clear all the extensions.
         eventHubExecutor.submit {
+            eventDispatcher.shutdown()
+
             // Unregister all extensions
             registeredExtensions.forEach { (_, extensionContainer) ->
                 extensionContainer.shutdown()

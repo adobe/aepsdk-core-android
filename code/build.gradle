@@ -8,11 +8,13 @@ buildscript {
     }
     dependencies {
         //noinspection AndroidGradlePluginVersion
-        classpath 'com.android.tools.build:gradle:4.0.1'
+        classpath 'com.android.tools.build:gradle:4.1.0'
         classpath "org.jacoco:org.jacoco.core:0.8.7"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:9.2.1"
+
+        // ktlint Functional Interface identification works only from 10.1.0 or later
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:10.1.0"
     }
 }
 

@@ -63,8 +63,11 @@ internal class SharedStateManager(private val name: String) {
 
         // Check if there exists a state at a version equal to, or higher than the one provided.
         if (states.ceilingEntry(version) != null) {
-            MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Cannot create $name shared state at version $version. " +
-                    "More recent state exists.")
+            MobileCore.log(
+                LoggingMode.VERBOSE, LOG_TAG,
+                "Cannot create $name shared state at version $version. " +
+                    "More recent state exists."
+            )
             // If such a state exists a new state cannot be created, it can be updated, if pending,
             // via SharedStateManager#updateSharedState(..)
             return SharedState.Status.NOT_SET
@@ -102,8 +105,11 @@ internal class SharedStateManager(private val name: String) {
 
         // Check if new state is pending. A pending state cannot be overwritten by another pending state
         if (isPending) {
-            MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Cannot update pending $name shared state at " +
-                    "version $version with a pending state.")
+            MobileCore.log(
+                LoggingMode.VERBOSE, LOG_TAG,
+                "Cannot update pending $name shared state at " +
+                    "version $version with a pending state."
+            )
             return SharedState.Status.NOT_SET
         }
 
@@ -112,8 +118,11 @@ internal class SharedStateManager(private val name: String) {
 
         // Check there is a valid pending state for updating.
         if (stateAtVersion.status != SharedState.Status.PENDING) {
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Cannot update a non pending $name shared state " +
-                    "at version $version.")
+            MobileCore.log(
+                LoggingMode.WARNING, LOG_TAG,
+                "Cannot update a non pending $name shared state " +
+                    "at version $version."
+            )
             return SharedState.Status.NOT_SET
         }
 

@@ -9,24 +9,25 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.utility;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import static org.junit.Assert.*;
-
-//TODO Delete this class once all utils and tests are moved to internal package
-public class TestHelper {
+class TestHelper {
 
 	/**
 	 * Verifies that an utility class is well defined.
 	 *
 	 * @param clazz utility class to verify.
 	 */
-	public static void assertUtilityClassWellDefined(final Class<?> clazz) throws NoSuchMethodException, InvocationTargetException,
+	static void assertUtilityClassWellDefined(final Class<?> clazz) throws NoSuchMethodException, InvocationTargetException,
 		InstantiationException, IllegalAccessException {
 		assertTrue("Class must be final", Modifier.isFinal(clazz.getModifiers()));
 		assertEquals("There must be only one constructor", 1, clazz.getDeclaredConstructors().length);

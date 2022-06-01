@@ -9,13 +9,12 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.utility;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Date;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import static org.junit.Assert.*;

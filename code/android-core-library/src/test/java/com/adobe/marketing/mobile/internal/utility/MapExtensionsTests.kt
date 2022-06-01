@@ -11,6 +11,9 @@
 package com.adobe.marketing.mobile.internal.utility
 
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import org.junit.Test
 
 class MapExtensionsTests {
@@ -119,5 +122,137 @@ class MapExtensionsTests {
             "d" to "d_value"
         )
         assertEquals(expectedMap, flattenedMap)
+    }
+
+    // TODO uncomment when map flattening logic is finalized
+    /* @Test
+    @Throws(Exception::class)
+    fun getFlattenedMap_ReturnsFlattenedMap_WhenEventDataNotNull() {
+        val map = mapOf(
+            "boolKey" to "true",
+            "intKey" to 1,
+            "longKey" to 100L,
+            "stringKey" to "stringValue",
+            "mapStrKey" to mapOf(
+                "mapKey" to "mapValue"
+            )
+        )
+        val flattenedMap = map.getFlattenedDataMap()
+        val expectedMap = mapOf(
+            "boolKey" to "true",
+            "intKey" to 1,
+            "longKey" to 100L,
+            "stringKey" to "stringValue",
+            "mapStrKey" to mapOf(
+                "mapKey" to "mapValue"
+            ),
+            "mapStrKey.mapKey" to "mapValue"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    } */
+
+    @Test
+    fun testSerializeToQueryString() {
+        val dict = HashMap<String, Any?>()
+        dict["key1"] = "val1"
+        dict["key2"] = "val2"
+        dict["key3"] = "val3"
+        val valueUnderTest = dict.serializeToQueryString()
+        assertTrue(valueUnderTest.contains("key3=val3"))
+        assertTrue(valueUnderTest.contains("key2=val2"))
+        assertTrue(valueUnderTest.contains("key1=val1"))
+    }
+
+    @Test
+    fun testSerializeToQueryStringNullInput() {
+        val dict = null
+        val valueUnderTest = dict?.serializeToQueryString()
+        assertNull(valueUnderTest)
+    }
+
+    @Test
+    fun testSerializeToQueryStringNullValueParameter() {
+        val dict = HashMap<String, Any?>()
+        dict["key1"] = "val1"
+        dict["key2"] = null
+        val valueUnderTest = dict.serializeToQueryString()
+        assertTrue(valueUnderTest.contains("key1=val1"))
+        assertFalse(valueUnderTest.contains("key2=val2"))
+    }
+
+    @Test
+    fun testSerializeToQueryStringEmptyKeyParameter() {
+        val dict = HashMap<String, Any?>()
+        dict["key1"] = "val1"
+        dict[""] = "val2"
+        val valueUnderTest = dict.serializeToQueryString()
+        assertTrue(valueUnderTest.contains("key1=val1"))
+        assertFalse(valueUnderTest.contains("key2=val2"))
+    }
+
+    @Test
+    fun testSerializeToQueryStringEmptyValueParameter() {
+        val dict = HashMap<String, Any?>()
+        dict["key1"] = "val1"
+        dict["key2"] = ""
+        val valueUnderTest = dict.serializeToQueryString()
+        assertTrue(valueUnderTest.contains("key1=val1"))
+        assertTrue(valueUnderTest.contains("key2="))
+    }
+
+    @Test
+    fun testSerializeToQueryStringNonString() {
+        val dict = HashMap<String, Any?>()
+        dict["key1"] = 5
+        val valueUnderTest = dict.serializeToQueryString()
+        assertEquals("key1=5", valueUnderTest)
+    }
+
+    @Test
+    fun testSerializeToQueryStringArrayList() {
+        val list = ArrayList<String>()
+        list.add("TestArrayList1")
+        list.add("TestArrayList2")
+        list.add("TestArrayList3")
+        list.add("TestArrayList4")
+        val dict = HashMap<String, Any?>()
+        dict["key1"] = list
+        val valueUnderTest = dict.serializeToQueryString()
+        assertEquals(
+            "key1=TestArrayList1%2CTestArrayList2%2CTestArrayList3%2CTestArrayList4",
+            valueUnderTest
+        )
+    }
+
+    @Test
+    fun testSerializeToQueryStringArrayListNullObject() {
+        val list = ArrayList<String?>()
+        list.add("TestArrayList1")
+        list.add("TestArrayList2")
+        list.add(null)
+        list.add("TestArrayList4")
+        val dict = HashMap<String, Any?>()
+        dict["key1"] = list
+        val valueUnderTest = dict.serializeToQueryString()
+        assertEquals(
+            "key1=TestArrayList1%2CTestArrayList2%2Cnull%2CTestArrayList4",
+            valueUnderTest
+        )
+    }
+
+    @Test
+    fun testSerializeToQueryStringArrayListEmptyObject() {
+        val list = ArrayList<String>()
+        list.add("TestArrayList1")
+        list.add("TestArrayList2")
+        list.add("")
+        list.add("TestArrayList4")
+        val dict = HashMap<String, Any?>()
+        dict["key1"] = list
+        val valueUnderTest = dict.serializeToQueryString()
+        assertEquals(
+            "key1=TestArrayList1%2CTestArrayList2%2C%2CTestArrayList4",
+            valueUnderTest
+        )
     }
 }

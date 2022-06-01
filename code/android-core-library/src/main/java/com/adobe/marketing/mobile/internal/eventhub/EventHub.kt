@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
+import android.support.annotation.NonNull
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionError
@@ -85,7 +86,7 @@ internal class EventHub {
      *
      * @param event the [Event] to be dispatched to listeners
      */
-    fun dispatch(event: Event) {
+    fun dispatch(@NonNull event: Event) {
         eventHubExecutor.submit {
             // Assign the next available event number to the event.
             eventNumberMap[event.uniqueIdentifier] = lastEventNumber.incrementAndGet()

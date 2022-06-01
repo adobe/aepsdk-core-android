@@ -9,22 +9,19 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.utility;
 
-import java.io.Serializable;
+import android.database.sqlite.SQLiteDatabase;
 
-/**
- * Base for any class that will represent a database record.
- * <p>
- * Extenders of this class will be used in conjunction with an implementation of {@link AbstractHitsDatabase}.
- * <p>
- * The base class includes the following fields:
- * <ul>
- *     <li>{@link String} identifier</li>
- *     <li>{@code long} timestamp</li>
- * </ul>
- */
-abstract class AbstractHit {
-	String identifier;
-	long timestamp;
+import androidx.annotation.Nullable;
+
+@FunctionalInterface
+public interface DatabaseProcessing {
+    /**
+     * Performs the database operations with the {@link SQLiteDatabase} connection.
+     *
+     * @param database the (nullable) newly opened database
+     * @return the result of the database operations.
+     */
+    boolean execute(@Nullable final SQLiteDatabase database);
 }

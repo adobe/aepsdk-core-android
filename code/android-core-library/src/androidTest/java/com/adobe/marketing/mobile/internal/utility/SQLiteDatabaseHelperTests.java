@@ -12,258 +12,220 @@
 package com.adobe.marketing.mobile.internal.utility;
 
 import android.content.ContentValues;
-import androidx.test.platform.app.InstrumentationRegistry;
+import android.database.sqlite.SQLiteDatabase;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+
 import com.adobe.marketing.mobile.services.DataEntity;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
 public class SQLiteDatabaseHelperTests {
 
-	private static final String TABLE_NAME = "TB_AEP_DATA_ENTITY";
-	private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
-	private static final String TB_KEY_TIMESTAMP = "timestamp";
-	private static final String TB_KEY_DATA = "data";
-	private String dbPath;
+    private static final String TABLE_NAME = "TB_AEP_DATA_ENTITY";
+    private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
+    private static final String TB_KEY_TIMESTAMP = "timestamp";
+    private static final String TB_KEY_DATA = "data";
+    private String dbPath;
 
-	@Before
-	public void setUp() {
-		dbPath = new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite").getPath();
-		createTable();
-	}
+    @Before
+    public void setUp() {
+        dbPath = new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite").getPath();
+        createTable();
+    }
 
-	@After
-	public void dispose() {
-		SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
-	}
+    @After
+    public void dispose() {
+        SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
+    }
 
-	private void createTable() {
-		final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
-										  " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, " +
-										  "uniqueIdentifier TEXT NOT NULL UNIQUE, " +
-										  "timestamp INTEGER NOT NULL, " +
-										  "data TEXT);";
+    private void createTable() {
+        final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
+                " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, " +
+                "uniqueIdentifier TEXT NOT NULL UNIQUE, " +
+                "timestamp INTEGER NOT NULL, " +
+                "data TEXT);";
 
-		SQLiteDatabaseHelper.createTableIfNotExist(dbPath, tableCreationQuery);
-	}
+        SQLiteDatabaseHelper.createTableIfNotExist(dbPath, tableCreationQuery);
+    }
 
-	@Test
-	public void testTableIsEmptyInitially() {
-		//Action
-		int size = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
+    @Test
+    public void testTableIsEmptyInitially() {
+        //Action
+        int size = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
 
-		//Assert
-		Assert.assertEquals(size, 0);
-	}
+        //Assert
+        Assert.assertEquals(size, 0);
+    }
 
-	@Test
-	public void testAddData_Success() {
-		//Prepare data
-		DataEntity dataEntity = new DataEntity("dataentity1");
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
+    @Test
+    public void testGetTableSize_Success() {
+        //Prepare data
+        final String dataEntityName = "dataentity";
+        DataEntity dataEntity = new DataEntity(dataEntityName);
+        Map<String, Object> row = new HashMap<>();
+        row.put(TB_KEY_DATA, dataEntity.getData());
+        row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
+        row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
-		//Action
-		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
+        //Action
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
+            return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
+        });
 
-		//Assert
-		Assert.assertEquals(SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME), 1);
-	}
+        int tableSize = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
 
-	@Test
-	public void testAddData_Failure() {
-		//Prepare data
-		DataEntity dataEntity = new DataEntity("dataentity1");
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
+        //Assert
+        Assert.assertEquals(tableSize, 1);
+    }
 
-		String incorrectDbPath = "incorrect_db_path";
-
-		//Action
-		Assert.assertFalse(SQLiteDatabaseHelper.insertRow(incorrectDbPath, TABLE_NAME, row));
-
-		//Assert
-		Assert.assertEquals(SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME), 0);
-	}
-
-	@Test
-	public void testQueryDb_Success() {
-		//Prepare data
-		final String dataEntityName = "dataentity";
-		DataEntity dataEntity = new DataEntity(dataEntityName);
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
-
-		//Action
-		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-
-		List<ContentValues> contentValues = SQLiteDatabaseHelper.query(dbPath, TABLE_NAME, new String[] {TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_TIMESTAMP, TB_KEY_DATA},
-											1);
-
-		//Assert
-		Assert.assertEquals(contentValues.size(), 1);
-		Assert.assertEquals(contentValues.get(0).get(TB_KEY_DATA), dataEntityName);
-		Assert.assertNotNull(contentValues.get(0).get(TB_KEY_TIMESTAMP));
-		Assert.assertNotNull(contentValues.get(0).get(TB_KEY_UNIQUE_IDENTIFIER));
-
-	}
-
-	@Test
-	public void testQueryDb_Failure() {
-		//Prepare data
-		final String dataEntityName = "dataentity";
-		DataEntity dataEntity = new DataEntity(dataEntityName);
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
-
-		String incorrectDbPath = "incorrect_db_path";
-		//Action
-		Assert.assertFalse(SQLiteDatabaseHelper.insertRow(incorrectDbPath, TABLE_NAME, row));
-
-		List<ContentValues> contentValues = SQLiteDatabaseHelper.query(incorrectDbPath, TABLE_NAME, new String[] {TB_KEY_UNIQUE_IDENTIFIER, TB_KEY_TIMESTAMP, TB_KEY_DATA},
-											1);
-
-		//Assert
-		Assert.assertTrue(contentValues.isEmpty());
-	}
-
-	@Test
-	public void testGetTableSize_Success() {
-		//Prepare data
-		final String dataEntityName = "dataentity";
-		DataEntity dataEntity = new DataEntity(dataEntityName);
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
-
-		//Action
-		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-
-		int tableSize = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
-
-		//Assert
-		Assert.assertEquals(tableSize, 1);
-	}
-
-	@Test
-	public void testGetTableSize_Failure() {
-		//Prepare data
-		final String dataEntityName = "dataentity";
-		DataEntity dataEntity = new DataEntity(dataEntityName);
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
+    @Test
+    public void testGetTableSize_Failure() {
+        //Prepare data
+        final String dataEntityName = "dataentity";
+        DataEntity dataEntity = new DataEntity(dataEntityName);
+        Map<String, Object> row = new HashMap<>();
+        row.put(TB_KEY_DATA, dataEntity.getData());
+        row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
+        row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
 
-		final String incorrectDbPath = "incorrect_database_path";
+        final String incorrectDbPath = "incorrect_database_path";
 
-		//Action
-		Assert.assertFalse(SQLiteDatabaseHelper.insertRow(incorrectDbPath, TABLE_NAME, row));
+        //Action
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
+            return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
+        });
 
-		//Action
-		Assert.assertEquals(SQLiteDatabaseHelper.getTableSize(incorrectDbPath, TABLE_NAME), 0);
-	}
+        //Action
+        Assert.assertEquals(SQLiteDatabaseHelper.getTableSize(incorrectDbPath, TABLE_NAME), 0);
+    }
 
-	@Test
-	public void testRemoveRows_Success() {
-		//Prepare data
-		final String dataEntityName = "dataentity";
-		DataEntity dataEntity = new DataEntity(dataEntityName);
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
+    @Test
+    public void testClearTable_Success() {
+        //Prepare data
+        final String dataEntityName = "dataentity";
+        DataEntity dataEntity = new DataEntity(dataEntityName);
+        Map<String, Object> row = new HashMap<>();
+        row.put(TB_KEY_DATA, dataEntity.getData());
+        row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
+        row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
-		//Action
-		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+        //Action
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
+            return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
+        });
+        Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 
-		SQLiteDatabaseHelper.removeRows(dbPath, TABLE_NAME, "id", 1);
+        SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
 
-		int tableSize = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
+        //Assert
+        Assert.assertTrue(SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME));
+        Assert.assertEquals(0, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+    }
 
-		//Assert
-		Assert.assertEquals(tableSize, 0);
-	}
+    @Test
+    public void testClearTable_Failure() {
+        //Prepare data
+        final String dataEntityName = "dataentity";
+        DataEntity dataEntity = new DataEntity(dataEntityName);
+        Map<String, Object> row = new HashMap<>();
+        row.put(TB_KEY_DATA, dataEntity.getData());
+        row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
+        row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
-	@Test
-	public void testRemoveRows_Failure() {
-		//Prepare data
-		final String dataEntityName = "dataentity";
-		DataEntity dataEntity = new DataEntity(dataEntityName);
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
-
-		//Action
-		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
-
-		final String incorrectDbPath = "incorrect_db_path";
-
-		Assert.assertEquals(-1, SQLiteDatabaseHelper.removeRows(incorrectDbPath, TABLE_NAME, "id", 1));
-		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
-	}
-
-	@Test
-	public void testClearTable_Success() {
-		//Prepare data
-		final String dataEntityName = "dataentity";
-		DataEntity dataEntity = new DataEntity(dataEntityName);
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
-
-		//Action
-		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
-
-		SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
-
-		//Assert
-		Assert.assertTrue(SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME));
-		Assert.assertEquals(0, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
-	}
-
-	@Test
-	public void testClearTable_Failure() {
-		//Prepare data
-		final String dataEntityName = "dataentity";
-		DataEntity dataEntity = new DataEntity(dataEntityName);
-		Map<String, Object> row = new HashMap<>();
-		row.put(TB_KEY_DATA, dataEntity.getData());
-		row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
-		row.put(TB_KEY_TIMESTAMP,  dataEntity.getTimestamp().getTime());
-
-		//Action
-		Assert.assertTrue(SQLiteDatabaseHelper.insertRow(dbPath, TABLE_NAME, row));
-		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+        //Action
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
+            return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
+        });
+        Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 
 
-		String incorrectDBPath = "incorrect_database_path";
+        String incorrectDBPath = "incorrect_database_path";
 
-		//Assert
-		Assert.assertFalse(SQLiteDatabaseHelper.clearTable(incorrectDBPath, TABLE_NAME));
-		Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
-	}
+        //Assert
+        Assert.assertFalse(SQLiteDatabaseHelper.clearTable(incorrectDBPath, TABLE_NAME));
+        Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
+    }
+
+    @Test
+    public void testProcessShouldCloseDatabase() {
+        final AtomicReference<SQLiteDatabase> processedDatabase = new AtomicReference<>(null);
+        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
+            Assert.assertTrue(database.isOpen());
+            processedDatabase.set(database);
+            return true;
+        });
+        Assert.assertNotNull(processedDatabase.get());
+        Assert.assertFalse(processedDatabase.get().isOpen());
+    }
+
+    @Test
+    public void testProcessShouldCatchException_badDatabaseConnection() {
+        boolean result = SQLiteDatabaseHelper.process("xxx", SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNull(database);
+            return false;
+        });
+        Assert.assertFalse(result);
+    }
+
+    @Test
+    public void testProcessShouldCatchException_badDatabaseOperations() {
+        boolean result = SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
+            Assert.assertNotNull(database);
+            throw new RuntimeException("xxxx");
+        });
+        Assert.assertFalse(result);
+    }
+
+
+    private ContentValues getContentValueFromMap(final Map<String, Object> values) {
+        ContentValues contentValues = new ContentValues();
+
+        for (Map.Entry<String, Object> value : values.entrySet()) {
+            String columnName = value.getKey();
+            Object columnValue = value.getValue();
+
+            if (columnValue == null) {
+                contentValues.putNull(columnName);
+            } else if (columnValue instanceof String) {
+                contentValues.put(columnName, (String) columnValue);
+            } else if (columnValue instanceof Long) {
+                contentValues.put(columnName, (Long) columnValue);
+            } else if (columnValue instanceof Integer) {
+                contentValues.put(columnName, (Integer) columnValue);
+            } else if (columnValue instanceof Short) {
+                contentValues.put(columnName, (Short) columnValue);
+            } else if (columnValue instanceof Byte) {
+                contentValues.put(columnName, (Byte) columnValue);
+            } else if (columnValue instanceof Double) {
+                contentValues.put(columnName, (Double) columnValue);
+            } else if (columnValue instanceof Float) {
+                contentValues.put(columnName, (Float) columnValue);
+            } else if (columnValue instanceof Boolean) {
+                contentValues.put(columnName, (Boolean) columnValue);
+            } else if (columnValue instanceof byte[]) {
+                contentValues.put(columnName, (byte[]) columnValue);
+            }
+        }
+
+        return contentValues;
+    }
+
 }

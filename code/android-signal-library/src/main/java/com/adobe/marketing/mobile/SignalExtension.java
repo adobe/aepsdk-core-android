@@ -17,7 +17,8 @@ class SignalExtension extends InternalModule {
 
 	private static final String LOGTAG = "SignalExtension";
 	private final ConcurrentLinkedQueue<Event> unprocessedEvents;
-	private SignalHitsDatabase signalHitsDatabase;
+	// TODO refactor to use public hit queue
+	// private SignalHitsDatabase signalHitsDatabase;
 
 	/**
 	 * Constructor for an internal module, must be called by inheritors.
@@ -30,7 +31,8 @@ class SignalExtension extends InternalModule {
 		registerListener(EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT, ListenerRulesEngineResponseContentSignal.class);
 		registerListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT,
 						 ListenerConfigurationResponseContentSignal.class);
-		this.signalHitsDatabase = new SignalHitsDatabase(services);
+		// TODO refactor to use public hit queue
+		// this.signalHitsDatabase = new SignalHitsDatabase(services);
 		this.unprocessedEvents = new ConcurrentLinkedQueue<Event>();
 	}
 
@@ -41,10 +43,11 @@ class SignalExtension extends InternalModule {
 	 * @param services    <code>PlatformServices</code> instance
 	 * @param database    <code>SignalHitsDatabase</code> instance
 	 */
-	SignalExtension(final EventHub hub, final PlatformServices services, final SignalHitsDatabase database) {
+	// TODO refactor to use public hit queue
+	/* SignalExtension(final EventHub hub, final PlatformServices services, final SignalHitsDatabase database) {
 		this(hub, services);
 		this.signalHitsDatabase = database;
-	}
+	} */
 
 	/**
 	 * queue the signal event (postback or pii), triggered by Rules Engine, and try to process the events in queue.
@@ -139,7 +142,8 @@ class SignalExtension extends InternalModule {
 					unprocessedEvents.clear();
 				}
 
-				signalHitsDatabase.updatePrivacyStatus(privacyStatus);
+				// TODO refactor to use public hit queue
+				// signalHitsDatabase.updatePrivacyStatus(privacyStatus);
 				tryProcessQueuedEvent();
 			}
 		});
@@ -203,7 +207,8 @@ class SignalExtension extends InternalModule {
 			SignalTemplate signalTemplate = SignalTemplate.createSignalTemplateFromConsequence(signalConsequence);
 
 			if (signalTemplate != null) {
-				signalHitsDatabase.queue(signalTemplate.getSignalHit(), event.getTimestamp(), privacyStatus);
+				// TODO refactor to use public hit queue
+				// signalHitsDatabase.queue(signalTemplate.getSignalHit(), event.getTimestamp(), privacyStatus);
 			}
 		}
 

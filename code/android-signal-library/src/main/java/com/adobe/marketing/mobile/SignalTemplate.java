@@ -37,7 +37,8 @@ class SignalTemplate {
 	 * create a new signal hit.
 	 * @return a new signal hit object
 	 */
-	SignalHit getSignalHit() {
+	// TODO refactor to use public hit queue
+	/* SignalHit getSignalHit() {
 		SignalHit signalHit = new SignalHit();
 		signalHit.url = this.urlTemplate;
 		signalHit.body = this.bodyTemplate;
@@ -45,7 +46,7 @@ class SignalTemplate {
 		signalHit.timeout = this.timeout;
 
 		return signalHit;
-	}
+	} */
 
 	/**
 	 * return the id of the signal template

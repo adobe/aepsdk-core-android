@@ -123,15 +123,15 @@ internal class EventHub {
                 return@submit
             }
 
-            val extensionName = extensionClass.extensionTypeName
-            if (registeredExtensions.containsKey(extensionName)) {
+            val extensionTypeName = extensionClass.extensionTypeName
+            if (registeredExtensions.containsKey(extensionTypeName)) {
                 completion(EventHubError.DuplicateExtensionName)
                 return@submit
             }
 
             val executor = Executors.newSingleThreadExecutor()
             val container = ExtensionContainer(extensionClass, ExtensionRuntime(), executor, completion)
-            registeredExtensions[extensionName] = container
+            registeredExtensions[extensionTypeName] = container
         }
     }
 
@@ -187,7 +187,7 @@ internal class EventHub {
                 return@Callable false
             }
 
-            val extensionContainer: ExtensionContainer? = registeredExtensions[extensionName]
+            val extensionContainer: ExtensionContainer? = registeredExtensions[getExtensionTypeName(extensionName)]
 
             if (extensionContainer == null) {
                 MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Error setting SharedState for extension: [$extensionName]. Extension may not have been registered.")
@@ -250,7 +250,7 @@ internal class EventHub {
                 return@Callable null
             }
 
-            val extensionContainer: ExtensionContainer? = registeredExtensions[extensionName]
+            val extensionContainer: ExtensionContainer? = registeredExtensions[getExtensionTypeName(extensionName)]
 
             if (extensionContainer == null) {
                 MobileCore.log(
@@ -298,7 +298,7 @@ internal class EventHub {
                 return@Callable null
             }
 
-            val extensionContainer: ExtensionContainer? = registeredExtensions[extensionName]
+            val extensionContainer: ExtensionContainer? = registeredExtensions[getExtensionTypeName(extensionName)]
 
             if (extensionContainer == null) {
                 MobileCore.log(
@@ -347,6 +347,19 @@ internal class EventHub {
     private fun getEventNumber(event: Event?): Int? {
         val eventUUID = event?.uniqueIdentifier
         return eventNumberMap[eventUUID]
+    }
+
+    /**
+     * Retrieves the [extensionTypeName] for the provided [extensionName]
+     * This is required because [registeredExtensions] maintains a mapping between [extensionTypeName]
+     * and [ExtensionContainer] and most state based operations rely on the name of an extension.
+     *
+     * @param [extensionName] the name of the extension for which an extensionTypeName should be fetched.
+     *        This should match [Extension.name] of an extension registered with the event hub.
+     * @return the [extensionTypeName] for the provided [extensionName]
+     */
+    private fun getExtensionTypeName(extensionName: String): String? {
+        return registeredExtensions.entries.firstOrNull { extensionName == it.value.sharedStateName }?.key
     }
 }
 

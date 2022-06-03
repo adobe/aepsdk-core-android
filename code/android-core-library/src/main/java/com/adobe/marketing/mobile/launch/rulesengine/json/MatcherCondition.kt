@@ -13,11 +13,13 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesConstants
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.LogicalExpression
 import com.adobe.marketing.mobile.rulesengine.OperandLiteral
 import com.adobe.marketing.mobile.rulesengine.OperandMustacheToken
+import com.adobe.marketing.mobile.rulesengine.UnaryExpression
 
 /**
  * The class representing a matcher condition
@@ -55,7 +57,7 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
         }
         val values: List<Any?> = definition.values ?: listOf()
         return when (values.size) {
-            0 -> convert(definition.key, definition.matcher, "")
+            0 -> convert(definition.key, definition.matcher, null)
             1 -> convert(definition.key, definition.matcher, values[0])
             in 2..Int.MAX_VALUE -> {
                 val operands = values.map { convert(definition.key, definition.matcher, it) }
@@ -75,18 +77,39 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
             )
             return null
         }
-        val javaClass: Any? = when (value) {
-            is String -> String::class.java
-            is Int -> Number::class.java
-            is Double -> Number::class.java
+        if (value == null) {
+            return UnaryExpression(
+                OperandMustacheToken("{{$key}}", Any::class.java as Class<*>),
+                operationName
+            )
+        }
+        val (javaClass: Any?, token: String) = when (value) {
+            is String -> Pair(
+                String::class.java,
+                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_STRING}($key)}}"
+            )
+            is Int -> Pair(
+                Number::class.java,
+                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_INT}($key)}}"
+            )
+            is Double -> Pair(
+                Number::class.java,
+                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_DOUBLE}($key)}}"
+            )
             // note: Kotlin.Boolean is not mapped to java.lang.Boolean correctly
-            is Boolean -> java.lang.Boolean::class.java
-            is Float -> Number::class.java
-            else -> null
+            is Boolean -> Pair(
+                java.lang.Boolean::class.java,
+                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_BOOL}($key)}}"
+            )
+            is Float -> Pair(
+                Number::class.java,
+                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_DOUBLE}($key)}}"
+            )
+            else -> Pair(Any::class.java, "{{$key}}")
         }
         return if (javaClass != null) {
             ComparisonExpression(
-                OperandMustacheToken("{{$key}}", javaClass as Class<*>),
+                OperandMustacheToken(token, javaClass as Class<*>),
                 operationName,
                 OperandLiteral(value)
             )

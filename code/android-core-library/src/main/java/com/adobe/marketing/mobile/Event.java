@@ -284,6 +284,17 @@ public final class Event {
 		return this;
 	}
 
+	public Event copyWithNewData(final Map<String, Object> newData) {
+		Event newEvent = new Event.Builder(this.name, this.type, this.source, this.mask)
+				.setEventData(newData)
+				.build();
+		newEvent.uniqueIdentifier = this.uniqueIdentifier;
+		newEvent.timestamp = this.timestamp;
+		newEvent.pairID = this.pairID;
+		newEvent.responsePairID = this.responsePairID;
+		return  newEvent;
+	}
+
 	/**
 	 * Returns the {@code Event} name
 	 * @return {@code String} representing the {@link Event} name

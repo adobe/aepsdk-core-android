@@ -35,13 +35,11 @@ public class LaunchRulesEngine {
     }
 
     /**
-     * Evaluates all the current rules against the supplied {@link Event}.
-     * @param event the {@link Event} against which to evaluate the rules
-     * @return the  processed {@link Event}
+     * Evaluates all the current rules using the supplied {@link TokenFinder}.
+     * @param tokenFinder the {@link TokenFinder} used to evaluate the rules
+     * @return the {@link List} of {@link LaunchRule} that have been matched
      */
-    public Event process(final Event event) {
-        // TODO pass in extensionApi in call to LaunchTokenFinder
-        // ruleRulesEngine.evaluate(new LaunchTokenFinder(event));
-        return event;
+    public List<LaunchRule> process(TokenFinder tokenFinder) {
+        return ruleRulesEngine.evaluate(tokenFinder);
     }
 }

@@ -19,8 +19,13 @@ package com.adobe.marketing.mobile.launch.rulesengine
  * @property detail the meta data of the consequence object
  * @constructor Constructs a new [RuleConsequence]
  */
+
+@Suppress("UNCHECKED_CAST")
 data class RuleConsequence(
     val id: String,
     val type: String,
     var detail: Map<String, Any?>? = null
-)
+) {
+    val eventData: Map<String, Any?>?
+        get() = detail?.get("eventData") as? Map<String, Any?>?
+}

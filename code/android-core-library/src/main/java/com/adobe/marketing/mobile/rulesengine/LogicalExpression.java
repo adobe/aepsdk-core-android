@@ -15,52 +15,52 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LogicalExpression implements Evaluable {
-	public final List<Evaluable> operands;
-	public final String operationName;
+    public final List<Evaluable> operands;
+    public final String operationName;
 
-	public LogicalExpression(List<Evaluable> operands, String operationName) {
-		this.operands = operands;
-		this.operationName = operationName;
-	}
+    public LogicalExpression(List<Evaluable> operands, String operationName) {
+        this.operands = operands;
+        this.operationName = operationName;
+    }
 
-	@Override
-	public RulesResult evaluate(Context context) {
-		ArrayList<RulesResult> resolvedOperands = new ArrayList();
+    @Override
+    public RulesResult evaluate(Context context) {
+        ArrayList<RulesResult> resolvedOperands = new ArrayList();
 
-		for (Evaluable evaluable : operands) {
-			resolvedOperands.add(evaluable.evaluate(context));
-		}
+        for (Evaluable evaluable : operands) {
+            resolvedOperands.add(evaluable.evaluate(context));
+        }
 
-		switch (operationName) {
-			case "and":
-				return performAndOperation(resolvedOperands);
+        switch (operationName) {
+            case "and":
+                return performAndOperation(resolvedOperands);
 
-			case "or":
-				return performOrOperation(resolvedOperands);
+            case "or":
+                return performOrOperation(resolvedOperands);
 
-			default:
-				return new RulesResult(RulesResult.FailureType.MISSING_OPERATOR, String.format("Unknown conjunction operator - %s.",
-									   operationName));
-		}
-	}
+            default:
+                return new RulesResult(RulesResult.FailureType.MISSING_OPERATOR, String.format("Unknown conjunction operator - %s.",
+                        operationName));
+        }
+    }
 
-	private RulesResult performAndOperation(final List<RulesResult> resolvedOperands) {
-		for (RulesResult rulesResult : resolvedOperands) {
-			if (!rulesResult.isSuccess()) {
-				return new RulesResult(RulesResult.FailureType.CONDITION_FAILED, "AND operation returned false.");
-			}
-		}
+    private RulesResult performAndOperation(final List<RulesResult> resolvedOperands) {
+        for (RulesResult rulesResult : resolvedOperands) {
+            if (!rulesResult.isSuccess()) {
+                return new RulesResult(RulesResult.FailureType.CONDITION_FAILED, "AND operation returned false.");
+            }
+        }
 
-		return RulesResult.SUCCESS;
-	}
+        return RulesResult.SUCCESS;
+    }
 
-	private RulesResult performOrOperation(final List<RulesResult> resolvedOperands) {
-		for (RulesResult rulesResult : resolvedOperands) {
-			if (rulesResult.isSuccess()) {
-				return RulesResult.SUCCESS;
-			}
-		}
+    private RulesResult performOrOperation(final List<RulesResult> resolvedOperands) {
+        for (RulesResult rulesResult : resolvedOperands) {
+            if (rulesResult.isSuccess()) {
+                return RulesResult.SUCCESS;
+            }
+        }
 
-		return new RulesResult(RulesResult.FailureType.CONDITION_FAILED, "OR operation returned false.");
-	}
+        return new RulesResult(RulesResult.FailureType.CONDITION_FAILED, "OR operation returned false.");
+    }
 }

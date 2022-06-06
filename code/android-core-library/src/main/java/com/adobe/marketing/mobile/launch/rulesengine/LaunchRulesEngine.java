@@ -11,23 +11,50 @@
 package com.adobe.marketing.mobile.launch.rulesengine;
 
 import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.ExtensionApi;
+import com.adobe.marketing.mobile.LoggingMode;
+import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator;
+import com.adobe.marketing.mobile.rulesengine.Log;
+import com.adobe.marketing.mobile.rulesengine.LogLevel;
+import com.adobe.marketing.mobile.rulesengine.Logging;
 import com.adobe.marketing.mobile.rulesengine.RulesEngine;
-import com.adobe.marketing.mobile.rulesengine.TokenFinder;
 
 import java.util.List;
 
 public class LaunchRulesEngine {
     private final RulesEngine<LaunchRule> ruleRulesEngine;
+    private final ExtensionApi extensionApi;
 
-    // TODO pass in extensionApi to the constructor
     @SuppressWarnings("rawtypes")
-    public LaunchRulesEngine() {
-        ruleRulesEngine = new RulesEngine<>(new ConditionEvaluator(), LaunchRuleTransformer.INSTANCE.createTransforming());
+    public LaunchRulesEngine(final ExtensionApi extensionApi) {
+        ruleRulesEngine = new RulesEngine<>(new ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE), LaunchRuleTransformer.INSTANCE.createTransforming());
+        Log.setLogging(new Logging() {
+            @Override
+            public void log(LogLevel level, String tag, String message) {
+                LoggingMode loggingMode;
+                switch (level) {
+                    case DEBUG:
+                        loggingMode = LoggingMode.DEBUG;
+                        break;
+                    case ERROR:
+                        loggingMode = LoggingMode.ERROR;
+                        break;
+                    case WARNING:
+                        loggingMode = LoggingMode.WARNING;
+                        break;
+                    default:
+                        loggingMode = LoggingMode.VERBOSE;
+                }
+                MobileCore.log(loggingMode, tag, message);
+            }
+        });
+        this.extensionApi = extensionApi;
     }
 
     /**
      * Set a new set of rules, the new rules replace the current rules.
+     *
      * @param rules a list of {@link LaunchRule}s
      */
     public void replaceRules(final List<LaunchRule> rules) {
@@ -36,12 +63,11 @@ public class LaunchRulesEngine {
 
     /**
      * Evaluates all the current rules against the supplied {@link Event}.
+     *
      * @param event the {@link Event} against which to evaluate the rules
-     * @return the  processed {@link Event}
+     * @return the matched {@link List<LaunchRule>}
      */
-    public Event process(final Event event) {
-        // TODO pass in extensionApi in call to LaunchTokenFinder
-        // ruleRulesEngine.evaluate(new LaunchTokenFinder(event));
-        return event;
+    public List<LaunchRule> process(final Event event) {
+        return ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
     }
 }

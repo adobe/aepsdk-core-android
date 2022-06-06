@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RulesEngine<T extends Rule> {
+    private final static String LOG_TAG = "RulesEngine";
     private final Object rulesEngineMutex = new Object();
     private final Evaluating evaluator;
     private final Transforming transformer;
@@ -32,8 +33,11 @@ public class RulesEngine<T extends Rule> {
             List<T> triggerRules = new ArrayList<>();
 
             for (final T rule : rules) {
-                if (rule.getEvaluable().evaluate(context).isSuccess()) {
+                RulesResult result = rule.getEvaluable().evaluate(context);
+                if (result.isSuccess()) {
                     triggerRules.add(rule);
+                } else {
+                    Log.debug(LOG_TAG, result.getFailureMessage());
                 }
             }
             return triggerRules;

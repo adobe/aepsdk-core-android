@@ -19,7 +19,6 @@ import com.adobe.marketing.mobile.rulesengine.Log;
 import com.adobe.marketing.mobile.rulesengine.LogLevel;
 import com.adobe.marketing.mobile.rulesengine.Logging;
 import com.adobe.marketing.mobile.rulesengine.RulesEngine;
-import com.adobe.marketing.mobile.rulesengine.TokenFinder;
 
 import java.util.List;
 
@@ -27,7 +26,6 @@ public class LaunchRulesEngine {
     private final RulesEngine<LaunchRule> ruleRulesEngine;
     private final ExtensionApi extensionApi;
 
-    // TODO pass in extensionApi to the constructor
     @SuppressWarnings("rawtypes")
     public LaunchRulesEngine(final ExtensionApi extensionApi) {
         ruleRulesEngine = new RulesEngine<>(new ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE), LaunchRuleTransformer.INSTANCE.createTransforming());
@@ -56,6 +54,7 @@ public class LaunchRulesEngine {
 
     /**
      * Set a new set of rules, the new rules replace the current rules.
+     *
      * @param rules a list of {@link LaunchRule}s
      */
     public void replaceRules(final List<LaunchRule> rules) {
@@ -68,7 +67,7 @@ public class LaunchRulesEngine {
      * @param event the {@link Event} against which to evaluate the rules
      * @return the matched {@link List<LaunchRule>}
      */
-    public List<LaunchRule> process(Event event) {
+    public List<LaunchRule> process(final Event event) {
         return ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
     }
 }

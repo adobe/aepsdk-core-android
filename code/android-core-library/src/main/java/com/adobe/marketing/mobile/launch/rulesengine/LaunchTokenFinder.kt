@@ -141,7 +141,6 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             return null
         }
         return sharedStateMap[dataKeyName]
-        return null
     }
 
     /**

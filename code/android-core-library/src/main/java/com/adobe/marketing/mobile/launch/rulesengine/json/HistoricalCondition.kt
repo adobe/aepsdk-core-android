@@ -26,11 +26,10 @@ internal class HistoricalCondition(private val definition: JSONDefinition) : JSO
     }
 
     override fun toEvaluable(): Evaluable? {
-        val matcher = definition.matcher
         val valueAsInt = definition.value
+        val operationName = MatcherCondition.MATCHER_MAPPING[definition.matcher]
         if (definition.events !is List<*> ||
-            matcher !is String ||
-            matcher !in MatcherCondition.MATCHER_MAPPING ||
+            operationName !is String ||
             valueAsInt !is Int
         ) {
             MobileCore.log(
@@ -55,7 +54,7 @@ internal class HistoricalCondition(private val definition: JSONDefinition) : JSO
                     0
                 }
             }, requestEvents, searchType),
-            matcher,
+            operationName,
             OperandLiteral(valueAsInt)
         )
     }

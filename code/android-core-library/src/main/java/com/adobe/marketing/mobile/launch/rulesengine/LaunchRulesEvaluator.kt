@@ -28,6 +28,7 @@ internal class LaunchRulesEvaluator(
     private val extensionApi: ExtensionApi
     ) : EventPreprocessor {
 
+
     private var cachedEvents: MutableList<Event>? = mutableListOf()
     private val logTag = "LaunchRulesEvaluator_$name"
     private val launchRulesConsequence: LaunchRulesConsequence = LaunchRulesConsequence(launchRulesEngine, extensionApi)

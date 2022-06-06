@@ -14,17 +14,19 @@ package com.adobe.marketing.mobile;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.support.annotation.VisibleForTesting;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MobileCore {
+final public class MobileCore {
     private final static String VERSION = "2.0.0";
     private final static String LOG_TAG = "MobileCore";
     private static final String NULL_CONTEXT_MESSAGE = "Context must be set before calling SDK methods";
     private static final Object mutex = new Object();
     private static boolean startActionCalled;
+    @VisibleForTesting
     private static EventHub eventHub;
 
     private MobileCore() {
@@ -94,7 +96,7 @@ public class MobileCore {
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
 
-        Log.setLoggingService(App.getPlatformServices().getLoggingService());
+        Log.setLoggingService(new AndroidLoggingService());
         eventHub = new EventHub("AMSEventHub", App.getPlatformServices(), VERSION);
 
         try {
@@ -969,7 +971,6 @@ public class MobileCore {
             Log.debug(LOG_TAG, "Failed to collect Activity data (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
-
         DataMarshaller marshaller = new DataMarshaller();
         marshaller.marshal(activity);
         final Map<String, Object> marshalledData = marshaller.getData();

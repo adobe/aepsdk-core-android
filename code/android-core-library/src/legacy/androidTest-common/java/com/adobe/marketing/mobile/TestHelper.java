@@ -55,13 +55,6 @@ public class TestHelper {
 		}
 	}
 
-	public void bootEventHub() {
-		// a hack before we fix the module registration issue
-		//trigger boot event to force loading bundled config
-		Event bootTrigger = new Event.Builder("EventHub", EventType.HUB, EventSource.BOOTED).build();
-		MobileCore.getCore().eventHub.dispatch(bootTrigger);
-	}
-
 	public void setAudienceServer() {
 		HashMap<String, Object> data = new HashMap<String, Object> ();
 		data.put("audience.server", "audience.com");

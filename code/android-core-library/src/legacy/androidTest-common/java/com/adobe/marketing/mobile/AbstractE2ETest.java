@@ -35,15 +35,13 @@ public class AbstractE2ETest {
 	public void setUp() {
 		TestingPlatform testingPlatform = new TestingPlatform();
 		testableNetworkService = testingPlatform.e2EAndroidNetworkService;
-		MobileCore.setCore(null);
-		MobileCore.setPlatformServices(testingPlatform);
 		MobileCore.setApplication(defaultApplication);
 		testHelper.cleanCache(defaultApplication.getApplicationContext());
 		TestHelper.cleanLocalStorage();
 	}
 
 	public void tearDown() {
-		MobileCore.setCore(null);
+
 	}
 
 	public class LogCat implements TestRule {

@@ -10,11 +10,11 @@
  */
 package com.adobe.marketing.mobile.internal.utility
 
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class MapExtensionsTests {
 
@@ -256,7 +256,6 @@ class MapExtensionsTests {
         )
     }
 
-
     // test "fnv1a32" hash algorithm and make sure the result should be the same in both iOS and Android SDKs.
     // tests in Swift Core => https://github.com/adobe/aepsdk-core-ios/blob/main/AEPCore/Tests/EventHubTests/HistoryTests/EventData%2BFNV1A32Tests.swift
     // Validations of this class are done against an online hash calculator: https://md5calc.com/hash/fnv1a32?str=
@@ -449,6 +448,4 @@ class MapExtensionsTests {
         ).fnv1a32()
         assertEquals(2933724447, hashCode)
     }
-
-
 }

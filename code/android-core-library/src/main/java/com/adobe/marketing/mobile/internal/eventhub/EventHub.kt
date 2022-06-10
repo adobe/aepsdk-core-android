@@ -187,7 +187,7 @@ internal class EventHub {
                 return@Callable false
             }
 
-            val extensionContainer: ExtensionContainer? = registeredExtensions[getExtensionTypeName(extensionName)]
+            val extensionContainer: ExtensionContainer? = getExtensionContainer(extensionName)
 
             if (extensionContainer == null) {
                 MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Error setting SharedState for extension: [$extensionName]. Extension may not have been registered.")
@@ -206,7 +206,8 @@ internal class EventHub {
                 getEventNumber(event) ?: lastEventNumber.incrementAndGet()
             }
 
-            val wasSet: Boolean = extensionContainer.setSharedState(sharedStateType, data, version) == SharedState.Status.SET
+            val result: SharedState.Status = extensionContainer.setSharedState(sharedStateType, data, version)
+            val wasSet: Boolean = (result == SharedState.Status.SET)
 
             // Check if the new state can be dispatched as a state change event(currently implies a
             // non null/non pending state according to the ExtensionAPI)
@@ -218,7 +219,7 @@ internal class EventHub {
                 // dispatch a shared state notification.
                 //  TODO: dispatch()
             }
-            return@Callable wasSet
+            return@Callable (result == SharedState.Status.PENDING || wasSet)
         }
 
         return eventHubExecutor.submit(setSharedStateCallable).get()
@@ -250,7 +251,7 @@ internal class EventHub {
                 return@Callable null
             }
 
-            val extensionContainer: ExtensionContainer? = registeredExtensions[getExtensionTypeName(extensionName)]
+            val extensionContainer: ExtensionContainer? = getExtensionContainer(extensionName)
 
             if (extensionContainer == null) {
                 MobileCore.log(
@@ -295,10 +296,10 @@ internal class EventHub {
                 MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Unable to clear SharedState. State name [$extensionName] is invalid.")
 
                 errorCallback?.error(ExtensionError.BAD_NAME)
-                return@Callable null
+                return@Callable false
             }
 
-            val extensionContainer: ExtensionContainer? = registeredExtensions[getExtensionTypeName(extensionName)]
+            val extensionContainer: ExtensionContainer? = getExtensionContainer(extensionName)
 
             if (extensionContainer == null) {
                 MobileCore.log(
@@ -346,7 +347,26 @@ internal class EventHub {
      */
     private fun getEventNumber(event: Event?): Int? {
         val eventUUID = event?.uniqueIdentifier
-        return eventNumberMap[eventUUID]
+        return if (eventUUID == null) {
+            null
+        } else eventNumberMap[eventUUID]
+    }
+
+    /**
+     * Retrieves a registered [ExtensionContainer] with [extensionTypeName] provided.
+     *
+     * @param [extensionName] the name of the extension for which an [ExtensionContainer] should be fetched.
+     *        This should match [Extension.name] of an extension registered with the event hub.
+     * @return [ExtensionContainer] with [extensionName] provided if one was registered,
+     *         null if no extension is registered with the [extensionName]
+     */
+    private fun getExtensionContainer(extensionName: String): ExtensionContainer? {
+        val extensionTypeName = getExtensionTypeName(extensionName)
+        return if (extensionTypeName == null) {
+            null
+        } else {
+            registeredExtensions[extensionTypeName]
+        }
     }
 
     /**

@@ -39,25 +39,25 @@ internal fun Class<out Extension>.initWith(extensionApi: ExtensionApi): Extensio
 /**
  * Property to get Extension name
  */
-internal val Extension.name: String?
+internal val Extension.extensionName: String?
     get() = ExtensionHelper.getName(this)
 
 /**
  * Property to get Extension version
  */
-internal val Extension.version: String?
+internal val Extension.extensionVersion: String?
     get() = ExtensionHelper.getVersion(this)
 
 /**
  * Property to get Extension friendly name
  */
-internal val Extension.friendlyName: String?
+internal val Extension.friendlyExtensionName: String?
     get() = ExtensionHelper.getFriendlyName(this)
 
 /**
  * Function to notify that the Extension has been unregistered
  */
-internal fun Extension.onUnregistered() {
+internal fun Extension.onExtensionUnregistered() {
     ExtensionHelper.onUnregistered(this)
 }
 

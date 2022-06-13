@@ -202,9 +202,9 @@ public class EventTest {
 
 		Map<String, Object> resultData = event.getEventData();
 		assertEquals(1, resultData.size());
-		resultData.put("new", "key");
+		assertThrows(UnsupportedOperationException.class, () -> {resultData.put("new", "key");});
 		assertEquals(1, event.getEventData().size());
-		resultData.clear();
+		assertThrows(UnsupportedOperationException.class, () -> {resultData.clear();});
 		assertEquals(1, event.getEventData().size());
 	}
 

@@ -27,5 +27,5 @@ data class RuleConsequence(
     var detail: Map<String, Any?>? = null
 ) {
     val eventData: Map<String, Any?>?
-        get() = detail?.get("eventData") as? Map<String, Any?>?
+        get() = detail?.get("eventdata") as? Map<String, Any?>?
 }

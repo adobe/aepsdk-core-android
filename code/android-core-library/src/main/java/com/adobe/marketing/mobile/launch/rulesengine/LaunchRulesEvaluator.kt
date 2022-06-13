@@ -13,29 +13,22 @@ package com.adobe.marketing.mobile.launch.rulesengine
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.ExtensionErrorCallback
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.utility.EventDataMerger
-import com.adobe.marketing.mobile.rulesengine.DelimiterPair
-import com.adobe.marketing.mobile.rulesengine.Template
-import com.adobe.marketing.mobile.rulesengine.TokenFinder
-import com.adobe.marketing.mobile.rulesengine.Transforming
 
 internal class LaunchRulesEvaluator(
     private val name: String,
     private val launchRulesEngine: LaunchRulesEngine,
-    private val extensionApi: ExtensionApi
-    ) : EventPreprocessor {
-
+    extensionApi: ExtensionApi
+) : EventPreprocessor {
 
     private var cachedEvents: MutableList<Event>? = mutableListOf()
     private val logTag = "LaunchRulesEvaluator_$name"
     private val launchRulesConsequence: LaunchRulesConsequence = LaunchRulesConsequence(launchRulesEngine, extensionApi)
 
-
     companion object {
         const val CACHED_EVENT_MAX = 99
+        // TODO: we should move the following event type/event source values to the public EventType/EventSource classes once we have those.
         const val EVENT_SOURCE_REQUEST_RESET = "com.adobe.eventsource.requestreset"
         const val EVENT_TYPE_RULES_ENGINE = "com.adobe.eventtype.rulesengine"
     }
@@ -47,13 +40,14 @@ internal class LaunchRulesEvaluator(
             reprocessCachedEvents()
         } else {
             cacheEvent(event)
+            return launchRulesConsequence.evaluateRulesConsequence(event)
         }
-        return launchRulesConsequence.evaluateRules(event)
+        return event
     }
 
     private fun reprocessCachedEvents() {
         cachedEvents?.forEach { event ->
-            launchRulesConsequence.evaluateRules(event)
+            launchRulesConsequence.evaluateRulesConsequence(event)
         }
         clearCachedEvents()
     }
@@ -100,4 +94,3 @@ internal class LaunchRulesEvaluator(
         }
     }
 }
-

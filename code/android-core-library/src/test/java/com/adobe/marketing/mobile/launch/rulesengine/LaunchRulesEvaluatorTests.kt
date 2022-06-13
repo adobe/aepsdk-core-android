@@ -11,6 +11,7 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -31,22 +32,26 @@ import org.powermock.modules.junit4.PowerMockRunner
 import org.powermock.reflect.Whitebox
 
 @RunWith(PowerMockRunner::class)
-@PrepareForTest(MobileCore::class)
+@PrepareForTest(ExtensionApi::class, MobileCore::class)
 class LaunchRulesEvaluatorTests {
 
     @Mock
-    lateinit var launchRulesEngine: LaunchRulesEngine
+    private lateinit var launchRulesEngine: LaunchRulesEngine
+
+    private lateinit var extensionApi: ExtensionApi
+    private lateinit var launchRulesEvaluator: LaunchRulesEvaluator
+    private val cachedEvents: MutableList<Event> = mutableListOf()
 
     @Before
     fun setup() {
+        extensionApi = PowerMockito.mock(ExtensionApi::class.java)
         PowerMockito.mockStatic(MobileCore::class.java)
+        launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine, extensionApi)
+        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
     }
 
     @Test
     fun `Process a null event`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         assertNull(launchRulesEvaluator.process(null))
         verify(launchRulesEngine, never()).process(any())
         assertEquals(0, cachedEvents.size)
@@ -54,9 +59,6 @@ class LaunchRulesEvaluatorTests {
 
     @Test
     fun `Cache incoming events if rules are not set`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         repeat(100) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
@@ -67,9 +69,6 @@ class LaunchRulesEvaluatorTests {
 
     @Test
     fun `Clear cached events if reached the limit`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         repeat(101) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
@@ -80,9 +79,6 @@ class LaunchRulesEvaluatorTests {
 
     @Test
     fun `Reprocess cached events when rules are ready`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
@@ -94,6 +90,7 @@ class LaunchRulesEvaluatorTests {
         launchRulesEvaluator.replaceRules(listOf())
         assertNotNull(eventCaptor.value)
         assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
+        assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
         assertEquals("com.adobe.eventsource.requestreset", eventCaptor.value.source)
         launchRulesEvaluator.process(eventCaptor.value)
         assertEquals(0, cachedEvents.size)
@@ -101,9 +98,6 @@ class LaunchRulesEvaluatorTests {
 
     @Test
     fun `Reprocess cached events in the right order`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
@@ -129,9 +123,6 @@ class LaunchRulesEvaluatorTests {
 
     @Test
     fun `Do nothing if set null rule`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()

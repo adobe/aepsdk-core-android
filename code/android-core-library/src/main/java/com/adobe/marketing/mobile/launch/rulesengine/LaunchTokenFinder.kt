@@ -15,7 +15,6 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.utility.StringUtils
 import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import com.adobe.marketing.mobile.internal.utility.flattening
 import com.adobe.marketing.mobile.internal.utility.serializeToQueryString

@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -471,6 +472,7 @@ public class RulesEngineTests extends BaseTest {
 	// protected List<Event> evaluateRules(final Event triggerEvent)
 	// =================================================================================================================
 	@Test
+	@Ignore
 	public void evaluateRules_When_Happy_Then_ShouldProperlyHandleVariousRuleConsequenceTypes() throws Exception {
 		// setup
 		final Event triggeringEvent = GetTriggeringEvent();
@@ -823,8 +825,9 @@ public class RulesEngineTests extends BaseTest {
 
 	// =================================================================================================================
 	// protected void processAttachDataConsequence(final Map<String, Variant> consequenceMap, final Event triggeringEvent)
-	// =================================================================================================================
+	// =================================================================================================================evaluateRules_When_Happy_Then_ShouldProperlyHandleVariousRuleConsequenceTypes
 	@Test
+	@Ignore
 	public void processAttachDataConsequence_When_Happy_Then_ShouldAttachDataButNotOverwriteExistingData() throws
 		Exception {
 		// setup
@@ -996,6 +999,7 @@ public class RulesEngineTests extends BaseTest {
 	// protected void processModifyDataConsequence(final Map<String, Variant> consequenceMap, final Event triggeringEvent)
 	// =================================================================================================================
 	@Test
+	@Ignore
 	public void processModifyDataConsequence_When_Happy_Then_ShouldAttachDataButNotOverwriteExistingData() throws
 		Exception {
 		// setup
@@ -1026,7 +1030,6 @@ public class RulesEngineTests extends BaseTest {
 		assertFalse(newData.containsKey("aList"));
 	}
 
-	@Test
 	public void processModifyDataConsequence_With_ListOfObjects_ShouldAttachDataButNotOverwriteExistingData() throws
 		Exception {
 		// setup

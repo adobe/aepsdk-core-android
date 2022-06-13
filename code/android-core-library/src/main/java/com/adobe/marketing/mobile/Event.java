@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.utils.EventDataUtils;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +29,7 @@ public final class Event {
 	private EventType   type;
 	private String      pairID;
 	private String      responsePairID;
-	private EventData   data;
+	private Map<String, Object> data;
 	private long        timestamp;
 	private int         eventNumber;
 	// Specifies the properties in the Event and its data that should be used in the hash for EventHistory storage.
@@ -75,7 +77,6 @@ public final class Event {
 			event.uniqueIdentifier = UUID.randomUUID().toString();
 			event.type = type;
 			event.source = source;
-			event.data = new EventData();
 			event.responsePairID = UUID.randomUUID().toString();
 			event.eventNumber = 0;
 			event.mask = mask;
@@ -134,10 +135,9 @@ public final class Event {
 			throwIfAlreadyBuilt();
 
 			try {
-				event.data = EventData.fromObjectMap(data);
+				event.data = EventDataUtils.immutableClone(data);
 			} catch (final Exception e) {
 				Log.warning("EventBuilder", "Event data couldn't be serialized, empty data was set instead %s", e);
-				event.data = new EventData();
 			}
 
 			return this;
@@ -157,6 +157,10 @@ public final class Event {
 				return null;
 			}
 
+			if (event.data == null) {
+				event.data = new HashMap<>();
+			}
+
 			if (event.timestamp == 0) {
 				event.timestamp = System.currentTimeMillis();
 			}
@@ -171,9 +175,15 @@ public final class Event {
 		 * @return this Event {@link Builder}
 		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
 		 */
+		@Deprecated
 		Builder setData(final EventData data) {
 			throwIfAlreadyBuilt();
-			event.data = data;
+			// Todo - Remove this method once all EventData usage is removed from Core.
+			try {
+				event.data = EventDataUtils.immutableClone(data.toObjectMap());
+			} catch (Exception ex) {
+				Log.error("Error", ex.toString());
+			}
 			return this;
 		}
 
@@ -320,14 +330,7 @@ public final class Event {
 	 * 			or if an error occurred while processing
 	 */
 	public Map<String, Object> getEventData() {
-		try {
-			return data.toObjectMap();
-		} catch (final Exception e) {
-			Log.warning("EventBuilder", "An error occurred while retrieving the event data for %s and %s, %s", type.getName(),
-						source.getName(), e);
-		}
-
-		return null;
+		return data;
 	}
 
 	/**
@@ -354,8 +357,15 @@ public final class Event {
 	/**
 	 * @return event parameters
 	 */
+	@Deprecated
 	EventData getData() {
-		return data;
+		// Todo - Remove this method once all EventData usage is removed from Core.
+		try {
+			return EventData.fromObjectMap(data);
+		} catch (Exception ex) {
+			Log.warning("Event", "Error creating EventData instance %s", ex);
+			return new EventData();
+		}
 	}
 
 	/**
@@ -458,9 +468,13 @@ public final class Event {
 		sb.append("    pairId: ").append(pairID).append(COMMA).append(NEWLINE);
 		sb.append("    responsePairId: ").append(responsePairID).append(COMMA).append(NEWLINE);
 		sb.append("    timestamp: ").append(timestamp).append(COMMA).append(NEWLINE);
-		sb.append("    data: ").append(data.prettyString(2)).append(NEWLINE);
-		sb.append("    mask: ").append(Arrays.toString(mask)).append(COMMA).append(NEWLINE);
-		sb.append("    fnv1aHash: ").append(data.toFnv1aHash(mask)).append(NEWLINE);
+		// Todo - Remove this once we completly remove EventData from core.
+		try {
+			EventData data = EventData.fromObjectMap(this.data);
+			sb.append("    data: ").append(data.prettyString(2)).append(NEWLINE);
+			sb.append("    mask: ").append(Arrays.toString(mask)).append(COMMA).append(NEWLINE);
+			sb.append("    fnv1aHash: ").append(data.toFnv1aHash(mask)).append(NEWLINE);
+		} catch (VariantException ex) {}
 		sb.append("}");
 
 		return sb.toString();

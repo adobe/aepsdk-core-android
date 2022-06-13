@@ -122,7 +122,7 @@ internal fun Map<String, Any?>.serializeToQueryString(): String {
         }
     }
 
-    return builder.substring(1).toString()
+    return if (builder.isNotEmpty()) builder.substring(1).toString() else builder.toString()
 }
 
 private fun Set<*>.isAllString(): Boolean {

@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.utils;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -72,7 +73,10 @@ public class EventDataUtils {
             return cloneMap((Map<?, ?>) obj, mode ,depth);
         } else if (obj instanceof Collection) {
             return cloneCollection((Collection<?>) obj, mode, depth);
-        } else {
+        } else if (obj.getClass().isArray()) {
+            return cloneArray(obj, mode, depth);
+        }
+        else {
             throw new CloneFailedException("Object is of unsupported type");
         }
     }
@@ -100,6 +104,19 @@ public class EventDataUtils {
             Object clonedElement = cloneObject(element, mode, depth + 1);
             ret.add(clonedElement);
         }
+        return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret): ret;
+    }
+
+    private static Collection<Object> cloneArray(Object array, CloneMode mode, int depth) throws CloneFailedException {
+        if (array == null) return  null;
+
+        List<Object> ret = new ArrayList<>();
+
+        int length = Array.getLength(array);
+        for (int i = 0; i < length; ++i) {
+            ret.add(cloneObject(Array.get(array, i), mode, depth + 1));
+        }
+
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret): ret;
     }
 

@@ -101,6 +101,7 @@ public class EventCoderTests {
 
 	@Test
 	public void testEncodeDecode_When_AllSupportEventDataTypes() {
+		// Todo revisit these tests
 		Map<String, Object> data = new HashMap() {
 			{
 				put("int", 3);
@@ -113,7 +114,7 @@ public class EventCoderTests {
 					{
 						put("int", 3);
 						put("doube", 3.11d);
-						put("long", 3l);
+						put("long", Long.MAX_VALUE);
 						put("null", null);
 						put("String", "abcd");
 						put("boolean", true);
@@ -124,7 +125,7 @@ public class EventCoderTests {
 						{
 							put("int", 3);
 							put("doube", 3.11d);
-							put("long", 3l);
+							put("long", Long.MAX_VALUE);
 							put("null", null);
 							put("String", "abcd");
 							put("boolean", true);
@@ -134,7 +135,7 @@ public class EventCoderTests {
 						{
 							put("int", 3);
 							put("doube", 3.11d);
-							put("long", 3l);
+							put("long", Long.MAX_VALUE);
 							put("null", null);
 							put("String", "abcd");
 							put("boolean", true);

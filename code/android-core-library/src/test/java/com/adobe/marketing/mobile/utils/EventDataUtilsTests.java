@@ -23,6 +23,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -120,6 +121,34 @@ public class EventDataUtilsTests {
 
         Map<String, Object> clonedData = EventDataUtils.clone(data);
         assertEquals(expectedData, clonedData);
+    }
+
+    @Test
+    public void testClone_Array() throws CloneFailedException {
+        String[] stringArray = new String[]{ "string1", "string2"};
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("stringArray", stringArray);
+
+        Map[] mapArray = new  Map[] {
+                new HashMap(),
+                new HashMap() {{
+                    put("k1" , "v1");
+                    put("k2" , "v2");
+                }},
+                new HashMap() {{
+                    put("integer", 1);
+                    put("float", 1f);
+                    put("double", 1d);
+                    put("string", "hello");
+                }}
+        };
+        data.put("mapArray", mapArray);
+
+        Map<String, Object> clonedData = EventDataUtils.clone(data);
+
+        assertEquals(clonedData.get("stringArray"), Arrays.asList(stringArray));
+        assertEquals(clonedData.get("mapArray"), Arrays.asList(mapArray));
     }
 
     @Test

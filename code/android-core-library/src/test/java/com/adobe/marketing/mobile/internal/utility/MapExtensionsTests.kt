@@ -255,4 +255,197 @@ class MapExtensionsTests {
             valueUnderTest
         )
     }
+
+    // test "fnv1a32" hash algorithm and make sure the result should be the same in both iOS and Android SDKs.
+    // tests in Swift Core => https://github.com/adobe/aepsdk-core-ios/blob/main/AEPCore/Tests/EventHubTests/HistoryTests/EventData%2BFNV1A32Tests.swift
+    // Validations of this class are done against an online hash calculator: https://md5calc.com/hash/fnv1a32?str=
+    // decimal to hex online converter: https://www.rapidtables.com/convert/number/decimal-to-hex.html
+    @Test
+    fun `test fnv1a32 - String`() {
+        val eventData = mapOf(
+            "key" to "value"
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(4007910315, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - optional String`() {
+        val optional: String? = "value"
+        val eventData = mapOf(
+            "key" to optional
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(4007910315, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - Char`() {
+        val eventData = mapOf(
+            "key" to 'a'
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(135500217, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - optional Char`() {
+        val optional: Char? = 'a'
+        val eventData = mapOf(
+            "key" to optional
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(135500217, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - Int`() {
+        val eventData = mapOf(
+            "key" to 552
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(874166902, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - optional Int`() {
+        val optional: Int? = 552
+        val eventData = mapOf(
+            "key" to optional
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(874166902, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - Long`() {
+        val eventData = mapOf(
+            "key" to 24L
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(2995581580, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - optional Long`() {
+        val optional: Long? = 24L
+        val eventData = mapOf(
+            "key" to optional
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(2995581580, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - Float`() {
+        val eventData = mapOf(
+            "key" to 5.52f
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(1449854826, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - optional Float`() {
+        val optional: Float? = 5.52f
+        val eventData = mapOf(
+            "key" to optional
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(1449854826, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - Double`() {
+        val eventData = mapOf(
+            "key" to "5.52".toDouble()
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(1449854826, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - optional Double`() {
+        val optional: Double? = "5.52".toDouble()
+        val eventData = mapOf(
+            "key" to optional
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(1449854826, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - Boolean`() {
+        val eventData = mapOf(
+            "key" to false
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(138493769, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - optional Boolean`() {
+        val optional: Boolean? = false
+        val eventData = mapOf(
+            "key" to optional
+        )
+        val hashCode = eventData.fnv1a32()
+        assertEquals(138493769, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - mask key is present`() {
+        val eventData = mapOf(
+            "key" to "value",
+            "unusedKey" to "unusedValue"
+        )
+        val hashCode = eventData.fnv1a32(arrayOf("key"))
+        assertEquals(4007910315, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - mask key is not present`() {
+        val eventData = mapOf(
+            "key" to "value"
+        )
+        val hashCode = eventData.fnv1a32(arrayOf("404"))
+        assertEquals(0, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - get keys Ascii sorted`() {
+        val hashCode1 = mapOf(
+            "key" to "value",
+            "number" to 1234,
+            "UpperCase" to "abc",
+            "_underscore" to "score"
+        ).fnv1a32()
+        val hashCode2 = mapOf(
+            "number" to 1234,
+            "key" to "value",
+            "_underscore" to "score",
+            "UpperCase" to "abc"
+        ).fnv1a32()
+        assertEquals(960895195, hashCode1)
+        assertEquals(hashCode2, hashCode1)
+    }
+
+    @Test
+    fun `test fnv1a32 - big sort`() {
+        val hashCode = mapOf(
+            "a" to "1",
+            "A" to "2",
+            "ba" to "3",
+            "Ba" to "4",
+            "Z" to "5",
+            "z" to "6",
+            "r" to "7",
+            "R" to "8",
+            "bc" to "9",
+            "Bc" to "10",
+            "1" to 1,
+            "222" to 222
+        ).fnv1a32()
+        assertEquals(2933724447, hashCode)
+    }
 }

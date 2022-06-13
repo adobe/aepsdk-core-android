@@ -20,8 +20,6 @@ internal class LaunchRulesEvaluator(
     private val launchRulesEngine: LaunchRulesEngine
 ) : EventPreprocessor {
 
-    constructor(name: String) : this(name, LaunchRulesEngine())
-
     private var cachedEvents: MutableList<Event>? = mutableListOf()
     private val logTag = "LaunchRulesEvaluator_$name"
 

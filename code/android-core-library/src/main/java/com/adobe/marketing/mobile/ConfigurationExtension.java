@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.internal.utility.TimeUtil;
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine;
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator;
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser;
 
@@ -136,8 +137,11 @@ class ConfigurationExtension extends InternalModule {
 
         rulesDownloadExecutor = Executors.newSingleThreadExecutor();
         this.cachedEvents = Collections.synchronizedList(new ArrayList<Event>());
-        launchRulesEvaluator = new LaunchRulesEvaluator(LAUNCH_RULES_ENGINE);
-        eventHub.registerPreprocessor(launchRulesEvaluator);
+        //TODO: need to pass an instance of ExtensionAPi to initialize LaunchRulesEngine, will do it later after we converted Configuration to a 3th party extension.
+        LaunchRulesEngine launchRulesEngine = new LaunchRulesEngine(null);
+        launchRulesEvaluator = new LaunchRulesEvaluator(LAUNCH_RULES_ENGINE, launchRulesEngine);
+        //TODO: enable pre-processor to utilize the new RulesEngine after the Configuration is converted to a 3th party extension.
+        //eventHub.registerPreprocessor(launchRulesEvaluator);
     }
 
     ConfigurationDispatcherConfigurationResponseIdentity createResponseIdentityDispatcher() {

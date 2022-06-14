@@ -9,24 +9,32 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile
+package com.adobe.marketing.mobile.launch.rulesengine
 
+import com.adobe.marketing.mobile.BaseTest
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.TimeUtil
-import com.adobe.marketing.mobile.launch.rulesengine.LaunchTokenFinder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.powermock.api.mockito.PowerMockito
+import org.powermock.core.classloader.annotations.PrepareForTest
+import org.powermock.modules.junit4.PowerMockRunner
 
+@RunWith(PowerMockRunner::class)
+@PrepareForTest(ExtensionApi::class)
 class LaunchTokenFinderTest : BaseTest() {
 
     private lateinit var extensionApi: ExtensionApi
 
     @Before
     fun setup() {
-        super.beforeEach()
-        extensionApi = ExtensionApi(eventHub)
+        extensionApi = PowerMockito.mock(ExtensionApi::class.java)
     }
 
     @Test
@@ -122,10 +130,11 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all string variables on valid event encoded in url format`() {
         // setup
-        val testEventData = EventData()
-        testEventData.putString("key1", "value 1")
-        testEventData.putNull("key8")
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf<String, Any?>(
+            "key1" to "value 1",
+            "key8" to null
+        )
+        val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~all_url")
@@ -136,10 +145,11 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all numeric variables on valid event encoded in url format`() {
         // setup
-        val testEventData = EventData()
-        testEventData.putInteger("key3", 123)
-        testEventData.putLong("key4", -456L)
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf<String, Any?>(
+            "key3" to 123,
+            "key4" to -456L
+        )
+        val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~all_url")
@@ -150,10 +160,11 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all boolean variables on valid event encoded in url format`() {
         // setup
-        val testEventData = EventData()
-        testEventData.putBoolean("key2", true)
-        testEventData.putDouble("key5", -123.456)
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf<String, Any?>(
+            "key2" to true,
+            "key5" to -123.456
+        )
+        val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~all_url")
@@ -164,12 +175,10 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all list variables on valid event encoded in url format`() {
         // setup
-        val testEventData = EventData()
-        val stringList: MutableList<String> = ArrayList()
-        stringList.add("String1")
-        stringList.add("String2")
-        testEventData.putStringList("key6", stringList)
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf<String, Any?>(
+            "key6" to listOf<String>("String1", "String2")
+        )
+        val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~all_url")
@@ -180,12 +189,13 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all map variables on valid event encoded in url format`() {
         // setup
-        val testEventData = EventData()
-        val stringMap: MutableMap<String?, String?> = HashMap()
-        stringMap["innerKey1"] = "inner val1"
-        stringMap["innerKey2"] = "innerVal2"
-        testEventData.putStringMap("key7", stringMap)
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf<String, Any?>(
+            "key7" to mapOf<String, Any?>(
+                "innerKey1" to "inner val1",
+                "innerKey2" to "innerVal2"
+            )
+        )
+        val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~all_url")
@@ -196,7 +206,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return empty string on event with no event data for url`() {
         // setup
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
+        val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~all_url")
@@ -236,12 +246,12 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return empty string on event with no event data for json`() {
         // setup
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
+        val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~all_json")
         // verify
-        assertEquals("", result)
+        assertEquals("{}", result)
     }
 
     // TODO uncomment when map flattening logic is finalized
@@ -297,7 +307,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return null when key does not have shared state name`() {
         // setup
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
+        val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~state.")
@@ -308,7 +318,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return null when key does not have shared state key name`() {
         // setup
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
+        val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/")
@@ -319,7 +329,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return null when key does not have valid format`() {
         // setup
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
+        val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~state.com.adobe/.marketing.mobile.Analytics/analytics.contextData.akey")
@@ -330,8 +340,8 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return null when key does not exist in shared state`() {
         // setup
-        val testEventData = EventData()
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf<String, Any?>()
+        val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData.akey")
@@ -351,15 +361,16 @@ class LaunchTokenFinderTest : BaseTest() {
         assertEquals("value1", result)
     } */
 
+    // TODO change if we decide to keep event data as null instead of empty map by default
     @Test
-    fun `get should return empty string when event data is null on valid event`() {
+    fun `get should return null when event data is null on valid event`() {
         // setup
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
+        val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("key1")
         // verify
-        assertEquals("", result)
+        assertEquals(null, result)
     }
 
     // TODO uncomment when map flattening logic is finalized
@@ -448,14 +459,16 @@ class LaunchTokenFinderTest : BaseTest() {
         assertEquals("inner val1", result)
     } */
 
-    private fun getEvent(type: EventType?, source: EventSource?, eventData: EventData?): Event {
-        return Event.Builder("TEST", type, source)
-                .setData(eventData).build()
+    private fun getDefaultEvent(eventData: Map<String, Any?>?): Event {
+        return Event.Builder(
+            "TEST",
+            "com.adobe.eventType.analytics",
+            "com.adobe.eventSource.requestContent"
+        ).setEventData(eventData).build()
     }
 
     private fun getDefaultEvent(): Event {
-        val testEventData = EventData()
-        testEventData.putString("key1", "value1")
-        return getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf<String, Any?>("key1" to "value1")
+        return getDefaultEvent(testEventData)
     }
 }

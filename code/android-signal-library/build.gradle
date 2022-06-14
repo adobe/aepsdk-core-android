@@ -16,24 +16,6 @@ android {
     }
 
     sourceSets {
-        test{
-            java{
-                srcDirs += "src/legacy/test-common/java"
-                srcDirs += "src/legacy/test-module/java"
-                srcDirs += "src/test/kotlin"
-            }
-            resources{
-                srcDirs += "src/legacy/test-module/resources"
-            }
-        }
-        main{
-            java{
-                srcDirs += "src/legacy/main/java"
-            }
-        }
-        androidTest{
-            java.srcDirs += "src/legacy/androidTest-common/java"
-        }
     }
 
     testOptions {
@@ -51,7 +33,7 @@ android {
 
     buildTypes {
         debug {
-            testCoverageEnabled false
+            testCoverageEnabled true
             debuggable true
         }
         release {
@@ -69,50 +51,15 @@ android {
         jvmTarget = JavaVersion.VERSION_1_8
     }
 }
-apply plugin: 'jacoco'
-task jacocoTestReport(type: JacocoReport, dependsOn: ['testPhoneDebugUnitTest','createPhoneDebugCoverageReport']) {
-
-    def debugTree = fileTree(dir: "${project.buildDir}/intermediates/javac/phoneDebug/classes")
-
-    additionalClassDirs.setFrom files([debugTree])
-    additionalSourceDirs.setFrom files(android.sourceSets.phone.java.sourceFiles)
-    sourceDirectories.setFrom files(android.sourceSets.main.java.sourceFiles)
-    executionData.setFrom fileTree(dir: "$buildDir", includes: [
-            "jacoco/testPhoneDebugUnitTest.exec",
-            "outputs/code_coverage/phoneDebugAndroidTest/connected/*coverage.ec"
-    ])
-    reports {
-        xml.enabled true
-        csv.enabled false
-        html.enabled true
-    }
-}
-
-android.libraryVariants.all { variant ->
-    tasks.withType(Javadoc) {
-        source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-
-        doFirst{classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)}
-
-        exclude "**/BuildConfig.java"
-        exclude "**/R.java"
-        options {
-            links "https://developer.android.com/reference"
-        }
-    }
-}
-
-
-apply from: 'checkStyle.gradle'
-apply from: 'release.gradle'
 
 dependencies {
     //noinspection GradleCompatible
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    implementation project(path: ':android-core-library')
     // unit tests
     testImplementation "junit:junit:4.13.2"
+    testImplementation project(path: ':android-signal-library')
     //noinspection GradleDependency
     testImplementation "org.mockito:mockito-core:2.22.0"
     testImplementation 'org.powermock:powermock-api-mockito2:2.0.0'
@@ -122,13 +69,7 @@ dependencies {
     //noinspection GradleDependency
     testImplementation 'org.json:json:20160810'
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-//    testImplementation project(path: ':android-core-library')
     // instrumentation tests
     androidTestImplementation 'androidx.test:rules:1.1.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-//    androidTestImplementation project(path: ':android-core-library')
-}
-
-repositories {
-    mavenCentral()
 }

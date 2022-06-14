@@ -15,7 +15,6 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.utility.StringUtils
 import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import com.adobe.marketing.mobile.internal.utility.flattening
 import com.adobe.marketing.mobile.internal.utility.serializeToQueryString
@@ -110,20 +109,9 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
     // private getter methods
     // ========================================================
 
-    /**
-     * Returns the value for shared state key specified by the [key].
-     *
-     *
-     * The [key] is provided in the format ~state.valid_shared_state_name/key
-     * For example: ~state.com.adobe.marketing.mobile.Identity/mid
-     *
-     * @param key [String] containing the key to search for in `EventHub#moduleSharedStates`
-     *
-     * @return [Any] containing the value for the shared state key if valid, null otherwise
-     */
     private fun getValueFromSharedState(key: String): Any? {
         val sharedStateKeyString = key.substring(KEY_SHARED_STATE.length)
-        if (StringUtils.isNullOrEmpty(sharedStateKeyString)) {
+        if (sharedStateKeyString.isBlank()) {
             return null
         }
         if (!sharedStateKeyString.contains(SHARED_STATE_KEY_DELIMITER)) {
@@ -137,7 +125,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
                 String.format("Unable to replace the token %s, token not found in shared state for the event", key)
             )
         }?.flattening()
-        if (sharedStateMap == null || sharedStateMap.isEmpty() || StringUtils.isNullOrEmpty(dataKeyName) || !sharedStateMap.containsKey(dataKeyName)) {
+        if (sharedStateMap.isNullOrEmpty() || dataKeyName.isBlank() || !sharedStateMap.containsKey(dataKeyName)) {
             return null
         }
         return sharedStateMap[dataKeyName]
@@ -162,6 +150,5 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
         // TODO uncomment once map flattening logic is finalized
         val eventDataMap = event.eventData.flattening()
         return eventDataMap[key]
-        return EMPTY_STRING
     }
 }

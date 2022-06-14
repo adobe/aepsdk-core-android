@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.EventDataMerger
+import com.adobe.marketing.mobile.internal.utility.prettify
 import com.adobe.marketing.mobile.rulesengine.DelimiterPair
 import com.adobe.marketing.mobile.rulesengine.Template
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
@@ -183,11 +184,10 @@ class LaunchRulesConsequence(
             )
             return null
         }
-        // TODO add utility function for map pretty print
         MobileCore.log(
             LoggingMode.VERBOSE,
             logTag,
-            "Attaching event data with $from"
+            "Attaching event data with ${from.prettify()}"
         )
         return EventDataMerger.merge(from, to, false)
     }
@@ -219,11 +219,10 @@ class LaunchRulesConsequence(
             )
             return null
         }
-        // TODO add utility function for map pretty print
         MobileCore.log(
             LoggingMode.VERBOSE,
             logTag,
-            "Modifying event data with $from"
+            "Modifying event data with ${from.prettify()}"
         )
         return EventDataMerger.merge(from, to, true)
     }
@@ -282,6 +281,11 @@ class LaunchRulesConsequence(
             .build()
     }
 
+    /**
+     * Generate a consequence event with provided consequence data
+     * @param consequence [RuleConsequence] of the rule
+     * @return a consequence [Event]
+     */
     private fun generateConsequenceEvent(consequence: RuleConsequence): Event? {
         val eventData = mutableMapOf<String, Any?>()
         eventData[CONSEQUENCE_EVENT_DATA_KEY_DETAIL] = consequence.detail

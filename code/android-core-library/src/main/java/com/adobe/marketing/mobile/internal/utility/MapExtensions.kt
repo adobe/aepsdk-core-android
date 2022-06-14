@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.internal.utility
 
 import com.adobe.marketing.mobile.internal.utility.UrlUtilities.urlEncode
+import org.json.JSONObject
 
 /**
  * Convert map to a decimal FNV1a 32-bit hash. If a mask is provided, only use keys in the provided mask and alphabetize their order.
@@ -123,6 +124,21 @@ internal fun Map<String, Any?>.serializeToQueryString(): String {
     }
 
     return if (builder.isNotEmpty()) builder.substring(1).toString() else builder.toString()
+}
+
+/**
+ * Converts a map to a prettified JSON string
+ *
+ * @return map as json string
+ */
+
+internal fun Map<String, Any?>?.prettify(): String {
+    if (this == null) return ""
+    return try {
+        JSONObject(this).toString(4)
+    } catch (e: Exception) {
+        return this.toString()
+    }
 }
 
 private fun Set<*>.isAllString(): Boolean {

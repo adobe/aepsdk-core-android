@@ -90,7 +90,6 @@ class LaunchRulesEvaluatorTests {
         launchRulesEvaluator.replaceRules(listOf())
         assertNotNull(eventCaptor.value)
         assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
-        assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
         assertEquals("com.adobe.eventsource.requestreset", eventCaptor.value.source)
         launchRulesEvaluator.process(eventCaptor.value)
         assertEquals(0, cachedEvents.size)

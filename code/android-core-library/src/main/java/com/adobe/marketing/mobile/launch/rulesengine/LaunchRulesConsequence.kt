@@ -290,8 +290,7 @@ class LaunchRulesConsequence(
         return Event.Builder(
             CONSEQUENCE_EVENT_NAME,
             EVENT_TYPE_RULES_ENGINE,
-            EVENT_SOURCE_RESPONSE_CONTENT
-        )
+            EVENT_SOURCE_RESPONSE_CONTENT)
             .setEventData(mapOf(CONSEQUENCE_EVENT_DATA_KEY_CONSEQUENCE to eventData))
             .build()
     }

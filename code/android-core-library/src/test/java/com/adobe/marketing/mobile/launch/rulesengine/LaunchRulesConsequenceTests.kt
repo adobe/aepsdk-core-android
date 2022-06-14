@@ -228,7 +228,8 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventCopy.json")
 
-        val event = Event.Builder("Application Launch",
+        val event = Event.Builder(
+            "Application Launch",
             "com.adobe.eventType.lifecycle",
             "com.adobe.eventSource.applicationLaunch")
             .setEventData(mapOf("xdm" to "test data"))
@@ -259,7 +260,8 @@ class LaunchRulesConsequenceTests {
         //        }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventCopy.json")
-        val event = Event.Builder("Application Launch",
+        val event = Event.Builder(
+            "Application Launch",
             "com.adobe.eventType.lifecycle",
             "com.adobe.eventSource.applicationLaunch")
             .setEventData(null)
@@ -297,7 +299,8 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
 
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventNewData.json")
-        val event = Event.Builder("Application Launch",
+        val event = Event.Builder(
+            "Application Launch",
             "com.adobe.eventType.lifecycle",
             "com.adobe.eventSource.applicationLaunch")
             .setEventData(mapOf("xdm" to "test data"))
@@ -331,7 +334,8 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
 
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventNewNoData.json")
-        val event = Event.Builder("Application Launch",
+        val event = Event.Builder(
+            "Application Launch",
             "com.adobe.eventType.lifecycle",
             "com.adobe.eventSource.applicationLaunch")
             .setEventData(mapOf("xdm" to "test data"))
@@ -364,7 +368,8 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
 
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventInvalidAction.json")
-        val event = Event.Builder("Application Launch",
+        val event = Event.Builder(
+            "Application Launch",
             "com.adobe.eventType.lifecycle",
             "com.adobe.eventSource.applicationLaunch")
             .setEventData(mapOf("xdm" to "test data"))
@@ -393,7 +398,8 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
 
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventNoAction.json")
-        val event = Event.Builder("Application Launch",
+        val event = Event.Builder(
+            "Application Launch",
             "com.adobe.eventType.lifecycle",
             "com.adobe.eventSource.applicationLaunch")
             .setEventData(mapOf("xdm" to "test data"))
@@ -421,7 +427,8 @@ class LaunchRulesConsequenceTests {
         //        }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventNoType.json")
-        val event = Event.Builder("Application Launch",
+        val event = Event.Builder(
+            "Application Launch",
             "com.adobe.eventType.lifecycle",
             "com.adobe.eventSource.applicationLaunch")
             .setEventData(mapOf("xdm" to "test data"))
@@ -449,7 +456,8 @@ class LaunchRulesConsequenceTests {
         //        }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventNoSource.json")
-        val event = Event.Builder("Application Launch",
+        val event = Event.Builder(
+            "Application Launch",
             "com.adobe.eventType.lifecycle",
             "com.adobe.eventSource.applicationLaunch")
             .setEventData(mapOf("xdm" to "test data"))
@@ -467,7 +475,7 @@ class LaunchRulesConsequenceTests {
     }
 
     @Test
-    fun `Test Chained Dispatch Events`() {
+    fun `Test Dispatch Event chained Dispatch Events`() {
         // / Given: a launch rule to dispatch an event with the same type and source which triggered the consequence
 
         //    ---------- dispatch event rule condition ----------
@@ -501,24 +509,418 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
-        val event = Event.Builder("Edge Request",
+        val event = Event.Builder(
+            "Edge Request",
             "com.adobe.eventType.edge",
             "com.adobe.eventSource.requestContent")
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event)
-
         // Process original event; dispatch chain count = 0
+        launchRulesConsequence.evaluateRulesConsequence(event)
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
         PowerMockito.verifyStatic(MobileCore::class.java, times(1))
         MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to not be called max allowed chained events is 1
-        val secondDispatchEvent = launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value)
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value)
         PowerMockito.verifyStatic(MobileCore::class.java, times(1))
         MobileCore.dispatchEvent(any(), any())
+    }
+
+    @Test
+    fun `Test Dispatch Event multiple Processing of Same Original Event`() {
+        // Given: a launch rule to dispatch an event with the same type and source which triggered the consequence
+
+        //    ---------- dispatch event rule condition ----------
+        //        "conditions": [
+        //        {
+        //          "type": "matcher",
+        //          "definition": {
+        //            "key": "~type",
+        //            "matcher": "eq",
+        //            "values": [
+        //              "com.adobe.eventType.edge"
+        //            ]
+        //          }
+        //        },
+        //        {
+        //          "type": "matcher",
+        //          "definition": {
+        //            "key": "~source",
+        //            "matcher": "eq",
+        //            "values": [
+        //              "com.adobe.eventSource.requestContent"
+        //            ]
+        //          }
+        //        }
+        //      ]
+        //    ---------- dispatch event rule consequence ----------
+        //        "detail": {
+        //           "type" : "com.adobe.eventType.edge",
+        //           "source" : "com.adobe.eventSource.requestContent",
+        //           "eventdataaction" : "copy"
+        //         }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
+        val event = Event.Builder(
+            "Edge Request",
+            "com.adobe.eventType.edge",
+            "com.adobe.eventSource.requestContent")
+            .setEventData(mapOf("xdm" to "test data"))
+            .build()
+
+        // Process original event; dispatch chain count = 0
+        launchRulesConsequence.evaluateRulesConsequence(event)
+        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
+        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+
+        // Process dispatched event; dispatch chain count = 1
+        // Expect dispatch to fail as max allowed chained events is 1
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
+        MobileCore.dispatchEvent(any(), any())
+
+        // Process dispatched event; dispatch chain count = 1
+        // Expect event to be processed as if first time
+        launchRulesConsequence.evaluateRulesConsequence(event)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+
+        // Process dispatched event; dispatch chain count = 1
+        // Expect dispatch to fail as max allowed chained events is 1
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(any(), any())
+    }
+
+    @Test
+    fun `Test Dispatch Event multiple Processing of Same Dispatched Event`() {
+        // Given: a launch rule to dispatch an event with the same type and source which triggered the consequence
+
+        //    ---------- dispatch event rule condition ----------
+        //        "conditions": [
+        //        {
+        //          "type": "matcher",
+        //          "definition": {
+        //            "key": "~type",
+        //            "matcher": "eq",
+        //            "values": [
+        //              "com.adobe.eventType.edge"
+        //            ]
+        //          }
+        //        },
+        //        {
+        //          "type": "matcher",
+        //          "definition": {
+        //            "key": "~source",
+        //            "matcher": "eq",
+        //            "values": [
+        //              "com.adobe.eventSource.requestContent"
+        //            ]
+        //          }
+        //        }
+        //      ]
+        //    ---------- dispatch event rule consequence ----------
+        //        "detail": {
+        //           "type" : "com.adobe.eventType.edge",
+        //           "source" : "com.adobe.eventSource.requestContent",
+        //           "eventdataaction" : "copy"
+        //         }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
+        val event = Event.Builder(
+            "Edge Request",
+            "com.adobe.eventType.edge",
+            "com.adobe.eventSource.requestContent")
+            .setEventData(mapOf("xdm" to "test data"))
+            .build()
+
+        // Process original event; dispatch chain count = 0
+        launchRulesConsequence.evaluateRulesConsequence(event)
+        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
+        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+
+        // Process dispatched event; dispatch chain count = 1
+        // Expect dispatch to fail as max allowed chained events is 1
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
+        MobileCore.dispatchEvent(any(), any())
+
+        // Process dispatched event; dispatch chain count = 1
+        // Expect event to be processed as if first time
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+
+        // Process dispatched event; dispatch chain count = 1
+        // Expect dispatch to fail as max allowed chained events is 1
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(any(), any())
+    }
+
+    @Test
+    fun `Test Dispatch Event interleaved Chained Dispatched Event`() {
+        // Given: two launch rules with the same consequence but different event triggers
+
+        //    ---------- dispatch event rule 1 condition ----------
+        //        "conditions": [
+        //        {
+        //          "type": "matcher",
+        //          "definition": {
+        //            "key": "~type",
+        //            "matcher": "eq",
+        //            "values": [
+        //              "com.adobe.eventType.edge"
+        //            ]
+        //          }
+        //        },
+        //        {
+        //          "type": "matcher",
+        //          "definition": {
+        //            "key": "~source",
+        //            "matcher": "eq",
+        //            "values": [
+        //              "com.adobe.eventSource.requestContent"
+        //            ]
+        //          }
+        //        }
+        //      ]
+        //    ---------- dispatch event rule 1 consequence ----------
+        //        "detail": {
+        //           "type" : "com.adobe.eventType.edge",
+        //           "source" : "com.adobe.eventSource.requestContent",
+        //           "eventdataaction" : "copy"
+        //         }
+        //    --------------------------------------
+
+        //    ---------- dispatch event rule 2 condition ----------
+        //        "conditions": [
+        //       {
+        //         "type": "matcher",
+        //         "definition": {
+        //           "key": "~type",
+        //           "matcher": "eq",
+        //           "values": [
+        //             "com.adobe.eventType.lifecycle"
+        //           ]
+        //         }
+        //       },
+        //       {
+        //         "type": "matcher",
+        //         "definition": {
+        //           "key": "~source",
+        //           "matcher": "eq",
+        //           "values": [
+        //             "com.adobe.eventSource.applicationLaunch"
+        //           ]
+        //         }
+        //       }
+        //     ]
+        //    ---------- dispatch event rule 2 consequence ----------
+        //        "detail": {
+        //           "type" : "com.adobe.eventType.edge",
+        //           "source" : "com.adobe.eventSource.requestContent",
+        //           "eventdataaction" : "copy"
+        //         }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
+
+        // Then: dispatch event to trigger rule 1
+        val eventEdgeRequest = Event.Builder(
+            "Edge Request",
+            "com.adobe.eventType.edge",
+            "com.adobe.eventSource.requestContent")
+            .setEventData(mapOf("xdm" to "test data"))
+            .build()
+
+        // Then: dispatch event to trigger rule 2
+        val eventLaunch = Event.Builder(
+            "Application Launch",
+            "com.adobe.eventType.lifecycle",
+            "com.adobe.eventSource.applicationLaunch")
+            .setEventData(mapOf("xdm" to "test data"))
+            .build()
+
+        // Process original event; dispatch chain count = 0
+        launchRulesConsequence.evaluateRulesConsequence(eventEdgeRequest)
+        val dispatchedEventCaptor1: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
+        MobileCore.dispatchEvent(dispatchedEventCaptor1.capture(), any())
+
+        // Process launch event
+        launchRulesConsequence.evaluateRulesConsequence(eventLaunch)
+        val dispatchedEventCaptor2: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(dispatchedEventCaptor2.capture(), any())
+
+        // Process first dispatched event; dispatch chain count = 1
+        // Expect dispatch to fail as max allowed chained events is 1
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor1.value)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(any(), any())
+
+        // Process second dispatched event; dispatch chain count = 1
+        // Expect dispatch to fail as max allowed chained events is 1
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor2.value)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(any(), any())
+    }
+
+    @Test
+    fun `Test Dispatch Event processed Event matches multiple Dispatch Consequences`() {
+        // Given: two launch rules with the same consequence but different conditions
+
+        //    ---------- dispatch event rule 1 condition ----------
+        //        "conditions": [
+        //        {
+        //          "type": "matcher",
+        //          "definition": {
+        //            "key": "~type",
+        //            "matcher": "eq",
+        //            "values": [
+        //              "com.adobe.eventType.edge"
+        //            ]
+        //          }
+        //        },
+        //        {
+        //          "type": "matcher",
+        //          "definition": {
+        //            "key": "~source",
+        //            "matcher": "eq",
+        //            "values": [
+        //              "com.adobe.eventSource.requestContent"
+        //            ]
+        //          }
+        //        }
+        //      ]
+        //    ---------- dispatch event rule 1 consequence ----------
+        //        "detail": {
+        //           "type" : "com.adobe.eventType.edge",
+        //           "source" : "com.adobe.eventSource.requestContent",
+        //           "eventdataaction" : "copy"
+        //         }
+        //    --------------------------------------
+
+        //    ---------- dispatch event rule 2 condition ----------
+        //        "conditions": [
+        //          {
+        //            "type": "matcher",
+        //            "definition": {
+        //              "key": "dispatch",
+        //              "matcher": "eq",
+        //              "values": [
+        //                "yes"
+        //              ]
+        //            }
+        //          }
+        //        ]
+        //    ---------- dispatch event rule 2 consequence ----------
+        //        "detail": {
+        //           "type" : "com.adobe.eventType.edge",
+        //           "source" : "com.adobe.eventSource.requestContent",
+        //           "eventdataaction" : "copy"
+        //         }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
+
+        // Then:  dispatch event which will trigger two launch rules
+        val event = Event.Builder(
+            "Edge Request",
+            "com.adobe.eventType.edge",
+            "com.adobe.eventSource.requestContent")
+            .setEventData(mapOf("dispatch" to "yes"))
+            .build()
+
+        // Process original event, expect 2 dispatched events
+        launchRulesConsequence.evaluateRulesConsequence(event)
+        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+
+        // Process dispatched event 1, expect 0 dispatch events
+        // chain count = 1, which is max chained events
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.allValues[0])
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(any(), any())
+
+        // Process dispatched event 2, expect 0 dispatch events
+        // chain count = 1, which is max chained events
+        launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.allValues[1])
+        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
+        MobileCore.dispatchEvent(any(), any())
+    }
+
+    @Test
+    fun `Test Url Encode`() {
+        // Given:         {
+        //          "id": "RC48ef3f5e83c84405a3da6cc5128c090c",
+        //          "type": "url",
+        //          "detail": {
+        //            "url": "http://www.adobe.com/a={%urlenc(~state.com.adobe.module.lifecycle/lifecyclecontextdata.carriername)%}"
+        //          }
+        //        }
+
+        resetRulesEngine("rules_module_tests/consequence_rules_testUrlenc.json")
+
+        PowerMockito.`when`(extensionApi.getSharedEventState(ArgumentMatchers.anyString(), any(), any())).thenReturn(
+            mapOf(
+                "lifecyclecontextdata" to mapOf(
+                    "carriername" to "x y"
+                )
+            )
+        )
+
+        launchRulesConsequence.evaluateRulesConsequence(defaultEvent)
+
+        val consequenceEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
+        MobileCore.dispatchEvent(consequenceEventCaptor.capture(), any())
+
+        assertEquals("com.adobe.eventtype.rulesengine", consequenceEventCaptor.value.type)
+        assertEquals("com.adobe.eventsource.responsecontent", consequenceEventCaptor.value.source)
+        val data = consequenceEventCaptor.value.eventData?.get("triggeredconsequence") as Map<*, *>?
+        val detail = data?.get("detail") as Map<*, *>?
+        assertEquals("url", data?.get("type"))
+        assertEquals("http://www.adobe.com/a=x%20y", detail?.get("url"))
+    }
+
+    @Test
+    fun `Test Url Encode Invalid Fn Name`() {
+        // Given:
+        //    {
+        //      "id": "RC48ef3f5e83c84405a3da6cc5128c090c",
+        //      "type": "url",
+        //      "detail": {
+        //        "url": "http://www.adobe.com/a={%urlenc1(~state.com.adobe.module.lifecycle/lifecyclecontextdata.carriername)%}"
+        //      }
+        //    }
+        resetRulesEngine("rules_module_tests/consequence_rules_testUrlenc_invalidFnName.json")
+
+        PowerMockito.`when`(extensionApi.getSharedEventState(ArgumentMatchers.anyString(), any(), any())).thenReturn(
+            mapOf(
+                "lifecyclecontextdata" to mapOf(
+                    "carriername" to "x y"
+                )
+            )
+        )
+
+        launchRulesConsequence.evaluateRulesConsequence(defaultEvent)
+
+        val consequenceEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
+        MobileCore.dispatchEvent(consequenceEventCaptor.capture(), any())
+
+        assertEquals("com.adobe.eventtype.rulesengine", consequenceEventCaptor.value.type)
+        assertEquals("com.adobe.eventsource.responsecontent", consequenceEventCaptor.value.source)
+        val data = consequenceEventCaptor.value.eventData?.get("triggeredconsequence") as Map<*, *>?
+        val detail = data?.get("detail") as Map<*, *>?
+        assertEquals("url", data?.get("type"))
+        assertEquals("http://www.adobe.com/a=x y", detail?.get("url"))
     }
 
     private fun resetRulesEngine(rulesFileName: String) {

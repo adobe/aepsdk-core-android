@@ -301,6 +301,7 @@ public final class Event {
 		newEvent.timestamp = this.timestamp;
 		newEvent.pairID = this.pairID;
 		newEvent.responsePairID = this.responsePairID;
+		newEvent.eventNumber = this.eventNumber;
 		return  newEvent;
 	}
 

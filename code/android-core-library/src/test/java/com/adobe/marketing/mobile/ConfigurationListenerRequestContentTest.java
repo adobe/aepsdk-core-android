@@ -11,6 +11,7 @@
 package com.adobe.marketing.mobile;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -31,8 +32,9 @@ public class ConfigurationListenerRequestContentTest extends BaseTest {
 				EventSource.REQUEST_CONTENT);
 	}
 
-	// TODO uncomment after Configuration refactor
-	/* @Test
+	// TODO fix after Configuration refactor
+	@Ignore
+	@Test
 	public void testListener_Constructor_With_ValidParameter() {
 		// Test
 		configurationListenerRequestContent = new ConfigurationListenerRequestContent(mockConfiguration,
@@ -45,6 +47,7 @@ public class ConfigurationListenerRequestContentTest extends BaseTest {
 					 ConfigurationListenerRequestContent.class);
 	}
 
+	@Ignore
 	@Test
 	public void testListener_when_HearCalled() throws Exception {
 		// Setup
@@ -57,7 +60,7 @@ public class ConfigurationListenerRequestContentTest extends BaseTest {
 		// Verify
 		assertTrue("Handle RequestContent event must be called", mockConfiguration.handleEventWasCalled);
 		assertEquals("Passes the correct event", requestContentEvent, mockConfiguration.handleEventParamEvent);
-	} */
+	}
 
 }
 

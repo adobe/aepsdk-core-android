@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -31,7 +32,8 @@ public class ConfigurationDispatcherConfigurationResponseIdentityTest {
 	}
 
 	// TODO uncomment after Configuration refactor
-	/* @Test
+	@Ignore
+	@Test
 	public void testDispatchAllIdentities() {
 		//Test
 		responseIdentityDispatcher.dispatchAllIdentities("jsonString", "pairID");
@@ -44,7 +46,7 @@ public class ConfigurationDispatcherConfigurationResponseIdentityTest {
 		assertEquals(EventSource.RESPONSE_IDENTITY, dispatchedEvent.getEventSource());
 		assertEquals("jsonString", dispatchedEvent.getData().optString("config.allIdentifiers", null));
 		assertEquals("pairID", dispatchedEvent.getPairID());
-	} */
+	}
 }
 
 

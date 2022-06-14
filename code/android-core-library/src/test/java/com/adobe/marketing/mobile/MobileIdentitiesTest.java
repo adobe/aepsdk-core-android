@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -38,7 +39,8 @@ public class MobileIdentitiesTest extends BaseTest {
 	// ========================================================
 
 	// TODO uncomment after Configuration refactor
-	/*@Test
+	@Ignore
+	@Test
 	public void test_GetAllIdentifiers_Happy() {
 		// Setup
 		Event event = new Event.Builder("EventHub", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
@@ -67,6 +69,7 @@ public class MobileIdentitiesTest extends BaseTest {
 					 "{\"namespace\":\"20919\",\"type\":\"integrationCode\",\"value\":\"test_pushId\"}]}]}", allIdentifiers);
 	}
 
+	@Ignore
 	@Test
 	public void test_GetAllIdentifiers_WhenTargetStateNotAvailable() {
 		// Setup
@@ -95,6 +98,7 @@ public class MobileIdentitiesTest extends BaseTest {
 					 "{\"namespace\":\"20919\",\"type\":\"integrationCode\",\"value\":\"test_pushId\"}]}]}", allIdentifiers);
 	}
 
+	@Ignore
 	@Test
 	public void test_GetAllIdentifiers_WhenAudienceStateNotAvailable() {
 		// Setup
@@ -123,7 +127,7 @@ public class MobileIdentitiesTest extends BaseTest {
 					 "{\"namespace\":\"20919\",\"type\":\"integrationCode\",\"value\":\"test_pushId\"}]}]}", allIdentifiers);
 	}
 
-
+	@Ignore
 	@Test
 	public void test_GetAllIdentifiers_WhenConfigurationStateNotAvailable() {
 		// Setup
@@ -152,6 +156,7 @@ public class MobileIdentitiesTest extends BaseTest {
 					 "{\"namespace\":\"20919\",\"type\":\"integrationCode\",\"value\":\"test_pushId\"}]}]}", allIdentifiers);
 	}
 
+	@Ignore
 	@Test
 	public void test_GetAllIdentifiers_WhenAnalyticsStateNotAvailable() {
 		// Setup
@@ -180,6 +185,7 @@ public class MobileIdentitiesTest extends BaseTest {
 					 "{\"namespace\":\"20919\",\"type\":\"integrationCode\",\"value\":\"test_pushId\"}]}]}", allIdentifiers);
 	}
 
+	@Ignore
 	@Test
 	public void test_GetAllIdentifiers_WhenIdentityStateNotAvailable() {
 		// Setup
@@ -205,6 +211,7 @@ public class MobileIdentitiesTest extends BaseTest {
 					 "{\"namespace\":\"0\",\"type\":\"namespaceId\",\"value\":\"test_uuid\"}]}]}", allIdentifiers);
 	}
 
+	@Ignore
 	@Test
 	public void test_GetAllIdentifiers_WhenAllSharedStateAreInvalid() {
 		// Setup
@@ -220,6 +227,7 @@ public class MobileIdentitiesTest extends BaseTest {
 		assertEquals("{}", allIdentifiers);
 	}
 
+	@Ignore
 	@Test
 	public void test_GetAllIdentifiers_InvalidVisitorIDList_ShouldNotCrash() {
 		// Setup
@@ -242,6 +250,7 @@ public class MobileIdentitiesTest extends BaseTest {
 	// static boolean areAllSharedStatesReady(final Event event, final Module module)
 	// ========================================================
 
+	@Ignore
 	@Test
 	public void test_AreAllSharedStatesReady_WhenNoSharedStateSet() throws Exception {
 		// Setup
@@ -256,6 +265,7 @@ public class MobileIdentitiesTest extends BaseTest {
 		assertTrue("areAllSharedStatesReady should return true", isReady);
 	}
 
+	@Ignore
 	@Test
 	public void test_AreAllSharedStatesReady_WhenALlSharedStateSetArePending() throws Exception {
 		// Setup
@@ -271,7 +281,7 @@ public class MobileIdentitiesTest extends BaseTest {
 		assertFalse("areAllSharedStatesReady should return false", isReady);
 	}
 
-
+	@Ignore
 	@Test
 	public void test_AreAllSharedStatesReady_WhenAllSharedStateSet() throws Exception {
 		// Setup
@@ -287,6 +297,7 @@ public class MobileIdentitiesTest extends BaseTest {
 		assertTrue("areAllSharedStatesReady should return true", isReady);
 	}
 
+	@Ignore
 	@Test
 	public void test_AreAllSharedStatesReady_WhenAudienceStatePending() throws Exception {
 		// Setup
@@ -303,6 +314,7 @@ public class MobileIdentitiesTest extends BaseTest {
 		assertFalse("areAllSharedStatesReady should return false", isReady);
 	}
 
+	@Ignore
 	@Test
 	public void test_AreAllSharedStatesReady_WhenAnalyticsStatePending() throws Exception {
 		// Setup
@@ -319,6 +331,7 @@ public class MobileIdentitiesTest extends BaseTest {
 		assertFalse("areAllSharedStatesReady should return false", isReady);
 	}
 
+	@Ignore
 	@Test
 	public void test_AreAllSharedStatesReady_WhenConfigurationStatePending() throws Exception {
 		// Setup
@@ -335,6 +348,7 @@ public class MobileIdentitiesTest extends BaseTest {
 		assertFalse("areAllSharedStatesReady should return false", isReady);
 	}
 
+	@Ignore
 	@Test
 	public void test_AreAllSharedStatesReady_WhenIdentityStatePending() throws Exception {
 		// Setup
@@ -351,7 +365,7 @@ public class MobileIdentitiesTest extends BaseTest {
 		assertFalse("areAllSharedStatesReady should return false", isReady);
 	}
 
-
+	@Ignore
 	@Test
 	public void test_AreAllSharedStatesReady_WhenTargetStatePending() throws Exception {
 		// Setup
@@ -367,7 +381,6 @@ public class MobileIdentitiesTest extends BaseTest {
 		// Verify
 		assertFalse("areAllSharedStatesReady should return false", isReady);
 	}
-*/
 
 	// ========================================================
 	// Helper methods

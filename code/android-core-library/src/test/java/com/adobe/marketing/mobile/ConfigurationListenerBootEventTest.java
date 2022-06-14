@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -33,7 +34,8 @@ public class ConfigurationListenerBootEventTest extends BaseTest {
 	}
 
 	// TODO uncomment after Configuration refactor
-	/* @Test
+	@Ignore
+	@Test
 	public void testListener_Constructor_With_ValidParameter() {
 		// Verify
 		assertNotNull("the constructor should not return Null", listener);
@@ -42,6 +44,7 @@ public class ConfigurationListenerBootEventTest extends BaseTest {
 					 ConfigurationListenerBootEvent.class);
 	}
 
+	@Ignore
 	@Test
 	public void testListener_when_BootEvent() throws Exception {
 		// Setup
@@ -53,5 +56,5 @@ public class ConfigurationListenerBootEventTest extends BaseTest {
 		// Verify
 		assertTrue("Handle Boot event much br called", mockConfiguration.handleBootEventWasCalled);
 		assertEquals("Passes the correct event", bootedEvent, mockConfiguration.handleBootEventParamEvent);
-	} */
+	}
 }

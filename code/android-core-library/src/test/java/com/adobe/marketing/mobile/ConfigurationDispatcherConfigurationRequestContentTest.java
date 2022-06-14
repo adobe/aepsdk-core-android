@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -31,7 +32,8 @@ public class ConfigurationDispatcherConfigurationRequestContentTest {
 	}
 
 	// TODO uncomment after Configuration refactor
-	/* @Test
+	@Ignore
+	@Test
 	public void testDispatchInternalConfigureWithAppIdEvent() throws Exception {
 		//Test
 		requestDispatcher.dispatchInternalConfigureWithAppIdEvent("appID");
@@ -45,7 +47,7 @@ public class ConfigurationDispatcherConfigurationRequestContentTest {
 		assertEquals("appID", dispatchedEvent.getData().optString("config.appId", null));
 		assertTrue(dispatchedEvent.getData().optBoolean("config.isinternalevent", false));
 		assertNull(dispatchedEvent.getPairID());
-	} */
+	}
 
 
 }

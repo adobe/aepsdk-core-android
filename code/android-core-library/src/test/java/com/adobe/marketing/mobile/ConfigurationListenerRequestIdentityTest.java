@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -35,7 +36,8 @@ public class ConfigurationListenerRequestIdentityTest extends BaseTest {
 	}
 
 	// TODO uncomment after Configuration refactor
-	/* @Test
+	@Ignore
+	@Test
 	public void testListener_Constructor_With_ValidParameter() {
 		// Test
 		configurationListenerRequestIdentity = new ConfigurationListenerRequestIdentity(mockConfiguration,
@@ -48,6 +50,7 @@ public class ConfigurationListenerRequestIdentityTest extends BaseTest {
 					 ConfigurationListenerRequestIdentity.class);
 	}
 
+	@Ignore
 	@Test
 	public void testListener_when_GetSDKIdentitiesEvent() throws Exception {
 		// Setup
@@ -61,5 +64,5 @@ public class ConfigurationListenerRequestIdentityTest extends BaseTest {
 		assertTrue("Handle GetSDKIdentities must be called", mockConfiguration.handleGetSdkIdentitiesEventCalled);
 		assertEquals("Passes the correct event", getSDKIdentitiesEvent,
 					 mockConfiguration.handleGetSdkIdentitiesEventParamEvent);
-	} */
+	}
 }

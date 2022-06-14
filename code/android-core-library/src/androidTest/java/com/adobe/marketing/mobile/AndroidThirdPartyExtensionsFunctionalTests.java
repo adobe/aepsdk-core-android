@@ -459,7 +459,8 @@ public class AndroidThirdPartyExtensionsFunctionalTests extends AbstractE2ETest 
 	// Get Shared Event State Owned By A Configuration Event using getSharedEventState API
 	// with the extension name as the stateowner like
 	// com.adobe.module.identity, com.adobe.module.configuration
-	/* @Test
+	@Ignore
+	@Test
 	public void testGetSharedEventState_whenConfigEvent_returnsAppropriateSharedState() {
 
 		// setup
@@ -487,7 +488,7 @@ public class AndroidThirdPartyExtensionsFunctionalTests extends AbstractE2ETest 
 		assertEquals(configMap, configurationSharedState);
 		assertEquals(configMap, eventHeard.getEventData());
 
-	} */
+	}
 
 	// Test Case No : 16
 	// Get Shared Event State Owned By A Custom Event using getSharedEventState API for stateowner

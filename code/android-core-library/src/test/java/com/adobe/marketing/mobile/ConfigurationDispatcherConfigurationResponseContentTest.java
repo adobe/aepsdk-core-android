@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -31,7 +32,8 @@ public class ConfigurationDispatcherConfigurationResponseContentTest {
 	}
 
 	// TODO uncomment after Configuration refactor
-	/* @Test
+	@Ignore
+	@Test
 	public void testDispatchConfigResponseWithEventData_Valid() {
 		// Test
 		EventData eventData = new EventData();
@@ -45,7 +47,7 @@ public class ConfigurationDispatcherConfigurationResponseContentTest {
 		assertEquals(EventSource.RESPONSE_CONTENT, dispatchedEvent.getEventSource());
 		assertEquals(eventData, dispatchedEvent.getData());
 		assertEquals("pairID", dispatchedEvent.getPairID());
-	} */
+	}
 
 }
 

@@ -16,9 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 
-import static com.adobe.marketing.mobile.FileTestHelper.FILE_DIRECTORY;
 import static com.adobe.marketing.mobile.FileTestHelper.MOCK_CONFIG_JSON;
 import static com.adobe.marketing.mobile.FileTestHelper.MOCK_FILE_NAME;
 import static org.junit.Assert.*;
@@ -97,5 +95,4 @@ public class FileUtilTests {
 						 "testFileName"));
 		assertNull(content);
 	}
-
 }

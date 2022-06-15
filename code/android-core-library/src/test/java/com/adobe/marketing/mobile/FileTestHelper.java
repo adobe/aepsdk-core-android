@@ -128,30 +128,6 @@ class FileTestHelper {
 		return cacheDirectory;
 	}
 
-	File createEmptyFile(final String dirName, final String fileName) {
-		File fileDirectory = new File(getCacheDirectory(dirName) + File.separator);
-		fileDirectory.mkdir();
-		File dest = new File(getCacheDirectory(dirName) + File.separator + fileName);
-		try {
-			dest.createNewFile();
-		} catch (IOException ex) {
-			fail("Could not create test directory and files " + ex);
-		}
-
-		return dest;
-	}
-
-	void writeToFile(final File file, final String content) {
-		try {
-			FileWriter fileWriter = new FileWriter(file);
-			fileWriter.write(content);
-			fileWriter.flush();
-			fileWriter.close();
-		} catch (IOException ex) {
-			fail("Could not write to file " + ex);
-		}
-	}
-
 	private File createFile(final String fileName) {
 		return createFile(null, fileName);
 	}

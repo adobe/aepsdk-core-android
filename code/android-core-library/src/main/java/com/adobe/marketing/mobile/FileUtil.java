@@ -81,5 +81,4 @@ final class FileUtil {
 	static boolean isValidDirectory(final File directory) {
 		return directory != null && directory.isDirectory() && directory.canWrite();
 	}
-
 }

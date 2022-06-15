@@ -132,8 +132,7 @@ internal fun Map<String, Any?>.serializeToQueryString(): String {
  * @return map as json string
  */
 
-internal fun Map<String, Any?>?.prettify(): String {
-    if (this == null) return ""
+internal fun Map<String, Any?>.prettify(): String {
     return try {
         JSONObject(this).toString(4)
     } catch (e: Exception) {

@@ -21,7 +21,6 @@ import com.adobe.marketing.mobile.rulesengine.Template
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
 
 class LaunchRulesConsequence(
-    private val launchRulesEngine: LaunchRulesEngine,
     private val extensionApi: ExtensionApi
 ) {
 
@@ -48,12 +47,11 @@ class LaunchRulesConsequence(
         const val CONSEQUENCE_EVENT_NAME = "Rules Consequence Event"
     }
 
-    fun evaluateRulesConsequence(event: Event?): Event? {
+    fun evaluateRulesConsequence(event: Event?, matchedRules: List<LaunchRule>): Event? {
         if (event == null) return null
 
         val dispatchChainCount = dispatchChainedEventsCount.remove(event.uniqueIdentifier)
         val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
-        val matchedRules = launchRulesEngine.process(event)
         var processedEvent: Event = event
         for (rule in matchedRules) {
             for (consequence in rule.consequenceList) {
@@ -64,14 +62,14 @@ class LaunchRulesConsequence(
                             consequenceWithConcreteValue,
                             processedEvent.eventData
                         ) ?: continue
-                        processedEvent = processedEvent.copyWithNewData(attachedEventData)
+                        processedEvent = processedEvent.cloneWithEventData(attachedEventData)
                     }
                     CONSEQUENCE_TYPE_MOD -> {
                         val modifiedEventData = processModifyDataConsequence(
                             consequenceWithConcreteValue,
                             processedEvent.eventData
                         ) ?: continue
-                        processedEvent = processedEvent.copyWithNewData(modifiedEventData)
+                        processedEvent = processedEvent.cloneWithEventData(modifiedEventData)
                     }
                     CONSEQUENCE_TYPE_DISPATCH -> {
                         if (dispatchChainCount != null) {
@@ -145,7 +143,7 @@ class LaunchRulesConsequence(
         for ((key, value) in detail) {
             when (value) {
                 is String -> mutableDetail[key] = replaceToken(value, tokenFinder)
-                is Map<*, *> -> mutableDetail[key] = replaceToken(mutableDetail[key] as Map<String, Any?>, tokenFinder)
+                is Map<*, *> -> mutableDetail[key] = replaceToken(mutableDetail[key] as? Map<String, Any?>?, tokenFinder)
                 else -> continue
             }
         }
@@ -300,7 +298,11 @@ class LaunchRulesConsequence(
     }
 }
 
-// Extend RuleConsequence with helper methods for processing Dispatch Consequence events.
+// Extend RuleConsequence with helper methods for processing consequence events.
+@Suppress("UNCHECKED_CAST")
+val RuleConsequence.eventData: Map<String, Any?>?
+    get() = detail?.get("eventdata") as? Map<String, Any?>
+
 val RuleConsequence.eventSource: String?
     get() = detail?.get("source") as? String
 

@@ -24,7 +24,7 @@ internal class LaunchRulesEvaluator(
 
     private var cachedEvents: MutableList<Event>? = mutableListOf()
     private val logTag = "LaunchRulesEvaluator_$name"
-    private val launchRulesConsequence: LaunchRulesConsequence = LaunchRulesConsequence(launchRulesEngine, extensionApi)
+    private val launchRulesConsequence: LaunchRulesConsequence = LaunchRulesConsequence(extensionApi)
 
     companion object {
         const val CACHED_EVENT_MAX = 99
@@ -40,14 +40,16 @@ internal class LaunchRulesEvaluator(
             reprocessCachedEvents()
         } else {
             cacheEvent(event)
-            return launchRulesConsequence.evaluateRulesConsequence(event)
+            val matchedRules = launchRulesEngine.process(event)
+            return launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
         }
         return event
     }
 
     private fun reprocessCachedEvents() {
         cachedEvents?.forEach { event ->
-            launchRulesConsequence.evaluateRulesConsequence(event)
+            val matchedRules = launchRulesEngine.process(event)
+            launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
         }
         clearCachedEvents()
     }

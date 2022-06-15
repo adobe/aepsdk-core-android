@@ -293,7 +293,12 @@ public final class Event {
 		return this;
 	}
 
-	public Event copyWithNewData(final Map<String, Object> newData) {
+	/**
+	 * Clones the current {@link Event} with updated data
+	 * @param newData data associated with the new {@code Event}
+	 * @return new cloned {@code Event} with provided data
+	 */
+	public Event cloneWithEventData(final Map<String, Object> newData) {
 		Event newEvent = new Event.Builder(this.name, this.type, this.source, this.mask)
 				.setEventData(newData)
 				.build();

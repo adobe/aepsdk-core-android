@@ -12,7 +12,7 @@ setup:
 
 clean:
 	  (rm -rf ci)
-	  (./code/gradlew clean)
+	  (./code/gradlew -p code clean)
 
 checkstyle:
 		(./code/gradlew -p code/android-core-library checkstyle)
@@ -31,6 +31,7 @@ assemble-phone-release:
 
 unit-test:
 		(./code/gradlew -p code/android-core-library testPhoneDebugUnitTest)
+		(./code/gradlew -p code/android-signal-library testPhoneDebugUnitTest)
 
 functional-test:
 		(./code/gradlew -p code/android-core-library uninstallPhoneDebugAndroidTest)

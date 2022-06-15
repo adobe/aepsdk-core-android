@@ -31,11 +31,9 @@ class DataQueueService implements DataQueuing {
 
 	private static final String LOG_TAG = "DataQueueService";
 	private Map<String, DataQueue> dataQueueCache;
-	private final SQLiteDatabaseHelper databaseHelper;
 
 	DataQueueService() {
 		dataQueueCache = new HashMap<>();
-		databaseHelper = new SQLiteDatabaseHelper();
 	}
 
 	//TODO add @NonNUll annotation after merging with dev-v2.0.0 branch
@@ -62,8 +60,7 @@ class DataQueueService implements DataQueuing {
 					if(databaseDirDataQueue == null){
 						return null;
 					}
-
-					dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath(), databaseHelper);
+					dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath());
 					dataQueueCache.put(databaseName, dataQueue);
 				}
 			}

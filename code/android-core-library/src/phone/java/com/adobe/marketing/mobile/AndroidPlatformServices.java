@@ -25,8 +25,6 @@ class AndroidPlatformServices implements PlatformServices {
 
 	private AndroidLoggingService loggingService;
 
-	private AndroidDatabaseService databaseService;
-
 	private AndroidUIService uiService;
 
 	private DeepLinkService deepLinkService;
@@ -40,7 +38,6 @@ class AndroidPlatformServices implements PlatformServices {
 		systemInfoService = new AndroidSystemInfoService();
 		networkService = new AndroidNetworkService(ServiceProvider.getInstance().getNetworkService());
 		loggingService = new AndroidLoggingService();
-		databaseService = new AndroidDatabaseService();
 		uiService = new AndroidUIService();
 		localStorageService = new AndroidLocalStorageService();
 		deepLinkService = new AndroidDeepLinkService();
@@ -76,11 +73,6 @@ class AndroidPlatformServices implements PlatformServices {
 	@Override
 	public LocalStorageService getLocalStorageService() {
 		return localStorageService;
-	}
-
-	@Override
-	public DatabaseService getDatabaseService() {
-		return databaseService;
 	}
 
 	@Override

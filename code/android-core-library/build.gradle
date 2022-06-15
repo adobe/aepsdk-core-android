@@ -12,7 +12,7 @@ android {
         targetSdkVersion 30
         //Include the Proguard rules for Core Extension in the aar
         consumerProguardFiles 'lib-proguard-rules.pro'
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     sourceSets {
@@ -20,9 +20,15 @@ android {
             java{
                 srcDirs += "src/legacy/test-common/java"
                 srcDirs += "src/legacy/test-module/java"
+                srcDirs += "src/test/kotlin"
             }
             resources{
                 srcDirs += "src/legacy/test-module/resources"
+            }
+        }
+        main{
+            java{
+                srcDirs += "src/legacy/main/java"
             }
         }
         androidTest{
@@ -31,12 +37,6 @@ android {
     }
 
     testOptions {
-        unitTests.all{
-            jacoco{
-                includeNoLocationClasses = true
-                excludes = ['jdk.internal.*']
-            }
-        }
         unitTests.returnDefaultValues = true
         unitTests.includeAndroidResources = true
     }
@@ -51,7 +51,7 @@ android {
 
     buildTypes {
         debug {
-            testCoverageEnabled true
+            testCoverageEnabled false
             debuggable true
         }
         release {
@@ -63,6 +63,10 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
     }
 }
 apply plugin: 'jacoco'
@@ -78,7 +82,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testPhoneDebugUnitTest','
             "outputs/code_coverage/phoneDebugAndroidTest/connected/*coverage.ec"
     ])
     reports {
-        xml.enabled false
+        xml.enabled true
         csv.enabled false
         html.enabled true
     }
@@ -102,11 +106,11 @@ android.libraryVariants.all { variant ->
 
 apply from: 'checkStyle.gradle'
 apply from: 'release.gradle'
-//apply from: 'jacoco.gradle'
 
 dependencies {
     //noinspection GradleCompatible
-    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     // unit tests
     testImplementation "junit:junit:4.13.2"
     //noinspection GradleDependency
@@ -117,6 +121,14 @@ dependencies {
     testImplementation 'org.robolectric:robolectric:3.6.2'
     //noinspection GradleDependency
     testImplementation 'org.json:json:20160810'
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+//    testImplementation project(path: ':android-core-library')
     // instrumentation tests
-    androidTestImplementation "com.android.support.test:rules:1.0.2"
+    androidTestImplementation 'androidx.test:rules:1.1.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+//    androidTestImplementation project(path: ':android-core-library')
+}
+
+repositories {
+    mavenCentral()
 }

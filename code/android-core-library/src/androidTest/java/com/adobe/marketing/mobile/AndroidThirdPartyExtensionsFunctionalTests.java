@@ -17,7 +17,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -116,7 +116,7 @@ public class AndroidThirdPartyExtensionsFunctionalTests extends AbstractE2ETest 
 		customElement.put("customString", "string1");
 		customElement.put("customNull", null);
 		customElement.put("customBoolean", true);
-		customElement.put("customList", customListenerTypes);
+		//customElement.put("customList", customListenerTypes);
 		customElement.put("customDouble", new Double(3.14));
 		customElement.put("customMap", subEventData);
 		Map<String, Object> customData = new HashMap<String, Object>();

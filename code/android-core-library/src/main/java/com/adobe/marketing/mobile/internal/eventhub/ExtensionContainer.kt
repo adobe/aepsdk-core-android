@@ -33,7 +33,7 @@ internal class ExtensionRuntime() : ExtensionApi() {
         set(value) {
             field = value
             extensionName = value?.extensionName
-            extensionFriendlyName = value?.friendlyExtensionName
+            extensionFriendlyName = value?.extensionFriendlyName
             extensionVersion = value?.extensionVersion
         }
 

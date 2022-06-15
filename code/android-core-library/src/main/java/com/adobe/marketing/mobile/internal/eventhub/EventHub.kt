@@ -207,11 +207,11 @@ internal class EventHub {
             }
 
             val result: SharedState.Status = extensionContainer.setSharedState(sharedStateType, data, version)
-            val wasSet: Boolean = (result == SharedState.Status.SET)
+            val wasSet = (result == SharedState.Status.SET)
 
             // Check if the new state can be dispatched as a state change event(currently implies a
             // non null/non pending state according to the ExtensionAPI)
-            val shouldDispatch: Boolean = (data == null)
+            val shouldDispatch = (data == null)
 
             if (shouldDispatch && wasSet) {
                 // If the new state can be dispatched and was successfully
@@ -219,7 +219,7 @@ internal class EventHub {
                 // dispatch a shared state notification.
                 //  TODO: dispatch()
             }
-            return@Callable (result == SharedState.Status.PENDING || wasSet)
+            return@Callable (wasSet || result == SharedState.Status.PENDING)
         }
 
         return eventHubExecutor.submit(setSharedStateCallable).get()

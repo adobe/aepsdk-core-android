@@ -51,7 +51,7 @@ internal val Extension.extensionVersion: String?
 /**
  * Property to get Extension friendly name
  */
-internal val Extension.friendlyExtensionName: String?
+internal val Extension.extensionFriendlyName: String?
     get() = ExtensionHelper.getFriendlyName(this)
 
 /**

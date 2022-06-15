@@ -32,9 +32,9 @@ internal class ExtensionRuntime() : ExtensionApi() {
     var extension: Extension? = null
         set(value) {
             field = value
-            extensionName = value?.name
-            extensionFriendlyName = value?.friendlyName
-            extensionVersion = value?.version
+            extensionName = value?.extensionName
+            extensionFriendlyName = value?.extensionFriendlyName
+            extensionVersion = value?.extensionVersion
         }
 
     // Fetch these values on initialization
@@ -199,7 +199,7 @@ internal class ExtensionContainer constructor(
                 return@submit
             }
 
-            if (extension.name == null) {
+            if (extension.extensionName == null) {
                 callback(EventHubError.InvalidExtensionName)
                 return@submit
             }
@@ -212,7 +212,7 @@ internal class ExtensionContainer constructor(
 
     fun shutdown() {
         taskExecutor.run {
-            extensionRuntime.extension?.onUnregistered()
+            extensionRuntime.extension?.onExtensionUnregistered()
         }
         taskExecutor.shutdown()
     }

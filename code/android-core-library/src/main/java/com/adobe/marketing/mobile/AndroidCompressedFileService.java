@@ -167,5 +167,4 @@ class AndroidCompressedFileService implements CompressedFileService {
 		return !isError;
 	}
 
-
 }

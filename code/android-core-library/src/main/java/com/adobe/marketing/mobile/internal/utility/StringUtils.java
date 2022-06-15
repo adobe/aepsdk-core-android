@@ -21,69 +21,69 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public final class StringUtils {
-	public static final String CHARSET_UTF_8 = "UTF-8";
+    public static final String CHARSET_UTF_8 = "UTF-8";
+    private static final int STREAM_READ_BUFFER_SIZE = 1024;
+    private static final String TAG = "StringUtils";
 
-	private static final int STREAM_READ_BUFFER_SIZE = 1024;
-	private static final String LOG_SOURCE = "Adobe Marketing";
+    private StringUtils() {
+    }
 
-	private StringUtils() {}
+    /**
+     * Checks if a {@code String} is null, empty or it only contains whitespaces.
+     *
+     * @param str the {@link String} that we want to check
+     * @return {@code boolean} with the evaluation result
+     */
+    public static boolean isNullOrEmpty(final String str) {
+        return str == null || str.trim().isEmpty();
+    }
 
-	/**
-	 * Checks if a {@code String} is null, empty or it only contains whitespaces.
-	 *
-	 * @param str the {@link String} that we want to check
-	 * @return {@code boolean} with the evaluation result
-	 */
-	public static boolean isNullOrEmpty(final String str) {
-		return str == null || str.trim().isEmpty();
-	}
+    /**
+     * Get the String representation of an {@code InputStream}
+     *
+     * @param inputStream {@link InputStream} to read
+     * @return {@link String} representation of the input stream
+     */
+    public static String streamToString(final InputStream inputStream) {
+        if (inputStream == null) {
+            return null;
+        }
 
-	/**
-	 * Get the String representation of an {@code InputStream}
-	 *
-	 * @param inputStream {@link InputStream} to read
-	 * @return {@link String} representation of the input stream
-	 */
-	public static String streamToString(final InputStream inputStream) {
-		if (inputStream == null) {
-			return null;
-		}
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final byte[] data = new byte[STREAM_READ_BUFFER_SIZE];
+        int bytesRead;
 
-		final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		final byte[] data = new byte[STREAM_READ_BUFFER_SIZE];
-		int bytesRead;
+        try {
+            while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
+                buffer.write(data, 0, bytesRead);
+            }
 
-		try {
-			while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
-				buffer.write(data, 0, bytesRead);
-			}
+            final byte[] byteArray = buffer.toByteArray();
+            return new String(byteArray, CHARSET_UTF_8);
+        } catch (final IOException ex) {
+            MobileCore.log(LoggingMode.DEBUG, TAG, "Unable to convert InputStream to String," + ex.getLocalizedMessage());
+            return null;
+        }
+    }
 
-			final byte[] byteArray = buffer.toByteArray();
-			return new String(byteArray, CHARSET_UTF_8);
-		} catch (final IOException ex) {
-			MobileCore.log(LoggingMode.DEBUG, LOG_SOURCE, "Unable to convert InputStream to String," + ex.getLocalizedMessage());
-			return null;
-		}
-	}
+    /**
+     * Check if the given {@code String} is a valid URL.
+     * <p>
+     * It uses {@link URL} class to identify that.
+     *
+     * @param stringUrl URL that needs to be tested
+     * @return return a {@code boolean} indicating if the given parameter is a valid URL
+     */
+    public static boolean stringIsUrl(final String stringUrl) {
+        if (isNullOrEmpty(stringUrl)) {
+            return false;
+        }
 
-	/**
-	 * Check if the given {@code String} is a valid URL.
-	 * <p>
-	 * It uses {@link URL} class to identify that.
-	 *
-	 * @param stringUrl URL that needs to be tested
-	 * @return return a {@code boolean} indicating if the given parameter is a valid URL
-	 */
-	public static boolean stringIsUrl(final String stringUrl) {
-		if (isNullOrEmpty(stringUrl)) {
-			return false;
-		}
-
-		try {
-			new URL(stringUrl);
-			return true;
-		} catch (MalformedURLException ex) {
-			return false;
-		}
-	}
+        try {
+            new URL(stringUrl);
+            return true;
+        } catch (MalformedURLException ex) {
+            return false;
+        }
+    }
 }

@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile;
 
 import java.io.*;
 
+// TODO: Remove this class when Java version of ConfigurationExtension is deleted
+@Deprecated
 final class FileUtil {
 
 	private final static String LOG_TAG = "FileUtil";

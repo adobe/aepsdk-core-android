@@ -13,9 +13,12 @@ package com.adobe.marketing.mobile.internal.utility;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
 /**
  * Utility class for {@code String} related encoding methods
  */
@@ -29,6 +32,28 @@ final public class StringEncoder {
     private static final int HEX_RADIX = 16;
     private static final int PRIME = 0x1000193; // 16777619 as hex
     private static final int OFFSET = 0x811c9dc5; // 2166136261 as hex
+    public static final String CHARSET_UTF_8 = "UTF-8";
+    private static final int LSB_8_MASK = 0xFF;
+    private static final char[] BYTE_TO_HEX = (
+            "000102030405060708090A0B0C0D0E0F" +
+                    "101112131415161718191A1B1C1D1E1F" +
+                    "202122232425262728292A2B2C2D2E2F" +
+                    "303132333435363738393A3B3C3D3E3F" +
+                    "404142434445464748494A4B4C4D4E4F" +
+                    "505152535455565758595A5B5C5D5E5F" +
+                    "606162636465666768696A6B6C6D6E6F" +
+                    "707172737475767778797A7B7C7D7E7F" +
+                    "808182838485868788898A8B8C8D8E8F" +
+                    "909192939495969798999A9B9C9D9E9F" +
+                    "A0A1A2A3A4A5A6A7A8A9AAABACADAEAF" +
+                    "B0B1B2B3B4B5B6B7B8B9BABBBCBDBEBF" +
+                    "C0C1C2C3C4C5C6C7C8C9CACBCCCDCECF" +
+                    "D0D1D2D3D4D5D6D7D8D9DADBDCDDDEDF" +
+                    "E0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF" +
+                    "F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF")
+            .toCharArray();
+
+    private static final int OXFF = 0xFF;
 
     private StringEncoder() {
     }
@@ -95,5 +120,108 @@ final public class StringEncoder {
         }
 
         return hash;
+    }
+
+    /**
+     * Converts a string to hexadecimal notation
+     * @param originalString the string for which hexadecimal value is to be computed
+     * @return hexadecimal representation of the string if valid, null otherwise
+     */
+    public static String getHexString(final String originalString) {
+        if (StringUtils.isNullOrEmpty(originalString)) {
+            return null;
+        }
+
+        byte[] bytes;
+
+        try {
+            bytes = originalString.getBytes(CHARSET_UTF_8);
+        } catch (UnsupportedEncodingException ex) {
+            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Failed to get hex from string " + ex.getMessage());
+            return null;
+        }
+
+        final int bytesLength = bytes.length;
+        final char[] chars = new char[bytesLength << 1];
+        int hexIndex;
+        int index = 0;
+        int offset = 0;
+
+        while (offset < bytesLength) {
+            hexIndex = (bytes[offset++] & OXFF) << 1;
+            chars[index++] = BYTE_TO_HEX[hexIndex++];
+            chars[index++] = BYTE_TO_HEX[hexIndex];
+        }
+
+        return new String(chars);
+    }
+
+    /**
+     * Decodes a hexadecimal string
+     *
+     * @param hexString the hexadecimal string to be decoded
+     * @return decoded hexadecimal string if valid, null otherwise
+     */
+    public static String hexToString(final String hexString) {
+        if (hexString == null || hexString.length() <= 0 || hexString.length() % 2 != 0) {
+            return null;
+        }
+
+        final int length = hexString.length();
+        byte[] data = new byte[length / 2];
+
+        for (int i = 0; i < length; i += 2) {
+            final int radix = 16;
+            final int fourDigit = 4;
+            data[i / 2] = (byte) ((Character.digit(hexString.charAt(i), radix) << fourDigit) +
+                    Character.digit(hexString.charAt(i + 1), radix));
+        }
+
+        String decodedString = null;
+
+        try {
+            decodedString = new String(data, CHARSET_UTF_8);
+        } catch (UnsupportedEncodingException ex) {
+            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Failed to get string from hex " + ex.getMessage());
+        }
+
+        return decodedString;
+    }
+
+    /**
+     * Computes the sha2 hash for the string
+     *
+     * @param input the string for which sha2 hash is to be computed
+     * @return sha2 hash result if the string is valid, null otherwise
+     */
+    public static String sha2hash(final String input) {
+        if (input == null || input.isEmpty()) {
+            return null;
+        }
+
+        try {
+            final MessageDigest messagedigest = MessageDigest.getInstance("SHA-256");
+            messagedigest.update(input.getBytes(CHARSET_UTF_8));
+            final byte[] messageDigest = messagedigest.digest();
+            final StringBuilder sha2HexBuilder = new StringBuilder();
+
+            for (byte aMessageDigest : messageDigest) {
+                StringBuilder hexString = new StringBuilder(Integer.toHexString(LSB_8_MASK & aMessageDigest));
+
+                while (hexString.length() < 2) {
+                    hexString.insert(0, "0");
+                }
+
+                sha2HexBuilder.append(hexString);
+            }
+
+            return sha2HexBuilder.toString();
+        } catch (NoSuchAlgorithmException e) {
+            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Cached Files - Failed to get sha2 hash " + e);
+        } catch (UnsupportedEncodingException e) {
+            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Cached Files - Unsupported Encoding: UTF-8" + e);
+        }
+
+        return null;
     }
 }

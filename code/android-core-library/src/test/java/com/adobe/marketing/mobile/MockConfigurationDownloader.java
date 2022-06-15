@@ -11,14 +11,17 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.services.ServiceProvider;
+
 import java.io.File;
 
+// TODO: Remove this class when Java version of ConfigurationExtension is deleted
 public class MockConfigurationDownloader extends ConfigurationDownloader {
 
 	String configurationDownloaderParametersUrl;
 	MockConfigurationDownloader(final NetworkService networkService, final SystemInfoService systemInfoService,
 								final String url, final Event event) throws MissingPlatformServicesException {
-		super(networkService, systemInfoService, url);
+		super(ServiceProvider.getInstance().getNetworkService(), url);
 		this.configurationDownloaderParametersUrl = url;
 	}
 

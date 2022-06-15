@@ -11,15 +11,18 @@
 
 package com.adobe.marketing.mobile.internal.utility
 
+import java.lang.Exception
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 internal object TimeUtil {
     private const val MILLISECONDS_PER_SECOND = 1000L
     private const val ISO8601_DATE_FORMATTER_TIMEZONE_RFC822 = "yyyy-MM-dd'T'HH:mm:ssZZZ"
     private const val ISO8601_DATE_FORMATTER_TIMEZONE_ISO8601 = "yyyy-MM-dd'T'HH:mm:ssXXX"
+    private const val RFC2822_DATE_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z"
 
     /**
      * Gets current unix timestamp in seconds.
@@ -67,5 +70,38 @@ internal object TimeUtil {
         val posixLocale = Locale(Locale.US.language, Locale.US.country, "POSIX")
         val iso8601Format: DateFormat = SimpleDateFormat(format, posixLocale)
         return iso8601Format.format(date ?: Date())
+    }
+
+    /**
+     * Parses the RFC-2822 formatted date string [rfc2822Date] into a [Date]
+     * @param rfc2822Date RFC-2822 formatted date string to be parsed
+     * @param timeZone the timezone that should be used
+     * @param locale the locale whose date format symbols should be used
+     * @return a valid date from the RF-2822 date if successful, null otherwise
+     */
+    @JvmStatic
+    fun parseRFC2822Date(rfc2822Date: String?, timeZone: TimeZone, locale: Locale): Date? {
+        if (rfc2822Date == null) return null
+        val rfc2822formatter: DateFormat = SimpleDateFormat(RFC2822_DATE_PATTERN, locale)
+        rfc2822formatter.timeZone = timeZone
+        return try {
+            rfc2822formatter.parse(rfc2822Date) ?: Date()
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
+    /**
+     * Converts the epoch into a RFC-2822 date string pattern - [RFC2822_DATE_PATTERN]
+     * @param epoch the epoch that should be converted to Date
+     * @param timeZone the timezone that should be used
+     * @param locale the locale whose date format symbols should be used
+     * @return a RFC-2822 formatted date string for the epoch provided
+     */
+    @JvmStatic
+    fun getRFC2822Date(epoch: Long, timeZone: TimeZone, locale: Locale): String {
+        val rfc2822formatter: DateFormat = SimpleDateFormat(RFC2822_DATE_PATTERN, locale)
+        rfc2822formatter.timeZone = timeZone
+        return rfc2822formatter.format(epoch)
     }
 }

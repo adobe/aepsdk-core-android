@@ -81,7 +81,8 @@ class Retry implements TestRule {
 	}
 }
 
-// TODO fix after Configuration refactor
+@Ignore
+// TODO: Remove this class when Java version of ConfigurationExtension is deleted
 @RunWith(JUnit4.class)
 public class ConfigurationModuleTest extends SystemTest {
 	// Retry failed tests up to 2 times

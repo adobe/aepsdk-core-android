@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.internal.utility.TimeUtil;
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine;
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator;
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -793,8 +794,7 @@ class ConfigurationExtension extends InternalModule {
 
         // Build a Configuration Downloader
         try {
-            return new ConfigurationDownloader(getPlatformServices().getNetworkService(),
-                    getPlatformServices().getSystemInfoService(), requestUrlString);
+            return new ConfigurationDownloader(ServiceProvider.getInstance().getNetworkService(), requestUrlString);
         } catch (MissingPlatformServicesException exp) {
             Log.warning(LOG_SOURCE, "Unable to Initialize Downloader (%s)", exp);
             return null;
@@ -1131,8 +1131,7 @@ class ConfigurationExtension extends InternalModule {
 
         try {
             final RulesRemoteDownloader remoteDownloader = new RulesRemoteDownloader(
-                    platformServices.getNetworkService(),
-                    platformServices.getSystemInfoService(),
+                    ServiceProvider.getInstance().getNetworkService(),
                     platformServices.getCompressedFileService(),
                     remoteRulesURL, RULES_CACHE_FOLDER);
             final File outputFile = remoteDownloader.startDownloadSync();
@@ -1205,8 +1204,7 @@ class ConfigurationExtension extends InternalModule {
 
         try {
             final RulesRemoteDownloader remoteDownloader = new RulesRemoteDownloader(
-                    platformServices.getNetworkService(),
-                    platformServices.getSystemInfoService(),
+                    ServiceProvider.getInstance().getNetworkService(),
                     platformServices.getCompressedFileService(),
                     remoteRulesURL, RULES_CACHE_FOLDER);
             final File outputFile = remoteDownloader.getCachedRulesFile();

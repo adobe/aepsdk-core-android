@@ -21,6 +21,7 @@ import com.adobe.marketing.mobile.ExtensionError
 import com.adobe.marketing.mobile.ExtensionErrorCallback
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import java.lang.Exception
 import java.util.concurrent.Callable
@@ -105,6 +106,12 @@ internal class EventHub {
 
     init {
         registerExtension(EventHubPlaceholderExtension::class.java) {}
+        registerExtension(ConfigurationExtension::class.java) {
+            MobileCore.log(
+                LoggingMode.ERROR, LOG_TAG,
+                "Failed to register Configuration extension: ${it.name}"
+            )
+        }
     }
 
     /**

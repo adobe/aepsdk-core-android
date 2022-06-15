@@ -12,16 +12,19 @@
 package com.adobe.marketing.mobile;
 
 
+import com.adobe.marketing.mobile.services.Networking;
+
 import java.io.File;
 
+// TODO: Remove this class when Java version of ConfigurationExtension is deleted
 class ConfigurationDownloader extends RemoteDownloader {
 
 	private String url;
 
-	ConfigurationDownloader(final NetworkService networkService, final SystemInfoService systemInfoService,
+	ConfigurationDownloader(final Networking networkService,
 							final String url)
 	throws MissingPlatformServicesException {
-		super(networkService, systemInfoService, url, (String)null);
+		super(networkService, url, (String)null);
 		this.url = url;
 	}
 

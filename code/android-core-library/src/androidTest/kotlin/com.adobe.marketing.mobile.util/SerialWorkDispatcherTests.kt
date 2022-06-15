@@ -10,20 +10,17 @@
  */
 package com.adobe.marketing.mobile.util
 
-import android.support.test.runner.AndroidJUnit4
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Test
-import org.junit.runner.RunWith
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-@RunWith(AndroidJUnit4::class)
 class SerialWorkDispatcherTests {
     private val processedItems = ConcurrentLinkedQueue<Int>()
     private val dispatchedItems = ConcurrentLinkedQueue<Int>()

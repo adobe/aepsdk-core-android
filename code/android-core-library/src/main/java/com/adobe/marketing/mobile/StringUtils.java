@@ -21,14 +21,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Use {@link com.adobe.marketing.mobile.internal.utility.StringUtils} instead.
+ */
+@Deprecated
 final class StringUtils {
 	static final String CHARSET_UTF_8 = "UTF-8";
 
 	private static final int STREAM_READ_BUFFER_SIZE = 1024;
-	private static final int TOKEN_MASK = 0xFF;
-	private static final char ADB_TEMPLATE_TOKEN_START = '{';
-	private static final char ADB_TEMPLATE_TOKEN_END = '}';
-	private static final String LOG_SOURCE = "Adobe Marketing";
+	private static final String LOG_SOURCE = "StringUtils";
 
 	private StringUtils() {}
 
@@ -62,8 +63,7 @@ final class StringUtils {
 				buffer.write(data, 0, bytesRead);
 			}
 
-			final byte[] byteArray = buffer.toByteArray();
-			return new String(byteArray, CHARSET_UTF_8);
+			return buffer.toString(CHARSET_UTF_8);
 		} catch (final IOException ex) {
 			Log.debug(LOG_SOURCE, "Unable to convert InputStream to String, %s", ex);
 			return null;

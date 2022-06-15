@@ -125,6 +125,7 @@ abstract class Module {
 		}
 
 		try {
+			if (parentHub == null) return;
 			parentHub.registerModuleListener(this, type, source, null, listenerClass);
 		} catch (final InvalidModuleException e) {
 			Log.debug(moduleName, "Failed to register listener (%s)", e);

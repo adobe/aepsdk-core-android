@@ -39,7 +39,13 @@ class DataQueueService implements DataQueuing {
 	}
 
 	@Override
-	public DataQueue getDataQueue(@NonNull final String databaseName) {
+	public DataQueue getDataQueue(final String databaseName) {
+		if(StringUtils.isNullOrEmpty(databaseName)) {
+			MobileCore.log(LoggingMode.WARNING,
+					LOG_TAG,
+					"Failed to create DataQueue, database name is null");
+			return null;
+		}
 		DataQueue dataQueue = dataQueueCache.get(databaseName);
 
 		if (dataQueue == null) {

@@ -219,4 +219,115 @@ public class EventDataUtilsTests {
                 });
 
     }
+
+    @Test
+    public void testCastFromGenericType_SimpleObjects() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("boolean", true);
+
+        byte b = 100;
+        values.put("byte", b);
+
+        short s = 1000;
+        values.put("short", s);
+
+        int i = 10000;
+        values.put("int", i);
+
+        long l = 100000L;
+        values.put("long", l);
+
+        float f = 1.1F;
+        values.put("float", f);
+
+        double d = 1.1e10D;
+        values.put("double", d);
+
+        BigDecimal bd = BigDecimal.TEN;
+        values.put("bigdecimal", bd);
+
+        BigInteger bi = BigInteger.TEN;
+        values.put("biginteger", bi);
+
+        char c = 'a';
+        values.put("char", c);
+
+        String str = "hello";
+        values.put("string", str);
+
+        UUID uuid = UUID.randomUUID();
+        values.put("uuid", uuid);
+
+
+        Map<String, Object> castMap = EventDataUtils.castFromGenericType(values);
+        assertEquals(values, castMap);
+    }
+
+    @Test
+    public void testCastGenericType_NestedObjects() {
+        Map<String, Object> nestedMap = new TreeMap<>();
+        nestedMap.put("integer", 1);
+        nestedMap.put("float", 1f);
+        nestedMap.put("double", 1d);
+        nestedMap.put("string", "hello");
+
+        List<Object> nestedList = new LinkedList<>();
+        nestedList.add(1);
+        nestedList.add(1f);
+        nestedList.add(1d);
+        nestedList.add("hello");
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("map", nestedList);
+        data.put("list", nestedList);
+        data.put("string", "top level");
+        data.put("uuid", UUID.randomUUID());
+        data.put("null", null);
+
+        Map<String, Object> castMap = EventDataUtils.castFromGenericType(data);
+        assertEquals(data, castMap);
+    }
+
+    @Test
+    public void testCastGenericType_MapWithNonStringKeys() {
+        Map<Object, Object> data = new HashMap<>();
+        data.put(null, 1);
+        data.put(new Integer(1), 1);
+        data.put(new Double(1.1), 1d);
+        data.put("string", "hello");
+
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("string", "hello");
+
+        Map<String, Object> castMap = EventDataUtils.castFromGenericType(data);
+        assertEquals(expectedData, castMap);
+    }
+
+    @Test
+    public void testCastGenericType_Array() {
+        String[] stringArray = new String[]{ "string1", "string2"};
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("stringArray", stringArray);
+
+        Map[] mapArray = new  Map[] {
+                new HashMap(),
+                new HashMap() {{
+                    put("k1" , "v1");
+                    put("k2" , "v2");
+                }},
+                new HashMap() {{
+                    put("integer", 1);
+                    put("float", 1f);
+                    put("double", 1d);
+                    put("string", "hello");
+                }}
+        };
+        data.put("mapArray", mapArray);
+
+        Map<String, Object> castMap = EventDataUtils.castFromGenericType(data);
+
+        assertEquals(castMap.get("stringArray"), stringArray);
+        assertEquals(castMap.get("mapArray"), mapArray);
+    }
 }

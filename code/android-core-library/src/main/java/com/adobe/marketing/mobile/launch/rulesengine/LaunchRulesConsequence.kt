@@ -19,6 +19,7 @@ import com.adobe.marketing.mobile.internal.utility.prettify
 import com.adobe.marketing.mobile.rulesengine.DelimiterPair
 import com.adobe.marketing.mobile.rulesengine.Template
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
+import com.adobe.marketing.mobile.utils.EventDataUtils
 
 class LaunchRulesConsequence(
     private val extensionApi: ExtensionApi
@@ -166,7 +167,7 @@ class LaunchRulesConsequence(
      * null if the processing fails
      */
     private fun processAttachDataConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Map<String, Any?>? {
-        val from = consequence.eventData ?: run {
+        val from = EventDataUtils.castFromGenericType(consequence.eventData) ?: run {
             MobileCore.log(
                 LoggingMode.ERROR,
                 logTag,
@@ -201,7 +202,7 @@ class LaunchRulesConsequence(
      * null if the processing fails
      */
     private fun processModifyDataConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Map<String, Any?>? {
-        val from = consequence.eventData ?: run {
+        val from = EventDataUtils.castFromGenericType(consequence.eventData) ?: run {
             MobileCore.log(
                 LoggingMode.ERROR,
                 logTag,
@@ -263,7 +264,8 @@ class LaunchRulesConsequence(
                 dispatchEventData = eventData
             }
             CONSEQUENCE_DETAIL_ACTION_NEW -> {
-                dispatchEventData = consequence.eventData?.filterValues { it != null }
+                val data = EventDataUtils.castFromGenericType(consequence.eventData)
+                dispatchEventData = data?.filterValues { it != null }
             }
             else -> {
                 MobileCore.log(
@@ -299,9 +301,8 @@ class LaunchRulesConsequence(
 }
 
 // Extend RuleConsequence with helper methods for processing consequence events.
-@Suppress("UNCHECKED_CAST")
-val RuleConsequence.eventData: Map<String, Any?>?
-    get() = detail?.get("eventdata") as? Map<String, Any?>
+val RuleConsequence.eventData: Map<*, *>?
+    get() = detail?.get("eventdata") as? Map<*, *>
 
 val RuleConsequence.eventSource: String?
     get() = detail?.get("source") as? String

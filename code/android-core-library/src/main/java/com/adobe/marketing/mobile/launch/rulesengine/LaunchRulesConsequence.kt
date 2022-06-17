@@ -51,7 +51,7 @@ class LaunchRulesConsequence(
     fun evaluateRulesConsequence(event: Event?, matchedRules: List<LaunchRule>): Event? {
         if (event == null) return null
 
-        val dispatchChainCount = dispatchChainedEventsCount.remove(event.uniqueIdentifier)
+        val dispatchChainCount = dispatchChainedEventsCount.remove(event.uniqueIdentifier) ?: 0
         val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
         var processedEvent: Event = event
         for (rule in matchedRules) {
@@ -73,17 +73,15 @@ class LaunchRulesConsequence(
                         processedEvent = processedEvent.cloneWithEventData(modifiedEventData)
                     }
                     CONSEQUENCE_TYPE_DISPATCH -> {
-                        if (dispatchChainCount != null) {
-                            if (dispatchChainCount >= MAX_CHAINED_CONSEQUENCE_COUNT) {
-                                MobileCore.log(
-                                    LoggingMode.VERBOSE,
-                                    logTag,
-                                    "Unable to process dispatch consequence, max chained " +
-                                            "dispatch consequences limit of $MAX_CHAINED_CONSEQUENCE_COUNT" +
-                                            "met for this event uuid ${event.uniqueIdentifier}"
-                                )
-                                continue
-                            }
+                        if (dispatchChainCount >= MAX_CHAINED_CONSEQUENCE_COUNT) {
+                            MobileCore.log(
+                                LoggingMode.VERBOSE,
+                                logTag,
+                                "Unable to process dispatch consequence, max chained " +
+                                        "dispatch consequences limit of $MAX_CHAINED_CONSEQUENCE_COUNT" +
+                                        "met for this event uuid ${event.uniqueIdentifier}"
+                            )
+                            continue
                         }
                         val dispatchEvent = processDispatchConsequence(
                             consequenceWithConcreteValue,
@@ -101,7 +99,7 @@ class LaunchRulesConsequence(
                                 "An error occurred when dispatching dispatch consequence result event"
                             )
                         }
-                        dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] = if (dispatchChainCount == null) 1 else dispatchChainCount + 1
+                        dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] = dispatchChainCount + 1
                     }
                     else -> {
                         val consequenceEvent = generateConsequenceEvent(consequenceWithConcreteValue)
@@ -144,7 +142,9 @@ class LaunchRulesConsequence(
         for ((key, value) in detail) {
             when (value) {
                 is String -> mutableDetail[key] = replaceToken(value, tokenFinder)
-                is Map<*, *> -> mutableDetail[key] = replaceToken(mutableDetail[key] as? Map<String, Any?>?, tokenFinder)
+                is Map<*, *> -> mutableDetail[key] = replaceToken(
+                    EventDataUtils.castFromGenericType(value),
+                    tokenFinder)
                 else -> continue
             }
         }

@@ -32,8 +32,8 @@ public class SqliteDataQueueTests {
 
     @Before
     public void setUp() {
-        dbFile = new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), QUEUE_NAME);
-        dataQueue = new SQLiteDataQueue(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), QUEUE_NAME);
+        dbFile = InstrumentationRegistry.getInstrumentation().getContext().getDatabasePath(QUEUE_NAME);
+        dataQueue = new SQLiteDataQueue(InstrumentationRegistry.getInstrumentation().getContext().getDatabasePath(QUEUE_NAME).getPath());
     }
 
     @After

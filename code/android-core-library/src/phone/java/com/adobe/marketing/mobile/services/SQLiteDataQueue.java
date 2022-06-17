@@ -20,6 +20,7 @@ import android.database.sqlite.SQLiteStatement;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.services.utility.FileUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -40,8 +41,8 @@ final class SQLiteDataQueue implements DataQueue {
     private boolean isClose = false;
     private final Object dbMutex = new Object();
 
-    SQLiteDataQueue(final File cacheDir, final String databaseName) {
-        this.databasePath = new File(cacheDir, removeRelativePath(databaseName)).getPath();
+    SQLiteDataQueue(final String databasePath) {
+        this.databasePath = databasePath;
         createTableIfNotExists();
     }
 
@@ -262,29 +263,5 @@ final class SQLiteDataQueue implements DataQueue {
 
         MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX,
                 String.format("createTableIfNotExists - Error creating/accessing table (%s)  ", TABLE_NAME));
-    }
-
-    /**
-     * Removes the relative part of the file name(if exists).
-     * <p>
-     * for ex: File name `/mydatabase/../../database1` will be converted to `mydatabase_database1`
-     * <p/>
-     *
-     * @param filePath the file name
-     * @return file name without relative path
-     */
-    //TODO: This method is moved to an internal utility class in another branch, need to remove it once the utility class is merged to the dev branch https://github.com/adobe/aepsdk-core-android/blob/0ea895adf692b9b96855472d7fd027f79b0c524c/code/android-core-library/src/phone/java/com/adobe/marketing/mobile/services/utility/FileUtil.kt#L26
-    private String removeRelativePath(final String filePath) {
-        if (filePath == null || filePath.isEmpty()) {
-            return filePath;
-        }
-
-        try {
-            String result = filePath.replaceAll("\\.[/\\\\]", "\\.");
-            result = result.replaceAll("[/\\\\](\\.{2,})", "_");
-            return result;
-        } catch (IllegalArgumentException e) {
-            return filePath;
-        }
     }
 }

@@ -50,7 +50,7 @@ public class SqliteDataQueueTests {
     public void setUp() {
         PowerMockito.mockStatic(SQLiteDatabaseHelper.class);
         PowerMockito.when(SQLiteDatabaseHelper.createTableIfNotExist(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
-        dataQueue = new SQLiteDataQueue(null, DATABASE_NAME);
+        dataQueue = new SQLiteDataQueue(DATABASE_NAME);
     }
 
     @Test

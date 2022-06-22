@@ -166,16 +166,15 @@ public class EventDataUtils {
      * @return map cast to type {@code Map<String, Object>}
      *
      */
+    @SuppressWarnings("unchecked")
     public static Map<String, Object> castFromGenericType(Map<?, ?> map) {
         if (map == null) return null;
 
-        Map<String, Object> result = new HashMap<>();
         for(Map.Entry<?, ?> entry : map.entrySet()) {
-            Object key = entry.getKey();
-            if (key instanceof String) {
-                result.put((String) key, entry.getValue());
+            if (!(entry.getKey() instanceof String)) {
+                return null;
             }
         }
-        return result;
+        return (Map<String, Object>) map;
     }
 }

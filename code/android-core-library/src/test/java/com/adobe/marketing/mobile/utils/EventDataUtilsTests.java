@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.utils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -296,11 +297,8 @@ public class EventDataUtilsTests {
         data.put(new Double(1.1), 1d);
         data.put("string", "hello");
 
-        Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("string", "hello");
-
         Map<String, Object> castMap = EventDataUtils.castFromGenericType(data);
-        assertEquals(expectedData, castMap);
+        assertNull(castMap);
     }
 
     @Test

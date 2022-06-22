@@ -68,16 +68,6 @@ class LaunchRulesEvaluatorTests {
     }
 
     @Test
-    fun `Clear cached events if reached the limit`() {
-        repeat(101) {
-            launchRulesEvaluator.process(
-                Event.Builder("event-$it", "type", "source").build()
-            )
-        }
-        assertEquals(0, cachedEvents.size)
-    }
-
-    @Test
     fun `Reprocess cached events when rules are ready`() {
         repeat(10) {
             launchRulesEvaluator.process(
@@ -112,10 +102,11 @@ class LaunchRulesEvaluatorTests {
         Mockito.reset(launchRulesEngine)
         launchRulesEvaluator.process(eventCaptor.value)
         val cachedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        verify(launchRulesEngine, Mockito.times(10)).process(cachedEventCaptor.capture())
-        assertEquals(10, cachedEventCaptor.allValues.size)
-        cachedEventCaptor.allValues.forEachIndexed { index, element ->
-            assertEquals("event-$index", element.name)
+        verify(launchRulesEngine, Mockito.times(11)).process(cachedEventCaptor.capture())
+        assertEquals(11, cachedEventCaptor.allValues.size)
+        // 0th event will be current processed event
+        for (index in 1 until cachedEventCaptor.allValues.size) {
+            assertEquals("event-${index - 1}", cachedEventCaptor.allValues[index].name)
         }
         assertEquals(0, cachedEvents.size)
     }

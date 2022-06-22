@@ -27,7 +27,6 @@ internal class LaunchRulesEvaluator(
     private val launchRulesConsequence: LaunchRulesConsequence = LaunchRulesConsequence(extensionApi)
 
     companion object {
-        const val CACHED_EVENT_MAX = 99
         // TODO: we should move the following event type/event source values to the public EventType/EventSource classes once we have those.
         const val EVENT_SOURCE_REQUEST_RESET = "com.adobe.eventsource.requestreset"
         const val EVENT_TYPE_RULES_ENGINE = "com.adobe.eventtype.rulesengine"
@@ -36,14 +35,20 @@ internal class LaunchRulesEvaluator(
     override fun process(event: Event?): Event? {
         if (event == null) return null
 
+        // if cachedEvents is null, we know rules are set and can skip to evaluation
+        val matchedRules = launchRulesEngine.process(event)
+        if (cachedEvents == null) {
+            return launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        }
+
+        // check if this is an event to start processing of cachedEvents
+        // otherwise, add the event to cachedEvents till rules are set
         if (event.type == EVENT_TYPE_RULES_ENGINE && event.source == EVENT_SOURCE_REQUEST_RESET) {
             reprocessCachedEvents()
         } else {
-            cacheEvent(event)
-            val matchedRules = launchRulesEngine.process(event)
-            return launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+            cachedEvents?.add(event)
         }
-        return event
+        return launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
     }
 
     private fun reprocessCachedEvents() {
@@ -57,20 +62,6 @@ internal class LaunchRulesEvaluator(
     private fun clearCachedEvents() {
         cachedEvents?.clear()
         cachedEvents = null
-    }
-
-    private fun cacheEvent(event: Event) {
-        cachedEvents?.let {
-            if ((cachedEvents?.size ?: -1) > CACHED_EVENT_MAX) {
-                clearCachedEvents()
-                MobileCore.log(
-                    LoggingMode.WARNING,
-                    logTag,
-                    "Will not to reprocess cached events as the cached events have reached the limit: $CACHED_EVENT_MAX"
-                )
-            }
-            cachedEvents?.add(event)
-        }
     }
 
     /**

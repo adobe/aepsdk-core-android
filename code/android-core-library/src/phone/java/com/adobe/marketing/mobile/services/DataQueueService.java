@@ -32,7 +32,7 @@ class DataQueueService implements DataQueuing {
 
 
 	private static final String LOG_TAG = "DataQueueService";
-	private Map<String, DataQueue> dataQueueCache;
+	private final Map<String, DataQueue> dataQueueCache;
 
 	DataQueueService() {
 		dataQueueCache = new HashMap<>();
@@ -97,20 +97,23 @@ class DataQueueService implements DataQueuing {
 
 		final File databaseDirDataQueue = appContext.getDatabasePath(cleanedDatabaseName);
 
-		final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-		if (!databaseDirDataQueue.exists() && cacheDir != null) {
-			final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
-			if (cacheDirDataQueue.exists()) {
+		if (!databaseDirDataQueue.exists()) {
 				try {
 					if(databaseDirDataQueue.createNewFile()) {
-						FileUtil.copyFile(cacheDirDataQueue, databaseDirDataQueue);
-						MobileCore.log(LoggingMode.DEBUG,
-								LOG_TAG,
-								String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
-						if(cacheDirDataQueue.delete()) {
-							MobileCore.log(LoggingMode.DEBUG,
-									LOG_TAG,
-									String.format("Successfully delete DataQueue for database (%s) from cache directory", databaseName));
+						final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+						if(cacheDir != null) {
+							final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
+							if (cacheDirDataQueue.exists()) {
+								FileUtil.copyFile(cacheDirDataQueue, databaseDirDataQueue);
+								MobileCore.log(LoggingMode.DEBUG,
+										LOG_TAG,
+										String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
+								if (cacheDirDataQueue.delete()) {
+									MobileCore.log(LoggingMode.DEBUG,
+											LOG_TAG,
+											String.format("Successfully delete DataQueue for database (%s) from cache directory", databaseName));
+								}
+							}
 						}
 					}
 				} catch (Exception e) {
@@ -119,7 +122,6 @@ class DataQueueService implements DataQueuing {
 							String.format("Failed to move DataQueue for database (%s), could not create new file in database directory", databaseName));
 					return null;
 				}
-			}
 		}
 		return databaseDirDataQueue;
 	}

@@ -29,28 +29,26 @@ class LaunchRulesConsequence(
     private var dispatchChainedEventsCount = mutableMapOf<String, Int>()
     companion object {
         // TODO: we should move the following event type/event source values to the public EventType/EventSource classes once we have those.
-        const val EVENT_SOURCE_RESPONSE_CONTENT = "com.adobe.eventSource.responseContent"
-        const val EVENT_TYPE_RULES_ENGINE = "com.adobe.eventtype.rulesengine"
-        const val LAUNCH_RULE_TOKEN_LEFT_DELIMITER = "{%"
-        const val LAUNCH_RULE_TOKEN_RIGHT_DELIMITER = "%}"
-        const val CONSEQUENCE_TYPE_ADD = "add"
-        const val CONSEQUENCE_TYPE_MOD = "mod"
-        const val CONSEQUENCE_TYPE_DISPATCH = "dispatch"
-        const val CONSEQUENCE_DETAIL_ACTION_COPY = "copy"
-        const val CONSEQUENCE_DETAIL_ACTION_NEW = "new"
+        private const val EVENT_SOURCE_RESPONSE_CONTENT = "com.adobe.eventSource.responseContent"
+        private const val EVENT_TYPE_RULES_ENGINE = "com.adobe.eventtype.rulesengine"
+        private const val LAUNCH_RULE_TOKEN_LEFT_DELIMITER = "{%"
+        private const val LAUNCH_RULE_TOKEN_RIGHT_DELIMITER = "%}"
+        private const val CONSEQUENCE_TYPE_ADD = "add"
+        private const val CONSEQUENCE_TYPE_MOD = "mod"
+        private const val CONSEQUENCE_TYPE_DISPATCH = "dispatch"
+        private const val CONSEQUENCE_DETAIL_ACTION_COPY = "copy"
+        private const val CONSEQUENCE_DETAIL_ACTION_NEW = "new"
         // Do not process Dispatch consequence if chained event count is greater than max
-        const val MAX_CHAINED_CONSEQUENCE_COUNT = 1
-        const val CONSEQUENCE_DISPATCH_EVENT_NAME = "Dispatch Consequence Result"
-        const val CONSEQUENCE_EVENT_DATA_KEY_ID = "id"
-        const val CONSEQUENCE_EVENT_DATA_KEY_TYPE = "type"
-        const val CONSEQUENCE_EVENT_DATA_KEY_DETAIL = "detail"
-        const val CONSEQUENCE_EVENT_DATA_KEY_CONSEQUENCE = "triggeredconsequence"
-        const val CONSEQUENCE_EVENT_NAME = "Rules Consequence Event"
+        private const val MAX_CHAINED_CONSEQUENCE_COUNT = 1
+        private const val CONSEQUENCE_DISPATCH_EVENT_NAME = "Dispatch Consequence Result"
+        private const val CONSEQUENCE_EVENT_DATA_KEY_ID = "id"
+        private const val CONSEQUENCE_EVENT_DATA_KEY_TYPE = "type"
+        private const val CONSEQUENCE_EVENT_DATA_KEY_DETAIL = "detail"
+        private const val CONSEQUENCE_EVENT_DATA_KEY_CONSEQUENCE = "triggeredconsequence"
+        private const val CONSEQUENCE_EVENT_NAME = "Rules Consequence Event"
     }
 
-    fun evaluateRulesConsequence(event: Event?, matchedRules: List<LaunchRule>): Event? {
-        if (event == null) return null
-
+    fun evaluateRulesConsequence(event: Event, matchedRules: List<LaunchRule>): Event? {
         val dispatchChainCount = dispatchChainedEventsCount.remove(event.uniqueIdentifier) ?: 0
         val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
         var processedEvent: Event = event
@@ -134,7 +132,6 @@ class LaunchRulesConsequence(
         return RuleConsequence(consequence.id, consequence.type, tokenReplacedMap)
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun replaceToken(detail: Map<String, Any?>?, tokenFinder: TokenFinder): Map<String, Any?>? {
         if (detail.isNullOrEmpty())
             return null

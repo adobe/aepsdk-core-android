@@ -36,14 +36,12 @@ internal class LaunchRulesEvaluator(
         if (event == null) return null
 
         // if cachedEvents is null, we know rules are set and can skip to evaluation
+        // else check if this is an event to start processing of cachedEvents
+        // otherwise, add the event to cachedEvents till rules are set
         val matchedRules = launchRulesEngine.process(event)
         if (cachedEvents == null) {
             return launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
-        }
-
-        // check if this is an event to start processing of cachedEvents
-        // otherwise, add the event to cachedEvents till rules are set
-        if (event.type == EVENT_TYPE_RULES_ENGINE && event.source == EVENT_SOURCE_REQUEST_RESET) {
+        } else if (event.type == EVENT_TYPE_RULES_ENGINE && event.source == EVENT_SOURCE_REQUEST_RESET) {
             reprocessCachedEvents()
         } else {
             cachedEvents?.add(event)

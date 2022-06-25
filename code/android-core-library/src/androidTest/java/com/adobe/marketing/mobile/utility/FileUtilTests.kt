@@ -10,11 +10,41 @@
  */
 package com.adobe.marketing.mobile.utility
 
+import android.content.Context
+import androidx.test.platform.app.InstrumentationRegistry
+import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.utility.FileUtil
+import java.io.File
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class FileUtilTests {
+
+    private lateinit var context: Context
+    private val testDatabaseName = "test.sqlite"
+
+    @Before
+    fun beforeEach() {
+        context = InstrumentationRegistry.getInstrumentation().targetContext
+        ServiceProvider.getInstance().setContext(context)
+    }
+
+    @After
+    fun afterEach() {
+        context.getDatabasePath(testDatabaseName).delete()
+        File(context.cacheDir, testDatabaseName).delete()
+    }
+
+    @Test
+    fun testRemoveRelativePath_NullPath() {
+        assertNull(FileUtil.removeRelativePath(null))
+    }
 
     @Test
     fun testRemoveRelativePath_RelativePathBackslashClearnedUp() {
@@ -34,5 +64,46 @@ class FileUtilTests {
     @Test
     fun testRemoveRelativePath_RelativePathForwardslashDoesNotChangeDir() {
         assertEquals(FileUtil.removeRelativePath("/mydatabase/../database1"), "mydatabase_database1")
+    }
+
+    @Test
+    fun testOpenOrMigrateDatabase_DatabaseNameIsNullOrEmpty() {
+        assertNull(FileUtil.openOrMigrateDatabase(null, context))
+        assertNull(FileUtil.openOrMigrateDatabase("", context))
+    }
+
+    @Test
+    fun testOpenOrMigrateDatabase_ContextIsNull() {
+        assertNull(FileUtil.openOrMigrateDatabase(testDatabaseName, null))
+    }
+
+    @Test
+    fun testOpenOrMigrateDatabase_DatabaseDoesNotExist() {
+        assertNotNull(FileUtil.openOrMigrateDatabase(testDatabaseName, context))
+        assertTrue(context.getDatabasePath(testDatabaseName).exists())
+    }
+
+    @Test
+    fun testOpenOrMigrateDatabase_DatabaseFromCacheDir() {
+        val file = File(context.cacheDir, testDatabaseName)
+        try {
+            file.createNewFile()
+            assertTrue(File(context.cacheDir, testDatabaseName).exists())
+            val database = FileUtil.openOrMigrateDatabase(testDatabaseName, context)
+            assertNotNull(database)
+            assertTrue(context.getDatabasePath(testDatabaseName).exists())
+            assertFalse(File(context.cacheDir, testDatabaseName).exists())
+        } catch (e: Exception) {}
+    }
+
+    @Test
+    fun testOpenOrMigrateDatabase_DatabaseExistsInDatabaseDir() {
+        val file = context.getDatabasePath(testDatabaseName)
+        try {
+            file.createNewFile()
+            val database = FileUtil.openOrMigrateDatabase(testDatabaseName, context)
+            assertNotNull(database)
+            assertTrue(context.getDatabasePath(testDatabaseName).exists())
+        } catch (e: Exception) {}
     }
 }

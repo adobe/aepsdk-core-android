@@ -10,10 +10,16 @@
  */
 package com.adobe.marketing.mobile.services.utility
 
+import android.content.Context
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.services.ServiceProvider
 import java.io.File
-import kotlin.jvm.Throws
 
 internal object FileUtil {
+
+    private const val LOG_TAG = "FileUtil"
+
     /**
      * Removes the relative part of the file name(if exists).
      *
@@ -23,8 +29,8 @@ internal object FileUtil {
      * @return file name without relative path
      */
     @JvmStatic
-    fun removeRelativePath(filePath: String): String {
-        return if (filePath.isEmpty()) {
+    fun removeRelativePath(filePath: String?): String? {
+        return if (filePath.isNullOrBlank()) {
             filePath
         } else {
             var result = filePath.replace("\\.[/\\\\]".toRegex(), "\\.")
@@ -35,15 +41,90 @@ internal object FileUtil {
     }
 
     /**
-     * Copies the contents from `src` to `dest`.
+     * Returns the database if it exists in the path returned by [Context.getDatabasePath]
+     * Else copies the existing database from [Context.getCacheDir] to `Context#getDatabasePath(String)`
+     * Database is migrated from cache directory because of Android 12 app hibernation changes
+     * which can clear app's cache folder when user doesn't interact with app for few months.
      *
-     * @param src [File] from which the contents are read
-     * @param dest [File] to which contents are written to
-     * @throws Exception if `src` or `dest` is not present or it does not have read permissions
+     * @param databaseName name of the database to be migrated or opened
+     * @return `File` representing the database in [Context.getDatabasePath]`
      */
     @JvmStatic
-    @Throws(Exception::class)
-    fun copyFile(src: File, dest: File) {
-        src.copyTo(dest, true)
+    fun openOrMigrateDatabase(databaseName: String?, appContext: Context?): File? {
+        if (databaseName.isNullOrBlank()) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                "Failed to create database, database name is null"
+            )
+            return null
+        }
+        if (appContext == null) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                String.format(
+                    "Failed to create database (%s), the ApplicationContext is null",
+                    databaseName
+                )
+            )
+            return null
+        }
+        val cleanedDatabaseName = removeRelativePath(databaseName)
+        if (cleanedDatabaseName.isNullOrBlank()) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                String.format(
+                    "Failed to create database (%s), database name is null",
+                    databaseName
+                )
+            )
+            return null
+        }
+        val databaseDirDatabase = appContext.getDatabasePath(cleanedDatabaseName)
+        if (!databaseDirDatabase.exists()) {
+            try {
+                if (databaseDirDatabase.createNewFile()) {
+                    val cacheDir =
+                        ServiceProvider.getInstance().deviceInfoService.applicationCacheDir
+                    if (cacheDir != null) {
+                        val cacheDirDatabase = File(cacheDir, cleanedDatabaseName)
+                        if (cacheDirDatabase.exists()) {
+                            cacheDirDatabase.copyTo(databaseDirDatabase, true)
+                            MobileCore.log(
+                                LoggingMode.DEBUG,
+                                LOG_TAG,
+                                String.format(
+                                    "Successfully moved DataQueue for database (%s) from cache directory to database directory",
+                                    databaseName
+                                )
+                            )
+                            if (cacheDirDatabase.delete()) {
+                                MobileCore.log(
+                                    LoggingMode.DEBUG,
+                                    LOG_TAG,
+                                    String.format(
+                                        "Successfully delete DataQueue for database (%s) from cache directory",
+                                        databaseName
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            } catch (e: java.lang.Exception) {
+                MobileCore.log(
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    String.format(
+                        "Failed to move DataQueue for database (%s), could not create new file in database directory",
+                        databaseName
+                    )
+                )
+                return null
+            }
+        }
+        return databaseDirDatabase
     }
 }

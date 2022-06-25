@@ -18,7 +18,7 @@ package com.adobe.marketing.mobile.rulesengine;
  * The default delimiter pair from launch rules are "{%" "%}"
  * eg token: {%region.cityName%}
  */
-class DelimiterPair {
+public class DelimiterPair {
 	private final String startTag;
 	private final String endTag;
 
@@ -28,7 +28,7 @@ class DelimiterPair {
 	 * @param startString
 	 * @param endString
 	 */
-	DelimiterPair(final String startString, final String endString) {
+	public DelimiterPair(final String startString, final String endString) {
 		this.startTag = startString;
 		this.endTag = endString;
 	}

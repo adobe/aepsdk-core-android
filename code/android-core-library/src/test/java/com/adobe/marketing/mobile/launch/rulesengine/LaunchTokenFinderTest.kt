@@ -130,7 +130,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all string variables on valid event encoded in url format`() {
         // setup
-        val testEventData = mapOf<String, Any?>(
+        val testEventData = mapOf(
             "key1" to "value 1",
             "key8" to null
         )
@@ -145,7 +145,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all numeric variables on valid event encoded in url format`() {
         // setup
-        val testEventData = mapOf<String, Any?>(
+        val testEventData = mapOf(
             "key3" to 123,
             "key4" to -456L
         )
@@ -160,7 +160,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all boolean variables on valid event encoded in url format`() {
         // setup
-        val testEventData = mapOf<String, Any?>(
+        val testEventData = mapOf(
             "key2" to true,
             "key5" to -123.456
         )
@@ -175,8 +175,8 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all list variables on valid event encoded in url format`() {
         // setup
-        val testEventData = mapOf<String, Any?>(
-            "key6" to listOf<String>("String1", "String2")
+        val testEventData = mapOf(
+            "key6" to listOf("String1", "String2")
         )
         val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
@@ -189,8 +189,8 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return all map variables on valid event encoded in url format`() {
         // setup
-        val testEventData = mapOf<String, Any?>(
-            "key7" to mapOf<String, Any?>(
+        val testEventData = mapOf(
+            "key7" to mapOf(
                 "innerKey1" to "inner val1",
                 "innerKey2" to "innerVal2"
             )
@@ -468,7 +468,7 @@ class LaunchTokenFinderTest : BaseTest() {
     }
 
     private fun getDefaultEvent(): Event {
-        val testEventData = mapOf<String, Any?>("key1" to "value1")
+        val testEventData = mapOf("key1" to "value1")
         return getDefaultEvent(testEventData)
     }
 }

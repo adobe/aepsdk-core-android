@@ -155,4 +155,26 @@ public class EventDataUtils {
     public static Map<String, Object> immutableClone(Map<String, ?> map) throws CloneFailedException {
         return cloneMap(map, CloneMode.ImmutableContainer, 0);
     }
+
+    /**
+     * Casts generic map {@code Map<?, ?>} to {@code HashMap<String, Object>}
+     * <ul>
+     *     <li> Entry with null and non {@code String} key is dropped. </li>
+     *     <li> Entry withnon {@code String} key is dropped </li>
+     * </ul>
+     * @param map map to be cast
+     * @return map cast to type {@code Map<String, Object>}
+     *
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> castFromGenericType(Map<?, ?> map) {
+        if (map == null) return null;
+
+        for(Map.Entry<?, ?> entry : map.entrySet()) {
+            if (!(entry.getKey() instanceof String)) {
+                return null;
+            }
+        }
+        return (Map<String, Object>) map;
+    }
 }

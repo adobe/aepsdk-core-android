@@ -12,42 +12,47 @@ package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventPreprocessor
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 
 internal class LaunchRulesEvaluator(
     private val name: String,
-    private val launchRulesEngine: LaunchRulesEngine
+    private val launchRulesEngine: LaunchRulesEngine,
+    extensionApi: ExtensionApi
 ) : EventPreprocessor {
 
     private var cachedEvents: MutableList<Event>? = mutableListOf()
     private val logTag = "LaunchRulesEvaluator_$name"
+    private val launchRulesConsequence: LaunchRulesConsequence = LaunchRulesConsequence(extensionApi)
 
     companion object {
-        const val CACHED_EVENT_MAX = 99
-
         // TODO: we should move the following event type/event source values to the public EventType/EventSource classes once we have those.
-        const val EVENT_SOURCE = "com.adobe.eventsource.requestreset"
-        const val EVENT_TYPE = "com.adobe.eventtype.rulesengine"
+        const val EVENT_SOURCE_REQUEST_RESET = "com.adobe.eventsource.requestreset"
+        const val EVENT_TYPE_RULES_ENGINE = "com.adobe.eventtype.rulesengine"
     }
 
     override fun process(event: Event?): Event? {
         if (event == null) return null
 
-        if (event.type == EVENT_TYPE && event.source == EVENT_SOURCE) {
+        // if cachedEvents is null, we know rules are set and can skip to evaluation
+        // else check if this is an event to start processing of cachedEvents
+        // otherwise, add the event to cachedEvents till rules are set
+        val matchedRules = launchRulesEngine.process(event)
+        if (cachedEvents == null) {
+            return launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        } else if (event.type == EVENT_TYPE_RULES_ENGINE && event.source == EVENT_SOURCE_REQUEST_RESET) {
             reprocessCachedEvents()
         } else {
-            cacheEvent(event)
-            launchRulesEngine.process(event)
-            // TODO: handle rules consequence
+            cachedEvents?.add(event)
         }
-        return event
+        return launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
     }
 
     private fun reprocessCachedEvents() {
         cachedEvents?.forEach { event ->
-            launchRulesEngine.process(event)
-            // TODO: handle rules consequence
+            val matchedRules = launchRulesEngine.process(event)
+            launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
         }
         clearCachedEvents()
     }
@@ -55,20 +60,6 @@ internal class LaunchRulesEvaluator(
     private fun clearCachedEvents() {
         cachedEvents?.clear()
         cachedEvents = null
-    }
-
-    private fun cacheEvent(event: Event) {
-        cachedEvents?.let {
-            if ((cachedEvents?.size ?: -1) > CACHED_EVENT_MAX) {
-                clearCachedEvents()
-                MobileCore.log(
-                    LoggingMode.WARNING,
-                    logTag,
-                    "Will not to reprocess cached events as the cached events have reached the limit: $CACHED_EVENT_MAX"
-                )
-            }
-            cachedEvents?.add(event)
-        }
     }
 
     /**
@@ -82,8 +73,8 @@ internal class LaunchRulesEvaluator(
         MobileCore.dispatchEvent(
             Event.Builder(
                 name,
-                EVENT_TYPE,
-                EVENT_SOURCE
+                EVENT_TYPE_RULES_ENGINE,
+                EVENT_SOURCE_REQUEST_RESET
             ).build()
         ) { extensionError ->
             MobileCore.log(

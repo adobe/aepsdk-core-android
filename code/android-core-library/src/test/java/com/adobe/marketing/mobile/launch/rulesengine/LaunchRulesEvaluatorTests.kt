@@ -11,6 +11,7 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -31,22 +32,26 @@ import org.powermock.modules.junit4.PowerMockRunner
 import org.powermock.reflect.Whitebox
 
 @RunWith(PowerMockRunner::class)
-@PrepareForTest(MobileCore::class)
+@PrepareForTest(ExtensionApi::class, MobileCore::class)
 class LaunchRulesEvaluatorTests {
 
     @Mock
-    lateinit var launchRulesEngine: LaunchRulesEngine
+    private lateinit var launchRulesEngine: LaunchRulesEngine
+
+    private lateinit var extensionApi: ExtensionApi
+    private lateinit var launchRulesEvaluator: LaunchRulesEvaluator
+    private val cachedEvents: MutableList<Event> = mutableListOf()
 
     @Before
     fun setup() {
+        extensionApi = PowerMockito.mock(ExtensionApi::class.java)
         PowerMockito.mockStatic(MobileCore::class.java)
+        launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine, extensionApi)
+        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
     }
 
     @Test
     fun `Process a null event`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         assertNull(launchRulesEvaluator.process(null))
         verify(launchRulesEngine, never()).process(any())
         assertEquals(0, cachedEvents.size)
@@ -54,9 +59,6 @@ class LaunchRulesEvaluatorTests {
 
     @Test
     fun `Cache incoming events if rules are not set`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         repeat(100) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
@@ -66,23 +68,7 @@ class LaunchRulesEvaluatorTests {
     }
 
     @Test
-    fun `Clear cached events if reached the limit`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
-        repeat(101) {
-            launchRulesEvaluator.process(
-                Event.Builder("event-$it", "type", "source").build()
-            )
-        }
-        assertEquals(0, cachedEvents.size)
-    }
-
-    @Test
     fun `Reprocess cached events when rules are ready`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
@@ -101,9 +87,6 @@ class LaunchRulesEvaluatorTests {
 
     @Test
     fun `Reprocess cached events in the right order`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
@@ -119,19 +102,17 @@ class LaunchRulesEvaluatorTests {
         Mockito.reset(launchRulesEngine)
         launchRulesEvaluator.process(eventCaptor.value)
         val cachedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        verify(launchRulesEngine, Mockito.times(10)).process(cachedEventCaptor.capture())
-        assertEquals(10, cachedEventCaptor.allValues.size)
-        cachedEventCaptor.allValues.forEachIndexed { index, element ->
-            assertEquals("event-$index", element.name)
+        verify(launchRulesEngine, Mockito.times(11)).process(cachedEventCaptor.capture())
+        assertEquals(11, cachedEventCaptor.allValues.size)
+        // 0th event will be current processed event
+        for (index in 1 until cachedEventCaptor.allValues.size) {
+            assertEquals("event-${index - 1}", cachedEventCaptor.allValues[index].name)
         }
         assertEquals(0, cachedEvents.size)
     }
 
     @Test
     fun `Do nothing if set null rule`() {
-        val launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine)
-        val cachedEvents: MutableList<Event> = mutableListOf()
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()

@@ -448,4 +448,20 @@ class MapExtensionsTests {
         ).fnv1a32()
         assertEquals(2933724447, hashCode)
     }
+
+    @Test
+    fun `test prettify map`() {
+        val data = mapOf(
+            "a" to "13435454",
+            "b" to mapOf(
+                "b1" to 1235566,
+                "b2" to null
+            )
+        )
+        val expected = """{
+    "a": "13435454",
+    "b": {"b1": 1235566}
+}"""
+        assertEquals(expected, data.prettify())
+    }
 }

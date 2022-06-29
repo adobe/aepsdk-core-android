@@ -14,6 +14,8 @@ package com.adobe.marketing.mobile.internal.eventhub.history;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+
+import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -21,27 +23,56 @@ import android.database.sqlite.SQLiteDatabase;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.adobe.marketing.mobile.TestUtils;
+import com.adobe.marketing.mobile.internal.context.App;
 import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class AndroidEventHistoryDatabaseTests {
+
+	private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
 	private EventHistoryDatabase androidEventHistoryDatabase;
+
+	private static final AppContextProvider appContextProvider = new AppContextProvider();
+	private static class AppContextProvider implements App.AppContextProvider {
+
+		private Context context;
+
+		public void setContext(Context context) {
+			this.context = context;
+		}
+
+		@Override
+		public Context getAppContext() {
+			return this.context;
+		}
+
+		@Override
+		public Activity getCurrentActivity() {
+			return null;
+		}
+	}
 
 	@Before
 	public void beforeEach() {
 		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		ServiceProvider.getInstance().setContext(context);
-		TestUtils.deleteAllFilesInCacheDir(context);
-
+		appContextProvider.setContext(context);
+		App.getInstance().initializeApp(appContextProvider);
 		try {
 			androidEventHistoryDatabase = new AndroidEventHistoryDatabase();
 		} catch (EventHistoryDatabaseCreationException e) {
 			fail(e.getMessage());
 		}
+	}
+
+	@After
+	public void cleanup() {
+		appContextProvider.getAppContext().getDatabasePath(DATABASE_NAME).delete();
 	}
 
 	@Test
@@ -80,7 +111,7 @@ public class AndroidEventHistoryDatabaseTests {
 			assertTrue(androidEventHistoryDatabase.insert(222222222));
 		}
 
-		String dbPath = "/data/data/com.adobe.marketing.mobile.test/cache/com.adobe.marketing.db.eventhistory";
+		String dbPath = appContextProvider.getAppContext().getDatabasePath(DATABASE_NAME).getPath();
 		SQLiteDatabase database = SQLiteDatabaseHelper.openDatabase(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
 		long dbSize = DatabaseUtils.queryNumEntries(database,"Events");
 		SQLiteDatabaseHelper.closeDatabase(database);

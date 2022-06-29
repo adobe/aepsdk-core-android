@@ -18,8 +18,10 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.context.App;
 import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.utility.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,12 +48,8 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
      */
     AndroidEventHistoryDatabase() throws EventHistoryDatabaseCreationException {
         try {
-            //TODO: we will create a utility method: Context.getDatabasePath(), we need to  refactor the following code after that.
-            final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-            if (applicationCacheDir != null) {
-                final String cacheDirCanonicalPath = applicationCacheDir.getCanonicalPath();
-                databaseFile = new File(cacheDirCanonicalPath + "/" + DATABASE_NAME);
-            }
+            //TODO: add functional tests for testing DB migration
+            databaseFile = FileUtil.openOrMigrateDatabase(DATABASE_NAME, App.getInstance().getAppContext());
             final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
                     " (eventHash INTEGER, timestamp INTEGER);";
 

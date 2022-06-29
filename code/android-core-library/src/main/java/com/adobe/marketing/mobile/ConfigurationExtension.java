@@ -139,7 +139,8 @@ class ConfigurationExtension extends InternalModule {
         this.cachedEvents = Collections.synchronizedList(new ArrayList<Event>());
         //TODO: need to pass an instance of ExtensionAPi to initialize LaunchRulesEngine, will do it later after we converted Configuration to a 3th party extension.
         LaunchRulesEngine launchRulesEngine = new LaunchRulesEngine(null);
-        launchRulesEvaluator = new LaunchRulesEvaluator(LAUNCH_RULES_ENGINE, launchRulesEngine);
+        //TODO: need to pass an instance of ExtensionAPi to initialize LaunchRulesEvaluator, will do it later after we converted Configuration to a 3th party extension.
+        launchRulesEvaluator = new LaunchRulesEvaluator(LAUNCH_RULES_ENGINE, launchRulesEngine, null);
         //TODO: enable pre-processor to utilize the new RulesEngine after the Configuration is converted to a 3th party extension.
         //eventHub.registerPreprocessor(launchRulesEvaluator);
     }

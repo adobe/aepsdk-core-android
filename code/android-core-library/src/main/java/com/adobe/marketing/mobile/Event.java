@@ -294,6 +294,23 @@ public final class Event {
 	}
 
 	/**
+	 * Clones the current {@link Event} with updated data
+	 * @param newData data associated with the new {@code Event}
+	 * @return new cloned {@code Event} with provided data
+	 */
+	public Event cloneWithEventData(final Map<String, Object> newData) {
+		Event newEvent = new Event.Builder(this.name, this.type, this.source, this.mask)
+				.setEventData(newData)
+				.build();
+		newEvent.uniqueIdentifier = this.uniqueIdentifier;
+		newEvent.timestamp = this.timestamp;
+		newEvent.pairID = this.pairID;
+		newEvent.responsePairID = this.responsePairID;
+		newEvent.eventNumber = this.eventNumber;
+		return  newEvent;
+	}
+
+	/**
 	 * Returns the {@code Event} name
 	 * @return {@code String} representing the {@link Event} name
 	 */

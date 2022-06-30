@@ -29,8 +29,8 @@ internal object FileUtil {
      * @return file name without relative path
      */
     @JvmStatic
-    fun removeRelativePath(filePath: String?): String? {
-        return if (filePath.isNullOrBlank()) {
+    fun removeRelativePath(filePath: String): String {
+        return if (filePath.isBlank()) {
             filePath
         } else {
             var result = filePath.replace("\\.[/\\\\]".toRegex(), "\\.")
@@ -50,12 +50,12 @@ internal object FileUtil {
      * @return `File` representing the database in [Context.getDatabasePath]`
      */
     @JvmStatic
-    fun openOrMigrateDatabase(databaseName: String?, appContext: Context?): File? {
-        if (databaseName.isNullOrBlank()) {
+    fun openOrMigrateDatabase(databaseName: String, appContext: Context?): File? {
+        if (databaseName.isBlank()) {
             MobileCore.log(
                 LoggingMode.WARNING,
                 LOG_TAG,
-                "Failed to create database, database name is null"
+                "Failed to create database, database name is empty"
             )
             return null
         }
@@ -71,7 +71,7 @@ internal object FileUtil {
             return null
         }
         val cleanedDatabaseName = removeRelativePath(databaseName)
-        if (cleanedDatabaseName.isNullOrBlank()) {
+        if (cleanedDatabaseName.isBlank()) {
             MobileCore.log(
                 LoggingMode.WARNING,
                 LOG_TAG,

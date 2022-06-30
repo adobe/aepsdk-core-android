@@ -42,11 +42,6 @@ class FileUtilTests {
     }
 
     @Test
-    fun testRemoveRelativePath_NullPath() {
-        assertNull(FileUtil.removeRelativePath(null))
-    }
-
-    @Test
     fun testRemoveRelativePath_RelativePathBackslashClearnedUp() {
         assertEquals(FileUtil.removeRelativePath("/mydatabase\\..\\..\\database1"), "mydatabase_database1")
     }
@@ -68,7 +63,6 @@ class FileUtilTests {
 
     @Test
     fun testOpenOrMigrateDatabase_DatabaseNameIsNullOrEmpty() {
-        assertNull(FileUtil.openOrMigrateDatabase(null, context))
         assertNull(FileUtil.openOrMigrateDatabase("", context))
     }
 

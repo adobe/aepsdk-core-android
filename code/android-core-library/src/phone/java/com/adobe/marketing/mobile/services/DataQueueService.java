@@ -50,7 +50,7 @@ class DataQueueService implements DataQueuing {
 
 				if (dataQueue == null) {
 					final File databaseDirDataQueue = FileUtil.openOrMigrateDatabase(
-							null,
+							databaseName,
 							ServiceProvider.getInstance().getApplicationContext()
 					);
 

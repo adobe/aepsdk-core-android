@@ -530,7 +530,7 @@ final public class MobileCore {
         }
 
         if (StringUtils.isNullOrEmpty(filepath)) {
-            Log.warning("Configuration", "Unable to configure with null or empty remoteURL");
+            Log.warning("Configuration", "Unable to configure with null or empty file path");
             return;
         }
 

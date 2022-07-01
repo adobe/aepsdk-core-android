@@ -670,14 +670,10 @@ final public class MobileCore {
         if (eventHub == null) {
             Log.debug(LOG_TAG, "Failed to retrieve the all SDK identities (%s)", NULL_CONTEXT_MESSAGE);
 
-            if (callback != null & callback instanceof AdobeCallbackWithError) {
+            if (callback instanceof AdobeCallbackWithError) {
                 ((AdobeCallbackWithError) callback).fail(AdobeError.EXTENSION_NOT_INITIALIZED);
             }
 
-            return;
-        }
-
-        if (callback == null) {
             return;
         }
 

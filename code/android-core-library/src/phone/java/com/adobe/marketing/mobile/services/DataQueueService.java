@@ -49,7 +49,7 @@ class DataQueueService implements DataQueuing {
 				dataQueue = dataQueueCache.get(databaseName);
 
 				if (dataQueue == null) {
-					final File databaseDirDataQueue = FileUtil.openOrMigrateDatabase(
+					final File databaseDirDataQueue = FileUtil.openOrCreateDatabase(
 							databaseName,
 							ServiceProvider.getInstance().getApplicationContext()
 					);
@@ -57,6 +57,8 @@ class DataQueueService implements DataQueuing {
 					if(databaseDirDataQueue == null){
 						return null;
 					}
+
+					FileUtil.migrateAndDeleteOldDatabase(databaseDirDataQueue);
 					dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath());
 					dataQueueCache.put(databaseName, dataQueue);
 				}

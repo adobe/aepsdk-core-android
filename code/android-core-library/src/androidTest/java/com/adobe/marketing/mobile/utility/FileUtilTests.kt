@@ -62,32 +62,14 @@ class FileUtilTests {
     }
 
     @Test
-    fun testOpenOrMigrateDatabase_DatabaseNameIsNullOrEmpty() {
-        assertNull(FileUtil.openOrMigrateDatabase("", context))
-    }
-
-    @Test
-    fun testOpenOrMigrateDatabase_ContextIsNull() {
-        assertNull(FileUtil.openOrMigrateDatabase(testDatabaseName, null))
+    fun testOpenOrCreateDatabase_DatabaseNameIsNullOrEmpty() {
+        assertNull(FileUtil.openOrCreateDatabase("", context))
     }
 
     @Test
     fun testOpenOrMigrateDatabase_DatabaseDoesNotExist() {
-        assertNotNull(FileUtil.openOrMigrateDatabase(testDatabaseName, context))
+        assertNotNull(FileUtil.openOrCreateDatabase(testDatabaseName, context))
         assertTrue(context.getDatabasePath(testDatabaseName).exists())
-    }
-
-    @Test
-    fun testOpenOrMigrateDatabase_DatabaseFromCacheDir() {
-        val file = File(context.cacheDir, testDatabaseName)
-        try {
-            file.createNewFile()
-            assertTrue(File(context.cacheDir, testDatabaseName).exists())
-            val database = FileUtil.openOrMigrateDatabase(testDatabaseName, context)
-            assertNotNull(database)
-            assertTrue(context.getDatabasePath(testDatabaseName).exists())
-            assertFalse(File(context.cacheDir, testDatabaseName).exists())
-        } catch (e: Exception) {}
     }
 
     @Test
@@ -95,9 +77,24 @@ class FileUtilTests {
         val file = context.getDatabasePath(testDatabaseName)
         try {
             file.createNewFile()
-            val database = FileUtil.openOrMigrateDatabase(testDatabaseName, context)
+            val database = FileUtil.openOrCreateDatabase(testDatabaseName, context)
+            assertNotNull(database)
+        } catch (e: Exception) {}
+    }
+
+    @Test
+    fun testMigrateAndODeleteOldDatabase() {
+        val file = File(context.cacheDir, testDatabaseName)
+        try {
+            file.createNewFile()
+            assertTrue(File(context.cacheDir, testDatabaseName).exists())
+            val database = FileUtil.openOrCreateDatabase(testDatabaseName, context)
+            if (database != null) {
+                FileUtil.migrateAndDeleteOldDatabase(database)
+            }
             assertNotNull(database)
             assertTrue(context.getDatabasePath(testDatabaseName).exists())
+            assertFalse(File(context.cacheDir, testDatabaseName).exists())
         } catch (e: Exception) {}
     }
 }

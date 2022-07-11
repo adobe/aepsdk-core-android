@@ -10,7 +10,8 @@
  */
 package com.adobe.marketing.mobile;
 
-public class MockSignalHitsDatabase extends SignalHitsDatabase {
+// TODO refactor to use public hit queue
+/* public class MockSignalHitsDatabase extends SignalHitsDatabase {
 	MockSignalHitsDatabase(PlatformServices services) {
 		super(services);
 	}
@@ -31,4 +32,4 @@ public class MockSignalHitsDatabase extends SignalHitsDatabase {
 		this.queueParametersMobilePrivacyStatus = privacyStatus;
 		this.queueWasCalled = true;
 	}
-}
+} */

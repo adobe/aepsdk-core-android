@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.utility.MapUtilsKt;
 import com.adobe.marketing.mobile.utils.EventDataUtils;
 
 import java.util.*;
@@ -293,6 +294,23 @@ public final class Event {
 	}
 
 	/**
+	 * Clones the current {@link Event} with updated data
+	 * @param newData data associated with the new {@code Event}
+	 * @return new cloned {@code Event} with provided data
+	 */
+	public Event cloneWithEventData(final Map<String, Object> newData) {
+		Event newEvent = new Event.Builder(this.name, this.type, this.source, this.mask)
+				.setEventData(newData)
+				.build();
+		newEvent.uniqueIdentifier = this.uniqueIdentifier;
+		newEvent.timestamp = this.timestamp;
+		newEvent.pairID = this.pairID;
+		newEvent.responsePairID = this.responsePairID;
+		newEvent.eventNumber = this.eventNumber;
+		return  newEvent;
+	}
+
+	/**
 	 * Returns the {@code Event} name
 	 * @return {@code String} representing the {@link Event} name
 	 */
@@ -468,12 +486,13 @@ public final class Event {
 		sb.append("    pairId: ").append(pairID).append(COMMA).append(NEWLINE);
 		sb.append("    responsePairId: ").append(responsePairID).append(COMMA).append(NEWLINE);
 		sb.append("    timestamp: ").append(timestamp).append(COMMA).append(NEWLINE);
-		// Todo - Remove this once we completly remove EventData from core.
+
+		// Todo - Remove this once we completely remove EventData from core.
 		try {
 			EventData data = EventData.fromObjectMap(this.data);
 			sb.append("    data: ").append(data.prettyString(2)).append(NEWLINE);
 			sb.append("    mask: ").append(Arrays.toString(mask)).append(COMMA).append(NEWLINE);
-			sb.append("    fnv1aHash: ").append(data.toFnv1aHash(mask)).append(NEWLINE);
+			sb.append("    fnv1aHash: ").append(MapUtilsKt.convertMapToFnv1aHash(data.toObjectMap(),mask)).append(NEWLINE);
 		} catch (VariantException ex) {}
 		sb.append("}");
 

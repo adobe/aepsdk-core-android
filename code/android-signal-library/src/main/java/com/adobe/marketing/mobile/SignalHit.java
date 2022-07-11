@@ -14,18 +14,19 @@ package com.adobe.marketing.mobile;
 /*
     Define the fields for signal request
  */
-class SignalHit extends AbstractHit {
+// TODO refactor to use public hit queue
+/*class SignalHit extends AbstractHit {
 	String url;
 	String body;
 	String contentType;
 	int timeout;
 
-	/**
+	*//**
 	 *  Determine the Http command based off the request body
 	 *
 	 * @return HttpCommand.POST if the body has content, otherwise HttpCommand.GET
-	 */
+	 *//*
 	NetworkService.HttpCommand getHttpCommand() {
 		return StringUtils.isNullOrEmpty(body) ? NetworkService.HttpCommand.GET : NetworkService.HttpCommand.POST;
 	}
-}
+}*/

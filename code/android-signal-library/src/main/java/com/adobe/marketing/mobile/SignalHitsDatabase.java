@@ -20,7 +20,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * The database queue for signal requests
  */
-class SignalHitsDatabase implements HitQueue.IHitProcessor<SignalHit> {
+
+// TODO refactor to use public HitQueue
+/*class SignalHitsDatabase implements HitQueue.IHitProcessor<SignalHit> {
 
 	private static final String LOG_TAG = "SignalHitsDatabase";
 	private static final String SIGNAL_FILENAME = "ADBMobileSignalDataCache.sqlite";
@@ -31,19 +33,19 @@ class SignalHitsDatabase implements HitQueue.IHitProcessor<SignalHit> {
 	private final static int HTTP_SUCCESS_RESPONSE_CODE_LOWER_LIMIT = 200;
 	private final static int HTTP_SUCCESS_RESPONSE_CODE_UPPER_LIMIT = 299;
 
-	/**
+	*//**
 	 * Default Constructor
 	 * @param services PlatformServices
-	 */
+	 *//*
 	SignalHitsDatabase(final PlatformServices services) {
 		this(services, null);
 	}
 
-	/**
+	*//**
 	 * Constructor for test
 	 * @param services PlatformServices
 	 * @param hitQueue HitQueue for test
-	 */
+	 *//*
 	SignalHitsDatabase(final PlatformServices services, final HitQueue<SignalHit, SignalHitSchema> hitQueue) {
 
 		this.networkService = services.getNetworkService();
@@ -108,11 +110,11 @@ class SignalHitsDatabase implements HitQueue.IHitProcessor<SignalHit> {
 		return retryType;
 	}
 
-	/**
+	*//**
 	 * update the privacy status. Resume the queue when optin. Clear the queue when optout. Suspend the queue when unkonwn.
 	 *
 	 * @param privacyStatus the new privacy status
-	 */
+	 *//*
 	void updatePrivacyStatus(final MobilePrivacyStatus privacyStatus) {
 		switch (privacyStatus) {
 			case OPT_IN:
@@ -130,12 +132,12 @@ class SignalHitsDatabase implements HitQueue.IHitProcessor<SignalHit> {
 		}
 	}
 
-	/**
+	*//**
 	 * Add a signal hit to the queue
 	 * @param signalHit the signal hit
 	 * @param timestampMillis event timestamp to be associated with the signal hit
 	 * @param privacyStatus the current privacy status
-	 */
+	 *//*
 	void queue(final SignalHit signalHit, final long timestampMillis, final MobilePrivacyStatus privacyStatus) {
 		if (signalHit != null) {
 			signalHit.timestamp = TimeUnit.MILLISECONDS.toSeconds(timestampMillis);
@@ -148,4 +150,4 @@ class SignalHitsDatabase implements HitQueue.IHitProcessor<SignalHit> {
 		}
 	}
 
-}
+}*/

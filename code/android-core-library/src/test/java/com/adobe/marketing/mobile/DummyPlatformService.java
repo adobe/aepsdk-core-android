@@ -31,11 +31,6 @@ class DummyPlatformService implements PlatformServices {
 	}
 
 	@Override
-	public DatabaseService getDatabaseService() {
-		return null;
-	}
-
-	@Override
 	public SystemNotificationService getSystemNotificationService() {
 		return null;
 	}

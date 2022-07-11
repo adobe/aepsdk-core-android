@@ -18,6 +18,9 @@ import java.util.Map;
 /**
     Define the database schema for signal request
  */
+
+//TODO refactor to use public hit queue
+/*
 class SignalHitSchema extends AbstractHitSchema<SignalHit> {
 	private static final String LOG_TAG = "SignalHitType";
 
@@ -96,3 +99,4 @@ class SignalHitSchema extends AbstractHitSchema<SignalHit> {
 	}
 
 }
+*/

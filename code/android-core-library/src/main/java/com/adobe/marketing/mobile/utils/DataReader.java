@@ -34,7 +34,6 @@ import java.util.Map;
  *     </li>
  *
  * </ul>
- *
  */
 public class DataReader {
 
@@ -92,7 +91,7 @@ public class DataReader {
                 Number objAsNumber = (Number) obj;
 
                 if (DataReader.checkOverflow(tClass, objAsNumber)) {
-                    throw new DataReaderException("Value overflows type "+ tClass);
+                    throw new DataReaderException("Value overflows type " + tClass);
                 }
 
                 if (Byte.class.equals(tClass)) {
@@ -125,13 +124,13 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as a custom object.
      *
-     * @param <T> Custom type
+     * @param <T>    Custom type
      * @param tClass Custom class
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map    {@code Map} map to fetch data
+     * @param key    {@code String} key to fetch
      * @return {@code T} value associated with {@code key} or null if {@code key} is not present in {@code map}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as a {@code T}
+     * @throws DataReaderException      if value is not gettable as a {@code T}
      */
     private static <T> T getTypedObject(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
         if (map == null || key == null) {
@@ -145,10 +144,10 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as a custom object or returns default value
      *
-     * @param <T> Custom type
-     * @param tClass Custom class
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param <T>      Custom type
+     * @param tClass   Custom class
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code T} value to return in case of failure. Can be null.
      * @return {@code T} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code T}
@@ -158,20 +157,21 @@ public class DataReader {
         T ret = null;
         try {
             ret = getTypedObject(tClass, map, key);
-        } catch (DataReaderException ex) {}
+        } catch (DataReaderException ex) {
+        }
         return ret != null ? ret : fallback;
     }
 
     /**
      * Gets the value for {@code key} from {@code map} as a {@code Map<String, T>}
      *
-     * @param <T> Custom type
+     * @param <T>    Custom type
      * @param tClass Custom class
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map    {@code Map} map to fetch data
+     * @param key    {@code String} key to fetch
      * @return {@code Map<String, T>} Map associated with {@code key} or null if {@code key} is not present in {@code map}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as a {@code Map<String,T>}
+     * @throws DataReaderException      if value is not gettable as a {@code Map<String,T>}
      */
     public static <T> Map<String, T> getTypedMap(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
         if (map == null || key == null) {
@@ -187,10 +187,12 @@ public class DataReader {
             throw new DataReaderException("Value is not a map");
         }
 
-        Map<?, ?> valueAsMap = (Map<?, ?>)value;
+        Map<?, ?> valueAsMap = (Map<?, ?>) value;
         for (Map.Entry<?, ?> kv : valueAsMap.entrySet()) {
-            if (!(kv.getKey() instanceof String) ||
-                    !tClass.isInstance(kv.getValue())) {
+            if (!(kv.getKey() instanceof String)) {
+                throw new DataReaderException("Map entry is not of expected type");
+            }
+            if (kv.getValue() != null && !tClass.isInstance(kv.getValue())) {
                 throw new DataReaderException("Map entry is not of expected type");
             }
         }
@@ -200,10 +202,10 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as a {@code Map<String, T>} or returns default value
      *
-     * @param <T> Custom type
-     * @param tClass Custom class
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param <T>      Custom type
+     * @param tClass   Custom class
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code Map<String, T>} value to return in case of failure. Can be null.
      * @return {@code Map<String, T>} Map associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code Map<String, T>}
@@ -213,20 +215,21 @@ public class DataReader {
         Map<String, T> ret = null;
         try {
             ret = getTypedMap(tClass, map, key);
-        } catch (DataReaderException ex) {}
+        } catch (DataReaderException ex) {
+        }
         return ret != null ? ret : fallback;
     }
 
     /**
      * Gets the value for {@code key} from {@code map} as a {@code List<T>}
      *
-     * @param <T> Custom type
+     * @param <T>    Custom type
      * @param tClass Custom class
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map    {@code Map} map to fetch data
+     * @param key    {@code String} key to fetch
      * @return {@code List<T>} List associated with {@code key} or null if {@code key} is not present in {@code map}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as a {@code List<T>}
+     * @throws DataReaderException      if value is not gettable as a {@code List<T>}
      */
     public static <T> List<T> getTypedList(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
         if (map == null || key == null) {
@@ -255,10 +258,10 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as a {@code List<T>} or returns default value
      *
-     * @param <T> Custom type
-     * @param tClass Custom class
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param <T>      Custom type
+     * @param tClass   Custom class
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code List<T>} value to return in case of failure. Can be null.
      * @return {@code List<T>} List associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code List<T>}
@@ -268,7 +271,8 @@ public class DataReader {
         List<T> ret = null;
         try {
             ret = getTypedList(tClass, map, key);
-        } catch (DataReaderException ex) {}
+        } catch (DataReaderException ex) {
+        }
         return ret != null ? ret : fallback;
     }
 
@@ -279,7 +283,7 @@ public class DataReader {
      * @param key {@code String} key to fetch
      * @return {@code boolean} value associated with {@code key}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as a {@code boolean} or if {@code key} is not present in {@code map}
+     * @throws DataReaderException      if value is not gettable as a {@code boolean} or if {@code key} is not present in {@code map}
      */
     public static boolean getBoolean(Map<String, ?> map, String key) throws DataReaderException {
         Boolean ret = getTypedObject(Boolean.class, map, key);
@@ -292,8 +296,8 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as a {@code boolean} or returns default value
      *
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code boolean} value to return in case of failure. Can be null.
      * @return {@code boolean} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code boolean}
@@ -310,7 +314,7 @@ public class DataReader {
      * @param key {@code String} key to fetch
      * @return {@code int} value associated with {@code key}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as an {@code int} or if {@code key} is not present in {@code map}
+     * @throws DataReaderException      if value is not gettable as an {@code int} or if {@code key} is not present in {@code map}
      */
     public static int getInt(Map<String, ?> map, String key) throws DataReaderException {
         Integer ret = getTypedObject(Integer.class, map, key);
@@ -323,8 +327,8 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as an {@code int} or returns default value
      *
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code int} value to return in case of failure. Can be null.
      * @return {@code int} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code int}
@@ -341,7 +345,7 @@ public class DataReader {
      * @param key {@code String} key to fetch
      * @return {@code long} value associated with {@code key}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as an {@code long} or if {@code key} is not present in {@code map}
+     * @throws DataReaderException      if value is not gettable as an {@code long} or if {@code key} is not present in {@code map}
      */
     public static long getLong(Map<String, ?> map, String key) throws DataReaderException {
         Long ret = getTypedObject(Long.class, map, key);
@@ -354,8 +358,8 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as an {@code long} or returns default value
      *
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code long} value to return in case of failure. Can be null.
      * @return {@code long} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code long}
@@ -372,7 +376,7 @@ public class DataReader {
      * @param key {@code String} key to fetch
      * @return {@code float} value associated with {@code key}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as an {@code float} or if {@code key} is not present in {@code map}
+     * @throws DataReaderException      if value is not gettable as an {@code float} or if {@code key} is not present in {@code map}
      */
     public static float getFloat(Map<String, ?> map, String key) throws DataReaderException {
         Float ret = getTypedObject(Float.class, map, key);
@@ -385,8 +389,8 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as an {@code float} or returns default value
      *
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code float} value to return in case of failure. Can be null.
      * @return {@code float} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code float}
@@ -403,7 +407,7 @@ public class DataReader {
      * @param key {@code String} key to fetch
      * @return {@code double} value associated with {@code key}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as an {@code double} or if {@code key} is not present in {@code map}
+     * @throws DataReaderException      if value is not gettable as an {@code double} or if {@code key} is not present in {@code map}
      */
     public static double getDouble(Map<String, ?> map, String key) throws DataReaderException {
         Double ret = getTypedObject(Double.class, map, key);
@@ -416,8 +420,8 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as an {@code double} or returns default value
      *
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code double} value to return in case of failure. Can be null.
      * @return {@code double} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code double}
@@ -434,7 +438,7 @@ public class DataReader {
      * @param key {@code String} key to fetch
      * @return {@code String} value associated with {@code key}  or null if {@code key} is not present in {@code map}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as an {@code String}
+     * @throws DataReaderException      if value is not gettable as an {@code String}
      */
     public static String getString(Map<String, ?> map, String key) throws DataReaderException {
         return getTypedObject(String.class, map, key);
@@ -443,8 +447,8 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as a {@code String} or returns default value
      *
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code String} value to return in case of failure. Can be null.
      * @return {@code String} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code String}
@@ -461,7 +465,7 @@ public class DataReader {
      * @param key {@code String} key to fetch
      * @return {@code Map<String, String>} Map associated with {@code key} or null if {@code key} is not present in {@code map}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as a {@code Map<String, String>}
+     * @throws DataReaderException      if value is not gettable as a {@code Map<String, String>}
      */
     public static Map<String, String> getStringMap(Map<String, ?> map, String key) throws DataReaderException {
         return getTypedMap(String.class, map, key);
@@ -470,8 +474,8 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as a {@code Map<String, String>} or returns default value
      *
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code Map<String, String>} value to return in case of failure. Can be null.
      * @return {@code Map<String, String>} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code Map<String, String>}
@@ -488,7 +492,7 @@ public class DataReader {
      * @param key {@code String} key to fetch
      * @return {@code List<String>} List associated with {@code key} or null if {@code key} is not present in {@code map}
      * @throws IllegalArgumentException if {@code map} or {@code key} is null
-     * @throws DataReaderException if value is not gettable as a {@code List<String>}
+     * @throws DataReaderException      if value is not gettable as a {@code List<String>}
      */
     public static List<String> getStringList(Map<String, ?> map, String key) throws DataReaderException {
         return getTypedList(String.class, map, key);
@@ -497,8 +501,8 @@ public class DataReader {
     /**
      * Gets the value for {@code key} from {@code map} as a {@code List<String>} or returns default value
      *
-     * @param map {@code Map} map to fetch data
-     * @param key {@code String} key to fetch
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
      * @param fallback {@code List<String>} value to return in case of failure. Can be null.
      * @return {@code List<String>} List associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code List<String>}

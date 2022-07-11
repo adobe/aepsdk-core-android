@@ -183,14 +183,14 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 					notificationManager.createNotificationChannel((NotificationChannel)notificationChannel);
 
 					// specify the notification channel id when creating the notification compat builder
-					notificationBuilderClass = classLoader.loadClass("android.support.v4.app.NotificationCompat$Builder");
+					notificationBuilderClass = classLoader.loadClass("androidx.core.app.NotificationCompat$Builder");
 					Constructor<?> notificationConstructor = notificationBuilderClass.getConstructor(Context.class,
 							NOTIFICATION_CHANNEL_ID.getClass());
 					notificationConstructor.setAccessible(true);
 					notificationBuilder = notificationConstructor.newInstance(context.getApplicationContext(), NOTIFICATION_CHANNEL_ID);
 
 					final Method methodSetStyle = notificationBuilderClass.getDeclaredMethod("setStyle",
-												  classLoader.loadClass("android.support.v4.app.NotificationCompat$Style"));
+												  classLoader.loadClass("androidx.core.app.NotificationCompat$Style"));
 					methodSetStyle.invoke(notificationBuilder, getBigTextStyle(buildVersion, classLoader, message));
 
 				} else {
@@ -305,7 +305,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 
 		Object bigTextStyle;
 		Class<?> classBigTextStyle = classLoader.loadClass(buildVersion >= 26 ?
-									 "android.support.v4.app.NotificationCompat$BigTextStyle" : "android.app.Notification$BigTextStyle");
+									 "androidx.core.app.NotificationCompat$BigTextStyle" : "android.app.Notification$BigTextStyle");
 		Constructor<?> bigTextStyleConstructor = classBigTextStyle.getConstructor();
 		bigTextStyle = bigTextStyleConstructor.newInstance();
 		Method methodBigText = classBigTextStyle.getDeclaredMethod("bigText", CharSequence.class);

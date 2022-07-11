@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -30,6 +31,8 @@ public class ConfigurationDispatcherConfigurationResponseIdentityTest {
 										   fakePlatformServices));
 	}
 
+	// TODO uncomment after Configuration refactor
+	@Ignore
 	@Test
 	public void testDispatchAllIdentities() {
 		//Test

@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 
@@ -43,6 +45,11 @@ class NetworkService implements Networking {
 		executorService = new ThreadPoolExecutor(THREAD_POOL_CORE_SIZE, THREAD_POOL_MAXIMUM_SIZE, THREAD_POOL_KEEP_ALIVE_TIME,
 				TimeUnit.SECONDS,
 				new SynchronousQueue<Runnable>());
+	}
+
+	@VisibleForTesting
+	NetworkService(ExecutorService executorService) {
+		this.executorService = executorService;
 	}
 
 

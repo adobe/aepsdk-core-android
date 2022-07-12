@@ -86,7 +86,6 @@ public class DataQueueServiceTests {
 
     @Test
     public void testGetDataQueue_DataQueueExistsInDatabaseDirectory() {
-        new File(context.getCacheDir(), TEST_DATABASE_NAME).delete();
         File databaseFile = context.getDatabasePath(TEST_DATABASE_NAME);
         try {
             databaseFile.createNewFile();

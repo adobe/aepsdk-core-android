@@ -13,8 +13,22 @@ package com.adobe.marketing.mobile;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
 
 import java.lang.reflect.Constructor;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import kotlin.Unit;
@@ -66,7 +80,6 @@ class EventHub {
 	private final ConcurrentHashMap<String, RangedResolver<EventData>> moduleXdmSharedStates;
 	private final ConcurrentHashMap<String, Boolean> sharedStateCircularCheck;
 	private final LinkedList<Event> preBootEvents; // locked on bootMutex
-	private final RulesEngine rulesEngine;
 	private final AtomicInteger currentEventNumber;
 	private final ExecutorService threadPool;
 	private final ExecutorService eventHubThreadService;
@@ -123,7 +136,7 @@ class EventHub {
 				new LinkedBlockingQueue<Runnable>());
 		this.eventHubSharedState = getInitialEventHubSharedState();
 		this.isBooted = false;
-		this.rulesEngine = new RulesEngine(this);
+		//this.rulesEngine = new RulesEngine(this);
 		this.eventBus = new EventBus();
 	}
 
@@ -184,20 +197,20 @@ class EventHub {
 			} else {
 				this.eventHubThreadService.submit(new EventRunnable(e));
 			}
-
-			final EventHistory eventHistory = EventHistoryProvider.getEventHistory();
-
-			// record the event in the event history  database if the event has a mask
-			if (eventHistory != null && e.getMask() != null) {
-				final EventHistoryResultHandler<Boolean> handler = new EventHistoryResultHandler<Boolean>() {
-					@Override
-					public void call(final Boolean value) {
-						Log.trace(logPrefix, value ? "Successfully inserted an Event into EventHistory database" :
-								  "Failed to insert an Event into EventHistory database");
-					}
-				};
-				eventHistory.recordEvent(e, handler);
-			}
+// Todo
+//			final EventHistory eventHistory = EventHistoryProvider.getEventHistory();
+//
+//			// record the event in the event history  database if the event has a mask
+//			if (eventHistory != null && e.getMask() != null) {
+//				final EventHistoryResultHandler<Boolean> handler = new EventHistoryResultHandler<Boolean>() {
+//					@Override
+//					public void call(final Boolean value) {
+//						Log.trace(logPrefix, value ? "Successfully inserted an Event into EventHistory database" :
+//								  "Failed to insert an Event into EventHistory database");
+//					}
+//				};
+//				eventHistory.recordEvent(e, handler);
+//			}
 		}
 	}
 
@@ -267,9 +280,9 @@ class EventHub {
 	 *
 	 * @return all loaded rules
 	 */
-	protected ConcurrentHashMap<Module, ConcurrentLinkedQueue<Rule>> getModuleRuleAssociation() {
-		return this.rulesEngine.getModuleRuleAssociation();
-	}
+//	protected ConcurrentHashMap<Module, ConcurrentLinkedQueue<Rule>> getModuleRuleAssociation() {
+//		return this.rulesEngine.getModuleRuleAssociation();
+//	}
 
 	/**
 	 * Registers a module with the event hub. Modules must extend {@code Module}
@@ -351,31 +364,31 @@ class EventHub {
 	 * @param rule   {@code Rule} to register
 	 * @throws InvalidModuleException if module is null
 	 */
-	final void registerModuleRule(final Module module, final Rule rule) throws InvalidModuleException {
-		if (module == null) {
-			throw new InvalidModuleException(LOG_PROVIDED_MODULE_WAS_NULL);
-		}
-
-		if (rule == null) {
-			throw new IllegalArgumentException("Cannot register a null rule");
-		}
-
-
-		rulesEngine.addRule(module, rule);
-	}
-
-	final void replaceModuleRules(final Module module, final List<Rule> rules) throws InvalidModuleException {
-		if (module == null) {
-			throw new InvalidModuleException(LOG_PROVIDED_MODULE_WAS_NULL);
-		}
-
-		if (rules == null) {
-			throw new IllegalArgumentException("Cannot register a null rule");
-		}
-
-
-		rulesEngine.replaceRules(module, rules);
-	}
+//	final void registerModuleRule(final Module module, final Rule rule) throws InvalidModuleException {
+//		if (module == null) {
+//			throw new InvalidModuleException(LOG_PROVIDED_MODULE_WAS_NULL);
+//		}
+//
+//		if (rule == null) {
+//			throw new IllegalArgumentException("Cannot register a null rule");
+//		}
+//
+//
+//		rulesEngine.addRule(module, rule);
+//	}
+//
+//	final void replaceModuleRules(final Module module, final List<Rule> rules) throws InvalidModuleException {
+//		if (module == null) {
+//			throw new InvalidModuleException(LOG_PROVIDED_MODULE_WAS_NULL);
+//		}
+//
+//		if (rules == null) {
+//			throw new IllegalArgumentException("Cannot register a null rule");
+//		}
+//
+//
+//		rulesEngine.replaceRules(module, rules);
+//	}
 
 
 	/**
@@ -385,21 +398,21 @@ class EventHub {
 	 * @param rules                  {@code Rule} to register
 	 * @param reprocessEventsHandler handler to return custom events
 	 */
-	protected void replaceRulesAndEvaluateEvents(final Module module, final List<Rule> rules,
-			final ReprocessEventsHandler reprocessEventsHandler) {
-
-		if (reprocessEventsHandler == null) {
-			Log.debug(logPrefix, "failed to reprocess events as <reprocessEventsHandler> is null ");
-			return;
-		}
-
-		if (rules == null) {
-			Log.debug(logPrefix, "failed to reprocess events as <rules> is null ");
-			return;
-		}
-
-		this.eventHubThreadService.submit(new ReprocessEventsWithRules(reprocessEventsHandler, rules, module));
-	}
+//	protected void replaceRulesAndEvaluateEvents(final Module module, final List<Rule> rules,
+//			final ReprocessEventsHandler reprocessEventsHandler) {
+//
+//		if (reprocessEventsHandler == null) {
+//			Log.debug(logPrefix, "failed to reprocess events as <reprocessEventsHandler> is null ");
+//			return;
+//		}
+//
+//		if (rules == null) {
+//			Log.debug(logPrefix, "failed to reprocess events as <rules> is null ");
+//			return;
+//		}
+//
+//		this.eventHubThreadService.submit(new ReprocessEventsWithRules(reprocessEventsHandler, rules, module));
+//	}
 
 	/**
 	 * Unregisters all rules registered by the given {@code Module}
@@ -412,7 +425,7 @@ class EventHub {
 			throw new InvalidModuleException(LOG_PROVIDED_MODULE_WAS_NULL);
 		}
 
-		rulesEngine.unregisterAllRules(module);
+		//rulesEngine.unregisterAllRules(module);
 	}
 
 
@@ -1440,49 +1453,49 @@ class EventHub {
 		return wrapperInfo;
 	}
 
-	private final class ReprocessEventsWithRules implements Runnable {
-
-		final ReprocessEventsHandler reprocessEventsHandler;
-		final List<Rule> rules;
-		final List<Event> consequenceEvents;
-		final Module module;
-
-		ReprocessEventsWithRules(final ReprocessEventsHandler reprocessEventsHandler, final List<Rule> rules,
-								 final Module module) {
-			this.reprocessEventsHandler = reprocessEventsHandler;
-			this.rules = rules;
-			this.module = module;
-			this.consequenceEvents = new ArrayList<Event>();
-		}
-
-		@Override
-		public void run() {
-			try {
-				List<Event> events = reprocessEventsHandler.getEvents();
-
-				if (events.size() > REPROCESS_EVENTS_AMOUNT_LIMIT) {
-					Log.debug(logPrefix, "Failed to reprocess cached events, since the amount of events (%s) reach the limits (%s)",
-							  events.size(),
-							  REPROCESS_EVENTS_AMOUNT_LIMIT);
-				} else {
-					for (final Event e : events) {
-						List<Event> resultEvents = rulesEngine.evaluateEventWithRules(e, rules);
-						consequenceEvents.addAll(resultEvents);
-					}
-				}
-
-				reprocessEventsHandler.onEventReprocessingComplete();
-
-				replaceModuleRules(module, rules);
-
-				for (final Event e : consequenceEvents) {
-					dispatch(e);
-				}
-			} catch (Exception e) {
-				Log.debug(logPrefix, "Failed to reprocess cached events (%s)", e);
-			}
-		}
-	}
+//	private final class ReprocessEventsWithRules implements Runnable {
+//
+//		final ReprocessEventsHandler reprocessEventsHandler;
+//		final List<Rule> rules;
+//		final List<Event> consequenceEvents;
+//		final Module module;
+//
+//		ReprocessEventsWithRules(final ReprocessEventsHandler reprocessEventsHandler, final List<Rule> rules,
+//								 final Module module) {
+//			this.reprocessEventsHandler = reprocessEventsHandler;
+//			this.rules = rules;
+//			this.module = module;
+//			this.consequenceEvents = new ArrayList<Event>();
+//		}
+//
+//		@Override
+//		public void run() {
+//			try {
+//				List<Event> events = reprocessEventsHandler.getEvents();
+//
+//				if (events.size() > REPROCESS_EVENTS_AMOUNT_LIMIT) {
+//					Log.debug(logPrefix, "Failed to reprocess cached events, since the amount of events (%s) reach the limits (%s)",
+//							  events.size(),
+//							  REPROCESS_EVENTS_AMOUNT_LIMIT);
+//				} else {
+//					for (final Event e : events) {
+//						List<Event> resultEvents = rulesEngine.evaluateEventWithRules(e, rules);
+//						consequenceEvents.addAll(resultEvents);
+//					}
+//				}
+//
+//				reprocessEventsHandler.onEventReprocessingComplete();
+//
+//				replaceModuleRules(module, rules);
+//
+//				for (final Event e : consequenceEvents) {
+//					dispatch(e);
+//				}
+//			} catch (Exception e) {
+//				Log.debug(logPrefix, "Failed to reprocess cached events (%s)", e);
+//			}
+//		}
+//	}
 
 	/**
 	 * Class implementing the Runnable for event
@@ -1497,17 +1510,17 @@ class EventHub {
 		@Override
 		public void run() {
 			// run rules
-			final long preRulesTime = System.currentTimeMillis();
-			final List<Event> resultEvents = rulesEngine.evaluateRules(event);
-
-			for (final Event e : resultEvents) {
-				dispatch(e);
-			}
-
-			final long totalRulesTime = System.currentTimeMillis() - preRulesTime;
-			Log.trace(logPrefix, "Event (%s) #%d (%s) resulted in %d consequence events. Time in rules was %d milliseconds.",
-					  event.getUniqueIdentifier(), event.getEventNumber(), event.getName(), resultEvents.size(), totalRulesTime);
-			eventBus.dispatch(event);
+//			final long preRulesTime = System.currentTimeMillis();
+//			final List<Event> resultEvents = rulesEngine.evaluateRules(event);
+//
+//			for (final Event e : resultEvents) {
+//				dispatch(e);
+//			}
+//
+//			final long totalRulesTime = System.currentTimeMillis() - preRulesTime;
+//			Log.trace(logPrefix, "Event (%s) #%d (%s) resulted in %d consequence events. Time in rules was %d milliseconds.",
+//					  event.getUniqueIdentifier(), event.getEventNumber(), event.getName(), resultEvents.size(), totalRulesTime);
+//			eventBus.dispatch(event);
 		}
 	}
 }

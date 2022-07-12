@@ -83,27 +83,6 @@ public class AppTests {
 	}
 
 	@Test
-	public void testSetLargeIconResourceId_ValidIdSetTwice() {
-		//Setup
-		final int expectedValueStored = 123456;
-		App.setLargeIconResourceID(111111);
-
-		when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_LARGE_ICON),
-		anyInt())).thenAnswer(new Answer<SharedPreferences.Editor>() {
-			@Override
-			public SharedPreferences.Editor answer(InvocationOnMock invocation) throws Throwable {
-				int actualValueStored = invocation.getArgument(1);
-				assertEquals(expectedValueStored, actualValueStored);
-				return mockPreferenceEditor;
-			}
-		});
-
-		//Test
-		App.setLargeIconResourceID(expectedValueStored);
-
-	}
-
-	@Test
 	public void testSetSmallIconResourceId_ValidIdSet() {
 		//Setup
 		final int expectedValueStored = 123456;
@@ -119,6 +98,27 @@ public class AppTests {
 
 		//Test
 		App.setSmallIconResourceID(expectedValueStored);
+
+	}
+
+	@Test
+	public void testSetLargeIconResourceId_ValidIdSetTwice() {
+		//Setup
+		final int expectedValueStored = 123456;
+		App.setLargeIconResourceID(111111);
+
+		when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_LARGE_ICON),
+				anyInt())).thenAnswer(new Answer<SharedPreferences.Editor>() {
+			@Override
+			public SharedPreferences.Editor answer(InvocationOnMock invocation) throws Throwable {
+				int actualValueStored = invocation.getArgument(1);
+				assertEquals(expectedValueStored, actualValueStored);
+				return mockPreferenceEditor;
+			}
+		});
+
+		//Test
+		App.setLargeIconResourceID(expectedValueStored);
 
 	}
 

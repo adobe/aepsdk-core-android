@@ -14,7 +14,7 @@ package com.adobe.marketing.mobile;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.VisibleForTesting;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -189,17 +189,6 @@ final public class MobileCore {
                 }
 
                 return;
-            }
-
-            // initialize the AndroidEventHistory service and set it within the EventHistoryProvider instance
-            try {
-                if (EventHistoryProvider.getEventHistory() == null) {
-                    EventHistoryProvider.setEventHistory(new AndroidEventHistory());
-                    Log.trace(LOG_TAG, "Android EventHistory created and set in the EventHistoryProvider");
-                }
-            } catch (final EventHistoryDatabaseCreationException exception) {
-                Log.warning(LOG_TAG, "Failed to create the android event history service: %s",
-                        exception.getMessage());
             }
 
             if (startActionCalled) {

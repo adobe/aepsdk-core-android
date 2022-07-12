@@ -5,7 +5,6 @@ public class ModuleTestPlatformServices implements PlatformServices {
 	private FakeJsonUtilityService fakeJsonUtilityService;
 	private FakeLocalStorageService fakeLocalStorageService;
 	private FakeLoggingService fakeLoggingService;
-	private FakeDatabaseService mockStructuredDataService;
 	private MockSystemInfoService mockSystemInfoService;
 	private MockSystemNotificationService mockSystemNotificationService;
 	private MockUIService mockUIService;
@@ -18,7 +17,6 @@ public class ModuleTestPlatformServices implements PlatformServices {
 		fakeJsonUtilityService = new FakeJsonUtilityService();
 		fakeLocalStorageService = new FakeLocalStorageService();
 		fakeLoggingService = new FakeLoggingService();
-		mockStructuredDataService = new FakeDatabaseService();
 		mockSystemInfoService = new MockSystemInfoService();
 		mockSystemNotificationService = new MockSystemNotificationService();
 		mockUIService = new MockUIService();
@@ -43,10 +41,6 @@ public class ModuleTestPlatformServices implements PlatformServices {
 		return mockUIService;
 	}
 
-	public FakeDatabaseService getFakeDatabaseService() {
-		return mockStructuredDataService;
-	}
-
 	@Override
 	public LoggingService getLoggingService() {
 		return fakeLoggingService;
@@ -62,10 +56,6 @@ public class ModuleTestPlatformServices implements PlatformServices {
 		return fakeLocalStorageService;
 	}
 
-	@Override
-	public DatabaseService getDatabaseService() {
-		return mockStructuredDataService;
-	}
 
 	@Override
 	public SystemNotificationService getSystemNotificationService() {
@@ -104,10 +94,6 @@ public class ModuleTestPlatformServices implements PlatformServices {
 
 	public void setFakeLocalStorageService(FakeLocalStorageService fakeLocalStorageService) {
 		this.fakeLocalStorageService = fakeLocalStorageService;
-	}
-
-	public void setMockStructuredDataService(FakeDatabaseService structuredDataService) {
-		this.mockStructuredDataService = structuredDataService;
 	}
 
 }

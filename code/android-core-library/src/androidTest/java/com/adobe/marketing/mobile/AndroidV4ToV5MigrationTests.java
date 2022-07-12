@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import junit.framework.Assert;
 

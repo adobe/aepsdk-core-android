@@ -111,7 +111,7 @@ internal fun Map<String, Any?>.prettify(): String {
 }
 
 private fun Set<*>.isAllString(): Boolean {
-    if(this.isEmpty())
+    if (this.isEmpty())
         return false
     this.forEach {
         if (it !is String) return false

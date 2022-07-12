@@ -290,7 +290,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics")
         // verify
-        assertNull( result)
+        assertNull(result)
     }
 
     @Test
@@ -415,20 +415,20 @@ class LaunchTokenFinderTest : BaseTest() {
 
     @Test
     fun get_ReturnsMap_When_KeyIsNotSpecialKeyAndValueIsEmptyMap() {
-        //setup
+        // setup
         val testEventData = mapOf("key1" to emptyMap<String, Any>())
         val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
-        //test
+        // test
         val result = launchTokenFinder.get("key1")
-        //verify
+        // verify
         assertEquals("get should return empty map on empty map value", emptyMap<String, Any>(), result)
     }
 
     @Test
     fun `get should return null on top level key`() {
         // setup
-        val testEventData = mapOf("key1" to  mapOf("innerKey1" to "inner val1"))
+        val testEventData = mapOf("key1" to mapOf("innerKey1" to "inner val1"))
         val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test

@@ -68,35 +68,6 @@ internal fun Map<String, Any?>.flattening(prefix: String = ""): Map<String, Any?
     return flattenedMap
 }
 
-// TODO need to decide if we need to keep top level keys or implement similar to iOS
-/*
-/**
- * Returns a [Map] which has been flattened in the following way:
- * The Keys are of the format "eventdataKey"."nestedMapKeyOrFlatDictionaryKey"....
- * So For example, a [Map] in the following format:
- * `[mapKey: [key1: value1], key2: value2]`
- * will be flattened to
- * `mapKey: [key1: value1], mapKey.key1: value1, key2: value2]`
- *
- * @param prefix a prefix to append to the front of the key
- * @return Flattened KV pairs
- */
-@JvmSynthetic
-internal fun Map<String, Any?>.getFlattenedDataMap(prefix: String = ""): Map<String, Any?> {
-    val keyPrefix = if (prefix.isNotEmpty()) "$prefix." else prefix
-    val flattenedMap = mutableMapOf<String, Any?>()
-    this.forEach { entry ->
-        val expandedKey = keyPrefix + entry.key
-        val value = entry.value
-        flattenedMap[expandedKey] = value
-        if (value is Map<*, *> && value.keys.isAllString()) {
-            @Suppress("UNCHECKED_CAST")
-            flattenedMap.putAll((value as Map<String, Any?>).flattening(expandedKey))
-        }
-    }
-    return flattenedMap
-}*/
-
 /**
  * Serializes a map to key value pairs for url string.
  * This method is recursive to handle the nested data objects.
@@ -108,10 +79,9 @@ internal fun Map<String, Any?>.serializeToQueryString(): String {
     val builder = StringBuilder()
     for ((key, value) in this.entries) {
         val encodedKey = urlEncode(key) ?: continue
-        var encodedValue: String?
 
         // TODO add serializing for custom objects
-        encodedValue = if (value is List<*>) {
+        var encodedValue: String? = if (value is List<*>) {
             urlEncode(join(value, ","))
         } else {
             urlEncode(value?.toString())
@@ -141,6 +111,8 @@ internal fun Map<String, Any?>.prettify(): String {
 }
 
 private fun Set<*>.isAllString(): Boolean {
+    if(this.isEmpty())
+        return false
     this.forEach {
         if (it !is String) return false
     }

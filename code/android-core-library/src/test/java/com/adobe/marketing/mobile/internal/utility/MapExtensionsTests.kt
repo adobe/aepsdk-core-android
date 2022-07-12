@@ -124,33 +124,6 @@ class MapExtensionsTests {
         assertEquals(expectedMap, flattenedMap)
     }
 
-    // TODO uncomment when map flattening logic is finalized
-    /* @Test
-    @Throws(Exception::class)
-    fun getFlattenedMap_ReturnsFlattenedMap_WhenEventDataNotNull() {
-        val map = mapOf(
-            "boolKey" to "true",
-            "intKey" to 1,
-            "longKey" to 100L,
-            "stringKey" to "stringValue",
-            "mapStrKey" to mapOf(
-                "mapKey" to "mapValue"
-            )
-        )
-        val flattenedMap = map.getFlattenedDataMap()
-        val expectedMap = mapOf(
-            "boolKey" to "true",
-            "intKey" to 1,
-            "longKey" to 100L,
-            "stringKey" to "stringValue",
-            "mapStrKey" to mapOf(
-                "mapKey" to "mapValue"
-            ),
-            "mapStrKey.mapKey" to "mapValue"
-        )
-        assertEquals(expectedMap, flattenedMap)
-    } */
-
     @Test
     fun testSerializeToQueryString() {
         val dict = HashMap<String, Any?>()

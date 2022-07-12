@@ -21,13 +21,13 @@ import com.adobe.marketing.mobile.MobileCore
 import java.lang.Exception
 import java.util.concurrent.ScheduledFuture
 
-sealed class EventListenerContainer {
+internal sealed class EventListenerContainer {
     abstract fun shouldNotify(event: Event): Boolean
 
     abstract fun notify(event: Event)
 }
 
-class ResponseListenerContainer(
+internal class ResponseListenerContainer(
     val triggerEventId: String,
     val timeoutTask: ScheduledFuture<Unit>?,
     val listener: AdobeCallbackWithError<Event>
@@ -49,7 +49,7 @@ class ResponseListenerContainer(
     }
 }
 
-class ExtensionListenerContainer(val eventType: String, val eventSource: String, val listener: ExtensionEventListener) : EventListenerContainer() {
+internal class ExtensionListenerContainer(val eventType: String, val eventSource: String, val listener: ExtensionEventListener) : EventListenerContainer() {
     override fun shouldNotify(event: Event): Boolean {
         // Wildcard listeners should only be notified of paired response events.
         return if (event.responseID != null) {

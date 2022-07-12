@@ -11,14 +11,14 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.eventhub.ExtensionRuntime;
-
+import com.adobe.marketing.mobile.internal.eventhub.ExtensionContainer;
 /**
  * Abstract class that defines the {@code Event} listener for an {@code Extension}.
  *
  * @author Adobe Systems Incorporated
  * @version 5.0
  */
+@Deprecated
 public abstract class ExtensionListener {
 	private static final String LOG_TAG = "ExtensionListener";
 	private final ExtensionApi extensionApi;
@@ -55,6 +55,6 @@ public abstract class ExtensionListener {
 	 * @return the {@link Extension} registered with the {@link EventHub}
 	 */
 	protected Extension getParentExtension() {
-		return ((ExtensionRuntime)this.extensionApi).getExtension();
+		return ((ExtensionContainer)extensionApi).getExtension();
 	}
 }

@@ -17,6 +17,142 @@ import java.util.Map;
  * Class that defines all the public methods an {@code Extension} may call to interface with the AEP SDK.
  */
 public abstract class ExtensionApi {
+
+	/**
+	 * Registers a new event listener for current extension for the provided event type and source.
+	 *
+	 * @param eventType required parameter, the event type as a valid string (not null or empty)
+	 * @param eventSource required parameter, the event source as a valid string (not null or empty)
+	 * @param eventListener required parameter, the listener which extends the {@link ExtensionEventListener} interface
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if any error occurs during registration
+	 * @return a {@code boolean} indicating the listener registration status
+	 */
+	public abstract boolean registerEventListener(final String eventType,
+												  final String eventSource,
+												  final ExtensionEventListener eventListener,
+												  final ExtensionErrorCallback<ExtensionError> errorCallback);
+
+	// Shared state
+	/**
+	 * Creates a new shared state for this extension.
+	 * If event is null, one of two behaviors will be observed:
+	 * <ul> 
+	 * 	 <li> If this extension has not previously published a shared state, shared state will be versioned at 0 </li>
+	 * 	 <li> If this extension has previously published a shared state, shared state will be versioned at the latest </li>
+	 * </ul>
+	 * @param state {@code Map<String, Object>} representing current state of this extension
+	 * @param event The {@link Event} for which the state is being set. Passing null will set the state for the next shared
+	 *                 state version
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * @return {@code boolean} indicating if the shared state was successfully set
+	 */
+	public abstract boolean createSharedState(final Map<String, Object> state,
+											  final Event event,
+											  final ExtensionErrorCallback<ExtensionError> errorCallback);
+	/**
+	 * Creates a pending shared state for this extension.
+	 * <ul>
+	 * 	 <li> If this extension has not previously published a shared state, shared state will be versioned at 0 </li>
+	 * 	 <li> If this extension has previously published a shared state, shared state will be versioned at the latest </li>
+	 * </ul>
+	 * @param event The {@link Event} for which pending shared state is being set. Passing null will set the state for the next shared
+	 *                 state version.
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * @return {@link SharedStateResolver} that should be called with the shared state data when it is ready
+	 */
+	public abstract SharedStateResolver createPendingSharedState(final Event event,
+																 final ExtensionErrorCallback<ExtensionError> errorCallback);
+	/**
+	 * Gets the shared state data for a specified extension.
+	 * @param extensionName extension name for which to retrieve data. See documentation for the list of available states.
+	 * @param event the {@link Event} for which the state is being requested. Passing null will retrieve latest state available.
+	 * @param barrier If true, the {@code EventHub} will only return {@code set} if extensionName has moved past event.
+	 * @param resolution the {@link SharedStateResolution} to resolve for
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * return {@code SharedStateResult} for the requested extensionName and event
+	 */
+	public abstract SharedStateResult getSharedState(final String extensionName,
+													 final Event event,
+													 final boolean barrier,
+													 final SharedStateResolution resolution,
+													 final ExtensionErrorCallback<ExtensionError> errorCallback);
+
+	/**
+	 * Called by extension to clear all shared state it has previously set. Usually called during {@code Extension.onUnregistered()}.
+	 *
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * @return {@code boolean} indicating if the shared states were successfully cleared
+	 * @see Extension#onUnregistered()
+	 */
+	public abstract boolean clearSharedEventStates(final ExtensionErrorCallback<ExtensionError> errorCallback);
+
+	// XDM Shared state
+	/**
+	 * Creates a new XDM shared state for this extension. The state passed to this API needs to be mapped to known XDM mixins. If an extension uses multiple mixins, the current data for all of them should be provided when the XDM shared state is set.
+	 * If event is null, one of two behaviors will be observed:
+	 * <ul>
+	 * 	 <li> If this extension has not previously published a shared state, shared state will be versioned at 0 </li>
+	 * 	 <li> If this extension has previously published a shared state, shared state will be versioned at the latest </li>
+	 * </ul>
+	 * @param state {@code Map<String, Object>} representing current state of this extension
+	 * @param event The {@link Event} for which the state is being set. Passing null will set the state for the next shared
+	 *                 state version
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * @return {@code boolean} indicating if the shared state was successfully set
+	 */
+	public abstract boolean createXDMSharedState(final Map<String, Object> state,
+												 final Event event,
+												 final ExtensionErrorCallback<ExtensionError> errorCallback);
+
+	/**
+	 * Creates a pending XDM shared state for this extension.
+	 * <ul>
+	 * 	 <li> If this extension has not previously published a shared state, shared state will be versioned at 0 </li>
+	 * 	 <li> If this extension has previously published a shared state, shared state will be versioned at the latest </li>
+	 * </ul>
+	 * @param event The {@link Event} for which pending shared state is being set. Passing null will set the state for the next shared
+	 *                 state version.
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * @return {@link SharedStateResolver} that should be called with the shared state data when it is ready
+	 */
+	public abstract SharedStateResolver createPendingXDMSharedState(final Event event,
+																	final ExtensionErrorCallback<ExtensionError> errorCallback);
+
+	/**
+	 * Gets the XDM shared state data for a specified extension. If the stateName extension populates multiple mixins in their shared state, all the data will be returned at once and it can be accessed using path discovery.
+	 * @param extensionName extension name for which to retrieve data. See documentation for the list of available states.
+	 * @param event the {@link Event} for which the state is being requested. Passing null will retrieve latest state available.
+	 * @param barrier If true, the {@code EventHub} will only return {@code set} if extensionName has moved past event.
+	 * @param resolution the {@link SharedStateResolution} to resolve for
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * return {@code SharedStateResult} for the requested extensionName and event
+	 */
+	public abstract SharedStateResult getXDMSharedState(final String extensionName,
+														final Event event,
+														final boolean barrier,
+														final SharedStateResolution resolution,
+														final ExtensionErrorCallback<ExtensionError> errorCallback);
+
+	/**
+	 * Called by extension to clear XDM shared state it has previously set. Usually called during {@code Extension.onUnregistered()}.
+	 *
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * @return {@code boolean} indicating if the shared states were successfully cleared
+	 * @see Extension#onUnregistered()
+	 */
+	public abstract boolean clearXDMSharedEventStates(final ExtensionErrorCallback<ExtensionError> errorCallback);
+
+	/**
+	 * Unregisters current extension.
+	 * <br/>
+	 * This method executes asynchronously, unregistering the extension on the event hub thread. {@link Extension#onUnregistered}
+	 * method will be called at the end of this operation.
+	 *
+	 * @see Extension#onUnregistered()
+	 */
+	public abstract void unregisterExtension();
+
+	// Deprecated Methods
 	/**
 	 * Registers a new event listener for current extension for the provided event type and source.
 	 * <p>
@@ -29,7 +165,9 @@ public abstract class ExtensionApi {
 	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if any error occurs during registration
 	 * @param <T> type of current event listener
 	 * @return {@code boolean} indicating the listener registration status
+	 * @deprecated Use {@link ExtensionApi#registerEventListener(String, String, ExtensionEventListener, ExtensionErrorCallback)}}
 	 */
+	@Deprecated
 	public abstract <T extends ExtensionListener> boolean registerEventListener(final String eventType,
 																			 final String eventSource,
 																			 final Class<T> extensionListenerClass,
@@ -52,12 +190,14 @@ public abstract class ExtensionApi {
 	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if any error occurs during registration
 	 * @param <T> type of current event listener
 	 * @return {@code boolean} indicating the listener registration status
+	 * @deprecated Use {@link ExtensionApi#registerEventListener(String, String, ExtensionEventListener, ExtensionErrorCallback)}}
 	 */
+	@Deprecated
 	public abstract <T extends ExtensionListener> boolean registerWildcardListener(
 			final Class<T> extensionListenerClass,
 			final ExtensionErrorCallback<ExtensionError> errorCallback);
 
-		/**
+	/**
 	 * Called by extension to set a shared state for itself. Usually called from a listener during event processing.
 	 *
 	 * @param state {@code Map<String, Object>} representing current state of this extension. Passing null will set the extension's
@@ -67,10 +207,11 @@ public abstract class ExtensionApi {
 	 *              state version.
 	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
 	 * @return {@code boolean} indicating if the shared state was successfully set
+	 * @deprecated Use {@link ExtensionApi#createSharedState(Map, Event, ExtensionErrorCallback)} and {@link ExtensionApi#createPendingSharedState(Event, ExtensionErrorCallback)} 
 	 */
+	@Deprecated
 	public abstract boolean setSharedEventState(final Map<String, Object> state, final Event event,
 			final ExtensionErrorCallback<ExtensionError> errorCallback);
-
 
 	/**
 	 * Called by extension to set an XDM shared state for itself. Usually called from a listener during event processing.
@@ -84,27 +225,11 @@ public abstract class ExtensionApi {
 	 *              state version.
 	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
 	 * @return {@code boolean} indicating if the XDM shared state was successfully set
+	 * @deprecated Use {@link ExtensionApi#createXDMSharedState(Map, Event, ExtensionErrorCallback)} and {@link ExtensionApi#createPendingXDMSharedState(Event, ExtensionErrorCallback)}
 	 */
+	@Deprecated
 	public abstract boolean setXDMSharedEventState(final Map<String, Object> state, final Event event,
 			final ExtensionErrorCallback<ExtensionError> errorCallback);
-
-	/**
-	 * Called by extension to clear all shared state it has previously set. Usually called during {@code Extension.onUnregistered()}.
-	 *
-	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
-	 * @return {@code boolean} indicating if the shared states were successfully cleared
-	 * @see Extension#onUnregistered()
-	 */
-	public abstract boolean clearSharedEventStates(final ExtensionErrorCallback<ExtensionError> errorCallback);
-
-	/**
-	 * Called by extension to clear XDM shared state it has previously set. Usually called during {@code Extension.onUnregistered()}.
-	 *
-	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
-	 * @return {@code boolean} indicating if the shared states were successfully cleared
-	 * @see Extension#onUnregistered()
-	 */
-	public abstract boolean clearXDMSharedEventStates(final ExtensionErrorCallback<ExtensionError> errorCallback);
 
 	/**
 	 * Called by extension to get another extension's shared state. Usually called from a listener during event processing.
@@ -114,7 +239,9 @@ public abstract class ExtensionApi {
 	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred or if {@code stateName} is null
 	 * @return {@code Map<String, Object>} containing shared state data at that version. Returns null if state does not exists,
 	 * 			is PENDING, or an error is returned in the {@code errorCallback}
+	 * @deprecated Use {@link ExtensionApi#getSharedState(String, Event, boolean, SharedStateResolution, ExtensionErrorCallback)}
 	*/
+	@Deprecated
 	public abstract Map<String, Object> getSharedEventState(final String stateName, final Event event,
 			final ExtensionErrorCallback<ExtensionError> errorCallback);
 
@@ -128,18 +255,9 @@ public abstract class ExtensionApi {
 	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred or if {@code stateName} is null
 	 * @return {@code Map<String, Object>} containing XDM shared state data at that version. Returns null if state does not exists,
 	 * 			is PENDING, or an error is returned in the {@code errorCallback}
+	 * @deprecated Use {@link ExtensionApi#getXDMSharedState(String, Event, boolean, SharedStateResolution, ExtensionErrorCallback)}
 	 */
+	@Deprecated
 	public abstract Map<String, Object> getXDMSharedEventState(final String stateName, final Event event,
 			final ExtensionErrorCallback<ExtensionError> errorCallback);
-
-
-	/**
-	 * Unregisters current extension.
-	 * <p>
-	 * This method executes asynchronously, unregistering the extension on the event hub thread. {@link Extension#onUnregistered}
-	 * method will be called at the end of this operation.
-	 *
-	 * @see Extension#onUnregistered()
-	 */
-	public abstract void unregisterExtension();
 }

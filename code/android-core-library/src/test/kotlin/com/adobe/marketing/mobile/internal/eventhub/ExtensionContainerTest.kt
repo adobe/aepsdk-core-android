@@ -23,7 +23,6 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 import org.mockito.stubbing.Answer
-import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
@@ -33,11 +32,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @RunWith(PowerMockRunner::class)
-@PrepareForTest(ExtensionRuntime::class)
 class ExtensionContainerTest {
 
-    @Mock
-    private lateinit var mockExtensionRuntime: ExtensionRuntime
     @Mock
     private lateinit var mockExecutorService: ExecutorService
     @Mock
@@ -60,9 +56,19 @@ class ExtensionContainerTest {
             }
         ).`when`(mockExecutorService).submit(any(Callable::class.java))
 
+        // Todo: Cleanup as part of Shared state updates
+        doAnswer(
+            Answer {
+                val mockFuture: Future<*> = Mockito.mock(Future::class.java)
+                val runnableArgument = it.getArgument<Runnable>(0)
+                runnableArgument.run()
+                return@Answer mockFuture
+            }
+        ).`when`(mockExecutorService).submit(any(Runnable::class.java))
+
         extensionContainer = ExtensionContainer(
             MockExtension::class.java,
-            mockExtensionRuntime, mockExecutorService, mockErrorCallback
+            mockExecutorService, mockErrorCallback
         )
     }
 
@@ -101,15 +107,6 @@ class ExtensionContainerTest {
         val data = mutableMapOf<String, Any?> ("One" to 1, "Yes" to true)
         ret = extensionContainer.setSharedState(SharedStateType.STANDARD, data, 0)
         verify(mockExecutorService, times(2)).submit(any(Callable::class.java))
-        assertEquals(SharedState.Status.NOT_SET, ret)
-    }
-
-    @Test
-    fun testSetSharedState_ExecutorShutDown() {
-        `when`(mockExecutorService.isShutdown).thenReturn(true)
-
-        val ret: SharedState.Status = extensionContainer.setSharedState(SharedStateType.STANDARD, mutableMapOf(), 0)
-        verify(mockExecutorService, times(0)).submit(any(Callable::class.java))
         assertEquals(SharedState.Status.NOT_SET, ret)
     }
 

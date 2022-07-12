@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
 import com.adobe.marketing.mobile.ExtensionListener
+import com.adobe.marketing.mobile.ExtensionUnexpectedError
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import java.lang.Exception
@@ -58,19 +59,45 @@ internal val Extension.extensionFriendlyName: String?
  * Function to notify that the Extension has been unregistered
  */
 internal fun Extension.onExtensionUnregistered() {
-    ExtensionHelper.onUnregistered(this)
+    ExtensionHelper.notifyUnregistered(this)
 }
+
+/**
+ * Function to notify that the Extension has been registered
+ */
+internal fun Extension.onExtensionRegistered() {
+    ExtensionHelper.notifyRegistered(this)
+}
+
+/**
+ * Function to notify that an unexpected error occurred when initializing the extension
+ */
+internal fun Extension.onExtensionUnexpectedError(error: ExtensionUnexpectedError) {
+    ExtensionHelper.notifyError(this, error)
+}
+
+/**
+ * Helper to get extension type name
+ */
+internal val Class<out Extension>.extensionTypeName
+    get() = this.name
 
 // Type extensions for [ExtensionListener] to allow for easier usage
 
 /**
  * Function to initialize ExtensionListener with [ExtensionApi], type and source.
  */
-internal fun Class<out ExtensionListener>.initWith(extensionApi: ExtensionApi, type: String, source: String): ExtensionListener? {
+internal fun Class<out ExtensionListener>.initWith(extensionApi: ExtensionApi, type: String?, source: String?): ExtensionListener? {
     try {
-        val extensionListenerConstructor = this.getDeclaredConstructor(ExtensionApi::class.java, String::class.java, String::class.java)
-        extensionListenerConstructor.setAccessible(true)
-        return extensionListenerConstructor.newInstance(extensionApi, type, source)
+        if (type != null && source != null) {
+            val extensionListenerConstructor = this.getDeclaredConstructor(
+                ExtensionApi::class.java,
+                String::class.java,
+                String::class.java
+            )
+            extensionListenerConstructor.setAccessible(true)
+            return extensionListenerConstructor.newInstance(extensionApi, type, source)
+        }
     } catch (ex: Exception) {
         MobileCore.log(LoggingMode.DEBUG, "Extension", "Initializing Extension $this failed with $ex")
     }

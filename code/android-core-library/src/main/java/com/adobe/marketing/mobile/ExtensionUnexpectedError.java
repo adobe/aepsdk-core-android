@@ -19,6 +19,7 @@ package com.adobe.marketing.mobile;
  * @version 5.0
  */
 @SuppressWarnings("unused")
+@Deprecated
 public class ExtensionUnexpectedError extends Exception {
 	private static final long           serialVersionUID = 1L;
 	private              ExtensionError errorCode;

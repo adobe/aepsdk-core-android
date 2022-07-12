@@ -12,6 +12,9 @@
 package com.adobe.marketing.mobile.internal.eventhub
 
 import androidx.annotation.NonNull
+import com.adobe.marketing.mobile.AdobeCallback
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionError
@@ -19,25 +22,43 @@ import com.adobe.marketing.mobile.ExtensionErrorCallback
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
+import java.lang.Exception
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * EventHub class is responsible for delivering events to listeners and maintaining registered extension's lifecycle.
  */
 internal class EventHub {
-    constructor()
 
     companion object {
         const val LOG_TAG = "EventHub"
-        public var shared = EventHub()
+        var shared = EventHub()
     }
 
+    /**
+     * Executor to initialize and shutdown extensions
+     */
+    private val extensionInitExecutor: ExecutorService by lazy { Executors.newCachedThreadPool() }
+
+    /**
+     * Executor for scheduled response listeners
+     */
+    private val scheduledExecutor: ScheduledExecutorService by lazy { Executors.newSingleThreadScheduledExecutor() }
+
+    /**
+     * Executor to serialize EventHub operations
+     */
     private val eventHubExecutor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
+
     private val registeredExtensions: ConcurrentHashMap<String, ExtensionContainer> = ConcurrentHashMap()
+    private val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> = ConcurrentLinkedQueue()
     private val lastEventNumber: AtomicInteger = AtomicInteger(0)
     private var hubStarted = false
 
@@ -45,18 +66,37 @@ internal class EventHub {
      * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching
      * an [Event] "e". Dispatch is regarded complete when [SerialWorkDispatcher.WorkHandler.doWork] finishes for "e".
      */
-    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler {
+    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler { event ->
         // TODO: Perform pre-processing
 
-        // TODO: Notify response event listeners
+        // Handle response event listeners
+        if (event.responseID != null) {
+            val matchingResponseListeners = responseEventListeners.filterRemove { listener ->
+                if (listener.shouldNotify(event)) {
+                    listener.timeoutTask?.cancel(false)
+                    true
+                } else {
+                    false
+                }
+            }
 
-        // TODO: Send Event to each Extension Container
+            matchingResponseListeners.forEach { listener ->
+                listener.notify(event)
+            }
+        }
+
+        // Notify to extensions for processing
+        registeredExtensions.values.forEach {
+            it.eventProcessor.offer(event)
+        }
+
+        // TODO: Record events in event history database.
     }
 
     /**
      * Responsible for processing and dispatching each event.
      */
-    private val eventDispatcher: SerialWorkDispatcher<Event> = SerialWorkDispatcher<Event>("EventHub", dispatchJob)
+    private val eventDispatcher: SerialWorkDispatcher<Event> = SerialWorkDispatcher("EventHub", dispatchJob)
 
     /**
      * A cache that maps UUID of an Event to an internal sequence of its dispatch.
@@ -129,8 +169,7 @@ internal class EventHub {
                 return@submit
             }
 
-            val executor = Executors.newSingleThreadExecutor()
-            val container = ExtensionContainer(extensionClass, ExtensionRuntime(), executor, completion)
+            val container = ExtensionContainer(extensionClass, extensionInitExecutor, completion)
             registeredExtensions[extensionTypeName] = container
         }
     }
@@ -152,6 +191,37 @@ internal class EventHub {
             } else {
                 completion(EventHubError.ExtensionNotRegistered)
             }
+        }
+    }
+
+    fun registerResponseListener(triggerEvent: Event, timeoutMS: Long, callback: AdobeCallbackWithError<Event>) {
+        eventHubExecutor.submit {
+            val triggerEventId = triggerEvent.uniqueIdentifier
+            val timeoutCallable: Callable<Unit> = Callable {
+                responseEventListeners.filterRemove { it.triggerEventId == triggerEventId }
+                try {
+                    callback.fail(AdobeError.CALLBACK_TIMEOUT)
+                } catch (ex: Exception) {
+                    MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Exception thrown from ResponseListener. $ex")
+                }
+            }
+            val timeoutTask =
+                scheduledExecutor.schedule(timeoutCallable, timeoutMS, TimeUnit.MILLISECONDS)
+
+            responseEventListeners.add(
+                ResponseListenerContainer(
+                    triggerEventId,
+                    timeoutTask,
+                    callback
+                )
+            )
+        }
+    }
+
+    fun registerListener(eventType: String, eventSource: String, listener: AdobeCallback<Event>) {
+        eventHubExecutor.submit {
+            val eventHubContainer = getExtensionContainer(EventHubPlaceholderExtension::class.java)
+            eventHubContainer?.registerEventListener(eventType, eventSource, { listener.call(it) }, null)
         }
     }
 
@@ -180,7 +250,7 @@ internal class EventHub {
 
         val setSharedStateCallable: Callable<Boolean> = Callable<Boolean> {
 
-            if (extensionName.isNullOrEmpty() || extensionName.isBlank()) {
+            if (extensionName.isNullOrBlank()) {
                 MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Unable to set SharedState for extension: [$extensionName]. ExtensionName is invalid.")
 
                 errorCallback?.error(ExtensionError.BAD_NAME)
@@ -289,7 +359,7 @@ internal class EventHub {
     fun clearSharedState(
         sharedStateType: SharedStateType,
         extensionName: String?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
     ): Boolean {
         val clearSharedStateCallable: Callable<Boolean> = Callable {
             if (extensionName.isNullOrEmpty() || extensionName.isBlank()) {
@@ -353,6 +423,22 @@ internal class EventHub {
     }
 
     /**
+     * Retrieves a registered [ExtensionContainer] with [extensionClass] provided.
+     *
+     * @param [extensionClass] the extension class for which an [ExtensionContainer] should be fetched.
+     * @return [ExtensionContainer] with [extensionName] provided if one was registered,
+     *         null if no extension is registered with the [extensionName]
+     */
+    internal fun getExtensionContainer(extensionClass: Class<out Extension>): ExtensionContainer? {
+        val extensionTypeName = extensionClass.extensionTypeName
+        return if (extensionTypeName != null) {
+            registeredExtensions[extensionTypeName]
+        } else {
+            null
+        }
+    }
+
+    /**
      * Retrieves a registered [ExtensionContainer] with [extensionTypeName] provided.
      *
      * @param [extensionName] the name of the extension for which an [ExtensionContainer] should be fetched.
@@ -383,8 +469,15 @@ internal class EventHub {
     }
 }
 
-/**
- * Helper to get extension type name
- */
-private val Class<out Extension>.extensionTypeName
-    get() = this.name
+private fun <T> MutableCollection<T>.filterRemove(predicate: (T) -> Boolean): MutableCollection<T> {
+    val ret = mutableListOf<T>()
+    this.removeAll {
+        if (predicate(it)) {
+            ret.add(it)
+            true
+        } else {
+            false
+        }
+    }
+    return ret
+}

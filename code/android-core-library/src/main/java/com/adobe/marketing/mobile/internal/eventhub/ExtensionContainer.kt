@@ -12,209 +12,108 @@
 package com.adobe.marketing.mobile.internal.eventhub
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionError
 import com.adobe.marketing.mobile.ExtensionErrorCallback
+import com.adobe.marketing.mobile.ExtensionEventListener
 import com.adobe.marketing.mobile.ExtensionListener
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SharedStateResolution
+import com.adobe.marketing.mobile.SharedStateResolver
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import java.util.concurrent.Callable
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.ExecutorService
 import kotlin.Exception
 
-internal class ExtensionRuntime() : ExtensionApi() {
-
-    companion object {
-        const val LOG_TAG = "ExtensionApi"
-    }
-
-    var extension: Extension? = null
-        set(value) {
-            field = value
-            extensionName = value?.extensionName
-            extensionFriendlyName = value?.extensionFriendlyName
-            extensionVersion = value?.extensionVersion
-        }
-
-    // Fetch these values on initialization
-    var extensionName: String? = null
-        private set
-    var extensionFriendlyName: String? = null
-        private set
-    var extensionVersion: String? = null
-        private set
-
-    override fun <T : ExtensionListener?> registerEventListener(
-        eventType: String?,
-        eventSource: String?,
-        extensionListenerClass: Class<T>?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Boolean {
-        return false
-    }
-
-    override fun <T : ExtensionListener?> registerWildcardListener(
-        extensionListenerClass: Class<T>?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Boolean {
-        return false
-    }
-
-    override fun setSharedEventState(
-        state: MutableMap<String, Any?>?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Boolean {
-        try {
-            return EventHub.shared.setSharedState(SharedStateType.STANDARD, extensionName, state, event, errorCallback)
-        } catch (exception: Exception) {
-            MobileCore.log(
-                LoggingMode.ERROR, getTag(),
-                "Failed to set shared state at EventID: ${event?.uniqueIdentifier}. $exception"
-            )
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-        }
-
-        return false
-    }
-
-    override fun setXDMSharedEventState(
-        state: MutableMap<String, Any?>?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Boolean {
-        try {
-            // TODO : Convert the [state] parameter to be immutable before propagating when EventData#toImmutableMap() is implemented.
-            return EventHub.shared.setSharedState(SharedStateType.XDM, extensionName, state, event, errorCallback)
-        } catch (exception: Exception) {
-            MobileCore.log(
-                LoggingMode.ERROR, getTag(),
-                "Failed to set XDM shared state at EventID: ${event?.uniqueIdentifier}. $exception"
-            )
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-        }
-
-        return false
-    }
-
-    override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
-        try {
-            EventHub.shared.clearSharedState(SharedStateType.STANDARD, extensionName, errorCallback)
-        } catch (exception: Exception) {
-            MobileCore.log(LoggingMode.ERROR, getTag(), "Failed to clear shared state. $exception")
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-        }
-
-        return false
-    }
-
-    override fun clearXDMSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
-        try {
-            EventHub.shared.clearSharedState(SharedStateType.XDM, extensionName, errorCallback)
-        } catch (exception: Exception) {
-            MobileCore.log(LoggingMode.ERROR, getTag(), "Failed to clear XDM shared state. $exception")
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-        }
-
-        return false
-    }
-
-    override fun getSharedEventState(
-        stateName: String?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Map<String, Any?>? {
-        try {
-            return EventHub.shared.getSharedState(SharedStateType.STANDARD, stateName, event, errorCallback)
-        } catch (exception: Exception) {
-            MobileCore.log(
-                LoggingMode.ERROR, getTag(),
-                "Failed to get shared state at EventID: ${event?.uniqueIdentifier}. $exception"
-            )
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-        }
-        return null
-    }
-
-    override fun getXDMSharedEventState(
-        stateName: String?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Map<String, Any?>? {
-        try {
-            return EventHub.shared.getSharedState(SharedStateType.STANDARD, stateName, event, errorCallback)
-        } catch (exception: Exception) {
-            MobileCore.log(
-                LoggingMode.ERROR, getTag(),
-                "Failed to get XDM shared state at EventID: ${event?.uniqueIdentifier}. $exception"
-            )
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-        }
-
-        return null
-    }
-
-    override fun unregisterExtension() {
-        if (extension == null) {
-            return
-        }
-        EventHub.shared.unregisterExtension(extension?.javaClass) {}
-    }
-
-    private fun getTag(): String {
-        if (extension == null) {
-            return LOG_TAG
-        }
-        return "$extensionName-$extensionVersion"
-    }
-}
-
 internal class ExtensionContainer constructor(
     private val extensionClass: Class<out Extension>,
-    private val extensionRuntime: ExtensionRuntime,
     private val taskExecutor: ExecutorService,
     callback: (EventHubError) -> Unit
-) {
+) : ExtensionApi() {
 
-    val sharedStateName: String?
-        get() = extensionRuntime.extensionName
+    companion object {
+        const val LOG_TAG = "ExtensionContainer"
+    }
 
-    val friendlyName: String?
-        get() = extensionRuntime.extensionFriendlyName
+    var sharedStateName: String? = null
+        private set
 
-    val version: String?
-        get() = extensionRuntime.extensionVersion
+    var friendlyName: String? = null
+        private set
 
-    private val sharedStateManagers: Map<SharedStateType, SharedStateManager> = mapOf(
-        SharedStateType.XDM to SharedStateManager(sharedStateName ?: ""),
-        SharedStateType.STANDARD to SharedStateManager(sharedStateName ?: "")
-    )
+    var version: String? = null
+        private set
+
+    var lastProcessedEvent: Event? = null
+        private set
+
+    var extension: Extension? = null
+        private set
+
+    private var sharedStateManagers: Map<SharedStateType, SharedStateManager>? = null
+    private val eventListeners: ConcurrentLinkedQueue<ExtensionListenerContainer> = ConcurrentLinkedQueue()
+
+    /**
+     * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching
+     * an [Event] "e". Dispatch is regarded complete when [SerialWorkDispatcher.WorkHandler.doWork] finishes for "e".
+     */
+    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler { event ->
+        if (extension?.readyForEvent(event) != true) {
+            return@WorkHandler
+        }
+
+        eventListeners.forEach {
+            if (it.shouldNotify(event)) {
+                it.notify(event)
+            }
+        }
+
+        lastProcessedEvent = event
+    }
+
+    val eventProcessor: SerialWorkDispatcher<Event> = SerialWorkDispatcher(extensionClass.extensionTypeName, dispatchJob)
 
     init {
         taskExecutor.submit {
-            val extension = extensionClass.initWith(extensionRuntime)
+            val extension = extensionClass.initWith(this)
             if (extension == null) {
                 callback(EventHubError.ExtensionInitializationFailure)
                 return@submit
             }
 
-            if (extension.extensionName == null) {
+            val extensionName = extension.extensionName
+            if (extensionName.isNullOrBlank()) {
                 callback(EventHubError.InvalidExtensionName)
                 return@submit
             }
 
-            // We set this circular reference because ExtensionApi exposes an API to get the underlying extension.
-            extensionRuntime.extension = extension
+            this.extension = extension
+            sharedStateName = extensionName
+            friendlyName = extension.extensionFriendlyName
+            version = extension.extensionVersion
+            sharedStateManagers = mapOf(
+                SharedStateType.XDM to SharedStateManager(extensionName),
+                SharedStateType.STANDARD to SharedStateManager(extensionName)
+            )
+            eventProcessor.start()
             callback(EventHubError.None)
+
+            // Notify that the extension is registered
+            extension.onExtensionRegistered()
         }
     }
 
     fun shutdown() {
         taskExecutor.run {
-            extensionRuntime.extension?.onExtensionUnregistered()
+            eventProcessor.shutdown()
+            extension?.onExtensionUnregistered()
         }
-        taskExecutor.shutdown()
     }
 
     /**
@@ -234,11 +133,9 @@ internal class ExtensionContainer constructor(
         data: MutableMap<String, Any?>?,
         version: Int
     ): SharedState.Status {
-        if (taskExecutor.isShutdown) return SharedState.Status.NOT_SET
-
         return taskExecutor.submit(
             Callable<SharedState.Status> {
-                val stateManager: SharedStateManager = sharedStateManagers[sharedStateType]
+                val stateManager: SharedStateManager = sharedStateManagers?.get(sharedStateType)
                     ?: return@Callable SharedState.Status.NOT_SET
 
                 // Existing public API infers a pending state as one with no data
@@ -271,7 +168,7 @@ internal class ExtensionContainer constructor(
 
         return taskExecutor.submit(
             Callable<Boolean> {
-                sharedStateManagers[sharedStateType]?.clearSharedState()
+                sharedStateManagers?.get(sharedStateType)?.clearSharedState()
                 return@Callable true
             }
         ).get()
@@ -294,8 +191,181 @@ internal class ExtensionContainer constructor(
 
         return taskExecutor.submit(
             Callable {
-                return@Callable sharedStateManagers[sharedStateType]?.getSharedState(version)
+                return@Callable sharedStateManagers?.get(sharedStateType)?.getSharedState(version)
             }
         ).get()
+    }
+
+    private fun getTag(): String {
+        if (extension == null) {
+            return LOG_TAG
+        }
+        return "$sharedStateName-$version"
+    }
+
+    // Override ExtensionApi Methods
+    override fun registerEventListener(
+        eventType: String?,
+        eventSource: String?,
+        eventListener: ExtensionEventListener?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
+    ): Boolean {
+
+        if (eventType == null) {
+            errorCallback?.error(ExtensionError.EVENT_TYPE_NOT_SUPPORTED)
+            return false
+        }
+
+        if (eventSource == null) {
+            errorCallback?.error(ExtensionError.EVENT_SOURCE_NOT_SUPPORTED)
+            return false
+        }
+
+        if (eventListener == null) {
+            errorCallback?.error(ExtensionError.CALLBACK_NULL)
+            return false
+        }
+
+        eventListeners.add(ExtensionListenerContainer(eventType, eventSource, eventListener))
+        return true
+    }
+
+    override fun createSharedState(
+        state: MutableMap<String, Any>?,
+        event: Event?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun createPendingSharedState(
+        event: Event?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): SharedStateResolver? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getSharedState(
+        extensionName: String?,
+        event: Event?,
+        barrier: Boolean,
+        resolution: SharedStateResolution?,
+    ): SharedStateResult {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun createXDMSharedState(
+        state: MutableMap<String, Any>?,
+        event: Event?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun createPendingXDMSharedState(
+        event: Event?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): SharedStateResolver? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getXDMSharedState(
+        extensionName: String?,
+        event: Event?,
+        barrier: Boolean,
+        resolution: SharedStateResolution?,
+    ): SharedStateResult {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearXDMSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun unregisterExtension() {
+        TODO("Not yet implemented")
+    }
+
+    // Deprecated ExtensionApi methods
+    override fun setSharedEventState(
+        state: MutableMap<String, Any?>?,
+        event: Event?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): Boolean {
+        try {
+            return EventHub.shared.setSharedState(SharedStateType.STANDARD, sharedStateName, state, event, errorCallback)
+        } catch (exception: Exception) {
+            MobileCore.log(
+                LoggingMode.ERROR, getTag(),
+                "Failed to set shared state at EventID: ${event?.uniqueIdentifier}. $exception"
+            )
+            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
+        }
+
+        return false
+    }
+
+    override fun setXDMSharedEventState(
+        state: MutableMap<String, Any?>?,
+        event: Event?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): Boolean {
+        try {
+            return EventHub.shared.setSharedState(SharedStateType.XDM, sharedStateName, state, event, errorCallback)
+        } catch (exception: Exception) {
+            MobileCore.log(
+                LoggingMode.ERROR, getTag(),
+                "Failed to set shared state at EventID: ${event?.uniqueIdentifier}. $exception"
+            )
+            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
+        }
+
+        return false
+    }
+
+    override fun getSharedEventState(
+        stateName: String?,
+        event: Event?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): MutableMap<String, Any> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getXDMSharedEventState(
+        stateName: String?,
+        event: Event?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): MutableMap<String, Any> {
+        TODO("Not yet implemented")
+    }
+
+    override fun <T : ExtensionListener> registerEventListener(
+        eventType: String?,
+        eventSource: String?,
+        extensionListenerClass: Class<T>?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): Boolean {
+        val extensionListener = extensionListenerClass?.initWith(this, eventType, eventSource)
+        if (extensionListener == null) {
+            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
+            return false
+        }
+        return registerEventListener(eventType, eventSource, { extensionListener.hear(it) }, errorCallback)
+    }
+
+    override fun <T : ExtensionListener> registerWildcardListener(
+        extensionListenerClass: Class<T>?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): Boolean {
+        val extensionListener = extensionListenerClass?.initWith(this, EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD)
+        if (extensionListener == null) {
+            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
+            return false
+        }
+        return registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD, { extensionListener.hear(it) }, errorCallback)
     }
 }

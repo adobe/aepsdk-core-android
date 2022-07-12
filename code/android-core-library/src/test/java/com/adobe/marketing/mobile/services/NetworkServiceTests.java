@@ -32,10 +32,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(NetworkService.class)
+@PrepareForTest({NetworkService.class, ServiceProvider.class})
 public class NetworkServiceTests {
 
     private NetworkService networkService;
+
+    @Mock
+    ServiceProvider serviceProvider;
+
+    @Mock
+    DeviceInfoService deviceInfoService;
 
     @Mock
     private HttpConnectionHandler httpConnectionHandler;
@@ -43,6 +49,9 @@ public class NetworkServiceTests {
     @Before
     public void setup() throws Exception {
         networkService = new NetworkService(currentThreadExecutorService());
+        PowerMockito.mockStatic(ServiceProvider.class);
+        PowerMockito.when(ServiceProvider.getInstance()).thenReturn(serviceProvider);
+        PowerMockito.when(ServiceProvider.getInstance().getDeviceInfoService()).thenReturn(deviceInfoService);
         PowerMockito.whenNew(HttpConnectionHandler.class).withAnyArguments().thenReturn(httpConnectionHandler);
         Mockito.when(httpConnectionHandler.setCommand(Mockito.any(HttpMethod.class))).thenReturn(true);
     }
@@ -111,6 +120,10 @@ public class NetworkServiceTests {
 
     @Test
     public void testConnectAsync_DefaultHeaders() throws InterruptedException {
+        final String mockDefaultUserAgent = "mock default user agent";
+        final String mockLocaleString = "mock locale string";
+        PowerMockito.when(ServiceProvider.getInstance().getDeviceInfoService().getDefaultUserAgent()).thenReturn(mockDefaultUserAgent);
+        PowerMockito.when(ServiceProvider.getInstance().getDeviceInfoService().getLocaleString()).thenReturn(mockLocaleString);
         final CountDownLatch latch = new CountDownLatch(1);
         networkService.connectAsync(
                 new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 10),
@@ -123,12 +136,16 @@ public class NetworkServiceTests {
 
         final ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(httpConnectionHandler).setRequestProperty(captor.capture());
-        assertEquals("Mozilla/5.0 (Linux; U; Android null; en-US; unknown Build/unknown)", captor.getValue().get("User-Agent"));
-        assertEquals("en-US", captor.getValue().get("Accept-Language"));
+        assertEquals(mockDefaultUserAgent, captor.getValue().get("User-Agent"));
+        assertEquals(mockLocaleString, captor.getValue().get("Accept-Language"));
     }
 
     @Test
     public void testConnectAsync_WithHeader() throws InterruptedException {
+        final String mockDefaultUserAgent = "mock default user agent";
+        final String mockLocaleString = "mock locale string";
+        PowerMockito.when(ServiceProvider.getInstance().getDeviceInfoService().getDefaultUserAgent()).thenReturn(mockDefaultUserAgent);
+        PowerMockito.when(ServiceProvider.getInstance().getDeviceInfoService().getLocaleString()).thenReturn(mockLocaleString);
         Map<String, String> properties = new HashMap<>();
         properties.put("testing", "header");
 
@@ -144,8 +161,8 @@ public class NetworkServiceTests {
 
         final ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
         Mockito.verify(httpConnectionHandler).setRequestProperty(captor.capture());
-        assertEquals("Mozilla/5.0 (Linux; U; Android null; en-US; unknown Build/unknown)", captor.getValue().get("User-Agent"));
-        assertEquals("en-US", captor.getValue().get("Accept-Language"));
+        assertEquals(mockDefaultUserAgent, captor.getValue().get("User-Agent"));
+        assertEquals(mockLocaleString, captor.getValue().get("Accept-Language"));
         assertEquals("header", captor.getValue().get("testing"));
     }
 

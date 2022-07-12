@@ -26,18 +26,18 @@ public class Signal {
 	}
 
 	public  static void registerExtension() throws InvalidInitException {
-		Core core = MobileCore.getCore();
-
-		if (core == null) {
-			throw  new InvalidInitException();
-		}
-
-		try {
-			//MobileCore may not be loaded or present (because may be Core extension was not
-			//available). In that case, the Signal extension will not initialize itself
-			signalCore = new SignalCore(core.eventHub, new SignalModuleDetails());
-		} catch (Exception e) {
-			throw new InvalidInitException();
-		}
+//		Core core = MobileCore.getCore();
+//
+//		if (core == null) {
+//			throw  new InvalidInitException();
+//		}
+//
+//		try {
+//			//MobileCore may not be loaded or present (because may be Core extension was not
+//			//available). In that case, the Signal extension will not initialize itself
+//			signalCore = new SignalCore(core.eventHub, new SignalModuleDetails());
+//		} catch (Exception e) {
+//			throw new InvalidInitException();
+//		}
 	}
 }

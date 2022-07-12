@@ -16,6 +16,10 @@ import android.app.Application;
 import android.content.Context;
 import androidx.annotation.VisibleForTesting;
 
+import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryDatabaseCreationException;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +32,13 @@ final public class MobileCore {
     private static boolean startActionCalled;
     @VisibleForTesting
     private static EventHub eventHub;
+    private static EventHistory eventHistory;
 
     private MobileCore() {
+    }
+
+    public static EventHistory getEventHistory() {
+        return eventHistory;
     }
 
     /**
@@ -78,6 +87,13 @@ final public class MobileCore {
         App.setApplication(app);
         if (App.getPlatformServices() == null) {
             App.setPlatformServices(new AndroidPlatformServices());
+        }
+        try {
+            eventHistory = new AndroidEventHistory();
+        } catch (EventHistoryDatabaseCreationException e) {
+            Log.warning(LOG_TAG, "Failed to create the android event history service: %s",
+                    e.getMessage());
+            eventHistory = null;
         }
         com.adobe.marketing.mobile.internal.context.App.getInstance().initializeApp(
                 new com.adobe.marketing.mobile.internal.context.App.AppContextProvider() {

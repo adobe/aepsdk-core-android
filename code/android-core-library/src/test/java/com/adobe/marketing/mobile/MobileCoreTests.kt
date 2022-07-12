@@ -11,9 +11,6 @@
 package com.adobe.marketing.mobile
 
 import android.app.Application
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -27,6 +24,9 @@ import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
 import org.powermock.reflect.Whitebox
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @RunWith(PowerMockRunner::class)
 @PrepareForTest(DataMarshaller::class, MobileCore::class)
@@ -73,7 +73,8 @@ class MobileCoreTests {
     @Test
     fun `test TrackState()`() {
         MobileCore.trackState(
-            "state", mapOf(
+            "state",
+            mapOf(
                 "key" to "value"
             )
         )
@@ -96,7 +97,8 @@ class MobileCoreTests {
                 "contextdata" to mapOf(
                     "key" to "value"
                 )
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
@@ -120,14 +122,16 @@ class MobileCoreTests {
             mapOf(
                 "state" to "state",
                 "contextdata" to emptyMap<String, Any>()
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
     @Test
     fun `test trackAction()`() {
         MobileCore.trackAction(
-            "action", mapOf(
+            "action",
+            mapOf(
                 "key" to "value"
             )
         )
@@ -150,7 +154,8 @@ class MobileCoreTests {
                 "contextdata" to mapOf(
                     "key" to "value"
                 )
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
@@ -174,7 +179,8 @@ class MobileCoreTests {
             mapOf(
                 "action" to "action",
                 "contextdata" to emptyMap<String, Any>()
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
@@ -203,7 +209,8 @@ class MobileCoreTests {
                 "contextdata" to mapOf(
                     "key" to "value"
                 )
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
@@ -232,7 +239,8 @@ class MobileCoreTests {
         assertEquals(
             mapOf(
                 "advertisingidentifier" to "advid"
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
@@ -255,7 +263,8 @@ class MobileCoreTests {
         assertEquals(
             mapOf(
                 "advertisingidentifier" to "pushid"
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
@@ -286,7 +295,8 @@ class MobileCoreTests {
                 "additionalcontextdata" to mapOf(
                     "key" to "value"
                 )
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
@@ -309,7 +319,8 @@ class MobileCoreTests {
         assertEquals(
             mapOf(
                 "action" to "pause"
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
@@ -698,7 +709,8 @@ class MobileCoreTests {
                 "config.update" to mapOf(
                     "global.privacy" to MobilePrivacyStatus.OPT_OUT.value
                 )
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 
@@ -726,7 +738,8 @@ class MobileCoreTests {
                 "config.update" to mapOf(
                     "key" to "value"
                 )
-            ), dispatchedEvent.eventData
+            ),
+            dispatchedEvent.eventData
         )
     }
 }

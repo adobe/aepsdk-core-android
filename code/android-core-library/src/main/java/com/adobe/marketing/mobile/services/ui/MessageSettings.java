@@ -165,6 +165,12 @@ public interface MessageSettings {
 	MessageAnimation getDismissAnimation();
 
 	/**
+	 * Set the animation to be used when the message is dismissed.
+	 * See {@link MessageAnimation}.
+	 */
+	void setDismissAnimation(MessageAnimation dismissAnimation);
+
+	/**
 	 * Returns the color of the backdrop shown when a uiTakeover message is displayed.
 	 * @return A {@code String} containing the HTML hex string color code to use for the backdrop
 	 */

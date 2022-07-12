@@ -48,7 +48,6 @@ public class ServiceProvider {
 	private UIService defaultUIService;
 	private FullscreenMessageDelegate messageDelegate;
 
-
 	private ServiceProvider() {
 		defaultNetworkService = new NetworkService();
 		defaultDeviceInfoService = new DeviceInfoService();

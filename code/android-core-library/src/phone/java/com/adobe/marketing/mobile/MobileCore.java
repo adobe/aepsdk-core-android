@@ -90,7 +90,7 @@ final public class MobileCore {
         }
         try {
             eventHistory = new AndroidEventHistory();
-        } catch (EventHistoryDatabaseCreationException e) {
+        } catch (Exception e) {
             Log.warning(LOG_TAG, "Failed to create the android event history service: %s",
                     e.getMessage());
             eventHistory = null;

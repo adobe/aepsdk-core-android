@@ -1,0 +1,108 @@
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
+package com.adobe.marketing.mobile.services;
+
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
+
+import android.content.Context;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.io.File;
+import java.io.IOException;
+
+@RunWith(AndroidJUnit4.class)
+public class DataQueueServiceTests {
+
+    Context context;
+    private static final String TEST_DATABASE_NAME = "test.sqlite";
+
+    @Before
+    public void beforeEach() {
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        ServiceProvider.getInstance().setContext(context);
+    }
+
+    @After
+    public void afterEach() {
+        context.getDatabasePath(TEST_DATABASE_NAME).delete();
+        new File(context.getCacheDir(), TEST_DATABASE_NAME).delete();
+    }
+
+    @Test
+    public void testGetDataQueue_DatabaseNameIsNullOrEmpty() {
+        DataQueue dataQueue = new DataQueueService().getDataQueue(null);
+        assertNull(dataQueue);
+        dataQueue = new DataQueueService().getDataQueue("");
+        assertNull(dataQueue);
+    }
+
+    @Test
+    public void testGetDataQueue_ApplicationContextIsNotSet() {
+        ServiceProvider.getInstance().setContext(null);
+        DataQueue dataQueue = new DataQueueService().getDataQueue(null);
+        assertNull(dataQueue);
+    }
+
+    @Test
+    public void testGetDataQueue_DataQueueDoesNotExist() {
+        assertFalse(context.getDatabasePath(TEST_DATABASE_NAME).exists());
+        DataQueue dataQueue = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
+        assertNotNull(dataQueue);
+        assertTrue(context.getDatabasePath(TEST_DATABASE_NAME).exists());
+    }
+
+    @Test
+    public void testGetDataQueue_DataQueueMigrationFromCacheDirectory() {
+        assertFalse(context.getDatabasePath(TEST_DATABASE_NAME).exists());
+        File cacheDatabaseFile = new File(context.getCacheDir(), TEST_DATABASE_NAME);
+        try {
+            cacheDatabaseFile.createNewFile();
+            DataQueue dataQueue = new SQLiteDataQueue(cacheDatabaseFile.getPath());
+            dataQueue.add(new DataEntity("test_data_1"));
+            DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
+            Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
+            assertFalse(cacheDatabaseFile.exists());
+        } catch (IOException e) { }
+    }
+
+    @Test
+    public void testGetDataQueue_DataQueueExistsInDatabaseDirectory() {
+        new File(context.getCacheDir(), TEST_DATABASE_NAME).delete();
+        File databaseFile = context.getDatabasePath(TEST_DATABASE_NAME);
+        try {
+            databaseFile.createNewFile();
+            DataQueue dataQueue = new SQLiteDataQueue(databaseFile.getPath());
+            dataQueue.add(new DataEntity("test_data_1"));
+            DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
+            Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
+        } catch (IOException e) { }
+    }
+
+    @Test
+    public void testGetDataQueue_DataQueueExistsInDataQueueCache() {
+        DataQueueService dataQueueService = new DataQueueService();
+        DataQueue dataQueue = dataQueueService.getDataQueue(TEST_DATABASE_NAME);
+        dataQueue.add(new DataEntity("test_data_1"));
+        DataQueue dataQueueExisting = dataQueueService.getDataQueue(TEST_DATABASE_NAME);
+        Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
+    }
+}

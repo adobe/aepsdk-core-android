@@ -1,10 +1,10 @@
 package com.adobe.marketing.mobile.utils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
@@ -35,7 +35,9 @@ public class DataReaderTests {
 
     final double DELTA = 0.000001d;
 
-    Map<String, Object> data = new HashMap<>();{
+    Map<String, Object> data = new HashMap<>();
+
+    {
         data.put("BOOL_TRUE", Boolean.TRUE);
         data.put("BOOL_FALSE", Boolean.FALSE);
 
@@ -104,7 +106,7 @@ public class DataReaderTests {
 
         checkIllegalArgumentException(DataReader::getBoolean);
         checkExceptionMessage((key) -> DataReader.getBoolean(data, key), Arrays.asList("NULL", "INVALID"), NULL_VALUE_ERROR_MSG);
-        checkCastException((key) -> DataReader.getBoolean(data, key), Arrays.asList("FLOAT","BYTE", "INT", "DOUBLE", "LONG", "STRING"));
+        checkCastException((key) -> DataReader.getBoolean(data, key), Arrays.asList("FLOAT", "BYTE", "INT", "DOUBLE", "LONG", "STRING"));
     }
 
     @Test
@@ -185,7 +187,7 @@ public class DataReaderTests {
         String errorMessage = OVERFLOW_ERROR_MSG + Long.class;
         checkExceptionMessage((key) -> DataReader.getLong(data, key), Arrays.asList("FLOAT_MAX", "DOUBLE_MAX"), errorMessage);
 
-        checkCastException((key) -> DataReader.getLong(data, key), Arrays.asList("STRING","STRING_MAP", "STRING_LIST"));
+        checkCastException((key) -> DataReader.getLong(data, key), Arrays.asList("STRING", "STRING_MAP", "STRING_LIST"));
     }
 
     @Test
@@ -232,7 +234,7 @@ public class DataReaderTests {
         String errorMessage = OVERFLOW_ERROR_MSG + Float.class;
         checkExceptionMessage((key) -> DataReader.getFloat(data, key), Arrays.asList("DOUBLE_MAX"), errorMessage);
 
-        checkCastException((key) -> DataReader.getFloat(data, key), Arrays.asList("STRING","STRING_MAP", "STRING_LIST"));
+        checkCastException((key) -> DataReader.getFloat(data, key), Arrays.asList("STRING", "STRING_MAP", "STRING_LIST"));
     }
 
     @Test
@@ -243,17 +245,17 @@ public class DataReaderTests {
         assertEquals((float) Short.MAX_VALUE, DataReader.optFloat(data, "SHORT_MAX", 3.3F), DELTA);
         assertEquals((float) Byte.MAX_VALUE, DataReader.optFloat(data, "BYTE_MAX", 3.3F), DELTA);
 
-        assertEquals(1, DataReader.optFloat(data, "BYTE",3.3F), DELTA);
-        assertEquals(2, DataReader.optFloat(data, "SHORT",3.3F), DELTA);
-        assertEquals(3, DataReader.optFloat(data, "INT",3.3F), DELTA);
-        assertEquals(4, DataReader.optFloat(data, "LONG",3.3F), DELTA);
-        assertEquals(5.5, DataReader.optFloat(data, "FLOAT",3.3F), DELTA);
-        assertEquals(6.6, DataReader.optFloat(data, "DOUBLE",3.3F), DELTA);
+        assertEquals(1, DataReader.optFloat(data, "BYTE", 3.3F), DELTA);
+        assertEquals(2, DataReader.optFloat(data, "SHORT", 3.3F), DELTA);
+        assertEquals(3, DataReader.optFloat(data, "INT", 3.3F), DELTA);
+        assertEquals(4, DataReader.optFloat(data, "LONG", 3.3F), DELTA);
+        assertEquals(5.5, DataReader.optFloat(data, "FLOAT", 3.3F), DELTA);
+        assertEquals(6.6, DataReader.optFloat(data, "DOUBLE", 3.3F), DELTA);
 
-        assertEquals(3.3, DataReader.optFloat(data, "DOUBLE_MAX",3.3F), DELTA);
-        assertEquals(3.3, DataReader.optFloat(data, "STRING",3.3F), DELTA);
-        assertEquals(3.3, DataReader.optFloat(data, "NULL",3.3F), DELTA);
-        assertEquals(3.3, DataReader.optFloat(data, "INVALID",3.3F), DELTA);
+        assertEquals(3.3, DataReader.optFloat(data, "DOUBLE_MAX", 3.3F), DELTA);
+        assertEquals(3.3, DataReader.optFloat(data, "STRING", 3.3F), DELTA);
+        assertEquals(3.3, DataReader.optFloat(data, "NULL", 3.3F), DELTA);
+        assertEquals(3.3, DataReader.optFloat(data, "INVALID", 3.3F), DELTA);
 
         checkIllegalArgumentException((m, k) -> DataReader.optFloat(m, k, 3.3F));
     }
@@ -333,7 +335,7 @@ public class DataReaderTests {
         assertEquals("5.5", DataReader.optString(data, "FLOAT", "DEFAULT"));
         assertEquals("6.6", DataReader.optString(data, "DOUBLE", "DEFAULT"));
         assertEquals("DEFAULT", DataReader.optString(data, "NULL", "DEFAULT"));
-        assertEquals("DEFAULT",DataReader.optString(data, "INVALID", "DEFAULT"));
+        assertEquals("DEFAULT", DataReader.optString(data, "INVALID", "DEFAULT"));
 
         checkIllegalArgumentException((m, k) -> DataReader.optString(m, k, "DEFAULT"));
     }
@@ -345,7 +347,7 @@ public class DataReaderTests {
         assertEquals(map, new HashMap<>());
 
         map = DataReader.getStringMap(data, "STRING_MAP");
-        assertEquals(map,  new HashMap<String, String>() {{
+        assertEquals(map, new HashMap<String, String>() {{
             put("a", "a");
             put("b", "b");
         }});
@@ -367,7 +369,7 @@ public class DataReaderTests {
         assertEquals(map, new HashMap<>());
 
         map = DataReader.optStringMap(data, "STRING_MAP", defaultMap);
-        assertEquals(map,  new HashMap<String, String>() {{
+        assertEquals(map, new HashMap<String, String>() {{
             put("a", "a");
             put("b", "b");
         }});
@@ -419,7 +421,7 @@ public class DataReaderTests {
     @Test
     public void testGetTypedMap() throws Exception {
         Map<String, Integer> map = DataReader.getTypedMap(Integer.class, data, "INT_MAP");
-        assertEquals(map,  new HashMap<String, Integer>() {{
+        assertEquals(map, new HashMap<String, Integer>() {{
             put("a", 1);
             put("b", 2);
         }});
@@ -430,6 +432,25 @@ public class DataReaderTests {
     }
 
     @Test
+    public void testGetTypedMapWithNullValue() throws Exception {
+        Map<String, Object> data = new HashMap<String, Object>() {
+            {
+                put("INT_MAP", new HashMap<String, Object>() {
+                    {
+                        put("a", 1);
+                        put("b", null);
+                    }
+                });
+            }
+        };
+        Map<String, Integer> map = DataReader.getTypedMap(Integer.class, data, "INT_MAP");
+        assertEquals(map, new HashMap<String, Integer>() {{
+            put("a", 1);
+            put("b", null);
+        }});
+    }
+
+    @Test
     public void testOptTypedMap() {
         Map<String, Integer> defaultMap = new HashMap<String, Integer>() {{
             put("c", 3);
@@ -437,7 +458,7 @@ public class DataReaderTests {
         }};
 
         Map<String, Integer> map = DataReader.optTypedMap(Integer.class, data, "INT_MAP", defaultMap);
-        assertEquals(map,  new HashMap<String, Integer>() {{
+        assertEquals(map, new HashMap<String, Integer>() {{
             put("a", 1);
             put("b", 2);
         }});
@@ -453,7 +474,7 @@ public class DataReaderTests {
     @Test
     public void testGetTypedList() throws Exception {
         List<Integer> list = DataReader.getTypedList(Integer.class, data, "INT_LIST");
-        assertEquals(list,  Arrays.asList(1, 2));
+        assertEquals(list, Arrays.asList(1, 2));
 
         checkExceptionMessage((key) -> DataReader.getTypedList(Integer.class, data, key), Arrays.asList("STRING", "INT", "STRING_MAP"), LIST_ERROR_MSG);
         checkExceptionMessage((key) -> DataReader.getTypedList(Integer.class, data, key), Arrays.asList("STRING_LIST"), LIST_ENTRY_ERROR_MSG);
@@ -466,12 +487,12 @@ public class DataReaderTests {
 
         List<Integer> list;
         list = DataReader.optTypedList(Integer.class, data, "INT_LIST", defaultList);
-        assertEquals(list,  Arrays.asList(1, 2));
+        assertEquals(list, Arrays.asList(1, 2));
 
         list = DataReader.optTypedList(Integer.class, data, "STRING", defaultList);
-        assertEquals(list,  defaultList);
+        assertEquals(list, defaultList);
         list = DataReader.optTypedList(Integer.class, data, "STRING_LIST", defaultList);
-        assertEquals(list,  defaultList);
+        assertEquals(list, defaultList);
         checkIllegalArgumentException((m, k) -> DataReader.optTypedList(Integer.class, m, k, defaultList));
     }
 
@@ -484,6 +505,6 @@ public class DataReaderTests {
         assertEquals(value, 1);
 
         List<String> stringList = DataReader.getStringList(clonedData, "STRING_LIST");
-        assertEquals("a", stringList.get(0) );
+        assertEquals("a", stringList.get(0));
     }
 }

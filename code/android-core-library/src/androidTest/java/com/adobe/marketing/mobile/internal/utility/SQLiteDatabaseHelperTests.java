@@ -48,6 +48,7 @@ public class SQLiteDatabaseHelperTests {
     @After
     public void dispose() {
         SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
+        new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite");
     }
 
     private void createTable() {

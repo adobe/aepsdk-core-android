@@ -359,6 +359,19 @@ internal class ExtensionContainer constructor(
         return registerEventListener(eventType, eventSource, { extensionListener.hear(it) }, errorCallback)
     }
 
+    override fun dispatch(
+        event: Event?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+    ): Boolean {
+        if (event == null) {
+            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
+            return false
+        }
+
+        EventHub.shared.dispatch(event)
+        return true
+    }
+
     override fun <T : ExtensionListener> registerWildcardListener(
         extensionListenerClass: Class<T>?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,

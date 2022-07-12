@@ -32,6 +32,16 @@ public abstract class ExtensionApi {
 												  final ExtensionEventListener eventListener,
 												  final ExtensionErrorCallback<ExtensionError> errorCallback);
 
+	/**
+	 * Dispatches an `Event` to the `EventHub`
+	 *
+	 * @param event An Event to be dispatched to the {@code EventHub}
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if any error occurs during registration
+	 * @return a {@code boolean} indicating whether the event was successfully dispatched
+	 */
+	public abstract boolean dispatch(final Event event,
+									 final ExtensionErrorCallback<ExtensionError> errorCallback);
+
 	// Shared state
 	/**
 	 * Creates a new shared state for this extension.

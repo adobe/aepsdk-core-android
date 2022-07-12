@@ -10,12 +10,12 @@
  */
 package com.adobe.marketing.mobile.internal.utility
 
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class JSONExtensionsTests {
 
@@ -113,9 +113,12 @@ class JSONExtensionsTests {
             "b",
             "c"
         )
-        assertEquals(expectedList, jsonArray.map {
-            if (it is String) it else ""
-        })
+        assertEquals(
+            expectedList,
+            jsonArray.map {
+                if (it is String) it else ""
+            }
+        )
     }
 
     @Test
@@ -144,9 +147,12 @@ class JSONExtensionsTests {
                 "key" to "value"
             )
         )
-        assertEquals(expectedList, jsonArray.map {
-            if (it is JSONObject) it.toMap() else null
-        })
+        assertEquals(
+            expectedList,
+            jsonArray.map {
+                if (it is JSONObject) it.toMap() else null
+            }
+        )
     }
     @Test
     fun testJSONArrayToAnyList() {

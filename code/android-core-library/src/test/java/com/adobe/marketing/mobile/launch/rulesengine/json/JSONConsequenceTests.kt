@@ -11,9 +11,9 @@
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.test.utility.buildJSONObject
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import org.junit.Test
 
 class JSONConsequenceTests {
     @Test

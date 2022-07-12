@@ -19,8 +19,8 @@ import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import com.adobe.marketing.mobile.internal.utility.flattening
 import com.adobe.marketing.mobile.internal.utility.serializeToQueryString
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
-import java.security.SecureRandom
 import org.json.JSONObject
+import java.security.SecureRandom
 
 internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionApi) : TokenFinder {
 
@@ -81,8 +81,9 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             }
             KEY_ALL_JSON -> {
                 if (event.eventData == null) {
-                    MobileCore.log(LoggingMode.DEBUG,
-                            LOG_TAG,
+                    MobileCore.log(
+                        LoggingMode.DEBUG,
+                        LOG_TAG,
                         "Triggering event data is null, can not use it to generate a json string"
                     )
                     return EMPTY_STRING
@@ -90,7 +91,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
                 try {
                     JSONObject(event.eventData).toString()
                 } catch (e: Exception) {
-                    MobileCore.log(LoggingMode.DEBUG,
+                    MobileCore.log(
+                        LoggingMode.DEBUG,
                         LOG_TAG,
                         "Failed to generate a json string ${e.message}"
                     )
@@ -120,7 +122,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
         val (sharedStateName, dataKeyName) = sharedStateKeyString.split(SHARED_STATE_KEY_DELIMITER)
         // TODO change once map flattening logic is finalized
         val sharedStateMap = extensionApi.getSharedEventState(sharedStateName, event) {
-            MobileCore.log(LoggingMode.DEBUG,
+            MobileCore.log(
+                LoggingMode.DEBUG,
                 LOG_TAG,
                 String.format("Unable to replace the token %s, token not found in shared state for the event", key)
             )

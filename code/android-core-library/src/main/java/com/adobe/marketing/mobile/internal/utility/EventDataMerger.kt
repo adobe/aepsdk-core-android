@@ -28,18 +28,21 @@ internal object EventDataMerger {
         to: Map<String, Any?>?,
         overwrite: Boolean
     ): Map<String, Any?> {
-        return innerMerge(from, to, overwrite, fun(fromValue, toValue): Any? {
-            if (fromValue is Map<*, *> && toValue is Map<*, *>) {
-                return mergeWildcardMaps(fromValue, toValue, overwrite)
+        return innerMerge(
+            from, to, overwrite,
+            fun(fromValue, toValue): Any? {
+                if (fromValue is Map<*, *> && toValue is Map<*, *>) {
+                    return mergeWildcardMaps(fromValue, toValue, overwrite)
+                }
+                if (!overwrite) {
+                    return toValue
+                }
+                if (fromValue is Collection<*> && toValue is Collection<*>) {
+                    return mergeCollection(fromValue, toValue)
+                }
+                return fromValue
             }
-            if (!overwrite) {
-                return toValue
-            }
-            if (fromValue is Collection<*> && toValue is Collection<*>) {
-                return mergeCollection(fromValue, toValue)
-            }
-            return fromValue
-        })
+        )
     }
 
     private fun mergeCollection(from: Collection<*>?, to: Collection<*>?): Collection<Any?> {

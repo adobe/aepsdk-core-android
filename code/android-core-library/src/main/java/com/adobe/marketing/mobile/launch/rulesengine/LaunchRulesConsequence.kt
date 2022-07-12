@@ -76,8 +76,8 @@ class LaunchRulesConsequence(
                                 LoggingMode.VERBOSE,
                                 logTag,
                                 "Unable to process dispatch consequence, max chained " +
-                                        "dispatch consequences limit of $MAX_CHAINED_CONSEQUENCE_COUNT" +
-                                        "met for this event uuid ${event.uniqueIdentifier}"
+                                    "dispatch consequences limit of $MAX_CHAINED_CONSEQUENCE_COUNT" +
+                                    "met for this event uuid ${event.uniqueIdentifier}"
                             )
                             continue
                         }
@@ -141,7 +141,8 @@ class LaunchRulesConsequence(
                 is String -> mutableDetail[key] = replaceToken(value, tokenFinder)
                 is Map<*, *> -> mutableDetail[key] = replaceToken(
                     EventDataUtils.castFromGenericType(value),
-                    tokenFinder)
+                    tokenFinder
+                )
                 else -> continue
             }
         }
@@ -291,7 +292,8 @@ class LaunchRulesConsequence(
         return Event.Builder(
             CONSEQUENCE_EVENT_NAME,
             EVENT_TYPE_RULES_ENGINE,
-            EVENT_SOURCE_RESPONSE_CONTENT)
+            EVENT_SOURCE_RESPONSE_CONTENT
+        )
             .setEventData(mapOf(CONSEQUENCE_EVENT_DATA_KEY_CONSEQUENCE to eventData))
             .build()
     }

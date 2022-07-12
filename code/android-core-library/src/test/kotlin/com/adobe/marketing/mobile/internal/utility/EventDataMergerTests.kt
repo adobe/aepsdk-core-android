@@ -10,8 +10,8 @@
  */
 package com.adobe.marketing.mobile.internal.utility
 
-import kotlin.test.assertEquals
 import org.junit.Test
+import kotlin.test.assertEquals
 
 class EventDataMergerTests {
 

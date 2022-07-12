@@ -8,8 +8,6 @@ import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
 import com.adobe.marketing.mobile.test.utility.readTestResources
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,6 +17,8 @@ import org.mockito.BDDMockito
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 @RunWith(PowerMockRunner::class)
 @PrepareForTest(ExtensionApi::class, MobileCore::class)

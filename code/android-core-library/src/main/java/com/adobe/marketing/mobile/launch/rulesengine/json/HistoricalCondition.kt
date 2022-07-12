@@ -46,14 +46,17 @@ internal class HistoricalCondition(private val definition: JSONDefinition) : JSO
             EventHistoryRequest(it, fromDate, toDate)
         }
         return ComparisonExpression(
-            OperandFunction<Int>({
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    historicalEventsQuerying(it[0] as List<EventHistoryRequest>, it[1] as String)
-                } catch (e: Exception) {
-                    0
-                }
-            }, requestEvents, searchType),
+            OperandFunction<Int>(
+                {
+                    try {
+                        @Suppress("UNCHECKED_CAST")
+                        historicalEventsQuerying(it[0] as List<EventHistoryRequest>, it[1] as String)
+                    } catch (e: Exception) {
+                        0
+                    }
+                },
+                requestEvents, searchType
+            ),
             operationName,
             OperandLiteral(valueAsInt)
         )

@@ -14,8 +14,8 @@ import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.LogicalExpression
 import com.adobe.marketing.mobile.test.utility.buildJSONObject
-import kotlin.test.assertTrue
 import org.junit.Test
+import kotlin.test.assertTrue
 
 class JSONConditionTests {
     @Test

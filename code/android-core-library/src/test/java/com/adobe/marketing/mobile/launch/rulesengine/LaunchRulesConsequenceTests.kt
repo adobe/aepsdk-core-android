@@ -15,9 +15,6 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
 import com.adobe.marketing.mobile.test.utility.readTestResources
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,6 +26,9 @@ import org.mockito.Mockito.times
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @RunWith(PowerMockRunner::class)
 @PrepareForTest(ExtensionApi::class, MobileCore::class)
@@ -235,7 +235,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.applicationLaunch")
+            "com.adobe.eventSource.applicationLaunch"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -269,7 +270,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.applicationLaunch")
+            "com.adobe.eventSource.applicationLaunch"
+        )
             .setEventData(null)
             .build()
 
@@ -309,7 +311,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.applicationLaunch")
+            "com.adobe.eventSource.applicationLaunch"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -345,7 +348,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.applicationLaunch")
+            "com.adobe.eventSource.applicationLaunch"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -380,7 +384,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.applicationLaunch")
+            "com.adobe.eventSource.applicationLaunch"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -411,7 +416,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.applicationLaunch")
+            "com.adobe.eventSource.applicationLaunch"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -441,7 +447,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.applicationLaunch")
+            "com.adobe.eventSource.applicationLaunch"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -471,7 +478,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.applicationLaunch")
+            "com.adobe.eventSource.applicationLaunch"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -525,7 +533,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Edge Request",
             "com.adobe.eventType.edge",
-            "com.adobe.eventSource.requestContent")
+            "com.adobe.eventSource.requestContent"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -582,7 +591,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Edge Request",
             "com.adobe.eventType.edge",
-            "com.adobe.eventSource.requestContent")
+            "com.adobe.eventSource.requestContent"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -652,7 +662,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Edge Request",
             "com.adobe.eventType.edge",
-            "com.adobe.eventSource.requestContent")
+            "com.adobe.eventSource.requestContent"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -755,7 +766,8 @@ class LaunchRulesConsequenceTests {
         val eventEdgeRequest = Event.Builder(
             "Edge Request",
             "com.adobe.eventType.edge",
-            "com.adobe.eventSource.requestContent")
+            "com.adobe.eventSource.requestContent"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -763,7 +775,8 @@ class LaunchRulesConsequenceTests {
         val eventLaunch = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.applicationLaunch")
+            "com.adobe.eventSource.applicationLaunch"
+        )
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
@@ -857,7 +870,8 @@ class LaunchRulesConsequenceTests {
         val event = Event.Builder(
             "Edge Request",
             "com.adobe.eventType.edge",
-            "com.adobe.eventSource.requestContent")
+            "com.adobe.eventSource.requestContent"
+        )
             .setEventData(mapOf("dispatch" to "yes"))
             .build()
 

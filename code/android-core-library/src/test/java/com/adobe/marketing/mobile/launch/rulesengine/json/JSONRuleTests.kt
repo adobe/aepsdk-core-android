@@ -14,11 +14,11 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.test.utility.buildJSONObject
+import org.json.JSONException
+import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import org.json.JSONException
-import org.junit.Test
 
 class JSONRuleTests {
     @Test

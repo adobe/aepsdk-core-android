@@ -250,6 +250,7 @@ internal class ExtensionContainer constructor(
         event: Event?,
         barrier: Boolean,
         resolution: SharedStateResolution?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): SharedStateResult {
         TODO("Not yet implemented")
     }
@@ -278,6 +279,7 @@ internal class ExtensionContainer constructor(
         event: Event?,
         barrier: Boolean,
         resolution: SharedStateResolution?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): SharedStateResult {
         TODO("Not yet implemented")
     }

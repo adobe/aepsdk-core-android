@@ -17,7 +17,6 @@ public class FakePlatformServices implements PlatformServices {
 	FakeJsonUtilityService        fakeJsonUtilityService;
 	FakeLocalStorageService       fakeLocalStorageService;
 	FakeLoggingService            fakeLoggingService;
-	FakeDatabaseService           fakeDatabaseService;
 	MockSystemInfoService         mockSystemInfoService;
 	MockSystemNotificationService mockSystemNotificationService;
 	MockUIService                 mockUIService;
@@ -30,7 +29,6 @@ public class FakePlatformServices implements PlatformServices {
 		fakeJsonUtilityService = new FakeJsonUtilityService();
 		fakeLocalStorageService = new FakeLocalStorageService();
 		fakeLoggingService = new FakeLoggingService();
-		fakeDatabaseService = new FakeDatabaseService();
 		mockSystemInfoService = new MockSystemInfoService();
 		mockSystemNotificationService = new MockSystemNotificationService();
 		mockUIService = new MockUIService();
@@ -72,11 +70,6 @@ public class FakePlatformServices implements PlatformServices {
 	@Override
 	public LocalStorageService getLocalStorageService() {
 		return fakeLocalStorageService;
-	}
-
-	@Override
-	public DatabaseService getDatabaseService() {
-		return fakeDatabaseService;
 	}
 
 	@Override

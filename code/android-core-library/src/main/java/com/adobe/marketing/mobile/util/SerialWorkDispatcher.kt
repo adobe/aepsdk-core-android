@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.util
 
-import android.support.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import java.lang.Exception

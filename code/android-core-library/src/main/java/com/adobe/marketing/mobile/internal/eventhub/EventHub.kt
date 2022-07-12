@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
-import android.support.annotation.NonNull
+import androidx.annotation.NonNull
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionError

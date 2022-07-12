@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 
 class FileTestHelper {
 	static final String CACHE_DIRECTORY 	= "adbdownloadcache";
+	static final String FILE_DIRECTORY = "adbdownloadfile";
 	static final String MOCK_FILE_NAME		=
 		"c0a6221b2b55775b6bc5761fdb1ac0c965cc823c55e8db0b3f903b24f82fcb90.1484711165000_someETag";
 	static final String MOCK_CONFIG_JSON 	= "{'someJsonKey':'someJsonValue'}";

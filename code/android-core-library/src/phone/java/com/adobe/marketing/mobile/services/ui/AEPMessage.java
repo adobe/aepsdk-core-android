@@ -60,7 +60,7 @@ class AEPMessage implements FullscreenMessage {
 
     // private vars
     private final String html;
-    private final MessageSettings settings;
+    private MessageSettings settings;
     private final boolean isLocalImageUsed;
     private int orientationWhenShown;
     private boolean isVisible;
@@ -323,6 +323,16 @@ class AEPMessage implements FullscreenMessage {
     }
 
     /**
+     * Sets or updates the {@link MessageSettings} for the current fullscreen message.
+     *
+     * @param messageSettings {@link MessageSettings} object defining layout and behavior of the new message.
+     */
+    @Override
+    public void setMessageSetting(MessageSettings messageSettings) {
+        this.settings = messageSettings;
+    }
+
+    /**
      * Checks if a custom {@link FullscreenMessageDelegate} was set in the {@link MobileCore}.
      * If it was set, {@code FullscreenMessageDelegate#onDismiss} is called and the {@link AEPMessage}
      * object is passed to the custom delegate. Note, this method applies to custom delegates only.
@@ -340,7 +350,7 @@ class AEPMessage implements FullscreenMessage {
      * Removes the {@link WebView} from the root view group.
      * If the {@link WebView} was dismissed via a swipe {@link MessageSettings.MessageGesture}, no additional dismiss
      * {@link MessageSettings.MessageAnimation} is applied.
-     * Otherwise, the dismissal {@code MessageSettings.MessageAnimation} retrieved from the {@link AEPMessageSettings} object is used.
+     * Otherwise, the dismissal {@code MessageSettings.MessageAnimation} retrieved from the {@link MessageSettings} object is used.
      */
     private void removeFromRootViewGroup() {
         if (rootViewGroup == null) {

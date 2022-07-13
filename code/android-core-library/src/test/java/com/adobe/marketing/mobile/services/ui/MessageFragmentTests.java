@@ -14,6 +14,7 @@ package com.adobe.marketing.mobile.services.ui;
 import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
+import android.os.Message;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
@@ -44,7 +45,7 @@ public class MessageFragmentTests {
 	@Mock
 	private AEPMessage mockAEPMessage;
 	@Mock
-	private AEPMessageSettings mockAEPMessageSettings;
+	private MessageSettings mockAEPMessageSettings;
 	@Mock
 	private Application mockApplication;
 	@Mock

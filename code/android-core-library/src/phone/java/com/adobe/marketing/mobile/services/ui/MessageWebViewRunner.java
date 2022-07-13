@@ -162,7 +162,7 @@ class MessageWebViewRunner implements Runnable {
             webView.loadDataWithBaseURL(BASE_URL, message.getMessageHtml(), MIME_TYPE, StringUtils.CHARSET_UTF_8, null);
 
             // if we are re-showing after an orientation change, no need to animate
-            final AEPMessageSettings messageSettings = (AEPMessageSettings) message.getSettings();
+            final MessageSettings messageSettings = message.getSettings();
 
             if (!message.isMessageVisible()) {
                 final Animation animation = setupDisplayAnimation();
@@ -245,9 +245,9 @@ class MessageWebViewRunner implements Runnable {
     /**
      * Creates a {@link MessageWebView} and a {@link LinearLayout} backdrop and adds them to the root view.
      *
-     * @param settings The {@link AEPMessageSettings} object containing customization settings for the {@link AEPMessage}.
+     * @param settings The {@link MessageSettings} object containing customization settings for the {@link AEPMessage}.
      */
-    private void createMessageFrameAndAddMessageToRootView(final AEPMessageSettings settings) {
+    private void createMessageFrameAndAddMessageToRootView(final MessageSettings settings) {
         FrameLayout.LayoutParams params = generateLayoutParams(messageHeight, messageWidth, originX, originY);
 
         // if we have non fullscreen messages, fill the webview

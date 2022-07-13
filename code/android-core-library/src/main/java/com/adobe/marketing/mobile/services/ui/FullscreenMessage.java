@@ -45,4 +45,11 @@ public interface FullscreenMessage {
      *                 asset url and its cached location.
      */
     void setLocalAssetsMap(final Map<String, String> assetMap);
+
+    /**
+     * Sets or updates the {@link MessageSettings} for the current fullscreen message.
+     *
+     * @param messageSettings {@link MessageSettings} object defining layout and behavior of the new message.
+     */
+    void setMessageSetting(final MessageSettings messageSettings);
 }

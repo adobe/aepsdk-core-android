@@ -187,31 +187,11 @@ class EventHub {
 	 * @param e the event to be added to the queue
 	 */
 	void dispatch(final Event e) {
-		synchronized (bootMutex) {
-			e.setEventNumber(this.currentEventNumber.getAndIncrement());
-
-			if (!this.isBooted) {
-				Log.debug(logPrefix, "Event (%s, %s) was dispatched before module registration was finished",
-						  e.getEventType().getName(), e.getEventSource().getName());
-				preBootEvents.add(e);
-			} else {
-				this.eventHubThreadService.submit(new EventRunnable(e));
-			}
-// Todo
-//			final EventHistory eventHistory = EventHistoryProvider.getEventHistory();
-//
-//			// record the event in the event history  database if the event has a mask
-//			if (eventHistory != null && e.getMask() != null) {
-//				final EventHistoryResultHandler<Boolean> handler = new EventHistoryResultHandler<Boolean>() {
-//					@Override
-//					public void call(final Boolean value) {
-//						Log.trace(logPrefix, value ? "Successfully inserted an Event into EventHistory database" :
-//								  "Failed to insert an Event into EventHistory database");
-//					}
-//				};
-//				eventHistory.recordEvent(e, handler);
-//			}
+		if (e == null) {
+			return;
 		}
+
+		com.adobe.marketing.mobile.internal.eventhub.EventHub.Companion.getShared().dispatch(e);
 	}
 
 	/**

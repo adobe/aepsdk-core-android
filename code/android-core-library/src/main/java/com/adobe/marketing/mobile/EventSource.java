@@ -22,7 +22,12 @@ import java.util.Map;
  * @see EventHub
  * @see EventType
  */
-final class EventSource {
+public final class EventSource {
+
+	// Todo - Expose String constants. Remove 'TYPE' prefix after fixing build issues
+	public static final String TYPE_WILDCARD = "com.adobe.eventSource._wildcard_";
+
+
 	private static final String ADOBE_PREFIX = "com.adobe.eventSource.";
 	private static final Map<String, EventSource> knownSources = new HashMap<String, EventSource>();
 	private static final Object knownSourcesMutex = new Object();

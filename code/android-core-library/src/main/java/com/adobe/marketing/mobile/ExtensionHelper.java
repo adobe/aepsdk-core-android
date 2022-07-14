@@ -10,9 +10,7 @@ public class ExtensionHelper {
             if (extension != null) {
                 return extension.getName();
             }
-        } catch (Exception ex) {
-
-        }
+        } catch (Exception ex) { }
         return null;
     }
 
@@ -21,9 +19,7 @@ public class ExtensionHelper {
             if (extension != null) {
                 return extension.getFriendlyName();
             }
-        } catch (Exception ex) {
-
-        }
+        } catch (Exception ex) { }
         return null;
     }
 
@@ -32,19 +28,31 @@ public class ExtensionHelper {
             if (extension != null) {
                 return extension.getVersion();
             }
-        } catch (Exception ex) {
-
-        }
+        } catch (Exception ex) { }
         return null;
     }
 
-    public static void onUnregistered(Extension extension) {
+    public static void notifyUnregistered(Extension extension) {
         try {
             if (extension != null) {
                 extension.onUnregistered();
             }
-        } catch (Exception ex) {
+        } catch (Exception ex) { }
+    }
 
-        }
+    public static void notifyRegistered(Extension extension) {
+        try {
+            if (extension != null) {
+                extension.onRegistered();
+            }
+        } catch (Exception ex) { }
+    }
+
+    public static void notifyError(Extension extension, ExtensionUnexpectedError error) {
+        try {
+            if (extension != null) {
+                extension.onUnexpectedError(error);
+            }
+        } catch (Exception ex) { }
     }
 }

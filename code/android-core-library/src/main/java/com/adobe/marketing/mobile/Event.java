@@ -31,6 +31,7 @@ public final class Event {
 	private String      pairID;
 	private String      responsePairID;
 	private Map<String, Object> data;
+	private String      responseID;
 	private long        timestamp;
 	private int         eventNumber;
 	// Specifies the properties in the Event and its data that should be used in the hash for EventHistory storage.
@@ -79,6 +80,7 @@ public final class Event {
 			event.type = type;
 			event.source = source;
 			event.responsePairID = UUID.randomUUID().toString();
+			event.responseID = null;
 			event.eventNumber = 0;
 			event.mask = mask;
 			didBuild = false;
@@ -216,6 +218,19 @@ public final class Event {
 		Builder setPairID(final String pairId) {
 			throwIfAlreadyBuilt();
 			event.pairID = pairId;
+			return this;
+		}
+
+		/**
+		 * Sets the triggering event for this {@code Event}
+		 *
+		 * @param triggerEvent {@code Event} event
+		 * @return this Event {@link Builder}
+		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
+		 */
+		public Builder setTriggerEvent(final Event triggerEvent) {
+			throwIfAlreadyBuilt();
+			event.responseID = triggerEvent.uniqueIdentifier;
 			return this;
 		}
 
@@ -411,6 +426,15 @@ public final class Event {
 	 */
 	String getResponsePairID() {
 		return responsePairID;
+	}
+
+	/**
+	 * Pair ID for events dispatched by the receiver(s) in response to this event
+	 *
+	 * @return String response pair ID
+	 */
+	public String getResponseID() {
+		return responseID;
 	}
 
 	/**

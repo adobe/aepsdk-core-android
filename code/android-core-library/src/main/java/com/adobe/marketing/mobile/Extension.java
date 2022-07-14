@@ -54,6 +54,14 @@ public abstract class Extension {
 	}
 
 	/**
+	 * Called when the extension is registered by the core.
+	 * Implementers can implement this method to clean up resources when the extension is released.
+	 */
+	protected void onRegistered() {
+		Log.debug(getLogTag(), "Extension registered successfully.");
+	}
+
+	/**
 	 * Called when the extension is unregistered by the core.
 	 * Implementers can implement this method to clean up resources when the extension is released.
 	 */
@@ -68,6 +76,7 @@ public abstract class Extension {
 	 *
 	 * @param extensionUnexpectedError the {@link ExtensionUnexpectedError} returned from the core
 	 */
+	@Deprecated
 	protected void onUnexpectedError(final ExtensionUnexpectedError extensionUnexpectedError) {
 		ExtensionError error = extensionUnexpectedError != null ? extensionUnexpectedError.getErrorCode() : null;
 
@@ -76,6 +85,15 @@ public abstract class Extension {
 					  error.getErrorCode(), error.getErrorName(), extensionUnexpectedError.getMessage());
 		}
 	}
+
+	/**
+	 * Called before each Event is processed by any ExtensionListener owned by this Extension
+	 * Should be overridden by any extension that wants to control its own Event flow on a per Event basis.
+	 *
+	 * @param event {@link Event} that will be processed next
+	 * @return {@code boolean} to denote if event processing should continue for this `Extension`
+	 */
+	public boolean readyForEvent(final Event event) { return true; }
 
 	/**
 	 * This provides the services the extension will need.

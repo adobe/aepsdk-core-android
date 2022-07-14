@@ -93,7 +93,7 @@ public abstract class Extension {
 	 * @param event {@link Event} that will be processed next
 	 * @return {@code boolean} to denote if event processing should continue for this `Extension`
 	 */
-	public boolean readyForEvent(Event event) { return true; }
+	public boolean readyForEvent(final Event event) { return true; }
 
 	/**
 	 * This provides the services the extension will need.

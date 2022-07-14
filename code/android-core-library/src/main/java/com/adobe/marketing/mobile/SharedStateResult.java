@@ -13,10 +13,18 @@ package com.adobe.marketing.mobile;
 
 import java.util.Map;
 
+/**
+ * Contains the status and value for a given shared state
+ */
 public class SharedStateResult {
     public final SharedStateStatus status;
     public final Map<String, Object> value;
 
+    /**
+     * Creates a new shared state result with given status and value
+     * @param status status of the shared state
+     * @param value value of the shared state
+     */
     public SharedStateResult(SharedStateStatus status, Map<String, Object> value) {
         this.status = status;
         this.value = value;

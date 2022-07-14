@@ -13,6 +13,14 @@ package com.adobe.marketing.mobile;
 
 import java.util.Map;
 
+/**
+ *  A `SharedStateResolver` which is invoked to set pending the `SharedState` versioned at `Event`
+ */
+@FunctionalInterface
 public interface SharedStateResolver {
-    void resolve(Map<String, Object> state);
+    /**
+     *
+     * @param state A Map<String, Object> containing data to resolve pending shared state.
+     */
+    void resolve(final Map<String, Object> state);
 }

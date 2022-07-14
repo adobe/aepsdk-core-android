@@ -11,7 +11,16 @@
 
 package com.adobe.marketing.mobile;
 
+/**
+ * Type representing the resolution of an extension's `SharedState`
+ */
 public enum SharedStateResolution {
+    /**
+     * LAST_SET will resolve for the last set shared state
+     */
     LAST_SET,
+    /**
+     *  ANY will resolve for the last shared state indiscriminately
+     */
     ANY
 }

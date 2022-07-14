@@ -42,7 +42,7 @@ internal class ResponseListenerContainer(
         } catch (ex: Exception) {
             MobileCore.log(
                 LoggingMode.DEBUG,
-                "OneTimeListenerContainer",
+                "ResponseListenerContainer",
                 "Exception thrown for EventId ${event.uniqueIdentifier}. $ex"
             )
         }

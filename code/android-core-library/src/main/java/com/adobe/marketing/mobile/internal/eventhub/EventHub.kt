@@ -153,8 +153,8 @@ internal class EventHub {
     /**
      * Registers a new `Extension` to the `EventHub`. This `Extension` must extends `Extension` class
      *
-     * @property extensionClass The class of extension to register
-     * @property completion Invoked when the extension has been registered or failed to register
+     * @param extensionClass The class of extension to register
+     * @param completion Invoked when the extension has been registered or failed to register
      */
     fun registerExtension(extensionClass: Class<out Extension>?, completion: (error: EventHubError) -> Unit) {
         eventHubExecutor.submit {
@@ -176,8 +176,8 @@ internal class EventHub {
 
     /**
      * Unregisters the extension from the `EventHub` if registered
-     * @property extensionClass The class of extension to unregister
-     * @property completion Invoked when the extension has been unregistered or failed to unregister
+     * @param extensionClass The class of extension to unregister
+     * @param completion Invoked when the extension has been unregistered or failed to unregister
      */
     fun unregisterExtension(extensionClass: Class<out Extension>?, completion: ((error: EventHubError) -> Unit)) {
         eventHubExecutor.submit {
@@ -194,6 +194,12 @@ internal class EventHub {
         }
     }
 
+    /**
+     * Registers an event listener which will be invoked when the response event to trigger event is dispatched
+     * @param triggerEvent An [Event] which will trigger a response event
+     * @param timeoutMS A timeout in milliseconds, if the response listener is not invoked within the timeout, then the `EventHub` invokes the fail method.
+     * @param listener An [AdobeCallbackWithError] which will be invoked whenever the [EventHub] receives the response [Event] for trigger event
+     */
     fun registerResponseListener(triggerEvent: Event, timeoutMS: Long, callback: AdobeCallbackWithError<Event>) {
         eventHubExecutor.submit {
             val triggerEventId = triggerEvent.uniqueIdentifier
@@ -218,6 +224,12 @@ internal class EventHub {
         }
     }
 
+    /**
+     * Registers an [EventListener] which will be invoked whenever a event with matched type and source is dispatched
+     * @param type A String indicating the event type the current listener is listening for
+     * @param source A `String` indicating the event source the current listener is listening for
+     * @param listener An [AdobeCallback] which will be invoked whenever the [EventHub] receives a event with matched type and source
+     */
     fun registerListener(eventType: String, eventSource: String, listener: AdobeCallback<Event>) {
         eventHubExecutor.submit {
             val eventHubContainer = getExtensionContainer(EventHubPlaceholderExtension::class.java)

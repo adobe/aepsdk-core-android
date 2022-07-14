@@ -11,6 +11,9 @@
 
 package com.adobe.marketing.mobile;
 
+/**
+ * Type representing the state of an extension's `SharedState`
+ */
 public enum SharedStateStatus {
     SET,
     PENDING,

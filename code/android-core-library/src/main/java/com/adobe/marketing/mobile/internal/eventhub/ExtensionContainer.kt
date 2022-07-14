@@ -196,6 +196,16 @@ internal class ExtensionContainer constructor(
         ).get()
     }
 
+    override fun dispatch(
+        event: Event?
+    ): Boolean {
+        if (event == null) {
+            return false
+        }
+        EventHub.shared.dispatch(event)
+        return true
+    }
+
     private fun getTag(): String {
         if (extension == null) {
             return LOG_TAG
@@ -207,22 +217,18 @@ internal class ExtensionContainer constructor(
     override fun registerEventListener(
         eventType: String?,
         eventSource: String?,
-        eventListener: ExtensionEventListener?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
+        eventListener: ExtensionEventListener?
     ): Boolean {
 
         if (eventType == null) {
-            errorCallback?.error(ExtensionError.EVENT_TYPE_NOT_SUPPORTED)
             return false
         }
 
         if (eventSource == null) {
-            errorCallback?.error(ExtensionError.EVENT_SOURCE_NOT_SUPPORTED)
             return false
         }
 
         if (eventListener == null) {
-            errorCallback?.error(ExtensionError.CALLBACK_NULL)
             return false
         }
 
@@ -232,15 +238,13 @@ internal class ExtensionContainer constructor(
 
     override fun createSharedState(
         state: MutableMap<String, Any>?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        event: Event?
     ): Boolean {
         TODO("Not yet implemented")
     }
 
     override fun createPendingSharedState(
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        event: Event?
     ): SharedStateResolver? {
         TODO("Not yet implemented")
     }
@@ -249,27 +253,20 @@ internal class ExtensionContainer constructor(
         extensionName: String?,
         event: Event?,
         barrier: Boolean,
-        resolution: SharedStateResolution?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
+        resolution: SharedStateResolution?
     ): SharedStateResult {
-        TODO("Not yet implemented")
-    }
-
-    override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         TODO("Not yet implemented")
     }
 
     override fun createXDMSharedState(
         state: MutableMap<String, Any>?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        event: Event?
     ): Boolean {
         TODO("Not yet implemented")
     }
 
     override fun createPendingXDMSharedState(
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        event: Event?
     ): SharedStateResolver? {
         TODO("Not yet implemented")
     }
@@ -278,17 +275,20 @@ internal class ExtensionContainer constructor(
         extensionName: String?,
         event: Event?,
         barrier: Boolean,
-        resolution: SharedStateResolution?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
+        resolution: SharedStateResolution?
     ): SharedStateResult {
         TODO("Not yet implemented")
     }
 
-    override fun clearXDMSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
+    override fun unregisterExtension() {
         TODO("Not yet implemented")
     }
 
-    override fun unregisterExtension() {
+    override fun startEvents() {
+        TODO("Not yet implemented")
+    }
+
+    override fun stopEvents() {
         TODO("Not yet implemented")
     }
 
@@ -345,6 +345,14 @@ internal class ExtensionContainer constructor(
         TODO("Not yet implemented")
     }
 
+    override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearXDMSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override fun <T : ExtensionListener> registerEventListener(
         eventType: String?,
         eventSource: String?,
@@ -356,20 +364,7 @@ internal class ExtensionContainer constructor(
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        return registerEventListener(eventType, eventSource, { extensionListener.hear(it) }, errorCallback)
-    }
-
-    override fun dispatch(
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
-    ): Boolean {
-        if (event == null) {
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-            return false
-        }
-
-        EventHub.shared.dispatch(event)
-        return true
+        return registerEventListener(eventType, eventSource, { extensionListener.hear(it) })
     }
 
     override fun <T : ExtensionListener> registerWildcardListener(
@@ -381,6 +376,6 @@ internal class ExtensionContainer constructor(
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        return registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD, { extensionListener.hear(it) }, errorCallback)
+        return registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD, { extensionListener.hear(it) })
     }
 }

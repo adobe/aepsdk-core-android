@@ -147,7 +147,7 @@ internal class EventHubTests {
     fun testRegisterExtensionFailure_DuplicateExtension() {
         registerExtension(MockExtension::class.java)
 
-        var ret = registerExtension(MockExtension::class.java)
+        val ret = registerExtension(MockExtension::class.java)
         assertEquals(EventHubError.DuplicateExtensionName, ret)
     }
 
@@ -173,13 +173,13 @@ internal class EventHubTests {
     fun testUnregisterExtensionSuccess() {
         registerExtension(MockExtensions.MockExtensionKotlin::class.java)
 
-        var ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
+        val ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
         assertEquals(EventHubError.None, ret)
     }
 
     @Test
     fun testUnregisterExtensionFailure() {
-        var ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
+        val ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
         assertEquals(EventHubError.ExtensionNotRegistered, ret)
     }
 
@@ -707,14 +707,10 @@ internal class EventHubTests {
         val testEvent = Event.Builder("Sample event", eventType, eventSource).build()
 
         val extensionContainer = eventHub.getExtensionContainer(MockExtensions.TestExtension::class.java)
-        extensionContainer?.registerEventListener(
-            eventType, eventSource,
-            {
-                assertTrue { it == testEvent }
-                latch.countDown()
-            },
-            null
-        )
+        extensionContainer?.registerEventListener(eventType, eventSource) {
+            assertTrue { it == testEvent }
+            latch.countDown()
+        }
 
         eventHub.start()
         eventHub.dispatch(testEvent)
@@ -730,13 +726,9 @@ internal class EventHubTests {
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
 
         val extensionContainer = eventHub.getExtensionContainer(MockExtensions.TestExtension::class.java)
-        extensionContainer?.registerEventListener(
-            "customEventType", "customEventSource",
-            {
-                latch.countDown()
-            },
-            null
-        )
+        extensionContainer?.registerEventListener("customEventType", "customEventSource") {
+            latch.countDown()
+        }
 
         eventHub.start()
         eventHub.dispatch(testEvent)
@@ -756,8 +748,7 @@ internal class EventHubTests {
             eventType, eventSource,
             {
                 latch.countDown()
-            },
-            null
+            }
         )
 
         eventHub.dispatch(testEvent)
@@ -773,14 +764,10 @@ internal class EventHubTests {
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
 
         val extensionContainer = eventHub.getExtensionContainer(MockExtensions.TestExtension::class.java)
-        extensionContainer?.registerEventListener(
-            eventType, eventSource,
-            {
-                assertTrue { it == testEvent }
-                latch.countDown()
-            },
-            null
-        )
+        extensionContainer?.registerEventListener(eventType, eventSource) {
+            assertTrue { it == testEvent }
+            latch.countDown()
+        }
 
         eventHub.dispatch(testEvent)
         eventHub.dispatch(testEvent)
@@ -798,13 +785,11 @@ internal class EventHubTests {
 
         val extensionContainer = eventHub.getExtensionContainer(MockExtensions.TestExtension::class.java)
         extensionContainer?.registerEventListener(
-            eventType, eventSource,
-            {
-                assertTrue { it == testEvent }
-                latch.countDown()
-            },
-            null
-        )
+            eventType, eventSource
+        ) {
+            assertTrue { it == testEvent }
+            latch.countDown()
+        }
 
         eventHub.dispatch(testEvent)
         eventHub.dispatch(testEvent1)
@@ -972,7 +957,7 @@ internal class EventHubTests {
         assertTrue {
             latch.await(250, TimeUnit.MILLISECONDS)
         }
-        assertEquals(capturedEvents, listOf(Pair(testResponseEvent, null)))
+        assertEquals(capturedEvents, listOf<Pair<Event?, AdobeError?>>(Pair(testResponseEvent, null)))
     }
 
     @Test
@@ -1005,7 +990,7 @@ internal class EventHubTests {
             latch.await(500, TimeUnit.MILLISECONDS)
         }
 
-        assertEquals(capturedEvents, listOf(Pair(testResponseEvent, null)))
+        assertEquals(capturedEvents, listOf<Pair<Event?, AdobeError?>>(Pair(testResponseEvent, null)))
     }
 
     @Test
@@ -1014,7 +999,6 @@ internal class EventHubTests {
         val capturedEvents = mutableListOf<Pair<Event?, AdobeError?>>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
 
         eventHub.registerResponseListener(
             testEvent, 250,
@@ -1035,7 +1019,7 @@ internal class EventHubTests {
         assertTrue {
             latch.await(500, TimeUnit.MILLISECONDS)
         }
-        assertEquals(capturedEvents, listOf(Pair(null, AdobeError.CALLBACK_TIMEOUT)))
+        assertEquals(capturedEvents, listOf<Pair<Event?, AdobeError?>>(Pair(null, AdobeError.CALLBACK_TIMEOUT)))
     }
 
     @Test
@@ -1059,22 +1043,14 @@ internal class EventHubTests {
         registerExtension(Extension1::class.java)
         registerExtension(Extension2::class.java)
 
-        eventHub.getExtensionContainer(Extension1::class.java)?.registerEventListener(
-            eventType, eventSource,
-            {
-                latch.countDown()
-                Thread.sleep(5000)
-            },
-            null
-        )
+        eventHub.getExtensionContainer(Extension1::class.java)?.registerEventListener(eventType, eventSource) {
+            latch.countDown()
+            Thread.sleep(5000)
+        }
 
-        eventHub.getExtensionContainer(Extension2::class.java)?.registerEventListener(
-            eventType, eventSource,
-            {
-                latch.countDown()
-            },
-            null
-        )
+        eventHub.getExtensionContainer(Extension2::class.java)?.registerEventListener(eventType, eventSource) {
+            latch.countDown()
+        }
 
         eventHub.start()
         eventHub.dispatch(testEvent)

@@ -221,7 +221,7 @@ internal class EventHub {
     fun registerListener(eventType: String, eventSource: String, listener: AdobeCallback<Event>) {
         eventHubExecutor.submit {
             val eventHubContainer = getExtensionContainer(EventHubPlaceholderExtension::class.java)
-            eventHubContainer?.registerEventListener(eventType, eventSource, { listener.call(it) }, null)
+            eventHubContainer?.registerEventListener(eventType, eventSource, { listener.call(it) })
         }
     }
 

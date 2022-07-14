@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile;
 /**
  * Defines a generic listener that can hear a specific kind of {@code Event} on an {@code EventHub}
  */
+@FunctionalInterface
 public interface ExtensionEventListener {
 
     void hear(final Event event);

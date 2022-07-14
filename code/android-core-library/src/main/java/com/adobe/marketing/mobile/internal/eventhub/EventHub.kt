@@ -371,7 +371,7 @@ internal class EventHub {
     fun clearSharedState(
         sharedStateType: SharedStateType,
         extensionName: String?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): Boolean {
         val clearSharedStateCallable: Callable<Boolean> = Callable {
             if (extensionName.isNullOrEmpty() || extensionName.isBlank()) {

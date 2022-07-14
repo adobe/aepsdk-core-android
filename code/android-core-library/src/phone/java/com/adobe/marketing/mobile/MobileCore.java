@@ -14,49 +14,32 @@ package com.adobe.marketing.mobile;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import androidx.annotation.VisibleForTesting;
 
+import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryDatabaseCreationException;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
-public class MobileCore {
-    private final static String VERSION = "1.10.0";
-    private final static String TAG = MobileCore.class.getSimpleName();
+final public class MobileCore {
+    private final static String VERSION = "2.0.0";
+    private final static String LOG_TAG = "MobileCore";
     private static final String NULL_CONTEXT_MESSAGE = "Context must be set before calling SDK methods";
-
-    private static Core core;
-    private static PlatformServices platformServices;
     private static final Object mutex = new Object();
+    private static boolean startActionCalled;
+    @VisibleForTesting
+    private static EventHub eventHub;
+    private static EventHistory eventHistory;
 
     private MobileCore() {
     }
 
-    // For test
-    static void setCore(final Core core) {
-        synchronized (mutex) {
-            MobileCore.core = core;
-        }
-    }
-
-    // For test
-    static void setPlatformServices(final PlatformServices platformServices) {
-        synchronized (mutex) {
-            MobileCore.platformServices = platformServices;
-        }
-    }
-
-    static Core getCore() {
-        synchronized (mutex) {
-            return core;
-        }
-    }
-
     public static EventHistory getEventHistory() {
-        if (core == null) return null;
-        return core.getEventHistory();
+        return eventHistory;
     }
-
 
     /**
      * Returns the version for the {@code MobileCore} extension
@@ -65,12 +48,12 @@ public class MobileCore {
      */
     public static String extensionVersion() {
         synchronized (mutex) {
-            if (core == null) {
-                Log.warning(TAG, "Returning version without wrapper type info. Make sure setApplication API is called.");
+            if (eventHub == null) {
+                Log.warning(LOG_TAG, "Returning version without wrapper type info. Make sure setApplication API is called.");
                 return VERSION;
             }
 
-            return core.getSdkVersion();
+            return eventHub.getSdkVersion();
         }
     }
 
@@ -85,6 +68,11 @@ public class MobileCore {
      * @param app the current {@code Application}
      */
     public static void setApplication(final Application app) {
+        if (eventHub != null) {
+            Log.debug(LOG_TAG, "The Eventhub has already initialized");
+            return;
+        }
+
         // AMSDK-8502
         // workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
         // https://issuetracker.google.com/issues/110848122
@@ -97,32 +85,42 @@ public class MobileCore {
         }
 
         App.setApplication(app);
+        if (App.getPlatformServices() == null) {
+            App.setPlatformServices(new AndroidPlatformServices());
+        }
+        try {
+            eventHistory = new AndroidEventHistory();
+        } catch (Exception e) {
+            Log.warning(LOG_TAG, "Failed to create the android event history service: %s",
+                    e.getMessage());
+            eventHistory = null;
+        }
+        com.adobe.marketing.mobile.internal.context.App.getInstance().initializeApp(
+                new com.adobe.marketing.mobile.internal.context.App.AppContextProvider() {
+                    @Override
+                    public Context getAppContext() {
+                        return App.getAppContext();
+                    }
+
+                    @Override
+                    public Activity getCurrentActivity() {
+                        return App.getCurrentActivity();
+                    }
+                }
+        );
+
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
 
-        if (core == null) {
-            synchronized (mutex) {
-                if (platformServices == null) {
-                    platformServices = new AndroidPlatformServices();
-                }
+        Log.setLoggingService(new AndroidLoggingService());
+        eventHub = new EventHub("AMSEventHub", App.getPlatformServices(), VERSION);
 
-                core = new Core(platformServices, VERSION);
-            }
+        try {
+            eventHub.registerModule(ConfigurationExtension.class, new ConfigurationModuleDetails(VERSION));
+        } catch (InvalidModuleException e) {
+            Log.error(LOG_TAG, "Failed to register Configuration extension (%s)", e);
         }
-
-        com.adobe.marketing.mobile.internal.context.App.getInstance().initializeApp(new
-                                                                                            com.adobe.marketing.mobile.internal.context.App.AppContextProvider() {
-                                                                                                @Override
-                                                                                                public Context getAppContext() {
-                                                                                                    return App.getAppContext();
-                                                                                                }
-
-                                                                                                @Override
-                                                                                                public Activity getCurrentActivity() {
-                                                                                                    return App.getCurrentActivity();
-                                                                                                }
-                                                                                            });
-
+        Log.trace(LOG_TAG, "Eventhub initialization was successful");
     }
 
     /**
@@ -199,8 +197,8 @@ public class MobileCore {
      */
     public static void start(final AdobeCallback completionCallback) {
         synchronized (mutex) {
-            if (core == null) {
-                Log.debug(TAG, "Failed to start SDK (%s)", NULL_CONTEXT_MESSAGE);
+            if (eventHub == null) {
+                Log.debug(LOG_TAG, "Failed to start SDK (%s)", NULL_CONTEXT_MESSAGE);
 
                 if (completionCallback != null & completionCallback instanceof AdobeCallbackWithError) {
                     ((AdobeCallbackWithError) completionCallback).fail(AdobeError.EXTENSION_NOT_INITIALIZED);
@@ -209,7 +207,13 @@ public class MobileCore {
                 return;
             }
 
-            core.start(completionCallback);
+            if (startActionCalled) {
+                Log.debug(LOG_TAG, "Can't start Core more than once.");
+                return;
+            }
+
+            startActionCalled = true;
+            eventHub.finishModulesRegistration(completionCallback);
         }
     }
 
@@ -219,12 +223,16 @@ public class MobileCore {
 
 
     public static void configureWithAppID(final String appId) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to set Adobe App ID (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to set Adobe App ID (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.configureWithAppID(appId);
+        EventData eventData = new EventData();
+        eventData.putString(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID, appId);
+        final Event event = new Event.Builder("Configure with AppID", EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT).setData(eventData).build();
+        eventHub.dispatch(event);
     }
 
 
@@ -242,8 +250,8 @@ public class MobileCore {
      */
     public static boolean registerExtension(final Class<? extends Extension> extensionClass,
                                             final ExtensionErrorCallback<ExtensionError> errorCallback) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to register the extension. (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to register the extension. (%s)", NULL_CONTEXT_MESSAGE);
 
             if (errorCallback != null) {
                 errorCallback.error(ExtensionError.UNEXPECTED_ERROR);
@@ -260,7 +268,7 @@ public class MobileCore {
             return false;
         }
 
-        core.registerExtension(extensionClass, errorCallback);
+        eventHub.registerExtensionWithCallback(extensionClass, errorCallback);
         return true;
     }
 
@@ -272,8 +280,8 @@ public class MobileCore {
      * @return {@code boolean} indicating if the the event dispatching operation succeeded
      */
     public static boolean dispatchEvent(final Event event, final ExtensionErrorCallback<ExtensionError> errorCallback) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to dispatch event. (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to dispatch event. (%s)", NULL_CONTEXT_MESSAGE);
 
             if (errorCallback != null) {
                 errorCallback.error(ExtensionError.UNEXPECTED_ERROR);
@@ -282,7 +290,18 @@ public class MobileCore {
             return false;
         }
 
-        return core.dispatchEvent(event, errorCallback);
+        if (event == null) {
+            Log.debug(LOG_TAG, "%s (Core.dispatchEvent) - The event was not dispatched", Log.UNEXPECTED_NULL_VALUE);
+
+            if (errorCallback != null) {
+                errorCallback.error(ExtensionError.EVENT_NULL);
+            }
+
+            return false;
+        }
+
+        eventHub.dispatch(event);
+        return true;
     }
 
     /**
@@ -302,8 +321,8 @@ public class MobileCore {
     public static boolean dispatchEventWithResponseCallback(final Event event,
                                                             final AdobeCallback<Event> responseCallback,
                                                             final ExtensionErrorCallback<ExtensionError> errorCallback) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to dispatch event with a response callback. (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to dispatch event with a response callback. (%s)", NULL_CONTEXT_MESSAGE);
 
             if (errorCallback != null) {
                 errorCallback.error(ExtensionError.UNEXPECTED_ERROR);
@@ -313,7 +332,36 @@ public class MobileCore {
         }
 
         // the core will validate and copy this event
-        return core.dispatchEventWithResponseCallback(event, responseCallback, errorCallback);
+        if (responseCallback == null) {
+            Log.debug(LOG_TAG,
+                    "%s (Core.dispatchEventWithResponseCallback) - The event was not dispatched", Log.UNEXPECTED_NULL_VALUE);
+
+            if (errorCallback != null) {
+                errorCallback.error(ExtensionError.CALLBACK_NULL);
+            }
+
+            return false;
+        }
+
+        if (event == null) {
+            Log.debug(LOG_TAG, "%s (Core.dispatchEventWithResponseCallback) - The event was not dispatched",
+                    Log.UNEXPECTED_NULL_VALUE);
+
+            if (errorCallback != null) {
+                errorCallback.error(ExtensionError.EVENT_NULL);
+            }
+
+            return false;
+        }
+
+        eventHub.registerOneTimeListener(event.getResponsePairID(), new Module.OneTimeListenerBlock() {
+            @Override
+            public void call(final Event e) {
+                responseCallback.call(e);
+            }
+        });
+        eventHub.dispatch(event);
+        return true;
     }
 
     /**
@@ -330,8 +378,8 @@ public class MobileCore {
      */
     public static void dispatchEventWithResponseCallback(final Event event,
                                                          final AdobeCallbackWithError<Event> responseCallback) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to dispatch event with a response callback. (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to dispatch event with a response callback. (%s)", NULL_CONTEXT_MESSAGE);
 
             if (responseCallback != null) {
                 responseCallback.fail(AdobeError.UNEXPECTED_ERROR);
@@ -341,7 +389,7 @@ public class MobileCore {
         }
 
         if (event == null) {
-            Log.debug(TAG, "Failed to dispatch event with a response callback: the given event is null ");
+            Log.debug(LOG_TAG, "Failed to dispatch event with a response callback: the given event is null ");
 
             if (responseCallback != null) {
                 responseCallback.fail(AdobeError.UNEXPECTED_ERROR);
@@ -351,13 +399,25 @@ public class MobileCore {
         }
 
         if (responseCallback == null) {
-            Log.warning(TAG,
+            Log.warning(LOG_TAG,
                     "Failed to dispatch event with a response callback: the given callback (AdobeCallbackWithError) object is null ");
             return;
         }
 
         // the core will validate and copy this event
-        core.dispatchEventWithResponseCallback(event, responseCallback);
+        if (event == null || responseCallback == null) {
+            Log.debug(LOG_TAG,
+                    "(Core.dispatchEventWithResponseCallback) - The event was not dispatched, the given Event or AdobeCallbackWithError is null");
+            return;
+        }
+
+        eventHub.registerOneTimeListener(event.getResponsePairID(), new Module.OneTimeListenerBlock() {
+            @Override
+            public void call(final Event e) {
+                responseCallback.call(e);
+            }
+        }, responseCallback);
+        eventHub.dispatch(event);
     }
 
     /**
@@ -380,8 +440,8 @@ public class MobileCore {
     public static boolean dispatchResponseEvent(final Event responseEvent, final Event requestEvent,
                                                 final ExtensionErrorCallback<ExtensionError> errorCallback) {
 
-        if (core == null) {
-            Log.debug(TAG, "Failed to dispatch the response event. (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to dispatch the response event. (%s)", NULL_CONTEXT_MESSAGE);
 
             if (errorCallback != null) {
                 errorCallback.error(ExtensionError.UNEXPECTED_ERROR);
@@ -391,7 +451,31 @@ public class MobileCore {
         }
 
         // the core will validate and copy this events
-        return core.dispatchResponseEvent(responseEvent, requestEvent, errorCallback);
+        if (requestEvent == null) {
+            Log.debug(LOG_TAG,
+                    "%s (Core.dispatchResponseEvent) - The response event was not dispatched", Log.UNEXPECTED_NULL_VALUE);
+
+            if (errorCallback != null) {
+                errorCallback.error(ExtensionError.EVENT_NULL);
+            }
+
+            return false;
+        }
+
+        if (responseEvent == null) {
+            Log.warning(LOG_TAG, "%s (Core.dispatchResponseEvent) - The response event was not dispatched",
+                    Log.UNEXPECTED_NULL_VALUE);
+
+            if (errorCallback != null) {
+                errorCallback.error(ExtensionError.EVENT_NULL);
+            }
+
+            return false;
+        }
+
+        responseEvent.setPairId(requestEvent.getResponsePairID());
+        eventHub.dispatch(responseEvent);
+        return true;
     }
 
     /**
@@ -412,12 +496,21 @@ public class MobileCore {
      * @param fileName the name of the configure file in the assets folder. A value of {@code null} has no effect.
      */
     public static void configureWithFileInAssets(final String fileName) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to load configuration with asset file (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to load configuration with asset file (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.configureWithFileInAssets(fileName);
+        if (StringUtils.isNullOrEmpty(fileName)) {
+            Log.warning("Configuration", "Unable to configure with null or empty file name");
+            return;
+        }
+
+        EventData eventData = new EventData();
+        eventData.putString(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE, fileName);
+        final Event event = new Event.Builder("Configure with FilePath", EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT).setData(eventData).build();
+        eventHub.dispatch(event);
     }
 
     /**
@@ -436,12 +529,21 @@ public class MobileCore {
      * @param filepath absolute path to a local configuration file. A value of {@code null} has no effect.
      */
     public static void configureWithFileInPath(final String filepath) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to load configuration with file path (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to load configuration with file path (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.configureWithFileInPath(filepath);
+        if (StringUtils.isNullOrEmpty(filepath)) {
+            Log.warning("Configuration", "Unable to configure with null or empty file path");
+            return;
+        }
+
+        EventData eventData = new EventData();
+        eventData.putString(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH, filepath);
+        final Event event = new Event.Builder("Configure with FilePath", EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT).setData(eventData).build();
+        eventHub.dispatch(event);
     }
 
     /**
@@ -457,12 +559,19 @@ public class MobileCore {
      * @param configMap configuration key/value pairs to be updated or added. A value of {@code null} has no effect.
      */
     public static void updateConfiguration(final Map<String, Object> configMap) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to update configuration (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to update configuration (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
-
-        core.updateConfiguration(configMap);
+        // Create a EventData Map <String, Object>
+        HashMap<String, Variant> eventDataMap = new HashMap<String, Variant>();
+        Variant configMapVariant = Variant.fromTypedMap(configMap, PermissiveVariantSerializer.DEFAULT_INSTANCE);
+        eventDataMap.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG,
+                configMapVariant);
+        EventData eventData = new EventData(eventDataMap);
+        final Event event = new Event.Builder("Configuration Update", EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT).setData(eventData).build();
+        eventHub.dispatch(event);
     }
 
     /**
@@ -471,12 +580,17 @@ public class MobileCore {
      * or {@link #configureWithFileInPath(String)} or {@link #configureWithFileInAssets(String)}
      */
     public static void clearUpdatedConfiguration() {
-        if (core == null) {
-            Log.debug(TAG, "Failed to clear updated configuration (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to clear updated configuration (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.clearUpdatedConfiguration();
+        EventData eventData = new EventData();
+        eventData.putBoolean(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG,
+                true);
+        final Event event = new Event.Builder("Clear updated configuration", EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT).setData(eventData).build();
+        eventHub.dispatch(event);
     }
 
     /**
@@ -490,12 +604,14 @@ public class MobileCore {
      * @see MobilePrivacyStatus
      */
     public static void setPrivacyStatus(final MobilePrivacyStatus privacyStatus) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to set privacy status (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to set privacy status (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
-
-        core.setPrivacyStatus(privacyStatus);
+        final Map<String, Object> privacyStatusUpdateConfig = new HashMap<String, Object>();
+        final String privacyStatusString = (privacyStatus == null ? null : privacyStatus.getValue());
+        privacyStatusUpdateConfig.put(CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, privacyStatusString);
+        updateConfiguration(privacyStatusUpdateConfig);
     }
 
     /**
@@ -509,8 +625,8 @@ public class MobileCore {
      * @see MobilePrivacyStatus
      */
     public static void getPrivacyStatus(final AdobeCallback<MobilePrivacyStatus> callback) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to retrieve the privacy status (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to retrieve the privacy status (%s)", NULL_CONTEXT_MESSAGE);
 
             if (callback != null & callback instanceof AdobeCallbackWithError) {
                 ((AdobeCallbackWithError) callback).fail(AdobeError.EXTENSION_NOT_INITIALIZED);
@@ -519,7 +635,29 @@ public class MobileCore {
             return;
         }
 
-        core.getPrivacyStatus(callback);
+        if (callback == null) {
+            return;
+        }
+
+        EventData eventData = new EventData();
+        eventData.putBoolean(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG, true);
+        Event event = new Event.Builder("PrivacyStatusRequest", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+                .setData(eventData).build();
+
+
+        final AdobeCallbackWithError adobeCallbackWithError = callback instanceof AdobeCallbackWithError ?
+                (AdobeCallbackWithError) callback : null;
+
+        eventHub.registerOneTimeListener(event.getResponsePairID(), new Module.OneTimeListenerBlock() {
+            @Override
+            public void call(final Event e) {
+                EventData eventData = e.getData();
+                callback.call(MobilePrivacyStatus.fromString(eventData.getString(ConfigurationConstants.EventDataKeys
+                        .Configuration.GLOBAL_CONFIG_PRIVACY)));
+            }
+        }, adobeCallbackWithError);
+
+        eventHub.dispatch(event);
     }
 
     /**
@@ -530,21 +668,34 @@ public class MobileCore {
      */
     public static void getSdkIdentities(final AdobeCallback<String> callback) {
         if (callback == null) {
-            Log.debug(TAG, "%s (Callback), provide a callback to retrieve the all SDK identities", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(LOG_TAG, "%s (Callback), provide a callback to retrieve the all SDK identities", Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
-        if (core == null) {
-            Log.debug(TAG, "Failed to retrieve the all SDK identities (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to retrieve the all SDK identities (%s)", NULL_CONTEXT_MESSAGE);
 
-            if (callback != null & callback instanceof AdobeCallbackWithError) {
+            if (callback instanceof AdobeCallbackWithError) {
                 ((AdobeCallbackWithError) callback).fail(AdobeError.EXTENSION_NOT_INITIALIZED);
             }
 
             return;
         }
 
-        core.getSdkIdentities(callback);
+        final AdobeCallbackWithError adobeCallbackWithError = callback instanceof AdobeCallbackWithError ?
+                (AdobeCallbackWithError) callback : null;
+
+        Event event = new Event.Builder("getSdkIdentities", EventType.CONFIGURATION, EventSource.REQUEST_IDENTITY).build();
+        eventHub.registerOneTimeListener(event.getResponsePairID(), new Module.OneTimeListenerBlock() {
+            @Override
+            public void call(final Event e) {
+                EventData eventData = e.getData();
+                callback.call(eventData.optString(
+                        ConfigurationConstants.EventDataKeys.Configuration.CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS, "{}"));
+            }
+        }, adobeCallbackWithError);
+
+        eventHub.dispatch(event);
     }
 
     // ========================================================
@@ -564,12 +715,19 @@ public class MobileCore {
      * @param contextData {@code Map<String, String>} containing context data to attach on this hit
      */
     public static void trackAction(final String action, final Map<String, String> contextData) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to track action %s (%s)", action, NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to track action %s (%s)", action, NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.trackAction(action, contextData);
+        EventData trackData = new EventData();
+        trackData.putString(CoreConstants.EventDataKeys.Analytics.TRACK_ACTION, action);
+        trackData.putStringMap(CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA,
+                contextData == null ? new HashMap<String, String>() : contextData);
+        Event event = new Event.Builder("Analytics Track", EventType.GENERIC_TRACK, EventSource.REQUEST_CONTENT)
+                .setData(trackData).build();
+
+        eventHub.dispatch(event);
     }
 
     /**
@@ -584,12 +742,18 @@ public class MobileCore {
      * @param contextData contextData {@code Map<String, String>} containing context data to attach on this hit
      */
     public static void trackState(final String state, final Map<String, String> contextData) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to track state %s (%s)", state, NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to track state %s (%s)", state, NULL_CONTEXT_MESSAGE);
             return;
         }
+        EventData trackData = new EventData();
+        trackData.putString(CoreConstants.EventDataKeys.Analytics.TRACK_STATE, state);
+        trackData.putStringMap(CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA,
+                contextData == null ? new HashMap<String, String>() : contextData);
+        Event event = new Event.Builder("Analytics Track", EventType.GENERIC_TRACK, EventSource.REQUEST_CONTENT)
+                .setData(trackData).build();
 
-        core.trackState(state, contextData);
+        eventHub.dispatch(event);
     }
 
     /**
@@ -598,12 +762,19 @@ public class MobileCore {
      * @param advertisingIdentifier {@code String} representing Android advertising identifier
      */
     public static void setAdvertisingIdentifier(final String advertisingIdentifier) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to set advertising identifier (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to set advertising identifier (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.setAdvertisingIdentifier(advertisingIdentifier);
+        EventData eventData = new EventData();
+        eventData.putString(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER, advertisingIdentifier);
+
+        Event event = new Event.Builder("SetAdvertisingIdentifier", EventType.GENERIC_IDENTITY, EventSource.REQUEST_CONTENT)
+                .setData(eventData)
+                .build();
+
+        eventHub.dispatch(event);
     }
 
     /**
@@ -612,12 +783,19 @@ public class MobileCore {
      * @param pushIdentifier {@code String} representing the new push identifier
      */
     public static void setPushIdentifier(final String pushIdentifier) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to set push identifier (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to set push identifier (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.setPushIdentifier(pushIdentifier);
+        EventData eventData = new EventData();
+        eventData.putString(CoreConstants.EventDataKeys.Identity.PUSH_IDENTIFIER, pushIdentifier);
+
+        Event event = new Event.Builder("SetPushIdentifier", EventType.GENERIC_IDENTITY, EventSource.REQUEST_CONTENT)
+                .setData(eventData)
+                .build();
+
+        eventHub.dispatch(event);
     }
 
 
@@ -636,12 +814,21 @@ public class MobileCore {
      * @param additionalContextData optional additional context for this session.
      */
     public static void lifecycleStart(final Map<String, String> additionalContextData) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to start lifecycle session (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to start lifecycle session (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.lifecycleStart(additionalContextData);
+        EventData eventData = new EventData();
+        eventData.putString(CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY,
+                CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START);
+
+        eventData.putStringMap(CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA, additionalContextData);
+        Event event = new Event.Builder("LifecycleResume", EventType.GENERIC_LIFECYLE, EventSource.REQUEST_CONTENT)
+                .setData(eventData)
+                .build();
+
+        eventHub.dispatch(event);
     }
 
     /**
@@ -659,12 +846,20 @@ public class MobileCore {
      * This method should be called from the Activity onPause method.
      */
     public static void lifecyclePause() {
-        if (core == null) {
-            Log.debug(TAG, "Failed to pause lifecycle session (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to pause lifecycle session (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.lifecyclePause();
+        EventData eventData = new EventData();
+        eventData.putString(CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY,
+                CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE);
+
+        Event event = new Event.Builder("LifecyclePause", EventType.GENERIC_LIFECYLE, EventSource.REQUEST_CONTENT)
+                .setData(eventData)
+                .build();
+
+        eventHub.dispatch(event);
     }
 
     /**
@@ -674,12 +869,21 @@ public class MobileCore {
      * @param data the map containing the PII data to be collected
      */
     public static void collectPii(final Map<String, String> data) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to collect PII (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to collect PII (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.collectPii(data);
+        if (data == null || data.isEmpty()) {
+            Log.debug(LOG_TAG, "Could not trigger PII, the data is null or empty.");
+            return;
+        }
+
+        final EventData eventData = new EventData()
+                .putStringMap(CoreConstants.EventDataKeys.Signal.SIGNAL_CONTEXT_DATA, data);
+        eventHub.dispatch(new Event.Builder("CollectPII", EventType.GENERIC_PII,
+                EventSource.REQUEST_CONTENT).setData(eventData).build());
+        Log.trace(LOG_TAG, "Collect PII event was sent");
     }
 
     /**
@@ -716,12 +920,20 @@ public class MobileCore {
      * @param messageInfo {@code Map<String, Object>} containing message tracking information
      */
     public static void collectMessageInfo(final Map<String, Object> messageInfo) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to collect Message Info (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to collect Message Info (%s)", NULL_CONTEXT_MESSAGE);
+            return;
+        }
+        if (messageInfo == null || messageInfo.isEmpty()) {
+            Log.debug(LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
             return;
         }
 
-        core.collectData(messageInfo);
+        Event event = new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS)
+                .setEventData(messageInfo)
+                .build();
+        eventHub.dispatch(event);
+        Log.trace(LOG_TAG, "collectData: generic data OS event dispatched.");
     }
 
     /**
@@ -751,19 +963,28 @@ public class MobileCore {
      *      </li>
      * </ol>
      * <p>
-     * Invoke this method from {@link Activity#onResume} callback in your activity.
+     * Invoke this method from Activity.onResume() callback in your activity.
      *
      * @param activity current {@link Activity} reference.
      */
-    static void collectLaunchInfo(Activity activity) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to collect Activity data (%s)", NULL_CONTEXT_MESSAGE);
+    static void collectLaunchInfo(final Activity activity) {
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to collect Activity data (%s)", NULL_CONTEXT_MESSAGE);
+            return;
+        }
+        DataMarshaller marshaller = new DataMarshaller();
+        marshaller.marshal(activity);
+        final Map<String, Object> marshalledData = marshaller.getData();
+        if (marshalledData == null || marshalledData.isEmpty()) {
+            Log.debug(LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
             return;
         }
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-        core.collectData(marshaller.getData());
+        Event event = new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS)
+                .setEventData(marshalledData)
+                .build();
+        eventHub.dispatch(event);
+        Log.trace(LOG_TAG, "collectData: generic data OS event dispatched.");
     }
 
     /**
@@ -774,13 +995,13 @@ public class MobileCore {
      *
      * @param wrapperType the type of wrapper being used.
      */
-    public static void setWrapperType(WrapperType wrapperType) {
-        if (core == null) {
-            Log.warning(TAG, "Cannot set wrapper type, core is null. Make sure setApplication API is called.");
+    public static void setWrapperType(final WrapperType wrapperType) {
+        if (eventHub == null) {
+            Log.warning(LOG_TAG, "Cannot set wrapper type, core is null. Make sure setApplication API is called.");
             return;
         }
 
-        core.setWrapperType(wrapperType);
+        eventHub.setWrapperType(wrapperType);
     }
 
     /**
@@ -792,24 +1013,27 @@ public class MobileCore {
      */
     public static void registerEventListener(final String eventType, final String eventSource,
                                              final AdobeCallbackWithError<Event> callback) {
-        if (core == null) {
-            Log.debug(TAG, "Failed to register the event listener (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to register the event listener (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.registerEventListener(eventType, eventSource, callback);
+        eventHub.registerEventListener(EventType.get(eventType), EventSource.get(eventSource), callback);
     }
 
     /**
      * Clears all identifiers from Edge extensions and generates a new Experience Cloud ID (ECID).
      */
     public static void resetIdentities() {
-        if (core == null) {
-            Log.debug(TAG, "Failed to reset identities (%s)", NULL_CONTEXT_MESSAGE);
+        if (eventHub == null) {
+            Log.debug(LOG_TAG, "Failed to reset identities (%s)", NULL_CONTEXT_MESSAGE);
             return;
         }
 
-        core.resetIdentities();
+        Event event = new Event.Builder("Reset Identities Request", EventType.GENERIC_IDENTITY, EventSource.REQUEST_RESET)
+                .build();
+
+        eventHub.dispatch(event);
     }
 
 

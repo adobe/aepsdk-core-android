@@ -15,6 +15,8 @@ import com.adobe.marketing.mobile.BaseTest
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -22,20 +24,17 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers
-import org.powermock.api.mockito.PowerMockito
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
+import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnitRunner
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(ExtensionApi::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchTokenFinderTest : BaseTest() {
 
     private lateinit var extensionApi: ExtensionApi
 
     @Before
     fun setup() {
-        extensionApi = PowerMockito.mock(ExtensionApi::class.java)
+        extensionApi = Mockito.mock(ExtensionApi::class.java)
     }
 
     @Test
@@ -260,12 +259,18 @@ class LaunchTokenFinderTest : BaseTest() {
         // setup
         val testEvent = getDefaultEvent(null)
         val lcData = mapOf("analytics.contextData" to mutableMapOf("akey" to "avalue"))
-        PowerMockito.`when`(extensionApi.getSharedEventState(
-            ArgumentMatchers.eq("com.adobe.marketing.mobile.Analytics"),
-            ArgumentMatchers.any(),
-            ArgumentMatchers.any()
-        )).thenReturn(
-            lcData
+        Mockito.`when`(
+            extensionApi.getSharedState(
+                Mockito.eq("com.adobe.marketing.mobile.Analytics"),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.any()
+            )
+        ).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                lcData
+            )
         )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
@@ -279,12 +284,18 @@ class LaunchTokenFinderTest : BaseTest() {
         // setup
         val testEvent = getDefaultEvent(null)
         val lcData = mapOf("analytics.contextData" to mapOf("akey" to "avalue"))
-        PowerMockito.`when`(extensionApi.getSharedEventState(
-            ArgumentMatchers.eq("com.adobe.marketing.mobile.Analytics"),
-            ArgumentMatchers.any(),
-            ArgumentMatchers.any()
-        )).thenReturn(
-            lcData
+        Mockito.`when`(
+            extensionApi.getSharedState(
+                Mockito.eq("com.adobe.marketing.mobile.Analytics"),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.any()
+            )
+        ).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                lcData
+            )
         )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
@@ -297,13 +308,19 @@ class LaunchTokenFinderTest : BaseTest() {
     fun `get should return shared state list of the module on valid event`() {
         // setup
         val testEvent = getDefaultEvent(null)
-        val lcdata = mapOf("visitoridslist" to listOf("vid1", "vid2"))
-        PowerMockito.`when`(extensionApi.getSharedEventState(
-            ArgumentMatchers.eq("com.adobe.marketing.mobile.identity"),
-            ArgumentMatchers.any(),
-            ArgumentMatchers.any()
-        )).thenReturn(
-            lcdata
+        val lcData = mapOf("visitoridslist" to listOf("vid1", "vid2"))
+        Mockito.`when`(
+            extensionApi.getSharedState(
+                Mockito.eq("com.adobe.marketing.mobile.identity"),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.any()
+            )
+        ).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                lcData
+            )
         )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test

@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import com.adobe.marketing.mobile.internal.utility.flattening
 import com.adobe.marketing.mobile.internal.utility.serializeToQueryString
@@ -120,13 +121,12 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             return null
         }
         val (sharedStateName, dataKeyName) = sharedStateKeyString.split(SHARED_STATE_KEY_DELIMITER)
-        val sharedStateMap = extensionApi.getSharedEventState(sharedStateName, event) {
-            MobileCore.log(
-                LoggingMode.DEBUG,
-                LOG_TAG,
-                String.format("Unable to replace the token %s, token not found in shared state for the event", key)
-            )
-        }?.flattening()
+        val sharedStateMap = extensionApi.getSharedState(
+            sharedStateName,
+            event,
+            false,
+            SharedStateResolution.ANY
+        )?.value?.flattening()
         if (sharedStateMap.isNullOrEmpty() || dataKeyName.isBlank() || !sharedStateMap.containsKey(dataKeyName)) {
             return null
         }

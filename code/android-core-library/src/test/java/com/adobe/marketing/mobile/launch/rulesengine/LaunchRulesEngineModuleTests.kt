@@ -3,6 +3,8 @@ package com.adobe.marketing.mobile.launch.rulesengine
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler
@@ -13,7 +15,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
-import org.mockito.BDDMockito
+import org.mockito.Mockito
 import org.powermock.api.mockito.PowerMockito
 import org.powermock.core.classloader.annotations.PrepareForTest
 import org.powermock.modules.junit4.PowerMockRunner
@@ -41,8 +43,7 @@ class LaunchRulesEngineModuleTests {
 
     @Before
     fun setup() {
-        extensionApi = PowerMockito.mock(ExtensionApi::class.java)
-        PowerMockito.mockStatic(MobileCore::class.java)
+        extensionApi = Mockito.mock(ExtensionApi::class.java)
         launchRulesEngine = LaunchRulesEngine(extensionApi)
     }
 
@@ -53,13 +54,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "AT&T"
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "AT&T"
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -88,7 +93,8 @@ class LaunchRulesEngineModuleTests {
                 TODO("Not yet implemented")
             }
         }
-        BDDMockito.given(MobileCore.getEventHistory()).willReturn(eventHistory)
+        PowerMockito.mockStatic(MobileCore::class.java)
+        PowerMockito.`when`(MobileCore.getEventHistory()).thenReturn(eventHistory)
         val json = readTestResources("rules_module_tests/rules_testHistory.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json)
@@ -104,13 +110,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "Verizon"
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "Verizon"
+                        )
+                    )
                 )
             )
-        )
         assertEquals(0, launchRulesEngine.process(defaultEvent).size)
     }
 
@@ -121,13 +131,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "AT&T"
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "AT&T"
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -141,13 +155,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 1
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 1
+                        )
+                    )
                 )
             )
-        )
         assertEquals(0, launchRulesEngine.process(defaultEvent).size)
     }
 
@@ -158,13 +176,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 2
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 2
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -178,13 +200,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 2
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 2
+                        )
+                    )
                 )
             )
-        )
         assertEquals(0, launchRulesEngine.process(defaultEvent).size)
     }
 
@@ -195,13 +221,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 3
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 3
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -215,13 +245,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 2
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 2
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -235,13 +269,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 3
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 3
+                        )
+                    )
                 )
             )
-        )
         assertEquals(0, launchRulesEngine.process(defaultEvent).size)
     }
 
@@ -252,13 +290,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 2
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 2
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -272,13 +314,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 2
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 2
+                        )
+                    )
                 )
             )
-        )
         assertEquals(0, launchRulesEngine.process(defaultEvent).size)
     }
 
@@ -289,13 +335,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 1
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 1
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -309,13 +359,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "AT&T"
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "AT&T"
+                        )
+                    )
                 )
             )
-        )
         assertEquals(0, launchRulesEngine.process(defaultEvent).size)
     }
 
@@ -326,13 +380,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "Verizon"
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "Verizon"
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -346,13 +404,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "AT&T"
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "AT&T"
+                        )
+                    )
                 )
             )
-        )
         assertEquals(0, launchRulesEngine.process(defaultEvent).size)
     }
 
@@ -363,13 +425,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "Verizon"
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "Verizon"
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -383,13 +449,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "AT&T"
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "AT&T"
+                        )
+                    )
                 )
             )
-        )
         assertEquals(0, launchRulesEngine.process(defaultEvent).size)
     }
 
@@ -400,13 +470,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "key" to "value"
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "key" to "value"
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
         assertEquals(1, matchedRules[0].consequenceList.size)
@@ -421,13 +495,17 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        PowerMockito.`when`(extensionApi.getSharedEventState(anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launches" to 3
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "launches" to 3
+                        )
+                    )
                 )
             )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedRules.size)
     }

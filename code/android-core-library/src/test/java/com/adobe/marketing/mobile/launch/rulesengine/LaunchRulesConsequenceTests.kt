@@ -12,26 +12,28 @@ package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
 import com.adobe.marketing.mobile.test.utility.readTestResources
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.mockito.Mockito.any
+import org.mockito.Mockito.anyBoolean
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
-import org.powermock.api.mockito.PowerMockito
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
+import org.mockito.Mockito.verify
+import org.mockito.junit.MockitoJUnitRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(ExtensionApi::class, MobileCore::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchRulesConsequenceTests {
 
     private lateinit var extensionApi: ExtensionApi
@@ -51,8 +53,7 @@ class LaunchRulesConsequenceTests {
 
     @Before
     fun setup() {
-        extensionApi = PowerMockito.mock(ExtensionApi::class.java)
-        PowerMockito.mockStatic(MobileCore::class.java)
+        extensionApi = Mockito.mock(ExtensionApi::class.java)
         launchRulesEngine = LaunchRulesEngine(extensionApi)
         launchRulesConsequence = LaunchRulesConsequence(extensionApi)
     }
@@ -80,19 +81,22 @@ class LaunchRulesConsequenceTests {
         //            }
         //        }
         //    --------------------------------------
-        PowerMockito.`when`(extensionApi.getSharedEventState(ArgumentMatchers.anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "AT&T"
+        `when`(extensionApi.getSharedState(anyString(), any(), anyBoolean(), any())).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                mapOf(
+                    "lifecyclecontextdata" to mapOf(
+                        "carriername" to "AT&T"
+                    )
                 )
             )
         )
+
         val matchedRules = launchRulesEngine.process(defaultEvent)
         val processedEvent = launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
-        PowerMockito.verifyStatic(MobileCore::class.java, never())
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
 
         val attachedData = processedEvent?.eventData?.get("attached_data") as Map<*, *>
 
@@ -118,19 +122,11 @@ class LaunchRulesConsequenceTests {
         resetRulesEngine("rules_module_tests/consequence_rules_testAttachData_invalidJson.json")
 
         // / When: evaluating a launch event
-        PowerMockito.`when`(extensionApi.getSharedEventState(ArgumentMatchers.anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "AT&T"
-                )
-            )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         val processedEvent = launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
-        PowerMockito.verifyStatic(MobileCore::class.java, never())
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
 
         // / Then: no data should not be attached to original launch event
         val attachedData = processedEvent?.eventData?.get("attached_data")
@@ -160,20 +156,23 @@ class LaunchRulesConsequenceTests {
         //            }
         //        }
         //    --------------------------------------
-        PowerMockito.`when`(extensionApi.getSharedEventState(ArgumentMatchers.anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "AT&T",
-                    "launches" to 2
+        `when`(extensionApi.getSharedState(anyString(), any(), anyBoolean(), any())).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                mapOf(
+                    "lifecyclecontextdata" to mapOf(
+                        "carriername" to "AT&T",
+                        "launches" to 2
+                    )
                 )
             )
         )
+
         val matchedRules = launchRulesEngine.process(defaultEvent)
         val processedEvent = launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
-        PowerMockito.verifyStatic(MobileCore::class.java, never())
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
 
         // / Then: "launchevent" should be removed from event data
         val lifecycleContextData = processedEvent?.eventData?.get("lifecyclecontextdata") as Map<*, *>
@@ -198,20 +197,11 @@ class LaunchRulesConsequenceTests {
         resetRulesEngine("rules_module_tests/consequence_rules_testModifyData_invalidJson.json")
 
         // / When: evaluating a launch event
-        PowerMockito.`when`(extensionApi.getSharedEventState(ArgumentMatchers.anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "AT&T",
-                    "launches" to 2
-                )
-            )
-        )
         val matchedRules = launchRulesEngine.process(defaultEvent)
         val processedEvent = launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
-        PowerMockito.verifyStatic(MobileCore::class.java, never())
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
 
         // / Then: "launchevent" should not be removed from event data
         val lifecycleContextData = processedEvent?.eventData?.get("lifecyclecontextdata") as Map<*, *>
@@ -231,6 +221,7 @@ class LaunchRulesConsequenceTests {
         //        }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventCopy.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         val event = Event.Builder(
             "Application Launch",
@@ -245,8 +236,7 @@ class LaunchRulesConsequenceTests {
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
         assertEquals("com.adobe.eventtype.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventsource.requestcontent", dispatchedEventCaptor.value.source)
         assertEquals(event.eventData, dispatchedEventCaptor.value.eventData)
@@ -267,6 +257,8 @@ class LaunchRulesConsequenceTests {
         //        }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventCopy.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
+
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
@@ -280,8 +272,7 @@ class LaunchRulesConsequenceTests {
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
         assertEquals("com.adobe.eventtype.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventsource.requestcontent", dispatchedEventCaptor.value.source)
         assertEquals(mapOf(), dispatchedEventCaptor.value.eventData)
@@ -308,6 +299,8 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
 
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventNewData.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
+
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
@@ -321,8 +314,7 @@ class LaunchRulesConsequenceTests {
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
         assertEquals("com.adobe.eventtype.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventsource.requestcontent", dispatchedEventCaptor.value.source)
         assertEquals("value", dispatchedEventCaptor.value.eventData["key"])
@@ -345,6 +337,8 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
 
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventNewNoData.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
+
         val event = Event.Builder(
             "Application Launch",
             "com.adobe.eventType.lifecycle",
@@ -358,8 +352,7 @@ class LaunchRulesConsequenceTests {
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
         assertEquals("com.adobe.eventtype.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventsource.requestcontent", dispatchedEventCaptor.value.source)
         assertEquals(mapOf(), dispatchedEventCaptor.value.eventData)
@@ -393,9 +386,7 @@ class LaunchRulesConsequenceTests {
         val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
-        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, never())
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, never()).dispatch(any())
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -425,9 +416,7 @@ class LaunchRulesConsequenceTests {
         val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
-        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, never())
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, never()).dispatch(any())
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -456,9 +445,7 @@ class LaunchRulesConsequenceTests {
         val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
-        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, never())
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, never()).dispatch(any())
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -487,9 +474,7 @@ class LaunchRulesConsequenceTests {
         val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
-        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, never())
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, never()).dispatch(any())
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -530,6 +515,8 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
+
         val event = Event.Builder(
             "Edge Request",
             "com.adobe.eventType.edge",
@@ -542,15 +529,13 @@ class LaunchRulesConsequenceTests {
         val matchedRules = launchRulesEngine.process(event)
         launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to not be called max allowed chained events is 1
         val matchedRulesDDispatchedEvent = launchRulesEngine.process(dispatchedEventCaptor.value)
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value, matchedRulesDDispatchedEvent)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
     }
 
     @Test
@@ -588,6 +573,8 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
+
         val event = Event.Builder(
             "Edge Request",
             "com.adobe.eventType.edge",
@@ -600,28 +587,24 @@ class LaunchRulesConsequenceTests {
         val matchedRules = launchRulesEngine.process(event)
         launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchedEvent = launchRulesEngine.process(dispatchedEventCaptor.value)
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value, matchedRulesDispatchedEvent)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, times(1)).dispatch(any())
 
         // Process dispatched event; dispatch chain count = 1
         // Expect event to be processed as if first time
         launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchedEvent2 = launchRulesEngine.process(dispatchedEventCaptor.value)
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value, matchedRulesDispatchedEvent2)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, times(2)).dispatch(any())
     }
 
     @Test
@@ -659,6 +642,8 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
+
         val event = Event.Builder(
             "Edge Request",
             "com.adobe.eventType.edge",
@@ -671,28 +656,24 @@ class LaunchRulesConsequenceTests {
         val matchedRules = launchRulesEngine.process(event)
         launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchedEvent = launchRulesEngine.process(dispatchedEventCaptor.value)
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value, matchedRulesDispatchedEvent)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, times(1)).dispatch(any())
 
         // Process dispatched event; dispatch chain count = 1
         // Expect event to be processed as if first time
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value, matchedRulesDispatchedEvent)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchedEvent2 = launchRulesEngine.process(dispatchedEventCaptor.value)
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.value, matchedRulesDispatchedEvent2)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, times(2)).dispatch(any())
     }
 
     @Test
@@ -761,6 +742,7 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         // Then: dispatch event to trigger rule 1
         val eventEdgeRequest = Event.Builder(
@@ -784,29 +766,25 @@ class LaunchRulesConsequenceTests {
         val matchedRulesEdgeRequestEvent = launchRulesEngine.process(eventEdgeRequest)
         launchRulesConsequence.evaluateRulesConsequence(eventEdgeRequest, matchedRulesEdgeRequestEvent)
         val dispatchedEventCaptor1: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(dispatchedEventCaptor1.capture(), any())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor1.capture())
 
         // Process launch event
         val matchedRulesLaunchEvent = launchRulesEngine.process(eventLaunch)
         launchRulesConsequence.evaluateRulesConsequence(eventLaunch, matchedRulesLaunchEvent)
         val dispatchedEventCaptor2: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(dispatchedEventCaptor2.capture(), any())
+        verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor2.capture())
 
         // Process first dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchEvent1 = launchRulesEngine.process(dispatchedEventCaptor1.value)
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor1.value, matchedRulesDispatchEvent1)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, times(2)).dispatch(any())
 
         // Process second dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchEvent2 = launchRulesEngine.process(dispatchedEventCaptor2.value)
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor2.value, matchedRulesDispatchEvent2)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, times(2)).dispatch(any())
     }
 
     @Test
@@ -865,6 +843,7 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         // Then:  dispatch event which will trigger two launch rules
         val event = Event.Builder(
@@ -879,22 +858,19 @@ class LaunchRulesConsequenceTests {
         val matchedRules = launchRulesEngine.process(event)
         launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(dispatchedEventCaptor.capture(), any())
+        verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
 
         // Process dispatched event 1, expect 0 dispatch events
         // chain count = 1, which is max chained events
         val matchedRulesDispatchEvent1 = launchRulesEngine.process(dispatchedEventCaptor.allValues[0])
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.allValues[0], matchedRulesDispatchEvent1)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, times(2)).dispatch(any())
 
         // Process dispatched event 2, expect 0 dispatch events
         // chain count = 1, which is max chained events
         val matchedRulesDispatchEvent2 = launchRulesEngine.process(dispatchedEventCaptor.allValues[1])
         launchRulesConsequence.evaluateRulesConsequence(dispatchedEventCaptor.allValues[1], matchedRulesDispatchEvent2)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(2))
-        MobileCore.dispatchEvent(any(), any())
+        verify(extensionApi, times(2)).dispatch(any())
     }
 
     @Test
@@ -909,20 +885,24 @@ class LaunchRulesConsequenceTests {
 
         resetRulesEngine("rules_module_tests/consequence_rules_testUrlenc.json")
 
-        PowerMockito.`when`(extensionApi.getSharedEventState(ArgumentMatchers.anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "x y"
+        `when`(extensionApi.getSharedState(anyString(), any(), anyBoolean(), any())).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                mapOf(
+                    "lifecyclecontextdata" to mapOf(
+                        "carriername" to "x y"
+                    )
                 )
             )
         )
+
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         val matchedRules = launchRulesEngine.process(defaultEvent)
         launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
 
         val consequenceEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(consequenceEventCaptor.capture(), any())
+        verify(extensionApi, times(1)).dispatch(consequenceEventCaptor.capture())
 
         assertEquals("com.adobe.eventtype.rulesengine", consequenceEventCaptor.value.type)
         assertEquals("com.adobe.eventsource.responsecontent", consequenceEventCaptor.value.source)
@@ -943,11 +923,15 @@ class LaunchRulesConsequenceTests {
         //      }
         //    }
         resetRulesEngine("rules_module_tests/consequence_rules_testUrlenc_invalidFnName.json")
+        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
-        PowerMockito.`when`(extensionApi.getSharedEventState(ArgumentMatchers.anyString(), any(), any())).thenReturn(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "carriername" to "x y"
+        `when`(extensionApi.getSharedState(anyString(), any(), anyBoolean(), any())).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                mapOf(
+                    "lifecyclecontextdata" to mapOf(
+                        "carriername" to "x y"
+                    )
                 )
             )
         )
@@ -956,8 +940,7 @@ class LaunchRulesConsequenceTests {
         launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
 
         val consequenceEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        PowerMockito.verifyStatic(MobileCore::class.java, times(1))
-        MobileCore.dispatchEvent(consequenceEventCaptor.capture(), any())
+        verify(extensionApi, times(1)).dispatch(consequenceEventCaptor.capture())
 
         assertEquals("com.adobe.eventtype.rulesengine", consequenceEventCaptor.value.type)
         assertEquals("com.adobe.eventsource.responsecontent", consequenceEventCaptor.value.source)

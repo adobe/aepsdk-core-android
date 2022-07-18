@@ -90,7 +90,13 @@ class LaunchRulesConsequence(
                             logTag,
                             " Generating new dispatch consequence result event $dispatchEvent"
                         )
-                        MobileCore.dispatchEvent(dispatchEvent) {
+                        if (extensionApi.dispatch(dispatchEvent)) {
+                            MobileCore.log(
+                                LoggingMode.VERBOSE,
+                                logTag,
+                                "Successfully dispatched consequence result event"
+                            )
+                        } else {
                             MobileCore.log(
                                 LoggingMode.WARNING,
                                 logTag,
@@ -106,11 +112,17 @@ class LaunchRulesConsequence(
                             logTag,
                             "Generating new consequence event $consequenceEvent"
                         )
-                        MobileCore.dispatchEvent(consequenceEvent) {
+                        if (extensionApi.dispatch(consequenceEvent)) {
+                            MobileCore.log(
+                                LoggingMode.VERBOSE,
+                                logTag,
+                                "Successfully dispatched consequence result event"
+                            )
+                        } else {
                             MobileCore.log(
                                 LoggingMode.WARNING,
                                 logTag,
-                                "An error occurred when dispatching consequence result event"
+                                "An error occurred when dispatching dispatch consequence result event"
                             )
                         }
                     }

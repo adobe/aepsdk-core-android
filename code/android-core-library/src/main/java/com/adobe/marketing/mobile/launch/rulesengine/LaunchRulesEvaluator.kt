@@ -19,7 +19,7 @@ import com.adobe.marketing.mobile.MobileCore
 internal class LaunchRulesEvaluator(
     private val name: String,
     private val launchRulesEngine: LaunchRulesEngine,
-    extensionApi: ExtensionApi
+    private val extensionApi: ExtensionApi
 ) : EventPreprocessor {
 
     private var cachedEvents: MutableList<Event>? = mutableListOf()
@@ -70,17 +70,22 @@ internal class LaunchRulesEvaluator(
     fun replaceRules(rules: List<LaunchRule?>?) {
         if (rules == null) return
         launchRulesEngine.replaceRules(rules)
-        MobileCore.dispatchEvent(
-            Event.Builder(
-                name,
-                EVENT_TYPE_RULES_ENGINE,
-                EVENT_SOURCE_REQUEST_RESET
-            ).build()
-        ) { extensionError ->
+        val dispatchEvent = Event.Builder(
+            name,
+            EVENT_TYPE_RULES_ENGINE,
+            EVENT_SOURCE_REQUEST_RESET
+        ).build()
+        if (extensionApi.dispatch(dispatchEvent)) {
             MobileCore.log(
-                LoggingMode.ERROR,
+                LoggingMode.VERBOSE,
                 logTag,
-                "Failed to reprocess cached events, caused by the error: ${extensionError.errorName}"
+                "Successfully dispatched consequence result event"
+            )
+        } else {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                logTag,
+                "An error occurred when dispatching dispatch consequence result event"
             )
         }
     }

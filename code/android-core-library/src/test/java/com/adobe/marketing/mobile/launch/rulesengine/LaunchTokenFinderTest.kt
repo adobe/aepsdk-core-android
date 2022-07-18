@@ -15,6 +15,8 @@ import com.adobe.marketing.mobile.BaseTest
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -22,19 +24,17 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.powermock.api.mockito.PowerMockito
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
+import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnitRunner
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(ExtensionApi::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchTokenFinderTest : BaseTest() {
 
     private lateinit var extensionApi: ExtensionApi
 
     @Before
     fun setup() {
-        extensionApi = PowerMockito.mock(ExtensionApi::class.java)
+        extensionApi = Mockito.mock(ExtensionApi::class.java)
     }
 
     @Test
@@ -73,7 +73,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return current unix timestamp on valid event`() {
         // setup
-        val testEvent = getDefaultEvent()!!
+        val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~timestampu")
@@ -84,7 +84,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return current ISO8601 timestamp on valid event`() {
         // setup
-        val testEvent = getDefaultEvent()!!
+        val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~timestampz")
@@ -95,7 +95,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return current ISO8601 date timezone on valid event`() {
         // setup
-        val testEvent = getDefaultEvent()!!
+        val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~timestampp")
@@ -106,7 +106,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return current sdk version on valid event`() {
         // setup
-        val testEvent = getDefaultEvent()!!
+        val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~sdkver")
@@ -244,7 +244,7 @@ class LaunchTokenFinderTest : BaseTest() {
     } */
 
     @Test
-    fun `get should return empty string on event with no event data for json`() {
+    fun `get should return empty json on event with no event data for json`() {
         // setup
         val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
@@ -254,16 +254,24 @@ class LaunchTokenFinderTest : BaseTest() {
         assertEquals("{}", result)
     }
 
-    // TODO uncomment when map flattening logic is finalized
-    /* @Test
+    @Test
     fun `get should return nested value from shared state of the module on valid event`() {
         // setup
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
-        val lcdata = EventData()
-        val lifecycleSharedState: MutableMap<String?, String?> = HashMap()
-        lifecycleSharedState["akey"] = "avalue"
-        lcdata.putStringMap("analytics.contextData", lifecycleSharedState)
-        eventHub.setSharedState("com.adobe.marketing.mobile.Analytics", lcdata)
+        val testEvent = getDefaultEvent(null)
+        val lcData = mapOf("analytics.contextData" to mutableMapOf("akey" to "avalue"))
+        Mockito.`when`(
+            extensionApi.getSharedState(
+                Mockito.eq("com.adobe.marketing.mobile.Analytics"),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.any()
+            )
+        ).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                lcData
+            )
+        )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData.akey")
@@ -272,37 +280,54 @@ class LaunchTokenFinderTest : BaseTest() {
     }
 
     @Test
+    fun `get should return null when top level key is used from shared state of the module on valid event`() {
+        // setup
+        val testEvent = getDefaultEvent(null)
+        val lcData = mapOf("analytics.contextData" to mapOf("akey" to "avalue"))
+        Mockito.`when`(
+            extensionApi.getSharedState(
+                Mockito.eq("com.adobe.marketing.mobile.Analytics"),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.any()
+            )
+        ).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                lcData
+            )
+        )
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
+        val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics")
+        // verify
+        assertNull(result)
+    }
+
+    @Test
     fun `get should return shared state list of the module on valid event`() {
         // setup
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
-        val lcdata = EventData()
-        val identitySharedState: MutableList<String?> = ArrayList()
-        identitySharedState.add("vid1")
-        identitySharedState.add("vid2")
-        lcdata.putStringList("visitoridslist", identitySharedState)
-        eventHub.setSharedState("com.adobe.marketing.mobile.identity", lcdata)
+        val testEvent = getDefaultEvent(null)
+        val lcData = mapOf("visitoridslist" to listOf("vid1", "vid2"))
+        Mockito.`when`(
+            extensionApi.getSharedState(
+                Mockito.eq("com.adobe.marketing.mobile.identity"),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.any()
+            )
+        ).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                lcData
+            )
+        )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.identity/visitoridslist")
         // verify
-        assertEquals(identitySharedState, result)
+        assertEquals(listOf("vid1", "vid2"), result)
     }
-
-    @Test
-    fun `get should return shared state of the module on valid event`() {
-        // setup
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, null)
-        val lcdata = EventData()
-        val lifecycleSharedState: MutableMap<String?, String?> = HashMap()
-        lifecycleSharedState["akey"] = "avalue"
-        lcdata.putStringMap("analytics.contextData", lifecycleSharedState)
-        eventHub.setSharedState("com.adobe.marketing.mobile.Analytics", lcdata)
-        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
-        // test
-        val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData")
-        // verify
-        assertEquals(lifecycleSharedState, result)
-    } */
 
     @Test
     fun `get should return null when key does not have shared state name`() {
@@ -340,8 +365,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return null when key does not exist in shared state`() {
         // setup
-        val testEventData = mapOf<String, Any?>()
-        val testEvent = getDefaultEvent(testEventData)
+        val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData.akey")
@@ -349,8 +373,7 @@ class LaunchTokenFinderTest : BaseTest() {
         assertNull(result)
     }
 
-    // TODO uncomment when map flattening logic is finalized
-    /* @Test
+    @Test
     fun `get should return value of the key from event data on valid event`() {
         // setup
         val testEvent = getDefaultEvent()
@@ -359,7 +382,7 @@ class LaunchTokenFinderTest : BaseTest() {
         val result = launchTokenFinder.get("key1")
         // verify
         assertEquals("value1", result)
-    } */
+    }
 
     // TODO change if we decide to keep event data as null instead of empty map by default
     @Test
@@ -373,8 +396,7 @@ class LaunchTokenFinderTest : BaseTest() {
         assertEquals(null, result)
     }
 
-    // TODO uncomment when map flattening logic is finalized
-    /* @Test
+    @Test
     fun `get should return null when key does not exist in event data on valid event`() {
         // setup
         val testEvent = getDefaultEvent()
@@ -388,9 +410,7 @@ class LaunchTokenFinderTest : BaseTest() {
     @Test
     fun `get should return null when value for the key in event data is null on valid event`() {
         // setup
-        val testEventData = EventData()
-        testEventData.putNull("key1")
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEvent = getDefaultEvent(mapOf("key1" to null))
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("key1")
@@ -399,65 +419,57 @@ class LaunchTokenFinderTest : BaseTest() {
     }
 
     @Test
-    fun `get should return empty string on list`() {
+    fun `get should return list on list value`() {
         // setup
-        val testEventData = EventData()
-        val stringList: MutableList<String?> = ArrayList()
-        stringList.add("String1")
-        stringList.add("String2")
-        testEventData.putStringList("key6", stringList)
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf("key6" to listOf("String1", "String2"))
+        val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("key6")
         // verify
-        assertEquals(stringList, result)
+        assertEquals(listOf("String1", "String2"), result)
     }
 
-    /* @Test
-    fun get_ReturnsMap_When_KeyIsNotSpecialKeyAndValueIsEmptyMap() {
-        //setup
-        val testEventData = EventData()
-        testEventData.putVariantMap("key1", HashMap())
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
-        val launchTokenFinder = LaunchTokenFinder(testEvent!!, configuration!!,
-                platformServices)
-        //test
-        val result = launchTokenFinder.get("key1")
-        //verify
-        assertEquals("get should return empty map on empty map variant", HashMap(), result)
-    } */
-
     @Test
-    fun `get should return map on map`() {
+    fun get_ReturnsMap_When_KeyIsNotSpecialKeyAndValueIsEmptyMap() {
         // setup
-        val testEventData = EventData()
-        val stringMap: MutableMap<String?, String?> = HashMap()
-        stringMap["innerKey1"] = "inner val1"
-        testEventData.putStringMap("key1", stringMap)
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf("key1" to emptyMap<String, Any>())
+        val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("key1")
         // verify
-        assertEquals(stringMap, result)
+        assertEquals("get should return empty map on empty map value", emptyMap<String, Any>(), result)
+    }
+
+    @Test
+    fun `get should return null on top level key`() {
+        // setup
+        val testEventData = mapOf("key1" to mapOf("innerKey1" to "inner val1"))
+        val testEvent = getDefaultEvent(testEventData)
+        val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
+        // test
+        val result = launchTokenFinder.get("key1")
+        // verify
+        assertNull(result)
     }
 
     @Test
     fun `get should return nested value for valid flattened key on a valid event`() {
         // setup
-        val testEventData = EventData()
-        val stringMap: MutableMap<String?, String?> = HashMap()
-        stringMap["innerKey1"] = "inner val1"
-        stringMap["innerKey2"] = "innerVal2"
-        testEventData.putStringMap("key7", stringMap)
-        val testEvent = getEvent(EventType.ANALYTICS, EventSource.REQUEST_CONTENT, testEventData)
+        val testEventData = mapOf(
+            "key7" to mapOf(
+                "innerKey1" to "inner val1",
+                "innerKey2" to "innerVal2"
+            )
+        )
+        val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("key7.innerKey1")
         // verify
         assertEquals("inner val1", result)
-    } */
+    }
 
     private fun getDefaultEvent(eventData: Map<String, Any?>?): Event {
         return Event.Builder(

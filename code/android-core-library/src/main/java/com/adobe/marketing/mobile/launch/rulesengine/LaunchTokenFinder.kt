@@ -120,7 +120,6 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             return null
         }
         val (sharedStateName, dataKeyName) = sharedStateKeyString.split(SHARED_STATE_KEY_DELIMITER)
-        // TODO change once map flattening logic is finalized
         val sharedStateMap = extensionApi.getSharedEventState(sharedStateName, event) {
             MobileCore.log(
                 LoggingMode.DEBUG,
@@ -150,7 +149,6 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             )
             return EMPTY_STRING
         }
-        // TODO uncomment once map flattening logic is finalized
         val eventDataMap = event.eventData.flattening()
         return eventDataMap[key]
     }

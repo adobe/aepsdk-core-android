@@ -17,9 +17,9 @@ import androidx.annotation.Nullable;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.CacheFileService;
-import com.adobe.marketing.mobile.internal.utility.FileUtils;
-import com.adobe.marketing.mobile.internal.utility.StringEncoder;
-import com.adobe.marketing.mobile.internal.utility.StringUtils;
+import com.adobe.marketing.mobile.internal.util.FileUtils;
+import com.adobe.marketing.mobile.internal.util.StringEncoder;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 
 import java.io.File;

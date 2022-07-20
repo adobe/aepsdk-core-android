@@ -19,7 +19,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;

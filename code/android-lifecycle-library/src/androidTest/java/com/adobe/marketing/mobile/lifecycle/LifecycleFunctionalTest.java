@@ -136,7 +136,7 @@ public class LifecycleFunctionalTest {
 	}
 
 	private void initTimestamps() {
-		currentTimestampMillis = System.currentTimeMillis();
+		currentTimestampMillis = 1483864368225L; // start: Sunday, January 8, 2017 8:32:48.225 AM GMT
 		final Date currentDate = new Date(currentTimestampMillis);
 
 		dayOfWeek = getDayOfWeek(currentTimestampMillis);
@@ -511,7 +511,7 @@ public class LifecycleFunctionalTest {
 	@Test
 	public void testLifecycle__When__SecondLaunch_ThreeDaysAfterInstall__Then__DaysSinceFirstUseIs3() {
 		// setup
-		long firstSessionStartTime = 1483864368225L; // start: Sunday, January 8, 2017 8:32:48.225 AM GMT
+		long firstSessionStartTime = currentTimestampMillis;
 		long firstSessionPauseTime = firstSessionStartTime + TimeUnit.DAYS.toMillis(3);
 		long secondSessionStartTime = firstSessionPauseTime + TimeUnit.SECONDS.toMillis(30);
 
@@ -536,7 +536,7 @@ public class LifecycleFunctionalTest {
 	@Test
 	public void testLifecycle__When__SecondLaunch_ThreeDaysAfterLastUse__Then__DaysSinceLastUseIs3() {
 		// setup
-		long firstSessionStartTime = 1483864368225L; // start: Sunday, January 8, 2017 8:32:48.225 AM GMT
+		long firstSessionStartTime = currentTimestampMillis;
 		long firstSessionPauseTime = firstSessionStartTime + TimeUnit.SECONDS.toMillis(20);
 		long secondSessionStartTime = firstSessionPauseTime + TimeUnit.DAYS.toMillis(3);
 
@@ -556,7 +556,7 @@ public class LifecycleFunctionalTest {
 	@Test
 	public void testLifecycle__When__ThreeDaysAfterUpgrade__Then__DaysSinceLastUpgradeIs3() {
 		// setup
-		long firstSessionStartTimeMillis = 1483864368225L; // start: Sunday, January 8, 2017 8:32:48.225 AM GMT
+		long firstSessionStartTimeMillis = currentTimestampMillis;
 		long firstSessionPauseTimeMillis = firstSessionStartTimeMillis + TimeUnit.SECONDS.toMillis(20);
 		long secondSessionStartTimeMillis = firstSessionPauseTimeMillis + TimeUnit.SECONDS.toMillis(30);
 		long secondSessionPauseTimeMillis = secondSessionStartTimeMillis + TimeUnit.SECONDS.toMillis(20);
@@ -584,7 +584,7 @@ public class LifecycleFunctionalTest {
 	@Test
 	public void testLifecycle__When__SecondLaunch_OneMonthAfterInstall__Then__MonthlyEngUserEvent() {
 		// setup
-		long firstSessionStartTime = 1483864368225L; // start: Sunday, January 8, 2017 8:32:48.225 AM GMT
+		long firstSessionStartTime = currentTimestampMillis;
 		long firstSessionPauseTime = firstSessionStartTime + TimeUnit.SECONDS.toMillis(30);
 		long secondSessionStartTime = firstSessionPauseTime + TimeUnit.DAYS.toMillis(30);
 
@@ -606,6 +606,7 @@ public class LifecycleFunctionalTest {
 		// setup
 		long firstSessionStartTime = currentTimestampMillis;
 		long firstSessionPauseTime = firstSessionStartTime + 100;
+		long secondSessionStartTime = firstSessionPauseTime + 10;
 
 		Map<String, Object> configurationMap = new HashMap<>();
 		configurationMap.put(LIFECYCLE_CONFIG_SESSION_TIMEOUT, 30L);
@@ -621,12 +622,13 @@ public class LifecycleFunctionalTest {
 
 		LifecycleExtension lifecycleSession2 = new LifecycleExtension(mockExtensionApi2, lifecycleDataStore, mockDeviceInfoService);
 		lifecycleSession2.onRegistered();
+		mockExtensionApi2.simulateComingEvent(createStartEvent(null, secondSessionStartTime));
 
 		// verify second session start does not dispatch response event
 		assertEquals(0, mockExtensionApi2.dispatchedEvents.size());
 
 		// verify second session start updates shared state
-		assertEquals(1, mockExtensionApi2.createdSharedState.size());
+		assertEquals(2, mockExtensionApi2.createdSharedState.size());
 
 		Map<String, String> expectedContextData = new HashMap<String, String>() {
 			{
@@ -647,7 +649,7 @@ public class LifecycleFunctionalTest {
 				put(MONTHLY_ENGAGED_EVENT, "MonthlyEngUserEvent");
 			}
 		};
-		Map<String, String> secondSessionStartResponseEventContextData = (Map<String, String>) mockExtensionApi2.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
+		Map<String, String> secondSessionStartResponseEventContextData = (Map<String, String>) mockExtensionApi2.createdSharedState.get(1).get(LIFECYCLE_CONTEXT_DATA);
 		assertEquals(expectedContextData, secondSessionStartResponseEventContextData);
 	}
 

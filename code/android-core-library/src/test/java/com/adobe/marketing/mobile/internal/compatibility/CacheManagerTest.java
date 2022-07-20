@@ -14,7 +14,7 @@ package com.adobe.marketing.mobile.internal.compatibility;
 import static org.junit.Assert.*;
 
 import com.adobe.marketing.mobile.services.CacheFileService;
-import com.adobe.marketing.mobile.internal.utility.StringEncoder;
+import com.adobe.marketing.mobile.internal.util.StringEncoder;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 
 import org.junit.After;

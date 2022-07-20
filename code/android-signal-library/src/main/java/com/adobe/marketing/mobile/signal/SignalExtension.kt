@@ -15,7 +15,7 @@ import com.adobe.marketing.mobile.services.HitQueuing
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.signal.SignalConstants.LOG_TAG
-import com.adobe.marketing.mobile.utils.DataReader
+import com.adobe.marketing.mobile.util.DataReader
 
 class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
     private val hitQueue: HitQueuing

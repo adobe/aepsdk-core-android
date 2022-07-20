@@ -11,7 +11,7 @@
 package com.adobe.marketing.mobile.signal
 
 import com.adobe.marketing.mobile.Event
-import com.adobe.marketing.mobile.utils.DataReader
+import com.adobe.marketing.mobile.util.DataReader
 
 // extends Event class represented as a rule consequence Event for Signal extension
 

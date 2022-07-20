@@ -11,8 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.utils.TimeUtils
-import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider
+import com.adobe.marketing.mobile.util.TimeUtils
+import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert
 import org.junit.Before

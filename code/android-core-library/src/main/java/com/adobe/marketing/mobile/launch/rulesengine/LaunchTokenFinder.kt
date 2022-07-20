@@ -16,10 +16,10 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolution
-import com.adobe.marketing.mobile.internal.utility.flattening
-import com.adobe.marketing.mobile.internal.utility.serializeToQueryString
+import com.adobe.marketing.mobile.internal.util.flattening
+import com.adobe.marketing.mobile.internal.util.serializeToQueryString
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
-import com.adobe.marketing.mobile.utils.TimeUtils
+import com.adobe.marketing.mobile.util.TimeUtils
 import org.json.JSONObject
 import java.security.SecureRandom
 

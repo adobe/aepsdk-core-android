@@ -12,9 +12,9 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.Log
-import com.adobe.marketing.mobile.internal.utility.FileUtils.readAsString
-import com.adobe.marketing.mobile.utils.TimeUtils
-import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider
+import com.adobe.marketing.mobile.internal.util.FileUtils.readAsString
+import com.adobe.marketing.mobile.util.TimeUtils
+import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException

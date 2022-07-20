@@ -11,8 +11,11 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.utility.StringEncoder;
+import com.adobe.marketing.mobile.internal.util.FileUtils;
+import com.adobe.marketing.mobile.internal.util.StringEncoder;
 import com.adobe.marketing.mobile.services.DeviceInforming;
+
+import com.adobe.marketing.mobile.internal.util.StringUtils;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -404,7 +407,7 @@ class CacheManager {
 
 		File downloadCacheDirectory = null;
 
-		if (FileUtil.isValidDirectory(baseCacheDirectory)) {
+		if (FileUtils.isValidDirectory(baseCacheDirectory)) {
 			downloadCacheDirectory = new File(baseCacheDirectory, cacheSubDirectory);
 
 			if (!downloadCacheDirectory.exists() && !downloadCacheDirectory.mkdir()) {

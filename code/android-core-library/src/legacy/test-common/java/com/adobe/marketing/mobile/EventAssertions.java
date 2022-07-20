@@ -15,7 +15,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-import com.adobe.marketing.mobile.utils.DataReader;
+import com.adobe.marketing.mobile.util.DataReader;
 
 public class EventAssertions {
 

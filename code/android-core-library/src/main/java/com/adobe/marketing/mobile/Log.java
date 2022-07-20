@@ -24,9 +24,9 @@ public class Log {
     private static final Logging loggingService = ServiceProvider.getInstance().getLoggingService();
     private static LoggingMode loggingMode = LoggingMode.ERROR;
 
-    static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
-    static final String UNEXPECTED_EMPTY_VALUE = "Unexpected Empty Value";
-    static final String INVALID_FORMAT = "Invalid Format";
+    public static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
+    public static final String UNEXPECTED_EMPTY_VALUE = "Unexpected Empty Value";
+    public static final String INVALID_FORMAT = "Invalid Format";
 
     /**
      * private constructor to prevent accidental instantiation

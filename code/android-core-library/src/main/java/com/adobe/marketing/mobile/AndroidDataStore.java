@@ -16,6 +16,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.adobe.marketing.mobile.services.utility.FileUtil;
+
+import java.io.File;
 import java.util.Map;
 
 @SuppressLint("CommitPrefEdits")
@@ -25,6 +28,7 @@ import java.util.Map;
   */
 class AndroidDataStore implements LocalStorageService.DataStore {
 	private static final String LOG_TAG = AndroidDataStore.class.getSimpleName();
+	private static final String SHARED_PREFERENCE_FILE_PREFIX =  "com.adobe.marketing.mobile.";
 
 	private SharedPreferences        sharedPreferences;
 	private SharedPreferences.Editor sharedPreferencesEditor;
@@ -57,8 +61,8 @@ class AndroidDataStore implements LocalStorageService.DataStore {
 	 * @param dataStoreName the name of the DataStore
 	 */
 	private AndroidDataStore(String dataStoreName) {
-		sharedPreferences = App.getAppContext().getSharedPreferences(dataStoreName, 0);
-
+		sharedPreferences = App.getAppContext().getSharedPreferences(SHARED_PREFERENCE_FILE_PREFIX + dataStoreName, 0);
+		FileUtil.migrateSharedPreference(App.getAppContext(), dataStoreName, SHARED_PREFERENCE_FILE_PREFIX);
 		if (sharedPreferences != null) {
 			sharedPreferencesEditor = sharedPreferences.edit();
 		}

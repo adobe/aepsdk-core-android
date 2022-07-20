@@ -10,10 +10,15 @@
  */
 package com.adobe.marketing.mobile.services.utility
 
+import android.content.Context
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
 import java.io.File
-import kotlin.jvm.Throws
 
 internal object FileUtil {
+
+    private const val LOG_TAG = "FileUtil"
+
     /**
      * Removes the relative part of the file name(if exists).
      *
@@ -45,5 +50,27 @@ internal object FileUtil {
     @Throws(Exception::class)
     fun copyFile(src: File, dest: File) {
         src.copyTo(dest, true)
+    }
+
+    @JvmStatic
+    fun migrateSharedPreference(context: Context, dataStoreName: String, prefix: String) {
+        val existingSharedPreferenceFile = File(getSharedPreferenceFilePath(context, dataStoreName))
+        if (existingSharedPreferenceFile.exists()) {
+            val newSharedPreferenceFile =
+                File(getSharedPreferenceFilePath(context, prefix + dataStoreName))
+            try {
+                copyFile(existingSharedPreferenceFile, newSharedPreferenceFile)
+                existingSharedPreferenceFile.delete()
+            } catch (e: java.lang.Exception) {
+                MobileCore.log(LoggingMode.DEBUG,
+                    LOG_TAG,
+                    "Unable to migrate SharedPreference file $e"
+                )
+            }
+        }
+    }
+
+    private fun getSharedPreferenceFilePath(context: Context, dataStoreName: String): String {
+        return "/data/data" + context.packageName + "/shared_prefs/" + dataStoreName + ".xml"
     }
 }

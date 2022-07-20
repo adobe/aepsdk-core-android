@@ -15,12 +15,15 @@ import android.content.SharedPreferences;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.utility.StringUtils;
+import com.adobe.marketing.mobile.services.utility.FileUtil;
 
 /**
  * Implementation of {@link DataStoring} service
  */
 class LocalDataStoreService implements DataStoring {
 	private static final String TAG = LocalDataStoreService.class.getSimpleName();
+	private String sharedStatePrefix = "";
 
 	@Override
 	public NamedCollection getNamedCollection(String collectionName) {
@@ -40,7 +43,10 @@ class LocalDataStoreService implements DataStoring {
 			return null;
 		}
 
-		SharedPreferences sharedPreferences = appContext.getSharedPreferences(collectionName, 0);
+		SharedPreferences sharedPreferences = appContext.getSharedPreferences(sharedStatePrefix + collectionName, 0);
+		if(StringUtils.isNullOrEmpty(sharedStatePrefix)) {
+			FileUtil.migrateSharedPreference(appContext, collectionName, sharedStatePrefix);
+		}
 		SharedPreferences.Editor sharedPreferencesEditor = null;
 
 		if (sharedPreferences != null) {
@@ -54,5 +60,9 @@ class LocalDataStoreService implements DataStoring {
 		}
 
 		return new SharedPreferencesNamedCollection(sharedPreferences, sharedPreferencesEditor);
+	}
+
+	public void setSharedStatePrefix(String prefix) {
+		sharedStatePrefix = prefix;
 	}
 }

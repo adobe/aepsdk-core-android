@@ -49,7 +49,7 @@ public abstract class HitQueuing {
      */
     public abstract void close();
 
-    private void handlePrivacyChange(MobilePrivacyStatus privacyStatus) {
+    public void handlePrivacyChange(MobilePrivacyStatus privacyStatus) {
         switch (privacyStatus) {
             case OPT_IN:
                 beginProcessing();

@@ -13,18 +13,19 @@ package com.adobe.marketing.mobile;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO: remove this class once we added a getAdditionalInfo method to Extension interface
 final class SignalModuleDetails implements ModuleDetails {
-	private final String FRIENDLY_NAME = "Signal";
+    private final String FRIENDLY_NAME = "Signal";
 
-	public String getName() {
-		return FRIENDLY_NAME;
-	}
+    public String getName() {
+        return FRIENDLY_NAME;
+    }
 
-	public String getVersion() {
-		return Signal.extensionVersion();
-	}
+    public String getVersion() {
+        return Signal.extensionVersion();
+    }
 
-	public Map<String, String> getAdditionalInfo() {
-		return new HashMap<>();
-	}
+    public Map<String, String> getAdditionalInfo() {
+        return new HashMap<>();
+    }
 }

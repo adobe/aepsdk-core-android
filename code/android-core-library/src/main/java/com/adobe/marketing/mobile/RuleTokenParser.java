@@ -11,8 +11,9 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.utility.UrlUtilities;
-import com.adobe.marketing.mobile.internal.utility.TimeUtil;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.internal.util.UrlUtils;
+import com.adobe.marketing.mobile.internal.util.TimeUtils;
 
 import java.lang.reflect.Method;
 import java.security.SecureRandom;
@@ -220,7 +221,7 @@ class RuleTokenParser {
 				replacementString = "";
 			}
 
-			replacementString = urlEncode ? UrlUtilities.urlEncode(replacementString) : replacementString;
+			replacementString = urlEncode ? UrlUtils.urlEncode(replacementString) : replacementString;
 			outputString = outputString.replace(token, replacementString);
 		}
 
@@ -307,7 +308,7 @@ class RuleTokenParser {
 		lookupTable.put(KEY_TIMESTAMP_UNIX, new KeyFinder() {
 			@Override
 			public String find(final Event e) {
-				return String.valueOf(TimeUtil.getUnixTimeInSeconds());
+				return String.valueOf(TimeUtils.getUnixTimeInSeconds());
 			}
 		});
 		lookupTable.put(KEY_TIMESTAMP_ISO8601, new KeyFinder() {
@@ -316,7 +317,7 @@ class RuleTokenParser {
 				String timestampz = null;
 
 				if (platformServices != null) {
-					timestampz = TimeUtil.getIso8601Date();
+					timestampz = TimeUtils.getIso8601Date();
 				}
 
 				return timestampz;
@@ -328,7 +329,7 @@ class RuleTokenParser {
 				String timestampp = null;
 
 				if (platformServices != null) {
-					timestampp = TimeUtil.getIso8601DateTimeZoneISO8601();
+					timestampp = TimeUtils.getIso8601DateTimeZoneISO8601();
 				}
 
 				return timestampp;

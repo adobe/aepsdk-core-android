@@ -10,8 +10,8 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import com.adobe.marketing.mobile.internal.utility.map
-import com.adobe.marketing.mobile.internal.utility.toMap
+import com.adobe.marketing.mobile.internal.util.map
+import com.adobe.marketing.mobile.internal.util.toMap
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

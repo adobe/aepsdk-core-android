@@ -15,10 +15,11 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+
+import com.adobe.marketing.mobile.internal.util.TestHelper;
 
 public class NetworkConnectionUtilTest {
 

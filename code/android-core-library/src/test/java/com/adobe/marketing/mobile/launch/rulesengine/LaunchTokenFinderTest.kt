@@ -15,7 +15,7 @@ import com.adobe.marketing.mobile.BaseTest
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.utility.TimeUtil
+import com.adobe.marketing.mobile.internal.util.TimeUtils
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -79,7 +79,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~timestampu")
         // verify
-        assertEquals(TimeUtil.getUnixTimeInSeconds().toString(), result)
+        assertEquals(TimeUtils.getUnixTimeInSeconds().toString(), result)
     }
 
     @Test
@@ -90,7 +90,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~timestampz")
         // verify
-        assertEquals(TimeUtil.getIso8601Date(), result)
+        assertEquals(TimeUtils.getIso8601Date(), result)
     }
 
     @Test
@@ -101,7 +101,7 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~timestampp")
         // verify
-        assertEquals(TimeUtil.getIso8601DateTimeZoneISO8601(), result)
+        assertEquals(TimeUtils.getIso8601DateTimeZoneISO8601(), result)
     }
 
     @Test

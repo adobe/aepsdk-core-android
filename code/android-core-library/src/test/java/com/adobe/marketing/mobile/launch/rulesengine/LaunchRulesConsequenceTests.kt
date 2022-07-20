@@ -14,7 +14,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
-import com.adobe.marketing.mobile.test.utility.readTestResources
+import com.adobe.marketing.mobile.test.util.readTestResources
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull

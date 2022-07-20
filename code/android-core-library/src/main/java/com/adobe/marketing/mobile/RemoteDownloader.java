@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile;
 import com.adobe.marketing.mobile.NetworkService.Callback;
 import com.adobe.marketing.mobile.NetworkService.HttpCommand;
 import com.adobe.marketing.mobile.NetworkService.HttpConnection;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;

@@ -46,6 +46,8 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class AndroidSystemInfoServiceTests {

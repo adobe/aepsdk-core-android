@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
-import com.adobe.marketing.mobile.test.utility.buildJSONObject
+import com.adobe.marketing.mobile.test.util.buildJSONObject
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue

@@ -24,7 +24,7 @@ import android.webkit.WebViewClient;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.utility.StringUtils;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;

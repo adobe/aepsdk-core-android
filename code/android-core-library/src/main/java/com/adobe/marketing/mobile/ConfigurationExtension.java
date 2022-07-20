@@ -11,7 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.utility.TimeUtil;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.internal.util.TimeUtils;
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine;
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator;
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser;
@@ -1107,7 +1108,7 @@ class ConfigurationExtension extends InternalModule {
      */
     private void downloadRules(final String remoteRulesURL) {
 
-        long currentTimeSec = TimeUtil.getUnixTimeInSeconds();
+        long currentTimeSec = TimeUtils.getUnixTimeInSeconds();
         Long lastDownloadTimeSec = cachedRulesDownloadTime.get(remoteRulesURL);
 
         if ((lastDownloadTimeSec != null) && (currentTimeSec - lastDownloadTimeSec < NOT_DOWNLOAD_RULES_WITHIN_TIME_SEC)) {

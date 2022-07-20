@@ -13,12 +13,10 @@ package com.adobe.marketing.mobile.services;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
-
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.utility.StringUtils;
-import com.adobe.marketing.mobile.services.utility.FileUtil;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.services.util.FileUtils;
 
 import java.io.File;
 import java.util.HashMap;
@@ -77,7 +75,7 @@ class DataQueueService implements DataQueuing {
 	 * @return {@code File} representing the database in {@code Context#getDatabasePath(String)}
 	 */
 	private File openOrMigrateExistingDataQueue(String databaseName) {
-		final String cleanedDatabaseName = FileUtil.removeRelativePath(databaseName);
+		final String cleanedDatabaseName = FileUtils.removeRelativePath(databaseName);
 
 		if(StringUtils.isNullOrEmpty(databaseName)) {
 			MobileCore.log(LoggingMode.WARNING,
@@ -104,7 +102,7 @@ class DataQueueService implements DataQueuing {
 						if(cacheDir != null) {
 							final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
 							if (cacheDirDataQueue.exists()) {
-								FileUtil.copyFile(cacheDirDataQueue, databaseDirDataQueue);
+								FileUtils.copyFile(cacheDirDataQueue, databaseDirDataQueue);
 								MobileCore.log(LoggingMode.DEBUG,
 										LOG_TAG,
 										String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));

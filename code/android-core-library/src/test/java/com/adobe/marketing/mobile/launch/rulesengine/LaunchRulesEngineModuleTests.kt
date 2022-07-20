@@ -7,7 +7,7 @@ import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
-import com.adobe.marketing.mobile.test.utility.readTestResources
+import com.adobe.marketing.mobile.test.util.readTestResources
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.junit.Before

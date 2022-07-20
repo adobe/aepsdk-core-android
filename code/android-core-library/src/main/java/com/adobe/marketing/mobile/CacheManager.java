@@ -12,6 +12,8 @@
 package com.adobe.marketing.mobile;
 
 
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;

@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;

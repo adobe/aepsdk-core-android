@@ -12,6 +12,7 @@ package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;

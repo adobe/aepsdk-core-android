@@ -1,6 +1,6 @@
 package com.adobe.marketing.mobile.internal.eventhub.history
 
-import com.adobe.marketing.mobile.internal.utility.StringEncoder
+import com.adobe.marketing.mobile.internal.util.StringEncoder
 
 /**
  *  Used for selecting or deleting Events from Event History.

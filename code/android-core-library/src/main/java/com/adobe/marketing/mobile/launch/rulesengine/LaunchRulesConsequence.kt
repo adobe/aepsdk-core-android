@@ -14,12 +14,12 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.utility.EventDataMerger
-import com.adobe.marketing.mobile.internal.utility.prettify
+import com.adobe.marketing.mobile.internal.util.EventDataMerger
+import com.adobe.marketing.mobile.internal.util.prettify
 import com.adobe.marketing.mobile.rulesengine.DelimiterPair
 import com.adobe.marketing.mobile.rulesengine.Template
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
-import com.adobe.marketing.mobile.utils.EventDataUtils
+import com.adobe.marketing.mobile.util.EventDataUtils
 
 class LaunchRulesConsequence(
     private val extensionApi: ExtensionApi

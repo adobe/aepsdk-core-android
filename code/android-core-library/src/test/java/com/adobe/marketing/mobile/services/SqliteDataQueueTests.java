@@ -19,7 +19,7 @@ import static org.mockito.Mockito.anyString;
 
 import android.database.sqlite.SQLiteException;
 
-import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 
 import org.junit.Assert;
 import org.junit.Before;

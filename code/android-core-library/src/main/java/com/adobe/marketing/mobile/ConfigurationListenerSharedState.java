@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+
 public class ConfigurationListenerSharedState extends ModuleEventListener<ConfigurationExtension> {
 
 	/**

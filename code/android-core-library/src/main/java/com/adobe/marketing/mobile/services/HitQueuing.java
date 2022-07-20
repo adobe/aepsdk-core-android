@@ -11,38 +11,55 @@
 
 package com.adobe.marketing.mobile.services;
 
+import com.adobe.marketing.mobile.MobilePrivacyStatus;
+
 //Provides the functionality for Queuing Hits.
-public interface HitQueuing {
+public abstract class HitQueuing {
 
-	/**
-	 * Queues a {@link DataEntity} to be processed
-	 * @param entity the entity to be processed
-	 * @return a boolean indication whether queuing the entity was successful or not
-	 */
-	boolean queue(DataEntity entity);
+    /**
+     * Queues a {@link DataEntity} to be processed
+     *
+     * @param entity the entity to be processed
+     * @return a boolean indication whether queuing the entity was successful or not
+     */
+    public abstract boolean queue(DataEntity entity);
 
-	/**
-	 * Puts the Queue in non-suspended state and begin processing hits
-	 */
-	void beginProcessing();
+    /**
+     * Puts the Queue in non-suspended state and begin processing hits
+     */
+    public abstract void beginProcessing();
 
-	/**
-	 * Puts the Queue in suspended state and discontinue processing hits
-	 */
-	void suspend();
+    /**
+     * Puts the Queue in suspended state and discontinue processing hits
+     */
+    public abstract void suspend();
 
-	/**
-	 * Removes all the persisted hits from the queue
-	 */
-	void clear();
+    /**
+     * Removes all the persisted hits from the queue
+     */
+    public abstract void clear();
 
-	/**
-	 * Returns the number of items in the queue
-	 */
-	int count();
+    /**
+     * Returns the number of items in the queue
+     */
+    public abstract int count();
 
-	/**
-	 * Close the current <code>HitQueuing</code>
-	 */
-	void close();
+    /**
+     * Close the current <code>HitQueuing</code>
+     */
+    public abstract void close();
+
+    private void handlePrivacyChange(MobilePrivacyStatus privacyStatus) {
+        switch (privacyStatus) {
+            case OPT_IN:
+                beginProcessing();
+                break;
+            case OPT_OUT:
+                suspend();
+                clear();
+                break;
+            default:
+                suspend();
+        }
+    }
 }

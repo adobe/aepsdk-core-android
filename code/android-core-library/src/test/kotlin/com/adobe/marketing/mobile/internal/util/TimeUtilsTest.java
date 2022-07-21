@@ -74,4 +74,10 @@ public class TimeUtilsTest {
 		assertNotNull(formattedDate);
 		assertTrue(formattedDate.matches(DATE_REGEX_TIMEZONE_ISO8601));
 	}
+
+	@Test
+	public void testGetIso8601Date_TimeZone_ISO8601_returns_milliseconds_and_UTC() {
+		String formattedDate = TimeUtils.getIso8601DateTimeZoneISO8601();
+		assertTrue(formattedDate.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}T([0-9]{2}:){2}[0-9]{2}.[0-9]{3}Z"));
+	}
 }

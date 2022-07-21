@@ -15,7 +15,7 @@ import com.adobe.marketing.mobile.BaseTest
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.utility.TimeUtil
+import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -79,29 +79,29 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~timestampu")
         // verify
-        assertEquals(TimeUtil.getUnixTimeInSeconds().toString(), result)
+        assertNotNull(result)
     }
 
     @Test
-    fun `get should return current ISO8601 timestamp on valid event`() {
+    fun `get should return current ISO8601 timestamp when key is timestampz on valid event`() {
         // setup
         val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~timestampz")
         // verify
-        assertEquals(TimeUtil.getIso8601Date(), result)
+        assertNotNull(result)
     }
 
     @Test
-    fun `get should return current ISO8601 date timezone on valid event`() {
+    fun `get should return current ISO8601 in UTC with fractional seconds when key is timestampp on valid event`() {
         // setup
         val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
-        val result = launchTokenFinder.get("~timestampp")
+        val result: String = launchTokenFinder.get("~timestampp") as String
         // verify
-        assertEquals(TimeUtil.getIso8601DateTimeZoneISO8601(), result)
+        assertTrue(result.matches(Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}T([0-9]{2}:){2}[0-9]{2}.[0-9]{3}Z")))
     }
 
     @Test

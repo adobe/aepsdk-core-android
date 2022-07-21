@@ -15,12 +15,12 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 internal object TimeUtil {
     private const val MILLISECONDS_PER_SECOND = 1000L
     private const val ISO8601_DATE_FORMATTER_TIMEZONE_RFC822 = "yyyy-MM-dd'T'HH:mm:ssZZZ"
-    private const val ISO8601_DATE_FORMATTER_TIMEZONE_ISO8601 = "yyyy-MM-dd'T'HH:mm:ssXXX"
-
+    private const val ISO8601_DATE_FORMATTER_TIMEZONE_UTC = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
     /**
      * Gets current unix timestamp in seconds.
      *
@@ -51,7 +51,7 @@ internal object TimeUtil {
      */
     @JvmStatic
     fun getIso8601DateTimeZoneISO8601(): String? {
-        return getIso8601Date(Date(), ISO8601_DATE_FORMATTER_TIMEZONE_ISO8601)
+        return getIso8601Date(Date(), ISO8601_DATE_FORMATTER_TIMEZONE_UTC, TimeZone.getTimeZone("GMT"))
     }
 
     /**
@@ -61,11 +61,15 @@ internal object TimeUtil {
      * @return ISO 8601 formatted date [String]
      */
     @JvmStatic
-    fun getIso8601Date(date: Date?, format: String?): String? {
+    @JvmOverloads
+    fun getIso8601Date(date: Date?, format: String?, timeZone: TimeZone? = null): String? {
         // AMSDK-8374 -
         // we should explicitly ignore the device's locale when formatting an ISO 8601 timestamp
         val posixLocale = Locale(Locale.US.language, Locale.US.country, "POSIX")
         val iso8601Format: DateFormat = SimpleDateFormat(format, posixLocale)
+        if (timeZone != null) {
+            iso8601Format.timeZone = timeZone
+        }
         return iso8601Format.format(date ?: Date())
     }
 }

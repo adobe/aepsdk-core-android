@@ -30,10 +30,10 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
     }
 
     override fun onRegistered() {
-        api?.registerEventListener(EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT) {
+        api?.registerEventListener(EventType1.RULES_ENGINE, EventSource1.RESPONSE_CONTENT) {
             handleRulesEngineResponse(it)
         }
-        api?.registerEventListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT) {
+        api?.registerEventListener(EventType1.CONFIGURATION, EventSource1.RESPONSE_CONTENT) {
             handleConfigurationResponse(it)
         }
     }
@@ -79,11 +79,12 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
     }
 
     override fun readyForEvent(event: Event?): Boolean {
+        if (event == null) return false
         return api.getSharedState(
             SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
             event,
             false,
-            SharedStateResolution.ANY
+            SharedStateResolution.LAST_SET
         )?.status == SharedStateStatus.SET
     }
 

@@ -11,189 +11,211 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 internal class SharedStateManagerTest {
 
-    private val sharedStateManager: SharedStateManager = SharedStateManager("SampleStateName")
+    private var sharedStateManager: SharedStateManager = SharedStateManager("SampleStateName")
+
+    private val STATE_ZERO = mapOf("ZERO" to 0)
+    private val STATE_ONE = mapOf("ONE" to 1)
+    private val STATE_TWO = mapOf("TWO" to 2)
+    private val STATE_THREE = mapOf("THREE" to 3)
+    private val STATE_FOUR = mapOf("FOUR" to 4)
+    private val STATE_FIVE = mapOf("FIVE" to 5)
 
     @Before
     fun setUp() {
-        sharedStateManager.clearSharedState()
+        sharedStateManager = SharedStateManager("SampleStateName")
+    }
+
+    private fun assertResult(expected: SharedStateResult, actual: SharedStateResult) {
+        assertEquals(expected.value, actual.value)
+        assertEquals(expected.status, actual.status)
     }
 
     @Test
-    fun testCreateSharedState_NonNullData() {
-        val data = mapOf<String, Any?> ("One" to 1, "Yes" to true)
-        assertEquals(SharedState.Status.SET, sharedStateManager.createSharedState(data, 1, false))
+    fun testSetState_MultipleVersions() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertTrue { sharedStateManager.setState(1, STATE_ONE) }
+        assertTrue { sharedStateManager.setState(2, STATE_TWO) }
+        assertTrue { sharedStateManager.setState(5, STATE_FIVE) }
+
+        assertResult(sharedStateManager.resolve(0), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.SET, STATE_ONE))
+        assertResult(sharedStateManager.resolve(2), SharedStateResult(SharedStateStatus.SET, STATE_TWO))
+        assertResult(sharedStateManager.resolve(5), SharedStateResult(SharedStateStatus.SET, STATE_FIVE))
     }
 
     @Test
-    fun testCreateSharedState_NullData() {
-        assertEquals(SharedState.Status.SET, sharedStateManager.createSharedState(null, 1, false))
+    fun testSetState_FailsOlderVersions() {
+        assertTrue { sharedStateManager.setState(5, STATE_FIVE) }
+        assertFalse { sharedStateManager.setState(0, STATE_ZERO) }
     }
 
     @Test
-    fun testCreateSharedState_PendingDataAssumptions() {
-        val data = mapOf<String, Any?> ("One" to 1, "Yes" to true)
+    fun testSetState_FailsSameVersions() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertFalse { sharedStateManager.setState(0, STATE_FIVE) }
 
-        // Verify that SharedStateManager does not make assumptions of pending based on data
-        assertEquals(SharedState.Status.PENDING, sharedStateManager.createSharedState(data, 1, true))
-        assertEquals(SharedState.Status.PENDING, sharedStateManager.createSharedState(null, 3, true))
+        assertResult(sharedStateManager.resolve(0), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
     }
 
     @Test
-    fun testCreateSharedState_PendingDataOverwrite_WithPending() {
-        // Create pending state at version 1
-        sharedStateManager.createSharedState(null, 1, true)
+    fun testSetPendingState() {
+        assertTrue { sharedStateManager.setPendingState(0) }
 
-        // Overwrite with another pending data
-        assertEquals(SharedState.Status.NOT_SET, sharedStateManager.createSharedState(mapOf(), 1, true))
+        assertResult(sharedStateManager.resolve(0), SharedStateResult(SharedStateStatus.PENDING, null))
     }
 
     @Test
-    fun testCreateSharedState_PendingDataOverwrite_WithNonPending() {
-        // Create pending state at version 1
-        sharedStateManager.createSharedState(null, 1, true)
-
-        // Overwrite with non pending data
-        assertEquals(SharedState.Status.NOT_SET, sharedStateManager.createSharedState(mapOf(), 1, false))
+    fun testSetPendingState_FailsOlderVersion() {
+        assertTrue { sharedStateManager.setState(5, STATE_FIVE) }
+        assertFalse { sharedStateManager.setPendingState(0) }
     }
 
     @Test
-    fun testCreateSharedState_OlderStateDoesNotExist() {
-        // Create state at version 3
-        sharedStateManager.createSharedState(mapOf(), 3, false)
-        // Create state at version 5
-        sharedStateManager.createSharedState(mapOf(), 5, false)
-
-        // Verify that state greater than 5 can be created irrespective of pending status
-        assertEquals(SharedState.Status.SET, sharedStateManager.createSharedState(mapOf(), 10, false))
-        assertEquals(SharedState.Status.PENDING, sharedStateManager.createSharedState(mapOf(), 11, true))
+    fun testSetPendingState_FailExistingVersion() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertFalse { sharedStateManager.setPendingState(0) }
     }
 
     @Test
-    fun testCreateSharedState_OlderStateExists() {
-        // Create state at version 5
-        sharedStateManager.createSharedState(mapOf(), 5, false)
+    fun testSetPendingState_ResolveToOlderState() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertTrue { sharedStateManager.setPendingState(1) }
 
-        // Verify that no state less than or equal to 5 can be created irrespective of pending status
-        assertEquals(SharedState.Status.NOT_SET, sharedStateManager.createSharedState(mapOf(), 3, false))
-        assertEquals(SharedState.Status.NOT_SET, sharedStateManager.createSharedState(mapOf(), 5, true))
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.PENDING, STATE_ZERO))
     }
 
     @Test
-    fun testUpdateSharedState_WithPendingState() {
-        // Create a pending state at version 1
-        sharedStateManager.updateSharedState(null, 1, true)
-
-        // Verify that pending state cannot be updated with another pending state
-        assertEquals(SharedState.Status.NOT_SET, sharedStateManager.updateSharedState(null, 1, true))
-        assertEquals(SharedState.Status.NOT_SET, sharedStateManager.updateSharedState(mapOf(), 1, true))
+    fun testUpdatePendingState_FailsSetState() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertFalse { sharedStateManager.updatePendingState(0, STATE_ONE) }
     }
 
     @Test
-    fun testUpdateSharedState_NoStateAtVersion() {
-        // Verify that a state cannot be updated when no state exists at the version
-        assertEquals(SharedState.Status.NOT_SET, sharedStateManager.updateSharedState(mapOf(), 7, false))
+    fun testUpdatePendingState_FailsNoState() {
+        assertFalse { sharedStateManager.updatePendingState(0, STATE_ONE) }
     }
 
     @Test
-    fun testUpdateSharedState_NoPendingStateAtVersion() {
-        // Create a non pending state at version 7
-        sharedStateManager.createSharedState(mapOf(), 7, false)
+    fun testUpdatePendingState() {
+        assertTrue { sharedStateManager.setPendingState(1) }
+        assertTrue { sharedStateManager.updatePendingState(1, STATE_ONE) }
 
-        // Verify that pending state cannot be updated when no pending state exists at the version
-        assertEquals(
-            SharedState.Status.NOT_SET,
-            sharedStateManager.updateSharedState(mapOf("One" to 1, "Yes" to true), 7, false)
-        )
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.SET, STATE_ONE))
     }
 
     @Test
-    fun testUpdateSharedState_ValidPendingStateAtVersion() {
-        // Create a pending state at version 7
-        sharedStateManager.createSharedState(null, 7, true)
+    fun testUpdateInterleavedPendingState() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertTrue { sharedStateManager.setPendingState(1) }
+        assertTrue { sharedStateManager.setState(2, STATE_TWO) }
 
-        // Verify that pending state can be updated when pending state exists at the version
-        assertEquals(
-            SharedState.Status.SET,
-            sharedStateManager.updateSharedState(mapOf("One" to 1, "Yes" to true), 7, false)
-        )
+        assertResult(sharedStateManager.resolve(0), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.PENDING, STATE_ZERO))
+        assertResult(sharedStateManager.resolve(2), SharedStateResult(SharedStateStatus.SET, STATE_TWO))
+
+        assertTrue { sharedStateManager.updatePendingState(1, STATE_ONE) }
+
+        assertResult(sharedStateManager.resolve(0), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.SET, STATE_ONE))
+        assertResult(sharedStateManager.resolve(2), SharedStateResult(SharedStateStatus.SET, STATE_TWO))
     }
 
     @Test
-    fun testGetSharedState_NoStatesYet() {
-        assertNull(sharedStateManager.getSharedState(0))
+    fun testResolve_ExactVersion() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertTrue { sharedStateManager.setState(1, STATE_ONE) }
+
+        assertResult(sharedStateManager.resolve(0), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.SET, STATE_ONE))
     }
 
     @Test
-    fun testGetSharedState_StateExistsAtQueriedVersion() {
-        val data = mapOf("One" to 1, "Yes" to true)
-        sharedStateManager.createSharedState(mapOf("One" to 1, "Yes" to true), 3, false)
+    fun testResolve_GreaterVersion() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertTrue { sharedStateManager.setState(3, STATE_THREE) }
 
-        val actualState: SharedState? = sharedStateManager.getSharedState(3)
-        assertNotNull(actualState)
-        assertEquals(data, actualState.data)
-        assertEquals(SharedState.Status.SET, actualState.status)
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolve(2), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+
+        assertResult(sharedStateManager.resolve(4), SharedStateResult(SharedStateStatus.SET, STATE_THREE))
+        assertResult(sharedStateManager.resolve(5), SharedStateResult(SharedStateStatus.SET, STATE_THREE))
     }
 
     @Test
-    fun testGetSharedState_PendingStateExistsAtQueriedVersion() {
-        sharedStateManager.createSharedState(null, 3, true)
-
-        val actualState: SharedState? = sharedStateManager.getSharedState(3)
-        assertNotNull(actualState)
-        assertNull(actualState.data)
-        assertEquals(SharedState.Status.PENDING, actualState.status)
+    fun testResolve_NoState() {
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.NONE, null))
     }
 
     @Test
-    fun testGetSharedState_StateExistsAtOlderVersion() {
-        // Create shared states at Version 3 and Version 4
-        val dataAtV3 = mapOf("One" to 1, "Yes" to true)
-        val dataAtV4 = mapOf("Two" to 2, "No" to false)
-        sharedStateManager.createSharedState(dataAtV3, 3, false)
-        sharedStateManager.createSharedState(dataAtV4, 4, false)
-
-        // Fetch state at version 8
-        val actualState: SharedState? = sharedStateManager.getSharedState(8)
-        assertNotNull(actualState)
-        assertEquals(dataAtV4, actualState.data)
-        assertEquals(SharedState.Status.SET, actualState.status)
+    fun testResolve_PendingState() {
+        sharedStateManager.setState(0, STATE_ZERO)
+        sharedStateManager.setPendingState(1)
+        assertResult(sharedStateManager.resolve(2), SharedStateResult(SharedStateStatus.PENDING, STATE_ZERO))
     }
 
     @Test
-    fun testGetSharedState_PendingStateExistsAtOlderVersion() {
-        // Create shared states at Version 3 and Version 4
-        val dataAtV3 = mapOf("One" to 1, "Yes" to true)
-        val dataAtV4 = mapOf("Two" to 2, "No" to false)
-        sharedStateManager.createSharedState(dataAtV3, 3, false)
-        sharedStateManager.createSharedState(dataAtV4, 4, true)
+    fun testResolve_LessThanInitialVersion() {
+        assertTrue { sharedStateManager.setState(5, STATE_FIVE) }
 
-        val actualState: SharedState? = sharedStateManager.getSharedState(8)
-        assertNotNull(actualState)
-        assertEquals(dataAtV4, actualState.data)
-        assertEquals(SharedState.Status.PENDING, actualState.status)
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.SET, STATE_FIVE))
     }
 
     @Test
-    fun testClearSharedState() {
-        // Create shared states at Version 3 and Version 4
-        val dataAtV3 = mapOf("One" to 1, "Yes" to true)
-        val dataAtV4 = mapOf("Two" to 2, "No" to false)
-        sharedStateManager.createSharedState(dataAtV3, 3, false)
-        sharedStateManager.createSharedState(dataAtV4, 4, false)
-        assertNotNull(sharedStateManager.getSharedState(4))
+    fun testResolveLastSet_ExactVersion() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertTrue { sharedStateManager.setPendingState(1) }
 
-        sharedStateManager.clearSharedState()
+        assertResult(sharedStateManager.resolveLastSet(0), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolveLastSet(1), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+    }
 
-        // Verify that previously set states are removed
-        assertNull(sharedStateManager.getSharedState(4))
-        assertNull(sharedStateManager.getSharedState(3))
+    @Test
+    fun testResolveLastSet_NoSetState() {
+        assertTrue { sharedStateManager.setPendingState(1) }
+
+        assertResult(sharedStateManager.resolveLastSet(1), SharedStateResult(SharedStateStatus.NONE, null))
+    }
+
+    @Test
+    fun testResolveLastSet_GreaterVersion() {
+        assertTrue { sharedStateManager.setState(0, STATE_ZERO) }
+        assertTrue { sharedStateManager.setPendingState(2) }
+        assertTrue { sharedStateManager.setState(4, STATE_FOUR) }
+
+        assertResult(sharedStateManager.resolveLastSet(0), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolveLastSet(1), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolveLastSet(2), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolveLastSet(3), SharedStateResult(SharedStateStatus.SET, STATE_ZERO))
+        assertResult(sharedStateManager.resolveLastSet(4), SharedStateResult(SharedStateStatus.SET, STATE_FOUR))
+        assertResult(sharedStateManager.resolveLastSet(5), SharedStateResult(SharedStateStatus.SET, STATE_FOUR))
+    }
+
+    @Test
+    fun testResolveLastSet_NoState() {
+        assertResult(sharedStateManager.resolveLastSet(1), SharedStateResult(SharedStateStatus.NONE, null))
+    }
+
+    @Test
+    fun testResolveLastSet_LessThanInitialVersion() {
+        assertTrue { sharedStateManager.setState(5, STATE_FIVE) }
+
+        assertResult(sharedStateManager.resolveLastSet(1), SharedStateResult(SharedStateStatus.SET, STATE_FIVE))
+    }
+
+    @Test
+    fun testResolveLastSet_LessThanPendingInitialVersion() {
+        assertTrue { sharedStateManager.setPendingState(5) }
+
+        assertResult(sharedStateManager.resolveLastSet(1), SharedStateResult(SharedStateStatus.NONE, null))
     }
 }

@@ -38,6 +38,16 @@ public abstract class ExtensionApi {
 	 */
 	public abstract boolean dispatch(final Event event);
 
+	/**
+	 * Starts the `Event` queue for this extension
+	 */
+	public abstract void startEvents();
+
+	/**
+	 * Stops the `Event` queue for this extension
+	 */
+	public abstract void stopEvents();
+
 	// Shared state
 	/**
 	 * Creates a new shared state for this extension.
@@ -53,6 +63,7 @@ public abstract class ExtensionApi {
 	 */
 	public abstract boolean createSharedState(final Map<String, Object> state,
 											  final Event event);
+
 	/**
 	 * Creates a pending shared state for this extension.
 	 * <ul>
@@ -64,6 +75,7 @@ public abstract class ExtensionApi {
 	 * @return {@link SharedStateResolver} that should be called with the shared state data when it is ready
 	 */
 	public abstract SharedStateResolver createPendingSharedState(final Event event);
+
 	/**
 	 * Gets the shared state data for a specified extension.
 	 * @param extensionName extension name for which to retrieve data. See documentation for the list of available states.
@@ -76,15 +88,6 @@ public abstract class ExtensionApi {
 													 final Event event,
 													 final boolean barrier,
 													 final SharedStateResolution resolution);
-
-	/**
-	 * Called by extension to clear all shared state it has previously set. Usually called during {@code Extension.onUnregistered()}.
-	 *
-	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
-	 * @return {@code boolean} indicating if the shared states were successfully cleared
-	 * @see Extension#onUnregistered()
-	 */
-	public abstract boolean clearSharedEventStates(final ExtensionErrorCallback<ExtensionError> errorCallback);
 
 	// XDM Shared state
 	/**
@@ -128,15 +131,6 @@ public abstract class ExtensionApi {
 														final SharedStateResolution resolution);
 
 	/**
-	 * Called by extension to clear XDM shared state it has previously set. Usually called during {@code Extension.onUnregistered()}.
-	 *
-	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
-	 * @return {@code boolean} indicating if the shared states were successfully cleared
-	 * @see Extension#onUnregistered()
-	 */
-	public abstract boolean clearXDMSharedEventStates(final ExtensionErrorCallback<ExtensionError> errorCallback);
-
-	/**
 	 * Unregisters current extension.
 	 * <br/>
 	 * This method executes asynchronously, unregistering the extension on the event hub thread. {@link Extension#onUnregistered}
@@ -145,17 +139,6 @@ public abstract class ExtensionApi {
 	 * @see Extension#onUnregistered()
 	 */
 	public abstract void unregisterExtension();
-
-	/**
-	 * Starts the `Event` queue for this extension
-	 */
-	public abstract void startEvents();
-
-	/**
-	 * Stops the `Event` queue for this extension
-	 */
-	public abstract void stopEvents();
-
 
 	// Deprecated Methods
 	/**
@@ -265,4 +248,25 @@ public abstract class ExtensionApi {
 	@Deprecated
 	public abstract Map<String, Object> getXDMSharedEventState(final String stateName, final Event event,
 			final ExtensionErrorCallback<ExtensionError> errorCallback);
+
+	/**
+	 * Called by extension to clear XDM shared state it has previously set. Usually called during {@code Extension.onUnregistered()}.
+	 *
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * @return {@code boolean} indicating if the shared states were successfully cleared
+	 * @see Extension#onUnregistered()
+	 */
+	@Deprecated
+	public abstract boolean clearXDMSharedEventStates(final ExtensionErrorCallback<ExtensionError> errorCallback);
+
+	/**
+	 * Called by extension to clear all shared state it has previously set. Usually called during {@code Extension.onUnregistered()}.
+	 *
+	 * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred
+	 * @return {@code boolean} indicating if the shared states were successfully cleared
+	 * @see Extension#onUnregistered()
+	 */
+	@Deprecated
+	public abstract boolean clearSharedEventStates(final ExtensionErrorCallback<ExtensionError> errorCallback);
+
 }

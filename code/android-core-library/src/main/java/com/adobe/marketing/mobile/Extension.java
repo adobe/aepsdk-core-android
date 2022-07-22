@@ -55,7 +55,7 @@ public abstract class Extension {
 
 	/**
 	 * Called when the extension is registered by the core.
-	 * Implementers can implement this method to clean up resources when the extension is released.
+	 * Implementers can implement this method to setup event listeners and shared states.
 	 */
 	protected void onRegistered() {
 		Log.debug(getLogTag(), "Extension registered successfully.");

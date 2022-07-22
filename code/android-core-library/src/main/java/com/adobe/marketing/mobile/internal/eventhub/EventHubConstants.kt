@@ -30,4 +30,24 @@ internal object EventHubConstants {
             const val EVENT_STATE_OWNER = "stateowner"
         }
     }
+
+    object Wrapper {
+        object Name {
+            const val REACT_NATIVE = "React Native"
+            const val FLUTTER = "Flutter"
+            const val CORDOVA = "Cordova"
+            const val UNITY = " Unity"
+            const val XAMARIN = "Xamarin"
+            const val NONE = "None"
+        }
+
+        object Type {
+            const val REACT_NATIVE = "R"
+            const val FLUTTER = "F"
+            const val CORDOVA = "C"
+            const val UNITY = "U"
+            const val XAMARIN = "X"
+            const val NONE = "N"
+        }
+    }
 }

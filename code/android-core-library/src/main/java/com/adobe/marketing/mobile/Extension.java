@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import java.util.Map;
+
 /**
  * Abstract class that defines an {@code Extension}
  *
@@ -50,6 +52,15 @@ public abstract class Extension {
 	 * @return the extension version as a {@link String}
 	 */
 	protected String getVersion() {
+		return null;
+	}
+
+	/**
+	 * Optional metadata provided for use by the event hub for logging.
+	 *
+	 * @return the extension metadata as a {@link Map<String, String}
+	 */
+	protected Map<String, String> getMetadata() {
 		return null;
 	}
 

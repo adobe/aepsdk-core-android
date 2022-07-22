@@ -56,6 +56,12 @@ internal val Extension.extensionFriendlyName: String?
     get() = ExtensionHelper.getFriendlyName(this)
 
 /**
+ * Property to get Extension metadata
+ */
+internal val Extension.extensionMetadata: Map<String, String>?
+    get() = ExtensionHelper.getMetadata(this)
+
+/**
  * Function to notify that the Extension has been unregistered
  */
 internal fun Extension.onExtensionUnregistered() {

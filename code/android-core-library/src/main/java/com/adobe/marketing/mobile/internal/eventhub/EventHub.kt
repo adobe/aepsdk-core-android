@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
-import androidx.annotation.NonNull
 import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.AdobeError
@@ -25,6 +24,7 @@ import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.WrapperType
 import com.adobe.marketing.mobile.internal.utility.prettify
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import com.adobe.marketing.mobile.utils.EventDataUtils
@@ -112,6 +112,27 @@ internal class EventHub {
         registerExtension(EventHubPlaceholderExtension::class.java) {}
     }
 
+    private var _wrapperType = WrapperType.NONE
+    var wrapperType: WrapperType
+        get() {
+            return eventHubExecutor.submit(
+                Callable {
+                    return@Callable _wrapperType
+                }
+            ).get()
+        }
+        set(value) {
+            eventHubExecutor.submit(
+                Callable {
+                    if (hubStarted) {
+                        MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Wrapper type can not be set after EventHub starts processing events")
+                        return@Callable
+                    }
+
+                    _wrapperType = value
+                }
+            ).get()
+        }
     /**
      * `EventHub` will begin processing `Event`s when this API is invoked.
      */
@@ -131,31 +152,37 @@ internal class EventHub {
      *
      * @param event the [Event] to be dispatched to listeners
      */
-    fun dispatch(@NonNull event: Event) {
+    fun dispatch(event: Event) {
         eventHubExecutor.submit {
-            // Assign the next available event number to the event.
-            val eventNumber = lastEventNumber.incrementAndGet()
-            eventNumberMap[event.uniqueIdentifier] = eventNumber
-
-            // Offer event to the serial dispatcher to perform operations on the event.
-            if (!eventDispatcher.offer(event)) {
-                MobileCore.log(
-                    LoggingMode.WARNING,
-                    LOG_TAG,
-                    "Failed to dispatch event #$eventNumber - ($event)"
-                )
-            }
-
-            if (MobileCore.getLogLevel() == LoggingMode.VERBOSE) {
-                MobileCore.log(
-                    LoggingMode.VERBOSE,
-                    LOG_TAG,
-                    "Dispatched Event #$eventNumber - ($event)"
-                )
-            }
-
-            // TODO: Record event to event history database if required.
+            dispatchInternal(event)
         }
+    }
+
+    /**
+     * Internal method to dispatch an event
+     */
+    private fun dispatchInternal(event: Event) {
+        val eventNumber = lastEventNumber.incrementAndGet()
+        eventNumberMap[event.uniqueIdentifier] = eventNumber
+
+        // Offer event to the serial dispatcher to perform operations on the event.
+        if (!eventDispatcher.offer(event)) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                "Failed to dispatch event #$eventNumber - ($event)"
+            )
+        }
+
+        if (MobileCore.getLogLevel() == LoggingMode.VERBOSE) {
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                LOG_TAG,
+                "Dispatched Event #$eventNumber - ($event)"
+            )
+        }
+
+        // TODO: Record event to event history database if required.
     }
 
     /**
@@ -274,35 +301,47 @@ internal class EventHub {
         }
 
         val callable = Callable {
-            val sharedStateManager = getSharedStateManager(sharedStateType, extensionName)
-            sharedStateManager ?: run {
-                MobileCore.log(
-                    LoggingMode.WARNING,
-                    LOG_TAG,
-                    "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
-                )
-                return@Callable false
-            }
-
-            val version = resolveSharedStateVersion(sharedStateManager, event)
-            val didSet = sharedStateManager.setState(version, immutableState)
-            if (!didSet) {
-                MobileCore.log(
-                    LoggingMode.WARNING,
-                    LOG_TAG,
-                    "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
-                )
-            }
-
-            dispatchSharedStateEvent(sharedStateType, extensionName)
-            MobileCore.log(
-                LoggingMode.DEBUG,
-                LOG_TAG,
-                "Created $sharedStateType shared state for extension $extensionName with version $version and data ${immutableState?.prettify()}"
-            )
-            return@Callable didSet
+            return@Callable createSharedStateInternal(sharedStateType, extensionName, immutableState, event)
         }
         return eventHubExecutor.submit(callable).get()
+    }
+
+    /**
+     * Internal method to creates a new shared state for the extension with provided data, versioned at [Event]
+     */
+    private fun createSharedStateInternal(
+        sharedStateType: SharedStateType,
+        extensionName: String,
+        state: MutableMap<String, Any?>?,
+        event: Event?,
+    ): Boolean {
+        val sharedStateManager = getSharedStateManager(sharedStateType, extensionName)
+        sharedStateManager ?: run {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
+            )
+            return false
+        }
+
+        val version = resolveSharedStateVersion(sharedStateManager, event)
+        val didSet = sharedStateManager.setState(version, state)
+        if (!didSet) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
+            )
+        }
+
+        dispatchSharedStateEvent(sharedStateType, extensionName)
+        MobileCore.log(
+            LoggingMode.DEBUG,
+            LOG_TAG,
+            "Created $sharedStateType shared state for extension $extensionName with version $version and data ${state?.prettify()}"
+        )
+        return didSet
     }
 
     /**
@@ -604,12 +643,40 @@ internal class EventHub {
 
         val event = Event.Builder(eventName, EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE)
             .setEventData(data).build()
-        dispatch(event)
+        dispatchInternal(event)
     }
 
     private fun shareEventHubSharedState() {
         if (!hubStarted) return
-        // Update shared state with registered extensions
+
+        val extensionsInfo = mutableMapOf<String, Any?>()
+        registeredExtensions.values.forEach {
+            val extensionName = it.sharedStateName
+            if (extensionName != null && extensionName != EventHubConstants.NAME) {
+                val extensionInfo = mutableMapOf<String, Any?>(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to it.friendlyName,
+                    EventHubConstants.EventDataKeys.VERSION to it.version
+                )
+                it.metadata?.let {
+                    extensionInfo[EventHubConstants.EventDataKeys.METADATA] = it
+                }
+
+                extensionsInfo[extensionName] = extensionInfo
+            }
+        }
+
+        val wrapperInfo = mapOf(
+            EventHubConstants.EventDataKeys.TYPE to _wrapperType.wrapperTag,
+            EventHubConstants.EventDataKeys.FRIENDLY_NAME to _wrapperType.friendlyName
+        )
+
+        val data = mapOf(
+            EventHubConstants.EventDataKeys.VERSION to EventHubConstants.VERSION_NUMBER,
+            EventHubConstants.EventDataKeys.WRAPPER to wrapperInfo,
+            EventHubConstants.EventDataKeys.EXTENSIONS to extensionsInfo
+        )
+
+        createSharedStateInternal(SharedStateType.STANDARD, EventHubConstants.NAME, EventDataUtils.clone(data), null)
     }
 }
 

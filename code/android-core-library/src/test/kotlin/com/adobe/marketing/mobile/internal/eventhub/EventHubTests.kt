@@ -18,9 +18,12 @@ import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.WrapperType
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -70,21 +73,46 @@ private object MockExtensions {
 
 class TestExtension(api: ExtensionApi) : Extension(api) {
     companion object {
-        const val version = "0.1"
-        const val extensionName = "TestExtension"
-        const val friendlyExtensionName = "FriendlyTestExtension"
+        const val VERSION = "0.1"
+        const val EXTENSION_NAME = "TestExtension"
+        const val FRIENDLY_NAME = "FriendlyTestExtension"
     }
 
     override fun getName(): String {
-        return TestExtension.extensionName
+        return EXTENSION_NAME
     }
 
     override fun getFriendlyName(): String {
-        return friendlyExtensionName
+        return FRIENDLY_NAME
     }
 
     override fun getVersion(): String {
-        return TestExtension.version
+        return VERSION
+    }
+}
+
+class TestExtension2(api: ExtensionApi) : Extension(api) {
+    companion object {
+        const val VERSION = "0.2"
+        const val EXTENSION_NAME = "TestExtension2"
+        const val FRIENDLY_NAME = "FriendlyTestExtension2"
+        val METADATA = mutableMapOf("k1" to "v1")
+    }
+
+    override fun getName(): String {
+        return EXTENSION_NAME
+    }
+
+    override fun getFriendlyName(): String {
+        return FRIENDLY_NAME
+    }
+
+    override fun getVersion(): String {
+        return VERSION
+    }
+
+    override fun getMetadata(): MutableMap<String, String> {
+        return METADATA
     }
 }
 
@@ -199,7 +227,7 @@ internal class EventHubTests {
     private fun verifySharedState(type: SharedStateType, event: Event?, ret: SharedStateResult, resolution: SharedStateResolution = SharedStateResolution.ANY, barrier: Boolean = true) {
         val res = eventHub.getSharedState(
             type,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             event,
             barrier,
             resolution
@@ -234,7 +262,7 @@ internal class EventHubTests {
         assertTrue {
             eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                TestExtension.extensionName.toUpperCase(),
+                TestExtension.EXTENSION_NAME.toUpperCase(),
                 stateAtEvent1,
                 event1
             )
@@ -250,7 +278,7 @@ internal class EventHubTests {
         assertTrue {
             eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                TestExtension.extensionName,
+                TestExtension.EXTENSION_NAME,
                 stateAtEvent1,
                 event1
             )
@@ -259,7 +287,7 @@ internal class EventHubTests {
         assertFalse {
             eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                TestExtension.extensionName,
+                TestExtension.EXTENSION_NAME,
                 stateAtEvent1,
                 event1
             )
@@ -275,7 +303,7 @@ internal class EventHubTests {
         assertTrue {
             eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                TestExtension.extensionName.toUpperCase(),
+                TestExtension.EXTENSION_NAME.toUpperCase(),
                 stateAtEvent1,
                 event1
             )
@@ -292,7 +320,7 @@ internal class EventHubTests {
             assertEquals(
                 it.eventData,
                 mapOf(
-                    EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.extensionName
+                    EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.EXTENSION_NAME
                 )
             )
             latch.countDown()
@@ -303,7 +331,7 @@ internal class EventHubTests {
         eventHub.dispatch(event1)
         eventHub.createSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             stateAtEvent1,
             event1
         )
@@ -322,7 +350,7 @@ internal class EventHubTests {
             assertEquals(
                 it.eventData,
                 mapOf(
-                    EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.extensionName
+                    EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.EXTENSION_NAME
                 )
             )
             latch.countDown()
@@ -333,7 +361,7 @@ internal class EventHubTests {
         eventHub.dispatch(event1)
         eventHub.createSharedState(
             SharedStateType.XDM,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             stateAtEvent1,
             event1
         )
@@ -349,7 +377,7 @@ internal class EventHubTests {
         eventHub.dispatch(event1)
         eventHub.createSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             stateAtEvent1,
             event1
         )
@@ -375,14 +403,14 @@ internal class EventHubTests {
         eventHub.dispatch(event1)
         eventHub.createSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             stateAtEvent1,
             event1
         )
 
         val res = eventHub.getSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName.toUpperCase(),
+            TestExtension.EXTENSION_NAME.toUpperCase(),
             event1,
             true,
             SharedStateResolution.ANY
@@ -398,7 +426,7 @@ internal class EventHubTests {
         eventHub.dispatch(event1)
         eventHub.createPendingSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             event1
         )
 
@@ -423,7 +451,7 @@ internal class EventHubTests {
         eventHub.dispatch(event1)
         val resolver = eventHub.createPendingSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             event1
         )
 
@@ -468,7 +496,7 @@ internal class EventHubTests {
         val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
         eventHub.createSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             stateAtEvent1,
             event1
         )
@@ -477,7 +505,7 @@ internal class EventHubTests {
         val stateAtEvent2: MutableMap<String, Any?> = mutableMapOf("Two" to 2)
         val resolverEvent2 = eventHub.createPendingSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             event2
         )
 
@@ -485,7 +513,7 @@ internal class EventHubTests {
         val stateAtEvent3: MutableMap<String, Any?> = mutableMapOf("Three" to 3)
         eventHub.createSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             stateAtEvent3,
             event3
         )
@@ -567,7 +595,7 @@ internal class EventHubTests {
         val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
         eventHub.createSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             state1,
             null
         )
@@ -590,7 +618,7 @@ internal class EventHubTests {
         val state2: MutableMap<String, Any?> = mutableMapOf("Two" to 2)
         eventHub.createSharedState(
             SharedStateType.STANDARD,
-            TestExtension.extensionName,
+            TestExtension.EXTENSION_NAME,
             state2,
             null
         )
@@ -636,6 +664,189 @@ internal class EventHubTests {
             resolution = SharedStateResolution.LAST_SET
         )
     }
+
+    // / ExtensionInfo shared state tests
+    /*
+     Expected format:
+     {
+       "version" : "0.0.1",
+       "wrapper" : {
+         "type" : "F",
+         "friendlyName" : "Flutter"
+       }
+       "extensions" : {
+         "mockExtension" : {
+           "version" : "0.0.1"
+         },
+         "mockExtensionTwo" : {
+           "version" : "0.0.1"
+         }
+       }
+     }
+     */
+    @Test
+    fun testEventHubRegisteredExtensionSharesState() {
+        val latch = CountDownLatch(1)
+
+        val capturedEvents = mutableListOf<Event>()
+        eventHub.getExtensionContainer(EventHubPlaceholderExtension::class.java)?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+
+        eventHub.wrapperType = WrapperType.FLUTTER
+        registerExtension(TestExtension2::class.java)
+        eventHub.start()
+        latch.await(250, TimeUnit.MILLISECONDS)
+
+        assertEquals(EventHubConstants.STATE_CHANGE, capturedEvents[0]?.name)
+        assertEquals(
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
+            ),
+            capturedEvents[0]?.eventData
+        )
+
+        val expectedData = mapOf(
+            EventHubConstants.EventDataKeys.VERSION to EventHubConstants.VERSION_NUMBER,
+            EventHubConstants.EventDataKeys.WRAPPER to mapOf(
+                EventHubConstants.EventDataKeys.TYPE to WrapperType.FLUTTER.wrapperTag,
+                EventHubConstants.EventDataKeys.FRIENDLY_NAME to WrapperType.FLUTTER.friendlyName
+            ),
+            EventHubConstants.EventDataKeys.EXTENSIONS to mapOf(
+                TestExtension.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension.VERSION
+                ),
+                TestExtension2.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension2.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension2.VERSION,
+                    EventHubConstants.EventDataKeys.METADATA to TestExtension2.METADATA,
+                )
+            )
+        )
+        val sharedStateResult = eventHub.getSharedState(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            null,
+            false,
+            SharedStateResolution.ANY
+        )
+
+        assertEquals(expectedData, sharedStateResult?.value)
+    }
+
+    @Test
+    fun testEventHubRegisterAndUnregisterExtensionSharesState() {
+        MobileCore.setLogLevel(LoggingMode.VERBOSE)
+        val latch = CountDownLatch(2)
+
+        val capturedEvents = mutableListOf<Event>()
+        eventHub.getExtensionContainer(EventHubPlaceholderExtension::class.java)?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+
+        eventHub.wrapperType = WrapperType.FLUTTER
+        registerExtension(TestExtension2::class.java)
+        eventHub.start()
+        unregisterExtension(TestExtension2::class.java)
+
+        latch.await(250, TimeUnit.MILLISECONDS)
+
+        // Shared state published after start
+        assertEquals(capturedEvents[0]?.name, EventHubConstants.STATE_CHANGE)
+        assertEquals(
+            capturedEvents[0]?.eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
+            )
+        )
+        val expectedData1 = mapOf(
+            EventHubConstants.EventDataKeys.VERSION to EventHubConstants.VERSION_NUMBER,
+            EventHubConstants.EventDataKeys.WRAPPER to mapOf(
+                EventHubConstants.EventDataKeys.TYPE to WrapperType.FLUTTER.wrapperTag,
+                EventHubConstants.EventDataKeys.FRIENDLY_NAME to WrapperType.FLUTTER.friendlyName
+            ),
+            EventHubConstants.EventDataKeys.EXTENSIONS to mapOf(
+                TestExtension.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension.VERSION
+                ),
+                TestExtension2.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension2.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension2.VERSION,
+                    EventHubConstants.EventDataKeys.METADATA to TestExtension2.METADATA,
+                )
+            )
+        )
+        val sharedStateResult1 = eventHub.getSharedState(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            capturedEvents[0],
+            false,
+            SharedStateResolution.ANY
+        )
+        assertEquals(expectedData1, sharedStateResult1?.value)
+
+        // Shared state published after unregister
+        assertEquals(EventHubConstants.STATE_CHANGE, capturedEvents[1]?.name)
+        assertEquals(
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
+            ),
+            capturedEvents[1]?.eventData
+        )
+
+        val expectedData2 = mapOf(
+            EventHubConstants.EventDataKeys.VERSION to EventHubConstants.VERSION_NUMBER,
+            EventHubConstants.EventDataKeys.WRAPPER to mapOf(
+                EventHubConstants.EventDataKeys.TYPE to WrapperType.FLUTTER.wrapperTag,
+                EventHubConstants.EventDataKeys.FRIENDLY_NAME to WrapperType.FLUTTER.friendlyName
+            ),
+            EventHubConstants.EventDataKeys.EXTENSIONS to mapOf(
+                TestExtension.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension.VERSION
+                )
+            )
+        )
+        val sharedStateResult2 = eventHub.getSharedState(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            capturedEvents[1],
+            false,
+            SharedStateResolution.ANY
+        )
+        assertEquals(expectedData2, sharedStateResult2?.value)
+    }
+//        // setup
+//        let sharedStateExpectation = XCTestExpectation(description: "Shared state should be shared by event hub once")
+//        sharedStateExpectation.expectedFulfillmentCount = 2
+//        sharedStateExpectation.assertForOverFulfill = true
+//
+//        eventHub.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.hub, source: EventSource.sharedState) { event in
+//                if event.data?[EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER] as? String == EventHubConstants.NAME { sharedStateExpectation.fulfill() }
+//        }
+//
+//        // test
+//        registerMockExtension(MockExtensionTwo.self)
+//        eventHub.start()
+//        eventHub.unregisterExtension(MockExtensionTwo.self, completion: { (_) in })
+//
+//        // verify
+//        wait(for: [sharedStateExpectation], timeout: 1)
+//        let sharedState = eventHub.getSharedState(extensionName: EventHubConstants.NAME, event: nil)!.value
+//
+//        let mockExtension = MockExtension(runtime: TestableExtensionRuntime())
+//
+//        let coreVersion = sharedState?[EventHubConstants.EventDataKeys.VERSION] as! String
+//                let registeredExtensions = sharedState?[EventHubConstants.EventDataKeys.EXTENSIONS] as? [String: Any]
+//        let mockDetails = registeredExtensions?[mockExtension.name] as? [String: String]
+//
+//        XCTAssertEqual(ConfigurationConstants.EXTENSION_VERSION, coreVersion) // should contain {version: coreVersion}
+//        XCTAssertEqual(MockExtension.extensionVersion, mockDetails?[EventHubConstants.EventDataKeys.VERSION])
+//    }
 
     // Event listener tests
     @Test
@@ -991,5 +1202,52 @@ internal class EventHubTests {
         assertTrue {
             latch.await(500, TimeUnit.MILLISECONDS)
         }
+    }
+
+    // WrapperType Tests
+    @Test
+    fun testDefaultWrapperType() {
+        assertEquals(
+            eventHub.wrapperType, WrapperType.NONE
+        )
+    }
+
+    @Test
+    fun testUpdateWrapperTypeBeforeStart() {
+        eventHub.wrapperType = WrapperType.FLUTTER
+        assertEquals(
+            eventHub.wrapperType, WrapperType.FLUTTER
+        )
+
+        eventHub.wrapperType = WrapperType.REACT_NATIVE
+        assertEquals(
+            eventHub.wrapperType, WrapperType.REACT_NATIVE
+        )
+
+        eventHub.wrapperType = WrapperType.CORDOVA
+        assertEquals(
+            eventHub.wrapperType, WrapperType.CORDOVA
+        )
+    }
+
+    @Test
+    fun testUpdateWrapperTypeAfterStart() {
+        eventHub.wrapperType = WrapperType.FLUTTER
+        assertEquals(
+            eventHub.wrapperType, WrapperType.FLUTTER
+        )
+
+        eventHub.start()
+
+        // Updates to wrapper type fail after start() call
+        eventHub.wrapperType = WrapperType.REACT_NATIVE
+        assertEquals(
+            eventHub.wrapperType, WrapperType.FLUTTER
+        )
+
+        eventHub.wrapperType = WrapperType.CORDOVA
+        assertEquals(
+            eventHub.wrapperType, WrapperType.FLUTTER
+        )
     }
 }

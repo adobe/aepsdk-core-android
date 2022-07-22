@@ -48,6 +48,9 @@ internal class ExtensionContainer constructor(
     var version: String? = null
         private set
 
+    var metadata: Map<String, String>? = null
+        private set
+
     var lastProcessedEvent: Event? = null
         private set
 
@@ -95,6 +98,8 @@ internal class ExtensionContainer constructor(
             sharedStateName = extensionName
             friendlyName = extension.extensionFriendlyName
             version = extension.extensionVersion
+            metadata = extension.extensionMetadata
+
             sharedStateManagers = mapOf(
                 SharedStateType.XDM to SharedStateManager(extensionName),
                 SharedStateType.STANDARD to SharedStateManager(extensionName)

@@ -110,11 +110,14 @@ internal class ExtensionContainer constructor(
                 SharedStateType.XDM to SharedStateManager(extensionName),
                 SharedStateType.STANDARD to SharedStateManager(extensionName)
             )
-            eventProcessor.start()
+
             callback(EventHubError.None)
 
             // Notify that the extension is registered
             extension.onExtensionRegistered()
+
+            // Start event processor now as extensions can add event listeners onRegistered() callback
+            eventProcessor.start()
         }
     }
 

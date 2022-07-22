@@ -35,7 +35,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-private object MockExtensions {
+object MockExtensions {
     class MockExtensionInvalidConstructor(api: ExtensionApi, name: String?) : Extension(api) {
         override fun getName(): String {
             return MockExtensionInvalidConstructor::javaClass.name
@@ -71,53 +71,54 @@ private object MockExtensions {
     }
 }
 
-class TestExtension(api: ExtensionApi) : Extension(api) {
-    companion object {
-        const val VERSION = "0.1"
-        const val EXTENSION_NAME = "TestExtension"
-        const val FRIENDLY_NAME = "FriendlyTestExtension"
-    }
-
-    override fun getName(): String {
-        return EXTENSION_NAME
-    }
-
-    override fun getFriendlyName(): String {
-        return FRIENDLY_NAME
-    }
-
-    override fun getVersion(): String {
-        return VERSION
-    }
-}
-
-class TestExtension2(api: ExtensionApi) : Extension(api) {
-    companion object {
-        const val VERSION = "0.2"
-        const val EXTENSION_NAME = "TestExtension2"
-        const val FRIENDLY_NAME = "FriendlyTestExtension2"
-        val METADATA = mutableMapOf("k1" to "v1")
-    }
-
-    override fun getName(): String {
-        return EXTENSION_NAME
-    }
-
-    override fun getFriendlyName(): String {
-        return FRIENDLY_NAME
-    }
-
-    override fun getVersion(): String {
-        return VERSION
-    }
-
-    override fun getMetadata(): MutableMap<String, String> {
-        return METADATA
-    }
-}
-
 @RunWith(PowerMockRunner::class)
 internal class EventHubTests {
+
+    private class TestExtension(api: ExtensionApi) : Extension(api) {
+        companion object {
+            const val VERSION = "0.1"
+            const val EXTENSION_NAME = "TestExtension"
+            const val FRIENDLY_NAME = "FriendlyTestExtension"
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
+        }
+
+        override fun getFriendlyName(): String {
+            return FRIENDLY_NAME
+        }
+
+        override fun getVersion(): String {
+            return VERSION
+        }
+    }
+
+    private class TestExtension2(api: ExtensionApi) : Extension(api) {
+        companion object {
+            const val VERSION = "0.2"
+            const val EXTENSION_NAME = "TestExtension2"
+            const val FRIENDLY_NAME = "FriendlyTestExtension2"
+            val METADATA = mutableMapOf("k1" to "v1")
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
+        }
+
+        override fun getFriendlyName(): String {
+            return FRIENDLY_NAME
+        }
+
+        override fun getVersion(): String {
+            return VERSION
+        }
+
+        override fun getMetadata(): MutableMap<String, String> {
+            return METADATA
+        }
+    }
+
     private lateinit var eventHub: EventHub
     private val eventType = "Type"
     private val eventSource = "Source"
@@ -663,6 +664,46 @@ internal class EventHubTests {
             SharedStateResult(SharedStateStatus.SET, state2),
             resolution = SharedStateResolution.LAST_SET
         )
+    }
+
+    @Test
+    fun testGetSharedState_AfterSettingInvalidState() {
+        class CustomClass
+        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to CustomClass())
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        assertTrue {
+            eventHub.createSharedState(
+                SharedStateType.STANDARD,
+                TestExtension.EXTENSION_NAME,
+                stateAtEvent1,
+                event1
+            )
+        }
+
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+    }
+
+    @Test
+    fun testGetSharedState_AfterResolvingWithInvalidState() {
+        class CustomClass
+        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to CustomClass())
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+
+        val resolver = eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            event1
+        )
+
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.PENDING, null))
+
+        resolver?.resolve(stateAtEvent1)
+
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
     }
 
     // / ExtensionInfo shared state tests

@@ -19,7 +19,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-internal class SharedStateManagerTest {
+internal class SharedStateManagerTests {
 
     private var sharedStateManager: SharedStateManager = SharedStateManager("SampleStateName")
 

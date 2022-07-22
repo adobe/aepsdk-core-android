@@ -225,7 +225,7 @@ internal class EventHubTests {
     }
 
     // Shared state tests
-    private fun verifySharedState(type: SharedStateType, event: Event?, ret: SharedStateResult, resolution: SharedStateResolution = SharedStateResolution.ANY, barrier: Boolean = true) {
+    private fun verifySharedState(type: SharedStateType, event: Event?, ret: SharedStateResult, resolution: SharedStateResolution = SharedStateResolution.ANY, barrier: Boolean = false) {
         val res = eventHub.getSharedState(
             type,
             TestExtension.EXTENSION_NAME,
@@ -313,17 +313,12 @@ internal class EventHubTests {
 
     @Test
     fun testCreateSharedState_DispatchEvent() {
-        val latch = CountDownLatch(1)
+        val latch = CountDownLatch(2)
 
+        val capturedEvents = mutableListOf<Event>()
         val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
         extensionContainer?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
-            assertEquals(it.name, EventHubConstants.STATE_CHANGE)
-            assertEquals(
-                it.eventData,
-                mapOf(
-                    EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.EXTENSION_NAME
-                )
-            )
+            capturedEvents.add(it)
             latch.countDown()
         }
 
@@ -339,21 +334,32 @@ internal class EventHubTests {
         assertTrue {
             latch.await(250, TimeUnit.MILLISECONDS)
         }
+
+        assertEquals(capturedEvents[0].name, EventHubConstants.STATE_CHANGE)
+        assertEquals(
+            capturedEvents[0].eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
+            )
+        )
+
+        assertEquals(capturedEvents[1].name, EventHubConstants.STATE_CHANGE)
+        assertEquals(
+            capturedEvents[1].eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.EXTENSION_NAME
+            )
+        )
     }
 
     @Test
     fun testCreateXDMSharedState_DispatchEvent() {
         val latch = CountDownLatch(1)
 
+        val capturedEvents = mutableListOf<Event>()
         val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
         extensionContainer?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
-            assertEquals(it.name, EventHubConstants.XDM_STATE_CHANGE)
-            assertEquals(
-                it.eventData,
-                mapOf(
-                    EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.EXTENSION_NAME
-                )
-            )
+            capturedEvents.add(it)
             latch.countDown()
         }
 
@@ -369,6 +375,22 @@ internal class EventHubTests {
         assertTrue {
             latch.await(250, TimeUnit.MILLISECONDS)
         }
+
+        assertEquals(capturedEvents[0].name, EventHubConstants.STATE_CHANGE)
+        assertEquals(
+            capturedEvents[0].eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
+            )
+        )
+
+        assertEquals(capturedEvents[1].name, EventHubConstants.XDM_STATE_CHANGE)
+        assertEquals(
+            capturedEvents[1].eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.EXTENSION_NAME
+            )
+        )
     }
 
     @Test
@@ -413,7 +435,7 @@ internal class EventHubTests {
             SharedStateType.STANDARD,
             TestExtension.EXTENSION_NAME.toUpperCase(),
             event1,
-            true,
+            false,
             SharedStateResolution.ANY
         )
 
@@ -1096,7 +1118,7 @@ internal class EventHubTests {
 
     @Test
     fun testRegisterListener_WildcardEvents() {
-        val latch = CountDownLatch(2)
+        val latch = CountDownLatch(3)
         val capturedEvents = mutableListOf<Event>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
@@ -1112,7 +1134,13 @@ internal class EventHubTests {
         assertTrue {
             latch.await(250, TimeUnit.MILLISECONDS)
         }
-        assertEquals(capturedEvents, listOf<Event>(testEvent, testResponseEvent))
+
+        // EventHub shared state event is dispatched first.
+        assertEquals(capturedEvents[0].name, EventHubConstants.STATE_CHANGE)
+        assertEquals(capturedEvents[0].eventData, mapOf(EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME))
+
+        assertEquals(capturedEvents[1], testEvent)
+        assertEquals(capturedEvents[2], testResponseEvent)
     }
 
     @Test

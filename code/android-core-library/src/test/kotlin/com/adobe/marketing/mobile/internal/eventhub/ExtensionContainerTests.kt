@@ -354,9 +354,13 @@ internal class ExtensionContainerTests {
         Thread.sleep(100)
         assertEquals(mutableListOf(event1, event2), capturedEvents)
 
+        container?.stopEvents()
+        Thread.sleep(100)
+
         val event3: Event = Event.Builder("Event1", "eventtype", "eventsource").build()
         container?.eventProcessor?.offer(event3)
         Thread.sleep(100)
+
         assertEquals(mutableListOf(event1, event2), capturedEvents)
     }
 

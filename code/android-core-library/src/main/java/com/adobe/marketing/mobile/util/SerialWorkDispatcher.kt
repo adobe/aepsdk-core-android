@@ -37,12 +37,13 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     /**
      * Represents the state of the [SerialWorkDispatcher].
      */
+
     enum class State {
         /**
-         * Indicates that the dispatcher is not yet started.
-         * New work will be accepted and executed when started.
+         * Indicates that the dispatcher has not yet started.
+         * New work will be accepted but not executed until started.
          */
-        NOT_STARTED,
+        NOT_RUNNING,
 
         /**
          * Indicates that the dispatcher has been started and work will
@@ -98,7 +99,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      * dispatcher maintains.
      */
     @Volatile
-    private var state: State = State.NOT_STARTED
+    private var state: State = State.NOT_RUNNING
 
     /**
      * Used for guarding the "activeness" logic.
@@ -119,12 +120,12 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
         synchronized(activenessMutex) {
             if (state == State.SHUTDOWN) return false
             workQueue.offer(item)
-        }
 
-        if (state != State.SHUTDOWN) {
-            // resume the processing the work items in the queue if necessary
-            resume()
-            return true
+            if (state != State.SHUTDOWN) {
+                // resume the processing the work items in the queue if necessary
+                resume()
+                return true
+            }
         }
 
         return false
@@ -165,6 +166,30 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
 
             prepare()
             resume()
+            return true
+        }
+    }
+
+    /**
+     * Puts the [SerialWorkDispatcher] in not started state and stops processing the {@link #workQueue}
+     * if active.
+     *
+     * @return true - if [SerialWorkDispatcher] was successfully stopped,
+     *         false - if it is already stopped or was shutdown
+     * @throws IllegalStateException when attempting to start a dispatcher after being shutdown
+     */
+    fun stop(): Boolean {
+        synchronized(activenessMutex) {
+            if (state == State.NOT_RUNNING) {
+                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) is not active.")
+                return false
+            }
+
+            if (state == State.SHUTDOWN) {
+                throw IllegalStateException("Cannot start SerialWorkDispatcher ($name). Already shutdown.")
+            }
+
+            state = State.NOT_RUNNING
             return true
         }
     }

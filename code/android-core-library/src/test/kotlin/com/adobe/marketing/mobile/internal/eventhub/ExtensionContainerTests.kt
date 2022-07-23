@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionError
@@ -336,5 +338,46 @@ internal class ExtensionContainerTests {
         container?.shutdown()
         Thread.sleep(100)
         assertTrue { (container?.extension as TestExtension)?.unregisterCalled ?: false }
+    }
+
+    @Test
+    fun testStopEvents_shouldStopProcessingEvents() {
+        var capturedEvents = mutableListOf<Event>()
+        container?.registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+            capturedEvents.add(it)
+        }
+
+        val event1: Event = Event.Builder("Event1", "eventtype", "eventsource").build()
+        val event2: Event = Event.Builder("Event1", "eventtype", "eventsource").build()
+        container?.eventProcessor?.offer(event1)
+        container?.eventProcessor?.offer(event2)
+        Thread.sleep(100)
+        assertEquals(mutableListOf(event1, event2), capturedEvents)
+
+        val event3: Event = Event.Builder("Event1", "eventtype", "eventsource").build()
+        container?.eventProcessor?.offer(event3)
+        Thread.sleep(100)
+        assertEquals(mutableListOf(event1, event2), capturedEvents)
+    }
+
+    @Test
+    fun testStartEvents_shouldResumeProcessingEvents() {
+        var capturedEvents = mutableListOf<Event>()
+        container?.registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+            capturedEvents.add(it)
+        }
+
+        container?.stopEvents()
+
+        val event1: Event = Event.Builder("Event1", "eventtype", "eventsource").build()
+        val event2: Event = Event.Builder("Event1", "eventtype", "eventsource").build()
+        container?.eventProcessor?.offer(event1)
+        container?.eventProcessor?.offer(event2)
+        Thread.sleep(100)
+        assertEquals(mutableListOf(), capturedEvents)
+
+        container?.startEvents()
+        Thread.sleep(100)
+        assertEquals(mutableListOf(event1, event2), capturedEvents)
     }
 }

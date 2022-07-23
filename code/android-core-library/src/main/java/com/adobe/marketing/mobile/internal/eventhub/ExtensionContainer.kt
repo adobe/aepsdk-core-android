@@ -190,11 +190,11 @@ internal class ExtensionContainer constructor(
     }
 
     override fun startEvents() {
-        TODO("Not yet implemented")
+        eventProcessor.start()
     }
 
     override fun stopEvents() {
-        TODO("Not yet implemented")
+        eventProcessor.stop()
     }
 
     override fun createSharedState(

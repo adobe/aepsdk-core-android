@@ -90,11 +90,16 @@ class SerialWorkDispatcherTest {
     }
 
     @Test
-    fun `Dispatcher can only be started once`() {
+    fun `Dispatcher can only be started when not active`() {
         assertTrue(serialWorkDispatcher.start())
-
         assertEquals(SerialWorkDispatcher.State.ACTIVE, serialWorkDispatcher.getState())
+
         assertFalse(serialWorkDispatcher.start())
+
+        serialWorkDispatcher.stop()
+
+        assertTrue(serialWorkDispatcher.start())
+        assertEquals(SerialWorkDispatcher.State.ACTIVE, serialWorkDispatcher.getState())
     }
 
     @Test
@@ -134,7 +139,7 @@ class SerialWorkDispatcherTest {
 
         serialWorkDispatcher.start()
         assertNotNull(serialWorkDispatcher.processedEvents)
-        assertEquals(3, serialWorkDispatcher.processedEvents?.size)
+        assertEquals(listOf(event1, event2, event3), serialWorkDispatcher.processedEvents)
     }
 
     @Test
@@ -188,6 +193,49 @@ class SerialWorkDispatcherTest {
         // verify that all events are processed
         assertNotNull(serialWorkDispatcher.processedEvents)
         assertEquals(3, serialWorkDispatcher.processedEvents?.size)
+    }
+
+    @Test
+    fun `Dispatcher can only be stopped when active`() {
+        serialWorkDispatcher.start()
+
+        assertTrue(serialWorkDispatcher.stop())
+        assertEquals(SerialWorkDispatcher.State.NOT_RUNNING, serialWorkDispatcher.getState())
+    }
+
+    @Test
+    fun `Dispatcher does not stop after shutdown`() {
+        serialWorkDispatcher.shutdown()
+
+        try {
+            serialWorkDispatcher.stop()
+            fail("Dispatcher should not be stoped after shutdown")
+        } catch (exception: IllegalStateException) {
+            // pass.
+        }
+    }
+
+    @Test
+    fun `Work queued when dispatcher is stopped is processed after start`() {
+        val event1: Event = Event.Builder("Event1", "Type", "Source").build()
+        val event2: Event = Event.Builder("Event2", "Type", "Source").build()
+        val event3: Event = Event.Builder("Event3", "Type", "Source").build()
+        serialWorkDispatcher.offer(event1)
+        serialWorkDispatcher.offer(event2)
+        serialWorkDispatcher.offer(event3)
+        assertNull(serialWorkDispatcher.processedEvents)
+
+        serialWorkDispatcher.start()
+        assertNotNull(serialWorkDispatcher.processedEvents)
+        assertEquals(listOf(event1, event2, event3), serialWorkDispatcher.processedEvents)
+
+        serialWorkDispatcher.stop()
+        serialWorkDispatcher.offer(event1)
+        serialWorkDispatcher.offer(event2)
+        serialWorkDispatcher.offer(event3)
+
+        serialWorkDispatcher.start()
+        assertEquals(listOf(event1, event2, event3), serialWorkDispatcher.processedEvents)
     }
 
     @Test

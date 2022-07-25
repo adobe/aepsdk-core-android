@@ -19,6 +19,8 @@ import java.util.TimeZone;
 
 import static org.junit.Assert.*;
 
+import com.adobe.marketing.mobile.utils.TimeUtil;
+
 public class TimeUtilTest {
 	private static final String DATE_REGEX_TIMEZONE_RFC822 =
 		"^((19|2[0-9])[0-9]{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T{1}[0-2][0-9]:[0-5][0-9]:[0-5][0-9][-+][0-9]{4}$";

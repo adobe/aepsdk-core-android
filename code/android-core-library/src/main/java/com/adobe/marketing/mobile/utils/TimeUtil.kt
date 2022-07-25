@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.internal.utility
+package com.adobe.marketing.mobile.utils
 
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -17,7 +17,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-internal object TimeUtil {
+object TimeUtil {
     private const val MILLISECONDS_PER_SECOND = 1000L
     private const val ISO8601_DATE_FORMATTER_TIMEZONE_RFC822 = "yyyy-MM-dd'T'HH:mm:ssZZZ"
     private const val ISO8601_DATE_FORMATTER_TIMEZONE_UTC = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"

@@ -379,6 +379,7 @@ internal class EventHub {
                     LOG_TAG,
                     "Create pending $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
                 )
+                return@Callable null
             }
 
             MobileCore.log(

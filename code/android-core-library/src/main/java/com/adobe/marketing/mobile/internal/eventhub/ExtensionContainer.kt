@@ -355,7 +355,7 @@ internal class ExtensionContainer constructor(
         } else {
             // If pending shared state was set earlier for this event, resolve using stored resolver.
             val resolver = if (event != null) {
-                eventResolverMap.remove(event.uniqueIdentifier) ?: null
+                eventResolverMap.remove(event.uniqueIdentifier)
             } else null
 
             resolver?.let {
@@ -386,7 +386,7 @@ internal class ExtensionContainer constructor(
 
     override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
-            "ExtensionContainer is not fully initialized. clearSharedEventStates should not be called from 'Extension' constructor"
+            MobileCore.log(LoggingMode.ERROR, LOG_TAG, "ExtensionContainer is not fully initialized. clearSharedEventStates should not be called from 'Extension' constructor")
             return false
         }
         return EventHub.shared.clearSharedState(SharedStateType.STANDARD, sharedStateName)
@@ -411,7 +411,7 @@ internal class ExtensionContainer constructor(
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        return registerEventListener(eventType, eventSource, { extensionListener.hear(it) })
+        return registerEventListener(eventType, eventSource) { extensionListener.hear(it) }
     }
 
     override fun <T : ExtensionListener> registerWildcardListener(
@@ -423,6 +423,6 @@ internal class ExtensionContainer constructor(
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        return registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD, { extensionListener.hear(it) })
+        return registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) { extensionListener.hear(it) }
     }
 }

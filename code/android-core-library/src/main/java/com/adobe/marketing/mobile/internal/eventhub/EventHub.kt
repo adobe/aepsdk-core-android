@@ -333,14 +333,15 @@ internal class EventHub {
                 LOG_TAG,
                 "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
             )
+        } else {
+            dispatchSharedStateEvent(sharedStateType, extensionName)
+            MobileCore.log(
+                LoggingMode.DEBUG,
+                LOG_TAG,
+                "Created $sharedStateType shared state for extension $extensionName with version $version and data ${state?.prettify()}"
+            )
         }
 
-        dispatchSharedStateEvent(sharedStateType, extensionName)
-        MobileCore.log(
-            LoggingMode.DEBUG,
-            LOG_TAG,
-            "Created $sharedStateType shared state for extension $extensionName with version $version and data ${state?.prettify()}"
-        )
         return didSet
     }
 

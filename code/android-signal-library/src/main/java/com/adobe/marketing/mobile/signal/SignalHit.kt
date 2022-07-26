@@ -19,7 +19,7 @@ private const val CONTENT_TYPE = "contentType"
 private const val TIME_OUT = "timeout"
 private const val EMPTY_JSON = ""
 
-internal class SignalConsequence(
+internal class SignalHit(
         val url: String,
         val body: String,
         val contentType: String,
@@ -41,14 +41,14 @@ internal class SignalConsequence(
     }
 
     companion object {
-        internal fun from(dataEntity: DataEntity): SignalConsequence {
+        internal fun from(dataEntity: DataEntity): SignalHit {
             val json = dataEntity.data ?: EMPTY_JSON
             val jsonObject = try {
                 JSONObject(json)
             } catch (e: Exception) {
                 JSONObject()
             }
-            return SignalConsequence(
+            return SignalHit(
                     jsonObject.optString(URL),
                     jsonObject.optString(BODY),
                     jsonObject.optString(CONTENT_TYPE),

@@ -15,7 +15,7 @@ import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class SignalConsequenceTests {
+class SignalHitTests {
     @Test
     fun `initialize SignalConsequence from DataEntity`() {
         val json = """
@@ -27,7 +27,7 @@ class SignalConsequenceTests {
             }
         """.trimIndent()
         val dataEntity = DataEntity(json)
-        val signalConsequence = SignalConsequence.from(dataEntity)
+        val signalConsequence = SignalHit.from(dataEntity)
         assertEquals("application/json", signalConsequence.contentType)
         assertEquals("{\"key\":\"value\"}", signalConsequence.body)
         assertEquals("https://www.postback.com", signalConsequence.url)
@@ -36,7 +36,7 @@ class SignalConsequenceTests {
 
     @Test
     fun `initialize DataEntity from SignalConsequence`() {
-        val signalConsequence = SignalConsequence(
+        val signalConsequence = SignalHit(
             "https://www.postback.com",
             "{\"key\":\"value\"}",
             "application/json",
@@ -53,7 +53,7 @@ class SignalConsequenceTests {
 
     @Test
     fun `Return default timeout`() {
-        val signalConsequence = SignalConsequence(
+        val signalConsequence = SignalHit(
             "https://www.postback.com",
             "{\"key\":\"value\"}",
             "application/json",

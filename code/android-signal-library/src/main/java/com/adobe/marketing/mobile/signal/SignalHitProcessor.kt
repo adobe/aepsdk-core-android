@@ -10,15 +10,26 @@
  */
 package com.adobe.marketing.mobile.signal
 
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.services.*
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 internal class SignalHitProcessor : HitProcessing {
+    private val networkService: Networking
 
     companion object {
-        private const val TAG = "SignalHitProcessor"
+        private const val LOG_TAG = "SignalHitProcessor"
         private const val HIT_QUEUE_RETRY_TIME_SECONDS = 30
-        private val networkService = ServiceProvider.getInstance().networkService
+    }
+
+    constructor() {
+        this.networkService = ServiceProvider.getInstance().networkService
+    }
+
+    @VisibleForTesting
+    internal constructor(networkService: Networking) {
+        this.networkService = networkService
     }
 
     override fun retryInterval(entity: DataEntity?): Int {
@@ -26,62 +37,81 @@ internal class SignalHitProcessor : HitProcessing {
     }
 
     override fun processHit(entity: DataEntity?): Boolean {
+        if (entity == null) {
+            Log.warning(LOG_TAG, "Drop this data entity as it is null.")
+            return true
+        }
         val request = buildNetworkRequest(entity) ?: run {
-            // TODO: logs
-            return false
+            Log.warning(
+                LOG_TAG,
+                "Drop this data entity as it's not able to convert it to a valid Signal request: ${entity.data}"
+            )
+            return true
         }
         val countDownLatch = CountDownLatch(1)
         var result = false
         networkService.connectAsync(request) { connection ->
+            if (connection == null) {
+                countDownLatch.countDown()
+                return@connectAsync
+            }
             val responseCode = connection.responseCode
             result = when (responseCode) {
                 in SignalConstants.HTTP_SUCCESS_CODES -> {
-                    // TODO: logs
+                    Log.debug(
+                        LOG_TAG,
+                        "Signal request (${request.url}) successfully sent."
+                    )
                     true
                 }
                 in SignalConstants.RECOVERABLE_ERROR_CODES -> {
-                    // TODO: logs
+                    Log.debug(
+                        LOG_TAG,
+                        "Signal request failed with recoverable error ($result).Will retry sending the request (${request.url}) later."
+                    )
                     false
                 }
                 else -> {
-                    // TODO: logs
-                    false
+                    Log.warning(
+                        LOG_TAG,
+                        "Signal request (${request.url}) failed with unrecoverable error ($result)."
+                    )
+                    true
                 }
             }
             countDownLatch.countDown()
         }
-        countDownLatch.await()
+        countDownLatch.await((request.connectTimeout + 1).toLong(), TimeUnit.SECONDS)
         return result
     }
 
-    private fun buildNetworkRequest(entity: DataEntity?): NetworkRequest? {
-        if (entity == null) {
-            // TODO: logs
-            return null
-        }
-        val signalDataEntity = SignalConsequence.from(entity)
+    private fun buildNetworkRequest(entity: DataEntity): NetworkRequest? {
+        val signalDataEntity = SignalHit.from(entity)
         if (signalDataEntity.url.isEmpty()) {
-            // TODO: logs
+            Log.warning(
+                LOG_TAG,
+                "Failed to build Signal request (URL is null)."
+            )
             return null
         }
         val timeoutRaw = signalDataEntity.timeout(0)
         val timeout = if (timeoutRaw > 0) timeoutRaw else SignalConstants.DEFAULT_NETWORK_TIMEOUT
         val postBody = signalDataEntity.body
         val httpMethod =
-                if (postBody.isEmpty()) HttpMethod.GET else HttpMethod.POST
+            if (postBody.isEmpty()) HttpMethod.GET else HttpMethod.POST
         val contentType = signalDataEntity.contentType
         val header =
-                if (contentType.isEmpty())
-                    emptyMap()
-                else
-                    mapOf(SignalConstants.NETWORK_REQUEST_HEATER_CONTENT_TYPE to contentType)
+            if (contentType.isEmpty())
+                emptyMap()
+            else
+                mapOf(SignalConstants.NETWORK_REQUEST_HEATER_CONTENT_TYPE to contentType)
         return NetworkRequest(
-                signalDataEntity.url,
-                httpMethod,
-                postBody.toByteArray(Charsets.UTF_8),
-                header,
-                timeout,
-                timeout
+            signalDataEntity.url,
+            httpMethod,
+            postBody.toByteArray(Charsets.UTF_8),
+            header,
+            timeout,
+            timeout
         )
     }
 }

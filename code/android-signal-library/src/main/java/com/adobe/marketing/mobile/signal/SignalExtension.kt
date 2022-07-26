@@ -25,7 +25,7 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
 
     init {
         val dataQueue =
-                ServiceProvider.getInstance().dataQueueService.getDataQueue(SignalConstants.EXTENSION_NAME)
+            ServiceProvider.getInstance().dataQueueService.getDataQueue(SignalConstants.EXTENSION_NAME)
         hitQueue = PersistentHitQueue(dataQueue, SignalHitProcessor())
     }
 
@@ -53,14 +53,17 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
     private fun handleConfigurationResponse(event: Event?) {
         if (event == null) return
         val privacyStatus = try {
-            DataReader.getString(
+            MobilePrivacyStatus.valueOf(
+                DataReader.getString(
                     event.eventData,
                     SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
+                )
             )
+
         } catch (e: Exception) {
             MobilePrivacyStatus.UNKNOWN
         }
-        // TODO: call HitQueuing.handlePrivacyChange(status) once the missing method is added to the Android Core(https://github.com/adobe/aepsdk-core-android/issues/121)
+        hitQueue.handlePrivacyChange(privacyStatus)
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             Log.debug(LOG_TAG, "Device has opted-out of tracking. Clearing the Signal queue.")
         }
@@ -81,10 +84,10 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
     override fun readyForEvent(event: Event?): Boolean {
         if (event == null) return false
         return api.getSharedState(
-                SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
-                event,
-                false,
-                SharedStateResolution.LAST_SET
+            SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
+            event,
+            false,
+            SharedStateResolution.LAST_SET
         )?.status == SharedStateStatus.SET
     }
 
@@ -93,46 +96,46 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
             // TODO: logs
             return
         }
-        Log.debug(LOG_TAG, "Opening URL %s.", url)
+        Log.debug(LOG_TAG, "Opening URL $url.")
         ServiceProvider.getInstance().uiService.showUrl(url)
     }
 
     private fun handlePostback(event: Event) {
         val url = event.templateUrl() ?: run {
-            // TODO: logs
+            Log.warning(LOG_TAG, "Rule consequence Event for Signal doesn't contain url.")
             return
         }
         if (event.isCollectPii() && !url.startsWith("https")) {
-            Log.warning(LOG_TAG, "Dropping collect pii call, url must be https: %s.", url)
+            Log.warning(
+                LOG_TAG,
+                "Rule consequence Event for Signal will not be processed, url must be https."
+            )
             return
         }
         val body = event.templateBody() ?: run {
-            // TODO: logs
+            Log.warning(
+                LOG_TAG,
+                "Rule consequence Event for Signal will not be processed, url must be https."
+            )
             return
         }
-        val contentType = event.contentType() ?: run {
-            // TODO: logs
-            return
-        }
-        val timeout = event.timeout() ?: run {
-            // TODO: logs
-            return
-        }
-        val dataEntity = SignalConsequence(url, body, contentType, timeout).toDataEntity()
+        val contentType = event.contentType()
+        val timeout = event.timeout()
+        val dataEntity = SignalHit(url, body, contentType, timeout).toDataEntity()
         hitQueue.queue(dataEntity)
     }
 
     private fun shouldIgnore(event: Event): Boolean {
         val configuration = api.getSharedState(
-                SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
-                event,
-                false,
-                SharedStateResolution.ANY
+            SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
+            event,
+            false,
+            SharedStateResolution.ANY
         ).value ?: return true
         val privacyStatus = try {
             DataReader.getString(
-                    configuration,
-                    SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
+                configuration,
+                SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
             )
         } catch (e: Exception) {
             MobilePrivacyStatus.UNKNOWN

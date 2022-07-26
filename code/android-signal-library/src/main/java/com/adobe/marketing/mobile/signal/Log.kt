@@ -16,21 +16,21 @@ import com.adobe.marketing.mobile.LoggingMode
 //TODO: TBD- will remove this after we add the similar logging APIs to Core.
 internal object Log {
     @JvmStatic
-    fun trace(source: String?, format: String?, vararg params: Any?) {
-        MobileCore.log(LoggingMode.VERBOSE, source, String.format(format!!, *params))
+    fun trace(source: String?, message: String?) {
+        MobileCore.log(LoggingMode.VERBOSE, source, message)
     }
 
     @JvmStatic
-    fun debug(source: String?, format: String?, vararg params: Any?) {
-        MobileCore.log(LoggingMode.DEBUG, source, String.format(format!!, *params))
+    fun debug(source: String?, message: String?) {
+        MobileCore.log(LoggingMode.DEBUG, source, message)
     }
 
     @JvmStatic
-    fun warning(source: String?, format: String?, vararg params: Any?) {
-        MobileCore.log(LoggingMode.WARNING, source, String.format(format!!, *params))
+    fun warning(source: String?, message: String?) {
+        MobileCore.log(LoggingMode.WARNING, source, message)
     }
 
-    fun error(source: String?, format: String?, vararg params: Any?) {
-        MobileCore.log(LoggingMode.ERROR, source, String.format(format!!, *params))
+    fun error(source: String?, message: String?) {
+        MobileCore.log(LoggingMode.ERROR, source, message)
     }
 }

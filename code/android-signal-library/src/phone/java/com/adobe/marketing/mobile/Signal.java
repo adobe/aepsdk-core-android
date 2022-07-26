@@ -19,10 +19,19 @@ public class Signal {
     private Signal() {
     }
 
+    /**
+     * Returns the version of the Signal extension.
+     *
+     * @return the version of the Signal extension.
+     */
     public static String extensionVersion() {
         return EXTENSION_VERSION;
     }
 
+    /**
+     * Registers the Signal extension with the Mobile Core.
+     * This method should be called before calling {@link MobileCore#start(AdobeCallback)}.
+     */
     public static void registerExtension() {
         MobileCore.registerExtension(SignalExtension.class, extensionError -> {
             Log.error(TAG, "There was an error when registering the UserProfile extension: %s",

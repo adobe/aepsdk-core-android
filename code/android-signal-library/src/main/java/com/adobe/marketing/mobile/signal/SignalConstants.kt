@@ -22,6 +22,7 @@ internal object SignalConstants {
 
 
     internal object EventDataKeys {
+
         internal object Configuration {
             const val MODULE_NAME = "com.adobe.module.configuration"
             const val GLOBAL_CONFIG_PRIVACY = "global.privacy"
@@ -40,12 +41,9 @@ internal object SignalConstants {
         }
 
         internal object Signal {
-            const val MODULE_NAME = "com.adobe.module.signal"
             const val RULES_RESPONSE_CONSEQUENCE_TYPE_POSTBACKS = "pb"
             const val RULES_RESPONSE_CONSEQUENCE_TYPE_PII = "pii"
             const val RULES_RESPONSE_CONSEQUENCE_TYPE_OPEN_URL = "url"
-            const val RULES_RESPONSE_CONTENT_OPENURL_URLS = "url"
-            const val SIGNAL_CONTEXT_DATA = "contextdata"
         }
     }
 }

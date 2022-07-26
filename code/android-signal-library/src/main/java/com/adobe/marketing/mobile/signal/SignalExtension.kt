@@ -25,7 +25,7 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
 
     init {
         val dataQueue =
-            ServiceProvider.getInstance().dataQueueService.getDataQueue(SignalConstants.EXTENSION_NAME)
+                ServiceProvider.getInstance().dataQueueService.getDataQueue(SignalConstants.EXTENSION_NAME)
         hitQueue = PersistentHitQueue(dataQueue, SignalHitProcessor())
     }
 
@@ -54,8 +54,8 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
         if (event == null) return
         val privacyStatus = try {
             DataReader.getString(
-                event.eventData,
-                SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
+                    event.eventData,
+                    SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
             )
         } catch (e: Exception) {
             MobilePrivacyStatus.UNKNOWN
@@ -81,10 +81,10 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
     override fun readyForEvent(event: Event?): Boolean {
         if (event == null) return false
         return api.getSharedState(
-            SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
-            event,
-            false,
-            SharedStateResolution.LAST_SET
+                SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
+                event,
+                false,
+                SharedStateResolution.LAST_SET
         )?.status == SharedStateStatus.SET
     }
 
@@ -118,20 +118,21 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
             // TODO: logs
             return
         }
-        hitQueue.queue(generateDataEntity(url, body, contentType, timeout))
+        val dataEntity = SignalConsequence(url, body, contentType, timeout).toDataEntity()
+        hitQueue.queue(dataEntity)
     }
 
     private fun shouldIgnore(event: Event): Boolean {
         val configuration = api.getSharedState(
-            SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
-            event,
-            false,
-            SharedStateResolution.ANY
+                SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
+                event,
+                false,
+                SharedStateResolution.ANY
         ).value ?: return true
         val privacyStatus = try {
             DataReader.getString(
-                configuration,
-                SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
+                    configuration,
+                    SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
             )
         } catch (e: Exception) {
             MobilePrivacyStatus.UNKNOWN

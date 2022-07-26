@@ -28,7 +28,7 @@ public class ExtensionUnexpectedError extends Exception {
 	 * Constructs an {@code ExtensionUnexpectedError} with an error code.
 	 * @param code the {@link ExtensionError} code
 	 */
-	ExtensionUnexpectedError(final ExtensionError code) {
+	public ExtensionUnexpectedError(final ExtensionError code) {
 		super();
 		this.errorCode = code;
 	}

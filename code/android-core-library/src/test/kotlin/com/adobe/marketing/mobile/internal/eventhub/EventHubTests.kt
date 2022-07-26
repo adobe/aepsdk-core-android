@@ -18,22 +18,24 @@ import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.ExtensionError
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SharedStateResolution
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.WrapperType
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.powermock.modules.junit4.PowerMockRunner
-import java.lang.Exception
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.test.fail
 
-private object MockExtensions {
+object MockExtensions {
     class MockExtensionInvalidConstructor(api: ExtensionApi, name: String?) : Extension(api) {
         override fun getName(): String {
             return MockExtensionInvalidConstructor::javaClass.name
@@ -67,38 +69,66 @@ private object MockExtensions {
             return MockExtensionKotlin::javaClass.name
         }
     }
-
-    class TestExtension(api: ExtensionApi) : Extension(api) {
-        companion object {
-            const val version = "0.1"
-            const val extensionName = "TestExtension"
-            const val friendlyExtensionName = "FriendlyTestExtension"
-        }
-
-        override fun getName(): String {
-            return TestExtension.extensionName
-        }
-
-        override fun getFriendlyName(): String {
-            return TestExtension.friendlyExtensionName
-        }
-
-        override fun getVersion(): String {
-            return TestExtension.version
-        }
-    }
 }
 
 @RunWith(PowerMockRunner::class)
 internal class EventHubTests {
+
+    private class TestExtension(api: ExtensionApi) : Extension(api) {
+        companion object {
+            const val VERSION = "0.1"
+            const val EXTENSION_NAME = "TestExtension"
+            const val FRIENDLY_NAME = "FriendlyTestExtension"
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
+        }
+
+        override fun getFriendlyName(): String {
+            return FRIENDLY_NAME
+        }
+
+        override fun getVersion(): String {
+            return VERSION
+        }
+    }
+
+    private class TestExtension2(api: ExtensionApi) : Extension(api) {
+        companion object {
+            const val VERSION = "0.2"
+            const val EXTENSION_NAME = "TestExtension2"
+            const val FRIENDLY_NAME = "FriendlyTestExtension2"
+            val METADATA = mutableMapOf("k1" to "v1")
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
+        }
+
+        override fun getFriendlyName(): String {
+            return FRIENDLY_NAME
+        }
+
+        override fun getVersion(): String {
+            return VERSION
+        }
+
+        override fun getMetadata(): MutableMap<String, String> {
+            return METADATA
+        }
+    }
+
     private lateinit var eventHub: EventHub
     private val eventType = "Type"
     private val eventSource = "Source"
     private val event1: Event = Event.Builder("Event1", eventType, eventSource).build()
     private val event2: Event = Event.Builder("Event2", eventType, eventSource).build()
+    private val event3: Event = Event.Builder("Event3", eventType, eventSource).build()
+    private val event4: Event = Event.Builder("Event4", eventType, eventSource).build()
 
     // Helper to register extensions
-    fun registerExtension(extensionClass: Class<out Extension>): EventHubError {
+    private fun registerExtension(extensionClass: Class<out Extension>): EventHubError {
         var ret: EventHubError = EventHubError.Unknown
 
         val latch = CountDownLatch(1)
@@ -110,7 +140,7 @@ internal class EventHubTests {
         return ret
     }
 
-    fun unregisterExtension(extensionClass: Class<out Extension>): EventHubError {
+    private fun unregisterExtension(extensionClass: Class<out Extension>): EventHubError {
         var ret: EventHubError = EventHubError.Unknown
 
         val latch = CountDownLatch(1)
@@ -125,7 +155,7 @@ internal class EventHubTests {
     @Before
     fun setup() {
         eventHub = EventHub()
-        registerExtension(MockExtensions.TestExtension::class.java)
+        registerExtension(TestExtension::class.java)
     }
 
     @After
@@ -195,510 +225,691 @@ internal class EventHubTests {
     }
 
     // Shared state tests
+    private fun verifySharedState(type: SharedStateType, event: Event?, ret: SharedStateResult, resolution: SharedStateResolution = SharedStateResolution.ANY, barrier: Boolean = false) {
+        val res = eventHub.getSharedState(
+            type,
+            TestExtension.EXTENSION_NAME,
+            event,
+            barrier,
+            resolution
+        )
+
+        assertEquals(res?.status, ret.status)
+        assertEquals(res?.value, ret.value)
+    }
+
     @Test
-    fun testSetSharedState_NullOrEmptyExtensionName() {
-        var result: ExtensionError? = null
-
-        eventHub.dispatch(event1) // Dispatch Event1
-
+    fun testCreateSharedState_ExtensionNotRegistered() {
         val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
 
-        // Set state at event1 with null extension name
-        assertFalse(
-            eventHub.setSharedState(
+        eventHub.start()
+        eventHub.dispatch(event1)
+        assertFalse {
+            eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                null, stateAtEvent1, event1
-            ) {
-                result = it
-            }
-        )
-        assertEquals(result, ExtensionError.BAD_NAME)
-
-        // Set state at event1 with empty extension name
-        assertFalse(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                "", stateAtEvent1, event1
-            ) {
-                result = it
-            }
-        )
-        assertEquals(result, ExtensionError.BAD_NAME)
+                "NotRegisteredExtension",
+                stateAtEvent1,
+                event1
+            )
+        }
     }
 
     @Test
-    fun testSetSharedState_ExtensionNotRegistered() {
-        eventHub = EventHub()
-        eventHub.dispatch(event1) // Dispatch Event1
-
+    fun testCreateSharedState_CaseInsensitive() {
         val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
 
-        var result: ExtensionError? = null
-        // Set state at event1
-        assertFalse(
-            eventHub.setSharedState(
+        eventHub.start()
+        eventHub.dispatch(event1)
+        assertTrue {
+            eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent1, event1
-            ) {
-                result = it
-            }
-        )
-        assertEquals(result, ExtensionError.UNEXPECTED_ERROR)
+                TestExtension.EXTENSION_NAME.toUpperCase(),
+                stateAtEvent1,
+                event1
+            )
+        }
     }
 
     @Test
-    fun testSetSharedState_PendingState() {
-        eventHub.dispatch(event1) // Dispatch Event1
-
-        // Set state at event1
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, null, event1
-            ) {
-                fail("State should have been set successfully ${it.errorCode} - ${it.errorName}")
-            }
-        )
-    }
-
-    @Test
-    fun testSetSharedState_OverwritePendingStateWithNonPendingState() {
-
-        eventHub.dispatch(event1) // Dispatch Event1
-
-        // Set pending state at event1
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, null, event1
-            ) {
-                fail("State should have been set successfully ${it.errorCode} - ${it.errorName}")
-            }
-        )
-
-        val stateAtEvent: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
-
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent, event1
-            ) {
-                fail("State should have been set successfully ${it.errorCode} - ${it.errorName}")
-            }
-        )
-    }
-
-    @Test
-    fun testSetSharedState_NoPendingStateAtEvent() {
-
-        eventHub.dispatch(event1) // Dispatch Event1
-
-        // Set non pending state at event1
+    fun testCreateSharedState_FailsSecondTime() {
         val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent1, event1
-            ) {
-                fail("State should have been set successfully. ${it.errorCode} - ${it.errorName}")
-            }
-        )
 
-        // Verify that state at event1 cannot be overwritten
-        val overwriteState: MutableMap<String, Any?> = mutableMapOf("Two" to 2, "No" to false)
-
-        assertFalse(
-            eventHub.setSharedState(
+        eventHub.start()
+        eventHub.dispatch(event1)
+        assertTrue {
+            eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, overwriteState, event1
-            ) {
-                fail("${it.errorCode} - ${it.errorName}")
-            }
-        )
+                TestExtension.EXTENSION_NAME,
+                stateAtEvent1,
+                event1
+            )
+        }
+
+        assertFalse {
+            eventHub.createSharedState(
+                SharedStateType.STANDARD,
+                TestExtension.EXTENSION_NAME,
+                stateAtEvent1,
+                event1
+            )
+        }
     }
 
     @Test
-    fun testSetSharedState_OverwriteNonPendingStateWithPendingState() {
-
-        eventHub.dispatch(event1) // Dispatch Event1
-
-        // Set non pending state at Event 1
+    fun testCreateSharedState_FailsOlderEvents() {
         val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent1, event1
-            ) {
-                fail("State should have been set successfully. ${it.errorCode} - ${it.errorName}")
-            }
-        )
 
-        // Verify that state at event1 cannot be overwritten with a pending state
-        val overwriteState: MutableMap<String, Any?>? = null
-
-        assertFalse(
-            eventHub.setSharedState(
+        eventHub.start()
+        eventHub.dispatch(event1)
+        assertTrue {
+            eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, overwriteState, event1
-            ) {
-                fail("${it.errorCode} - ${it.errorName}")
-            }
-        )
+                TestExtension.EXTENSION_NAME.toUpperCase(),
+                stateAtEvent1,
+                event1
+            )
+        }
     }
 
     @Test
-    fun testGetSharedState_NullOrEmptyExtensionName() {
-        var result: ExtensionError? = null
+    fun testCreateSharedState_DispatchEvent() {
+        val latch = CountDownLatch(2)
 
-        // Get state at event1 with null extension name
-        eventHub.getSharedState(
+        val capturedEvents = mutableListOf<Event>()
+        val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
+        extensionContainer?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+
+        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.createSharedState(
             SharedStateType.STANDARD,
-            null, event1
-        ) {
-            result = it
-        }
-        assertEquals(result, ExtensionError.BAD_NAME)
-
-        // Get state at event1 with empty extension name
-        eventHub.getSharedState(
-            SharedStateType.STANDARD, "", event1
-        ) {
-            result = it
-        }
-        assertEquals(result, ExtensionError.BAD_NAME)
-    }
-
-    @Test
-    fun testGetSharedState_ExtensionNotRegistered() {
-        var result: ExtensionError? = null
-
-        eventHub = EventHub()
-        // Set state at event1
-        eventHub.getSharedState(
-            SharedStateType.STANDARD, MockExtensions.TestExtension.extensionName, event1
-        ) {
-            result = it
-        }
-        assertEquals(result, ExtensionError.UNEXPECTED_ERROR)
-    }
-
-    @Test
-    fun testGetSharedState_NoStateExistsYet() {
-
-        val errorCallback: (ExtensionError) -> Unit = {
-            fail("Test failed ${it.errorCode} - ${it.errorName}")
-        }
-
-        // Dispatch Event 1
-        eventHub.dispatch(event1)
-
-        assertNull(
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event1, errorCallback
-            )
-        )
-    }
-
-    @Test
-    fun testGetSharedState_StateExistsAtVersion() {
-
-        val errorCallback: (ExtensionError) -> Unit = {
-            fail("Test failed ${it.errorCode} - ${it.errorName}")
-        }
-
-        // Dispatch event1
-        eventHub.dispatch(event1)
-
-        // Set non pending state at event1
-        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent1, event1
-            ) {
-                fail("State should have been set successfully. ${it.errorCode} - ${it.errorName}")
-            }
-        )
-
-        // Dispatch event2
-        eventHub.dispatch(event2)
-
-        // Set state at event2
-        val stateAtEvent2: MutableMap<String, Any?> = mutableMapOf("Two" to 1, "No" to false)
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent2, event2, errorCallback
-            )
-        )
-
-        // Verify that the state at event1 and event2
-        assertEquals(
+            TestExtension.EXTENSION_NAME,
             stateAtEvent1,
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event1, errorCallback
+            event1
+        )
+        assertTrue {
+            latch.await(250, TimeUnit.MILLISECONDS)
+        }
+
+        assertEquals(capturedEvents[0].name, EventHubConstants.STATE_CHANGE)
+        assertEquals(
+            capturedEvents[0].eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
             )
         )
+
+        assertEquals(capturedEvents[1].name, EventHubConstants.STATE_CHANGE)
         assertEquals(
-            stateAtEvent2,
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event2, errorCallback
+            capturedEvents[1].eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.EXTENSION_NAME
             )
         )
     }
 
     @Test
-    fun testGetSharedState_PreviousStateDoesNotExist() {
+    fun testCreateXDMSharedState_DispatchEvent() {
+        val latch = CountDownLatch(1)
 
-        val errorCallback: (ExtensionError) -> Unit = {
-            fail("Test failed ${it.errorCode} - ${it.errorName}")
+        val capturedEvents = mutableListOf<Event>()
+        val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
+        extensionContainer?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+            capturedEvents.add(it)
+            latch.countDown()
         }
 
-        // Dispatch event 1 & event2
-        eventHub.dispatch(event1)
-        eventHub.dispatch(event2)
-
-        // Set state at event2
-        val stateAtEvent2: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent2, event2, errorCallback
-            )
-        )
-
-        // Verify that the state at event1 is still null
-        assertNull(
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event1, errorCallback
-            )
-        )
-        assertEquals(
-            stateAtEvent2,
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event2, errorCallback
-            )
-        )
-    }
-
-    @Test
-    fun testGetSharedState_FetchesLatestStateOnNullEvent() {
-
-        val errorCallback: (ExtensionError) -> Unit = {
-            fail("Test failed ${it.errorCode} - ${it.errorName}")
-        }
-
-        // Dispatch event1
-        eventHub.dispatch(event1)
-
-        // Set state at event1
-        val state: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, state, event1, errorCallback
-            )
-        )
-
-        assertEquals(
-            state,
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, null, errorCallback
-            )
-        )
-    }
-
-    @Test
-    fun testGetSharedState_OlderStateExists() {
-
-        val errorCallback: (ExtensionError) -> Unit = {
-            fail("Test failed ${it.errorCode} - ${it.errorName}")
-        }
-
-        // Dispatch event1
-        eventHub.dispatch(event1)
-
-        // Set state at event1
         val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent1, event1, errorCallback
-            )
-        )
-
-        // Dispatch event2
-        eventHub.dispatch(event2)
-
-        // Verify that the state at event1 and event2  are the same and they equal [stateAtEvent1]
-        assertEquals(
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.createSharedState(
+            SharedStateType.XDM,
+            TestExtension.EXTENSION_NAME,
             stateAtEvent1,
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event1, errorCallback
-            )
+            event1
         )
-        assertEquals(
-            stateAtEvent1,
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event2, errorCallback
-            )
-        )
-    }
-
-    @Test
-    fun testClearSharedState_NullOrEmptyExtensionName() {
-        var result: ExtensionError? = null
-        assertFalse(
-            eventHub.clearSharedState(
-                SharedStateType.STANDARD,
-                null
-            ) {
-                result = it
-            }
-        )
-        assertEquals(result, ExtensionError.BAD_NAME)
-
-        assertFalse(
-            eventHub.clearSharedState(
-                SharedStateType.STANDARD, ""
-            ) {
-                result = it
-            }
-        )
-        assertEquals(result, ExtensionError.BAD_NAME)
-    }
-
-    @Test
-    fun testClearSharedState_ExtensionNotRegistered() {
-        var result: ExtensionError? = null
-        eventHub = EventHub()
-        assertFalse(
-            eventHub.clearSharedState(
-                SharedStateType.STANDARD, MockExtensions.TestExtension.extensionName,
-            ) {
-                result = it
-            }
-        )
-
-        assertEquals(result, ExtensionError.UNEXPECTED_ERROR)
-    }
-
-    @Test
-    fun testClearSharedState_NoStateYet() {
-
-        assertTrue(
-            eventHub.clearSharedState(
-                SharedStateType.STANDARD, MockExtensions.TestExtension.extensionName,
-            ) {
-                fail("State should have been cleared successfully")
-            }
-        )
-    }
-
-    @Test
-    fun testClearSharedState() {
-
-        val errorCallback: (ExtensionError) -> Unit = {
-            fail("Test failed ${it.errorCode} - ${it.errorName}")
+        assertTrue {
+            latch.await(250, TimeUnit.MILLISECONDS)
         }
+
+        assertEquals(capturedEvents[0].name, EventHubConstants.STATE_CHANGE)
+        assertEquals(
+            capturedEvents[0].eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
+            )
+        )
+
+        assertEquals(capturedEvents[1].name, EventHubConstants.XDM_STATE_CHANGE)
+        assertEquals(
+            capturedEvents[1].eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to TestExtension.EXTENSION_NAME
+            )
+        )
+    }
+
+    @Test
+    fun testGetSharedState_AfterSet() {
+        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
+        eventHub.start()
         eventHub.dispatch(event1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            stateAtEvent1,
+            event1
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1),
+            resolution = SharedStateResolution.LAST_SET
+        )
+    }
+
+    @Test
+    fun testGetSharedState_CaseInsensitive() {
+        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            stateAtEvent1,
+            event1
+        )
+
+        val res = eventHub.getSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME.toUpperCase(),
+            event1,
+            false,
+            SharedStateResolution.ANY
+        )
+
+        assertEquals(res?.status, SharedStateStatus.SET)
+        assertEquals(res?.value, stateAtEvent1)
+    }
+
+    @Test
+    fun testGetSharedState_AfterPending() {
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            event1
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.PENDING, null)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.NONE, null),
+            resolution = SharedStateResolution.LAST_SET
+        )
+    }
+
+    @Test
+    fun testGetSharedState_AfterPendingResolved() {
+        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
+        eventHub.start()
+        eventHub.dispatch(event1)
+        val resolver = eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            event1
+        )
+
+        resolver?.resolve(stateAtEvent1)
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1),
+            resolution = SharedStateResolution.LAST_SET
+        )
+    }
+
+    @Test
+    fun testGetSharedState_NoState() {
+        eventHub.dispatch(event1)
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.NONE, null)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.NONE, null),
+            resolution = SharedStateResolution.LAST_SET
+        )
+    }
+
+    @Test
+    fun testGetSharedState_MultipleEvents() {
+        eventHub.start()
+
+        eventHub.dispatch(event1)
+        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            stateAtEvent1,
+            event1
+        )
+
+        eventHub.dispatch(event2)
+        val stateAtEvent2: MutableMap<String, Any?> = mutableMapOf("Two" to 2)
+        val resolverEvent2 = eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            event2
+        )
+
+        eventHub.dispatch(event3)
+        val stateAtEvent3: MutableMap<String, Any?> = mutableMapOf("Three" to 3)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            stateAtEvent3,
+            event3
+        )
+
+        eventHub.dispatch(event4)
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1),
+            resolution = SharedStateResolution.LAST_SET
+
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.PENDING, stateAtEvent1)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1),
+            resolution = SharedStateResolution.LAST_SET
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event3,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent3)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event3,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent3),
+            resolution = SharedStateResolution.LAST_SET
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event4,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent3)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event4,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent3),
+            resolution = SharedStateResolution.LAST_SET
+        )
+
+        resolverEvent2?.resolve(stateAtEvent2)
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent2)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent2),
+            resolution = SharedStateResolution.LAST_SET
+        )
+    }
+
+    @Test
+    fun testGetSharedState_NullEvent() {
+        eventHub.start()
+
+        val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            state1,
+            null
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            null,
+            SharedStateResult(SharedStateStatus.SET, state1)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            null,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            resolution = SharedStateResolution.LAST_SET
+        )
+
+        eventHub.dispatch(event1)
+
+        val state2: MutableMap<String, Any?> = mutableMapOf("Two" to 2)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            state2,
+            null
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            null,
+            SharedStateResult(SharedStateStatus.SET, state2)
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            null,
+            SharedStateResult(SharedStateStatus.SET, state2),
+            resolution = SharedStateResolution.LAST_SET
+        )
+
         eventHub.dispatch(event2)
 
-        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent1, event1, errorCallback
-            )
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1)
         )
 
-        val stateAtEvent2: MutableMap<String, Any?> = mutableMapOf("Twi" to 2, "No" to false)
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent2, event2, errorCallback
-            )
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            resolution = SharedStateResolution.LAST_SET
         )
 
-        // Verify that all the states are cleared
-        assertTrue(
-            eventHub.clearSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, errorCallback
-            )
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, state2),
         )
-        assertNull(
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event1, errorCallback
-            )
-        )
-        assertNull(
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event2, errorCallback
-            )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, state2),
+            resolution = SharedStateResolution.LAST_SET
         )
     }
 
     @Test
-    fun testClearSharedState_DifferentStateType() {
+    fun testGetSharedState_AfterSettingInvalidState() {
+        class CustomClass
+        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to CustomClass())
 
-        val errorCallback: (ExtensionError) -> Unit = {
-            fail("Test failed ${it.errorCode} - ${it.errorName}")
+        eventHub.start()
+        eventHub.dispatch(event1)
+        assertTrue {
+            eventHub.createSharedState(
+                SharedStateType.STANDARD,
+                TestExtension.EXTENSION_NAME,
+                stateAtEvent1,
+                event1
+            )
         }
+
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+    }
+
+    @Test
+    fun testGetSharedState_AfterResolvingWithInvalidState() {
+        class CustomClass
+        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to CustomClass())
+
+        eventHub.start()
         eventHub.dispatch(event1)
 
-        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
-        val xdmStateAtEvent1: MutableMap<String, Any?> = mutableMapOf("Two" to 1, "No" to false)
-
-        // Set Standard shared state
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, stateAtEvent1, event1, errorCallback
-            )
+        val resolver = eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            event1
         )
 
-        // Set Standard XDM shared state
-        assertTrue(
-            eventHub.setSharedState(
-                SharedStateType.XDM,
-                MockExtensions.TestExtension.extensionName, xdmStateAtEvent1, event1, errorCallback
-            )
-        )
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.PENDING, null))
 
-        // Set Standard Standard shared state
-        assertTrue(
-            eventHub.clearSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, errorCallback
-            )
-        )
+        resolver?.resolve(stateAtEvent1)
 
-        // Verify that only standard state is cleared.
-        assertNull(
-            eventHub.getSharedState(
-                SharedStateType.STANDARD,
-                MockExtensions.TestExtension.extensionName, event1, errorCallback
-            )
-        )
-        assertEquals(
-            xdmStateAtEvent1,
-            eventHub.getSharedState(
-                SharedStateType.XDM,
-                MockExtensions.TestExtension.extensionName, event1, errorCallback
-            )
-        )
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
     }
+
+    // / ExtensionInfo shared state tests
+    /*
+     Expected format:
+     {
+       "version" : "0.0.1",
+       "wrapper" : {
+         "type" : "F",
+         "friendlyName" : "Flutter"
+       }
+       "extensions" : {
+         "mockExtension" : {
+           "version" : "0.0.1"
+         },
+         "mockExtensionTwo" : {
+           "version" : "0.0.1"
+         }
+       }
+     }
+     */
+    @Test
+    fun testEventHubRegisteredExtensionSharesState() {
+        val latch = CountDownLatch(1)
+
+        val capturedEvents = mutableListOf<Event>()
+        eventHub.getExtensionContainer(EventHubPlaceholderExtension::class.java)?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+
+        eventHub.wrapperType = WrapperType.FLUTTER
+        registerExtension(TestExtension2::class.java)
+        eventHub.start()
+        latch.await(250, TimeUnit.MILLISECONDS)
+
+        assertEquals(EventHubConstants.STATE_CHANGE, capturedEvents[0]?.name)
+        assertEquals(
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
+            ),
+            capturedEvents[0]?.eventData
+        )
+
+        val expectedData = mapOf(
+            EventHubConstants.EventDataKeys.VERSION to EventHubConstants.VERSION_NUMBER,
+            EventHubConstants.EventDataKeys.WRAPPER to mapOf(
+                EventHubConstants.EventDataKeys.TYPE to WrapperType.FLUTTER.wrapperTag,
+                EventHubConstants.EventDataKeys.FRIENDLY_NAME to WrapperType.FLUTTER.friendlyName
+            ),
+            EventHubConstants.EventDataKeys.EXTENSIONS to mapOf(
+                TestExtension.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension.VERSION
+                ),
+                TestExtension2.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension2.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension2.VERSION,
+                    EventHubConstants.EventDataKeys.METADATA to TestExtension2.METADATA,
+                )
+            )
+        )
+        val sharedStateResult = eventHub.getSharedState(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            null,
+            false,
+            SharedStateResolution.ANY
+        )
+
+        assertEquals(expectedData, sharedStateResult?.value)
+    }
+
+    @Test
+    fun testEventHubRegisterAndUnregisterExtensionSharesState() {
+        MobileCore.setLogLevel(LoggingMode.VERBOSE)
+        val latch = CountDownLatch(2)
+
+        val capturedEvents = mutableListOf<Event>()
+        eventHub.getExtensionContainer(EventHubPlaceholderExtension::class.java)?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+
+        eventHub.wrapperType = WrapperType.FLUTTER
+        registerExtension(TestExtension2::class.java)
+        eventHub.start()
+        unregisterExtension(TestExtension2::class.java)
+
+        latch.await(250, TimeUnit.MILLISECONDS)
+
+        // Shared state published after start
+        assertEquals(capturedEvents[0]?.name, EventHubConstants.STATE_CHANGE)
+        assertEquals(
+            capturedEvents[0]?.eventData,
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
+            )
+        )
+        val expectedData1 = mapOf(
+            EventHubConstants.EventDataKeys.VERSION to EventHubConstants.VERSION_NUMBER,
+            EventHubConstants.EventDataKeys.WRAPPER to mapOf(
+                EventHubConstants.EventDataKeys.TYPE to WrapperType.FLUTTER.wrapperTag,
+                EventHubConstants.EventDataKeys.FRIENDLY_NAME to WrapperType.FLUTTER.friendlyName
+            ),
+            EventHubConstants.EventDataKeys.EXTENSIONS to mapOf(
+                TestExtension.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension.VERSION
+                ),
+                TestExtension2.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension2.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension2.VERSION,
+                    EventHubConstants.EventDataKeys.METADATA to TestExtension2.METADATA,
+                )
+            )
+        )
+        val sharedStateResult1 = eventHub.getSharedState(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            capturedEvents[0],
+            false,
+            SharedStateResolution.ANY
+        )
+        assertEquals(expectedData1, sharedStateResult1?.value)
+
+        // Shared state published after unregister
+        assertEquals(EventHubConstants.STATE_CHANGE, capturedEvents[1]?.name)
+        assertEquals(
+            mapOf(
+                EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
+            ),
+            capturedEvents[1]?.eventData
+        )
+
+        val expectedData2 = mapOf(
+            EventHubConstants.EventDataKeys.VERSION to EventHubConstants.VERSION_NUMBER,
+            EventHubConstants.EventDataKeys.WRAPPER to mapOf(
+                EventHubConstants.EventDataKeys.TYPE to WrapperType.FLUTTER.wrapperTag,
+                EventHubConstants.EventDataKeys.FRIENDLY_NAME to WrapperType.FLUTTER.friendlyName
+            ),
+            EventHubConstants.EventDataKeys.EXTENSIONS to mapOf(
+                TestExtension.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension.VERSION
+                )
+            )
+        )
+        val sharedStateResult2 = eventHub.getSharedState(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            capturedEvents[1],
+            false,
+            SharedStateResolution.ANY
+        )
+        assertEquals(expectedData2, sharedStateResult2?.value)
+    }
+//        // setup
+//        let sharedStateExpectation = XCTestExpectation(description: "Shared state should be shared by event hub once")
+//        sharedStateExpectation.expectedFulfillmentCount = 2
+//        sharedStateExpectation.assertForOverFulfill = true
+//
+//        eventHub.getExtensionContainer(MockExtension.self)?.registerListener(type: EventType.hub, source: EventSource.sharedState) { event in
+//                if event.data?[EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER] as? String == EventHubConstants.NAME { sharedStateExpectation.fulfill() }
+//        }
+//
+//        // test
+//        registerMockExtension(MockExtensionTwo.self)
+//        eventHub.start()
+//        eventHub.unregisterExtension(MockExtensionTwo.self, completion: { (_) in })
+//
+//        // verify
+//        wait(for: [sharedStateExpectation], timeout: 1)
+//        let sharedState = eventHub.getSharedState(extensionName: EventHubConstants.NAME, event: nil)!.value
+//
+//        let mockExtension = MockExtension(runtime: TestableExtensionRuntime())
+//
+//        let coreVersion = sharedState?[EventHubConstants.EventDataKeys.VERSION] as! String
+//                let registeredExtensions = sharedState?[EventHubConstants.EventDataKeys.EXTENSIONS] as? [String: Any]
+//        let mockDetails = registeredExtensions?[mockExtension.name] as? [String: String]
+//
+//        XCTAssertEqual(ConfigurationConstants.EXTENSION_VERSION, coreVersion) // should contain {version: coreVersion}
+//        XCTAssertEqual(MockExtension.extensionVersion, mockDetails?[EventHubConstants.EventDataKeys.VERSION])
+//    }
 
     // Event listener tests
     @Test
@@ -706,7 +917,7 @@ internal class EventHubTests {
         val latch = CountDownLatch(1)
         val testEvent = Event.Builder("Sample event", eventType, eventSource).build()
 
-        val extensionContainer = eventHub.getExtensionContainer(MockExtensions.TestExtension::class.java)
+        val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
         extensionContainer?.registerEventListener(eventType, eventSource) {
             assertTrue { it == testEvent }
             latch.countDown()
@@ -725,7 +936,7 @@ internal class EventHubTests {
         val latch = CountDownLatch(1)
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
 
-        val extensionContainer = eventHub.getExtensionContainer(MockExtensions.TestExtension::class.java)
+        val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
         extensionContainer?.registerEventListener("customEventType", "customEventSource") {
             latch.countDown()
         }
@@ -743,13 +954,10 @@ internal class EventHubTests {
         val latch = CountDownLatch(1)
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
 
-        val extensionContainer = eventHub.getExtensionContainer(MockExtensions.TestExtension::class.java)
-        extensionContainer?.registerEventListener(
-            eventType, eventSource,
-            {
-                latch.countDown()
-            }
-        )
+        val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
+        extensionContainer?.registerEventListener(eventType, eventSource) {
+            latch.countDown()
+        }
 
         eventHub.dispatch(testEvent)
 
@@ -763,7 +971,7 @@ internal class EventHubTests {
         val latch = CountDownLatch(2)
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
 
-        val extensionContainer = eventHub.getExtensionContainer(MockExtensions.TestExtension::class.java)
+        val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
         extensionContainer?.registerEventListener(eventType, eventSource) {
             assertTrue { it == testEvent }
             latch.countDown()
@@ -783,7 +991,7 @@ internal class EventHubTests {
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
         val testEvent1 = Event.Builder("Test event 2", "customEventType", "customEventSource").build()
 
-        val extensionContainer = eventHub.getExtensionContainer(MockExtensions.TestExtension::class.java)
+        val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
         extensionContainer?.registerEventListener(
             eventType, eventSource
         ) {
@@ -910,7 +1118,7 @@ internal class EventHubTests {
 
     @Test
     fun testRegisterListener_WildcardEvents() {
-        val latch = CountDownLatch(2)
+        val latch = CountDownLatch(3)
         val capturedEvents = mutableListOf<Event>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
@@ -926,7 +1134,13 @@ internal class EventHubTests {
         assertTrue {
             latch.await(250, TimeUnit.MILLISECONDS)
         }
-        assertEquals(capturedEvents, listOf<Event>(testEvent, testResponseEvent))
+
+        // EventHub shared state event is dispatched first.
+        assertEquals(capturedEvents[0].name, EventHubConstants.STATE_CHANGE)
+        assertEquals(capturedEvents[0].eventData, mapOf(EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME))
+
+        assertEquals(capturedEvents[1], testEvent)
+        assertEquals(capturedEvents[2], testResponseEvent)
     }
 
     @Test
@@ -1057,5 +1271,52 @@ internal class EventHubTests {
         assertTrue {
             latch.await(500, TimeUnit.MILLISECONDS)
         }
+    }
+
+    // WrapperType Tests
+    @Test
+    fun testDefaultWrapperType() {
+        assertEquals(
+            eventHub.wrapperType, WrapperType.NONE
+        )
+    }
+
+    @Test
+    fun testUpdateWrapperTypeBeforeStart() {
+        eventHub.wrapperType = WrapperType.FLUTTER
+        assertEquals(
+            eventHub.wrapperType, WrapperType.FLUTTER
+        )
+
+        eventHub.wrapperType = WrapperType.REACT_NATIVE
+        assertEquals(
+            eventHub.wrapperType, WrapperType.REACT_NATIVE
+        )
+
+        eventHub.wrapperType = WrapperType.CORDOVA
+        assertEquals(
+            eventHub.wrapperType, WrapperType.CORDOVA
+        )
+    }
+
+    @Test
+    fun testUpdateWrapperTypeAfterStart() {
+        eventHub.wrapperType = WrapperType.FLUTTER
+        assertEquals(
+            eventHub.wrapperType, WrapperType.FLUTTER
+        )
+
+        eventHub.start()
+
+        // Updates to wrapper type fail after start() call
+        eventHub.wrapperType = WrapperType.REACT_NATIVE
+        assertEquals(
+            eventHub.wrapperType, WrapperType.FLUTTER
+        )
+
+        eventHub.wrapperType = WrapperType.CORDOVA
+        assertEquals(
+            eventHub.wrapperType, WrapperType.FLUTTER
+        )
     }
 }

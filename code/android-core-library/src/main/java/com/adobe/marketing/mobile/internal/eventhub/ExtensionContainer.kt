@@ -190,11 +190,11 @@ internal class ExtensionContainer constructor(
     }
 
     override fun startEvents() {
-        eventProcessor.start()
+        eventProcessor.resume()
     }
 
     override fun stopEvents() {
-        eventProcessor.stop()
+        eventProcessor.pause()
     }
 
     override fun createSharedState(

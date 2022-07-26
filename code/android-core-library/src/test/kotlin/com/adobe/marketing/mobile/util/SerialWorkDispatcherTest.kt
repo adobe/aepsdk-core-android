@@ -24,6 +24,7 @@ import org.mockito.stubbing.Answer
 import org.powermock.modules.junit4.PowerMockRunner
 import org.powermock.reflect.Whitebox
 import java.lang.IllegalStateException
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -40,7 +41,6 @@ class SerialWorkDispatcherTest {
      */
     class TestSerialWorkDispatcher(name: String, workHandler: WorkHandler<Event>) : SerialWorkDispatcher<Event>(name, workHandler) {
         var processedEvents: ArrayList<Event>? = null
-            private set
 
         var blockWork: Boolean = false
 
@@ -90,16 +90,15 @@ class SerialWorkDispatcherTest {
     }
 
     @Test
-    fun `Dispatcher can only be started when not active`() {
+    fun `Dispatcher can only be started once`() {
         assertTrue(serialWorkDispatcher.start())
         assertEquals(SerialWorkDispatcher.State.ACTIVE, serialWorkDispatcher.getState())
 
         assertFalse(serialWorkDispatcher.start())
 
-        serialWorkDispatcher.stop()
+        serialWorkDispatcher.pause()
 
-        assertTrue(serialWorkDispatcher.start())
-        assertEquals(SerialWorkDispatcher.State.ACTIVE, serialWorkDispatcher.getState())
+        assertFalse(serialWorkDispatcher.start())
     }
 
     @Test
@@ -196,46 +195,50 @@ class SerialWorkDispatcherTest {
     }
 
     @Test
-    fun `Dispatcher can only be stopped when active`() {
+    fun `Dispatcher can only be paused after started`() {
+        assertFalse(serialWorkDispatcher.pause())
+        assertEquals(SerialWorkDispatcher.State.NOT_STARTED, serialWorkDispatcher.getState())
+
         serialWorkDispatcher.start()
 
-        assertTrue(serialWorkDispatcher.stop())
-        assertEquals(SerialWorkDispatcher.State.NOT_RUNNING, serialWorkDispatcher.getState())
+        assertTrue(serialWorkDispatcher.pause())
+        assertEquals(SerialWorkDispatcher.State.PAUSED, serialWorkDispatcher.getState())
     }
 
     @Test
-    fun `Dispatcher does not stop after shutdown`() {
+    fun `Dispatcher does not pause after shutdown`() {
         serialWorkDispatcher.shutdown()
 
         try {
-            serialWorkDispatcher.stop()
-            fail("Dispatcher should not be stoped after shutdown")
+            serialWorkDispatcher.pause()
+            fail("Dispatcher should not be paused after shutdown")
         } catch (exception: IllegalStateException) {
             // pass.
         }
     }
 
     @Test
-    fun `Work queued when dispatcher is stopped is processed after start`() {
+    fun `Work queued when dispatcher is not active is processed after start or resume`() {
         val event1: Event = Event.Builder("Event1", "Type", "Source").build()
         val event2: Event = Event.Builder("Event2", "Type", "Source").build()
         val event3: Event = Event.Builder("Event3", "Type", "Source").build()
+        val event4: Event = Event.Builder("Event4", "Type", "Source").build()
+        val event5: Event = Event.Builder("Event5", "Type", "Source").build()
         serialWorkDispatcher.offer(event1)
         serialWorkDispatcher.offer(event2)
         serialWorkDispatcher.offer(event3)
         assertNull(serialWorkDispatcher.processedEvents)
 
         serialWorkDispatcher.start()
-        assertNotNull(serialWorkDispatcher.processedEvents)
         assertEquals(listOf(event1, event2, event3), serialWorkDispatcher.processedEvents)
 
-        serialWorkDispatcher.stop()
-        serialWorkDispatcher.offer(event1)
-        serialWorkDispatcher.offer(event2)
-        serialWorkDispatcher.offer(event3)
+        serialWorkDispatcher.pause()
+        serialWorkDispatcher.processedEvents = ArrayList()
+        serialWorkDispatcher.offer(event4)
+        serialWorkDispatcher.offer(event5)
 
-        serialWorkDispatcher.start()
-        assertEquals(listOf(event1, event2, event3), serialWorkDispatcher.processedEvents)
+        serialWorkDispatcher.resume()
+        assertEquals(listOf(event4, event5), serialWorkDispatcher.processedEvents)
     }
 
     @Test
@@ -260,5 +263,43 @@ class SerialWorkDispatcherTest {
 
         assertEquals(SerialWorkDispatcher.State.SHUTDOWN, serialWorkDispatcher.getState())
         assertFalse(serialWorkDispatcher.offer(event))
+    }
+
+    @Test
+    fun `Should not process queued work when paused`() {
+        val event1: Event = Event.Builder("Event1", "Type", "Source").build()
+        val event2: Event = Event.Builder("Event2", "Type", "Source").build()
+        val event3: Event = Event.Builder("Event3", "Type", "Source").build()
+        val event4: Event = Event.Builder("Event4", "Type", "Source").build()
+        val event5: Event = Event.Builder("Event5", "Type", "Source").build()
+
+        var processedEvents = ArrayList<Event>()
+        val latch = CountDownLatch(1)
+        val workHandler: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler {
+            processedEvents.add(it)
+            if (it.name == "Event3") {
+                latch.countDown()
+            }
+            Thread.sleep(50)
+        }
+
+        val serialDispatcher = SerialWorkDispatcher("", workHandler)
+        serialDispatcher.offer(event1)
+        serialDispatcher.offer(event2)
+        serialDispatcher.offer(event3)
+        serialDispatcher.offer(event4)
+        serialDispatcher.offer(event5)
+
+        // Should stop after processing event1, event2, event3
+        serialDispatcher.start()
+        latch.await()
+        serialDispatcher.pause()
+        Thread.sleep(500)
+        assertEquals(listOf(event1, event2, event3), processedEvents)
+
+        processedEvents.clear()
+        serialDispatcher.resume()
+        Thread.sleep(500)
+        assertEquals(listOf(event4, event5), processedEvents)
     }
 }

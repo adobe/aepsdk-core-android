@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.internal.utility.UrlUtilities;
-import com.adobe.marketing.mobile.internal.utility.TimeUtil;
+import com.adobe.marketing.mobile.utils.TimeUtil;
 
 import java.lang.reflect.Method;
 import java.security.SecureRandom;

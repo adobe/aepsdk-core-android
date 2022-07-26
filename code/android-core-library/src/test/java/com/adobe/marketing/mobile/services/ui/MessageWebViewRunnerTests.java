@@ -8,7 +8,7 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
- 
+
 package com.adobe.marketing.mobile.services.ui;
 
 import android.app.Application;
@@ -57,8 +57,7 @@ public class MessageWebViewRunnerTests {
 	private App.AppContextProvider mockAppContextProvider;
 
 	private MessageWebViewRunner messageFragmentRunner;
-	private AEPMessageSettings.Builder messageSettingsBuilder = new AEPMessageSettings.Builder(this);
-	private AEPMessageSettings aepMessageSettings;
+	private MessageSettings aepMessageSettings;
 	private MessageWebView mockMessageWebview;
 	private HashMap<MessageGesture, String> gestureMap = new HashMap<>();
 
@@ -72,19 +71,19 @@ public class MessageWebViewRunnerTests {
 		gestureMap.put(MessageGesture.SWIPE_RIGHT, "adbinapp://dismiss?interaction=positive");
 		gestureMap.put(MessageGesture.SWIPE_UP, "adbinapp://dismiss");
 		gestureMap.put(MessageGesture.SWIPE_DOWN, "adbinapp://dismiss");
-		aepMessageSettings = messageSettingsBuilder.setWidth(100)
-							 .setHeight(100)
-							 .setBackdropColor("808080")
-							 .setBackdropOpacity(0.5f)
-							 .setCornerRadius(70.0f)
-							 .setDismissAnimation(MessageAnimation.FADE)
-							 .setDisplayAnimation(MessageAnimation.CENTER)
-							 .setGestures(gestureMap)
-							 .setHorizontalAlign(MessageAlignment.CENTER)
-							 .setHorizontalInset(5)
-							 .setVerticalAlign(MessageAlignment.TOP)
-							 .setVerticalInset(10)
-							 .build();
+		aepMessageSettings = new MessageSettings();
+		aepMessageSettings.setWidth(100);
+		aepMessageSettings.setHeight(100);
+		aepMessageSettings.setBackdropColor("808080");
+		aepMessageSettings.setBackdropOpacity(0.5f);
+		aepMessageSettings.setCornerRadius(70.0f);
+		aepMessageSettings.setDismissAnimation(MessageAnimation.FADE);
+		aepMessageSettings.setDisplayAnimation(MessageAnimation.CENTER);
+		aepMessageSettings.setGestures(gestureMap);
+		aepMessageSettings.setHorizontalAlign(MessageAlignment.CENTER);
+		aepMessageSettings.setHorizontalInset(5);
+		aepMessageSettings.setVerticalAlign(MessageAlignment.TOP);
+		aepMessageSettings.setVerticalInset(10);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		Mockito.when(mockAEPMessage.getMessageFragment()).thenReturn(mockMessageFragment);
 		Mockito.when(mockAEPMessage.getMessageHtml()).thenReturn("some html");
@@ -115,9 +114,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromTop_ThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setDisplayAnimation(MessageAnimation.TOP)
-							 .build();
+		aepMessageSettings.setDisplayAnimation(MessageAnimation.TOP);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -133,9 +130,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromLeft_ThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setDisplayAnimation(MessageAnimation.LEFT)
-							 .build();
+		aepMessageSettings.setDisplayAnimation(MessageAnimation.LEFT);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -151,9 +146,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromRight_ThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setDisplayAnimation(MessageAnimation.RIGHT)
-							 .build();
+		aepMessageSettings.setDisplayAnimation(MessageAnimation.RIGHT);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -169,9 +162,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromBottom_ThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setDisplayAnimation(MessageAnimation.BOTTOM)
-							 .build();
+		aepMessageSettings.setDisplayAnimation(MessageAnimation.BOTTOM);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -187,9 +178,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_MessageAnimationFadesIn_ThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setDisplayAnimation(MessageAnimation.FADE)
-							 .build();
+		aepMessageSettings.setDisplayAnimation(MessageAnimation.FADE);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -205,9 +194,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_NoMessageAnimation_ThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setDisplayAnimation(MessageAnimation.NONE)
-							 .build();
+		aepMessageSettings.setDisplayAnimation(MessageAnimation.NONE);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -223,9 +210,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_NonFullscreenMessage_ThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setHeight(50)
-							 .build();
+		aepMessageSettings.setHeight(50);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -241,9 +226,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignLeftThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setHorizontalAlign(MessageAlignment.LEFT)
-							 .build();
+		aepMessageSettings.setHorizontalAlign(MessageAlignment.LEFT);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -259,9 +242,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignRightThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setHorizontalAlign(MessageAlignment.RIGHT)
-							 .build();
+		aepMessageSettings.setHorizontalAlign(MessageAlignment.RIGHT);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -277,9 +258,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_MessageVerticalAlignBottomThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setVerticalAlign(MessageAlignment.BOTTOM)
-							 .build();
+		aepMessageSettings.setVerticalAlign(MessageAlignment.BOTTOM);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test
@@ -295,9 +274,7 @@ public class MessageWebViewRunnerTests {
 	@Test
 	public void testRunnable_WithValidAEPMessage_And_MessageVerticalAlignCenterThenMessageShown() {
 		// setup
-		aepMessageSettings = messageSettingsBuilder
-							 .setVerticalAlign(MessageAlignment.CENTER)
-							 .build();
+		aepMessageSettings.setVerticalAlign(MessageAlignment.CENTER);
 		Mockito.when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
 		messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
 		// test

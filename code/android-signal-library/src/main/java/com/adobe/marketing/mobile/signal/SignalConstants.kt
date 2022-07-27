@@ -15,7 +15,6 @@ internal object SignalConstants {
     const val FRIENDLY_NAME = "Signal"
     const val DEFAULT_NETWORK_TIMEOUT = 2
 
-    // TODO: use core exposed network constants (https://github.com/adobe/aepsdk-core-android/issues/122)
     const val NETWORK_REQUEST_HEATER_CONTENT_TYPE = "Content-Type"
     val RECOVERABLE_ERROR_CODES = intArrayOf(408, 504, 503)
     val HTTP_SUCCESS_CODES = (200..299).toList().toIntArray()

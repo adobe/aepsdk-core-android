@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.signal
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.LoggingMode
 
-//TODO: TBD- will remove this after we add the similar logging APIs to Core.
+//TODO: TBD- remove this class if we add the similar logging APIs to Core.
 internal object Log {
     @JvmStatic
     fun trace(source: String?, message: String?) {

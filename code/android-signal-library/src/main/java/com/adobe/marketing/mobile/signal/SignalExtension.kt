@@ -93,7 +93,10 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
 
     private fun handleOpenURL(event: Event) {
         val url = event.urlToOpen() ?: run {
-            // TODO: logs
+            Log.warning(
+                LOG_TAG,
+                "Unable to process OpenURL consequence - no URL was found in EventData."
+            )
             return
         }
         Log.debug(LOG_TAG, "Opening URL $url.")

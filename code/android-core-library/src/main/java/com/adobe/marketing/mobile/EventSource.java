@@ -26,7 +26,7 @@ public final class EventSource {
 
 	// Todo - Expose String constants. Remove 'TYPE' prefix after fixing build issues
 	public static final String TYPE_WILDCARD = "com.adobe.eventSource._wildcard_";
-
+	public static final String TYPE_SHARED_STATE = "com.adobe.eventSource.sharedState";
 
 	private static final String ADOBE_PREFIX = "com.adobe.eventSource.";
 	private static final Map<String, EventSource> knownSources = new HashMap<String, EventSource>();

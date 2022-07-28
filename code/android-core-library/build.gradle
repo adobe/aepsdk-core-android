@@ -107,7 +107,51 @@ android.libraryVariants.all { variant ->
 
 
 apply from: 'checkStyle.gradle'
-apply from: 'release.gradle'
+//apply from: 'release.gradle'
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.adobe.marketing.mobile'
+            artifactId = rootProject.coreExtensionName
+            version = rootProject.coreExtensionVersion
+            artifact("$buildDir/outputs/aar/${rootProject.coreExtensionAARName}")
+
+            pom {
+                name = rootProject.mavenRepoName
+                description = rootProject.mavenRepoDescription
+                url = 'https://aep-sdks.gitbook.io'
+                licenses {
+                    license {
+                        name = 'Adobe Proprietary'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'adobe'
+                        name = 'adobe'
+                        email = 'adobe-mobile-testing@adobe.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:github.com//Adobe-Marketing-Cloud/acp-sdks.git'
+                    developerConnection = 'scm:git:ssh://github.com//Adobe-Marketing-Cloud/acp-sdks.git'
+                    url = 'https://github.com/Adobe-Marketing-Cloud/acp-sdks'
+                }
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+
+                    def coreDependencyNode = dependenciesNode.appendNode('dependency')
+                    coreDependencyNode.appendNode('groupId', 'org.jetbrains.kotlin')
+                    coreDependencyNode.appendNode('artifactId', 'kotlin-stdlib-jdk8')
+                    coreDependencyNode.appendNode('version', rootProject.kotlin_version)
+                }
+            }
+        }
+    }
+}
+tasks.withType(Javadoc).all { enabled = false }
+publish.dependsOn('assemblePhone')
 
 dependencies {
     //noinspection GradleCompatible
@@ -132,8 +176,4 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.1.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_version"
-}
-
-repositories {
-    mavenCentral()
 }

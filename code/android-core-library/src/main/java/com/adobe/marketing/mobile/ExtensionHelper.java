@@ -1,5 +1,7 @@
 package com.adobe.marketing.mobile;
 
+import java.util.Map;
+
 /**
  * Helper methods to access protected Extension methods from different packages
  */
@@ -27,6 +29,15 @@ public class ExtensionHelper {
         try {
             if (extension != null) {
                 return extension.getVersion();
+            }
+        } catch (Exception ex) { }
+        return null;
+    }
+
+    public static Map<String, String> getMetadata(Extension extension) {
+        try {
+            if (extension != null) {
+                return extension.getMetadata();
             }
         } catch (Exception ex) { }
         return null;

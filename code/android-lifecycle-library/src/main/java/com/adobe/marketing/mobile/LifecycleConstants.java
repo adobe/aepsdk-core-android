@@ -1,21 +1,13 @@
-/* **************************************************************************
- *
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2018 Adobe Systems Incorporated
- * All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains
- * the property of Adobe Systems Incorporated and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Adobe Systems Incorporated and its
- * suppliers and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe Systems Incorporated.
- *
- * *************************************************************************/
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
 
 package com.adobe.marketing.mobile;
 
@@ -31,12 +23,30 @@ class LifecycleConstants {
 	static final long WRONG_EPOCH_MAX_LENGTH_SECONDS = TimeUnit.DAYS.toSeconds(365 * 30); // 30 years
 	static final int DEFAULT_LIFECYCLE_TIMEOUT = 300;
 	static final String LOG_TAG = "Lifecycle";
+	static final String FRIENDLY_NAME = "Lifecycle";
 
 	static final class EventName {
 		static final String LIFECYCLE_START_EVENT = "LifecycleStart";
 
 		private EventName() {}
 	}
+
+	//TODO: will be removed after the public EventType class is exposed in Core
+	public static final class EventType {
+		public static final String GENERIC_LIFECYCLE = "com.adobe.eventType.generic.lifecycle";
+		public static final String LIFECYCLE = "com.adobe.eventType.lifecycle";
+
+		private EventType() {}
+	}
+
+	//TODO: will be removed after the public EventSource class is exposed in Core
+	public static final class EventSource {
+		public static final String REQUEST_CONTENT = "com.adobe.eventSource.requestContent";
+		public static final String BOOTED = "com.adobe.eventSource.booted";
+		public static final String RESPONSE_CONTENT = "com.adobe.eventSource.responseContent";
+
+		private EventSource() {}
+ 	}
 
 	static class ContextDataValues {
 		static final String UPGRADE_EVENT = "UpgradeEvent";

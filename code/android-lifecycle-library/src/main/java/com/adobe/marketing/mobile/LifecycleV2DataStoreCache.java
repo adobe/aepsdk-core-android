@@ -1,23 +1,17 @@
-/* **************************************************************************
- *
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2021 Adobe Systems Incorporated
- * All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains
- * the property of Adobe Systems Incorporated and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Adobe Systems Incorporated and its
- * suppliers and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe Systems Incorporated.
- *
- * *************************************************************************/
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
 
 package com.adobe.marketing.mobile;
+
+import com.adobe.marketing.mobile.services.NamedCollection;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  */
 class LifecycleV2DataStoreCache {
 	private static final String SELF_LOG_TAG = "LifecycleV2DataStoreCache";
-	private final LocalStorageService.DataStore dataStore;
+	private final NamedCollection namedCollection;
 	private final long closeTimestampMillis; // close timestamp at initialization time (persisted in the previous session)
 	// used to keep track of the last persisted value to optimize the commits to persistence
 	private long lastClosePersistedValue;
@@ -36,12 +30,12 @@ class LifecycleV2DataStoreCache {
 	/**
 	 * Initializes the class and loads the app close timestamp from persistence
 	 *
-	 * @param dataStore the DataStore used to read/write last known timestamp
+	 * @param namedCollection the {@code NamedCollection} used to read/write last known timestamp
 	 */
-	LifecycleV2DataStoreCache(final LocalStorageService.DataStore dataStore) {
-		this.dataStore = dataStore;
+	LifecycleV2DataStoreCache(final NamedCollection namedCollection) {
+		this.namedCollection = namedCollection;
 
-		if (dataStore == null) {
+		if (this.namedCollection == null) {
 			Log.warning(LifecycleConstants.LOG_TAG, "%s - Unexpected null DataStore was provided, the functionality is limited.",
 						SELF_LOG_TAG);
 			closeTimestampMillis = 0L;
@@ -51,7 +45,7 @@ class LifecycleV2DataStoreCache {
 		// DataStore is set, migrate any old timestamps
 		migrateTimestampsSecToMillis();
 
-		final long tempTs = dataStore.getLong(LifecycleV2Constants.DataStoreKeys.APP_CLOSE_TIMESTAMP_MILLIS, 0L);
+		final long tempTs = this.namedCollection.getLong(LifecycleV2Constants.DataStoreKeys.APP_CLOSE_TIMESTAMP_MILLIS, 0L);
 		this.closeTimestampMillis = tempTs > 0 ? tempTs + LifecycleV2Constants.CACHE_TIMEOUT_MILLIS : tempTs;
 	}
 
@@ -62,8 +56,8 @@ class LifecycleV2DataStoreCache {
 	 * @param timestampMillis current timestamp (milliseconds)
 	 */
 	void setLastKnownTimestamp(final long timestampMillis) {
-		if (dataStore != null && timestampMillis - lastClosePersistedValue >= LifecycleV2Constants.CACHE_TIMEOUT_MILLIS) {
-			dataStore.setLong(LifecycleV2Constants.DataStoreKeys.APP_CLOSE_TIMESTAMP_MILLIS, timestampMillis);
+		if (namedCollection != null && timestampMillis - lastClosePersistedValue >= LifecycleV2Constants.CACHE_TIMEOUT_MILLIS) {
+			namedCollection.setLong(LifecycleV2Constants.DataStoreKeys.APP_CLOSE_TIMESTAMP_MILLIS, timestampMillis);
 			lastClosePersistedValue = timestampMillis;
 		}
 	}
@@ -85,8 +79,8 @@ class LifecycleV2DataStoreCache {
 	 * @param timestampMillis start timestamp (milliseconds)
 	 */
 	void setAppStartTimestamp(final long timestampMillis) {
-		if (dataStore != null) {
-			dataStore.setLong(LifecycleV2Constants.DataStoreKeys.APP_START_TIMESTAMP_MILLIS, timestampMillis);
+		if (namedCollection != null) {
+			namedCollection.setLong(LifecycleV2Constants.DataStoreKeys.APP_START_TIMESTAMP_MILLIS, timestampMillis);
 		}
 	}
 
@@ -96,7 +90,7 @@ class LifecycleV2DataStoreCache {
 	 * @return app start timestamp (milliseconds) or 0 if not found
 	 */
 	long getAppStartTimestampMillis() {
-		return dataStore != null ? dataStore.getLong(LifecycleV2Constants.DataStoreKeys.APP_START_TIMESTAMP_MILLIS, 0L) : 0L;
+		return namedCollection != null ? namedCollection.getLong(LifecycleV2Constants.DataStoreKeys.APP_START_TIMESTAMP_MILLIS, 0L) : 0L;
 	}
 
 	/**
@@ -105,8 +99,8 @@ class LifecycleV2DataStoreCache {
 	 * @param timestampMillis pause timestamp (milliseconds)
 	 */
 	void setAppPauseTimestamp(final long timestampMillis) {
-		if (dataStore != null) {
-			dataStore.setLong(LifecycleV2Constants.DataStoreKeys.APP_PAUSE_TIMESTAMP_MILLIS, timestampMillis);
+		if (namedCollection != null) {
+			namedCollection.setLong(LifecycleV2Constants.DataStoreKeys.APP_PAUSE_TIMESTAMP_MILLIS, timestampMillis);
 		}
 	}
 
@@ -116,7 +110,7 @@ class LifecycleV2DataStoreCache {
 	 * @return app pause timestamp (milliseconds) or 0 if not found
 	 */
 	long getAppPauseTimestampMillis() {
-		return dataStore != null ? dataStore.getLong(LifecycleV2Constants.DataStoreKeys.APP_PAUSE_TIMESTAMP_MILLIS, 0L) : 0L;
+		return namedCollection != null ? namedCollection.getLong(LifecycleV2Constants.DataStoreKeys.APP_PAUSE_TIMESTAMP_MILLIS, 0L) : 0L;
 	}
 
 	/**
@@ -140,20 +134,20 @@ class LifecycleV2DataStoreCache {
 	 * @param keyMilliseconds the data store key name to add holding a timestamp in milliseconds.
 	 */
 	private void migrateDataStoreKey(final String keySeconds, final String keyMilliseconds) {
-		if (dataStore == null) {
+		if (namedCollection == null) {
 			return;
 		}
 
-		if (dataStore.contains(keySeconds)) {
-			long value = dataStore.getLong(keySeconds, 0L);
+		if (namedCollection.contains(keySeconds)) {
+			long value = namedCollection.getLong(keySeconds, 0L);
 
 			if (value > 0) {
-				dataStore.setLong(keyMilliseconds, TimeUnit.SECONDS.toMillis(value));
+				namedCollection.setLong(keyMilliseconds, TimeUnit.SECONDS.toMillis(value));
 				Log.trace(LifecycleConstants.LOG_TAG, "%s - Migrated persisted '%s' to '%s'.",
 						  SELF_LOG_TAG, keySeconds, keyMilliseconds);
 			}
 
-			dataStore.remove(keySeconds);
+			namedCollection.remove(keySeconds);
 		}
 	}
 }

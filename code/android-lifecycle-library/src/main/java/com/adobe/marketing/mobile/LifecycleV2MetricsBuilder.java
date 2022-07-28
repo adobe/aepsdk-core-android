@@ -1,21 +1,17 @@
-/* ************************************************************************
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2021 Adobe Systems Incorporated
- * All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains
- * the property of Adobe Systems Incorporated and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Adobe Systems Incorporated and its
- * suppliers and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe Systems Incorporated.
- **************************************************************************/
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
 
 package com.adobe.marketing.mobile;
+
+import com.adobe.marketing.mobile.services.DeviceInforming;
 
 import java.util.Date;
 import java.util.Map;
@@ -32,19 +28,19 @@ import java.util.concurrent.TimeUnit;
  */
 class LifecycleV2MetricsBuilder {
 	private static final String SELF_LOG_TAG = "LifecycleV2MetricsBuilder";
-	private final SystemInfoService systemInfoService;
+	private final DeviceInforming deviceInfoService;
 	private XDMLifecycleDevice xdmDeviceInfo;
 	private XDMLifecycleEnvironment xdmEnvironmentInfo;
 
 	/**
 	 * Constructor for the Lifecycle metrics builder in XDM format
 	 *
-	 * @param systemInfoService {@link SystemInfoService} instance to be used for collecting the metrics
+	 * @param deviceInfoService {@link DeviceInforming} instance to be used for collecting the metrics
 	 */
-	LifecycleV2MetricsBuilder(final SystemInfoService systemInfoService) {
-		this.systemInfoService = systemInfoService;
+	LifecycleV2MetricsBuilder(final DeviceInforming deviceInfoService) {
+		this.deviceInfoService = deviceInfoService;
 
-		if (systemInfoService == null) {
+		if (this.deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG, "%s - %s (System Info Services), while creating XDMLifecycleMetricsBuilder.",
 					  SELF_LOG_TAG,
 					  Log.UNEXPECTED_NULL_VALUE);
@@ -116,15 +112,15 @@ class LifecycleV2MetricsBuilder {
 			xdmApplicationInfoLaunch.setIsUpgrade(true);
 		}
 
-		if (systemInfoService == null) {
+		if (deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG,
 					  "%s - Unable to add XDM Application data for app launch due to SystemInfoService being not initialized.",
 					  SELF_LOG_TAG);
 			return xdmApplicationInfoLaunch;
 		}
 
-		xdmApplicationInfoLaunch.setName(systemInfoService.getApplicationName());
-		xdmApplicationInfoLaunch.setId(systemInfoService.getApplicationPackageName());
+		xdmApplicationInfoLaunch.setName(deviceInfoService.getApplicationName());
+		xdmApplicationInfoLaunch.setId(deviceInfoService.getApplicationPackageName());
 		xdmApplicationInfoLaunch.setVersion(getAppVersion());
 
 		return xdmApplicationInfoLaunch;
@@ -164,7 +160,7 @@ class LifecycleV2MetricsBuilder {
 			return xdmEnvironmentInfo;
 		}
 
-		if (systemInfoService == null) {
+		if (deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG,
 					  "%s - Unable to add XDM Environment data due to SystemInfoService being not initialized.",
 					  SELF_LOG_TAG);
@@ -172,11 +168,11 @@ class LifecycleV2MetricsBuilder {
 		}
 
 		xdmEnvironmentInfo = new XDMLifecycleEnvironment();
-		xdmEnvironmentInfo.setCarrier(systemInfoService.getMobileCarrierName());
-		xdmEnvironmentInfo.setType(LifecycleV2DataConverter.toEnvironmentTypeEnum(systemInfoService.getRunMode()));
-		xdmEnvironmentInfo.setOperatingSystem(systemInfoService.getOperatingSystemName());
-		xdmEnvironmentInfo.setOperatingSystemVersion(systemInfoService.getOperatingSystemVersion());
-		xdmEnvironmentInfo.setLanguage(LifecycleUtil.formatLocale(systemInfoService.getActiveLocale()));
+		xdmEnvironmentInfo.setCarrier(deviceInfoService.getMobileCarrierName());
+		xdmEnvironmentInfo.setType(LifecycleV2DataConverter.toEnvironmentTypeEnum(deviceInfoService.getRunMode()));
+		xdmEnvironmentInfo.setOperatingSystem(deviceInfoService.getCanonicalPlatformName());
+		xdmEnvironmentInfo.setOperatingSystemVersion(deviceInfoService.getOperatingSystemVersion());
+		xdmEnvironmentInfo.setLanguage(LifecycleUtil.formatLocale(deviceInfoService.getActiveLocale()));
 
 		return xdmEnvironmentInfo;
 	}
@@ -192,14 +188,14 @@ class LifecycleV2MetricsBuilder {
 			return xdmDeviceInfo;
 		}
 
-		if (systemInfoService == null) {
+		if (deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG,
 					  "%s - Unable to add XDM Device data due to SystemInfoService being not initialized.", SELF_LOG_TAG);
 			return null;
 		}
 
 		xdmDeviceInfo = new XDMLifecycleDevice();
-		SystemInfoService.DisplayInformation displayInfo = systemInfoService.getDisplayInformation();
+		DeviceInforming.DisplayInformation displayInfo = deviceInfoService.getDisplayInformation();
 
 		if (displayInfo != null) {
 			// absolute width/height of the device
@@ -207,10 +203,10 @@ class LifecycleV2MetricsBuilder {
 			xdmDeviceInfo.setScreenHeight(displayInfo.getHeightPixels());
 		}
 
-		xdmDeviceInfo.setType(LifecycleV2DataConverter.toDeviceTypeEnum(systemInfoService.getDeviceType()));
-		xdmDeviceInfo.setModel(systemInfoService.getDeviceName());
-		xdmDeviceInfo.setModelNumber(systemInfoService.getDeviceBuildId());
-		xdmDeviceInfo.setManufacturer(systemInfoService.getDeviceManufacturer());
+		xdmDeviceInfo.setType(LifecycleV2DataConverter.toDeviceTypeEnum(deviceInfoService.getDeviceType()));
+		xdmDeviceInfo.setModel(deviceInfoService.getDeviceName());
+		xdmDeviceInfo.setModelNumber(deviceInfoService.getDeviceBuildId());
+		xdmDeviceInfo.setManufacturer(deviceInfoService.getDeviceManufacturer());
 
 		return xdmDeviceInfo;
 	}
@@ -221,12 +217,12 @@ class LifecycleV2MetricsBuilder {
 	 * @return the app version as a {@link String} formatted in the specified format.
 	 */
 	private String getAppVersion() {
-		if (systemInfoService == null) {
+		if (deviceInfoService == null) {
 			return null;
 		}
 
-		final String applicationVersion = systemInfoService.getApplicationVersion();
-		final String applicationVersionCode = systemInfoService.getApplicationVersionCode();
+		final String applicationVersion = deviceInfoService.getApplicationVersion();
+		final String applicationVersionCode = deviceInfoService.getApplicationVersionCode();
 		return String.format("%s%s",
 							 !StringUtils.isNullOrEmpty(applicationVersion) ? String.format("%s", applicationVersion) : "",
 							 !StringUtils.isNullOrEmpty(applicationVersionCode) ? String.format(" (%s)", applicationVersionCode) : "");

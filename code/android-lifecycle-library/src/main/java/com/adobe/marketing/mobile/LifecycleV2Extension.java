@@ -1,23 +1,19 @@
-/* **************************************************************************
- *
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2021 Adobe Systems Incorporated
- * All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains
- * the property of Adobe Systems Incorporated and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Adobe Systems Incorporated and its
- * suppliers and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe Systems Incorporated.
- *
- * *************************************************************************/
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.services.DeviceInforming;
+import com.adobe.marketing.mobile.services.NamedCollection;
+
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -31,39 +27,36 @@ class LifecycleV2Extension {
 	private final LifecycleV2DataStoreCache dataStoreCache;
 	private final LifecycleV2StateManager stateManager;
 	private final LifecycleV2MetricsBuilder xdmMetricsBuilder;
-	private final LocalStorageService.DataStore dataStore;
-	private final SystemInfoService systemInfoService;
-	private final LifecycleV2DispatcherApplicationState lifecycleV2DispatcherApplicationState;
+	private final NamedCollection namedCollection;
+	private final DeviceInforming deviceInfoService;
 
 	private final long BACKDATE_TIMESTAMP_OFFSET_MILLIS = 1000; //backdate timestamps by 1 second
 
 	/**
 	 * Constructor for the LifecycleV2Extension.
 	 *
-	 * @param dataStore   LocalStorageService.DataStore instance
-	 * @param systemInfoService SystemInfoService instance
+	 * @param namedCollection {@code NamedCollection} instance
+	 * @param deviceInfoService {@code DeviceInforming} instance
 	 */
-	LifecycleV2Extension(final LocalStorageService.DataStore dataStore, final SystemInfoService systemInfoService,
-						 final LifecycleV2DispatcherApplicationState applicationStateDispatcher) {
-		this(dataStore, systemInfoService, applicationStateDispatcher, null);
+	LifecycleV2Extension(final NamedCollection namedCollection, final DeviceInforming deviceInfoService) {
+		this(namedCollection, deviceInfoService, null);
 	}
 
 	/**
 	 * This constructor is intended for testing purposes.
 	 *
-	 * @param dataStore    LocalStorageService.DataStore instance
-	 * @param systemInfoService SystemInfoService instance
+	 * @param namedCollection {@code NamedCollection} instance
+	 * @param deviceInfoService {@code DeviceInforming} instance
 	 * @param metricsBuilder	XDM LifecycleMetricsBuilder instance. If null, a new instance will be created
 	 */
-	LifecycleV2Extension(final LocalStorageService.DataStore dataStore, final SystemInfoService systemInfoService,
-						 final LifecycleV2DispatcherApplicationState applicationStateDispatcher,
+	LifecycleV2Extension(final NamedCollection namedCollection,
+						 final DeviceInforming deviceInfoService,
 						 final LifecycleV2MetricsBuilder metricsBuilder) {
-		this.dataStore = dataStore;
-		this.systemInfoService = systemInfoService;
-		this.lifecycleV2DispatcherApplicationState = applicationStateDispatcher;
+		this.namedCollection = namedCollection;
+		this.deviceInfoService = deviceInfoService;
 		stateManager = new LifecycleV2StateManager();
-		dataStoreCache = new LifecycleV2DataStoreCache(this.dataStore);
-		xdmMetricsBuilder = metricsBuilder != null ? metricsBuilder : new LifecycleV2MetricsBuilder(this.systemInfoService);
+		dataStoreCache = new LifecycleV2DataStoreCache(namedCollection);
+		xdmMetricsBuilder = metricsBuilder != null ? metricsBuilder : new LifecycleV2MetricsBuilder(deviceInfoService);
 	}
 
 	/**
@@ -86,14 +79,14 @@ class LifecycleV2Extension {
 						&& isCloseUnknown(dataStoreCache.getAppStartTimestampMillis(), dataStoreCache.getAppPauseTimestampMillis())) {
 					// in case of an unknown close situation, use the last known app close event timestamp
 					// if no close timestamp was persisted, backdate this event to start timestamp - 1 second
-					Map<String, Object> appCloseXDMData =
-						xdmMetricsBuilder.buildAppCloseXDMData(
-							dataStoreCache.getAppStartTimestampMillis(),
-							dataStoreCache.getCloseTimestampMillis(),
-							event.getTimestamp() - BACKDATE_TIMESTAMP_OFFSET_MILLIS,
-							true);
+					Map<String, Object> appCloseXDMData = xdmMetricsBuilder.buildAppCloseXDMData(
+								dataStoreCache.getAppStartTimestampMillis(),
+								dataStoreCache.getCloseTimestampMillis(),
+								event.getTimestamp() - BACKDATE_TIMESTAMP_OFFSET_MILLIS,
+								true
+					);
 					// Dispatch application close event with xdm data
-					lifecycleV2DispatcherApplicationState.dispatchApplicationClose(appCloseXDMData);
+					dispatchApplicationClose(appCloseXDMData);
 				}
 
 				final long startTimestamp = event.getTimestamp();
@@ -101,12 +94,11 @@ class LifecycleV2Extension {
 
 				Map<String, Object> appLaunchXDMData = xdmMetricsBuilder.buildAppLaunchXDMData(startTimestamp, isInstall,
 													   isUpgrade());
-				Map<String, String> freeFormData = event.getData().optStringMap(
-													   LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA, null);
+				Map<String, String> freeFormData = (Map<String, String>) event.getEventData().get(
+													   LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
 
 				// Dispatch application launch event with xdm data
-				lifecycleV2DispatcherApplicationState.dispatchApplicationLaunch(appLaunchXDMData,
-						freeFormData);
+				dispatchApplicationLaunch(appLaunchXDMData, freeFormData);
 
 				// persist App version to track App upgrades
 				persistAppVersion();
@@ -133,7 +125,7 @@ class LifecycleV2Extension {
 				Map<String, Object> appCloseXDMData = xdmMetricsBuilder.buildAppCloseXDMData(
 						dataStoreCache.getAppStartTimestampMillis(), pauseTimestamp, pauseTimestamp, false);
 				// Dispatch application close event with xdm data
-				lifecycleV2DispatcherApplicationState.dispatchApplicationClose(appCloseXDMData);
+				dispatchApplicationClose(appCloseXDMData);
 			}
 		});
 	}
@@ -166,12 +158,12 @@ class LifecycleV2Extension {
 	private boolean isUpgrade() {
 		String previousAppVersion = "";
 
-		if (dataStore != null) {
-			previousAppVersion = dataStore.getString(LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, "");
+		if (namedCollection != null) {
+			previousAppVersion = namedCollection.getString(LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, "");
 		}
 
-		return systemInfoService != null && !previousAppVersion.isEmpty()
-			   && !previousAppVersion.equalsIgnoreCase(systemInfoService.getApplicationVersion());
+		return deviceInfoService != null && !previousAppVersion.isEmpty()
+			   && !previousAppVersion.equalsIgnoreCase(deviceInfoService.getApplicationVersion());
 	}
 
 
@@ -181,9 +173,65 @@ class LifecycleV2Extension {
 	private void persistAppVersion() {
 
 		// Persist app version for xdm workflow
-		if (dataStore != null && systemInfoService != null) {
-			dataStore.setString(LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, systemInfoService.getApplicationVersion());
+		if (namedCollection != null && deviceInfoService != null) {
+			namedCollection.setString(LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, deviceInfoService.getApplicationVersion());
 		}
+	}
+
+	/**
+	 * Dispatches a lifecycle application launch event onto the EventHub containing the session info as xdm event data
+	 * @param appLaunchXDMData 	the current session start xdm data
+	 * @param freeFormData	additional free-form context data
+	 */
+	private void dispatchApplicationLaunch(final Map<String, Object> appLaunchXDMData,
+										   final Map<String, String> freeFormData){
+		if (appLaunchXDMData == null || appLaunchXDMData.isEmpty()) {
+			Log.trace(LifecycleConstants.LOG_TAG, "%s - Not dispatching application launch event as xdm data was null",
+					SELF_LOG_TAG);
+			return;
+		}
+		Map<String, Object> launchEventData = new HashMap<String, Object>();
+		launchEventData.put(LifecycleV2Constants.EventDataKeys.XDM, appLaunchXDMData);
+		if (freeFormData != null && !freeFormData.isEmpty()) {
+			launchEventData.put(LifecycleV2Constants.EventDataKeys.DATA, freeFormData);
+		}
+		Event lifecycleLaunchEvent = new Event.Builder(
+				LifecycleV2Constants.EventName.APPLICATION_LAUNCH_EVENT,
+				LifecycleConstants.EventType.LIFECYCLE,
+				LifecycleV2Constants.EventSource.APPLICATION_LAUNCH
+		).setEventData(launchEventData).build();
+		MobileCore.dispatchEvent(lifecycleLaunchEvent,
+				extensionError -> Log.error(SELF_LOG_TAG,
+						"Failed to dispatch lifecycle application launch event, error: %s",
+						extensionError.getErrorName()
+				)
+		);
+	}
+
+	/**
+	 * Dispatches a lifecycle application close event onto the EventHub containing the session info as xdm event data
+	 * @param appCloseXDMData the current session close xdm data
+	 */
+	private void dispatchApplicationClose(final Map<String, Object> appCloseXDMData) {
+		if (appCloseXDMData == null || appCloseXDMData.isEmpty()) {
+			Log.trace(LifecycleConstants.LOG_TAG, "%s - Not dispatching application close event as xdm data was null",
+					SELF_LOG_TAG);
+			return;
+		}
+		Map<String, Object> closeEventData = new HashMap<String, Object>();
+		closeEventData.put(LifecycleV2Constants.EventDataKeys.XDM, appCloseXDMData);
+
+		Event lifecycleCloseEvent = new Event.Builder(
+				LifecycleV2Constants.EventName.APPLICATION_CLOSE_EVENT,
+				LifecycleConstants.EventType.LIFECYCLE,
+				LifecycleV2Constants.EventSource.APPLICATION_CLOSE)
+				.setEventData(closeEventData).build();
+		MobileCore.dispatchEvent(lifecycleCloseEvent,
+				extensionError -> Log.error(SELF_LOG_TAG,
+						"Failed to dispatch lifecycle application close event, error: %s",
+						extensionError.getErrorName()
+				)
+		);
 	}
 
 }

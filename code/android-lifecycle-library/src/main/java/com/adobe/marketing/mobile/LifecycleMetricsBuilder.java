@@ -1,23 +1,17 @@
-/* **************************************************************************
- *
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2018 Adobe Systems Incorporated
- * All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains
- * the property of Adobe Systems Incorporated and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Adobe Systems Incorporated and its
- * suppliers and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe Systems Incorporated.
- *
- * *************************************************************************/
-
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
 package com.adobe.marketing.mobile;
+
+import com.adobe.marketing.mobile.services.DeviceInforming;
+import com.adobe.marketing.mobile.services.NamedCollection;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -35,24 +29,24 @@ import java.util.concurrent.TimeUnit;
 final class LifecycleMetricsBuilder {
 	private static final String SELF_LOG_TAG = "LifecycleMetricsBuilder";
 	private final DateFormat sdfDate = new SimpleDateFormat("M/d/yyyy", Locale.US);
-	private Map<String, String> lifecycleData;
-	private SystemInfoService systemInfoService;
-	private LocalStorageService.DataStore lifecycleDataStore;
-	private long timestampInSeconds;
+	private final Map<String, String> lifecycleData;
+	private final DeviceInforming deviceInfoService;
+	private final NamedCollection lifecycleNamedCollection;
+	private final long timestampInSeconds;
 
-	LifecycleMetricsBuilder(final SystemInfoService systemInfoService, final LocalStorageService.DataStore dataStore,
+	LifecycleMetricsBuilder(final DeviceInforming deviceInfoService, final NamedCollection namedCollection,
 							final long timestampInSeconds) {
 		this.lifecycleData = new HashMap<String, String>();
-		this.systemInfoService = systemInfoService;
-		this.lifecycleDataStore = dataStore;
+		this.deviceInfoService = deviceInfoService;
+		this.lifecycleNamedCollection = namedCollection;
 		this.timestampInSeconds = timestampInSeconds;
 
-		if (dataStore == null) {
+		if (namedCollection == null) {
 			Log.debug(LifecycleConstants.LOG_TAG, "%s - %s (Data Store), while creating LifecycleExtension Metrics Builder.",
 					  SELF_LOG_TAG, Log.UNEXPECTED_NULL_VALUE);
 		}
 
-		if (systemInfoService == null) {
+		if (this.deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG,
 					  "%s - %s (System Info Services), while creating LifecycleExtension Metrics Builder", SELF_LOG_TAG,
 					  Log.UNEXPECTED_NULL_VALUE);
@@ -95,12 +89,12 @@ final class LifecycleMetricsBuilder {
 	LifecycleMetricsBuilder addLaunchData() {
 		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding launch data to the lifecycle data map", SELF_LOG_TAG);
 
-		if (lifecycleDataStore == null) {
+		if (lifecycleNamedCollection == null) {
 			return this;
 		}
 
-		long lastLaunchDate = lifecycleDataStore.getLong(LifecycleConstants.DataStoreKeys.LAST_USED_DATE, 0);
-		long firstLaunchDate = lifecycleDataStore.getLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, 0);
+		long lastLaunchDate = lifecycleNamedCollection.getLong(LifecycleConstants.DataStoreKeys.LAST_USED_DATE, 0);
+		long firstLaunchDate = lifecycleNamedCollection.getLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, 0);
 		Calendar calendarCurrentTimestamp = calendarFromTimestampInSeconds(timestampInSeconds);
 		Calendar calendarPersistedTimestamp = calendarFromTimestampInSeconds(lastLaunchDate);
 
@@ -140,8 +134,8 @@ final class LifecycleMetricsBuilder {
 	LifecycleMetricsBuilder addGenericData() {
 		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding generic data to the lifecycle data map", SELF_LOG_TAG);
 
-		if (lifecycleDataStore != null) {
-			int launches = lifecycleDataStore.getInt(LifecycleConstants.DataStoreKeys.LAUNCHES, -1);
+		if (lifecycleNamedCollection != null) {
+			int launches = lifecycleNamedCollection.getInt(LifecycleConstants.DataStoreKeys.LAUNCHES, -1);
 
 			if (launches != -1) {
 				lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.LAUNCHES, Integer.toString(launches));
@@ -175,19 +169,19 @@ final class LifecycleMetricsBuilder {
 							  LifecycleConstants.ContextDataValues.UPGRADE_EVENT);
 		}
 
-		if (lifecycleDataStore == null) {
+		if (lifecycleNamedCollection == null) {
 			return this;
 		}
 
-		long upgradeDate = lifecycleDataStore.getLong(LifecycleConstants.DataStoreKeys.UPGRADE_DATE, 0L);
+		long upgradeDate = lifecycleNamedCollection.getLong(LifecycleConstants.DataStoreKeys.UPGRADE_DATE, 0L);
 
 		if (upgrade) {
-			lifecycleDataStore.setLong(LifecycleConstants.DataStoreKeys.UPGRADE_DATE, timestampInSeconds);
-			lifecycleDataStore.setInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, 0);
+			lifecycleNamedCollection.setLong(LifecycleConstants.DataStoreKeys.UPGRADE_DATE, timestampInSeconds);
+			lifecycleNamedCollection.setInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, 0);
 		} else if (upgradeDate > 0) {
 			int daysSinceUpgrade = calculateDaysBetween(upgradeDate, timestampInSeconds);
-			int launchesAfterUpgrade = lifecycleDataStore.getInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, 0) + 1;
-			lifecycleDataStore.setInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, launchesAfterUpgrade);
+			int launchesAfterUpgrade = lifecycleNamedCollection.getInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, 0) + 1;
+			lifecycleNamedCollection.setInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, launchesAfterUpgrade);
 
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.LAUNCHES_SINCE_UPGRADE, Integer.toString(
 								  launchesAfterUpgrade));
@@ -227,17 +221,17 @@ final class LifecycleMetricsBuilder {
 	LifecycleMetricsBuilder addCoreData() {
 		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding core data to lifecycle data map", SELF_LOG_TAG);
 
-		if (systemInfoService == null) {
+		if (deviceInfoService == null) {
 			return this;
 		}
 
-		final String deviceName = systemInfoService.getDeviceName();
+		final String deviceName = deviceInfoService.getDeviceName();
 
 		if (!StringUtils.isNullOrEmpty(deviceName)) {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.DEVICE_NAME, deviceName);
 		}
 
-		final String carrierName = systemInfoService.getMobileCarrierName();
+		final String carrierName = deviceInfoService.getMobileCarrierName();
 
 		if (!StringUtils.isNullOrEmpty(carrierName)) {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.CARRIER_NAME, carrierName);
@@ -249,8 +243,9 @@ final class LifecycleMetricsBuilder {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.APP_ID, appId);
 		}
 
-		final String operatingSystem = systemInfoService.getOperatingSystemName() + " " +
-									   systemInfoService.getOperatingSystemVersion();
+		// todo change to OS Name instead of Platform name
+		final String operatingSystem = deviceInfoService.getCanonicalPlatformName() + " " +
+									   deviceInfoService.getOperatingSystemVersion();
 
 		if (!StringUtils.isNullOrEmpty(operatingSystem)) {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.OPERATING_SYSTEM, operatingSystem);
@@ -262,13 +257,13 @@ final class LifecycleMetricsBuilder {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.DEVICE_RESOLUTION, resolution);
 		}
 
-		final String locale = LifecycleUtil.formatLocale(systemInfoService.getActiveLocale());
+		final String locale = LifecycleUtil.formatLocale(deviceInfoService.getActiveLocale());
 
 		if (!StringUtils.isNullOrEmpty(locale)) {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.LOCALE, locale);
 		}
 
-		final String runMode = systemInfoService.getRunMode();
+		final String runMode = deviceInfoService.getRunMode();
 
 		if (!StringUtils.isNullOrEmpty(runMode)) {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.RUN_MODE, runMode);
@@ -341,13 +336,13 @@ final class LifecycleMetricsBuilder {
 	 * @return string representation of the Application ID
 	 */
 	private String getApplicationIdentifier() {
-		if (systemInfoService == null) {
+		if (deviceInfoService == null) {
 			return null;
 		}
 
-		final String applicationName = systemInfoService.getApplicationName();
-		final String applicationVersion = systemInfoService.getApplicationVersion();
-		final String applicationVersionCode = systemInfoService.getApplicationVersionCode();
+		final String applicationName = deviceInfoService.getApplicationName();
+		final String applicationVersion = deviceInfoService.getApplicationVersion();
+		final String applicationVersionCode = deviceInfoService.getApplicationVersionCode();
 		return String.format("%s%s%s",
 							 applicationName,
 							 !StringUtils.isNullOrEmpty(applicationVersion) ? String.format(" %s", applicationVersion) : "",
@@ -360,11 +355,11 @@ final class LifecycleMetricsBuilder {
 	 * @return string representation of the resolution
 	 */
 	private String getResolution() {
-		if (systemInfoService == null) {
+		if (deviceInfoService == null) {
 			return null;
 		}
 
-		SystemInfoService.DisplayInformation displayInfo = systemInfoService.getDisplayInformation();
+		DeviceInforming.DisplayInformation displayInfo = deviceInfoService.getDisplayInformation();
 
 		if (displayInfo == null) {
 			Log.debug(LifecycleConstants.LOG_TAG, "%s - Failed to get resolution (DisplayInformation was null)", SELF_LOG_TAG);

@@ -27,7 +27,7 @@ class LifecycleV2Extension {
 	private final LifecycleV2DataStoreCache dataStoreCache;
 	private final LifecycleV2StateManager stateManager;
 	private final LifecycleV2MetricsBuilder xdmMetricsBuilder;
-	private final NamedCollection namedCollection;
+	private final NamedCollection dataStore;
 	private final DeviceInforming deviceInfoService;
 
 	private final long BACKDATE_TIMESTAMP_OFFSET_MILLIS = 1000; //backdate timestamps by 1 second
@@ -35,27 +35,27 @@ class LifecycleV2Extension {
 	/**
 	 * Constructor for the LifecycleV2Extension.
 	 *
-	 * @param namedCollection {@code NamedCollection} instance
+	 * @param dataStore {@code NamedCollection} instance
 	 * @param deviceInfoService {@code DeviceInforming} instance
 	 */
-	LifecycleV2Extension(final NamedCollection namedCollection, final DeviceInforming deviceInfoService) {
-		this(namedCollection, deviceInfoService, null);
+	LifecycleV2Extension(final NamedCollection dataStore, final DeviceInforming deviceInfoService) {
+		this(dataStore, deviceInfoService, null);
 	}
 
 	/**
 	 * This constructor is intended for testing purposes.
 	 *
-	 * @param namedCollection {@code NamedCollection} instance
+	 * @param dataStore {@code NamedCollection} instance
 	 * @param deviceInfoService {@code DeviceInforming} instance
 	 * @param metricsBuilder	XDM LifecycleMetricsBuilder instance. If null, a new instance will be created
 	 */
-	LifecycleV2Extension(final NamedCollection namedCollection,
+	LifecycleV2Extension(final NamedCollection dataStore,
 						 final DeviceInforming deviceInfoService,
 						 final LifecycleV2MetricsBuilder metricsBuilder) {
-		this.namedCollection = namedCollection;
+		this.dataStore = dataStore;
 		this.deviceInfoService = deviceInfoService;
 		stateManager = new LifecycleV2StateManager();
-		dataStoreCache = new LifecycleV2DataStoreCache(namedCollection);
+		dataStoreCache = new LifecycleV2DataStoreCache(dataStore);
 		xdmMetricsBuilder = metricsBuilder != null ? metricsBuilder : new LifecycleV2MetricsBuilder(deviceInfoService);
 	}
 
@@ -94,8 +94,11 @@ class LifecycleV2Extension {
 
 				Map<String, Object> appLaunchXDMData = xdmMetricsBuilder.buildAppLaunchXDMData(startTimestamp, isInstall,
 													   isUpgrade());
-				Map<String, String> freeFormData = (Map<String, String>) event.getEventData().get(
-													   LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
+				Map<String, String> freeFormData = null;
+				if (event.getEventData() != null) {
+					freeFormData = (Map<String, String>) event.getEventData()
+							.get(LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
+				}
 
 				// Dispatch application launch event with xdm data
 				dispatchApplicationLaunch(appLaunchXDMData, freeFormData);
@@ -158,8 +161,8 @@ class LifecycleV2Extension {
 	private boolean isUpgrade() {
 		String previousAppVersion = "";
 
-		if (namedCollection != null) {
-			previousAppVersion = namedCollection.getString(LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, "");
+		if (dataStore != null) {
+			previousAppVersion = dataStore.getString(LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, "");
 		}
 
 		return deviceInfoService != null && !previousAppVersion.isEmpty()
@@ -173,8 +176,8 @@ class LifecycleV2Extension {
 	private void persistAppVersion() {
 
 		// Persist app version for xdm workflow
-		if (namedCollection != null && deviceInfoService != null) {
-			namedCollection.setString(LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, deviceInfoService.getApplicationVersion());
+		if (dataStore != null && deviceInfoService != null) {
+			dataStore.setString(LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, deviceInfoService.getApplicationVersion());
 		}
 	}
 

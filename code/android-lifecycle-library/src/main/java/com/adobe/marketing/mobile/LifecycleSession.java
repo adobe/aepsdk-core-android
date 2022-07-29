@@ -25,11 +25,11 @@ import java.util.Map;
 class LifecycleSession {
 
 	private static final String SELF_LOG_TAG = "LifecycleSession";
-	private final NamedCollection namedCollection;
+	private final NamedCollection dataStore;
 	private       boolean   lifecycleHasRun;
 
-	LifecycleSession(final NamedCollection namedCollection) {
-		this.namedCollection = namedCollection;
+	LifecycleSession(final NamedCollection dataStore) {
+		this.dataStore = dataStore;
 	}
 
 	/**
@@ -49,7 +49,7 @@ class LifecycleSession {
 			return null;
 		}
 
-		if (namedCollection == null) {
+		if (dataStore == null) {
 			Log.debug(LifecycleConstants.LOG_TAG, "%s - Failed to start session, %s (persisted data)", SELF_LOG_TAG,
 					  Log.UNEXPECTED_NULL_VALUE);
 			return null;
@@ -57,9 +57,9 @@ class LifecycleSession {
 
 		lifecycleHasRun = true;
 
-		final long previousSessionStartTimeInSeconds = namedCollection.getLong(DataStoreKeys.START_DATE, 0L);
-		final long previousSessionPauseTimeInSeconds = namedCollection.getLong(DataStoreKeys.PAUSE_DATE, 0L);
-		final boolean previousSessionCrashed = !namedCollection.getBoolean(DataStoreKeys.SUCCESSFUL_CLOSE, true);
+		final long previousSessionStartTimeInSeconds = dataStore.getLong(DataStoreKeys.START_DATE, 0L);
+		final long previousSessionPauseTimeInSeconds = dataStore.getLong(DataStoreKeys.PAUSE_DATE, 0L);
+		final boolean previousSessionCrashed = !dataStore.getBoolean(DataStoreKeys.SUCCESSFUL_CLOSE, true);
 
 		// if we have a pause date, check to see if pausedTime is less than the session timeout threshold
 		if (previousSessionPauseTimeInSeconds > 0) {
@@ -68,25 +68,25 @@ class LifecycleSession {
 			if (pausedTimeInSecond < sessionTimeoutInSeconds && previousSessionStartTimeInSeconds > 0) {
 				// handle sessions that did not time out by removing paused time from session
 				// do this by adding the paused time the session start time
-				namedCollection.setLong(DataStoreKeys.START_DATE, previousSessionStartTimeInSeconds + pausedTimeInSecond);
+				dataStore.setLong(DataStoreKeys.START_DATE, previousSessionStartTimeInSeconds + pausedTimeInSecond);
 
 				// clear lifecycle flags
-				namedCollection.setBoolean(DataStoreKeys.SUCCESSFUL_CLOSE, false);
-				namedCollection.remove(DataStoreKeys.PAUSE_DATE);
+				dataStore.setBoolean(DataStoreKeys.SUCCESSFUL_CLOSE, false);
+				dataStore.remove(DataStoreKeys.PAUSE_DATE);
 				return null;
 			}
 		}
 
-		namedCollection.setLong(DataStoreKeys.START_DATE, startTimestampInSeconds);
-		namedCollection.remove(DataStoreKeys.PAUSE_DATE);
-		namedCollection.setBoolean(DataStoreKeys.SUCCESSFUL_CLOSE, false);
+		dataStore.setLong(DataStoreKeys.START_DATE, startTimestampInSeconds);
+		dataStore.remove(DataStoreKeys.PAUSE_DATE);
+		dataStore.setBoolean(DataStoreKeys.SUCCESSFUL_CLOSE, false);
 
-		final int launches = namedCollection.getInt(DataStoreKeys.LAUNCHES, 0) + 1;
-		namedCollection.setInt(DataStoreKeys.LAUNCHES, launches);
+		final int launches = dataStore.getInt(DataStoreKeys.LAUNCHES, 0) + 1;
+		dataStore.setInt(DataStoreKeys.LAUNCHES, launches);
 
-		namedCollection.setString(DataStoreKeys.OS_VERSION,
+		dataStore.setString(DataStoreKeys.OS_VERSION,
 							coreData.get(LifecycleConstants.EventDataKeys.Lifecycle.OPERATING_SYSTEM));
-		namedCollection.setString(DataStoreKeys.APP_ID, coreData.get(LifecycleConstants.EventDataKeys.Lifecycle.APP_ID));
+		dataStore.setString(DataStoreKeys.APP_ID, coreData.get(LifecycleConstants.EventDataKeys.Lifecycle.APP_ID));
 
 		Log.trace(LifecycleConstants.LOG_TAG, "%s - New lifecycle session started", SELF_LOG_TAG);
 		return new SessionInfo(previousSessionStartTimeInSeconds, previousSessionPauseTimeInSeconds, previousSessionCrashed);
@@ -98,14 +98,14 @@ class LifecycleSession {
 	 * @param pauseTimestampInSeconds pause timestamp (in seconds)
 	 */
 	void pause(final long pauseTimestampInSeconds) {
-		if (namedCollection == null) {
+		if (dataStore == null) {
 			Log.debug(LifecycleConstants.LOG_TAG, "%s - Failed to pause session, %s (persisted data)", SELF_LOG_TAG,
 					  Log.UNEXPECTED_NULL_VALUE);
 			return;
 		}
 
-		namedCollection.setBoolean(DataStoreKeys.SUCCESSFUL_CLOSE, true);
-		namedCollection.setLong(DataStoreKeys.PAUSE_DATE, pauseTimestampInSeconds);
+		dataStore.setBoolean(DataStoreKeys.SUCCESSFUL_CLOSE, true);
+		dataStore.setLong(DataStoreKeys.PAUSE_DATE, pauseTimestampInSeconds);
 
 		Log.trace(LifecycleConstants.LOG_TAG, "%s - Lifecycle session paused", SELF_LOG_TAG);
 		// reset lifecycle flag
@@ -126,7 +126,7 @@ class LifecycleSession {
 									   final LifecycleSession.SessionInfo previousSessionInfo) {
 		Map<String, String> sessionContextData = new HashMap<String, String>();
 
-		if (namedCollection == null) {
+		if (dataStore == null) {
 			Log.debug(LifecycleConstants.LOG_TAG, "%s - %s (data store), Failed to get session length data", SELF_LOG_TAG,
 					  Log.UNEXPECTED_NULL_VALUE);
 			return sessionContextData;

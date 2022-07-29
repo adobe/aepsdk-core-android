@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@SuppressWarnings("unused")
 public class Lifecycle {
 	private final static String TAG = Lifecycle.class.getSimpleName();
 	private final static String EXTENSION_VERSION = "1.1.1";
@@ -34,7 +35,7 @@ public class Lifecycle {
 	/**
 	 * Registers the extension with the Mobile SDK. This method should be called only once in your application class.
 	 */
-	public static void registerExtension() throws InvalidInitException {
+	public static void registerExtension() {
 		MobileCore.registerExtension(LifecycleExtension.class, extensionError -> {
 			extensionIsRegistered.set(false);
 			Log.error(TAG, "There was an error when registering the Lifecycle extension: %s",

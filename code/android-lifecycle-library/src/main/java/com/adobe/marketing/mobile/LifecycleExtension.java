@@ -45,8 +45,8 @@ class LifecycleExtension extends Extension {
 	 */
 	protected LifecycleExtension(final ExtensionApi extensionApi) {
 		super(extensionApi);
-		lifecycleState = new LifecycleState(getNamedCollection(), geDeviceInfoService());
-		lifecycleV2 = new LifecycleV2Extension(getNamedCollection(), geDeviceInfoService());
+		lifecycleState = new LifecycleState(getDataStore(), geDeviceInfoService());
+		lifecycleV2 = new LifecycleV2Extension(getDataStore(), geDeviceInfoService());
 	}
 
 	@Override
@@ -139,7 +139,7 @@ class LifecycleExtension extends Extension {
 			contextData.putAll(currentContextData);
 		}
 
-		Map<String, String> defaultData = new LifecycleMetricsBuilder(geDeviceInfoService(), getNamedCollection(),
+		Map<String, String> defaultData = new LifecycleMetricsBuilder(geDeviceInfoService(), getDataStore(),
 				event.getTimestampInSeconds()).addCoreData().addGenericData().build();
 		contextData.putAll(defaultData);
 
@@ -161,15 +161,20 @@ class LifecycleExtension extends Extension {
 	 * @param event current lifecycle event to be processed
 	 * @param configurationSharedState configuration shared state data for this event
 	 */
-	private void startApplicationLifecycle(final Event event,  final Map<String, Object> configurationSharedState) {
+	private void startApplicationLifecycle(final Event event, final Map<String, Object> configurationSharedState) {
 		boolean isInstall = isInstall();
 
 		final long startTimestampInSeconds = event.getTimestampInSeconds();
 
+		Map<String, Object> eventData = event.getEventData();
+		Map<String, String> additionalContextData = null;
+
+		if (eventData != null) {
+			additionalContextData = (Map<String, String>) eventData.get(LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
+		}
+
 		LifecycleSession.SessionInfo previousSessionInfo = lifecycleState.start(startTimestampInSeconds,
-				(Map<String, String>) event
-						.getEventData()
-						.get(LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA),
+				additionalContextData,
 				getAdvertisingIdentifier(event),
 				getSessionTimeoutLength(configurationSharedState),
 				isInstall);
@@ -177,7 +182,7 @@ class LifecycleExtension extends Extension {
 		//todo verify logic
 		if (previousSessionInfo == null) {
 			// Analytics extension needs adjusted start date to calculate timeSinceLaunch param.
-			final NamedCollection namedCollection = getNamedCollection();
+			final NamedCollection namedCollection = getDataStore();
 			if (namedCollection != null) {
 				final long startTime = namedCollection.getLong(LifecycleConstants.DataStoreKeys.START_DATE, 0L);
 				updateLifecycleSharedState(event, startTime, lifecycleState.getContextData());
@@ -214,7 +219,7 @@ class LifecycleExtension extends Extension {
 	 * @param event lifecycle start event.
 	 */
 	private void persistInstallDate(final Event event) {
-		NamedCollection namedCollection = getNamedCollection();
+		NamedCollection namedCollection = getDataStore();
 
 		if (namedCollection == null) {
 			return;
@@ -230,7 +235,7 @@ class LifecycleExtension extends Extension {
 	 * @return boolean whether app install has been processed before
 	 */
 	private boolean isInstall() {
-		NamedCollection namedCollection = getNamedCollection();
+		NamedCollection namedCollection = getDataStore();
 		return namedCollection != null && !namedCollection.contains(LifecycleConstants.DataStoreKeys.INSTALL_DATE);
 	}
 
@@ -284,7 +289,7 @@ class LifecycleExtension extends Extension {
 	 *
 	 * @return {@code NamedCollection} for LifecycleExtension or null if something went wrong
 	 */
-	private NamedCollection getNamedCollection() {
+	private NamedCollection getDataStore() {
 		return ServiceProvider.getInstance().getDataStoreService().getNamedCollection(LifecycleConstants.DATA_STORE_NAME);
 	}
 

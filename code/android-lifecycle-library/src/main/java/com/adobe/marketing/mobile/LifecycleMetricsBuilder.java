@@ -31,22 +31,22 @@ final class LifecycleMetricsBuilder {
 	private final DateFormat sdfDate = new SimpleDateFormat("M/d/yyyy", Locale.US);
 	private final Map<String, String> lifecycleData;
 	private final DeviceInforming deviceInfoService;
-	private final NamedCollection lifecycleNamedCollection;
+	private final NamedCollection lifecycleDataStore;
 	private final long timestampInSeconds;
 
-	LifecycleMetricsBuilder(final DeviceInforming deviceInfoService, final NamedCollection namedCollection,
+	LifecycleMetricsBuilder(final DeviceInforming deviceInfoService, final NamedCollection dataStore,
 							final long timestampInSeconds) {
-		this.lifecycleData = new HashMap<String, String>();
+		this.lifecycleData = new HashMap<>();
 		this.deviceInfoService = deviceInfoService;
-		this.lifecycleNamedCollection = namedCollection;
+		this.lifecycleDataStore = dataStore;
 		this.timestampInSeconds = timestampInSeconds;
 
-		if (namedCollection == null) {
+		if (dataStore == null) {
 			Log.debug(LifecycleConstants.LOG_TAG, "%s - %s (Data Store), while creating LifecycleExtension Metrics Builder.",
 					  SELF_LOG_TAG, Log.UNEXPECTED_NULL_VALUE);
 		}
 
-		if (this.deviceInfoService == null) {
+		if (deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG,
 					  "%s - %s (System Info Services), while creating LifecycleExtension Metrics Builder", SELF_LOG_TAG,
 					  Log.UNEXPECTED_NULL_VALUE);
@@ -89,12 +89,12 @@ final class LifecycleMetricsBuilder {
 	LifecycleMetricsBuilder addLaunchData() {
 		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding launch data to the lifecycle data map", SELF_LOG_TAG);
 
-		if (lifecycleNamedCollection == null) {
+		if (lifecycleDataStore == null) {
 			return this;
 		}
 
-		long lastLaunchDate = lifecycleNamedCollection.getLong(LifecycleConstants.DataStoreKeys.LAST_USED_DATE, 0);
-		long firstLaunchDate = lifecycleNamedCollection.getLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, 0);
+		long lastLaunchDate = lifecycleDataStore.getLong(LifecycleConstants.DataStoreKeys.LAST_USED_DATE, 0);
+		long firstLaunchDate = lifecycleDataStore.getLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, 0);
 		Calendar calendarCurrentTimestamp = calendarFromTimestampInSeconds(timestampInSeconds);
 		Calendar calendarPersistedTimestamp = calendarFromTimestampInSeconds(lastLaunchDate);
 
@@ -134,8 +134,8 @@ final class LifecycleMetricsBuilder {
 	LifecycleMetricsBuilder addGenericData() {
 		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding generic data to the lifecycle data map", SELF_LOG_TAG);
 
-		if (lifecycleNamedCollection != null) {
-			int launches = lifecycleNamedCollection.getInt(LifecycleConstants.DataStoreKeys.LAUNCHES, -1);
+		if (lifecycleDataStore != null) {
+			int launches = lifecycleDataStore.getInt(LifecycleConstants.DataStoreKeys.LAUNCHES, -1);
 
 			if (launches != -1) {
 				lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.LAUNCHES, Integer.toString(launches));
@@ -169,19 +169,19 @@ final class LifecycleMetricsBuilder {
 							  LifecycleConstants.ContextDataValues.UPGRADE_EVENT);
 		}
 
-		if (lifecycleNamedCollection == null) {
+		if (lifecycleDataStore == null) {
 			return this;
 		}
 
-		long upgradeDate = lifecycleNamedCollection.getLong(LifecycleConstants.DataStoreKeys.UPGRADE_DATE, 0L);
+		long upgradeDate = lifecycleDataStore.getLong(LifecycleConstants.DataStoreKeys.UPGRADE_DATE, 0L);
 
 		if (upgrade) {
-			lifecycleNamedCollection.setLong(LifecycleConstants.DataStoreKeys.UPGRADE_DATE, timestampInSeconds);
-			lifecycleNamedCollection.setInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, 0);
+			lifecycleDataStore.setLong(LifecycleConstants.DataStoreKeys.UPGRADE_DATE, timestampInSeconds);
+			lifecycleDataStore.setInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, 0);
 		} else if (upgradeDate > 0) {
 			int daysSinceUpgrade = calculateDaysBetween(upgradeDate, timestampInSeconds);
-			int launchesAfterUpgrade = lifecycleNamedCollection.getInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, 0) + 1;
-			lifecycleNamedCollection.setInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, launchesAfterUpgrade);
+			int launchesAfterUpgrade = lifecycleDataStore.getInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, 0) + 1;
+			lifecycleDataStore.setInt(LifecycleConstants.DataStoreKeys.LAUNCHES_AFTER_UPGRADE, launchesAfterUpgrade);
 
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.LAUNCHES_SINCE_UPGRADE, Integer.toString(
 								  launchesAfterUpgrade));

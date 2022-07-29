@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.services.NamedCollection;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * LifecycleV2Extension class
@@ -31,6 +32,7 @@ class LifecycleV2Extension {
 	private final DeviceInforming deviceInfoService;
 
 	private final long BACKDATE_TIMESTAMP_OFFSET_MILLIS = 1000; //backdate timestamps by 1 second
+	private final ExtensionApi extensionApi;
 
 	/**
 	 * Constructor for the LifecycleV2Extension.
@@ -38,8 +40,10 @@ class LifecycleV2Extension {
 	 * @param dataStore {@code NamedCollection} instance
 	 * @param deviceInfoService {@code DeviceInforming} instance
 	 */
-	LifecycleV2Extension(final NamedCollection dataStore, final DeviceInforming deviceInfoService) {
-		this(dataStore, deviceInfoService, null);
+	LifecycleV2Extension(final NamedCollection dataStore,
+						 final DeviceInforming deviceInfoService,
+						 final ExtensionApi extensionApi) {
+		this(dataStore, deviceInfoService, null, extensionApi);
 	}
 
 	/**
@@ -51,9 +55,11 @@ class LifecycleV2Extension {
 	 */
 	LifecycleV2Extension(final NamedCollection dataStore,
 						 final DeviceInforming deviceInfoService,
-						 final LifecycleV2MetricsBuilder metricsBuilder) {
+						 final LifecycleV2MetricsBuilder metricsBuilder,
+						 final ExtensionApi extensionApi) {
 		this.dataStore = dataStore;
 		this.deviceInfoService = deviceInfoService;
+		this.extensionApi = extensionApi;
 		stateManager = new LifecycleV2StateManager();
 		dataStoreCache = new LifecycleV2DataStoreCache(dataStore);
 		xdmMetricsBuilder = metricsBuilder != null ? metricsBuilder : new LifecycleV2MetricsBuilder(deviceInfoService);
@@ -203,12 +209,9 @@ class LifecycleV2Extension {
 				LifecycleConstants.EventType.LIFECYCLE,
 				LifecycleV2Constants.EventSource.APPLICATION_LAUNCH
 		).setEventData(launchEventData).build();
-		MobileCore.dispatchEvent(lifecycleLaunchEvent,
-				extensionError -> Log.error(SELF_LOG_TAG,
-						"Failed to dispatch lifecycle application launch event, error: %s",
-						extensionError.getErrorName()
-				)
-		);
+		if(extensionApi.dispatch(lifecycleLaunchEvent)) {
+			Log.error(SELF_LOG_TAG, "Failed to dispatch lifecycle application launch event");
+		}
 	}
 
 	/**
@@ -229,12 +232,9 @@ class LifecycleV2Extension {
 				LifecycleConstants.EventType.LIFECYCLE,
 				LifecycleV2Constants.EventSource.APPLICATION_CLOSE)
 				.setEventData(closeEventData).build();
-		MobileCore.dispatchEvent(lifecycleCloseEvent,
-				extensionError -> Log.error(SELF_LOG_TAG,
-						"Failed to dispatch lifecycle application close event, error: %s",
-						extensionError.getErrorName()
-				)
-		);
+		if (extensionApi.dispatch(lifecycleCloseEvent)) {
+			Log.error(SELF_LOG_TAG, "Failed to dispatch lifecycle application close event");
+		}
 	}
 
 }

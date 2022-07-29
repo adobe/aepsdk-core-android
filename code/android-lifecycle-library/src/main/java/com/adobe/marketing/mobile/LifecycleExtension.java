@@ -46,7 +46,7 @@ class LifecycleExtension extends Extension {
 	protected LifecycleExtension(final ExtensionApi extensionApi) {
 		super(extensionApi);
 		lifecycleState = new LifecycleState(getDataStore(), geDeviceInfoService());
-		lifecycleV2 = new LifecycleV2Extension(getDataStore(), geDeviceInfoService());
+		lifecycleV2 = new LifecycleV2Extension(getDataStore(), geDeviceInfoService(), getApi());
 	}
 
 	@Override
@@ -335,9 +335,8 @@ class LifecycleExtension extends Extension {
 				LifecycleConstants.EventType.LIFECYCLE,
 				LifecycleConstants.EventSource.RESPONSE_CONTENT).setEventData(eventDataMap).build();
 
-		MobileCore.dispatchEvent(
-				startEvent,
-				extensionError -> Log.error(SELF_LOG_TAG, "Failed to dispatch lifecycle start event, error: %s", extensionError.getErrorName())
-		);
+		if(!getApi().dispatch(startEvent)) {
+			Log.error(SELF_LOG_TAG, "Failed to dispatch lifecycle start event");
+		}
 	}
 }

@@ -14,7 +14,6 @@ import android.app.Application
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError
-import com.adobe.marketing.mobile.internal.eventhub.EventHubExtensionRegistarar
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -104,7 +103,6 @@ class MobileCoreTests {
     fun setup() {
         MockExtension.reset()
         EventHub.shared = EventHub()
-        EventHubExtensionRegistarar.shared = EventHubExtensionRegistarar()
         MobileCore.sdkInitializedWithContext = AtomicBoolean(false)
     }
 
@@ -167,7 +165,7 @@ class MobileCoreTests {
 
     @Test
     fun testRegisterExtensionsSimpleEventDispatch() {
-        var latch = CountDownLatch(1)
+        val latch = CountDownLatch(1)
         MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
 
         MobileCore.setApplication(mock(Application::class.java))
@@ -182,7 +180,7 @@ class MobileCoreTests {
 
     @Test
     fun testRegisterExtensionsDispatchEventBeforeRegister() {
-        var latch = CountDownLatch(1)
+        val latch = CountDownLatch(1)
         MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
 
         val event = Event.Builder("test-event", "analytics", "requestContent").build()
@@ -196,7 +194,7 @@ class MobileCoreTests {
     }
     @Test
     fun testRegisterMultipleExtensionsSimpleEventDispatch() {
-        var latch = CountDownLatch(2)
+        val latch = CountDownLatch(2)
         MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
         MockExtension2.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
 
@@ -213,7 +211,7 @@ class MobileCoreTests {
 
     @Test
     fun testRegisterMultipleExtensionsDispatchEventBeforeRegister() {
-        var latch = CountDownLatch(2)
+        val latch = CountDownLatch(2)
         MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
         MockExtension2.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
 
@@ -338,7 +336,7 @@ class MobileCoreTests {
 
     // / Tests that the event listeners listening for same events can all receives the events
     @Test
-    fun testRegisterEventListenerMultipleLisenersForSameEvents() {
+    fun testRegisterEventListenerMultipleListenersForSameEvents() {
         // setup
         val event1 = Event.Builder("test", "analytics", "requestContent").build()
         val event2 = Event.Builder("test", "analytics", "requestContent").build()
@@ -877,7 +875,7 @@ class MobileCoreTests {
         }
         EventHub.shared.start()
 
-        MobileCore.getSdkIdentities() {}
+        MobileCore.getSdkIdentities {}
 
         assertTrue {
             latch.await(1, TimeUnit.SECONDS)

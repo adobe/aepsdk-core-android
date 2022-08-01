@@ -132,7 +132,7 @@ public abstract class ExtensionApi {
 
 	/**
 	 * Unregisters current extension.
-	 * <br/>
+	 * <br>
 	 * This method executes asynchronously, unregistering the extension on the event hub thread. {@link Extension#onUnregistered}
 	 * method will be called at the end of this operation.
 	 *

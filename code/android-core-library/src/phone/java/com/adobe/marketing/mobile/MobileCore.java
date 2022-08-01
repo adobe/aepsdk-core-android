@@ -15,12 +15,9 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
-import androidx.annotation.VisibleForTesting;
-
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
-import com.adobe.marketing.mobile.internal.eventhub.EventHubExtensionRegistarar;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
 import com.adobe.marketing.mobile.utils.DataReader;
 
@@ -31,7 +28,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 final public class MobileCore {
     private final static String LOG_TAG = "MobileCore";
-    private static final String NULL_CONTEXT_MESSAGE = "Context must be set before calling SDK methods";
     private static final long API_TIMEOUT_MS = 5000;
 
     static AtomicBoolean sdkInitializedWithContext = new AtomicBoolean(false);
@@ -199,11 +195,34 @@ final public class MobileCore {
                                             final ExtensionErrorCallback<ExtensionError> errorCallback) {
 
         if(!sdkInitializedWithContext.get()) {
+            Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
+            return false;
+        }
+
+        if (extensionClass == null) {
             Log.error(LOG_TAG, "Failed to registerExtension - extensionClass is null");
             return false;
         }
 
-        return EventHubExtensionRegistarar.Companion.getShared().registerExtension(extensionClass, errorCallback);
+        EventHub.Companion.getShared().registerExtension(extensionClass, eventHubError -> {
+            ExtensionError error;
+            if (eventHubError == EventHubError.None) {
+                error = null;
+            } else if (eventHubError == EventHubError.InvalidExtensionName) {
+                error = ExtensionError.BAD_NAME;
+            } else if (eventHubError == EventHubError.DuplicateExtensionName) {
+                error = ExtensionError.DUPLICATE_NAME;
+            } else {
+                error = ExtensionError.UNEXPECTED_ERROR;
+            }
+
+            if (errorCallback != null) {
+                errorCallback.error(error);
+            }
+
+            return null;
+        });
+        return true;
     }
 
     /**
@@ -215,13 +234,18 @@ final public class MobileCore {
      *
      * @param completionCallback An optional {@link AdobeCallback} invoked after registrations are completed
      */
-    public static void start(final AdobeCallback completionCallback) {
+    public static void start(final AdobeCallback<?> completionCallback) {
         if(!sdkInitializedWithContext.get()) {
             Log.error(LOG_TAG, "Failed to start - completionCallback is null");
             return;
         }
 
-        EventHubExtensionRegistarar.Companion.getShared().start(completionCallback);
+        EventHub.Companion.getShared().start();
+
+        if (completionCallback != null) {
+            completionCallback.call(null);
+        }
+
     }
 
     /**
@@ -599,7 +623,7 @@ final public class MobileCore {
             @Override
             public void fail(AdobeError error) {
                 if (callback instanceof AdobeCallbackWithError) {
-                    ((AdobeCallbackWithError) callback).fail(AdobeError.CALLBACK_TIMEOUT);
+                    ((AdobeCallbackWithError<?>) callback).fail(AdobeError.CALLBACK_TIMEOUT);
                 } else {
                     // Todo - Check if this is a valid return value.
                     callback.call(null);
@@ -633,7 +657,7 @@ final public class MobileCore {
             @Override
             public void fail(AdobeError error) {
                 if (callback instanceof AdobeCallbackWithError) {
-                    ((AdobeCallbackWithError) callback).fail(AdobeError.CALLBACK_TIMEOUT);
+                    ((AdobeCallbackWithError<?>) callback).fail(AdobeError.CALLBACK_TIMEOUT);
                 } else {
                     callback.call("{}");
                 }
@@ -786,7 +810,7 @@ final public class MobileCore {
      * @param event         required parameter, {@link Event} instance to be dispatched, should not be null
      * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred during dispatching
      * @return {@code boolean} indicating if the the event dispatching operation succeeded
-     * @Deprecated Extensions should use {@link ExtensionApi#dispatch(Event)} instead
+     * @deprecated Extensions should use {@link ExtensionApi#dispatch(Event)} instead
      */
     @Deprecated
     public static boolean dispatchEvent(final Event event, final ExtensionErrorCallback<ExtensionError> errorCallback) {
@@ -817,7 +841,7 @@ final public class MobileCore {
      * @param errorCallback    optional {@link ExtensionErrorCallback} which will be called if an error occurred during dispatching
      * @return {@code boolean} indicating if the the event dispatching operation succeeded
      * @see MobileCore#dispatchResponseEvent(Event, Event, ExtensionErrorCallback)
-     * @Deprecated Extensions should use {@link #dispatchEventWithResponseCallback(Event, AdobeCallbackWithError)} instead
+     * @deprecated Extensions should use {@link #dispatchEventWithResponseCallback(Event, AdobeCallbackWithError)} instead
      */
     @Deprecated
     public static boolean dispatchEventWithResponseCallback(final Event event,
@@ -847,7 +871,7 @@ final public class MobileCore {
             @Override
             public void fail(AdobeError error) {
                 if (responseCallback instanceof AdobeCallbackWithError) {
-                    ((AdobeCallbackWithError) responseCallback).fail(AdobeError.CALLBACK_TIMEOUT);
+                    ((AdobeCallbackWithError<?>) responseCallback).fail(AdobeError.CALLBACK_TIMEOUT);
                 } else {
                     // Todo - Check if this is a valid return value.
                     responseCallback.call(null);

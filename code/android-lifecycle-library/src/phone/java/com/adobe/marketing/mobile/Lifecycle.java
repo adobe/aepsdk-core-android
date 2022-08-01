@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Lifecycle {
 	private final static String TAG = Lifecycle.class.getSimpleName();
 	private final static String EXTENSION_VERSION = "1.1.1";
-	private static final AtomicBoolean extensionIsRegistered = new AtomicBoolean(false);
 
 	private Lifecycle() {
 
@@ -37,11 +36,9 @@ public class Lifecycle {
 	 */
 	public static void registerExtension() {
 		MobileCore.registerExtension(LifecycleExtension.class, extensionError -> {
-			extensionIsRegistered.set(false);
 			Log.error(TAG, "There was an error when registering the Lifecycle extension: %s",
 					extensionError.getErrorName());
 		});
-		extensionIsRegistered.set(true);
 	}
 
 }

@@ -243,8 +243,7 @@ final class LifecycleMetricsBuilder {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.APP_ID, appId);
 		}
 
-		// todo change to OS Name instead of Platform name
-		final String operatingSystem = deviceInfoService.getCanonicalPlatformName() + " " +
+		final String operatingSystem = deviceInfoService.getOperatingSystemName() + " " +
 									   deviceInfoService.getOperatingSystemVersion();
 
 		if (!StringUtils.isNullOrEmpty(operatingSystem)) {

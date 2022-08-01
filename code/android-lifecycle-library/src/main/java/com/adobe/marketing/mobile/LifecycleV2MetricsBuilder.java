@@ -170,7 +170,7 @@ class LifecycleV2MetricsBuilder {
 		xdmEnvironmentInfo = new XDMLifecycleEnvironment();
 		xdmEnvironmentInfo.setCarrier(deviceInfoService.getMobileCarrierName());
 		xdmEnvironmentInfo.setType(LifecycleV2DataConverter.toEnvironmentTypeEnum(deviceInfoService.getRunMode()));
-		xdmEnvironmentInfo.setOperatingSystem(deviceInfoService.getCanonicalPlatformName());
+		xdmEnvironmentInfo.setOperatingSystem(deviceInfoService.getOperatingSystemName());
 		xdmEnvironmentInfo.setOperatingSystemVersion(deviceInfoService.getOperatingSystemVersion());
 		xdmEnvironmentInfo.setLanguage(LifecycleUtil.formatLocale(deviceInfoService.getActiveLocale()));
 

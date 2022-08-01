@@ -31,23 +31,6 @@ class LifecycleConstants {
 		private EventName() {}
 	}
 
-	//TODO: will be removed after the public EventType class is exposed in Core
-	public static final class EventType {
-		public static final String GENERIC_LIFECYCLE = "com.adobe.eventType.generic.lifecycle";
-		public static final String LIFECYCLE = "com.adobe.eventType.lifecycle";
-
-		private EventType() {}
-	}
-
-	//TODO: will be removed after the public EventSource class is exposed in Core
-	public static final class EventSource {
-		public static final String REQUEST_CONTENT = "com.adobe.eventSource.requestContent";
-		public static final String BOOTED = "com.adobe.eventSource.booted";
-		public static final String RESPONSE_CONTENT = "com.adobe.eventSource.responseContent";
-
-		private EventSource() {}
- 	}
-
 	static class ContextDataValues {
 		static final String UPGRADE_EVENT = "UpgradeEvent";
 		static final String CRASH_EVENT = "CrashEvent";

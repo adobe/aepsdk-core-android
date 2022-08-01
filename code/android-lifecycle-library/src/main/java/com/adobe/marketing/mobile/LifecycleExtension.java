@@ -66,14 +66,14 @@ class LifecycleExtension extends Extension {
 
 	@Override
 	protected void onRegistered() {
-		getApi().registerEventListener(LifecycleConstants.EventType.GENERIC_LIFECYCLE, LifecycleConstants.EventSource.REQUEST_CONTENT, this::handleLifecycleRequestEvent);
-		getApi().registerEventListener(EventType.TYPE_HUB, LifecycleConstants.EventSource.BOOTED, this::handleEventHubBootEvent);
+		getApi().registerEventListener(EventType.TYPE_GENERIC_LIFECYCLE, EventSource.TYPE_REQUEST_CONTENT, this::handleLifecycleRequestEvent);
+		getApi().registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_BOOTED, this::handleEventHubBootEvent);
 		getApi().registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD, this::updateLastKnownTimestamp);
 	}
 
 	@Override
 	public boolean readyForEvent(Event event) {
-		if (event.getType().equals(LifecycleConstants.EventType.GENERIC_LIFECYCLE) && event.getSource().equals(LifecycleConstants.EventSource.REQUEST_CONTENT)) {
+		if (event.getType().equals(EventType.TYPE_GENERIC_LIFECYCLE) && event.getSource().equals(EventSource.TYPE_REQUEST_CONTENT)) {
 			SharedStateResult configurationSharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Configuration.MODULE_NAME, event, false, SharedStateResolution.ANY);
 			if (configurationSharedState != null) {
 				return configurationSharedState.status == SharedStateStatus.SET;
@@ -332,8 +332,8 @@ class LifecycleExtension extends Extension {
 
 		final Event startEvent = new Event.Builder(
 				LifecycleConstants.EventName.LIFECYCLE_START_EVENT,
-				LifecycleConstants.EventType.LIFECYCLE,
-				LifecycleConstants.EventSource.RESPONSE_CONTENT).setEventData(eventDataMap).build();
+				EventType.TYPE_LIFECYCLE,
+				EventSource.TYPE_RESPONSE_CONTENT).setEventData(eventDataMap).build();
 
 		if(!getApi().dispatch(startEvent)) {
 			Log.error(SELF_LOG_TAG, "Failed to dispatch lifecycle start event");

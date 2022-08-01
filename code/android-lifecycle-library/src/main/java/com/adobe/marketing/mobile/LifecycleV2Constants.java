@@ -30,14 +30,6 @@ class LifecycleV2Constants {
 		private EventName() {}
 	}
 
-	//TODO: will be removed after the public EventSource class is exposed in Core
-	public static final class EventSource {
-		public static final String APPLICATION_LAUNCH = "com.adobe.eventSource.applicationLaunch";
-		public static final String APPLICATION_CLOSE = "com.adobe.eventSource.applicationClose";
-
-		private EventSource() {}
-	}
-
 	static final class EventDataKeys {
 		static final String XDM                     = "xdm";
 		static final String DATA                    = "data";

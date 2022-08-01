@@ -27,6 +27,8 @@ public final class EventType {
 	// Todo - Expose String constants. Remove 'TYPE' prefix after fixing build issues
 	public static final String TYPE_WILDCARD = "com.adobe.eventType._wildcard_";
 	public static final String TYPE_HUB = "com.adobe.eventType.hub";
+	public static final String TYPE_GENERIC_LIFECYCLE = "com.adobe.eventType.generic.lifecycle";
+	public static final String TYPE_LIFECYCLE = "com.adobe.eventType.lifecycle";
 
 	private static final String ADOBE_PREFIX = "com.adobe.eventType.";
 	private static final Map<String, EventType> knownTypes = new HashMap<String, EventType>();

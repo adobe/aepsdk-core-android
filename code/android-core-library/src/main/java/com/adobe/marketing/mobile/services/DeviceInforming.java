@@ -177,6 +177,13 @@ public interface DeviceInforming {
 	int getCurrentOrientation();
 
 	/**
+	 * Returns the string representation of the operating system name.
+	 *
+	 * @return Operating system name {@link String}.
+	 */
+	String getOperatingSystemName();
+
+	/**
 	 * Returns the string representation of the canonical platform name.
 	 *
 	 * @return Platform name {@link String}.

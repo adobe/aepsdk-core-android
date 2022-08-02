@@ -1,7 +1,7 @@
 // TODO: LaunchRulesEvaluator is updated to dispatch event using ExtensionApi on eventhub branch https://github.com/adobe/aepsdk-core-android/blob/634269129949bed8feff85bbaf9490925071db66/code/android-core-library/src/main/java/com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEvaluator.kt#L78
 // Will update tests after above change is merged.
 
-///*
+// /*
 //  Copyright 2022 Adobe. All rights reserved.
 //  This file is licensed to you under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License. You may obtain a copy
@@ -11,18 +11,18 @@
 //  OF ANY KIND, either express or implied. See the License for the specific language
 //  governing permissions and limitations under the License.
 // */
-//package com.adobe.marketing.mobile.launch.rulesengine
+// package com.adobe.marketing.mobile.launch.rulesengine
 //
-//import com.adobe.marketing.mobile.Event
-//import com.adobe.marketing.mobile.ExtensionApi
-//import org.junit.Before
-//import org.junit.runner.RunWith
-//import org.mockito.Mock
-//import org.mockito.junit.MockitoJUnitRunner
+// import com.adobe.marketing.mobile.Event
+// import com.adobe.marketing.mobile.ExtensionApi
+// import org.junit.Before
+// import org.junit.runner.RunWith
+// import org.mockito.Mock
+// import org.mockito.junit.MockitoJUnitRunner
 //
 //
-//@RunWith(MockitoJUnitRunner.Silent::class)
-//class LaunchRulesConsequenceTests {
+// @RunWith(MockitoJUnitRunner.Silent::class)
+// class LaunchRulesConsequenceTests {
 //
 //    @Mock
 //    private lateinit var extensionApi: ExtensionApi
@@ -1054,4 +1054,4 @@
 //        val rules = json?.let { JSONRulesParser.parse(it) }
 //        launchRulesEngine.replaceRules(rules)
 //    }
-//}
+// }

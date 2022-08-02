@@ -17,6 +17,7 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -105,6 +106,9 @@ class LaunchTokenFinderTest : BaseTest() {
 
     @Test
     fun `get should return current sdk version on valid event`() {
+        // reset eventhub
+        EventHub.shared = EventHub()
+
         // setup
         val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)

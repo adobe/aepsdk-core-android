@@ -2,11 +2,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'signing'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 30
+        //noinspection OldTargetApi
+        targetSdkVersion 31
+        versionCode 1
+        versionName "1.0"
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 

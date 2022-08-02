@@ -58,7 +58,7 @@ public abstract class Extension {
 	/**
 	 * Optional metadata provided for use by the event hub for logging.
 	 *
-	 * @return the extension metadata as a {@link Map<String, String}
+	 * @return the extension metadata as a {@code Map<String, String>}
 	 */
 	protected Map<String, String> getMetadata() {
 		return null;

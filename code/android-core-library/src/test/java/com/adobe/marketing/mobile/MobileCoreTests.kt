@@ -11,735 +11,950 @@
 package com.adobe.marketing.mobile
 
 import android.app.Application
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants
+import com.adobe.marketing.mobile.internal.eventhub.EventHubError
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mock
-import org.mockito.Mockito
-import org.powermock.api.mockito.PowerMockito
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
-import org.powermock.reflect.Whitebox
+import org.mockito.Mockito.mock
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(DataMarshaller::class, MobileCore::class)
 class MobileCoreTests {
 
-    @Mock
-    private lateinit var eventHub: EventHub
+    class MockExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
+        companion object {
+            var registrationClosure: (() -> Unit)? = null
+            var unregistrationClosure: (() -> Unit)? = null
+            var eventReceivedClosure: ((Event) -> Unit)? = null
 
-    @Mock
-    private lateinit var application: Application
+            fun reset() {
+                registrationClosure = null
+                unregistrationClosure = null
+                eventReceivedClosure = null
+            }
+        }
 
-    @Mock
-    private lateinit var loggingService: LoggingService
+        override fun getName(): String = "MockExtension"
 
-    @Mock
-    private lateinit var extensionErrorCallback: ExtensionErrorCallback<ExtensionError>
+        override fun onRegistered() {
+            api.registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+                eventReceivedClosure?.invoke(it)
+            }
 
-    @Mock
-    private lateinit var adobeCallback: AdobeCallback<Event>
+            registrationClosure?.invoke()
+        }
 
-    @Mock
-    private lateinit var adobeCallbackWithError: AdobeCallbackWithError<Event>
+        override fun onUnregistered() {
+            unregistrationClosure?.invoke()
+        }
+    }
 
-    private lateinit var dataMarshaller: DataMarshaller
+    class MockExtension2(extensionApi: ExtensionApi) : Extension(extensionApi) {
+        companion object {
+            var registrationClosure: (() -> Unit)? = null
+            var unregistrationClosure: (() -> Unit)? = null
+            var eventReceivedClosure: ((Event) -> Unit)? = null
+
+            fun reset() {
+                registrationClosure = null
+                unregistrationClosure = null
+                eventReceivedClosure = null
+            }
+        }
+
+        override fun getName(): String = "MockExtension2"
+
+        override fun onRegistered() {
+            api.registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+                eventReceivedClosure?.invoke(it)
+            }
+
+            registrationClosure?.invoke()
+        }
+
+        override fun onUnregistered() {
+            unregistrationClosure?.invoke()
+        }
+    }
+
+    class MockExtensionWithSlowInit(extensionApi: ExtensionApi) : Extension(extensionApi) {
+        companion object {
+            var initWaitTimeMS: Long = 0
+            var registrationClosure: (() -> Unit)? = null
+        }
+
+        init {
+            Thread.sleep(initWaitTimeMS)
+        }
+        override fun getName(): String = "SlowMockExtension"
+
+        override fun onRegistered() {
+            registrationClosure?.invoke()
+        }
+    }
 
     @Before
     fun setup() {
-        Mockito.reset(eventHub)
-        Mockito.reset(application)
-        Mockito.reset(loggingService)
-        Mockito.reset(extensionErrorCallback)
-        Mockito.reset(adobeCallback)
-        Mockito.reset(adobeCallbackWithError)
-        Whitebox.setInternalState(MobileCore::class.java, "eventHub", eventHub)
-        Whitebox.setInternalState(MobileCore::class.java, "startActionCalled", false)
-        dataMarshaller = PowerMockito.mock(DataMarshaller::class.java)
-        PowerMockito.mock(MobileCore::class.java)
+        MockExtension.reset()
+        EventHub.shared = EventHub()
+        MobileCore.sdkInitializedWithContext = AtomicBoolean(false)
     }
 
     @After
     fun teardown() {
+        EventHub.shared.shutdown()
+    }
+
+    private fun registerExtension(extensionClass: Class<out Extension>): EventHubError {
+        var ret: EventHubError = EventHubError.Unknown
+
+        val latch = CountDownLatch(1)
+        EventHub.shared.registerExtension(extensionClass) { error ->
+            ret = error
+            latch.countDown()
+        }
+        if (!latch.await(1, TimeUnit.SECONDS)) throw Exception("Timeout registering extension")
+        return ret
     }
 
     @Test
-    fun `test TrackState()`() {
-        MobileCore.trackState(
-            "state",
-            mapOf(
-                "key" to "value"
-            )
-        )
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Analytics Track", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.track", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "state" to "state",
-                "contextdata" to mapOf(
-                    "key" to "value"
-                )
-            ),
-            dispatchedEvent.eventData
-        )
+    fun testRegisterExtensionsSimple() {
+        val latch = CountDownLatch(1)
+        MockExtension.registrationClosure = { latch.countDown() }
+
+        MobileCore.setApplication(mock(Application::class.java))
+        MobileCore.registerExtension(MockExtension::class.java) {}
+
+        assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun `test TrackState() with no ContextData`() {
-        MobileCore.trackState("state", null)
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Analytics Track", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.track", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "state" to "state",
-                "contextdata" to emptyMap<String, Any>()
-            ),
-            dispatchedEvent.eventData
-        )
+    fun testRegisterExtensionsSimpleMultiple() {
+        val latch = CountDownLatch(2)
+        MockExtension.registrationClosure = { latch.countDown() }
+        MockExtension2.registrationClosure = { latch.countDown() }
+
+        MobileCore.setApplication(mock(Application::class.java))
+        MobileCore.registerExtension(MockExtension::class.java) {}
+        MobileCore.registerExtension(MockExtension2::class.java) {}
+
+        assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun `test trackAction()`() {
-        MobileCore.trackAction(
-            "action",
-            mapOf(
-                "key" to "value"
-            )
-        )
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Analytics Track", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.track", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "action" to "action",
-                "contextdata" to mapOf(
-                    "key" to "value"
-                )
-            ),
-            dispatchedEvent.eventData
-        )
+    fun testRegisterExtensionsWithSlowExtension() {
+        val latch = CountDownLatch(2)
+        MockExtension.registrationClosure = { latch.countDown() }
+        MockExtension2.registrationClosure = { latch.countDown() }
+
+        MockExtensionWithSlowInit.initWaitTimeMS = 2000
+
+        MobileCore.setApplication(mock(Application::class.java))
+        MobileCore.registerExtension(MockExtensionWithSlowInit::class.java) {}
+        MobileCore.registerExtension(MockExtension::class.java) {}
+        MobileCore.registerExtension(MockExtension2::class.java) {}
+
+        assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun `test trackAction() with no ContextData`() {
-        MobileCore.trackAction("action", null)
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Analytics Track", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.track", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "action" to "action",
-                "contextdata" to emptyMap<String, Any>()
-            ),
-            dispatchedEvent.eventData
-        )
+    fun testRegisterExtensionsSimpleEventDispatch() {
+        val latch = CountDownLatch(1)
+        MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+
+        MobileCore.setApplication(mock(Application::class.java))
+        MobileCore.registerExtension(MockExtension::class.java) {}
+        MobileCore.start {}
+
+        val event = Event.Builder("test-event", "analytics", "requestContent").build()
+        MobileCore.dispatchEvent(event)
+        assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun `test collectPii()`() {
-        MobileCore.collectPii(
-            mapOf(
-                "key" to "value"
-            )
-        )
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("CollectPII", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.pii", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "contextdata" to mapOf(
-                    "key" to "value"
-                )
-            ),
-            dispatchedEvent.eventData
-        )
+    fun testRegisterExtensionsDispatchEventBeforeRegister() {
+        val latch = CountDownLatch(1)
+        MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+
+        val event = Event.Builder("test-event", "analytics", "requestContent").build()
+        MobileCore.dispatchEvent(event)
+
+        MobileCore.setApplication(mock(Application::class.java))
+        MobileCore.registerExtension(MockExtension::class.java) {}
+        MobileCore.start {}
+
+        assertTrue { latch.await(1, TimeUnit.SECONDS) }
+    }
+    @Test
+    fun testRegisterMultipleExtensionsSimpleEventDispatch() {
+        val latch = CountDownLatch(2)
+        MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+        MockExtension2.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+
+        MobileCore.setApplication(mock(Application::class.java))
+        MobileCore.registerExtension(MockExtension::class.java) {}
+        MobileCore.registerExtension(MockExtension2::class.java) {}
+        MobileCore.start {}
+
+        val event = Event.Builder("test-event", "analytics", "requestContent").build()
+        MobileCore.dispatchEvent(event)
+
+        assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun `test collectPii() without data`() {
-        MobileCore.collectPii(null)
-        Mockito.verify(eventHub, Mockito.times(0)).dispatch(any())
+    fun testRegisterMultipleExtensionsDispatchEventBeforeRegister() {
+        val latch = CountDownLatch(2)
+        MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+        MockExtension2.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+
+        val event = Event.Builder("test-event", "analytics", "requestContent").build()
+        MobileCore.dispatchEvent(event)
+
+        MobileCore.setApplication(mock(Application::class.java))
+        MobileCore.registerExtension(MockExtension::class.java) {}
+        MobileCore.registerExtension(MockExtension2::class.java) {}
+        MobileCore.start {}
+
+        assertTrue { latch.await(10, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun `test setAdvertisingIdentifier()`() {
-        MobileCore.setAdvertisingIdentifier("advid")
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("SetAdvertisingIdentifier", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.identity", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "advertisingidentifier" to "advid"
-            ),
-            dispatchedEvent.eventData
-        )
+    fun testRegisterSameExtensionTwice() {
+        val capturedErrors = mutableListOf<ExtensionError>()
+
+        MobileCore.setApplication(mock(Application::class.java))
+        MobileCore.registerExtension(MockExtension::class.java) {
+            capturedErrors.add(it)
+        }
+        MobileCore.registerExtension(MockExtension::class.java) {
+            capturedErrors.add(it)
+        }
+
+        Thread.sleep(500)
+        assertEquals(mutableListOf(ExtensionError.DUPLICATE_NAME), capturedErrors)
     }
 
     @Test
-    fun `test setPushIdentifier()`() {
-        MobileCore.setAdvertisingIdentifier("pushid")
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("SetAdvertisingIdentifier", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.identity", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "advertisingidentifier" to "pushid"
-            ),
-            dispatchedEvent.eventData
-        )
+    fun testDispatchEventSimple() {
+        val event = Event.Builder("test", "analytics", "requestContent").build()
+
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        registerExtension(MockExtension::class.java)
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(event.type, event.source) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+
+        EventHub.shared.start()
+
+        // test
+        MobileCore.dispatchEvent(event)
+
+        assertTrue { latch.await(1, TimeUnit.SECONDS) }
+        assertEquals(event, capturedEvents[0])
     }
 
+    // / Tests that the response callback is invoked when the trigger event is dispatched
     @Test
-    fun `test lifecycleStart()`() {
-        MobileCore.lifecycleStart(
-            mapOf(
-                "key" to "value"
-            )
-        )
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("LifecycleResume", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.lifecycle", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
+    fun testDispatchEventWithResponseCallbackSimple() {
+        // setup
+        val event = Event.Builder("test", "analytics", "requestContent").build()
+        val responseEvent =
+            Event.Builder("testResponse", "analytics", "responseContent").setTriggerEvent(event)
+                .build()
 
-            mapOf(
-                "action" to "start",
-                "additionalcontextdata" to mapOf(
-                    "key" to "value"
-                )
-            ),
-            dispatchedEvent.eventData
+        EventHub.shared.start()
+
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+
+        MobileCore.dispatchEventWithResponseCallback(
+            event,
+            1000,
+            object : AdobeCallbackWithError<Event> {
+                override fun call(value: Event) {
+                    capturedEvents.add(value)
+                    latch.countDown()
+                }
+
+                override fun fail(error: AdobeError?) {
+                    latch.countDown()
+                }
+            }
         )
+
+        EventHub.shared.dispatch(responseEvent)
+
+        assertTrue { latch.await(1, TimeUnit.SECONDS) }
+        assertEquals(responseEvent, capturedEvents[0])
     }
 
+    // / Tests that the event listener only receive the events it is registered for
     @Test
-    fun `test lifecyclePause()`() {
-        MobileCore.lifecyclePause()
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
+    fun testRegisterEventListener() {
+        // setup
+        val event1 = Event.Builder("test", "analytics", "requestContent").build()
+        val event2 = Event.Builder("test", "analytics", "requestContent").build()
+        val unexpectedEvent = Event.Builder("", "wrong", "wrong").build()
+
+        EventHub.shared.start()
+
+        val latch = CountDownLatch(2)
+        val capturedEvents = mutableListOf<Event>()
+
+        MobileCore.registerEventListener(
+            "analytics", "requestContent",
+            object : AdobeCallbackWithError<Event> {
+                override fun call(value: Event) {
+                    capturedEvents.add(value)
+                    latch.countDown()
+                }
+
+                override fun fail(error: AdobeError?) {
+                    latch.countDown()
+                }
+            }
         )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("LifecyclePause", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.lifecycle", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "action" to "pause"
-            ),
-            dispatchedEvent.eventData
-        )
+
+        // dispatch the events
+        MobileCore.dispatchEvent(event1)
+        MobileCore.dispatchEvent(event2)
+        MobileCore.dispatchEvent(unexpectedEvent)
+
+        assertTrue { latch.await(2, TimeUnit.SECONDS) }
+        assertEquals(mutableListOf(event1, event2), capturedEvents)
     }
 
+    // / Tests that the event listeners listening for same events can all receives the events
     @Test
-    fun `test setApplication()`() {
-        MobileCore.setApplication(application)
-        // TODO: xxxx
+    fun testRegisterEventListenerMultipleListenersForSameEvents() {
+        // setup
+        val event1 = Event.Builder("test", "analytics", "requestContent").build()
+        val event2 = Event.Builder("test", "analytics", "requestContent").build()
+        val unexpectedEvent = Event.Builder("", "wrong", "wrong").build()
+
+        EventHub.shared.start()
+
+        val latch1 = CountDownLatch(2)
+        val capturedEvents1 = mutableListOf<Event>()
+        MobileCore.registerEventListener(
+            "analytics", "requestContent",
+            object : AdobeCallbackWithError<Event> {
+                override fun call(value: Event) {
+                    capturedEvents1.add(value)
+                    latch1.countDown()
+                }
+
+                override fun fail(error: AdobeError?) {
+                    latch1.countDown()
+                }
+            }
+        )
+
+        val latch2 = CountDownLatch(2)
+        val capturedEvents2 = mutableListOf<Event>()
+        MobileCore.registerEventListener(
+            "analytics", "requestContent",
+            object : AdobeCallbackWithError<Event> {
+                override fun call(value: Event) {
+                    capturedEvents2.add(value)
+                    latch2.countDown()
+                }
+
+                override fun fail(error: AdobeError?) {
+                    latch2.countDown()
+                }
+            }
+        )
+
+        // dispatch the events
+        MobileCore.dispatchEvent(event1)
+        MobileCore.dispatchEvent(event2)
+        MobileCore.dispatchEvent(unexpectedEvent)
+
+        assertTrue { latch1.await(2, TimeUnit.SECONDS) }
+        assertEquals(mutableListOf(event1, event2), capturedEvents1)
+        assertTrue { latch2.await(2, TimeUnit.SECONDS) }
+        assertEquals(mutableListOf(event1, event2), capturedEvents2)
     }
 
+    // MARK: setWrapperType(...) tests
+    // / No wrapper tag should be appended when the setWrapperType API is never invoked
     @Test
-    fun `test setLogLevel() & getLogLevel()`() {
-        MobileCore.setLogLevel(LoggingMode.ERROR)
-        assertEquals(LoggingMode.ERROR, MobileCore.getLogLevel())
-        MobileCore.setLogLevel(LoggingMode.WARNING)
-        assertEquals(LoggingMode.WARNING, MobileCore.getLogLevel())
-        MobileCore.setLogLevel(LoggingMode.DEBUG)
-        assertEquals(LoggingMode.DEBUG, MobileCore.getLogLevel())
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        assertEquals(LoggingMode.VERBOSE, MobileCore.getLogLevel())
+    fun testSetWrapperTypeNeverCalled() {
+        assertEquals(EventHubConstants.VERSION_NUMBER, MobileCore.extensionVersion())
     }
 
+    // Tests that no wrapper tag is appended when the wrapper type is none
     @Test
-    fun `test log() - VERBOSE`() {
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        val logTag = "log_tag"
-        Log.setLoggingService(loggingService)
-        MobileCore.log(LoggingMode.VERBOSE, logTag, "verbose logs")
-        val logCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        val tagCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        Mockito.verify(loggingService, Mockito.times(1))
-            .trace(tagCaptor.capture(), logCaptor.capture())
-        assertEquals(logTag, tagCaptor.value)
-        assertEquals("verbose logs", logCaptor.value)
-    }
-
-    @Test
-    fun `test log() - DEBUG`() {
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        val logTag = "log_tag"
-        Log.setLoggingService(loggingService)
-        MobileCore.log(LoggingMode.DEBUG, logTag, "debug logs")
-        val logCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        val tagCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        Mockito.verify(loggingService, Mockito.times(1))
-            .debug(tagCaptor.capture(), logCaptor.capture())
-        assertEquals(logTag, tagCaptor.value)
-        assertEquals("debug logs", logCaptor.value)
-    }
-
-    @Test
-    fun `test log() - WARNING`() {
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        val logTag = "log_tag"
-        Log.setLoggingService(loggingService)
-        MobileCore.log(LoggingMode.WARNING, logTag, "warning logs")
-        val logCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        val tagCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        Mockito.verify(loggingService, Mockito.times(1))
-            .warning(tagCaptor.capture(), logCaptor.capture())
-        assertEquals(logTag, tagCaptor.value)
-        assertEquals("warning logs", logCaptor.value)
-    }
-
-    @Test
-    fun `test log() - ERROR`() {
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        val logTag = "log_tag"
-        Log.setLoggingService(loggingService)
-        MobileCore.log(LoggingMode.ERROR, logTag, "error logs")
-        val logCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        val tagCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        Mockito.verify(loggingService, Mockito.times(1))
-            .error(tagCaptor.capture(), logCaptor.capture())
-        assertEquals(logTag, tagCaptor.value)
-        assertEquals("error logs", logCaptor.value)
-    }
-
-    @Test
-    fun `test log() with filtered out logs`() {
-        MobileCore.setLogLevel(LoggingMode.ERROR)
-        val logTag = "log_tag"
-        Log.setLoggingService(loggingService)
-        MobileCore.log(LoggingMode.VERBOSE, logTag, "verbose logs")
-        MobileCore.log(LoggingMode.DEBUG, logTag, "debug logs")
-        MobileCore.log(LoggingMode.WARNING, logTag, "verbose logs")
-        MobileCore.log(LoggingMode.ERROR, logTag, "error logs")
-        Mockito.verify(loggingService, Mockito.times(0)).trace(any(), any())
-        Mockito.verify(loggingService, Mockito.times(0)).debug(any(), any())
-        Mockito.verify(loggingService, Mockito.times(0)).warning(any(), any())
-        val logCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        val tagCaptor = ArgumentCaptor.forClass(
-            String::class.java
-        )
-        Mockito.verify(loggingService, Mockito.times(1))
-            .error(tagCaptor.capture(), logCaptor.capture())
-        assertEquals(logTag, tagCaptor.value)
-        assertEquals("error logs", logCaptor.value)
-    }
-
-    @Test
-    fun `test log() without logging acceptor`() {
-        MobileCore.setLogLevel(LoggingMode.ERROR)
-        val logTag = "log_tag"
-        Log.setLoggingService(null)
-        MobileCore.log(LoggingMode.VERBOSE, logTag, "verbose logs")
-        MobileCore.log(LoggingMode.DEBUG, logTag, "debug logs")
-        MobileCore.log(LoggingMode.WARNING, logTag, "verbose logs")
-        MobileCore.log(LoggingMode.ERROR, logTag, "error logs")
-    }
-
-    @Test
-    fun `test extensionVersion()`() {
+    fun testSetWrapperTypeNone() {
         MobileCore.setWrapperType(WrapperType.NONE)
-        MobileCore.extensionVersion()
-        Mockito.verify(eventHub, Mockito.times(1)).sdkVersion
+        assertEquals(EventHubConstants.VERSION_NUMBER, MobileCore.extensionVersion())
     }
 
+    // / Tests that the React Native wrapper tag is appended
     @Test
-    fun `test extensionVersion() - RN`() {
+    fun testSetWrapperTypeReactNative() {
         MobileCore.setWrapperType(WrapperType.REACT_NATIVE)
-        MobileCore.extensionVersion()
-        val captor = ArgumentCaptor.forClass(
-            WrapperType::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).wrapperType = captor.capture()
-        assertEquals(WrapperType.REACT_NATIVE, captor.value)
+        assertEquals(EventHubConstants.VERSION_NUMBER + "-R", MobileCore.extensionVersion())
     }
 
+    // / Tests that the Flutter wrapper tag is appended
     @Test
-    fun `test collectMessageInfo()`() {
-        MobileCore.collectMessageInfo(
-            mapOf(
-                "key" to "value"
-            )
-        )
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("CollectData", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.os", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.data", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(mapOf("key" to "value"), dispatchedEvent.eventData)
+    fun testSetWrapperTypeFlutter() {
+        MobileCore.setWrapperType(WrapperType.FLUTTER)
+        assertEquals(EventHubConstants.VERSION_NUMBER + "-F", MobileCore.extensionVersion())
     }
 
+    // / Tests that the Cordova wrapper tag is appended
     @Test
-    fun `test collectMessageInfo() with null data`() {
-        MobileCore.collectMessageInfo(null)
-        Mockito.verify(eventHub, Mockito.times(0)).dispatch(any())
+    fun testSetWrapperTypeCordova() {
+        MobileCore.setWrapperType(WrapperType.CORDOVA)
+        assertEquals(EventHubConstants.VERSION_NUMBER + "-C", MobileCore.extensionVersion())
     }
 
+    // / Tests that the Unity wrapper tag is appended
     @Test
-    fun `test collectMessageInfo() without empty data`() {
-        MobileCore.collectMessageInfo(emptyMap<String, Any>())
-        Mockito.verify(eventHub, Mockito.times(0)).dispatch(any())
+    fun testSetWrapperTypeUnity() {
+        MobileCore.setWrapperType(WrapperType.UNITY)
+        assertEquals(EventHubConstants.VERSION_NUMBER + "-U", MobileCore.extensionVersion())
     }
 
+    // / Tests that the Xamarin wrapper tag is appended
     @Test
-    fun `test resetIdentities()`() {
-        MobileCore.resetIdentities()
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Reset Identities Request", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestreset", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.identity", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
+    fun testSetWrapperTypeXamarin() {
+        MobileCore.setWrapperType(WrapperType.XAMARIN)
+        assertEquals(EventHubConstants.VERSION_NUMBER + "-X", MobileCore.extensionVersion())
     }
 
+    // / Tests that the log level in the Log class is updated to verbose
     @Test
-    fun `test dispatchEvent() without callback`() {
-        val event = Event.Builder(
-            "event",
-            "com.adobe.eventType.lifecycle",
-            "com.adobe.eventSource.responseContent"
-        ).setEventData(
-            mapOf(
-                "lifecyclecontextdata" to mapOf(
-                    "launchevent" to "LaunchEvent"
-                )
-            )
-        ).build()
-        MobileCore.dispatchEvent(event, null)
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertEquals(event, dispatchedEvent)
+    fun testSetLogLevelVerbose() {
+        MobileCore.setLogLevel(LoggingMode.VERBOSE)
+        assertEquals(LoggingMode.VERBOSE, Log.getLogLevel())
     }
 
+    // MARK: setLogLevel(...) tests
+    // / Tests that the log level in the Log class is updated to debug
     @Test
-    fun `test dispatchEvent() with callback`() {
-        MobileCore.dispatchEvent(null, extensionErrorCallback)
-        Mockito.verify(eventHub, Mockito.times(0)).dispatch(any())
-        val captor = ArgumentCaptor.forClass(
-            ExtensionError::class.java
-        )
-        Mockito.verify(extensionErrorCallback, Mockito.timeout(1000).times(1))
-            .error(captor.capture())
-        assertEquals(ExtensionError.EVENT_NULL, captor.value)
+    fun testSetLogLevelDebug() {
+        MobileCore.setLogLevel(LoggingMode.DEBUG)
+        assertEquals(LoggingMode.DEBUG, Log.getLogLevel())
     }
 
+    // / Tests that the log level in the Log class is updated to warning
     @Test
-    fun `test collectLaunchInfo()`() {
-        val data = mapOf(
-            "key" to "value"
-        )
+    fun testSetLogLevelWarning() {
+        MobileCore.setLogLevel(LoggingMode.WARNING)
+        assertEquals(LoggingMode.WARNING, Log.getLogLevel())
+    }
 
-        PowerMockito.whenNew(DataMarshaller::class.java).withNoArguments()
-            .thenReturn(dataMarshaller)
-        PowerMockito.`when`(dataMarshaller.data)
-            .thenReturn(data)
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
+    // / Tests that the log level in the Log class is updated to error
+    @Test
+    fun testSetLogLevelError() {
+        MobileCore.setLogLevel(LoggingMode.ERROR)
+        assertEquals(LoggingMode.ERROR, Log.getLogLevel())
+    }
+
+    // MARK: collectMessageInfo(...) tests
+    // / When message info is empty no event should be dispatched
+    @Test
+    fun testCollectMessageInfoEmpty() {
+        registerExtension(MockExtension::class.java)
+
+        val latch = CountDownLatch(1)
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_GENERIC_DATA, EventSource.TYPE_OS) {
+                latch.countDown()
+            }
+        EventHub.shared.start()
+
+        MobileCore.collectMessageInfo(HashMap())
+
+        assertFalse {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+    }
+
+    // / When message info is not empty we should dispatch an event
+    @Test
+    fun testCollectMessageInfoWithData() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_GENERIC_DATA, EventSource.TYPE_OS) {
+                capturedEvents.add(it)
+                latch.countDown()
+            }
+        EventHub.shared.start()
+
+        val messageInfo = mapOf("testKey" to "testVal")
+        MobileCore.collectMessageInfo(messageInfo)
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        assertEquals(messageInfo, capturedEvents[0].eventData)
+    }
+
+    // MARK: collectLaunchInfo(...) tests
+    // / When launch info is empty no event should be dispatched
+    @Test
+    fun testCollectLaunchInfoEmpty() {
+        registerExtension(MockExtension::class.java)
+
+        val latch = CountDownLatch(1)
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_GENERIC_DATA, EventSource.TYPE_OS) {
+                latch.countDown()
+            }
+        EventHub.shared.start()
+
         MobileCore.collectLaunchInfo(null)
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("CollectData", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.os", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.generic.data", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(mapOf("key" to "value"), dispatchedEvent.eventData)
+
+        assertFalse {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+    }
+
+    // / When message info is not empty we should dispatch an event
+    @Test
+    fun testCollectLaunchInfoWithData() {
+//        Todo
+//        val marshalledData = mapOf(
+//            "key" to "value"
+//        )
+//        // Scope of constructor mocking
+//        mockConstruction(DataMarshaller::class.java).use { mock ->
+//            // creating a mock instance
+//            val marshaller = mock(DataMarshaller::class.java)
+//            `when`(marshaller.getData()).thenReturn(marshalledData)
+//        }
+//
+//        registerExtension(MockExtension::class.java)
+//
+//        val latch = CountDownLatch(1)
+//        val capturedEvents = mutableListOf<Event>()
+//        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_GENERIC_DATA, EventSource.TYPE_OS) {
+//                capturedEvents.add(it)
+//                latch.countDown()
+//            }
+//        EventHub.shared.start()
+//
+//        MobileCore.collectLaunchInfo(mock(Activity::class.java))
+//
+//        assertTrue {
+//            latch.await(1, TimeUnit.SECONDS)
+//        }
+//        assertEquals(marshalledData, capturedEvents[0].eventData)
+    }
+
+    // MARK: collectPii(...) tests
+    // / When data is empty no event should be dispatched
+    @Test
+    fun testCollectPiiInfoEmpty() {
+        registerExtension(MockExtension::class.java)
+
+        val latch = CountDownLatch(1)
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_GENERIC_DATA, EventSource.TYPE_OS) {
+                latch.countDown()
+            }
+        EventHub.shared.start()
+
+        MobileCore.collectPii(HashMap())
+
+        assertFalse {
+            latch.await(1, TimeUnit.SECONDS)
+        }
     }
 
     @Test
-    fun `test collectLaunchInfo() without data in Activity`() {
-        PowerMockito.whenNew(DataMarshaller::class.java).withNoArguments()
-            .thenReturn(dataMarshaller)
-        PowerMockito.`when`(dataMarshaller.data)
-            .thenReturn(emptyMap())
-        MobileCore.collectLaunchInfo(null)
-        Mockito.verify(eventHub, Mockito.times(0)).dispatch(any())
+    fun testCollectPiiInfoWithData() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_GENERIC_PII, EventSource.TYPE_REQUEST_CONTENT) {
+                capturedEvents.add(it)
+                latch.countDown()
+            }
+        EventHub.shared.start()
+
+        val piiInfo = mapOf("testKey" to "testVal")
+        MobileCore.collectPii(piiInfo)
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Signal.SIGNAL_CONTEXT_DATA to piiInfo)
+        assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
+    // MARK: setAdvertisingIdentifier(...) tests
+    // / Tests that when setAdvertisingIdentifier is called that we dispatch an event with the advertising identifier in the event data
     @Test
-    fun `test clearUpdatedConfiguration()`() {
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        MobileCore.clearUpdatedConfiguration()
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Clear updated configuration", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.configuration", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(mapOf("config.clearUpdates" to true), dispatchedEvent.eventData)
+    fun testSetAdvertisingIdentifierHappy() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT) {
+                capturedEvents.add(it)
+                latch.countDown()
+            }
+        EventHub.shared.start()
+
+        MobileCore.setAdvertisingIdentifier("test-ad-id")
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER to "test-ad-id")
+        assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
+    // / Tests that when nil is passed to setAdvertisingId that we convert it to an empty string since swift cannot hold nil in a dict
     @Test
-    fun `test configureWithAppID()`() {
-        val appId = "id_123"
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
+    fun testSetAdvertisingIdentifierNil() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT) {
+                capturedEvents.add(it)
+                latch.countDown()
+            }
+        EventHub.shared.start()
+
+        MobileCore.setAdvertisingIdentifier(null)
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER to null)
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // MARK: setPushIdentifier(...) tests
+    // / Tests that when setPushIdentifier is called that we dispatch an event with the push identifier in the event data
+    @Test
+    fun testSetPushIdentifierHappy() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT) {
+                capturedEvents.add(it)
+                latch.countDown()
+            }
+        EventHub.shared.start()
+
+        MobileCore.setPushIdentifier("test-push-id")
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Identity.PUSH_IDENTIFIER to "test-push-id")
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // / Tests that when setPushIdentifier is called that we dispatch an event with the push identifier in the event data and that an empty push id is handled properly
+    @Test
+    fun testSetPushIdentifierNil() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT) {
+                capturedEvents.add(it)
+                latch.countDown()
+            }
+        EventHub.shared.start()
+
+        MobileCore.setPushIdentifier(null)
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Identity.PUSH_IDENTIFIER to null)
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // MARK: Configuration methods
+    // / Tests that a configuration request content event is dispatched with the appId
+    @Test
+    fun testConfigureWithAppId() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        val appId = "test-app-id"
         MobileCore.configureWithAppID(appId)
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Configure with AppID", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.configuration", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(mapOf("config.appId" to appId), dispatchedEvent.eventData)
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId)
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // / Tests that a configuration request content event is dispatched with the filePath
+    @Test
+    fun testConfigureWithFilePath() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        val filePath = "test-file-path"
+        MobileCore.configureWithFileInPath(filePath)
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to filePath)
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // / Tests that a configuration request content event is dispatched with the fileAssets
+    @Test
+    fun testConfigureWithFileAssets() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        val assertPath = "test-asset-path"
+        MobileCore.configureWithFileInAssets(assertPath)
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to assertPath)
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // / Tests that a configuration request content event is dispatched with the updated dict
+    @Test
+    fun testUpdateConfiguration() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        val updateDict = mapOf("testKey" to "testVal")
+        MobileCore.updateConfiguration(updateDict)
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to updateDict)
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // / Tests that a configuration request content event is dispatched with the true value for a revert
+    @Test
+    fun testClearUpdateConfiguration() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        MobileCore.clearUpdatedConfiguration()
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG to true)
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // / Tests that set privacy status dispatches a configuration request content event with the new privacy status
+    @Test
+    fun testSetPrivacy() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_IN)
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+        val privacyDict =
+            mapOf(CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY to MobilePrivacyStatus.OPT_IN.value)
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to privacyDict)
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // / Tests that get privacy status dispatches an event of configuration request content with the correct retrieve config data
+    @Test
+    fun testGetPrivacy() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        MobileCore.getPrivacyStatus { }
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+
+        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG to true)
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // / Tests that getSdkIdentities dispatches a configuration request identity event
+    @Test
+    fun testGetSdkIdentities() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_IDENTITY) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        MobileCore.getSdkIdentities {}
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+    }
+
+    // / Tests that resetIdentities dispatches an generic identity event
+    @Test
+    fun testResetIdentities() {
+        // setup
+        registerExtension(MockExtension::class.java)
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_RESET) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        MobileCore.resetIdentities()
+
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+
+        assertEquals(capturedEvents.size, 1)
+    }
+
+    // Track methods
+    @Test
+    fun testTrackAction() {
+        registerExtension(MockExtension::class.java)
+
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_GENERIC_TRACK, EventSource.TYPE_REQUEST_CONTENT) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        val contextData = mapOf("testKey" to "testVal")
+        val action = "myAction"
+
+        // test
+        MobileCore.trackAction(action, contextData)
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+
+        val expectedData = mapOf(
+            CoreConstants.EventDataKeys.Analytics.TRACK_ACTION to action,
+            CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA to contextData,
+        )
+        assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
     @Test
-    fun `test configureWithFileInAssets()`() {
-        val path = "path/to/the/bundled/configuration"
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        MobileCore.configureWithFileInAssets(path)
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Configure with FilePath", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.configuration", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(mapOf("config.assetFile" to path), dispatchedEvent.eventData)
-    }
+    fun testTrackState() {
+        registerExtension(MockExtension::class.java)
 
-    @Test
-    fun `test configureWithFileInPath()`() {
-        val path = "path/to/the/bundled/configuration"
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        MobileCore.configureWithFileInPath(path)
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Configure with FilePath", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.configuration", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(mapOf("config.filePath" to path), dispatchedEvent.eventData)
-    }
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_GENERIC_TRACK, EventSource.TYPE_REQUEST_CONTENT) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
 
-    @Test
-    @Ignore
-    fun `test dispatchEventWithResponseCallback()`() {
-        // TODO: will test dispatchEventWithResponseCallback() after we have the redesigned OneTimeListener and EventListener APIs
-    }
+        val contextData = mapOf("testKey" to "testVal")
+        val state = "myState"
 
-    @Test
-    @Ignore
-    fun `test registerEventListener()`() {
-        // TODO: will test dispatchEventWithResponseCallback() after we have the redesigned OneTimeListener and EventListener APIs
-    }
+        // test
+        MobileCore.trackState(state, contextData)
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
 
-    @Test
-    @Ignore
-    fun `test getPrivacyStatus()`() {
-        // TODO: will test dispatchEventWithResponseCallback() after we have the redesigned OneTimeListener and EventListener APIs
-    }
-
-    @Test
-    fun `test setPrivacyStatus()`() {
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
+        val expectedData = mapOf(
+            CoreConstants.EventDataKeys.Analytics.TRACK_STATE to state,
+            CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA to contextData,
         )
-        MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Configuration Update", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.configuration", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "config.update" to mapOf(
-                    "global.privacy" to MobilePrivacyStatus.OPT_OUT.value
-                )
-            ),
-            dispatchedEvent.eventData
-        )
-    }
-
-    @Test
-    fun `test updateConfiguration()`() {
-        val configurations = mapOf(
-            "key" to "value"
-        )
-        val captor = ArgumentCaptor.forClass(
-            Event::class.java
-        )
-        MobileCore.updateConfiguration(configurations)
-        Mockito.verify(eventHub, Mockito.times(1)).dispatch(captor.capture())
-        val dispatchedEvent = captor.value
-        assertNotNull(dispatchedEvent)
-        assertEquals("Configuration Update", dispatchedEvent.name)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEvent.source)
-        assertEquals("com.adobe.eventtype.configuration", dispatchedEvent.type)
-        assertNull(dispatchedEvent.pairID)
-        assertNotNull(dispatchedEvent.responsePairID)
-        assertNotNull(dispatchedEvent.uniqueIdentifier)
-        assertNotNull(dispatchedEvent.eventNumber)
-        assertEquals(
-            mapOf(
-                "config.update" to mapOf(
-                    "key" to "value"
-                )
-            ),
-            dispatchedEvent.eventData
-        )
+        assertEquals(expectedData, capturedEvents[0].eventData)
     }
 }

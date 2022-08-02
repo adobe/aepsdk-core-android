@@ -28,7 +28,7 @@ public final class EventType {
 	public static final String TYPE_WILDCARD = "com.adobe.eventType._wildcard_";
 	public static final String TYPE_HUB = "com.adobe.eventType.hub";
 	public static final String TYPE_CONFIGURATION = "com.adobe.eventType.configuration";
-	public static final String TYPE_GENERIC_LIFECYLE = "com.adobe.eventType.generic.lifecycle";
+	public static final String TYPE_GENERIC_LIFECYCLE = "com.adobe.eventType.generic.lifecycle";
 	public static final String TYPE_GENERIC_IDENTITY = "com.adobe.eventType.generic.identity";
 	public static final String TYPE_GENERIC_TRACK = "com.adobe.eventType.generic.track";
 	public static final String TYPE_GENERIC_DATA = "com.adobe.eventType.generic.data";

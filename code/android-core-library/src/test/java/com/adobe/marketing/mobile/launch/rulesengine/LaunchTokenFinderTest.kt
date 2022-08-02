@@ -8,7 +8,6 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.BaseTest
@@ -17,8 +16,10 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.utils.TimeUtil
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -26,7 +27,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
-import kotlin.test.assertNotNull
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchTokenFinderTest : BaseTest() {
@@ -106,6 +106,9 @@ class LaunchTokenFinderTest : BaseTest() {
 
     @Test
     fun `get should return current sdk version on valid event`() {
+        // reset eventhub
+        EventHub.shared = EventHub()
+
         // setup
         val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)

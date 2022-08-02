@@ -15,6 +15,9 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
@@ -44,6 +47,7 @@ final public class MobileCore {
      *
      * @return The version string
      */
+    @NonNull
     public static String extensionVersion() {
         WrapperType wrapperType = EventHub.Companion.getShared().getWrapperType();
         if (wrapperType == WrapperType.NONE) {
@@ -55,31 +59,41 @@ final public class MobileCore {
 
     /**
      * Sets the SDK's current wrapper type. This API should only be used if
-     * being developed on platforms such as React Native.
+     * being developed on platforms such as React Native or Flutter
      * <p>
-     * NOTE: {@link #setApplication(Application)} must be called before calling this method.
      *
-     * @param wrapperType the type of wrapper being used.
+     * @param wrapperType the type of wrapper being used. It should not be null.
      */
-    public static void setWrapperType(final WrapperType wrapperType) {
+    public static void setWrapperType(@NonNull final WrapperType wrapperType) {
+        if (wrapperType == null) {
+            Log.error(LOG_TAG, "setWrapperType failed - wrapperType is null.");
+            return;
+        }
+
         EventHub.Companion.getShared().setWrapperType(wrapperType);
     }
 
     /**
-     * Set the current {@link Application}, which enables the SDK get the app {@code Context},
+     * Set the Android {@link Application}, which enables the SDK get the app {@code Context},
      * register a {@link Application.ActivityLifecycleCallbacks}
      * to monitor the lifecycle of the app and get the {@link android.app.Activity} on top of the screen.
      * <p>
      * NOTE: This method should be called right after the app starts, so it gives the SDK all the
      * contexts it needed.
      *
-     * @param app the current {@code Application}
+     * @param application the Android {@link Application} instance. It should not be null.
      */
-    public static void setApplication(final Application app) {
+    public static void setApplication(@NonNull final Application application) {
+        if (application == null) {
+            Log.error(LOG_TAG, "setApplication failed - application is null");
+            return;
+        }
+
         if (sdkInitializedWithContext.compareAndSet(false, true)) {
             Log.error(LOG_TAG, "setApplication already called.");
             return;
         }
+
         // AMSDK-8502
         // workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
         // https://issuetracker.google.com/issues/110848122
@@ -91,7 +105,7 @@ final public class MobileCore {
             // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
         }
 
-        App.setApplication(app);
+        App.setApplication(application);
         if (App.getPlatformServices() == null) {
             App.setPlatformServices(new AndroidPlatformServices());
         }
@@ -124,6 +138,7 @@ final public class MobileCore {
      * @return the current {@code Application}, or null if no {@code Application} was set or
      * the {@code Application} process was destroyed.
      */
+    @Nullable
     public static Application getApplication() {
         return App.getApplication();
     }
@@ -131,9 +146,14 @@ final public class MobileCore {
     /**
      * Set the {@link LoggingMode} level for the Mobile SDK.
      *
-     * @param mode the logging mode
+     * @param mode the logging mode. It should not be null.
      */
-    public static void setLogLevel(LoggingMode mode) {
+    public static void setLogLevel(@NonNull LoggingMode mode) {
+        if (mode == null) {
+            Log.error(LOG_TAG, "setLogLevel failed - mode is null");
+            return;
+        }
+
         Log.setLogLevel(mode);
     }
 
@@ -142,6 +162,7 @@ final public class MobileCore {
      *
      * @return the set {@code LoggingMode}
      */
+    @NonNull
     public static LoggingMode getLogLevel() {
         return Log.getLogLevel();
     }
@@ -151,11 +172,11 @@ final public class MobileCore {
      * more verbose than the current {@link LoggingMode} set from {@link #setLogLevel(LoggingMode)}
      * then the message is not printed.
      *
-     * @param mode    the {@link LoggingMode} used to print the message
+     * @param mode    the {@link LoggingMode} used to print the message. It should not be null.
      * @param tag     used to identify the source of the log message
      * @param message the message to log
      */
-    public static void log(final LoggingMode mode, final String tag, final String message) {
+    public static void log(@NonNull final LoggingMode mode, final String tag, final String message) {
         if (mode == null) {
             return;
         }
@@ -186,13 +207,13 @@ final public class MobileCore {
      * to be called after {@link MobileCore#setApplication(Application)} is called, but before
      * any other method in this class.
      *
-     * @param extensionClass a class whose parent is {@link Extension}
+     * @param extensionClass a class whose parent is {@link Extension}. It should not be null.
      * @param errorCallback  an optional {@link ExtensionErrorCallback} for the eventuality of an error,
      *                       called when this method returns false
      * @return {@code boolean} indicating if the provided parameters are valid and no error occurs
      */
-    public static boolean registerExtension(final Class<? extends Extension> extensionClass,
-                                            final ExtensionErrorCallback<ExtensionError> errorCallback) {
+    public static boolean registerExtension(@NonNull final Class<? extends Extension> extensionClass,
+                                            @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
 
         if(!sdkInitializedWithContext.get()) {
             Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
@@ -232,9 +253,9 @@ final public class MobileCore {
      * You can use the callback to kickoff additional operations immediately after any operations kicked off during registration.
      * You shouldn't call this method more than once in your app, if so, sdk will ignore it and print error log.
      *
-     * @param completionCallback An optional {@link AdobeCallback} invoked after registrations are completed
+     * @param completionCallback an optional {@link AdobeCallback} invoked after registrations are completed
      */
-    public static void start(final AdobeCallback<?> completionCallback) {
+    public static void start(@Nullable final AdobeCallback<?> completionCallback) {
         if(!sdkInitializedWithContext.get()) {
             Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
             return;
@@ -251,12 +272,13 @@ final public class MobileCore {
     /**
      * Registers an event listener for the provided event type and source.
      *
-     * @param eventType   required parameter, the event type as a valid string (not null or empty)
-     * @param eventSource required parameter, the event source as a valid string (not null or empty)
-     * @param callback    required parameter, {@link AdobeCallbackWithError#call(Object)} will be called when the event is heard
+     * @param eventType   the event type as a valid string. It should not be null or empty.
+     * @param eventSource the event source as a valid string. It should not be null or empty.
+     * @param callback    the callback whose {@link AdobeCallbackWithError#call(Object)} will be called when the event is heard. It should not be null.
      */
-    public static void registerEventListener(final String eventType, final String eventSource,
-                                             final AdobeCallbackWithError<Event> callback) {
+    public static void registerEventListener(@NonNull final String eventType,
+                                             @NonNull final String eventSource,
+                                             @NonNull final AdobeCallbackWithError<Event> callback) {
         if (callback == null) {
             Log.error(LOG_TAG, "Failed to registerEventListener - callback is null",
                     Log.UNEXPECTED_NULL_VALUE);
@@ -275,9 +297,9 @@ final public class MobileCore {
     /**
      * This method will dispatch the provided {@code Event} to dispatch an event for other extensions or the internal SDK to consume.
      *
-     * @param event required parameter, {@link Event} instance to be dispatched, should not be null
+     * @param event the {@link Event} to be dispatched. It should not be null
      */
-    public static void dispatchEvent(final Event event) {
+    public static void dispatchEvent(@NonNull final Event event) {
         if (event == null) {
             Log.error(LOG_TAG, "Failed to dispatchEvent - event is null");
             return;
@@ -288,16 +310,20 @@ final public class MobileCore {
 
     /**
      * This method will be used when the provided {@code Event} is used as a trigger and a response event
-     * is expected in return. The returned event needs to be sent using
-     * {@link #dispatchResponseEvent(Event, Event, ExtensionErrorCallback)}.
+     * is expected in return.
      * <p>
-     * Passes an {@link AdobeError} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} is null.
-     * Passes an {@link AdobeError} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} processing timeout occurs.
+     * Passes an {@link AdobeError#UNEXPECTED_ERROR} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} is null.
+     * Passes an {@link AdobeError#CALLBACK_TIMEOUT} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} processing timeout occurs.
      *
-     * @param event            required parameter, {@link Event} instance to be dispatched, used as a trigger
+     * @param event the {@link Event} to be dispatched, used as a trigger. It should not be null.
+     * @param timeoutMS the timeout specified in milliseconds.
+     * @param responseCallback the callback whose {@link AdobeCallbackWithError#call(Object)} will be called when the response event is heard. It should not be null.
+     *
      * @see MobileCore#dispatchResponseEvent(Event, Event, ExtensionErrorCallback)
      */
-    public static void dispatchEventWithResponseCallback(final Event event, long timeoutMS, final AdobeCallbackWithError<Event> responseCallback) {
+    public static void dispatchEventWithResponseCallback(@NonNull final Event event,
+                                                         long timeoutMS,
+                                                         @NonNull final AdobeCallbackWithError<Event> responseCallback) {
         if (responseCallback == null) {
             Log.error(LOG_TAG, "Failed to dispatchEventWithResponseCallback - callback is null");
             return;
@@ -369,9 +395,9 @@ final public class MobileCore {
      * Collect PII data. Although using this call enables collection of PII data, the SDK does not
      * automatically send the data to any Adobe endpoint.
      *
-     * @param data the map containing the PII data to be collected
+     * @param data the map containing the PII data to be collected. It should not be null or empty.
      */
-    public static void collectPii(final Map<String, String> data) {
+    public static void collectPii(@NonNull final Map<String, String> data) {
         if (data == null || data.isEmpty()) {
             Log.error(LOG_TAG, "Could not trigger PII, the data is null or empty.");
             return;
@@ -397,9 +423,9 @@ final public class MobileCore {
      * is launched as a result of notification click, {@link #collectLaunchInfo(Activity)} will be invoked with the target
      * Activity and message data will be extracted from the Intent extras.
      *
-     * @param messageInfo {@code Map<String, Object>} containing message tracking information
+     * @param messageInfo {@code Map<String, Object>} containing message tracking information. It should not be null or empty.
      */
-    public static void collectMessageInfo(final Map<String, Object> messageInfo) {
+    public static void collectMessageInfo(@NonNull final Map<String, Object> messageInfo) {
         if (messageInfo == null || messageInfo.isEmpty()) {
             Log.error(LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
             return;
@@ -469,9 +495,14 @@ final public class MobileCore {
      * The configuration file is cached once downloaded and used in subsequent calls to this
      * API. If the remote file is updated after the first download, the updated file is downloaded
      * and replaces the cached file.
-     * @param appId A unique identifier assigned to the app instance by Adobe Launch
+     * @param appId A unique identifier assigned to the app instance by Adobe Launch. It should not be null.
      */
-    public static void configureWithAppID(final String appId) {
+    public static void configureWithAppID(@NonNull final String appId) {
+        if (appId == null) {
+            Log.error(LOG_TAG, "configureWithAppID failed - appId is null.");
+            return;
+        }
+
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID, appId);
 
@@ -497,9 +528,14 @@ final public class MobileCore {
      * {@link #setPrivacyStatus(MobilePrivacyStatus)} are always applied on top of configuration changes
      * made using this API.
      *
-     * @param fileName the name of the configure file in the assets folder. A value of {@code null} has no effect.
+     * @param fileName the name of the configure file in the assets folder. It should not be null.
      */
-    public static void configureWithFileInAssets(final String fileName) {
+    public static void configureWithFileInAssets(@NonNull final String fileName) {
+        if (fileName == null) {
+            Log.error(LOG_TAG, "configureWithFileInAssets failed - fileName is null.");
+            return;
+        }
+
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE, fileName);
 
@@ -522,11 +558,16 @@ final public class MobileCore {
      * Configuration updates made using {@link #updateConfiguration(Map)} and {@link #setPrivacyStatus(MobilePrivacyStatus)}
      * are always applied on top of configuration changes made using this API.
      *
-     * @param filepath absolute path to a local configuration file. A value of {@code null} has no effect.
+     * @param filePath absolute path to a local configuration file. It should not be null.
      */
-    public static void configureWithFileInPath(final String filepath) {
+    public static void configureWithFileInPath(@NonNull final String filePath) {
+        if (filePath == null) {
+            Log.error(LOG_TAG, "configureWithFileInPath failed - filePath is null.");
+            return;
+        }
+
         Map<String, Object> eventData = new HashMap<>();
-        eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH, filepath);
+        eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH, filePath);
 
         Event event = new Event.Builder("Configure with FilePath",
                 EventType.TYPE_CONFIGURATION,
@@ -544,9 +585,14 @@ final public class MobileCore {
      * <p>
      * Using {@code null} values is allowed and effectively removes the configuration parameter from the current configuration.
      *
-     * @param configMap configuration key/value pairs to be updated or added. A value of {@code null} has no effect.
+     * @param configMap configuration key/value pairs to be updated or added. It should not be null.
      */
-    public static void updateConfiguration(final Map<String, Object> configMap) {
+    public static void updateConfiguration(@NonNull final Map<String, Object> configMap) {
+        if (configMap == null) {
+            Log.error(LOG_TAG, "updateConfiguration failed - configMap is null.");
+            return;
+        }
+
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG,
                 configMap);
@@ -581,10 +627,14 @@ final public class MobileCore {
      * @param privacyStatus {@link MobilePrivacyStatus} to be set to the SDK
      * @see MobilePrivacyStatus
      */
-    public static void setPrivacyStatus(final MobilePrivacyStatus privacyStatus) {
-        String privacyStatusString = (privacyStatus == null ? null : privacyStatus.getValue());
+    public static void setPrivacyStatus(@NonNull final MobilePrivacyStatus privacyStatus) {
+        if (privacyStatus == null) {
+            Log.error(LOG_TAG, "setPrivacyStatus failed - privacyStatus is null.");
+            return;
+        }
+
         Map<String, Object> privacyStatusUpdateConfig = new HashMap<>();
-        privacyStatusUpdateConfig.put(CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, privacyStatusString);
+        privacyStatusUpdateConfig.put(CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, privacyStatus.getValue());
         updateConfiguration(privacyStatusUpdateConfig);
     }
 
@@ -594,7 +644,7 @@ final public class MobileCore {
      * Gets the currently configured {@link MobilePrivacyStatus} and passes it as a parameter to the given
      * {@link AdobeCallback#call(Object)} function.
      *
-     * @param callback {@link AdobeCallback} instance which is invoked with the configured privacy status as a parameter
+     * @param callback {@link AdobeCallback} instance which is invoked with the configured privacy status as a parameter. It should not be null.
      * @see AdobeCallback
      * @see MobilePrivacyStatus
      */
@@ -638,12 +688,12 @@ final public class MobileCore {
     /**
      * Retrieve all identities stored by/known to the SDK in a JSON {@code String} format.
      *
-     * @param callback {@link AdobeCallback} instance which is invoked with all the known identifier in JSON {@link String} format
+     * @param callback {@link AdobeCallback} instance which is invoked with all the known identifier in JSON {@link String} format. It should not be null.
      * @see AdobeCallback
      */
-    public static void getSdkIdentities(final AdobeCallback<String> callback) {
+    public static void getSdkIdentities(@NonNull final AdobeCallback<String> callback) {
         if (callback == null) {
-            Log.debug(LOG_TAG, "Failed to get SDK identities - callback is null");
+            Log.error(LOG_TAG, "Failed to get SDK identities - callback is null");
             return;
         }
 
@@ -696,7 +746,7 @@ final public class MobileCore {
      *
      * @param additionalContextData optional additional context for this session.
      */
-    public static void lifecycleStart(final Map<String, String> additionalContextData) {
+    public static void lifecycleStart(@Nullable final Map<String, String> additionalContextData) {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY,
                 CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START);
@@ -748,9 +798,9 @@ final public class MobileCore {
      * @param action      {@code String} containing the name of the action to track
      * @param contextData {@code Map<String, String>} containing context data to attach on this hit
      */
-    public static void trackAction(final String action, final Map<String, String> contextData) {
+    public static void trackAction(@NonNull final String action, @Nullable final Map<String, String> contextData) {
         Map<String, Object> eventData = new HashMap<>();
-        eventData.put(CoreConstants.EventDataKeys.Analytics.TRACK_ACTION, action);
+        eventData.put(CoreConstants.EventDataKeys.Analytics.TRACK_ACTION, action == null ? "" : action);
         eventData.put(CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA, contextData == null ? new HashMap<String, String>() : contextData);
         Event event = new Event.Builder("Analytics Track", EventType.TYPE_GENERIC_TRACK, EventSource.TYPE_REQUEST_CONTENT)
                 .setEventData(eventData).build();
@@ -765,12 +815,12 @@ final public class MobileCore {
      * Activity in the onResume method.
      * <p>
      *
-     * @param state       {@code String} containing the name of the state to track
-     * @param contextData contextData {@code Map<String, String>} containing context data to attach on this hit
+     * @param state       {@code String} containing the name of the state to track. It should not be null.
+     * @param contextData optional contextData {@code Map<String, String>} containing context data to attach on this hit
      */
-    public static void trackState(final String state, final Map<String, String> contextData) {
+    public static void trackState(@NonNull final String state, @Nullable final Map<String, String> contextData) {
         Map<String, Object> eventData = new HashMap<>();
-        eventData.put(CoreConstants.EventDataKeys.Analytics.TRACK_STATE, state);
+        eventData.put(CoreConstants.EventDataKeys.Analytics.TRACK_STATE, state == null ? "" : state);
         eventData.put(CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA, contextData == null ? new HashMap<String, String>() : contextData);
         Event event = new Event.Builder("Analytics Track", EventType.TYPE_GENERIC_TRACK, EventSource.TYPE_REQUEST_CONTENT)
                 .setEventData(eventData).build();
@@ -783,31 +833,32 @@ final public class MobileCore {
 
     /**
      * This method will be used when the provided {@code Event} is used as a trigger and a response event
-     * is expected in return. The returned event needs to be sent using
-     * {@link #dispatchResponseEvent(Event, Event, ExtensionErrorCallback)}.
+     * is expected in return.
      * <p>
-     * Passes an {@link AdobeError} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} is null.
-     * Passes an {@link AdobeError} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} processing timeout occurs.
+     * Passes an {@link AdobeError#UNEXPECTED_ERROR} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} is null.
+     * Passes an {@link AdobeError#CALLBACK_TIMEOUT} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} processing timeout occurs after {@link MobileCore#API_TIMEOUT_MS} milliseconds.
      *
-     * @param event            required parameter, {@link Event} instance to be dispatched, used as a trigger
-     * @param responseCallback required parameters, {@link AdobeCallback} to be called with the response event received
-     * @see MobileCore#dispatchResponseEvent(Event, Event, ExtensionErrorCallback)
+     * @param event the {@link Event} to be dispatched, used as a trigger. It should not be null.
+     * @param responseCallback the callback whose {@link AdobeCallbackWithError#call(Object)} will be called when the response event is heard. It should not be null.
+     * @deprecated Use {@link MobileCore#dispatchEventWithResponseCallback(Event, long, AdobeCallbackWithError)} instead by explicitly specifing timeout.
      */
-    public static void dispatchEventWithResponseCallback(final Event event,
-                                                         final AdobeCallbackWithError<Event> responseCallback) {
+    @Deprecated
+    public static void dispatchEventWithResponseCallback(@NonNull final Event event,
+                                                         @NonNull final AdobeCallbackWithError<Event> responseCallback) {
         dispatchEventWithResponseCallback(event, API_TIMEOUT_MS, responseCallback);
     }
 
     /**
      * Called by the extension public API to dispatch an event for other extensions or the internal SDK to consume.
      *
-     * @param event         required parameter, {@link Event} instance to be dispatched, should not be null
+     * @param event         the {@link Event} instance to be dispatched. It should not be null.
      * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred during dispatching
      * @return {@code boolean} indicating if the the event dispatching operation succeeded
      * @deprecated Extensions should use {@link ExtensionApi#dispatch(Event)} instead
      */
     @Deprecated
-    public static boolean dispatchEvent(final Event event, final ExtensionErrorCallback<ExtensionError> errorCallback) {
+    public static boolean dispatchEvent(@NonNull final Event event,
+                                        @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
         if (event == null) {
             Log.debug(LOG_TAG, "dispatchEvent failed - event is null");
 
@@ -830,17 +881,16 @@ final public class MobileCore {
      * Passes an {@link ExtensionError} to {@code errorCallback} if {@code event} or
      * {@code responseCallback} are null.
      *
-     * @param event            required parameter, {@link Event} instance to be dispatched, used as a trigger
-     * @param responseCallback required parameters, {@link AdobeCallback} to be called with the response event received
+     * @param event            the {@link Event} instance to be dispatched, used as a trigger. It should not be null.
+     * @param responseCallback the {@link AdobeCallback} to be called with the response event received. It should not be null.
      * @param errorCallback    optional {@link ExtensionErrorCallback} which will be called if an error occurred during dispatching
      * @return {@code boolean} indicating if the the event dispatching operation succeeded
-     * @see MobileCore#dispatchResponseEvent(Event, Event, ExtensionErrorCallback)
-     * @deprecated Extensions should use {@link #dispatchEventWithResponseCallback(Event, AdobeCallbackWithError)} instead
+     * @deprecated Extensions should use {@link MobileCore#dispatchEventWithResponseCallback(Event, long, AdobeCallbackWithError)} instead.
      */
     @Deprecated
-    public static boolean dispatchEventWithResponseCallback(final Event event,
-                                                            final AdobeCallback<Event> responseCallback,
-                                                            final ExtensionErrorCallback<ExtensionError> errorCallback) {
+    public static boolean dispatchEventWithResponseCallback(@NonNull final Event event,
+                                                            @NonNull final AdobeCallback<Event> responseCallback,
+                                                            @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
         // the core will validate and copy this event
         if (responseCallback == null) {
             Log.error(LOG_TAG, "Failed to dispatchEventWithResponseCallback - responseCallback is null");
@@ -890,17 +940,15 @@ final public class MobileCore {
      * Note: The {@code responseEvent} will not be sent to any listeners, it is sent only to the response callback registered
      * using {@link MobileCore#dispatchEventWithResponseCallback(Event, AdobeCallback, ExtensionErrorCallback)}.
      *
-     * @param responseEvent required parameter, {@link Event} instance to be dispatched as a response for the
-     *                      event sent using {@link MobileCore#dispatchEventWithResponseCallback(Event, AdobeCallback, ExtensionErrorCallback)}
-     * @param requestEvent  required parameter, the event sent using
-     *                      {@link MobileCore#dispatchEventWithResponseCallback(Event, AdobeCallback, ExtensionErrorCallback)}
+     * @param responseEvent the {@link Event} instance dispatched as response to request event. It should not be null.
+     * @param requestEvent  the {@link Event} instance which acts as a trigger for response event. It should not be null.
      * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error occurred during dispatching
      * @return {@code boolean} indicating if the the event dispatching operation succeeded
-     * @see MobileCore#dispatchEventWithResponseCallback(Event, AdobeCallback, ExtensionErrorCallback)
      */
     @Deprecated
-    public static boolean dispatchResponseEvent(final Event responseEvent, final Event requestEvent,
-                                                final ExtensionErrorCallback<ExtensionError> errorCallback) {
+    public static boolean dispatchResponseEvent(@NonNull final Event responseEvent,
+                                                @NonNull final Event requestEvent,
+                                                @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
         if (requestEvent == null || responseEvent == null) {
             Log.error(LOG_TAG, "Failed to dispatchResponseEvent - requestEvent/responseEvent is null");
 

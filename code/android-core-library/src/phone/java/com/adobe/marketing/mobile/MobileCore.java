@@ -236,7 +236,7 @@ final public class MobileCore {
      */
     public static void start(final AdobeCallback<?> completionCallback) {
         if(!sdkInitializedWithContext.get()) {
-            Log.error(LOG_TAG, "Failed to start - completionCallback is null");
+            Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
             return;
         }
 
@@ -273,15 +273,9 @@ final public class MobileCore {
     }
 
     /**
-     * This method will be used when the provided {@code Event} is used as a trigger and a response event
-     * is expected in return. The returned event needs to be sent using
-     * {@link #dispatchResponseEvent(Event, Event, ExtensionErrorCallback)}.
-     * <p>
-     * Passes an {@link AdobeError} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} is null.
-     * Passes an {@link AdobeError} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} processing timeout occurs.
+     * This method will dispatch the provided {@code Event} to dispatch an event for other extensions or the internal SDK to consume.
      *
-     * @param event            required parameter, {@link Event} instance to be dispatched, used as a trigger
-     * @see MobileCore#dispatchResponseEvent(Event, Event, ExtensionErrorCallback)
+     * @param event required parameter, {@link Event} instance to be dispatched, should not be null
      */
     public static void dispatchEvent(final Event event) {
         if (event == null) {
@@ -708,7 +702,7 @@ final public class MobileCore {
                 CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START);
         eventData.put(CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA, additionalContextData);
 
-        Event event = new Event.Builder("LifecycleResume", EventType.TYPE_GENERIC_LIFECYLE, EventSource.TYPE_REQUEST_CONTENT)
+        Event event = new Event.Builder("LifecycleResume", EventType.TYPE_GENERIC_LIFECYCLE, EventSource.TYPE_REQUEST_CONTENT)
                 .setEventData(eventData)
                 .build();
         dispatchEvent(event);
@@ -733,7 +727,7 @@ final public class MobileCore {
         eventData.put(CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY,
                 CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE);
 
-        Event event = new Event.Builder("LifecyclePause", EventType.TYPE_GENERIC_LIFECYLE, EventSource.TYPE_REQUEST_CONTENT)
+        Event event = new Event.Builder("LifecyclePause", EventType.TYPE_GENERIC_LIFECYCLE, EventSource.TYPE_REQUEST_CONTENT)
                 .setEventData(eventData)
                 .build();
         dispatchEvent(event);

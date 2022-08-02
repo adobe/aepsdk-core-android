@@ -10,6 +10,7 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine
 
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.ExtensionApi
@@ -24,12 +25,18 @@ internal class LaunchRulesEvaluator(
 
     private var cachedEvents: MutableList<Event>? = mutableListOf()
     private val logTag = "LaunchRulesEvaluator_$name"
-    private val launchRulesConsequence: LaunchRulesConsequence = LaunchRulesConsequence(extensionApi)
+    private val launchRulesConsequence: LaunchRulesConsequence =
+        LaunchRulesConsequence(extensionApi)
 
     companion object {
         // TODO: we should move the following event type/event source values to the public EventType/EventSource classes once we have those.
         const val EVENT_SOURCE_REQUEST_RESET = "com.adobe.eventsource.requestreset"
         const val EVENT_TYPE_RULES_ENGINE = "com.adobe.eventtype.rulesengine"
+    }
+
+    @VisibleForTesting
+    internal fun getCachedEventCount(): Int {
+        return cachedEvents?.size ?: 0
     }
 
     override fun process(event: Event?): Event? {

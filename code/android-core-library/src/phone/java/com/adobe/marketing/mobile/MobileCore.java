@@ -366,7 +366,7 @@ final public class MobileCore {
      *
      * @param advertisingIdentifier {@code String} representing Android advertising identifier
      */
-    public static void setAdvertisingIdentifier(final String advertisingIdentifier) {
+    public static void setAdvertisingIdentifier(@Nullable final String advertisingIdentifier) {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER, advertisingIdentifier);
 
@@ -381,7 +381,7 @@ final public class MobileCore {
      *
      * @param pushIdentifier {@code String} representing the new push identifier
      */
-    public static void setPushIdentifier(final String pushIdentifier) {
+    public static void setPushIdentifier(@Nullable final String pushIdentifier) {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Identity.PUSH_IDENTIFIER, pushIdentifier);
 

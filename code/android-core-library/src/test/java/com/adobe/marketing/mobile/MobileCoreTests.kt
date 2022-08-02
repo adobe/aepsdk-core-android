@@ -174,7 +174,6 @@ class MobileCoreTests {
 
         val event = Event.Builder("test-event", "analytics", "requestContent").build()
         MobileCore.dispatchEvent(event)
-
         assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
 
@@ -479,7 +478,6 @@ class MobileCoreTests {
         EventHub.shared.start()
 
         MobileCore.collectMessageInfo(HashMap())
-        MobileCore.collectMessageInfo(null)
 
         assertFalse {
             latch.await(1, TimeUnit.SECONDS)
@@ -574,7 +572,6 @@ class MobileCoreTests {
             }
         EventHub.shared.start()
 
-        MobileCore.collectPii(null)
         MobileCore.collectPii(HashMap())
 
         assertFalse {

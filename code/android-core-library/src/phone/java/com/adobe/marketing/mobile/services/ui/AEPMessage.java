@@ -52,11 +52,13 @@ class AEPMessage implements FullscreenMessage {
     WebView webView;
     ViewGroup rootViewGroup;
     FrameLayout fragmentFrameLayout;
+    MessageWebViewRunner messageWebViewRunner;
     int baseRootViewHeight;
     int baseRootViewWidth;
     int frameLayoutResourceId = 0;
     final MessagesMonitor messagesMonitor;
     FullscreenMessageDelegate fullScreenMessageDelegate;
+    MessageFragment messageFragment;
 
     // private vars
     private final String html;
@@ -64,8 +66,6 @@ class AEPMessage implements FullscreenMessage {
     private final boolean isLocalImageUsed;
     private int orientationWhenShown;
     private boolean isVisible;
-    private MessageFragment messageFragment;
-    private MessageWebViewRunner messageWebViewRunner;
     private Animation dismissAnimation;
     private Animation.AnimationListener animationListener;
     private Map<String, String> assetMap = Collections.emptyMap();

@@ -15,6 +15,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -36,7 +37,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.util.HashMap;
 
@@ -72,8 +72,6 @@ public class AEPMessageTests {
     private MessageFragment mockMessageFragment;
     @Mock
     private Animation mockAnimation;
-    @Mock
-    private App mockApp;
 
     private AEPMessage message;
     private HashMap<MessageGesture, String> gestureMap = new HashMap<>();
@@ -90,8 +88,17 @@ public class AEPMessageTests {
         Mockito.when(mockMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_DOWN);
         MobileCore.setApplication(mockApplication);
 
-        Whitebox.setInternalState(App.class, "INSTANCE", mockApp);
-        Mockito.when(mockApp.getCurrentActivity()).thenReturn(mockActivity);
+        App.getInstance().initializeApp(new App.AppContextProvider() {
+            @Override
+            public Context getAppContext() {
+                return mockApplication;
+            }
+
+            @Override
+            public Activity getCurrentActivity() {
+                return mockActivity;
+            }
+        });
     }
 
     // AEPMessage creation tests
@@ -127,8 +134,7 @@ public class AEPMessageTests {
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
-
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
+        message.rootViewGroup = mockViewGroup;
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
@@ -150,8 +156,7 @@ public class AEPMessageTests {
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
-
-        Whitebox.setInternalState(message, "rootViewGroup", (View) null);
+        message.rootViewGroup = null;
         // test
         message.show();
         // verify
@@ -197,15 +202,12 @@ public class AEPMessageTests {
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
-
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "fragmentFrameLayout", mockFrameLayout);
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "messageWebViewRunner", mockMessageWebViewRunner);
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "webView", mockWebView);
-        Whitebox.setInternalState(message, "messageFragment", mockMessageFragment);
-        Whitebox.setInternalState(mockMessageWebViewRunner, "backdrop", mockViewGroup);
+        message.rootViewGroup = mockViewGroup;
+        message.fragmentFrameLayout = mockFrameLayout;
+        message.messageWebViewRunner = mockMessageWebViewRunner;
+        message.webView = mockWebView;
+        message.messageFragment = mockMessageFragment;
+        mockMessageWebViewRunner.backdrop = mockViewGroup;
 
         // test
         message.dismiss();
@@ -233,10 +235,9 @@ public class AEPMessageTests {
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
-
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "webView", mockWebView);
-        Whitebox.setInternalState(message, "messageFragment", mockMessageFragment);
+        message.rootViewGroup = mockViewGroup;
+        message.webView = mockWebView;
+        message.messageFragment = mockMessageFragment;
 
         // test
         message.show();
@@ -260,9 +261,9 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "webView", mockWebView);
-        Whitebox.setInternalState(message, "messageFragment", mockMessageFragment);
+        message.rootViewGroup = mockViewGroup;
+        message.webView = mockWebView;
+        message.messageFragment = mockMessageFragment;
 
         // test
         message.show();
@@ -276,7 +277,17 @@ public class AEPMessageTests {
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(mockFullscreenMessageDelegate.shouldShowMessage(ArgumentMatchers.any(AEPMessage.class))).thenReturn(true);
         // set the current activity to null
-        Mockito.when(mockApp.getCurrentActivity()).thenReturn(null);
+        App.getInstance().initializeApp(new App.AppContextProvider() {
+            @Override
+            public Context getAppContext() {
+                return mockApplication;
+            }
+
+            @Override
+            public Activity getCurrentActivity() {
+                return null;
+            }
+        });
 
         try {
             message = new AEPMessage("html",
@@ -284,10 +295,9 @@ public class AEPMessageTests {
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
-
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "webView", mockWebView);
-        Whitebox.setInternalState(message, "messageFragment", mockMessageFragment);
+        message.rootViewGroup = mockViewGroup;
+        message.webView = mockWebView;
+        message.messageFragment = mockMessageFragment;
 
         // test
         message.show();
@@ -308,10 +318,9 @@ public class AEPMessageTests {
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
-
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "webView", mockWebView);
-        Whitebox.setInternalState(message, "messageFragment", mockMessageFragment);
+        message.rootViewGroup = mockViewGroup;
+        message.webView = mockWebView;
+        message.messageFragment = mockMessageFragment;
 
         // test
         message.openUrl(url);
@@ -322,7 +331,17 @@ public class AEPMessageTests {
     @Test
     public void urlNotOpened_When_ActivityIsNull() {
         // setup
-        Mockito.when(mockApp.getCurrentActivity()).thenReturn(null);
+        App.getInstance().initializeApp(new App.AppContextProvider() {
+            @Override
+            public Context getAppContext() {
+                return mockApplication;
+            }
+
+            @Override
+            public Activity getCurrentActivity() {
+                return null;
+            }
+        });
         String url = "https://www.adobe.com";
 
         try {
@@ -332,9 +351,9 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "webView", mockWebView);
-        Whitebox.setInternalState(message, "messageFragment", mockMessageFragment);
+        message.rootViewGroup = mockViewGroup;
+        message.webView = mockWebView;
+        message.messageFragment = mockMessageFragment;
 
         // test
         message.openUrl(url);
@@ -354,9 +373,9 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "webView", mockWebView);
-        Whitebox.setInternalState(message, "messageFragment", mockMessageFragment);
+        message.rootViewGroup = mockViewGroup;
+        message.webView = mockWebView;
+        message.messageFragment = mockMessageFragment;
 
         // test
         message.openUrl(url);
@@ -368,7 +387,7 @@ public class AEPMessageTests {
     @Test
     public void aepMessageIsDismissed_When_MessageDismissCalled() {
         // setup
-        Whitebox.setInternalState(mockMessageFragment, "dismissedWithGesture", false);
+        mockMessageFragment.dismissedWithGesture = false;
         Mockito.when(mockAEPMessageSettings.getDismissAnimation()).thenReturn(MessageAnimation.BOTTOM);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(mockFullscreenMessageDelegate.shouldShowMessage(ArgumentMatchers.any(AEPMessage.class))).thenReturn(true);
@@ -385,11 +404,11 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "messageFragment", mockMessageFragment);
-        Whitebox.setInternalState(message, "messageWebViewRunner", mockMessageWebViewRunner);
-        Whitebox.setInternalState(mockMessageWebViewRunner, "backdrop", mockBackdrop);
-        Whitebox.setInternalState(message, "webView", mockWebView);
+        message.rootViewGroup = mockViewGroup;
+        message.messageFragment = mockMessageFragment;
+        message.messageWebViewRunner = mockMessageWebViewRunner;
+        mockMessageWebViewRunner.backdrop = mockBackdrop;
+        message.webView = mockWebView;
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
@@ -405,7 +424,7 @@ public class AEPMessageTests {
     @Test
     public void aepMessageIsDismissed_When_MessageDismissedWithGesture() {
         // setup
-        Whitebox.setInternalState(mockMessageFragment, "dismissedWithGesture", true);
+        mockMessageFragment.dismissedWithGesture = true;
         Mockito.when(mockAEPMessageSettings.getDismissAnimation()).thenReturn(MessageAnimation.BOTTOM);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(mockFullscreenMessageDelegate.shouldShowMessage(ArgumentMatchers.any(AEPMessage.class))).thenReturn(true);
@@ -422,11 +441,11 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        Whitebox.setInternalState(message, "rootViewGroup", mockViewGroup);
-        Whitebox.setInternalState(message, "messageFragment", mockMessageFragment);
-        Whitebox.setInternalState(message, "messageWebViewRunner", mockMessageWebViewRunner);
-        Whitebox.setInternalState(message, "webView", mockWebView);
-        Whitebox.setInternalState(mockMessageWebViewRunner, "backdrop", mockBackdrop);
+        message.rootViewGroup = mockViewGroup;
+        message.messageFragment = mockMessageFragment;
+        message.messageWebViewRunner = mockMessageWebViewRunner;
+        message.webView = mockWebView;
+        mockMessageWebViewRunner.backdrop = mockBackdrop;
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test

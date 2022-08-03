@@ -10,7 +10,6 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine
 
-import com.adobe.marketing.mobile.BaseTest
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
@@ -29,7 +28,7 @@ import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner.Silent::class)
-class LaunchTokenFinderTest : BaseTest() {
+class LaunchTokenFinderTest {
 
     private lateinit var extensionApi: ExtensionApi
 

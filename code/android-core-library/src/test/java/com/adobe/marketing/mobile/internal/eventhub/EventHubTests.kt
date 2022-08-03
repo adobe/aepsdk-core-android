@@ -354,7 +354,7 @@ internal class EventHubTests {
 
     @Test
     fun testCreateXDMSharedState_DispatchEvent() {
-        val latch = CountDownLatch(1)
+        val latch = CountDownLatch(2)
 
         val capturedEvents = mutableListOf<Event>()
         val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)

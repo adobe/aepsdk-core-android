@@ -109,10 +109,9 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
         }
 
         return ComparisonExpression(
-                OperandMustacheToken(token, javaClass as Class<*>),
-                operationName,
-                OperandLiteral(value)
-            )
-
+            OperandMustacheToken(token, javaClass as Class<*>),
+            operationName,
+            OperandLiteral(value)
+        )
     }
 }

@@ -92,6 +92,7 @@ class MobileCoreTests {
         init {
             Thread.sleep(initWaitTimeMS)
         }
+
         override fun getName(): String = "SlowMockExtension"
 
         override fun onRegistered() {
@@ -166,7 +167,11 @@ class MobileCoreTests {
     @Test
     fun testRegisterExtensionsSimpleEventDispatch() {
         val latch = CountDownLatch(1)
-        MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+        MockExtension.eventReceivedClosure = {
+            if (it.name == "test-event") {
+                latch.countDown()
+            }
+        }
 
         MobileCore.setApplication(mock(Application::class.java))
         MobileCore.registerExtension(MockExtension::class.java) {}
@@ -180,7 +185,11 @@ class MobileCoreTests {
     @Test
     fun testRegisterExtensionsDispatchEventBeforeRegister() {
         val latch = CountDownLatch(1)
-        MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+        MockExtension.eventReceivedClosure = {
+            if (it.name == "test-event") {
+                latch.countDown()
+            }
+        }
 
         val event = Event.Builder("test-event", "analytics", "requestContent").build()
         MobileCore.dispatchEvent(event)
@@ -191,11 +200,20 @@ class MobileCoreTests {
 
         assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
+
     @Test
     fun testRegisterMultipleExtensionsSimpleEventDispatch() {
         val latch = CountDownLatch(2)
-        MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
-        MockExtension2.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+        MockExtension.eventReceivedClosure = {
+            if (it.name == "test-event") {
+                latch.countDown()
+            }
+        }
+        MockExtension2.eventReceivedClosure = {
+            if (it.name == "test-event") {
+                latch.countDown()
+            }
+        }
 
         MobileCore.setApplication(mock(Application::class.java))
         MobileCore.registerExtension(MockExtension::class.java) {}
@@ -211,8 +229,16 @@ class MobileCoreTests {
     @Test
     fun testRegisterMultipleExtensionsDispatchEventBeforeRegister() {
         val latch = CountDownLatch(2)
-        MockExtension.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
-        MockExtension2.eventReceivedClosure = { if (it.name == "test-event") { latch.countDown() } }
+        MockExtension.eventReceivedClosure = {
+            if (it.name == "test-event") {
+                latch.countDown()
+            }
+        }
+        MockExtension2.eventReceivedClosure = {
+            if (it.name == "test-event") {
+                latch.countDown()
+            }
+        }
 
         val event = Event.Builder("test-event", "analytics", "requestContent").build()
         MobileCore.dispatchEvent(event)
@@ -248,10 +274,11 @@ class MobileCoreTests {
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
         registerExtension(MockExtension::class.java)
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(event.type, event.source) {
-            capturedEvents.add(it)
-            latch.countDown()
-        }
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)
+            ?.registerEventListener(event.type, event.source) {
+                capturedEvents.add(it)
+                latch.countDown()
+            }
 
         EventHub.shared.start()
 
@@ -611,7 +638,10 @@ class MobileCoreTests {
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
         EventHub.shared.getExtensionContainer(MockExtension::class.java)
-            ?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT) {
+            ?.registerEventListener(
+                EventType.TYPE_GENERIC_IDENTITY,
+                EventSource.TYPE_REQUEST_CONTENT
+            ) {
                 capturedEvents.add(it)
                 latch.countDown()
             }
@@ -622,7 +652,8 @@ class MobileCoreTests {
         assertTrue {
             latch.await(1, TimeUnit.SECONDS)
         }
-        val expectedData = mapOf(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER to "test-ad-id")
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER to "test-ad-id")
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
@@ -634,7 +665,10 @@ class MobileCoreTests {
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
         EventHub.shared.getExtensionContainer(MockExtension::class.java)
-            ?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT) {
+            ?.registerEventListener(
+                EventType.TYPE_GENERIC_IDENTITY,
+                EventSource.TYPE_REQUEST_CONTENT
+            ) {
                 capturedEvents.add(it)
                 latch.countDown()
             }
@@ -645,7 +679,8 @@ class MobileCoreTests {
         assertTrue {
             latch.await(1, TimeUnit.SECONDS)
         }
-        val expectedData = mapOf(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER to null)
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER to null)
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
@@ -658,7 +693,10 @@ class MobileCoreTests {
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
         EventHub.shared.getExtensionContainer(MockExtension::class.java)
-            ?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT) {
+            ?.registerEventListener(
+                EventType.TYPE_GENERIC_IDENTITY,
+                EventSource.TYPE_REQUEST_CONTENT
+            ) {
                 capturedEvents.add(it)
                 latch.countDown()
             }
@@ -669,7 +707,8 @@ class MobileCoreTests {
         assertTrue {
             latch.await(1, TimeUnit.SECONDS)
         }
-        val expectedData = mapOf(CoreConstants.EventDataKeys.Identity.PUSH_IDENTIFIER to "test-push-id")
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Identity.PUSH_IDENTIFIER to "test-push-id")
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
@@ -681,7 +720,10 @@ class MobileCoreTests {
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
         EventHub.shared.getExtensionContainer(MockExtension::class.java)
-            ?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT) {
+            ?.registerEventListener(
+                EventType.TYPE_GENERIC_IDENTITY,
+                EventSource.TYPE_REQUEST_CONTENT
+            ) {
                 capturedEvents.add(it)
                 latch.countDown()
             }
@@ -704,7 +746,10 @@ class MobileCoreTests {
         registerExtension(MockExtension::class.java)
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_CONFIGURATION,
+            EventSource.TYPE_REQUEST_CONTENT
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -716,7 +761,8 @@ class MobileCoreTests {
         assertTrue {
             latch.await(1, TimeUnit.SECONDS)
         }
-        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId)
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId)
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
@@ -727,7 +773,10 @@ class MobileCoreTests {
         registerExtension(MockExtension::class.java)
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_CONFIGURATION,
+            EventSource.TYPE_REQUEST_CONTENT
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -739,7 +788,8 @@ class MobileCoreTests {
         assertTrue {
             latch.await(1, TimeUnit.SECONDS)
         }
-        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to filePath)
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to filePath)
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
@@ -750,7 +800,10 @@ class MobileCoreTests {
         registerExtension(MockExtension::class.java)
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_CONFIGURATION,
+            EventSource.TYPE_REQUEST_CONTENT
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -762,7 +815,8 @@ class MobileCoreTests {
         assertTrue {
             latch.await(1, TimeUnit.SECONDS)
         }
-        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to assertPath)
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to assertPath)
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
@@ -773,7 +827,10 @@ class MobileCoreTests {
         registerExtension(MockExtension::class.java)
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_CONFIGURATION,
+            EventSource.TYPE_REQUEST_CONTENT
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -785,7 +842,8 @@ class MobileCoreTests {
         assertTrue {
             latch.await(1, TimeUnit.SECONDS)
         }
-        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to updateDict)
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to updateDict)
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
@@ -796,7 +854,10 @@ class MobileCoreTests {
         registerExtension(MockExtension::class.java)
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_CONFIGURATION,
+            EventSource.TYPE_REQUEST_CONTENT
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -819,7 +880,10 @@ class MobileCoreTests {
         registerExtension(MockExtension::class.java)
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_CONFIGURATION,
+            EventSource.TYPE_REQUEST_CONTENT
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -832,7 +896,8 @@ class MobileCoreTests {
         }
         val privacyDict =
             mapOf(CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY to MobilePrivacyStatus.OPT_IN.value)
-        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to privacyDict)
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to privacyDict)
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
@@ -843,7 +908,10 @@ class MobileCoreTests {
         registerExtension(MockExtension::class.java)
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_CONTENT) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_CONFIGURATION,
+            EventSource.TYPE_REQUEST_CONTENT
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -855,7 +923,8 @@ class MobileCoreTests {
             latch.await(1, TimeUnit.SECONDS)
         }
 
-        val expectedData = mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG to true)
+        val expectedData =
+            mapOf(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG to true)
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
 
@@ -866,7 +935,10 @@ class MobileCoreTests {
         registerExtension(MockExtension::class.java)
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_IDENTITY) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_CONFIGURATION,
+            EventSource.TYPE_REQUEST_IDENTITY
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -886,7 +958,10 @@ class MobileCoreTests {
         registerExtension(MockExtension::class.java)
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_RESET) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_GENERIC_IDENTITY,
+            EventSource.TYPE_REQUEST_RESET
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -908,7 +983,10 @@ class MobileCoreTests {
 
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_GENERIC_TRACK, EventSource.TYPE_REQUEST_CONTENT) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_GENERIC_TRACK,
+            EventSource.TYPE_REQUEST_CONTENT
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -936,7 +1014,10 @@ class MobileCoreTests {
 
         val latch = CountDownLatch(1)
         val capturedEvents = mutableListOf<Event>()
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.TYPE_GENERIC_TRACK, EventSource.TYPE_REQUEST_CONTENT) {
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.TYPE_GENERIC_TRACK,
+            EventSource.TYPE_REQUEST_CONTENT
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }

@@ -28,7 +28,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.powermock.modules.junit4.PowerMockRunner
+import org.mockito.junit.MockitoJUnitRunner
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
@@ -71,7 +71,7 @@ object MockExtensions {
     }
 }
 
-@RunWith(PowerMockRunner::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
 internal class EventHubTests {
 
     private class TestExtension(api: ExtensionApi) : Extension(api) {

@@ -22,17 +22,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(SerialWorkDispatcher.WorkProcessor.class)
+@RunWith(MockitoJUnitRunner.class)
 public class SerialWorkDispatcherJavaCompatTest {
 
     /**
@@ -76,8 +73,7 @@ public class SerialWorkDispatcherJavaCompatTest {
 
     @Before
     public void setup() {
-        Whitebox.setInternalState(javaSerialWorkDispatcher, "executorService", mockExecutorService);
-
+        javaSerialWorkDispatcher.setExecutorService(mockExecutorService);
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {

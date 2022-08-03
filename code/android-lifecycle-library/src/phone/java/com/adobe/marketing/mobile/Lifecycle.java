@@ -34,19 +34,19 @@ public class Lifecycle {
 	}
 
 	public static void registerExtension() throws InvalidInitException {
-		Core core = MobileCore.getCore();
-
-		if (core == null) {
-			throw  new InvalidInitException();
-		}
-
-		try {
-			//ADBCore may not be loaded or present (because may be Core extension was not
-			//available). In that case, the Lifecycle extension will not initialize itself
-			lifecycleCore = new LifecycleCore(core.eventHub, new LifecycleModuleDetails());
-		} catch (Exception e) {
-			throw new InvalidInitException();
-		}
+//		Core core = MobileCore.getCore();
+//
+//		if (core == null) {
+//			throw  new InvalidInitException();
+//		}
+//
+//		try {
+//			//ADBCore may not be loaded or present (because may be Core extension was not
+//			//available). In that case, the Lifecycle extension will not initialize itself
+//			lifecycleCore = new LifecycleCore(core.eventHub, new LifecycleModuleDetails());
+//		} catch (Exception e) {
+//			throw new InvalidInitException();
+//		}
 	}
 
 }

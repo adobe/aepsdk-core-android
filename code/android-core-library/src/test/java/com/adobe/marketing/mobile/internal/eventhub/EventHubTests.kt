@@ -354,7 +354,7 @@ internal class EventHubTests {
 
     @Test
     fun testCreateXDMSharedState_DispatchEvent() {
-        val latch = CountDownLatch(1)
+        val latch = CountDownLatch(2)
 
         val capturedEvents = mutableListOf<Event>()
         val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
@@ -1101,7 +1101,7 @@ internal class EventHubTests {
         val capturedEvents = mutableListOf<Event>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
         eventHub.registerListener(eventType, eventSource) {
             capturedEvents.add(it)
             latch.countDown()
@@ -1122,7 +1122,7 @@ internal class EventHubTests {
         val capturedEvents = mutableListOf<Event>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
         eventHub.registerListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
             capturedEvents.add(it)
             latch.countDown()
@@ -1149,7 +1149,7 @@ internal class EventHubTests {
         val capturedEvents = mutableListOf<Pair<Event?, AdobeError?>>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
 
         eventHub.registerResponseListener(
             testEvent, 250,
@@ -1180,7 +1180,7 @@ internal class EventHubTests {
         val capturedEvents = mutableListOf<Pair<Event?, AdobeError?>>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
 
         eventHub.registerResponseListener(
             testEvent, 5000,

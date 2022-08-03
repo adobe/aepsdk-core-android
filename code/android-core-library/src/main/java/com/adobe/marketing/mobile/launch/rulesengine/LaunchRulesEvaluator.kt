@@ -14,8 +14,6 @@ import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 
 internal class LaunchRulesEvaluator(
     private val name: String,
@@ -82,18 +80,6 @@ internal class LaunchRulesEvaluator(
             EVENT_TYPE_RULES_ENGINE,
             EVENT_SOURCE_REQUEST_RESET
         ).build()
-        if (extensionApi.dispatch(dispatchEvent)) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
-                logTag,
-                "Successfully dispatched consequence result event"
-            )
-        } else {
-            MobileCore.log(
-                LoggingMode.WARNING,
-                logTag,
-                "An error occurred when dispatching dispatch consequence result event"
-            )
-        }
+        extensionApi.dispatch(dispatchEvent)
     }
 }

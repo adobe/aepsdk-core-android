@@ -14,8 +14,6 @@ import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 
 internal class LaunchRulesEvaluator(
     private val name: String,

@@ -147,46 +147,43 @@ internal class ExtensionContainer constructor(
         eventType: String?,
         eventSource: String?,
         eventListener: ExtensionEventListener?
-    ): Boolean {
-
-        if (eventType == null) {
-            MobileCore.log(
-                LoggingMode.WARNING, getTag(),
-                "'registerEventListener' failed as event type is null"
-            )
-            return false
+    ) {
+        when (true) {
+            (eventType == null) -> {
+                MobileCore.log(
+                    LoggingMode.WARNING, getTag(),
+                    "'registerEventListener' failed as event type is null"
+                )
+            }
+            (eventSource == null) -> {
+                MobileCore.log(
+                    LoggingMode.WARNING, getTag(),
+                    "'registerEventListener' failed as event source is null"
+                )
+            }
+            (eventListener == null) -> {
+                MobileCore.log(
+                    LoggingMode.WARNING, getTag(),
+                    "'registerEventListener' failed as event listener is null"
+                )
+            }
+            else -> {
+                eventListeners.add(ExtensionListenerContainer(eventType, eventSource, eventListener))
+            }
         }
-        if (eventSource == null) {
-            MobileCore.log(
-                LoggingMode.WARNING, getTag(),
-                "'registerEventListener' failed as event source is null"
-            )
-            return false
-        }
-        if (eventListener == null) {
-            MobileCore.log(
-                LoggingMode.WARNING, getTag(),
-                "'registerEventListener' failed as event listener is null"
-            )
-            return false
-        }
-
-        eventListeners.add(ExtensionListenerContainer(eventType, eventSource, eventListener))
-        return true
     }
 
     override fun dispatch(
         event: Event?
-    ): Boolean {
+    ) {
         if (event == null) {
             MobileCore.log(
                 LoggingMode.WARNING, getTag(),
                 "'dispatch' failed as event is null"
             )
-            return false
+        } else {
+            EventHub.shared.dispatch(event)
         }
-        EventHub.shared.dispatch(event)
-        return true
     }
 
     override fun startEvents() {
@@ -411,7 +408,8 @@ internal class ExtensionContainer constructor(
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        return registerEventListener(eventType, eventSource) { extensionListener.hear(it) }
+        registerEventListener(eventType, eventSource) { extensionListener.hear(it) }
+        return true
     }
 
     override fun <T : ExtensionListener> registerWildcardListener(
@@ -423,6 +421,7 @@ internal class ExtensionContainer constructor(
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        return registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) { extensionListener.hear(it) }
+        registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) { extensionListener.hear(it) }
+        return true
     }
 }

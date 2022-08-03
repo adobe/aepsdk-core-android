@@ -222,15 +222,15 @@ public final class Event {
 		}
 
 		/**
-		 * Sets the triggering event for this {@code Event}
+		 * Sets this as response for request {@code Event}
 		 *
-		 * @param triggerEvent {@code Event} event
+		 * @param requestEvent {@code Event} event
 		 * @return this Event {@link Builder}
 		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
 		 */
-		public Builder setTriggerEvent(final Event triggerEvent) {
+		public Builder inResponseToEvent(final Event requestEvent) {
 			throwIfAlreadyBuilt();
-			event.responseID = triggerEvent.uniqueIdentifier;
+			event.responseID = requestEvent.uniqueIdentifier;
 			return this;
 		}
 

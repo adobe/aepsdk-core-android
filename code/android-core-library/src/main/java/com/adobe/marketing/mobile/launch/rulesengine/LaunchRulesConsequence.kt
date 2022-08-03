@@ -14,6 +14,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.utility.EventDataMerger
 import com.adobe.marketing.mobile.internal.utility.prettify
 import com.adobe.marketing.mobile.rulesengine.DelimiterPair
@@ -48,7 +49,7 @@ class LaunchRulesConsequence(
         private const val CONSEQUENCE_EVENT_NAME = "Rules Consequence Event"
     }
 
-    fun evaluateRulesConsequence(event: Event, matchedRules: List<LaunchRule>): Event? {
+    fun evaluateRulesConsequence(event: Event, matchedRules: List<LaunchRule>): Event {
         val dispatchChainCount = dispatchChainedEventsCount.remove(event.uniqueIdentifier) ?: 0
         val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
         var processedEvent: Event = event
@@ -85,46 +86,24 @@ class LaunchRulesConsequence(
                             consequenceWithConcreteValue,
                             processedEvent.eventData
                         ) ?: continue
+
                         MobileCore.log(
                             LoggingMode.VERBOSE,
                             logTag,
-                            " Generating new dispatch consequence result event $dispatchEvent"
+                            "processDispatchConsequence - Dispatching event - ${dispatchEvent.uniqueIdentifier}"
                         )
-                        if (extensionApi.dispatch(dispatchEvent)) {
-                            MobileCore.log(
-                                LoggingMode.VERBOSE,
-                                logTag,
-                                "Successfully dispatched consequence result event"
-                            )
-                        } else {
-                            MobileCore.log(
-                                LoggingMode.WARNING,
-                                logTag,
-                                "An error occurred when dispatching dispatch consequence result event"
-                            )
-                        }
+                        extensionApi.dispatch(dispatchEvent)
                         dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] = dispatchChainCount + 1
                     }
                     else -> {
                         val consequenceEvent = generateConsequenceEvent(consequenceWithConcreteValue)
+
                         MobileCore.log(
                             LoggingMode.VERBOSE,
                             logTag,
-                            "Generating new consequence event $consequenceEvent"
+                            "evaluateRulesConsequence - Dispatching consequence event ${consequenceEvent.uniqueIdentifier}"
                         )
-                        if (extensionApi.dispatch(consequenceEvent)) {
-                            MobileCore.log(
-                                LoggingMode.VERBOSE,
-                                logTag,
-                                "Successfully dispatched consequence result event"
-                            )
-                        } else {
-                            MobileCore.log(
-                                LoggingMode.WARNING,
-                                logTag,
-                                "An error occurred when dispatching dispatch consequence result event"
-                            )
-                        }
+                        extensionApi.dispatch(consequenceEvent)
                     }
                 }
             }
@@ -296,7 +275,7 @@ class LaunchRulesConsequence(
      * @param consequence [RuleConsequence] of the rule
      * @return a consequence [Event]
      */
-    private fun generateConsequenceEvent(consequence: RuleConsequence): Event? {
+    private fun generateConsequenceEvent(consequence: RuleConsequence): Event {
         val eventData = mutableMapOf<String, Any?>()
         eventData[CONSEQUENCE_EVENT_DATA_KEY_DETAIL] = consequence.detail
         eventData[CONSEQUENCE_EVENT_DATA_KEY_ID] = consequence.id

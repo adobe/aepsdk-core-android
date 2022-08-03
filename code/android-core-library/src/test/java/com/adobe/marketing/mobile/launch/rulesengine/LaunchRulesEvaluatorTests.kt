@@ -63,7 +63,6 @@ class LaunchRulesEvaluatorTests {
 
     @Test
     fun `Reprocess cached events when rules are ready`() {
-        Mockito.`when`(extensionApi.dispatch(any())).thenReturn(true)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
@@ -82,7 +81,6 @@ class LaunchRulesEvaluatorTests {
 
     @Test
     fun `Reprocess cached events in the right order`() {
-        Mockito.`when`(extensionApi.dispatch(any())).thenReturn(true)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()

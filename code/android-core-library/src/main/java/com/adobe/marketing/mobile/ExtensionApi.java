@@ -24,19 +24,17 @@ public abstract class ExtensionApi {
 	 * @param eventType required parameter, the event type as a valid string (not null or empty)
 	 * @param eventSource required parameter, the event source as a valid string (not null or empty)
 	 * @param eventListener required parameter, the listener which extends the {@link ExtensionEventListener} interface
-	 * @return a {@code boolean} indicating the listener registration status
 	 */
-	public abstract boolean registerEventListener(final String eventType,
-												  final String eventSource,
-												  final ExtensionEventListener eventListener);
+	public abstract void registerEventListener(final String eventType,
+											   final String eventSource,
+											   final ExtensionEventListener eventListener);
 
 	/**
 	 * Dispatches an `Event` to the `EventHub`
 	 *
 	 * @param event An Event to be dispatched to the {@code EventHub}
-	 * @return a {@code boolean} indicating whether the event was successfully dispatched
 	 */
-	public abstract boolean dispatch(final Event event);
+	public abstract void dispatch(final Event event);
 
 	/**
 	 * Starts the `Event` queue for this extension
@@ -157,9 +155,9 @@ public abstract class ExtensionApi {
 	 */
 	@Deprecated
 	public abstract <T extends ExtensionListener> boolean registerEventListener(final String eventType,
-																			 final String eventSource,
-																			 final Class<T> extensionListenerClass,
-																			 final ExtensionErrorCallback<ExtensionError> errorCallback);
+																				final String eventSource,
+																				final Class<T> extensionListenerClass,
+																				final ExtensionErrorCallback<ExtensionError> errorCallback);
 
 	/**
 	 * Registers a new wildcard event listener for the current extension. This listener will receive all events that are
@@ -198,8 +196,9 @@ public abstract class ExtensionApi {
 	 * @deprecated Use {@link ExtensionApi#createSharedState(Map, Event)} and {@link ExtensionApi#createPendingSharedState(Event)}
 	 */
 	@Deprecated
-	public abstract boolean setSharedEventState(final Map<String, Object> state, final Event event,
-			final ExtensionErrorCallback<ExtensionError> errorCallback);
+	public abstract boolean setSharedEventState(final Map<String, Object> state,
+												final Event event,
+												final ExtensionErrorCallback<ExtensionError> errorCallback);
 
 	/**
 	 * Called by extension to set an XDM shared state for itself. Usually called from a listener during event processing.
@@ -216,8 +215,9 @@ public abstract class ExtensionApi {
 	 * @deprecated Use {@link ExtensionApi#createXDMSharedState(Map, Event)} and {@link ExtensionApi#createPendingXDMSharedState(Event)}
 	 */
 	@Deprecated
-	public abstract boolean setXDMSharedEventState(final Map<String, Object> state, final Event event,
-			final ExtensionErrorCallback<ExtensionError> errorCallback);
+	public abstract boolean setXDMSharedEventState(final Map<String, Object> state,
+												   final Event event,
+												   final ExtensionErrorCallback<ExtensionError> errorCallback);
 
 	/**
 	 * Called by extension to get another extension's shared state. Usually called from a listener during event processing.
@@ -230,8 +230,9 @@ public abstract class ExtensionApi {
 	 * @deprecated Use {@link ExtensionApi#getSharedState(String, Event, boolean, SharedStateResolution)}
 	*/
 	@Deprecated
-	public abstract Map<String, Object> getSharedEventState(final String stateName, final Event event,
-			final ExtensionErrorCallback<ExtensionError> errorCallback);
+	public abstract Map<String, Object> getSharedEventState(final String stateName,
+															final Event event,
+															final ExtensionErrorCallback<ExtensionError> errorCallback);
 
 
 	/**
@@ -246,8 +247,9 @@ public abstract class ExtensionApi {
 	 * @deprecated Use {@link ExtensionApi#getXDMSharedState(String, Event, boolean, SharedStateResolution)}
 	 */
 	@Deprecated
-	public abstract Map<String, Object> getXDMSharedEventState(final String stateName, final Event event,
-			final ExtensionErrorCallback<ExtensionError> errorCallback);
+	public abstract Map<String, Object> getXDMSharedEventState(final String stateName,
+															   final Event event,
+															   final ExtensionErrorCallback<ExtensionError> errorCallback);
 
 	/**
 	 * Called by extension to clear XDM shared state it has previously set. Usually called during {@code Extension.onUnregistered()}.

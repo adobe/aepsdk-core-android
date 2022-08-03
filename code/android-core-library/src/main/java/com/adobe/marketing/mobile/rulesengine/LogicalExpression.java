@@ -25,7 +25,7 @@ public class LogicalExpression implements Evaluable {
 
     @Override
     public RulesResult evaluate(Context context) {
-        ArrayList<RulesResult> resolvedOperands = new ArrayList();
+        ArrayList<RulesResult> resolvedOperands = new ArrayList<>();
 
         for (Evaluable evaluable : operands) {
             resolvedOperands.add(evaluable.evaluate(context));

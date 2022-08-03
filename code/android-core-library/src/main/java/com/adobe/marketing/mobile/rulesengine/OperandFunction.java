@@ -15,7 +15,7 @@ public class OperandFunction<T> implements Operand<T> {
 	private final FunctionBlock<T> block;
 	private final Object[] functionParameters;
 
-	public OperandFunction(final FunctionBlock block, final Object... functionParameters) {
+	public OperandFunction(final FunctionBlock<T> block, final Object... functionParameters) {
 		this.block = block;
 		this.functionParameters = functionParameters;
 	}

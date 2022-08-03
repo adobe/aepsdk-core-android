@@ -221,7 +221,6 @@ class LaunchRulesConsequenceTests {
         //        }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventCopy.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         val event = Event.Builder(
             "Application Launch",
@@ -257,7 +256,6 @@ class LaunchRulesConsequenceTests {
         //        }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventCopy.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         val event = Event.Builder(
             "Application Launch",
@@ -299,7 +297,6 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
 
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventNewData.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         val event = Event.Builder(
             "Application Launch",
@@ -337,7 +334,6 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
 
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventNewNoData.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         val event = Event.Builder(
             "Application Launch",
@@ -515,7 +511,6 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         val event = Event.Builder(
             "Edge Request",
@@ -573,7 +568,6 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         val event = Event.Builder(
             "Edge Request",
@@ -642,7 +636,6 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         val event = Event.Builder(
             "Edge Request",
@@ -742,7 +735,6 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         // Then: dispatch event to trigger rule 1
         val eventEdgeRequest = Event.Builder(
@@ -843,7 +835,6 @@ class LaunchRulesConsequenceTests {
         //         }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testDispatchEventChain.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         // Then:  dispatch event which will trigger two launch rules
         val event = Event.Builder(
@@ -896,8 +887,6 @@ class LaunchRulesConsequenceTests {
             )
         )
 
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
-
         val matchedRules = launchRulesEngine.process(defaultEvent)
         launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
 
@@ -923,7 +912,6 @@ class LaunchRulesConsequenceTests {
         //      }
         //    }
         resetRulesEngine("rules_module_tests/consequence_rules_testUrlenc_invalidFnName.json")
-        `when`(extensionApi.dispatch(any())).thenReturn(true)
 
         `when`(extensionApi.getSharedState(anyString(), any(), anyBoolean(), any())).thenReturn(
             SharedStateResult(

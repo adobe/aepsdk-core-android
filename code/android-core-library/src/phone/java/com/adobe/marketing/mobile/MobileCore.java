@@ -92,10 +92,12 @@ final public class MobileCore {
             return;
         }
 
-        if (sdkInitializedWithContext.compareAndSet(false, true)) {
+        if (!sdkInitializedWithContext.compareAndSet(false, true)) {
             Log.error(LOG_TAG, "setApplication already called.");
             return;
         }
+
+        Log.setLoggingService(new AndroidLoggingService());
 
         // AMSDK-8502
         // workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
@@ -129,8 +131,6 @@ final public class MobileCore {
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
-
-        Log.setLoggingService(new AndroidLoggingService());
     }
 
     /**
@@ -222,9 +222,14 @@ final public class MobileCore {
         AtomicInteger registeredExtensions = new AtomicInteger(0);
         for (final Class<? extends Extension> extension: allExtensions) {
             EventHub.Companion.getShared().registerExtension(extension, eventHubError -> {
+                Log.debug(LOG_TAG, "Finished registering extension " + extension + "with status "+ eventHubError);
+
                 if (registeredExtensions.incrementAndGet() == allExtensions.size()) {
+                    Log.debug(LOG_TAG, "Finished registering all extensions. Starting event processing.");
                     EventHub.Companion.getShared().start();
-                    completionCallback.call(null);
+                    if (completionCallback != null) {
+                        completionCallback.call(null);
+                    }
                 }
                 return null;
             });

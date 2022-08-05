@@ -24,10 +24,13 @@ import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
 import com.adobe.marketing.mobile.utils.DataReader;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 final public class MobileCore {
     private final static String LOG_TAG = "MobileCore";
@@ -197,6 +200,34 @@ final public class MobileCore {
             case VERBOSE:
                 Log.trace(tag, message);
                 break;
+        }
+    }
+
+    public static void registerExtensions(@NonNull final List<Class<? extends Extension>> extensions, final AdobeCallback<?> completionCallback) {
+        if(!sdkInitializedWithContext.get()) {
+            Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
+            return;
+        }
+
+        List<Class<? extends Extension>> allExtensions = new ArrayList<>();
+        // allExtensions.add(ConfigurationExtension.class);
+        if (extensions != null) {
+            for(final Class<? extends Extension> extension: extensions) {
+                if (extension != null) {
+                    allExtensions.add(extension);
+                }
+            }
+        }
+
+        AtomicInteger registeredExtensions = new AtomicInteger(0);
+        for (final Class<? extends Extension> extension: allExtensions) {
+            EventHub.Companion.getShared().registerExtension(extension, eventHubError -> {
+                if (registeredExtensions.incrementAndGet() == allExtensions.size()) {
+                    EventHub.Companion.getShared().start();
+                    completionCallback.call(null);
+                }
+                return null;
+            });
         }
     }
 

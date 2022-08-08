@@ -79,7 +79,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     /**
      * The [Executor] to which work is submitted for sequencing.
      */
-    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
+    private var executorService: ExecutorService = Executors.newSingleThreadExecutor()
 
     /**
      * Holds the work items that need to be processed by this dispatcher.
@@ -111,6 +111,8 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      */
     private val activenessMutex: Any = Any()
 
+    init {
+    }
     /**
      * Enqueues an item to the end of the [workQueue]. Additionally,
      * resumes the queue processing if the [SerialWorkDispatcher] is active
@@ -323,5 +325,10 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
                 }
             }
         }
+    }
+
+    @VisibleForTesting
+    fun setExecutorService(executorService: ExecutorService) {
+        this.executorService = executorService
     }
 }

@@ -8,17 +8,17 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-
 package com.adobe.marketing.mobile.launch.rulesengine
 
-import com.adobe.marketing.mobile.BaseTest
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
-import com.adobe.marketing.mobile.internal.utility.TimeUtil
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import com.adobe.marketing.mobile.utils.TimeUtil
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -28,7 +28,7 @@ import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner.Silent::class)
-class LaunchTokenFinderTest : BaseTest() {
+class LaunchTokenFinderTest {
 
     private lateinit var extensionApi: ExtensionApi
 
@@ -100,11 +100,14 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("~timestampp")
         // verify
-        assertEquals(TimeUtil.getIso8601DateTimeZoneISO8601(), result)
+        assertNotNull(result)
     }
 
     @Test
     fun `get should return current sdk version on valid event`() {
+        // reset eventhub
+        EventHub.shared = EventHub()
+
         // setup
         val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
@@ -274,7 +277,8 @@ class LaunchTokenFinderTest : BaseTest() {
         )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
-        val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData.akey")
+        val result =
+            launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData.akey")
         // verify
         assertEquals("avalue", result)
     }
@@ -324,7 +328,8 @@ class LaunchTokenFinderTest : BaseTest() {
         )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
-        val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.identity/visitoridslist")
+        val result =
+            launchTokenFinder.get("~state.com.adobe.marketing.mobile.identity/visitoridslist")
         // verify
         assertEquals(listOf("vid1", "vid2"), result)
     }
@@ -357,7 +362,8 @@ class LaunchTokenFinderTest : BaseTest() {
         val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
-        val result = launchTokenFinder.get("~state.com.adobe/.marketing.mobile.Analytics/analytics.contextData.akey")
+        val result =
+            launchTokenFinder.get("~state.com.adobe/.marketing.mobile.Analytics/analytics.contextData.akey")
         // verify
         assertNull(result)
     }
@@ -368,7 +374,8 @@ class LaunchTokenFinderTest : BaseTest() {
         val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
-        val result = launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData.akey")
+        val result =
+            launchTokenFinder.get("~state.com.adobe.marketing.mobile.Analytics/analytics.contextData.akey")
         // verify
         assertNull(result)
     }
@@ -439,7 +446,11 @@ class LaunchTokenFinderTest : BaseTest() {
         // test
         val result = launchTokenFinder.get("key1")
         // verify
-        assertEquals("get should return empty map on empty map value", emptyMap<String, Any>(), result)
+        assertEquals(
+            "get should return empty map on empty map value",
+            emptyMap<String, Any>(),
+            result
+        )
     }
 
     @Test

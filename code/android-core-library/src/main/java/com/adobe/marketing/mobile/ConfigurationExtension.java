@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.utility.TimeUtil;
+import com.adobe.marketing.mobile.utils.TimeUtil;
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine;
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator;
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser;

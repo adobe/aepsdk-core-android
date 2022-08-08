@@ -295,7 +295,7 @@ class MobileCoreTests {
         // setup
         val event = Event.Builder("test", "analytics", "requestContent").build()
         val responseEvent =
-            Event.Builder("testResponse", "analytics", "responseContent").setTriggerEvent(event)
+            Event.Builder("testResponse", "analytics", "responseContent").inResponseToEvent(event)
                 .build()
 
         EventHub.shared.start()

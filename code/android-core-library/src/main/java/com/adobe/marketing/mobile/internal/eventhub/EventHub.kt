@@ -719,8 +719,8 @@ internal class EventHub {
                     EventHubConstants.EventDataKeys.FRIENDLY_NAME to it.friendlyName,
                     EventHubConstants.EventDataKeys.VERSION to it.version
                 )
-                it.metadata?.let {
-                    extensionInfo[EventHubConstants.EventDataKeys.METADATA] = it
+                it.metadata?.let { metadata ->
+                    extensionInfo[EventHubConstants.EventDataKeys.METADATA] = metadata
                 }
 
                 extensionsInfo[extensionName] = extensionInfo

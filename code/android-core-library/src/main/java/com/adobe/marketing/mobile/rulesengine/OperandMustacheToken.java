@@ -66,7 +66,7 @@ public class OperandMustacheToken<T> implements Operand<T> {
 		try {
 			return tClass.cast(resolvedValue);
 		} catch (ClassCastException ex) {
-			Log.debug(LOG_TAG, "resolve: Error casting value to type " + tClass.toString());
+			Log.debug(LOG_TAG, "resolve: Error casting value to type " + tClass);
 			return null;
 		}
 	}

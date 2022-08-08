@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
 
@@ -28,19 +27,17 @@ public abstract class ExtensionApi {
      * @param eventType     required parameter, the event type as a valid string (not null or empty)
      * @param eventSource   required parameter, the event source as a valid string (not null or empty)
      * @param eventListener required parameter, the listener which extends the {@link ExtensionEventListener} interface
-     * @return a {@code boolean} indicating the listener registration status
      */
-    public abstract boolean registerEventListener(final String eventType,
-                                                  final String eventSource,
-                                                  final ExtensionEventListener eventListener);
+    public abstract void registerEventListener(final String eventType,
+                                               final String eventSource,
+                                               final ExtensionEventListener eventListener);
 
     /**
      * Dispatches an `Event` to the `EventHub`
      *
      * @param event An Event to be dispatched to the {@code EventHub}
-     * @return a {@code boolean} indicating whether the event was successfully dispatched
      */
-    public abstract boolean dispatch(final Event event);
+    public abstract void dispatch(final Event event);
 
     /**
      * Starts the `Event` queue for this extension
@@ -160,7 +157,7 @@ public abstract class ExtensionApi {
      * @param handler              the {@link EventHistoryResultHandler} for each provided request
      */
     public abstract void getHistoricalEvents(EventHistoryRequest[] eventHistoryRequests, boolean enforceOrder,
-                                   EventHistoryResultHandler<Integer> handler);
+                                             EventHistoryResultHandler<Integer> handler);
 
     // Deprecated Methods
 

@@ -109,7 +109,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 
 	@Override
 	public RulesResult evaluate(final String operation, final A lhs) {
-		boolean evaluationResult = false;
+		boolean evaluationResult;
 
 		switch (operation) {
 			case OPERATOR_EXISTS:
@@ -190,11 +190,9 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 
 		if (resolvedLhs == null || resolvedRhs == null) {
 			return false;
-		} else if (resolvedLhs > resolvedRhs) {
-			return true;
 		}
 
-		return false;
+		return resolvedLhs > resolvedRhs;
 	}
 
 	private boolean greaterThanEquals(final A lhs, final  B rhs) {

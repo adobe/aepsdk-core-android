@@ -89,7 +89,7 @@ final public class MobileCore {
             return;
         }
 
-        if (sdkInitializedWithContext.compareAndSet(false, true)) {
+        if (sdkInitializedWithContext.getAndSet(true)) {
             Log.error(LOG_TAG, "setApplication already called.");
             return;
         }

@@ -24,10 +24,16 @@ import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.WrapperType
+import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.Mockito.any
+import org.mockito.Mockito.mockConstruction
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -225,7 +231,13 @@ internal class EventHubTests {
     }
 
     // Shared state tests
-    private fun verifySharedState(type: SharedStateType, event: Event?, ret: SharedStateResult, resolution: SharedStateResolution = SharedStateResolution.ANY, barrier: Boolean = false) {
+    private fun verifySharedState(
+        type: SharedStateType,
+        event: Event?,
+        ret: SharedStateResult,
+        resolution: SharedStateResolution = SharedStateResolution.ANY,
+        barrier: Boolean = false
+    ) {
         val res = eventHub.getSharedState(
             type,
             TestExtension.EXTENSION_NAME,
@@ -317,7 +329,10 @@ internal class EventHubTests {
 
         val capturedEvents = mutableListOf<Event>()
         val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
-        extensionContainer?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+        extensionContainer?.registerEventListener(
+            EventType.TYPE_HUB,
+            EventSource.TYPE_SHARED_STATE
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -358,7 +373,10 @@ internal class EventHubTests {
 
         val capturedEvents = mutableListOf<Event>()
         val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
-        extensionContainer?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+        extensionContainer?.registerEventListener(
+            EventType.TYPE_HUB,
+            EventSource.TYPE_SHARED_STATE
+        ) {
             capturedEvents.add(it)
             latch.countDown()
         }
@@ -691,7 +709,9 @@ internal class EventHubTests {
     @Test
     fun testGetSharedState_AfterSettingInvalidState() {
         class CustomClass
-        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to CustomClass())
+
+        val stateAtEvent1: MutableMap<String, Any?> =
+            mutableMapOf("One" to 1, "Yes" to CustomClass())
 
         eventHub.start()
         eventHub.dispatch(event1)
@@ -704,13 +724,19 @@ internal class EventHubTests {
             )
         }
 
-        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, null)
+        )
     }
 
     @Test
     fun testGetSharedState_AfterResolvingWithInvalidState() {
         class CustomClass
-        val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to CustomClass())
+
+        val stateAtEvent1: MutableMap<String, Any?> =
+            mutableMapOf("One" to 1, "Yes" to CustomClass())
 
         eventHub.start()
         eventHub.dispatch(event1)
@@ -721,11 +747,19 @@ internal class EventHubTests {
             event1
         )
 
-        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.PENDING, null))
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.PENDING, null)
+        )
 
         resolver?.resolve(stateAtEvent1)
 
-        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, null)
+        )
     }
 
     // / ExtensionInfo shared state tests
@@ -752,10 +786,11 @@ internal class EventHubTests {
         val latch = CountDownLatch(1)
 
         val capturedEvents = mutableListOf<Event>()
-        eventHub.getExtensionContainer(EventHubPlaceholderExtension::class.java)?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
-            capturedEvents.add(it)
-            latch.countDown()
-        }
+        eventHub.getExtensionContainer(EventHubPlaceholderExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+                capturedEvents.add(it)
+                latch.countDown()
+            }
 
         eventHub.wrapperType = WrapperType.FLUTTER
         registerExtension(TestExtension2::class.java)
@@ -805,10 +840,11 @@ internal class EventHubTests {
         val latch = CountDownLatch(2)
 
         val capturedEvents = mutableListOf<Event>()
-        eventHub.getExtensionContainer(EventHubPlaceholderExtension::class.java)?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
-            capturedEvents.add(it)
-            latch.countDown()
-        }
+        eventHub.getExtensionContainer(EventHubPlaceholderExtension::class.java)
+            ?.registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE) {
+                capturedEvents.add(it)
+                latch.countDown()
+            }
 
         eventHub.wrapperType = WrapperType.FLUTTER
         registerExtension(TestExtension2::class.java)
@@ -989,7 +1025,8 @@ internal class EventHubTests {
     fun testExtensionListener_IgnoresNonMatchingEvent() {
         val latch = CountDownLatch(1)
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testEvent1 = Event.Builder("Test event 2", "customEventType", "customEventSource").build()
+        val testEvent1 =
+            Event.Builder("Test event 2", "customEventType", "customEventSource").build()
 
         val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
         extensionContainer?.registerEventListener(
@@ -1080,7 +1117,8 @@ internal class EventHubTests {
     fun testRegisterListener_IgnoresNonMatchingEvent() {
         val latch = CountDownLatch(1)
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testEvent1 = Event.Builder("Test event 2", "customEventType", "customEventSource").build()
+        val testEvent1 =
+            Event.Builder("Test event 2", "customEventType", "customEventSource").build()
 
         eventHub.registerListener(eventType, eventSource) {
             assertTrue { it == testEvent }
@@ -1101,7 +1139,9 @@ internal class EventHubTests {
         val capturedEvents = mutableListOf<Event>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent =
+            Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent)
+                .build()
         eventHub.registerListener(eventType, eventSource) {
             capturedEvents.add(it)
             latch.countDown()
@@ -1122,7 +1162,9 @@ internal class EventHubTests {
         val capturedEvents = mutableListOf<Event>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent =
+            Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent)
+                .build()
         eventHub.registerListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
             capturedEvents.add(it)
             latch.countDown()
@@ -1137,7 +1179,10 @@ internal class EventHubTests {
 
         // EventHub shared state event is dispatched first.
         assertEquals(capturedEvents[0].name, EventHubConstants.STATE_CHANGE)
-        assertEquals(capturedEvents[0].eventData, mapOf(EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME))
+        assertEquals(
+            capturedEvents[0].eventData,
+            mapOf(EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME)
+        )
 
         assertEquals(capturedEvents[1], testEvent)
         assertEquals(capturedEvents[2], testResponseEvent)
@@ -1149,7 +1194,9 @@ internal class EventHubTests {
         val capturedEvents = mutableListOf<Pair<Event?, AdobeError?>>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent =
+            Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent)
+                .build()
 
         eventHub.registerResponseListener(
             testEvent, 250,
@@ -1171,7 +1218,10 @@ internal class EventHubTests {
         assertTrue {
             latch.await(250, TimeUnit.MILLISECONDS)
         }
-        assertEquals(capturedEvents, listOf<Pair<Event?, AdobeError?>>(Pair(testResponseEvent, null)))
+        assertEquals(
+            capturedEvents,
+            listOf<Pair<Event?, AdobeError?>>(Pair(testResponseEvent, null))
+        )
     }
 
     @Test
@@ -1180,7 +1230,9 @@ internal class EventHubTests {
         val capturedEvents = mutableListOf<Pair<Event?, AdobeError?>>()
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent =
+            Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent)
+                .build()
 
         eventHub.registerResponseListener(
             testEvent, 5000,
@@ -1204,7 +1256,10 @@ internal class EventHubTests {
             latch.await(500, TimeUnit.MILLISECONDS)
         }
 
-        assertEquals(capturedEvents, listOf<Pair<Event?, AdobeError?>>(Pair(testResponseEvent, null)))
+        assertEquals(
+            capturedEvents,
+            listOf<Pair<Event?, AdobeError?>>(Pair(testResponseEvent, null))
+        )
     }
 
     @Test
@@ -1233,7 +1288,10 @@ internal class EventHubTests {
         assertTrue {
             latch.await(500, TimeUnit.MILLISECONDS)
         }
-        assertEquals(capturedEvents, listOf<Pair<Event?, AdobeError?>>(Pair(null, AdobeError.CALLBACK_TIMEOUT)))
+        assertEquals(
+            capturedEvents,
+            listOf<Pair<Event?, AdobeError?>>(Pair(null, AdobeError.CALLBACK_TIMEOUT))
+        )
     }
 
     @Test
@@ -1257,14 +1315,16 @@ internal class EventHubTests {
         registerExtension(Extension1::class.java)
         registerExtension(Extension2::class.java)
 
-        eventHub.getExtensionContainer(Extension1::class.java)?.registerEventListener(eventType, eventSource) {
-            latch.countDown()
-            Thread.sleep(5000)
-        }
+        eventHub.getExtensionContainer(Extension1::class.java)
+            ?.registerEventListener(eventType, eventSource) {
+                latch.countDown()
+                Thread.sleep(5000)
+            }
 
-        eventHub.getExtensionContainer(Extension2::class.java)?.registerEventListener(eventType, eventSource) {
-            latch.countDown()
-        }
+        eventHub.getExtensionContainer(Extension2::class.java)
+            ?.registerEventListener(eventType, eventSource) {
+                latch.countDown()
+            }
 
         eventHub.start()
         eventHub.dispatch(testEvent)
@@ -1318,5 +1378,54 @@ internal class EventHubTests {
         assertEquals(
             eventHub.wrapperType, WrapperType.FLUTTER
         )
+    }
+
+    @Test
+    fun `test recording event to EventHistory database`() {
+        val latch = CountDownLatch(2)
+        mockConstruction(AndroidEventHistory::class.java) { mock, _ ->
+            verify(mock, times(1))?.recordEvent(any(), any())
+        }.use {
+            val eventHub = EventHub()
+
+            eventHub.registerListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+                latch.countDown()
+            }
+            eventHub.start()
+            eventHub.dispatch(
+                Event.Builder(
+                    "Event with mask",
+                    eventType,
+                    eventSource,
+                    arrayOf("a", "b")
+                ).build()
+            )
+            if (!latch.await(1, TimeUnit.SECONDS)) throw Exception("Timeout recording event")
+//            Thread.sleep(10)
+        }
+    }
+
+    @Test
+    fun `test not recording event without mask`() {
+        mockConstruction(AndroidEventHistory::class.java) { mock, _ ->
+            verify(mock, never())?.recordEvent(any(), any())
+        }.use {
+            val eventHub = EventHub()
+            val latch = CountDownLatch(2)
+
+            eventHub.registerListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+                latch.countDown()
+            }
+            eventHub.start()
+
+            eventHub.dispatch(
+                Event.Builder(
+                    "Event with mask",
+                    eventType,
+                    eventSource
+                ).build()
+            )
+            if (!latch.await(1, TimeUnit.SECONDS)) throw Exception("Timeout recording event")
+        }
     }
 }

@@ -12,6 +12,7 @@ package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -25,19 +26,13 @@ internal fun historicalEventsQuerying(
     requests: List<EventHistoryRequest>,
     searchType: String
 ): Int {
-    val eventHistory = MobileCore.getEventHistory()
-    if (eventHistory == null) {
-        MobileCore.log(
-            LoggingMode.ERROR,
-            LOG_TAG,
-            "Unable to retrieve historical events, the event history is not available."
-        )
-        return 0
-    }
     return try {
         val latch = CountDownLatch(1)
         var eventCounts = 0
-        eventHistory.getEvents(requests.toTypedArray(), searchType == SEARCH_TYPE_ANY) {
+        EventHub.shared.eventHistory?.getEvents(
+            requests.toTypedArray(),
+            searchType == SEARCH_TYPE_ANY
+        ) {
             latch.countDown()
             eventCounts = it
         }

@@ -77,7 +77,7 @@ internal class EventListenerContainerTests {
 
     @Test
     fun testEventListener_WildcardListener() {
-        val listener = ExtensionListenerContainer(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {}
+        val listener = ExtensionListenerContainer(EventType.WILDCARD, EventSource.WILDCARD) {}
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
         assertTrue { listener.shouldNotify(testEvent) }
@@ -98,7 +98,7 @@ internal class EventListenerContainerTests {
 
     @Test
     fun testEventListener_WildcardTriggerForResponseEvent() {
-        val listener = ExtensionListenerContainer(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {}
+        val listener = ExtensionListenerContainer(EventType.WILDCARD, EventSource.WILDCARD) {}
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
         val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
@@ -108,7 +108,7 @@ internal class EventListenerContainerTests {
 
     @Test
     fun testEventListener_HandleListenerException() {
-        val listener = ExtensionListenerContainer(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+        val listener = ExtensionListenerContainer(EventType.WILDCARD, EventSource.WILDCARD) {
             throw Exception()
         }
 

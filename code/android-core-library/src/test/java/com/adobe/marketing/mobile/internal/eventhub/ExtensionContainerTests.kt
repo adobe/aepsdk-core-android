@@ -341,7 +341,7 @@ internal class ExtensionContainerTests {
     @Test
     fun testStopEvents_shouldStopProcessingEvents() {
         var capturedEvents = mutableListOf<Event>()
-        container?.registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+        container?.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) {
             capturedEvents.add(it)
         }
 
@@ -365,7 +365,7 @@ internal class ExtensionContainerTests {
     @Test
     fun testStartEvents_shouldResumeProcessingEvents() {
         var capturedEvents = mutableListOf<Event>()
-        container?.registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+        container?.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) {
             capturedEvents.add(it)
         }
 

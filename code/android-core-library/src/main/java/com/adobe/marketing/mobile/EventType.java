@@ -22,6 +22,7 @@ public final class EventType {
 
 	public static final String ACQUISITION = "com.adobe.eventType.acquisition";
 	public static final String ANALYTICS = "com.adobe.eventType.analytics";
+	public static final String ASSURANCE = "com.adobe.eventType.assurance";
 	public static final String AUDIENCEMANAGER = "com.adobe.eventType.audienceManager";
 	public static final String CAMPAIGN = "com.adobe.eventType.campaign";
 	public static final String CONFIGURATION = "com.adobe.eventType.configuration";
@@ -30,6 +31,7 @@ public final class EventType {
 	public static final String IDENTITY = "com.adobe.eventType.identity";
 	public static final String LIFECYCLE = "com.adobe.eventType.lifecycle";
 	public static final String LOCATION = "com.adobe.eventType.location";
+	public static final String MEDIA = "com.adobe.eventType.media";
 	public static final String PII = "com.adobe.eventType.pii";
 	public static final String RULES_ENGINE = "com.adobe.eventType.rulesEngine";
 	public static final String SIGNAL = "com.adobe.eventType.signal";

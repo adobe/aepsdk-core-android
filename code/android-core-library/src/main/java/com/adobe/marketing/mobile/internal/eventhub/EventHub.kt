@@ -703,7 +703,7 @@ internal class EventHub {
         val data =
             mapOf(EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to extensionName)
 
-        val event = Event.Builder(eventName, EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE)
+        val event = Event.Builder(eventName, EventType.HUB, EventSource.SHARED_STATE)
             .setEventData(data).build()
         dispatchInternal(event)
     }

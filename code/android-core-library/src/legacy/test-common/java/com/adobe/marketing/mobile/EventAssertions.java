@@ -15,57 +15,55 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
+import com.adobe.marketing.mobile.utils.DataReader;
+
 public class EventAssertions {
 
-	public static void assertEvent(Event event, EventType expectedEventType, EventSource expectedEventSource) {
+	public static void assertEvent(Event event, String expectedEventType, String expectedEventSource) {
 		assertEventSource(event, expectedEventSource);
 		assertEventType(event, expectedEventType);
 	}
 
-	public static void assertEventSource(Event event, EventSource expectedEventSource) {
-		assertEquals(expectedEventSource, event.getEventSource());
+	public static void assertEventSource(Event event, String expectedEventSource) {
+		assertEquals(expectedEventSource, event.getSource());
 	}
 
-	public static void assertEventType(Event event, EventType expectedEventType) {
-		assertEquals(expectedEventType, event.getEventType());
+	public static void assertEventType(Event event, String expectedEventType) {
+		assertEquals(expectedEventType, event.getType());
 	}
 
-	public static void assertEventNumber(Event event, int expectedEventNumber) {
-		assertEquals(expectedEventNumber, event.getEventNumber());
-	}
-
-	public static void assertEventResponsePairID(Event event, String expectedResponsePairID) {
-		assertEquals(expectedResponsePairID, event.getResponsePairID());
+	public static void assertEventResponseID(Event event, String expectedResponseID) {
+		assertEquals(expectedResponseID, event.getResponseID());
 	}
 
 	public static void assertEventTimeStamp(Event event, long expectedTimeStamp) {
 		assertEquals(expectedTimeStamp, event.getTimestamp());
 	}
 
-	public static void assertEventDataEquals(Event event, EventData eventData) {
-		assertEquals(eventData, event.getData());
+	public static void assertEventDataEquals(Event event, Map<String, Object> eventData) {
+		assertEquals(eventData, event.getEventData());
 	}
 
 	public static void assertEventDataContains(Event event, String key, Map<String, String> value) {
-		assertEventDataContains(event, key, Variant.fromStringMap(value));
+		assertEventDataContains(event, key, value);
 	}
 
 	public static void assertEventDataContains(Event event, String key, boolean value) {
-		assertEventDataContains(event, key, Variant.fromBoolean(value));
+		assertEventDataContains(event, key, value);
 	}
 
 	public static void assertEventDataContains(Event event, String key, String value) {
-		assertEventDataContains(event, key, Variant.fromString(value));
+		assertEventDataContains(event, key, value);
 	}
 
-	public static void assertEventDataContains(Event event, String key, Variant value) {
+	public static void assertEventDataContains(Event event, String key, Object value) {
 		assertEventDataContains(event, key);
-		EventData eventData = event.getData();
-		assertEquals(value, eventData.optVariant(key, null));
+		Map<String, Object> eventData = event.getEventData();
+		assertEquals(value, eventData.get(key));
 	}
 
 	public static void assertEventDataContains(Event event, String key) {
-		EventData eventData = event.getData();
+		Map<String, Object> eventData = event.getEventData();
 		assertNotNull("Event Data was null", eventData);
 		assertTrue("Event Data does not contain key: " + key, eventData.containsKey(key));
 	}

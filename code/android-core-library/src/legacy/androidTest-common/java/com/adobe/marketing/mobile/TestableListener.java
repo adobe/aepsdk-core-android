@@ -73,7 +73,7 @@ class TestableListener extends ExtensionListener {
 		}
 
 		if (this.getParentExtension().getName().equals("BusyWorkExtension29")
-				&& event.getEventType().getName().equals("com.adobe.eventtype.busywork")) {
+				&& event.getType().equals("com.adobe.eventtype.busywork")) {
 			try {
 				Thread.currentThread().sleep(75);
 			} catch (InterruptedException e) {

@@ -23,30 +23,21 @@ import static org.junit.Assert.*;
 public class EventTest {
 
 	private String mockEventName;
-	private EventSource mockEventSource;
-	private EventType mockEventType;
-	private String mockPairId;
-	private String mockResponsePairId;
-	private EventData mockEventData;
+	private String mockEventSource;
+	private String mockEventType;
+	private Map<String, Object> mockEventData;
 	private long mockTimestamp;
-	private String mockError;
-	private int mockEventNumber;
-	private String mockStringEventType;
-	private String mockStringEventSource;
 
 	@Before()
 	public void setup() {
 		mockEventName = "testEventName";
 		mockEventType = EventType.ANALYTICS;
 		mockEventSource = EventSource.REQUEST_CONTENT;
-		mockPairId = "testPairId";
-		mockResponsePairId = "testResponsePairId";
-		mockEventData = new EventData().putString("key", "value");
+
+		mockEventData = new HashMap<>();
+		mockEventData.put("key", "value");
+
 		mockTimestamp = 12345L;
-		mockError = "testError";
-		mockEventNumber = 1234;
-		mockStringEventSource = "my.event.source";
-		mockStringEventType = "my.event.type";
 	}
 
 	@Test
@@ -55,27 +46,15 @@ public class EventTest {
 		.build();
 
 		assertEquals(mockEventName, event.getName());
-		assertEquals(mockEventType, event.getEventType());
-		assertEquals(mockEventSource, event.getEventSource());
-		assertNotEquals(0, event.getTimestamp());
-		assertTrue(event.getUniqueIdentifier().length() > 0);
-	}
-
-	@Test
-	public void EventConstructor_StringParams_HappyPath() {
-		Event event = new Event.Builder(mockEventName, mockStringEventType, mockStringEventSource)
-		.build();
-
-		assertEquals(mockEventName, event.getName());
-		assertEquals(mockStringEventType, event.getType());
-		assertEquals(mockStringEventSource, event.getSource());
+		assertEquals(mockEventType, event.getType());
+		assertEquals(mockEventSource, event.getSource());
 		assertNotEquals(0, event.getTimestamp());
 		assertTrue(event.getUniqueIdentifier().length() > 0);
 	}
 
 	@Test
 	public void EventConstructor_StringParams_NullEventType() {
-		Event event = new Event.Builder(mockEventName, null, mockStringEventSource)
+		Event event = new Event.Builder(mockEventName, null, mockEventSource)
 		.build();
 
 		assertNull(event);
@@ -83,7 +62,7 @@ public class EventTest {
 
 	@Test
 	public void EventConstructor_StringParams_NullEventSource() {
-		Event event = new Event.Builder(mockEventName, mockStringEventType, null)
+		Event event = new Event.Builder(mockEventName, mockEventType, null)
 		.build();
 
 		assertNull(event);
@@ -98,40 +77,39 @@ public class EventTest {
 	}
 
 	@Test
-	public void Event_pairIdWorksProperly() {
+	public void Event_inResponseToEventWorksProperly() {
+		Event triggerEvent = new Event.Builder("TriggerEvent", "responseType", "responseSource").build();
 		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setPairID(mockPairId)
+		.inResponseToEvent(triggerEvent)
 		.build();
 
-		assertEquals(mockPairId, event.getPairID());
+		assertEquals(triggerEvent.getUniqueIdentifier(), event.getResponseID());
 	}
 
-	@Test
-	public void Event_responsePairIdWorksProperly() {
+	@Test(expected = NullPointerException.class)
+	public void Event_inResponseToNullEventWorksProperly() {
 		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setResponsePairID(mockResponsePairId)
-		.build();
+				.inResponseToEvent(null)
+				.build();
 
-		assertEquals(mockResponsePairId, event.getResponsePairID());
+		assertEquals(null, event.getResponseID());
 	}
 
 	@Test
 	public void Event_eventDataWorksProperly() {
 		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setData(mockEventData)
+		.setEventData(mockEventData)
 		.build();
 
-		assertEquals(mockEventData, event.getData());
+		assertEquals(mockEventData, event.getEventData());
 	}
 
 	@Test
 	public void Event_uniqueIdWorksProperly() {
 		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setPairID(mockPairId)
 		.build();
 
 		Event event1 = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setPairID(mockPairId)
 		.build();
 
 		assertNotEquals(event.getUniqueIdentifier(), event1.getUniqueIdentifier());
@@ -147,12 +125,11 @@ public class EventTest {
 				add("bla");
 			}
 		});
-		EventData expectedData = EventData.fromObjectMap(eventData);
 		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
 		.setEventData(eventData)
 		.build();
 
-		assertEquals(expectedData, event.getData());
+		assertEquals(eventData, event.getEventData());
 	}
 
 	@Test
@@ -165,15 +142,24 @@ public class EventTest {
 				add("bla");
 			}
 		});
-		EventData expectedData = EventData.fromObjectMap(eventData);
+
 		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
 		.setEventData(eventData)
 		.build();
 		eventData.put("new", "key");
 		eventData.put("awesome", "test");
 
-		assertEquals(3, event.getData().size());
-		assertEquals(expectedData, event.getData());
+
+		Map<String, Object> expectedData = new HashMap<String, Object>();
+		expectedData.put("string", "key");
+		expectedData.put("int", 200);
+		expectedData.put("list", new ArrayList<String>() {
+			{
+				add("bla");
+			}
+		});
+		assertEquals(3, event.getEventData().size());
+		assertEquals(expectedData, event.getEventData());
 	}
 
 	@Test
@@ -182,22 +168,22 @@ public class EventTest {
 		.setEventData(null)
 		.build();
 
-		assertTrue(event.getData().isEmpty());
+		assertNull(event.getEventData());
 	}
 
 	@Test
 	public void Event_getEventDataMap_worksProperly() throws Exception {
 		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setData(mockEventData)
+		.setEventData(mockEventData)
 		.build();
 
-		assertEquals(mockEventData.toObjectMap(), event.getEventData());
+		assertEquals(mockEventData, event.getEventData());
 	}
 
 	@Test
 	public void Event_getEventDataMap_returnedMapIsImmutable() throws Exception {
 		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setData(mockEventData)
+		.setEventData(mockEventData)
 		.build();
 
 		Map<String, Object> resultData = event.getEventData();
@@ -211,8 +197,7 @@ public class EventTest {
 	@Test
 	public void Event_getEventDataMap_nullData() {
 		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource).build();
-
-		assertTrue(event.getEventData().isEmpty());
+		assertEquals(event.getEventData(), null);
 	}
 
 	@Test
@@ -225,43 +210,21 @@ public class EventTest {
 	}
 
 	@Test
-	public void Event_eventNumberWorksProperly() {
-		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setEventNumber(mockEventNumber)
-		.build();
-
-		assertEquals(mockEventNumber, event.getEventNumber());
-	}
-
-	@Test
-	public void sharedStateOldest_EventNumberEqualsIntMinValue() {
-		assertEquals(0, Event.SHARED_STATE_OLDEST.getEventNumber());
-	}
-
-	@Test
-	public void sharedStateNewest_EventNumberEqualsIntMaxValue() {
-		assertEquals(Integer.MAX_VALUE, Event.SHARED_STATE_NEWEST.getEventNumber());
-	}
-
-	@Test
 	public void Event_builderWorksProperly() {
-		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setPairID(mockPairId)
-		.setResponsePairID(mockResponsePairId)
-		.setTimestamp(mockTimestamp)
-		.setData(mockEventData)
-		.build();
+		Event triggerEvent = new Event.Builder("TriggerEvent", "responseType", "responseSource").build();
 
-		event.setEventNumber(mockEventNumber);
+		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
+				.inResponseToEvent(triggerEvent)
+				.setTimestamp(mockTimestamp)
+				.setEventData(mockEventData)
+				.build();
 
 		assertEquals(mockEventName, event.getName());
-		assertEquals(mockEventType, event.getEventType());
-		assertEquals(mockEventSource, event.getEventSource());
-		assertEquals(mockEventNumber, event.getEventNumber());
+		assertEquals(mockEventType, event.getType());
+		assertEquals(mockEventSource, event.getSource());
 		assertEquals(mockTimestamp, event.getTimestamp());
-		assertEquals(mockPairId, event.getPairID());
-		assertEquals(mockResponsePairId, event.getResponsePairID());
-		assertEquals(mockEventData, event.getData());
+		assertEquals(triggerEvent.getUniqueIdentifier(), event.getResponseID());
+		assertEquals(mockEventData, event.getEventData());
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -269,82 +232,10 @@ public class EventTest {
 		Event.Builder builder = new Event.Builder(mockEventName, mockEventType, mockEventSource);
 
 		builder
-		.setPairID(mockPairId)
-		.setResponsePairID(mockResponsePairId)
 		.setTimestamp(mockTimestamp)
-		.setData(mockEventData)
+		.setEventData(mockEventData)
 		.build();
 
-		builder.setPairID(mockPairId);
-	}
-
-	@Test
-	public void Event_copyWorksProperly() {
-		EventData eventData = new EventData().putString("key", "value");
-		Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource)
-		.setPairID(mockPairId)
-		.setResponsePairID(mockResponsePairId)
-		.setTimestamp(mockTimestamp)
-		.setData(eventData)
-		.build();
-
-		event.setEventNumber(mockEventNumber);
-		Event eventCopy = event.copy();
-
-		assertEquals(eventCopy.getName(), event.getName());
-		assertEquals(eventCopy.getEventType(), event.getEventType());
-		assertEquals(eventCopy.getEventSource(), event.getEventSource());
-		assertEquals(eventCopy.getEventNumber(), event.getEventNumber());
-		assertEquals(eventCopy.getTimestamp(), event.getTimestamp());
-		assertEquals(eventCopy.getPairID(), event.getPairID());
-		assertEquals(eventCopy.getResponsePairID(), event.getResponsePairID());
-		assertEquals(eventCopy.getData(), event.getData());
-		assertEquals(eventCopy.getUniqueIdentifier(), event.getUniqueIdentifier());
-		assertEquals(eventCopy.getEventData(), event.getEventData());
-	}
-
-	@Test
-	public void EventType_getWorksProperly() {
-		assertEquals(EventType.ANALYTICS, EventType.get("com.adobe.eventType.analytics"));
-		assertEquals(EventType.AUDIENCEMANAGER, EventType.get("com.adobe.eventType.audienceManager"));
-		assertEquals(EventType.TARGET, EventType.get("com.adobe.eventType.target"));
-		assertEquals(EventType.LIFECYCLE, EventType.get("com.adobe.eventType.lifecycle"));
-		assertEquals(EventType.LOCATION, EventType.get("com.adobe.eventType.location"));
-		assertEquals(EventType.PII, EventType.get("com.adobe.eventType.pii"));
-		assertEquals(EventType.IDENTITY, EventType.get("com.adobe.eventType.identity"));
-		assertEquals(EventType.CONFIGURATION, EventType.get("com.adobe.eventType.configuration"));
-		assertEquals(EventType.CUSTOM, EventType.get("com.adobe.eventType.custom"));
-		assertEquals(EventType.ACQUISITION, EventType.get("com.adobe.eventType.acquisition"));
-		assertEquals(EventType.SYSTEM, EventType.get("com.adobe.eventType.system"));
-		assertEquals(EventType.USERPROFILE, EventType.get("com.adobe.eventType.userProfile"));
-		assertEquals(EventType.HUB, EventType.get("com.adobe.eventType.hub"));
-		assertEquals(EventType.RULES_ENGINE, EventType.get("com.adobe.eventType.rulesEngine"));
-		assertEquals(EventType.CAMPAIGN, EventType.get("com.adobe.eventType.campaign"));
-		assertEquals(EventType.SIGNAL, EventType.get("com.adobe.eventType.signal"));
-	}
-
-	@Test
-	public void EventType_getWorksCaseInsensitive() {
-		assertEquals(EventType.ANALYTICS, EventType.get("Com.aDObe.evEnTTypE.ANalYTicS"));
-	}
-
-	@Test
-	public void EventSource_getWorksProperly() {
-		assertEquals(EventSource.NONE, EventSource.get("com.adobe.eventSource.none"));
-		assertEquals(EventSource.OS, EventSource.get("com.adobe.eventSource.os"));
-		assertEquals(EventSource.REQUEST_CONTENT, EventSource.get("com.adobe.eventSource.requestContent"));
-		assertEquals(EventSource.REQUEST_IDENTITY, EventSource.get("com.adobe.eventSource.requestIdentity"));
-		assertEquals(EventSource.REQUEST_PROFILE, EventSource.get("com.adobe.eventSource.requestProfile"));
-		assertEquals(EventSource.REQUEST_RESET, EventSource.get("com.adobe.eventSource.requestReset"));
-		assertEquals(EventSource.RESPONSE_CONTENT, EventSource.get("com.adobe.eventSource.responseContent"));
-		assertEquals(EventSource.RESPONSE_IDENTITY, EventSource.get("com.adobe.eventSource.responseIdentity"));
-		assertEquals(EventSource.RESPONSE_PROFILE, EventSource.get("com.adobe.eventSource.responseProfile"));
-		assertEquals(EventSource.SHARED_STATE, EventSource.get("com.adobe.eventSource.sharedState"));
-		assertEquals(EventSource.BOOTED, EventSource.get("com.adobe.eventSource.booted"));
-	}
-
-	@Test
-	public void EventSource_getWorksCaseInsensitive() {
-		assertEquals(EventSource.REQUEST_IDENTITY, EventSource.get("Com.aDObe.EvEnTsOuRcE.reQUESTidentitY"));
+		builder.setEventData(mockEventData);
 	}
 }

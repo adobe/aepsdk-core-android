@@ -9,6 +9,8 @@
   governing permissions and limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package com.adobe.marketing.mobile.internal.eventhub
 
 import com.adobe.marketing.mobile.Event
@@ -325,14 +327,6 @@ internal class ExtensionContainer constructor(
         EventHub.shared.unregisterExtension(extensionClass) {}
     }
 
-    override fun getHistoricalEvents(
-        eventHistoryRequests: Array<out EventHistoryRequest>?,
-        enforceOrder: Boolean,
-        handler: EventHistoryResultHandler<Int>?
-    ) {
-        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler)
-    }
-
     // Deprecated ExtensionApi methods
     override fun setSharedEventState(
         state: MutableMap<String, Any?>?,
@@ -482,16 +476,24 @@ internal class ExtensionContainer constructor(
         extensionListenerClass: Class<T>?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,
     ): Boolean {
-        val extensionListener = extensionListenerClass?.initWith(
-            this,
-            EventType.TYPE_WILDCARD,
-            EventSource.TYPE_WILDCARD
-        )
+        val extensionListener =
+            extensionListenerClass?.initWith(this, EventType.WILDCARD, EventSource.WILDCARD)
         if (extensionListener == null) {
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) { extensionListener.hear(it) }
+        registerEventListener(
+            EventType.WILDCARD,
+            EventSource.WILDCARD
+        ) { extensionListener.hear(it) }
         return true
+    }
+
+    override fun getHistoricalEvents(
+        eventHistoryRequests: Array<out EventHistoryRequest>?,
+        enforceOrder: Boolean,
+        handler: EventHistoryResultHandler<Int>?
+    ) {
+        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler)
     }
 }

@@ -11,6 +11,8 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import org.junit.Before
 import org.junit.Test
@@ -70,8 +72,8 @@ class LaunchRulesEvaluatorTests {
         launchRulesEvaluator.replaceRules(listOf())
         verify(extensionApi, Mockito.times(1)).dispatch(eventCaptor.capture())
         assertNotNull(eventCaptor.value)
-        assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestreset", eventCaptor.value.source)
+        assertEquals(EventType.RULES_ENGINE, eventCaptor.value.type)
+        assertEquals(EventSource.REQUEST_RESET, eventCaptor.value.source)
         launchRulesEvaluator.process(eventCaptor.value)
         assertEquals(0, launchRulesEvaluator.getCachedEventCount())
     }
@@ -88,8 +90,8 @@ class LaunchRulesEvaluatorTests {
         launchRulesEvaluator.replaceRules(listOf())
         verify(extensionApi, Mockito.times(1)).dispatch(eventCaptor.capture())
         assertNotNull(eventCaptor.value)
-        assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestreset", eventCaptor.value.source)
+        assertEquals(EventType.RULES_ENGINE, eventCaptor.value.type)
+        assertEquals(EventSource.REQUEST_RESET, eventCaptor.value.source)
         Mockito.reset(launchRulesEngine)
         launchRulesEvaluator.process(eventCaptor.value)
         val cachedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)

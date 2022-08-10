@@ -226,10 +226,12 @@ final public class MobileCore {
         }
 
         EventHub.Companion.getShared().registerExtension(extensionClass, eventHubError -> {
-            ExtensionError error;
             if (eventHubError == EventHubError.None) {
-                error = null;
-            } else if (eventHubError == EventHubError.InvalidExtensionName) {
+                return null;
+            }
+
+            ExtensionError error;
+            if (eventHubError == EventHubError.InvalidExtensionName) {
                 error = ExtensionError.BAD_NAME;
             } else if (eventHubError == EventHubError.DuplicateExtensionName) {
                 error = ExtensionError.DUPLICATE_NAME;
@@ -370,7 +372,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER, advertisingIdentifier);
 
-        Event event = new Event.Builder("SetAdvertisingIdentifier", EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT)
+        Event event = new Event.Builder("SetAdvertisingIdentifier", EventType.GENERIC_IDENTITY, EventSource.REQUEST_CONTENT)
                 .setEventData(eventData)
                 .build();
         dispatchEvent(event);
@@ -385,7 +387,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Identity.PUSH_IDENTIFIER, pushIdentifier);
 
-        Event event = new Event.Builder("SetPushIdentifier", EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_CONTENT)
+        Event event = new Event.Builder("SetPushIdentifier", EventType.GENERIC_IDENTITY, EventSource.REQUEST_CONTENT)
                 .setEventData(eventData)
                 .build();
         dispatchEvent(event);
@@ -405,7 +407,7 @@ final public class MobileCore {
 
         final Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Signal.SIGNAL_CONTEXT_DATA, data);
-        Event event = new Event.Builder("CollectPII", EventType.TYPE_GENERIC_PII, EventSource.TYPE_REQUEST_CONTENT)
+        Event event = new Event.Builder("CollectPII", EventType.GENERIC_PII, EventSource.REQUEST_CONTENT)
                 .setEventData(eventData).build();
         dispatchEvent(event);
     }
@@ -431,7 +433,7 @@ final public class MobileCore {
             return;
         }
 
-        Event event = new Event.Builder("CollectData", EventType.TYPE_GENERIC_DATA, EventSource.TYPE_OS)
+        Event event = new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS)
                 .setEventData(messageInfo)
                 .build();
         dispatchEvent(event);
@@ -478,7 +480,7 @@ final public class MobileCore {
             return;
         }
 
-        Event event = new Event.Builder("CollectData", EventType.TYPE_GENERIC_DATA, EventSource.TYPE_OS)
+        Event event = new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS)
                 .setEventData(marshalledData)
                 .build();
         dispatchEvent(event);
@@ -507,8 +509,8 @@ final public class MobileCore {
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID, appId);
 
         Event event = new Event.Builder("Configure with AppID",
-                EventType.TYPE_CONFIGURATION,
-                EventSource.TYPE_REQUEST_CONTENT).setEventData(eventData).build();
+                EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -540,8 +542,8 @@ final public class MobileCore {
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE, fileName);
 
         Event event = new Event.Builder("Configure with FilePath",
-                EventType.TYPE_CONFIGURATION,
-                EventSource.TYPE_REQUEST_CONTENT).setEventData(eventData).build();
+                EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -570,8 +572,8 @@ final public class MobileCore {
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH, filePath);
 
         Event event = new Event.Builder("Configure with FilePath",
-                EventType.TYPE_CONFIGURATION,
-                EventSource.TYPE_REQUEST_CONTENT).setEventData(eventData).build();
+                EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT).setEventData(eventData).build();
         dispatchEvent(event);
     }
 
@@ -657,8 +659,8 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG, true);
         Event event = new Event.Builder("PrivacyStatusRequest",
-                                        EventType.TYPE_CONFIGURATION,
-                                        EventSource.TYPE_REQUEST_CONTENT
+                                        EventType.CONFIGURATION,
+                                        EventSource.REQUEST_CONTENT
                                         )
                 .setEventData(eventData).build();
 
@@ -715,7 +717,7 @@ final public class MobileCore {
             }
         };
 
-        Event event = new Event.Builder("getSdkIdentities", EventType.TYPE_CONFIGURATION, EventSource.TYPE_REQUEST_IDENTITY).build();
+        Event event = new Event.Builder("getSdkIdentities", EventType.CONFIGURATION, EventSource.REQUEST_IDENTITY).build();
         dispatchEventWithResponseCallback(event ,API_TIMEOUT_MS, callbackWithError);
     }
 
@@ -723,7 +725,7 @@ final public class MobileCore {
      * Clears all identifiers from Edge extensions and generates a new Experience Cloud ID (ECID).
      */
     public static void resetIdentities() {
-        Event event = new Event.Builder("Reset Identities Request", EventType.TYPE_GENERIC_IDENTITY, EventSource.TYPE_REQUEST_RESET)
+        Event event = new Event.Builder("Reset Identities Request", EventType.GENERIC_IDENTITY, EventSource.REQUEST_RESET)
                 .build();
         dispatchEvent(event);
     }
@@ -752,7 +754,7 @@ final public class MobileCore {
                 CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START);
         eventData.put(CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA, additionalContextData);
 
-        Event event = new Event.Builder("LifecycleResume", EventType.TYPE_GENERIC_LIFECYCLE, EventSource.TYPE_REQUEST_CONTENT)
+        Event event = new Event.Builder("LifecycleResume", EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT)
                 .setEventData(eventData)
                 .build();
         dispatchEvent(event);
@@ -777,7 +779,7 @@ final public class MobileCore {
         eventData.put(CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY,
                 CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE);
 
-        Event event = new Event.Builder("LifecyclePause", EventType.TYPE_GENERIC_LIFECYCLE, EventSource.TYPE_REQUEST_CONTENT)
+        Event event = new Event.Builder("LifecyclePause", EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT)
                 .setEventData(eventData)
                 .build();
         dispatchEvent(event);
@@ -802,7 +804,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Analytics.TRACK_ACTION, action == null ? "" : action);
         eventData.put(CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA, contextData == null ? new HashMap<String, String>() : contextData);
-        Event event = new Event.Builder("Analytics Track", EventType.TYPE_GENERIC_TRACK, EventSource.TYPE_REQUEST_CONTENT)
+        Event event = new Event.Builder("Analytics Track", EventType.GENERIC_TRACK, EventSource.REQUEST_CONTENT)
                 .setEventData(eventData).build();
         dispatchEvent(event);
     }
@@ -822,7 +824,7 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Analytics.TRACK_STATE, state == null ? "" : state);
         eventData.put(CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA, contextData == null ? new HashMap<String, String>() : contextData);
-        Event event = new Event.Builder("Analytics Track", EventType.TYPE_GENERIC_TRACK, EventSource.TYPE_REQUEST_CONTENT)
+        Event event = new Event.Builder("Analytics Track", EventType.GENERIC_TRACK, EventSource.REQUEST_CONTENT)
                 .setEventData(eventData).build();
         dispatchEvent(event);
     }
@@ -959,7 +961,7 @@ final public class MobileCore {
             return false;
         }
 
-        responseEvent.setPairId(requestEvent.getResponsePairID());
+        //responseEvent.setPairId(requestEvent.getResponseID());
         dispatchEvent(responseEvent);
         return true;
     }

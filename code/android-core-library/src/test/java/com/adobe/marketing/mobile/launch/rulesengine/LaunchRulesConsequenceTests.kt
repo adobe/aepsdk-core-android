@@ -236,8 +236,8 @@ class LaunchRulesConsequenceTests {
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
-        assertEquals("com.adobe.eventtype.edge", dispatchedEventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEventCaptor.value.source)
+        assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals(event.eventData, dispatchedEventCaptor.value.eventData)
 
         // verify original event is unchanged
@@ -271,9 +271,9 @@ class LaunchRulesConsequenceTests {
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
-        assertEquals("com.adobe.eventtype.edge", dispatchedEventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEventCaptor.value.source)
-        assertEquals(mapOf(), dispatchedEventCaptor.value.eventData)
+        assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
+        assertEquals(null, dispatchedEventCaptor.value.eventData)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -312,8 +312,8 @@ class LaunchRulesConsequenceTests {
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
-        assertEquals("com.adobe.eventtype.edge", dispatchedEventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEventCaptor.value.source)
+        assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals("value", dispatchedEventCaptor.value.eventData["key"])
         assertEquals("subvalue", dispatchedEventCaptor.value.eventData["key.subkey"])
 
@@ -349,9 +349,9 @@ class LaunchRulesConsequenceTests {
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
-        assertEquals("com.adobe.eventtype.edge", dispatchedEventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestcontent", dispatchedEventCaptor.value.source)
-        assertEquals(mapOf(), dispatchedEventCaptor.value.eventData)
+        assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
+        assertEquals(null, dispatchedEventCaptor.value.eventData)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -893,8 +893,8 @@ class LaunchRulesConsequenceTests {
         val consequenceEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(consequenceEventCaptor.capture())
 
-        assertEquals("com.adobe.eventtype.rulesengine", consequenceEventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.responsecontent", consequenceEventCaptor.value.source)
+        assertEquals("com.adobe.eventType.rulesEngine", consequenceEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.responseContent", consequenceEventCaptor.value.source)
         val data = consequenceEventCaptor.value.eventData?.get("triggeredconsequence") as Map<*, *>?
         val detail = data?.get("detail") as Map<*, *>?
         assertEquals("url", data?.get("type"))
@@ -930,8 +930,8 @@ class LaunchRulesConsequenceTests {
         val consequenceEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(consequenceEventCaptor.capture())
 
-        assertEquals("com.adobe.eventtype.rulesengine", consequenceEventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.responsecontent", consequenceEventCaptor.value.source)
+        assertEquals("com.adobe.eventType.rulesEngine", consequenceEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.responseContent", consequenceEventCaptor.value.source)
         val data = consequenceEventCaptor.value.eventData?.get("triggeredconsequence") as Map<*, *>?
         val detail = data?.get("detail") as Map<*, *>?
         assertEquals("url", data?.get("type"))

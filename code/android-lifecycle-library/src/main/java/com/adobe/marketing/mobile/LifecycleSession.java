@@ -124,7 +124,7 @@ class LifecycleSession {
 	Map<String, String> getSessionData(final long startTimestampInSeconds,
 									   final long sessionTimeoutInSeconds,
 									   final LifecycleSession.SessionInfo previousSessionInfo) {
-		Map<String, String> sessionContextData = new HashMap<String, String>();
+		Map<String, String> sessionContextData = new HashMap<>();
 
 		if (dataStore == null) {
 			Log.debug(LifecycleConstants.LOG_TAG, "%s - %s (data store), Failed to get session length data", SELF_LOG_TAG,

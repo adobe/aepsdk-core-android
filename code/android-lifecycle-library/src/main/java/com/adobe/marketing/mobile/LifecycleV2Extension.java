@@ -171,8 +171,10 @@ class LifecycleV2Extension {
 			previousAppVersion = dataStore.getString(LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, "");
 		}
 
-		return deviceInfoService != null && !previousAppVersion.isEmpty()
-			   && !previousAppVersion.equalsIgnoreCase(deviceInfoService.getApplicationVersion());
+		return deviceInfoService != null
+				&& previousAppVersion!=null
+				&& !previousAppVersion.isEmpty()
+				&& !previousAppVersion.equalsIgnoreCase(deviceInfoService.getApplicationVersion());
 	}
 
 

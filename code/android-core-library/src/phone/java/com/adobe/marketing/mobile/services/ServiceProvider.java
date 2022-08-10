@@ -45,6 +45,7 @@ public class ServiceProvider {
 	private Networking overrideNetworkService;
 	private DataQueueService dataQueueService;
 	private DataStoring defaultDataStoreService;
+	private DataStoring overrideDataStoreService;
 	private UIService defaultUIService;
 	private FullscreenMessageDelegate messageDelegate;
 
@@ -97,7 +98,11 @@ public class ServiceProvider {
 	 * @return the {@link DataStoring} service
 	 */
 	public DataStoring getDataStoreService() {
-		return defaultDataStoreService;
+		return overrideDataStoreService != null ? overrideDataStoreService : defaultDataStoreService;
+	}
+
+	protected void setDataStoreService(DataStoring dataStoring) {
+		overrideDataStoreService = dataStoring;
 	}
 
 	/**

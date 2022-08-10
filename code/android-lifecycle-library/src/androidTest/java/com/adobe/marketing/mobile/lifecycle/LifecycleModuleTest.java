@@ -1,26 +1,23 @@
-/* **************************************************************************
- *
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2018 Adobe Systems Incorporated
- * All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains
- * the property of Adobe Systems Incorporated and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Adobe Systems Incorporated and its
- * suppliers and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe Systems Incorporated.
- *
- * *************************************************************************/
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ *//*
+
+// TODO refactor and move to LifecycleFunctionalTest class
 
 package com.adobe.marketing.mobile;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -33,9 +30,18 @@ import static com.adobe.marketing.mobile.EventAssertions.assertEventDataContains
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-public class LifecycleModuleTest extends SystemTest {
+import com.adobe.marketing.mobile.services.DeviceInforming;
 
-	//private static final String ADDITIONAL_CONTEXT_DATA = "additionalcontextdata";
+@RunWith(MockitoJUnitRunner.Silent.class)
+public class LifecycleModuleTest {
+
+    @Mock
+    ExtensionApi extensionApi;
+
+    @Mock
+    private DeviceInforming deviceInfoService;
+
+    //private static final String ADDITIONAL_CONTEXT_DATA = "additionalcontextdata";
 	private static final String APP_ID                  = "appid";
 	private static final String CARRIER_NAME            = "carriername";
 	//private static final String CRASH_EVENT             = "crashevent";
@@ -74,18 +80,18 @@ public class LifecycleModuleTest extends SystemTest {
 	private static final String UPGRADE_EVENT           = "upgradeevent";
 	private static final long   MAX_SESSION_LENGTH_SECONDS = TimeUnit.DAYS.toSeconds(7);
 
-	private MockSystemInfoService mockSystemInfoService;
 	private String dayOfWeek;
 	private String hourOfDay;
 	private String dayMonthYearDate;
 	private long currentTimestampMillis;
 
-	private LifecycleInternal lifecycleInternal;
+	private LifecycleExtension lifecycleExtension;
 	Map<String, Object> environmentMap, deviceMap;
 
 	@Before
 	public void beforeEach() {
-		eventHub.ignoreAllStateChangeEvents();
+		*/
+/* eventHub.ignoreAllStateChangeEvents();
 
 		try {
 			eventHub.registerModule(LifecycleExtension.class);
@@ -99,11 +105,10 @@ public class LifecycleModuleTest extends SystemTest {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		} *//*
 
-		lifecycleInternal = new LifecycleInternal(eventHub);
 
-		mockSystemInfoService = platformServices.getMockSystemInfoService();
+		lifecycleExtension = new LifecycleExtension(extensionApi);
 
 		environmentMap = new HashMap<String, Object>();
 		environmentMap.put("carrier", "mockMobileCarrier");
@@ -150,8 +155,8 @@ public class LifecycleModuleTest extends SystemTest {
 	}
 
 	private void startThenStopLifecycle(long startTimestampMillis, long intervalMillis, Map<String, String> contextData) {
-		lifecycleInternal.startLifecycle(startTimestampMillis, contextData);
-		lifecycleInternal.pauseLifecycle(startTimestampMillis + intervalMillis);
+		lifecycleExtension.startLifecycle(startTimestampMillis, contextData);
+		lifecycleExtension.pauseLifecycle(startTimestampMillis + intervalMillis);
 	}
 
 	@SuppressWarnings("all")
@@ -166,7 +171,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
 
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		startThenStopLifecycle(currentTimestampMillis, 3, null);
 
 		List<Event> events = eventHub.getEvents();
@@ -194,7 +199,7 @@ public class LifecycleModuleTest extends SystemTest {
 			}
 		};
 		assertEquals(expectedContextData, lifecycleEvent.getData().optStringMap(LIFECYCLE_CONTEXT_DATA, null));
-		assertEquals(expectedContextData, lifecycleInternal.getLatestLifecycleSharedState().optStringMap(LIFECYCLE_CONTEXT_DATA,
+		assertEquals(expectedContextData, lifecycleExtension.getLatestLifecycleSharedState().optStringMap(LIFECYCLE_CONTEXT_DATA,
 					 null));
 	}
 
@@ -235,7 +240,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.RESPONSE_CONTENT);
 		eventHub.setExpectedEventCount(2);
 
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 
 		// test
 		startThenStopLifecycle(currentTimestampMillis, 1000, null);
@@ -283,7 +288,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.RESPONSE_CONTENT);
 		eventHub.setExpectedEventCount(2);
 
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 
 		// test
 		startThenStopLifecycle(currentTimestampMillis, 1000, freeFormData);
@@ -327,14 +332,14 @@ public class LifecycleModuleTest extends SystemTest {
 		freeFormData.put("key2", "value2");
 
 		eventHub.setExpectedEventCount(2);
-		lifecycleInternal.configureLifecycle(2);
-		mockSystemInfoService.applicationVersion = "previousVersion";
+		lifecycleExtension.configureLifecycle(2);
+		deviceInfoService.applicationVersion = "previousVersion";
 		startThenStopLifecycle(2000, null);
 		List<Event> events = eventHub.getEvents(2); // to wait for both launch and close events
 		eventHub.clearEvents();
 
 		eventHub.setExpectedEventCount(2);
-		mockSystemInfoService.applicationVersion = "newVersion";
+		deviceInfoService.applicationVersion = "newVersion";
 		startThenStopLifecycle(currentTimestampMillis + 5000, 2000, freeFormData);
 
 		// verify
@@ -370,7 +375,7 @@ public class LifecycleModuleTest extends SystemTest {
 		expectedXDMLaunchData.put("timestamp", LifecycleUtil.dateTimeISO8601String(new Date(currentTimestampMillis + 5000)));
 
 		eventHub.setExpectedEventCount(2);
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		startThenStopLifecycle(2000, null);
 		List<Event> events = eventHub.getEvents(2); // to wait for both launch and close events
 		eventHub.clearEvents();
@@ -394,7 +399,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
 
-		lifecycleInternal.configureLifecycle(1);
+		lifecycleExtension.configureLifecycle(1);
 		startThenStopLifecycle(currentTimestampMillis, 5, null);
 		waitForThreadsWithFailIfTimedOut(1000);
 
@@ -433,7 +438,7 @@ public class LifecycleModuleTest extends SystemTest {
 			}
 		};
 		assertEquals(expectedContextData, lifecycleEvent.getData().optStringMap(LIFECYCLE_CONTEXT_DATA, null));
-		assertEquals(expectedContextData, lifecycleInternal.getLatestLifecycleSharedState().optStringMap(LIFECYCLE_CONTEXT_DATA,
+		assertEquals(expectedContextData, lifecycleExtension.getLatestLifecycleSharedState().optStringMap(LIFECYCLE_CONTEXT_DATA,
 					 null));
 	}
 
@@ -444,7 +449,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 
 		eventHub.setExpectedEventCount(2);
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		startThenStopLifecycle(currentTimestampMillis, 3, null);
 
 		List<Event> events = eventHub.getEvents();
@@ -459,7 +464,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
 
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		startThenStopLifecycle(currentTimestampMillis, 3, null);
 
 		List<Event> events = eventHub.getEvents();
@@ -469,7 +474,7 @@ public class LifecycleModuleTest extends SystemTest {
 		assertEventDataContains(lifecycleResponseContentEvent, LIFECYCLE_CONTEXT_DATA);
 		Map<String, String> contextData = lifecycleResponseContentEvent.getData().optStringMap(LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(contextData, INSTALL_EVENT, "InstallEvent");
-		Map<String, String> lifecycleSharedState = lifecycleInternal.getLatestLifecycleSharedState().optStringMap(
+		Map<String, String> lifecycleSharedState = lifecycleExtension.getLatestLifecycleSharedState().optStringMap(
 					LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(lifecycleSharedState, INSTALL_EVENT, "InstallEvent");
 	}
@@ -480,7 +485,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH);
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		startThenStopLifecycle(2000, null);
 		eventHub.clearEvents();
 
@@ -494,8 +499,8 @@ public class LifecycleModuleTest extends SystemTest {
 		Map<String, String> contextData = lifecycleResponseContentEvent.getData().optStringMap(LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(contextData, LAUNCH_EVENT, "LaunchEvent");
 		assertMapContains(contextData, LAUNCHES, "2");
-		lifecycleInternal.getLatestLifecycleSharedState();
-		Map<String, String> lifecycleSharedState = lifecycleInternal.getLatestLifecycleSharedState().optStringMap(
+		lifecycleExtension.getLatestLifecycleSharedState();
+		Map<String, String> lifecycleSharedState = lifecycleExtension.getLatestLifecycleSharedState().optStringMap(
 					LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(lifecycleSharedState, LAUNCH_EVENT, "LaunchEvent");
 		assertMapContains(lifecycleSharedState, LAUNCHES, "2");
@@ -513,14 +518,14 @@ public class LifecycleModuleTest extends SystemTest {
 		final long secondSessionStartTimeMillis = firstSessionPauseTimeMillis + TimeUnit.SECONDS.toMillis(3);
 		long secondSessionPauseTimeMillis = secondSessionStartTimeMillis + TimeUnit.SECONDS.toMillis(2);
 
-		lifecycleInternal.configureLifecycle(2);
-		lifecycleInternal.startLifecycle(firstSessionStartTimeMillis, null);
-		lifecycleInternal.pauseLifecycle(firstSessionPauseTimeMillis);
+		lifecycleExtension.configureLifecycle(2);
+		lifecycleExtension.startLifecycle(firstSessionStartTimeMillis, null);
+		lifecycleExtension.pauseLifecycle(firstSessionPauseTimeMillis);
 		eventHub.clearEvents();
 
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.startLifecycle(secondSessionStartTimeMillis, null);
-		lifecycleInternal.pauseLifecycle(secondSessionPauseTimeMillis);
+		lifecycleExtension.startLifecycle(secondSessionStartTimeMillis, null);
+		lifecycleExtension.pauseLifecycle(secondSessionPauseTimeMillis);
 
 		List<Event> events = eventHub.getEvents();
 		assertEquals(1, events.size());
@@ -532,7 +537,7 @@ public class LifecycleModuleTest extends SystemTest {
 		assertMapContains(contextData, LAUNCH_EVENT, "LaunchEvent");
 		assertMapContains(contextData, IGNORED_SESSION_LENGTH, "691200");
 		assertMapContains(contextData, LAUNCHES, "2");
-		Map<String, String> lifecycleSharedState = lifecycleInternal.getLatestLifecycleSharedState().optStringMap(
+		Map<String, String> lifecycleSharedState = lifecycleExtension.getLatestLifecycleSharedState().optStringMap(
 					LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(lifecycleSharedState, LAUNCH_EVENT, "LaunchEvent");
 		assertMapContains(lifecycleSharedState, IGNORED_SESSION_LENGTH, "691200");
@@ -546,7 +551,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 
 		eventHub.setExpectedEventCount(5);
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		startThenStopLifecycle(currentTimestampMillis, 2000, null);
 		eventHub.clearEvents();
 
@@ -563,14 +568,14 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH);
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.configureLifecycle(2);
-		mockSystemInfoService.applicationVersion = "previousVersion";
-		mockSystemInfoService.operatingSystemName = "previousSystemName";
+		lifecycleExtension.configureLifecycle(2);
+		deviceInfoService.applicationVersion = "previousVersion";
+		deviceInfoService.operatingSystemName = "previousSystemName";
 		startThenStopLifecycle(2000, null);
 		eventHub.clearEvents();
 
 		eventHub.setExpectedEventCount(1);
-		mockSystemInfoService.applicationVersion = "newVersion";
+		deviceInfoService.applicationVersion = "newVersion";
 		startThenStopLifecycle(currentTimestampMillis + 5000, 2000, null);
 
 		List<Event> events = eventHub.getEvents();
@@ -585,7 +590,7 @@ public class LifecycleModuleTest extends SystemTest {
 		assertMapContains(contextData, PREVIOUS_APPID, "mockAppName previousVersion (mockAppVersionCode)");
 		assertMapContains(contextData, PREVIOUS_OS, "previousSystemName mockOSVersion");
 		assertMapContains(contextData, LAUNCHES, "2");
-		Map<String, String> lifecycleSharedState = lifecycleInternal.getLatestLifecycleSharedState().optStringMap(
+		Map<String, String> lifecycleSharedState = lifecycleExtension.getLatestLifecycleSharedState().optStringMap(
 					LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(lifecycleSharedState, UPGRADE_EVENT, "UpgradeEvent");
 		assertMapContains(lifecycleSharedState, LAUNCH_EVENT, "LaunchEvent");
@@ -598,7 +603,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH);
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		startThenStopLifecycle(currentTimestampMillis, 2000, null);
 		eventHub.clearEvents();
 
@@ -622,7 +627,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH);
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		startThenStopLifecycle(currentTimestampMillis, 2000, null);
 		eventHub.clearEvents();
 
@@ -636,7 +641,7 @@ public class LifecycleModuleTest extends SystemTest {
 		assertEventDataContains(lifecycleResponseContentEvent, LIFECYCLE_CONTEXT_DATA);
 		Map<String, String> contextData = lifecycleResponseContentEvent.getData().optStringMap(LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(contextData, PREVIOUS_SESSION_LENGTH, "2");
-		Map<String, String> lifecycleSharedState = lifecycleInternal.getLatestLifecycleSharedState().optStringMap(
+		Map<String, String> lifecycleSharedState = lifecycleExtension.getLatestLifecycleSharedState().optStringMap(
 					LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(lifecycleSharedState, PREVIOUS_SESSION_LENGTH, "2");
 	}
@@ -653,14 +658,14 @@ public class LifecycleModuleTest extends SystemTest {
 		final long secondSessionStartTime = firstSessionPauseTime + 3000;
 		long secondSessionPauseTime = secondSessionStartTime + 2000;
 
-		lifecycleInternal.configureLifecycle(2);
-		lifecycleInternal.startLifecycle(firstSessionStartTime, null);
-		lifecycleInternal.pauseLifecycle(firstSessionPauseTime);
+		lifecycleExtension.configureLifecycle(2);
+		lifecycleExtension.startLifecycle(firstSessionStartTime, null);
+		lifecycleExtension.pauseLifecycle(firstSessionPauseTime);
 		eventHub.clearEvents();
 
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.startLifecycle(secondSessionStartTime, null);
-		lifecycleInternal.pauseLifecycle(secondSessionPauseTime);
+		lifecycleExtension.startLifecycle(secondSessionStartTime, null);
+		lifecycleExtension.pauseLifecycle(secondSessionPauseTime);
 
 		List<Event> events = eventHub.getEvents();
 		assertEquals(1, events.size());
@@ -670,7 +675,7 @@ public class LifecycleModuleTest extends SystemTest {
 		Map<String, String> contextData = lifecycleResponseContentEvent.getData().optStringMap(
 											  LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(contextData, DAYS_SINCE_FIRST_LAUNCH, "3");
-		Map<String, String> lifecycleSharedState = lifecycleInternal.getLatestLifecycleSharedState().optStringMap(
+		Map<String, String> lifecycleSharedState = lifecycleExtension.getLatestLifecycleSharedState().optStringMap(
 					LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(lifecycleSharedState, DAYS_SINCE_FIRST_LAUNCH, "3");
 	}
@@ -685,17 +690,17 @@ public class LifecycleModuleTest extends SystemTest {
 		long firstSessionStartTime = currentTimestampMillis;
 		long firstSessionPauseTime = firstSessionStartTime + 2000;
 
-		lifecycleInternal.configureLifecycle(2);
-		lifecycleInternal.startLifecycle(firstSessionStartTime, null);
-		lifecycleInternal.pauseLifecycle(firstSessionPauseTime);
+		lifecycleExtension.configureLifecycle(2);
+		lifecycleExtension.startLifecycle(firstSessionStartTime, null);
+		lifecycleExtension.pauseLifecycle(firstSessionPauseTime);
 		eventHub.clearEvents();
 
 		eventHub.setExpectedEventCount(1);
 
 		final long secondSessionStartTime = firstSessionPauseTime + TimeUnit.DAYS.toMillis(3);
 		long secondSessionPauseTime = secondSessionStartTime + 2000;
-		lifecycleInternal.startLifecycle(secondSessionStartTime, null);
-		lifecycleInternal.pauseLifecycle(secondSessionPauseTime);
+		lifecycleExtension.startLifecycle(secondSessionStartTime, null);
+		lifecycleExtension.pauseLifecycle(secondSessionPauseTime);
 
 		List<Event> events = eventHub.getEvents();
 		assertEquals(1, events.size());
@@ -720,21 +725,21 @@ public class LifecycleModuleTest extends SystemTest {
 		long thirdSessionPauseTime = thirdSessionStartTime + TimeUnit.SECONDS.toMillis(2);
 
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.configureLifecycle(2);
-		mockSystemInfoService.applicationVersion = "previousVersion";
-		lifecycleInternal.startLifecycle(firstSessionStartTime, null);
-		lifecycleInternal.pauseLifecycle(firstSessionPauseTime);
+		lifecycleExtension.configureLifecycle(2);
+		deviceInfoService.applicationVersion = "previousVersion";
+		lifecycleExtension.startLifecycle(firstSessionStartTime, null);
+		lifecycleExtension.pauseLifecycle(firstSessionPauseTime);
 		eventHub.clearEvents();
 
 		eventHub.setExpectedEventCount(1);
-		mockSystemInfoService.applicationVersion = "newVersion";
-		lifecycleInternal.startLifecycle(secondSessionStartTime, null);
-		lifecycleInternal.pauseLifecycle(secondSessionPauseTime);
+		deviceInfoService.applicationVersion = "newVersion";
+		lifecycleExtension.startLifecycle(secondSessionStartTime, null);
+		lifecycleExtension.pauseLifecycle(secondSessionPauseTime);
 		eventHub.clearEvents();
 
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.startLifecycle(thirdSessionStartTime, null);
-		lifecycleInternal.pauseLifecycle(thirdSessionPauseTime);
+		lifecycleExtension.startLifecycle(thirdSessionStartTime, null);
+		lifecycleExtension.pauseLifecycle(thirdSessionPauseTime);
 
 		List<Event> events = eventHub.getEvents();
 		assertEquals(1, events.size());
@@ -784,7 +789,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.clearEvents();
 		eventHub.setExpectedEventCount(3);
 
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		List<Event> events = eventHub.getEvents();
 		assertEquals(3, events.size());
 
@@ -805,7 +810,7 @@ public class LifecycleModuleTest extends SystemTest {
 		contextData = lifecycleResponseContentEventSession2.getData().optStringMap(
 						  LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(contextData, "session2", "session2");
-		Map<String, String> lifecycleSharedState = lifecycleInternal.getLatestLifecycleSharedState().optStringMap(
+		Map<String, String> lifecycleSharedState = lifecycleExtension.getLatestLifecycleSharedState().optStringMap(
 					LIFECYCLE_CONTEXT_DATA, null);
 		assertMapContains(lifecycleSharedState, "session2", "session2");
 	}
@@ -817,7 +822,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
 
-		lifecycleInternal.configureLifecycle(2);
+		lifecycleExtension.configureLifecycle(2);
 		startThenStopLifecycle(currentTimestampMillis, 3, null);
 
 		List<Event> events = eventHub.getEvents();
@@ -829,11 +834,11 @@ public class LifecycleModuleTest extends SystemTest {
 
 		long expectedSessionStart = currentTimestampMillis / 1000;
 		assertEquals(expectedSessionStart, lifecycleEvent.getData().optLong(SESSION_START_TIMESTAMP, 0));
-		assertEquals(expectedSessionStart, lifecycleInternal.getLatestLifecycleSharedState().optLong(SESSION_START_TIMESTAMP,
+		assertEquals(expectedSessionStart, lifecycleExtension.getLatestLifecycleSharedState().optLong(SESSION_START_TIMESTAMP,
 					 0));
 
 		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleEvent.getData().optLong(MAX_SESSION_LENGTH, 0));
-		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleInternal.getLatestLifecycleSharedState().optLong(MAX_SESSION_LENGTH,
+		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleExtension.getLatestLifecycleSharedState().optLong(MAX_SESSION_LENGTH,
 					 0));
 	}
 
@@ -844,7 +849,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH);
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.configureLifecycle(10);
+		lifecycleExtension.configureLifecycle(10);
 		startThenStopLifecycle(currentTimestampMillis, 2000, null);
 		eventHub.clearEvents();
 
@@ -857,9 +862,9 @@ public class LifecycleModuleTest extends SystemTest {
 
 		//  PreviousSessionStart  + PauseDuration
 		long expectedSessionStart = (currentTimestampMillis + 3000) / 1000;
-		assertEquals(expectedSessionStart, lifecycleInternal.getLatestLifecycleSharedState().optLong(SESSION_START_TIMESTAMP,
+		assertEquals(expectedSessionStart, lifecycleExtension.getLatestLifecycleSharedState().optLong(SESSION_START_TIMESTAMP,
 					 0));
-		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleInternal.getLatestLifecycleSharedState().optLong(MAX_SESSION_LENGTH,
+		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleExtension.getLatestLifecycleSharedState().optLong(MAX_SESSION_LENGTH,
 					 0));
 	}
 
@@ -870,7 +875,7 @@ public class LifecycleModuleTest extends SystemTest {
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH);
 		eventHub.ignoreEvents(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
 		eventHub.setExpectedEventCount(1);
-		lifecycleInternal.configureLifecycle(5);
+		lifecycleExtension.configureLifecycle(5);
 		startThenStopLifecycle(currentTimestampMillis, 2000, null);
 		eventHub.clearEvents();
 
@@ -888,11 +893,12 @@ public class LifecycleModuleTest extends SystemTest {
 		// 2nd session start time
 		long expectedSessionStart = (currentTimestampMillis + 8000) / 1000;
 		assertEquals(expectedSessionStart, lifecycleEvent.getData().optLong(SESSION_START_TIMESTAMP, 0));
-		assertEquals(expectedSessionStart, lifecycleInternal.getLatestLifecycleSharedState().optLong(SESSION_START_TIMESTAMP,
+		assertEquals(expectedSessionStart, lifecycleExtension.getLatestLifecycleSharedState().optLong(SESSION_START_TIMESTAMP,
 					 0));
 
 		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleEvent.getData().optLong(MAX_SESSION_LENGTH, 0));
-		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleInternal.getLatestLifecycleSharedState().optLong(MAX_SESSION_LENGTH,
+		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleExtension.getLatestLifecycleSharedState().optLong(MAX_SESSION_LENGTH,
 					 0));
 	}
 }
+*/

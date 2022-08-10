@@ -1,49 +1,45 @@
-/* **************************************************************************
- *
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2021 Adobe Systems Incorporated
- * All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains
- * the property of Adobe Systems Incorporated and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to Adobe Systems Incorporated and its
- * suppliers and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe Systems Incorporated.
- *
- * *************************************************************************/
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
 
 package com.adobe.marketing.mobile;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
-public class LifecycleV2MetricsBuilderTest extends BaseTest {
-	private FakePlatformServices          fakePlatformServices;
-	private LocalStorageService.DataStore lifecycleDataStore;
-	private MockSystemInfoService         mockSystemInfoService;
-	private long startTimestamp = 1483889568301L; // Sunday, January 8, 2017 3:32:48.301 PM GMT
-	private long closeTimestamp = 1483889123301L; // Sunday, January 8, 2017 3:25:23.301 PM GMT, previous session
+import com.adobe.marketing.mobile.services.DeviceInforming;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
+public class LifecycleV2MetricsBuilderTest {
+
+	@Mock
+	private DeviceInforming deviceInfoService;
+	private final long startTimestamp = 1483889568301L; // Sunday, January 8, 2017 3:32:48.301 PM GMT
 	private LifecycleV2MetricsBuilder xdmMetricsBuilder;
-	private static Map<String, Object> expectedDeviceEnvironmentData = new HashMap<String, Object>();
+	private static final Map<String, Object> expectedDeviceEnvironmentData = new HashMap<>();
 
 	@BeforeClass
 	public static void beforeAll() {
 		expectedDeviceEnvironmentData.put("environment", new HashMap<String, Object>() {
 			{
-				put("carrier", "TEST_CARRIER_NAME");
+				put("carrier", "TEST_CARRIER");
 				put("operatingSystemVersion", "5.55");
 				put("operatingSystem", "TEST_OS");
 				put("type", "application");
@@ -57,70 +53,37 @@ public class LifecycleV2MetricsBuilderTest extends BaseTest {
 		expectedDeviceEnvironmentData.put("device", new HashMap<String, Object>() {
 			{
 				put("manufacturer", "TEST_MANUFACTURER");
-				put("model", "TEST_DEVICE_NAME");
-				put("modelNumber", "TEST_DEVICE_ID");
+				put("model", "deviceName");
+				put("modelNumber", "TEST_PLATFORM");
 				put("type", "mobile");
-				put("screenHeight", 750);
-				put("screenWidth", 1334);
+				put("screenHeight", 100);
+				put("screenWidth", 100);
 			}
 		});
 	}
 
 	@Before
 	public void beforeEach() {
-		fakePlatformServices = new FakePlatformServices();
-		lifecycleDataStore = fakePlatformServices.getLocalStorageService().getDataStore("LIFECYCLE_DATASTORE");
-		mockSystemInfoService = fakePlatformServices.getMockSystemInfoService();
-		mockSystemInfoService.applicationName = "TEST_APPLICATION_NAME";
-		mockSystemInfoService.applicationVersion = "1.11";
-		mockSystemInfoService.applicationVersionCode = "12345";
-		mockSystemInfoService.deviceName = "TEST_DEVICE_NAME";
-		mockSystemInfoService.deviceBuildId = "TEST_DEVICE_ID";
-		mockSystemInfoService.mockCanonicalPlatformName = "TEST_OS";
-		mockSystemInfoService.operatingSystemName = "TEST_OS";
-		mockSystemInfoService.operatingSystemVersion = "5.55";
-		mockSystemInfoService.mobileCarrierName = "TEST_CARRIER_NAME";
-		mockSystemInfoService.runMode = "APPLICATION";
-		mockSystemInfoService.activeLocale = new Locale("en", "US");
-		mockSystemInfoService.deviceManufacturer = "TEST_MANUFACTURER";
-		mockSystemInfoService.applicationPackageName = "test.package.name";
-		mockSystemInfoService.displayInformation = new SystemInfoService.DisplayInformation() {
-			@Override
-			public int getWidthPixels() {
-				return 1334;
-			}
-
-			@Override
-			public int getHeightPixels() {
-				return 750;
-			}
-
-			@Override
-			public int getDensityDpi() {
-				return 500;
-			}
-		};
-		xdmMetricsBuilder = new LifecycleV2MetricsBuilder(mockSystemInfoService);
-	}
-
-	@After
-	public void cleanUp() {
-		if (lifecycleDataStore != null) {
-			lifecycleDataStore.removeAll();
-		}
+	    LifecycleTestHelper.initDeviceInfoService(deviceInfoService);
+        when(deviceInfoService.getDeviceManufacturer()).thenReturn("TEST_MANUFACTURER");
+        when(deviceInfoService.getApplicationPackageName()).thenReturn("test.package.name");
+        when(deviceInfoService.getDeviceType()).thenReturn(DeviceInforming.DeviceType.PHONE);
+		xdmMetricsBuilder = new LifecycleV2MetricsBuilder(deviceInfoService);
 	}
 
 	@Test
 	public void testBuildAppLaunchXDMData_returnsCorrectData_whenIsInstall() {
-		Map<String, Object> actualAppLaunchData = xdmMetricsBuilder.buildAppLaunchXDMData(startTimestamp, true, false);
+		Map<String, Object> actualAppLaunchData = xdmMetricsBuilder.buildAppLaunchXDMData(startTimestamp,
+                true,
+                false);
 
 		// Verify
-		Map<String, Object> expectedData = new HashMap<String, Object>();
+		Map<String, Object> expectedData = new HashMap<>();
 		expectedData.put("application", new HashMap<String, Object>() {
 			{
 				put("name", "TEST_APPLICATION_NAME");
 				put("id", "test.package.name");
-				put("version", "1.11 (12345)");
+				put("version", "1.1 (12345)");
 				put("isInstall", true);
 				put("isLaunch", true);
 			}
@@ -142,7 +105,7 @@ public class LifecycleV2MetricsBuilderTest extends BaseTest {
 			{
 				put("name", "TEST_APPLICATION_NAME");
 				put("id", "test.package.name");
-				put("version", "1.11 (12345)");
+				put("version", "1.1 (12345)");
 				put("isUpgrade", true);
 				put("isLaunch", true);
 			}
@@ -184,7 +147,7 @@ public class LifecycleV2MetricsBuilderTest extends BaseTest {
 			{
 				put("name", "TEST_APPLICATION_NAME");
 				put("id", "test.package.name");
-				put("version", "1.11 (12345)");
+				put("version", "1.1 (12345)");
 				put("isLaunch", true);
 			}
 		});

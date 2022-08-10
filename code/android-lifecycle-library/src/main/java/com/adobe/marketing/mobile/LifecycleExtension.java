@@ -73,7 +73,7 @@ class LifecycleExtension extends Extension {
 
 	@Override
 	public boolean readyForEvent(Event event) {
-		if (event.getType().equals(EventType.TYPE_GENERIC_LIFECYCLE) && event.getSource().equals(EventSource.TYPE_REQUEST_CONTENT)) {
+		if (event.getType().equalsIgnoreCase(EventType.TYPE_GENERIC_LIFECYCLE) && event.getSource().equalsIgnoreCase(EventSource.TYPE_REQUEST_CONTENT)) {
 			SharedStateResult configurationSharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Configuration.MODULE_NAME, event, false, SharedStateResolution.ANY);
 			if (configurationSharedState != null) {
 				return configurationSharedState.status == SharedStateStatus.SET;
@@ -132,18 +132,10 @@ class LifecycleExtension extends Extension {
 	 * @param event to be processed
 	 */
 	void handleEventHubBootEvent(final Event event) {
-		Map<String, String> contextData = new HashMap<>();
-		Map<String, String> currentContextData = lifecycleState.getContextData();
-
-		if (currentContextData != null) {
-			contextData.putAll(currentContextData);
-		}
-
-		Map<String, String> defaultData = new LifecycleMetricsBuilder(geDeviceInfoService(), getDataStore(),
-				event.getTimestampInSeconds()).addCoreData().addGenericData().build();
-		contextData.putAll(defaultData);
-
-		updateLifecycleSharedState(event, 0, contextData);
+		updateLifecycleSharedState(event,
+				0,
+				lifecycleState.computeBootData(event.getTimestampInSeconds())
+		);
 	}
 
 	/**
@@ -153,6 +145,37 @@ class LifecycleExtension extends Extension {
 	 */
 	void updateLastKnownTimestamp(final Event event) {
 		lifecycleV2.updateLastKnownTimestamp(event);
+	}
+
+	/**
+	 * Gets advertising identifier.
+	 *
+	 * @param event Event containing advertising identifier data
+	 *
+	 * @return the advertising identifier
+	 */
+	String getAdvertisingIdentifier(final Event event) {
+		if (event == null) {
+			Log.trace(LifecycleConstants.LOG_TAG, "%s - Failed to get advertising identifier, %s (Event)", SELF_LOG_TAG,
+					Log.UNEXPECTED_NULL_VALUE);
+			return null;
+		}
+
+		SharedStateResult identitySharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Identity.MODULE_NAME, event, false, SharedStateResolution.ANY);
+
+		if (identitySharedState != null && identitySharedState.status == SharedStateStatus.PENDING) {
+			return null;
+		}
+
+		if (identitySharedState != null && identitySharedState.value != null) {
+			try {
+				return (String) identitySharedState.value.get(LifecycleConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER);
+			} catch (Exception e) {
+				return null;
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -170,7 +193,12 @@ class LifecycleExtension extends Extension {
 		Map<String, String> additionalContextData = null;
 
 		if (eventData != null) {
-			additionalContextData = (Map<String, String>) eventData.get(LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
+			try {
+				additionalContextData = (Map<String, String>) eventData.get(LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
+			} catch (Exception e) {
+				Log.trace(LifecycleConstants.LOG_TAG, "%s - Request content event data error, %s(Additional Context Data)", SELF_LOG_TAG,
+						Log.INVALID_FORMAT);
+			}
 		}
 
 		LifecycleSession.SessionInfo previousSessionInfo = lifecycleState.start(startTimestampInSeconds,
@@ -197,7 +225,6 @@ class LifecycleExtension extends Extension {
 
 
 		lifecycleV2.start(event, isInstall);
-
 		if (isInstall) {
 			persistInstallDate(event);
 		}
@@ -219,20 +246,20 @@ class LifecycleExtension extends Extension {
 	 * @param event lifecycle start event.
 	 */
 	private void persistInstallDate(final Event event) {
-		NamedCollection namedCollection = getDataStore();
+		NamedCollection dataStore = getDataStore();
 
-		if (namedCollection == null) {
+		if (dataStore == null) {
 			return;
 		}
 
 		final long startTimestampInSeconds = event.getTimestampInSeconds();
-		namedCollection.setLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, startTimestampInSeconds);
+		dataStore.setLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, startTimestampInSeconds);
 	}
 
 	/**
 	 * Check if install has been processed
 	 *
-	 * @return boolean whether app install has been processed before
+	 * @return true if there is no install date stored in the data store
 	 */
 	private boolean isInstall() {
 		NamedCollection namedCollection = getDataStore();
@@ -247,32 +274,13 @@ class LifecycleExtension extends Extension {
 	private long getSessionTimeoutLength(Map<String, Object> configurationSharedState) {
 		long sessionTimeoutInSeconds = LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT;
 		if (configurationSharedState != null && configurationSharedState.get(LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT) != null) {
-			sessionTimeoutInSeconds = (long) configurationSharedState.get(LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT);
+			try {
+				sessionTimeoutInSeconds = (long) configurationSharedState.get(LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT);
+			} catch (Exception e) {
+				return sessionTimeoutInSeconds;
+			}
 		}
 		return sessionTimeoutInSeconds;
-	}
-
-	/**
-	 * Gets advertising identifier.
-	 *
-	 * @param event Event containing advertising identifier data
-	 *
-	 * @return the advertising identifier
-	 */
-	String getAdvertisingIdentifier(final Event event) {
-		if (event == null) {
-			Log.trace(LifecycleConstants.LOG_TAG, "%s - Failed to get advertising identifier, %s (Event)", SELF_LOG_TAG,
-					Log.UNEXPECTED_NULL_VALUE);
-			return null;
-		}
-
-		SharedStateResult identitySharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Identity.MODULE_NAME, event, false, SharedStateResolution.ANY);
-
-		if (identitySharedState.status == SharedStateStatus.PENDING) {
-			return null;
-		}
-
-		return (String) identitySharedState.value.get(LifecycleConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER);
 	}
 
 	/**

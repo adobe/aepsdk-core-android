@@ -10,6 +10,8 @@
  */
 package com.adobe.marketing.mobile;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
 
@@ -24,13 +26,32 @@ class LifecycleState {
     private final NamedCollection namedCollection;
     private final DeviceInforming deviceInfoService;
     private final LifecycleSession lifecycleSession;
-    private final Map<String, String> lifecycleContextData                = new HashMap<String, String>();
-    private final Map<String, String> previousSessionLifecycleContextData = new HashMap<String, String>();
+    private final Map<String, String> lifecycleContextData                = new HashMap<>();
+    private final Map<String, String> previousSessionLifecycleContextData = new HashMap<>();
 
     LifecycleState(final NamedCollection namedCollection, final DeviceInforming deviceInfoService) {
         this.namedCollection = namedCollection;
         this.deviceInfoService = deviceInfoService;
         lifecycleSession = new LifecycleSession(namedCollection);
+    }
+
+    Map<String, String> computeBootData(final long startTimestampInSeconds) {
+        Map<String, String> contextData = new HashMap<>();
+        Map<String, String> currentContextData = getContextData();
+
+        if (currentContextData != null) {
+            contextData.putAll(currentContextData);
+        }
+
+        Map<String, String> defaultData = new LifecycleMetricsBuilder(
+                deviceInfoService,
+                namedCollection,
+                startTimestampInSeconds)
+                .addCoreData()
+                .addGenericData()
+                .build();
+        contextData.putAll(defaultData);
+        return contextData;
     }
 
     /**
@@ -39,8 +60,9 @@ class LifecycleState {
      * @param additionalContextData additional context data for this start event
      * @param advertisingIdentifier The advertising identifier provided by the identity extension
      * @param sessionTimeoutInSeconds The session timeout for this start event,
-     * @param isInstall
-     * @return
+     * @param isInstall Indicates whether this is an application install scenario
+     * @return Instance of {@code LifecycleSession.SessionInfo} having the previous session info if it exists,
+     * otherwise null
      */
     LifecycleSession.SessionInfo start(long startTimestampInSeconds,
                                        Map<String, String> additionalContextData,
@@ -64,7 +86,7 @@ class LifecycleState {
 
         lifecycleContextData.clear();
 
-        Map<String, String> lifecycleData = new HashMap<String, String>();
+        Map<String, String> lifecycleData = new HashMap<>();
 
         // determine config type (install, upgrade, or launch)
         if (isInstall) { // install hit
@@ -87,12 +109,12 @@ class LifecycleState {
 
             if (namedCollection != null) {
                 final String previousOsVersion = namedCollection.getString(LifecycleConstants.DataStoreKeys.OS_VERSION, "");
-                if (!previousOsVersion.isEmpty()) {
+                if (previousOsVersion != null && !previousOsVersion.isEmpty()) {
                     lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_OS_VERSION, previousOsVersion);
                 }
 
                 final String previousAppId = namedCollection.getString(LifecycleConstants.DataStoreKeys.APP_ID, "");
-                if (!previousAppId.isEmpty()) {
+                if (previousAppId != null && !previousAppId.isEmpty()) {
                     lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_APP_ID, previousAppId);
                 }
             }
@@ -185,6 +207,39 @@ class LifecycleState {
     }
 
     /**
+     * Used for testing only
+     * Update lifecycle context data. Equivalent to calling putAll(contextData)
+     * on existing lifecycle data
+     *
+     * @param contextData  {@code Map<String, String>} context data to be updated
+     */
+    @VisibleForTesting
+    void updateContextData(final Map<String, String> contextData) {
+        if (contextData == null) {
+            return;
+        }
+
+        lifecycleContextData.putAll(contextData);
+    }
+
+    /**
+     * Used for testing only
+     * Update previous session lifecycle context data. Equivalent to calling putAll(contextData)
+     * on prev lifecycle data
+     *
+     * @param contextData  {@code Map<String, String>} context data to be updated
+     */
+    @VisibleForTesting
+    void updatePreviousSessionLifecycleContextData(final Map<String, String> contextData) {
+        if (contextData == null) {
+            return;
+        }
+
+        previousSessionLifecycleContextData.putAll(contextData);
+    }
+
+
+    /**
      * Gets persisted lifecycle context data from local storage.
      *
      * @return {@code Map<String, String>} persisted lifecycle context data
@@ -211,7 +266,9 @@ class LifecycleState {
             previousAppVersion = namedCollection.getString(LifecycleConstants.DataStoreKeys.LAST_VERSION, "");
         }
 
-        return deviceInfoService != null && !previousAppVersion.isEmpty()
+        return deviceInfoService != null
+                && previousAppVersion != null
+                && !previousAppVersion.isEmpty()
                 && !previousAppVersion.equalsIgnoreCase(deviceInfoService.getApplicationVersion());
     }
 

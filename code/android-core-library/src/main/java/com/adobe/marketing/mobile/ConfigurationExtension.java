@@ -1157,7 +1157,7 @@ class ConfigurationExtension extends InternalModule {
         final String rulesFilePath = rulesDirectory.getPath() + File.separator + RULES_JSON_FILE_NAME;
         final File rulesFile = new File(rulesFilePath);
         final String jsonString = readFromFile(rulesFile);
-        this.launchRulesEvaluator.replaceRules(JSONRulesParser.parse(jsonString));
+        this.launchRulesEvaluator.replaceRules(JSONRulesParser.parse(jsonString,null));
     }
 
     /**

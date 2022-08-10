@@ -10,9 +10,9 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine
 
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -24,12 +24,13 @@ private const val ASYNC_TIMEOUT = 1000L
 @JvmSynthetic
 internal fun historicalEventsQuerying(
     requests: List<EventHistoryRequest>,
-    searchType: String
+    searchType: String,
+    extensionApi: ExtensionApi
 ): Int {
     return try {
         val latch = CountDownLatch(1)
         var eventCounts = 0
-        EventHub.shared.eventHistory?.getEvents(
+        extensionApi.getHistoricalEvents(
             requests.toTypedArray(),
             searchType == SEARCH_TYPE_ANY
         ) {

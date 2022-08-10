@@ -48,7 +48,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test group condition`() {
         val json = readTestResources("rules_module_tests/rules_testGroupLogicalOperators.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -97,7 +97,7 @@ class LaunchRulesEngineModuleTests {
 //        PowerMockito.`when`(MobileCore.getEventHistory()).thenReturn(eventHistory)
         val json = readTestResources("rules_module_tests/rules_testHistory.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         assertEquals(1, launchRulesEngine.process(defaultEvent).size)
@@ -107,7 +107,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (co) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherCo.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -128,7 +128,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (co) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherCo.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -152,7 +152,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (ge) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherGe.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -173,7 +173,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (ge) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherGe.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -197,7 +197,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (gt) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherGt.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -218,7 +218,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (gt) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherGt.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -242,7 +242,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (gt) with different types - String vs Int `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherGt_2_types.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -266,7 +266,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (le) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherLe.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -287,7 +287,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (le) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherLe.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -311,7 +311,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (lt) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherLt.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -332,7 +332,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (lt) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherLt.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -356,7 +356,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (nc) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNc.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -377,7 +377,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (nc) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNc.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -401,7 +401,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (ne) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNe.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -422,7 +422,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (ne) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNe.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -446,7 +446,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (nx) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNx.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -467,7 +467,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test matcher condition (nx) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNx.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -492,7 +492,7 @@ class LaunchRulesEngineModuleTests {
         val json =
             readTestResources("rules_module_tests/rules_testMatcherWithDifferentTypesOfParameters.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
@@ -514,7 +514,7 @@ class LaunchRulesEngineModuleTests {
     fun `Test transformer`() {
         val json = readTestResources("rules_module_tests/rules_testTransform.json")
         assertNotNull(json)
-        val rules = JSONRulesParser.parse(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
         val matchedRules = launchRulesEngine.process(

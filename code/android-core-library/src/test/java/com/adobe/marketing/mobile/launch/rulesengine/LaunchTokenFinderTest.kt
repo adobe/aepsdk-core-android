@@ -56,7 +56,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~type")
         // verify
-        assertEquals("com.adobe.eventtype.analytics", result)
+        assertEquals("com.adobe.eventType.analytics", result)
     }
 
     @Test
@@ -67,7 +67,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~source")
         // verify
-        assertEquals("com.adobe.eventsource.requestcontent", result)
+        assertEquals("com.adobe.eventSource.requestContent", result)
     }
 
     @Test
@@ -254,7 +254,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~all_json")
         // verify
-        assertEquals("{}", result)
+        assertEquals("", result)
     }
 
     @Test
@@ -393,14 +393,14 @@ class LaunchTokenFinderTest {
 
     // TODO change if we decide to keep event data as null instead of empty map by default
     @Test
-    fun `get should return null when event data is null on valid event`() {
+    fun `get should return empty string when event data is null on valid event`() {
         // setup
         val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("key1")
         // verify
-        assertEquals(null, result)
+        assertEquals("", result)
     }
 
     @Test

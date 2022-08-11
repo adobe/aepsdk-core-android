@@ -30,12 +30,10 @@ import static org.junit.Assert.fail;
 
 public abstract class BaseTest {
 
-	MockEventHubUnitTest eventHub;
 	FakePlatformServices platformServices;
 
 	void beforeEach() {
 		platformServices = new FakePlatformServices();
-		eventHub = new MockEventHubUnitTest("UnitTest", platformServices);
 	}
 
 	void afterEach() {

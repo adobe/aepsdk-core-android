@@ -66,14 +66,14 @@ class LifecycleExtension extends Extension {
 
 	@Override
 	protected void onRegistered() {
-		getApi().registerEventListener(EventType.TYPE_GENERIC_LIFECYCLE, EventSource.TYPE_REQUEST_CONTENT, this::handleLifecycleRequestEvent);
-		getApi().registerEventListener(EventType.TYPE_HUB, EventSource.TYPE_BOOTED, this::handleEventHubBootEvent);
-		getApi().registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD, this::updateLastKnownTimestamp);
+		getApi().registerEventListener(EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT, this::handleLifecycleRequestEvent);
+		getApi().registerEventListener(EventType.HUB, EventSource.BOOTED, this::handleEventHubBootEvent);
+		getApi().registerEventListener(EventType.WILDCARD, EventSource.WILDCARD, this::updateLastKnownTimestamp);
 	}
 
 	@Override
 	public boolean readyForEvent(Event event) {
-		if (event.getType().equalsIgnoreCase(EventType.TYPE_GENERIC_LIFECYCLE) && event.getSource().equalsIgnoreCase(EventSource.TYPE_REQUEST_CONTENT)) {
+		if (event.getType().equalsIgnoreCase(EventType.GENERIC_LIFECYCLE) && event.getSource().equalsIgnoreCase(EventSource.REQUEST_CONTENT)) {
 			SharedStateResult configurationSharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Configuration.MODULE_NAME, event, false, SharedStateResolution.ANY);
 			if (configurationSharedState != null) {
 				return configurationSharedState.status == SharedStateStatus.SET;
@@ -107,8 +107,7 @@ class LifecycleExtension extends Extension {
 		if (eventData == null) {
 			Log.trace(LifecycleConstants.LOG_TAG, "%s - Failed to process lifecycle event '%s for %s (%d)'", SELF_LOG_TAG,
 					Log.UNEXPECTED_NULL_VALUE,
-					event.getName(),
-					event.getEventNumber());
+					event.getName());
 			return;
 		}
 
@@ -340,11 +339,9 @@ class LifecycleExtension extends Extension {
 
 		final Event startEvent = new Event.Builder(
 				LifecycleConstants.EventName.LIFECYCLE_START_EVENT,
-				EventType.TYPE_LIFECYCLE,
-				EventSource.TYPE_RESPONSE_CONTENT).setEventData(eventDataMap).build();
+				EventType.LIFECYCLE,
+				EventSource.RESPONSE_CONTENT).setEventData(eventDataMap).build();
 
-		if(!getApi().dispatch(startEvent)) {
-			Log.error(SELF_LOG_TAG, "Failed to dispatch lifecycle start event");
-		}
+		getApi().dispatch(startEvent);
 	}
 }

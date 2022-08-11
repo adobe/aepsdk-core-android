@@ -7,13 +7,16 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+ *//*
+
 
 package com.adobe.marketing.mobile;
 
+*/
 /**
  * Listens for {@code EventType.CONFIGURATION} - {@code EventSource.RESPONSE_CONTENT} {@code Event}.
- */
+ *//*
+
 class ListenerConfigurationResponseContentSignal extends ModuleEventListener<SignalExtension> {
 
 	ListenerConfigurationResponseContentSignal(final SignalExtension module, final EventType type,
@@ -26,3 +29,4 @@ class ListenerConfigurationResponseContentSignal extends ModuleEventListener<Sig
 											 SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, "")));
 	}
 }
+*/

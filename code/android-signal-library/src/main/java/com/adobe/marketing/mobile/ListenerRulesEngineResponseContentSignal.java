@@ -7,15 +7,18 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+ *//*
+
 
 package com.adobe.marketing.mobile;
 
 import java.util.Map;
 
+*/
 /**
  * Listens for {@code EventType.RULES_ENGINE} - {@code EventSource.RESPONSE_CONTENT} {@code Event}.
- */
+ *//*
+
 class ListenerRulesEngineResponseContentSignal extends ModuleEventListener<SignalExtension> {
 
 	private static final String LOGTAG = "ListenerRulesEngineResponseContentSignal";
@@ -60,3 +63,4 @@ class ListenerRulesEngineResponseContentSignal extends ModuleEventListener<Signa
 
 	}
 }
+*/

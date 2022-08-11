@@ -643,7 +643,7 @@ internal class EventHub {
         val eventName = if (sharedStateType == SharedStateType.STANDARD) EventHubConstants.STATE_CHANGE else EventHubConstants.XDM_STATE_CHANGE
         val data = mapOf(EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to extensionName)
 
-        val event = Event.Builder(eventName, EventType.TYPE_HUB, EventSource.TYPE_SHARED_STATE)
+        val event = Event.Builder(eventName, EventType.HUB, EventSource.SHARED_STATE)
             .setEventData(data).build()
         dispatchInternal(event)
     }
@@ -659,8 +659,8 @@ internal class EventHub {
                     EventHubConstants.EventDataKeys.FRIENDLY_NAME to it.friendlyName,
                     EventHubConstants.EventDataKeys.VERSION to it.version
                 )
-                it.metadata?.let {
-                    extensionInfo[EventHubConstants.EventDataKeys.METADATA] = it
+                it.metadata?.let { metadata ->
+                    extensionInfo[EventHubConstants.EventDataKeys.METADATA] = metadata
                 }
 
                 extensionsInfo[extensionName] = extensionInfo

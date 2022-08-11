@@ -8,6 +8,7 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
+@file:Suppress("DEPRECATION")
 
 package com.adobe.marketing.mobile.internal.eventhub
 
@@ -28,7 +29,7 @@ import java.lang.Exception
 internal fun Class<out Extension>.initWith(extensionApi: ExtensionApi): Extension? {
     try {
         val extensionConstructor = this.getDeclaredConstructor(ExtensionApi::class.java)
-        extensionConstructor.setAccessible(true)
+        extensionConstructor.isAccessible = true
         return extensionConstructor.newInstance(extensionApi)
     } catch (ex: Exception) {
         MobileCore.log(LoggingMode.DEBUG, "Extension", "Initializing Extension $this failed with $ex")
@@ -101,7 +102,7 @@ internal fun Class<out ExtensionListener>.initWith(extensionApi: ExtensionApi, t
                 String::class.java,
                 String::class.java
             )
-            extensionListenerConstructor.setAccessible(true)
+            extensionListenerConstructor.isAccessible = true
             return extensionListenerConstructor.newInstance(extensionApi, type, source)
         }
     } catch (ex: Exception) {

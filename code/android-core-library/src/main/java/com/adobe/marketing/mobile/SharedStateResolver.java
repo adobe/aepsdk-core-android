@@ -20,7 +20,7 @@ import java.util.Map;
 public interface SharedStateResolver {
     /**
      *
-     * @param state A Map<String, Object> containing data to resolve pending shared state.
+     * @param state A {@code Map<String, Object>} containing data to resolve pending shared state.
      */
     void resolve(final Map<String, Object> state);
 }

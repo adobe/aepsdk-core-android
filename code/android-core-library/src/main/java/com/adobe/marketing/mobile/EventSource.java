@@ -19,85 +19,21 @@ import java.util.Map;
  * @author Adobe Systems Incorporated
  * @version 5.0
  * @see Event
- * @see EventHub
  * @see EventType
  */
 public final class EventSource {
-
-	// Todo - Expose String constants. Remove 'TYPE' prefix after fixing build issues
-	public static final String TYPE_WILDCARD = "com.adobe.eventSource._wildcard_";
-	public static final String TYPE_SHARED_STATE = "com.adobe.eventSource.sharedState";
-	public static final String TYPE_REQUEST_CONTENT = "com.adobe.eventSource.requestContent";
-	public static final String TYPE_BOOTED = "com.adobe.eventSource.booted";
-	public static final String TYPE_RESPONSE_CONTENT = "com.adobe.eventSource.responseContent";
-	public static final String TYPE_APPLICATION_LAUNCH = "com.adobe.eventSource.applicationLaunch";
-	public static final String TYPE_APPLICATION_CLOSE = "com.adobe.eventSource.applicationClose";
-
-	private static final String ADOBE_PREFIX = "com.adobe.eventSource.";
-	private static final Map<String, EventSource> knownSources = new HashMap<String, EventSource>();
-	private static final Object knownSourcesMutex = new Object();
-
-	static final EventSource BOOTED = get(ADOBE_PREFIX + "booted");
-	static final EventSource NONE = get(ADOBE_PREFIX + "none");
-	static final EventSource OS = get(ADOBE_PREFIX + "os");
-	static final EventSource REQUEST_CONTENT = get(ADOBE_PREFIX + "requestContent");
-	static final EventSource REQUEST_IDENTITY = get(ADOBE_PREFIX + "requestIdentity");
-	static final EventSource REQUEST_PROFILE = get(ADOBE_PREFIX + "requestProfile");
-	static final EventSource REQUEST_RESET = get(ADOBE_PREFIX + "requestReset");
-	static final EventSource RESPONSE_CONTENT = get(ADOBE_PREFIX + "responseContent");
-	static final EventSource RESPONSE_IDENTITY = get(ADOBE_PREFIX + "responseIdentity");
-	static final EventSource RESPONSE_PROFILE = get(ADOBE_PREFIX + "responseProfile");
-	static final EventSource SHARED_STATE = get(ADOBE_PREFIX + "sharedState");
-	static final EventSource WILDCARD = get(ADOBE_PREFIX + "_wildcard_");
-	static final EventSource APPLICATION_LAUNCH = get(ADOBE_PREFIX + "applicationLaunch");
-	static final EventSource APPLICATION_CLOSE = get(ADOBE_PREFIX + "applicationClose");
-
-
-	private final String name;
-
-	/**
-	 * Returns an {@code EventSource} representing the provided {@code String},
-	 * null if the provided string is null/empty or it has whitespaces only.
-	 * <p>
-	 * Whenever the lower cased string of {@code sourceName} is the same, this method will return the same
-	 * {@link EventSource} instance, so '==' can be used to compare the equivalent of two {@code EventSource}s.
-	 *
-	 * @param sourceName the name of the {@link EventSource} to return
-	 * @return an {@code EventSource} from the @{code knownTypes} map
-	 */
-	static EventSource get(final String sourceName) {
-		if (StringUtils.isNullOrEmpty(sourceName)) {
-			return null;
-		}
-
-		final String normalizedSourceName = sourceName.toLowerCase();
-
-		synchronized (knownSourcesMutex) {
-			if (knownSources.containsKey(normalizedSourceName)) {
-				return knownSources.get(normalizedSourceName);
-			}
-
-			final EventSource eventSource = new EventSource(normalizedSourceName);
-			knownSources.put(normalizedSourceName, eventSource);
-			return eventSource;
-		}
-	}
-
-	/**
-	 * Constructor for an {@code EventSource}
-	 *
-	 * @param sourceName {@link String} description of the {@link EventSource} being created
-	 */
-	private EventSource(final String sourceName) {
-		name = sourceName;
-	}
-
-	/**
-	 * Returns the {@code String} name of the current {@code EventSource}
-	 *
-	 * @return the {@link String} representation of this {@link EventSource}
-	 */
-	String getName() {
-		return name;
-	}
+	public static final String BOOTED = "com.adobe.eventSource.booted";
+	public static final String NONE = "com.adobe.eventSource.none";
+	public static final String OS = "com.adobe.eventSource.os";
+	public static final String REQUEST_CONTENT = "com.adobe.eventSource.requestContent";
+	public static final String REQUEST_IDENTITY = "com.adobe.eventSource.requestIdentity";
+	public static final String REQUEST_PROFILE = "com.adobe.eventSource.requestProfile";
+	public static final String REQUEST_RESET = "com.adobe.eventSource.requestReset";
+	public static final String RESPONSE_CONTENT = "com.adobe.eventSource.responseContent";
+	public static final String RESPONSE_IDENTITY = "com.adobe.eventSource.responseIdentity";
+	public static final String RESPONSE_PROFILE = "com.adobe.eventSource.responseProfile";
+	public static final String SHARED_STATE = "com.adobe.eventSource.sharedState";
+	public static final String WILDCARD = "com.adobe.eventSource._wildcard_";
+	public static final String APPLICATION_LAUNCH = "com.adobe.eventSource.applicationLaunch";
+	public static final String APPLICATION_CLOSE = "com.adobe.eventSource.applicationClose";
 }

@@ -11,8 +11,6 @@
 
 package com.adobe.marketing.mobile;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 @SuppressWarnings("unused")
 public class Lifecycle {
 	private final static String TAG = Lifecycle.class.getSimpleName();

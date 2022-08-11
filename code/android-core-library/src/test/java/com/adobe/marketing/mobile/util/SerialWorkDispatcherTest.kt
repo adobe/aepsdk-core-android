@@ -20,9 +20,8 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.stubbing.Answer
-import org.powermock.modules.junit4.PowerMockRunner
-import org.powermock.reflect.Whitebox
 import java.lang.IllegalStateException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -33,13 +32,14 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
-@RunWith(PowerMockRunner::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
 class SerialWorkDispatcherTest {
 
     /**
      * A test implementation of [SerialWorkDispatcher] that enables testing internal state logic.
      */
-    class TestSerialWorkDispatcher(name: String, workHandler: WorkHandler<Event>) : SerialWorkDispatcher<Event>(name, workHandler) {
+    class TestSerialWorkDispatcher(name: String, workHandler: WorkHandler<Event>) :
+        SerialWorkDispatcher<Event>(name, workHandler) {
         var processedEvents: ArrayList<Event>? = null
 
         var blockWork: Boolean = false
@@ -57,19 +57,20 @@ class SerialWorkDispatcherTest {
         }
     }
 
-    private val workHandler: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler {
-        serialWorkDispatcher.processedEvents?.add(it)
-    }
+    private val workHandler: SerialWorkDispatcher.WorkHandler<Event> =
+        SerialWorkDispatcher.WorkHandler {
+            serialWorkDispatcher.processedEvents?.add(it)
+        }
 
     @Mock
     private lateinit var mockExecutorService: ExecutorService
 
-    private val serialWorkDispatcher: TestSerialWorkDispatcher = TestSerialWorkDispatcher("TestImpl", workHandler)
+    private val serialWorkDispatcher: TestSerialWorkDispatcher =
+        TestSerialWorkDispatcher("TestImpl", workHandler)
 
     @Before
     fun setUp() {
-        Whitebox.setInternalState(serialWorkDispatcher, "executorService", mockExecutorService)
-
+        serialWorkDispatcher.setExecutorService(mockExecutorService)
         Mockito.doAnswer(
             Answer {
                 val runnable = it.getArgument<Runnable>(0)
@@ -275,13 +276,14 @@ class SerialWorkDispatcherTest {
 
         var processedEvents = ArrayList<Event>()
         val latch = CountDownLatch(1)
-        val workHandler: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler {
-            processedEvents.add(it)
-            if (it.name == "Event3") {
-                latch.countDown()
+        val workHandler: SerialWorkDispatcher.WorkHandler<Event> =
+            SerialWorkDispatcher.WorkHandler {
+                processedEvents.add(it)
+                if (it.name == "Event3") {
+                    latch.countDown()
+                }
+                Thread.sleep(50)
             }
-            Thread.sleep(50)
-        }
 
         val serialDispatcher = SerialWorkDispatcher("", workHandler)
         serialDispatcher.offer(event1)

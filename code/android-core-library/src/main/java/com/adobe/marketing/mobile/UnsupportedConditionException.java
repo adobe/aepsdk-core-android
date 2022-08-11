@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile;
 
 /**
- * This Exception is used by the {@link Rule} parsing logic to report on any unsupported condition parsing behavior.
+ * This Exception is used by the parsing logic to report on any unsupported condition parsing behavior.
  */
 class UnsupportedConditionException extends Exception {
 	UnsupportedConditionException(final String message) {

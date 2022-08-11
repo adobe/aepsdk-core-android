@@ -26,15 +26,13 @@ import org.mockito.Mock
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
+import org.mockito.junit.MockitoJUnitRunner
 import java.util.concurrent.Executors
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-@PrepareForTest(EventHub::class)
-@RunWith(PowerMockRunner::class)
+@RunWith(MockitoJUnitRunner.Silent::class)
 internal class ExtensionContainerTests {
 
     private class TestExtension(api: ExtensionApi) : Extension(api) {
@@ -343,7 +341,7 @@ internal class ExtensionContainerTests {
     @Test
     fun testStopEvents_shouldStopProcessingEvents() {
         var capturedEvents = mutableListOf<Event>()
-        container?.registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+        container?.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) {
             capturedEvents.add(it)
         }
 
@@ -367,7 +365,7 @@ internal class ExtensionContainerTests {
     @Test
     fun testStartEvents_shouldResumeProcessingEvents() {
         var capturedEvents = mutableListOf<Event>()
-        container?.registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+        container?.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) {
             capturedEvents.add(it)
         }
 

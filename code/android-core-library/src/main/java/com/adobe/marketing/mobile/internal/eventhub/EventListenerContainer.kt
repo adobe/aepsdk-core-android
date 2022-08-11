@@ -53,10 +53,10 @@ internal class ExtensionListenerContainer(val eventType: String, val eventSource
     override fun shouldNotify(event: Event): Boolean {
         // Wildcard listeners should only be notified of paired response events.
         return if (event.responseID != null) {
-            (eventType == EventType.TYPE_WILDCARD && eventSource == EventSource.TYPE_WILDCARD)
+            (eventType == EventType.WILDCARD && eventSource == EventSource.WILDCARD)
         } else {
             eventType.equals(event.type, ignoreCase = true) && eventSource.equals(event.source, ignoreCase = true) ||
-                eventType == EventType.TYPE_WILDCARD && eventSource == EventSource.TYPE_WILDCARD
+                eventType == EventType.WILDCARD && eventSource == EventSource.WILDCARD
         }
     }
 

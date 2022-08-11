@@ -24,9 +24,8 @@ public abstract class ExtensionApi {
 	 * @param eventType required parameter, the event type as a valid string (not null or empty)
 	 * @param eventSource required parameter, the event source as a valid string (not null or empty)
 	 * @param eventListener required parameter, the listener which extends the {@link ExtensionEventListener} interface
-	 * @return a {@code boolean} indicating the listener registration status
 	 */
-	public abstract boolean registerEventListener(final String eventType,
+	public abstract void registerEventListener(final String eventType,
 												  final String eventSource,
 												  final ExtensionEventListener eventListener);
 
@@ -34,9 +33,8 @@ public abstract class ExtensionApi {
 	 * Dispatches an `Event` to the `EventHub`
 	 *
 	 * @param event An Event to be dispatched to the {@code EventHub}
-	 * @return a {@code boolean} indicating whether the event was successfully dispatched
 	 */
-	public abstract boolean dispatch(final Event event);
+	public abstract void dispatch(final Event event);
 
 	/**
 	 * Starts the `Event` queue for this extension
@@ -132,7 +130,7 @@ public abstract class ExtensionApi {
 
 	/**
 	 * Unregisters current extension.
-	 * <br/>
+	 * <br>
 	 * This method executes asynchronously, unregistering the extension on the event hub thread. {@link Extension#onUnregistered}
 	 * method will be called at the end of this operation.
 	 *

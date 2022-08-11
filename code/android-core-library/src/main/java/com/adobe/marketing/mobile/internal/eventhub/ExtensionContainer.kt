@@ -9,6 +9,8 @@
   governing permissions and limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package com.adobe.marketing.mobile.internal.eventhub
 
 import com.adobe.marketing.mobile.Event
@@ -147,46 +149,44 @@ internal class ExtensionContainer constructor(
         eventType: String?,
         eventSource: String?,
         eventListener: ExtensionEventListener?
-    ): Boolean {
+    ) {
 
         if (eventType == null) {
             MobileCore.log(
                 LoggingMode.WARNING, getTag(),
                 "'registerEventListener' failed as event type is null"
             )
-            return false
+            return
         }
         if (eventSource == null) {
             MobileCore.log(
                 LoggingMode.WARNING, getTag(),
                 "'registerEventListener' failed as event source is null"
             )
-            return false
+            return
         }
         if (eventListener == null) {
             MobileCore.log(
                 LoggingMode.WARNING, getTag(),
                 "'registerEventListener' failed as event listener is null"
             )
-            return false
+            return
         }
 
         eventListeners.add(ExtensionListenerContainer(eventType, eventSource, eventListener))
-        return true
     }
 
     override fun dispatch(
         event: Event?
-    ): Boolean {
+    ) {
         if (event == null) {
             MobileCore.log(
                 LoggingMode.WARNING, getTag(),
                 "'dispatch' failed as event is null"
             )
-            return false
+            return
         }
         EventHub.shared.dispatch(event)
-        return true
     }
 
     override fun startEvents() {
@@ -407,22 +407,25 @@ internal class ExtensionContainer constructor(
         errorCallback: ExtensionErrorCallback<ExtensionError>?,
     ): Boolean {
         val extensionListener = extensionListenerClass?.initWith(this, eventType, eventSource)
-        if (extensionListener == null) {
+        if (extensionListener == null || eventType == null || eventSource == null) {
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        return registerEventListener(eventType, eventSource) { extensionListener.hear(it) }
+
+        registerEventListener(eventType, eventSource) { extensionListener.hear(it) }
+        return true
     }
 
     override fun <T : ExtensionListener> registerWildcardListener(
         extensionListenerClass: Class<T>?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,
     ): Boolean {
-        val extensionListener = extensionListenerClass?.initWith(this, EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD)
+        val extensionListener = extensionListenerClass?.initWith(this, EventType.WILDCARD, EventSource.WILDCARD)
         if (extensionListener == null) {
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        return registerEventListener(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) { extensionListener.hear(it) }
+        registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) { extensionListener.hear(it) }
+        return true
     }
 }

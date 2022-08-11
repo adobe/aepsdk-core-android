@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+ *//*
+
 package com.adobe.marketing.mobile;
 
 import java.util.Map;
@@ -20,12 +21,14 @@ class SignalExtension extends InternalModule {
 	// TODO refactor to use public hit queue
 	// private SignalHitsDatabase signalHitsDatabase;
 
-	/**
+	*/
+/**
 	 * Constructor for an internal module, must be called by inheritors.
 	 *
 	 * @param hub         <code>com.adobe.marketing.mobile.EventHub</code> instance of eventhub that owns this module
 	 * @param services    <code>PlatformServices</code> instance
-	 */
+	 *//*
+
 	SignalExtension(final EventHub hub, final PlatformServices services) {
 		super(SignalConstants.EventDataKeys.Signal.MODULE_NAME, hub, services);
 		registerListener(EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT, ListenerRulesEngineResponseContentSignal.class);
@@ -36,24 +39,30 @@ class SignalExtension extends InternalModule {
 		this.unprocessedEvents = new ConcurrentLinkedQueue<Event>();
 	}
 
-	/**
+	*/
+/**
 	 * Constructor for testing purposes.
 	 *
 	 * @param hub         <code>com.adobe.marketing.mobile.EventHub</code> instance of eventhub that owns this module
 	 * @param services    <code>PlatformServices</code> instance
 	 * @param database    <code>SignalHitsDatabase</code> instance
-	 */
+	 *//*
+
 	// TODO refactor to use public hit queue
-	/* SignalExtension(final EventHub hub, final PlatformServices services, final SignalHitsDatabase database) {
+	*/
+/* SignalExtension(final EventHub hub, final PlatformServices services, final SignalHitsDatabase database) {
 		this(hub, services);
 		this.signalHitsDatabase = database;
-	} */
+	} *//*
 
-	/**
+
+	*/
+/**
 	 * queue the signal event (postback or pii), triggered by Rules Engine, and try to process the events in queue.
 	 *
 	 * @param event original signal event{@code event} containing consequence data.
-	 */
+	 *//*
+
 	void handleSignalConsequenceEvent(final Event event) {
 		getExecutor().execute(new Runnable() {
 			@Override
@@ -65,14 +74,16 @@ class SignalExtension extends InternalModule {
 		});
 	}
 
-	/**
+	*/
+/**
 	 * Removes the URL from the {@code event}'s {@code EventData} and passes them to the {@code UIService} to open.
 	 * <p>
 	 * Calling this method does nothing if there is no {@value SignalConstants.EventDataKeys.Signal#RULES_RESPONSE_CONTENT_OPENURL_URLS}
 	 * key in the {@link EventData}, or if the {@link UIService} is unavailable.
 	 *
 	 * @param event {@link Event} containing the URLs to process
-	 */
+	 *//*
+
 	void handleOpenURLConsequenceEvent(final Event event) {
 		getExecutor().execute(new Runnable() {
 			@SuppressWarnings("unchecked")
@@ -129,11 +140,13 @@ class SignalExtension extends InternalModule {
 		});
 	}
 
-	/**
+	*/
+/**
 	 * Clear the queue if opt-out, and pass the status to database.
 	 *
 	 * @param privacyStatus the new privacy status
-	 */
+	 *//*
+
 	void updatePrivacyStatus(final MobilePrivacyStatus privacyStatus) {
 		getExecutor().execute(new Runnable() {
 			@Override
@@ -149,9 +162,11 @@ class SignalExtension extends InternalModule {
 		});
 	}
 
-	/**
+	*/
+/**
 	 * try to process the event in queue
-	 */
+	 *//*
+
 	void tryProcessQueuedEvent() {
 		while (!unprocessedEvents.isEmpty()) {
 			final Event currentEvent = unprocessedEvents.peek();
@@ -165,12 +180,14 @@ class SignalExtension extends InternalModule {
 		}
 	}
 
-	/**
+	*/
+/**
 	 * check if configuration shared state is ready, if so go ahead and process the signal event. Otherwise just return false.
 	 *
 	 * @param event the signal event
 	 * @return true if the event has been processed, otherwise false.
-	 */
+	 *//*
+
 	boolean processSignalEvent(final Event event) {
 		EventData configurationSharedState = getSharedEventState(SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
 											 event);
@@ -215,3 +232,4 @@ class SignalExtension extends InternalModule {
 		return true;
 	}
 }
+*/

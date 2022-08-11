@@ -12,8 +12,8 @@
 package com.adobe.marketing.mobile.rulesengine;
 
 public class UnaryExpression<A> implements Evaluable {
-	private Operand<A> lhs;
-	private String operationName;
+	private final Operand<A> lhs;
+	private final String operationName;
 
 	public UnaryExpression(Operand<A> lhs, String operationName) {
 		this.lhs = lhs;

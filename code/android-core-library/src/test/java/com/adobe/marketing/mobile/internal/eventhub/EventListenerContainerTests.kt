@@ -37,7 +37,7 @@ internal class EventListenerContainerTests {
                 override fun fail(error: AdobeError?) {}
             }
         )
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
         assertTrue { listener.shouldNotify(testResponseEvent) }
     }
 
@@ -77,7 +77,7 @@ internal class EventListenerContainerTests {
 
     @Test
     fun testEventListener_WildcardListener() {
-        val listener = ExtensionListenerContainer(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {}
+        val listener = ExtensionListenerContainer(EventType.WILDCARD, EventSource.WILDCARD) {}
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
         assertTrue { listener.shouldNotify(testEvent) }
@@ -91,24 +91,24 @@ internal class EventListenerContainerTests {
         val listener = ExtensionListenerContainer(eventType, eventSource) {}
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
 
         assertFalse { listener.shouldNotify(testResponseEvent) }
     }
 
     @Test
     fun testEventListener_WildcardTriggerForResponseEvent() {
-        val listener = ExtensionListenerContainer(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {}
+        val listener = ExtensionListenerContainer(EventType.WILDCARD, EventSource.WILDCARD) {}
 
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
-        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).setTriggerEvent(testEvent).build()
+        val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
 
         assertTrue { listener.shouldNotify(testResponseEvent) }
     }
 
     @Test
     fun testEventListener_HandleListenerException() {
-        val listener = ExtensionListenerContainer(EventType.TYPE_WILDCARD, EventSource.TYPE_WILDCARD) {
+        val listener = ExtensionListenerContainer(EventType.WILDCARD, EventSource.WILDCARD) {
             throw Exception()
         }
 

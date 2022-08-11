@@ -7,14 +7,17 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+ *//*
+
 package com.adobe.marketing.mobile;
 
 import java.util.Map;
 
+*/
 /**
  * Signal Core code
- */
+ *//*
+
 class SignalCore {
 
 	private static final String LOG_TAG = SignalCore.class.getSimpleName();
@@ -37,11 +40,13 @@ class SignalCore {
 		}
 	}
 
-	/**
+	*/
+/**
 	 * Create collect PII event, which is listened by Rules Engine module to determine if the data matches any PII request.
 	 *
 	 * @param data the PII data to be collected, which will be used in Rules Engine comparison and request token replacement.
-	 */
+	 *//*
+
 	void collectPii(final Map<String, String> data) {
 		if (data == null || data.isEmpty()) {
 			Log.debug(LOG_TAG, "Could not trigger PII, the data is null or empty.");
@@ -56,3 +61,4 @@ class SignalCore {
 
 
 }
+*/

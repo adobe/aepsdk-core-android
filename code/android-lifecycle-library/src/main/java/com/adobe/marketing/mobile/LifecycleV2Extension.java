@@ -208,12 +208,10 @@ class LifecycleV2Extension {
 		}
 		Event lifecycleLaunchEvent = new Event.Builder(
 				LifecycleV2Constants.EventName.APPLICATION_LAUNCH_EVENT,
-				EventType.TYPE_LIFECYCLE,
-				EventSource.TYPE_APPLICATION_LAUNCH
+				EventType.LIFECYCLE,
+				EventSource.APPLICATION_LAUNCH
 		).setEventData(launchEventData).build();
-		if(extensionApi.dispatch(lifecycleLaunchEvent)) {
-			Log.error(SELF_LOG_TAG, "Failed to dispatch lifecycle application launch event");
-		}
+		extensionApi.dispatch(lifecycleLaunchEvent);
 	}
 
 	/**
@@ -231,12 +229,10 @@ class LifecycleV2Extension {
 
 		Event lifecycleCloseEvent = new Event.Builder(
 				LifecycleV2Constants.EventName.APPLICATION_CLOSE_EVENT,
-				EventType.TYPE_LIFECYCLE,
-				EventSource.TYPE_APPLICATION_CLOSE)
+				EventType.LIFECYCLE,
+				EventSource.APPLICATION_CLOSE)
 				.setEventData(closeEventData).build();
-		if (extensionApi.dispatch(lifecycleCloseEvent)) {
-			Log.error(SELF_LOG_TAG, "Failed to dispatch lifecycle application close event");
-		}
+		extensionApi.dispatch(lifecycleCloseEvent);
 	}
 
 }

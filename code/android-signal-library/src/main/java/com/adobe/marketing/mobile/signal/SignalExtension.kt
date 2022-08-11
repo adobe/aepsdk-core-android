@@ -30,10 +30,10 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
     }
 
     override fun onRegistered() {
-        api?.registerEventListener(EventType1.RULES_ENGINE, EventSource1.RESPONSE_CONTENT) {
+        api?.registerEventListener(EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT) {
             handleRulesEngineResponse(it)
         }
-        api?.registerEventListener(EventType1.CONFIGURATION, EventSource1.RESPONSE_CONTENT) {
+        api?.registerEventListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT) {
             handleConfigurationResponse(it)
         }
     }

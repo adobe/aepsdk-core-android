@@ -30,6 +30,7 @@ internal object Log {
         MobileCore.log(LoggingMode.WARNING, source, message)
     }
 
+    @JvmStatic
     fun error(source: String?, message: String?) {
         MobileCore.log(LoggingMode.ERROR, source, message)
     }

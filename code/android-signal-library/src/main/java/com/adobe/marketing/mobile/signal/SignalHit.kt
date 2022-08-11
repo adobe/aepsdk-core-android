@@ -13,24 +13,18 @@ package com.adobe.marketing.mobile.signal
 import com.adobe.marketing.mobile.services.DataEntity
 import org.json.JSONObject
 
-private const val URL = "url"
-private const val BODY = "body"
-private const val CONTENT_TYPE = "contentType"
-private const val TIME_OUT = "timeout"
-private const val EMPTY_JSON = ""
-
 internal class SignalHit(
-        val url: String,
-        val body: String,
-        val contentType: String,
-        private val timeout: Int
+    val url: String,
+    val body: String,
+    val contentType: String,
+    private val timeout: Int
 ) {
     internal fun toDataEntity(): DataEntity {
         val map = mapOf<String, Any>(
-                URL to url,
-                BODY to body,
-                CONTENT_TYPE to contentType,
-                TIME_OUT to timeout
+            URL to url,
+            BODY to body,
+            CONTENT_TYPE to contentType,
+            TIME_OUT to timeout
         )
         val json = try {
             JSONObject(map).toString()
@@ -41,6 +35,12 @@ internal class SignalHit(
     }
 
     companion object {
+        private const val URL = "url"
+        private const val BODY = "body"
+        private const val CONTENT_TYPE = "contentType"
+        private const val TIME_OUT = "timeout"
+        private const val EMPTY_JSON = ""
+
         internal fun from(dataEntity: DataEntity): SignalHit {
             val json = dataEntity.data ?: EMPTY_JSON
             val jsonObject = try {
@@ -49,10 +49,10 @@ internal class SignalHit(
                 JSONObject()
             }
             return SignalHit(
-                    jsonObject.optString(URL),
-                    jsonObject.optString(BODY),
-                    jsonObject.optString(CONTENT_TYPE),
-                    jsonObject.optInt(TIME_OUT, 0)
+                jsonObject.optString(URL),
+                jsonObject.optString(BODY),
+                jsonObject.optString(CONTENT_TYPE),
+                jsonObject.optInt(TIME_OUT, 0)
             )
         }
 

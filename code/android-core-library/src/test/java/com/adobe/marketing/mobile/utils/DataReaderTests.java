@@ -306,20 +306,9 @@ public class DataReaderTests {
 
     @Test
     public void testReadString() throws Exception {
-        assertEquals(Long.toString(Long.MAX_VALUE), DataReader.getString(data, "LONG_MAX"));
-        assertEquals(Integer.toString(Integer.MAX_VALUE), DataReader.getString(data, "INT_MAX"));
-        assertEquals(Short.toString(Short.MAX_VALUE), DataReader.getString(data, "SHORT_MAX"));
-        assertEquals(Byte.toString(Byte.MAX_VALUE), DataReader.getString(data, "BYTE_MAX"));
-        assertEquals(Float.toString(Float.MAX_VALUE), DataReader.getString(data, "FLOAT_MAX"));
-        assertEquals(Double.toString(Double.MAX_VALUE), DataReader.getString(data, "DOUBLE_MAX"));
+        checkCastException((key) -> DataReader.getString(data, key), Arrays.asList("FLOAT", "BYTE", "INT", "DOUBLE"));
+        checkCastException((key) -> DataReader.getString(data, key), Arrays.asList("LONG_MAX", "INT_MAX", "SHORT_MAX", "BYTE_MAX", "FLOAT_MAX", "DOUBLE_MAX"));
         assertEquals("STRING", DataReader.getString(data, "STRING"));
-
-        assertEquals("1", DataReader.getString(data, "BYTE"));
-        assertEquals("2", DataReader.getString(data, "SHORT"));
-        assertEquals("3", DataReader.getString(data, "INT"));
-        assertEquals("4", DataReader.getString(data, "LONG"));
-        assertEquals("5.5", DataReader.getString(data, "FLOAT"));
-        assertEquals("6.6", DataReader.getString(data, "DOUBLE"));
         assertNull(DataReader.getString(data, "NULL"));
         assertNull(DataReader.getString(data, "INVALID"));
 
@@ -328,12 +317,13 @@ public class DataReaderTests {
 
     @Test
     public void testOptString() {
-        assertEquals("1", DataReader.optString(data, "BYTE", "DEFAULT"));
-        assertEquals("2", DataReader.optString(data, "SHORT", "DEFAULT"));
-        assertEquals("3", DataReader.optString(data, "INT", "DEFAULT"));
-        assertEquals("4", DataReader.optString(data, "LONG", "DEFAULT"));
-        assertEquals("5.5", DataReader.optString(data, "FLOAT", "DEFAULT"));
-        assertEquals("6.6", DataReader.optString(data, "DOUBLE", "DEFAULT"));
+        assertEquals("STRING", DataReader.optString(data, "STRING", "DEFAULT"));
+        assertEquals("DEFAULT", DataReader.optString(data, "BYTE", "DEFAULT"));
+        assertEquals("DEFAULT", DataReader.optString(data, "SHORT", "DEFAULT"));
+        assertEquals("DEFAULT", DataReader.optString(data, "INT", "DEFAULT"));
+        assertEquals("DEFAULT", DataReader.optString(data, "LONG", "DEFAULT"));
+        assertEquals("DEFAULT", DataReader.optString(data, "FLOAT", "DEFAULT"));
+        assertEquals("DEFAULT", DataReader.optString(data, "DOUBLE", "DEFAULT"));
         assertEquals("DEFAULT", DataReader.optString(data, "NULL", "DEFAULT"));
         assertEquals("DEFAULT", DataReader.optString(data, "INVALID", "DEFAULT"));
 

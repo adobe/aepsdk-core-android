@@ -105,7 +105,15 @@ internal class EventHub {
                 it.eventProcessor.offer(event)
             }
 
-            // TODO: Record events in event history database.
+            event.mask?.let {
+                eventHistory?.recordEvent(event) { result ->
+                    MobileCore.log(
+                        LoggingMode.VERBOSE,
+                        LOG_TAG,
+                        if (result) "Successfully inserted an Event into EventHistory database" else "Failed to insert an Event into EventHistory database"
+                    )
+                }
+            }
         }
 
     /**
@@ -196,16 +204,6 @@ internal class EventHub {
                 LOG_TAG,
                 "Dispatched Event #$eventNumber - ($event)"
             )
-        }
-
-        event.mask?.let {
-            eventHistory?.recordEvent(event) { result ->
-                MobileCore.log(
-                    LoggingMode.VERBOSE,
-                    LOG_TAG,
-                    if (result) "Successfully inserted an Event into EventHistory database" else "Failed to insert an Event into EventHistory database"
-                )
-            }
         }
     }
 

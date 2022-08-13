@@ -966,8 +966,4 @@ final public class MobileCore {
         return true;
     }
 
-    public static EventHistory getEventHistory() {
-        // Todo :- Remove this public API.
-        return null;
-    }
 }

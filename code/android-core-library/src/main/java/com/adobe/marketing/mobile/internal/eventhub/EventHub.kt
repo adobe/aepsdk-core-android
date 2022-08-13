@@ -25,6 +25,8 @@ import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.WrapperType
+import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import com.adobe.marketing.mobile.internal.utility.prettify
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import com.adobe.marketing.mobile.utils.EventDataUtils
@@ -62,46 +64,63 @@ internal class EventHub {
      */
     private val eventHubExecutor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
 
-    private val registeredExtensions: ConcurrentHashMap<String, ExtensionContainer> = ConcurrentHashMap()
-    private val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> = ConcurrentLinkedQueue()
+    private val registeredExtensions: ConcurrentHashMap<String, ExtensionContainer> =
+        ConcurrentHashMap()
+    private val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> =
+        ConcurrentLinkedQueue()
     private val lastEventNumber: AtomicInteger = AtomicInteger(0)
     private var hubStarted = false
+    internal val eventHistory: EventHistory? = try {
+        AndroidEventHistory()
+    } catch (e: Exception) {
+        null
+    }
 
     /**
      * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching
      * an [Event] "e". Dispatch is regarded complete when [SerialWorkDispatcher.WorkHandler.doWork] finishes for "e".
      */
-    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler { event ->
-        // TODO: Perform pre-processing
+    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> =
+        SerialWorkDispatcher.WorkHandler { event ->
+            // TODO: Perform pre-processing
 
-        // Handle response event listeners
-        if (event.responseID != null) {
-            val matchingResponseListeners = responseEventListeners.filterRemove { listener ->
-                if (listener.shouldNotify(event)) {
-                    listener.timeoutTask?.cancel(false)
-                    true
-                } else {
-                    false
+            // Handle response event listeners
+            if (event.responseID != null) {
+                val matchingResponseListeners = responseEventListeners.filterRemove { listener ->
+                    if (listener.shouldNotify(event)) {
+                        listener.timeoutTask?.cancel(false)
+                        true
+                    } else {
+                        false
+                    }
+                }
+
+                matchingResponseListeners.forEach { listener ->
+                    listener.notify(event)
                 }
             }
 
-            matchingResponseListeners.forEach { listener ->
-                listener.notify(event)
+            // Notify to extensions for processing
+            registeredExtensions.values.forEach {
+                it.eventProcessor.offer(event)
+            }
+
+            event.mask?.let {
+                eventHistory?.recordEvent(event) { result ->
+                    MobileCore.log(
+                        LoggingMode.VERBOSE,
+                        LOG_TAG,
+                        if (result) "Successfully inserted an Event into EventHistory database" else "Failed to insert an Event into EventHistory database"
+                    )
+                }
             }
         }
-
-        // Notify to extensions for processing
-        registeredExtensions.values.forEach {
-            it.eventProcessor.offer(event)
-        }
-
-        // TODO: Record events in event history database.
-    }
 
     /**
      * Responsible for processing and dispatching each event.
      */
-    private val eventDispatcher: SerialWorkDispatcher<Event> = SerialWorkDispatcher("EventHub", dispatchJob)
+    private val eventDispatcher: SerialWorkDispatcher<Event> =
+        SerialWorkDispatcher("EventHub", dispatchJob)
 
     /**
      * A cache that maps UUID of an Event to an internal sequence of its dispatch.
@@ -125,7 +144,11 @@ internal class EventHub {
             eventHubExecutor.submit(
                 Callable {
                     if (hubStarted) {
-                        MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Wrapper type can not be set after EventHub starts processing events")
+                        MobileCore.log(
+                            LoggingMode.WARNING,
+                            LOG_TAG,
+                            "Wrapper type can not be set after EventHub starts processing events"
+                        )
                         return@Callable
                     }
 
@@ -133,6 +156,7 @@ internal class EventHub {
                 }
             ).get()
         }
+
     /**
      * `EventHub` will begin processing `Event`s when this API is invoked.
      */
@@ -181,8 +205,6 @@ internal class EventHub {
                 "Dispatched Event #$eventNumber - ($event)"
             )
         }
-
-        // TODO: Record event to event history database if required.
     }
 
     /**
@@ -191,7 +213,10 @@ internal class EventHub {
      * @param extensionClass The class of extension to register
      * @param completion Invoked when the extension has been registered or failed to register
      */
-    fun registerExtension(extensionClass: Class<out Extension>?, completion: (error: EventHubError) -> Unit) {
+    fun registerExtension(
+        extensionClass: Class<out Extension>?,
+        completion: (error: EventHubError) -> Unit
+    ) {
         eventHubExecutor.submit {
             if (extensionClass == null) {
                 completion(EventHubError.ExtensionInitializationFailure)
@@ -214,7 +239,10 @@ internal class EventHub {
      * @param extensionClass The class of extension to unregister
      * @param completion Invoked when the extension has been unregistered or failed to unregister
      */
-    fun unregisterExtension(extensionClass: Class<out Extension>?, completion: ((error: EventHubError) -> Unit)) {
+    fun unregisterExtension(
+        extensionClass: Class<out Extension>?,
+        completion: ((error: EventHubError) -> Unit)
+    ) {
         eventHubExecutor.submit {
             val extensionName = extensionClass?.extensionTypeName
             val container = registeredExtensions.remove(extensionName)
@@ -235,7 +263,11 @@ internal class EventHub {
      * @param timeoutMS A timeout in milliseconds, if the response listener is not invoked within the timeout, then the `EventHub` invokes the fail method.
      * @param listener An [AdobeCallbackWithError] which will be invoked whenever the `EventHub` receives the response event for trigger event
      */
-    fun registerResponseListener(triggerEvent: Event, timeoutMS: Long, listener: AdobeCallbackWithError<Event>) {
+    fun registerResponseListener(
+        triggerEvent: Event,
+        timeoutMS: Long,
+        listener: AdobeCallbackWithError<Event>
+    ) {
         eventHubExecutor.submit {
             val triggerEventId = triggerEvent.uniqueIdentifier
             val timeoutCallable: Callable<Unit> = Callable {
@@ -243,7 +275,11 @@ internal class EventHub {
                 try {
                     listener.fail(AdobeError.CALLBACK_TIMEOUT)
                 } catch (ex: Exception) {
-                    MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Exception thrown from ResponseListener - $ex")
+                    MobileCore.log(
+                        LoggingMode.DEBUG,
+                        LOG_TAG,
+                        "Exception thrown from ResponseListener - $ex"
+                    )
                 }
             }
             val timeoutTask =
@@ -301,7 +337,12 @@ internal class EventHub {
         }
 
         val callable = Callable {
-            return@Callable createSharedStateInternal(sharedStateType, extensionName, immutableState, event)
+            return@Callable createSharedStateInternal(
+                sharedStateType,
+                extensionName,
+                immutableState,
+                event
+            )
         }
         return eventHubExecutor.submit(callable).get()
     }
@@ -441,7 +482,11 @@ internal class EventHub {
             }
 
             dispatchSharedStateEvent(sharedStateType, extensionName)
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Resolved pending $sharedStateType shared state for $extensionName and version $version with data ${immutableState?.prettify()}")
+            MobileCore.log(
+                LoggingMode.DEBUG,
+                LOG_TAG,
+                "Resolved pending $sharedStateType shared state for $extensionName and version $version with data ${immutableState?.prettify()}"
+            )
         }
         eventHubExecutor.submit(callable).get()
     }
@@ -490,7 +535,8 @@ internal class EventHub {
 
             val stateProviderLastVersion = getEventNumber(container.lastProcessedEvent) ?: 0
             // shared state is still considered pending if barrier is used and the state provider has not processed past the previous event
-            val hasProcessedEvent = if (event == null) true else stateProviderLastVersion > version - 1
+            val hasProcessedEvent =
+                if (event == null) true else stateProviderLastVersion > version - 1
             return@Callable if (barrier && !hasProcessedEvent && result.status == SharedStateStatus.SET) {
                 SharedStateResult(SharedStateStatus.PENDING, result.value)
             } else {
@@ -586,7 +632,14 @@ internal class EventHub {
      *         null if no extension is registered with the [extensionName]
      */
     private fun getExtensionContainer(extensionName: String): ExtensionContainer? {
-        val extensionContainer = registeredExtensions.entries.firstOrNull { return@firstOrNull (it.value.sharedStateName?.equals(extensionName, true) ?: false) }
+        val extensionContainer = registeredExtensions.entries.firstOrNull {
+            return@firstOrNull (
+                it.value.sharedStateName?.equals(
+                    extensionName,
+                    true
+                ) ?: false
+                )
+        }
         return extensionContainer?.value
     }
 
@@ -599,7 +652,10 @@ internal class EventHub {
      * @return [SharedStateManager] with [extensionName] provided if one was registered and initialized
      *         null otherwise
      */
-    private fun getSharedStateManager(sharedStateType: SharedStateType, extensionName: String): SharedStateManager? {
+    private fun getSharedStateManager(
+        sharedStateType: SharedStateType,
+        extensionName: String
+    ): SharedStateManager? {
         val extensionContainer = getExtensionContainer(extensionName) ?: run {
             return null
         }
@@ -640,8 +696,10 @@ internal class EventHub {
      * @param extensionName Extension whose shared state was updated
      */
     private fun dispatchSharedStateEvent(sharedStateType: SharedStateType, extensionName: String) {
-        val eventName = if (sharedStateType == SharedStateType.STANDARD) EventHubConstants.STATE_CHANGE else EventHubConstants.XDM_STATE_CHANGE
-        val data = mapOf(EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to extensionName)
+        val eventName =
+            if (sharedStateType == SharedStateType.STANDARD) EventHubConstants.STATE_CHANGE else EventHubConstants.XDM_STATE_CHANGE
+        val data =
+            mapOf(EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to extensionName)
 
         val event = Event.Builder(eventName, EventType.HUB, EventSource.SHARED_STATE)
             .setEventData(data).build()
@@ -678,7 +736,12 @@ internal class EventHub {
             EventHubConstants.EventDataKeys.EXTENSIONS to extensionsInfo
         )
 
-        createSharedStateInternal(SharedStateType.STANDARD, EventHubConstants.NAME, EventDataUtils.clone(data), null)
+        createSharedStateInternal(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            EventDataUtils.clone(data),
+            null
+        )
     }
 }
 

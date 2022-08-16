@@ -205,12 +205,12 @@ final public class MobileCore {
 
     public static void registerExtensions(@NonNull final List<Class<? extends Extension>> extensions, final AdobeCallback<?> completionCallback) {
         if(!sdkInitializedWithContext.get()) {
-            Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
+            Log.error(LOG_TAG, "Failed to registerExtensions - setApplication not called");
             return;
         }
 
-        List<Class<? extends Extension>> allExtensions = new ArrayList<>();
-        // allExtensions.add(ConfigurationExtension.class);
+        final List<Class<? extends Extension>> allExtensions = new ArrayList<>();
+        // Todo - Register configuration extension once it is refactored to use Extension APIs. 
         if (extensions != null) {
             for(final Class<? extends Extension> extension: extensions) {
                 if (extension != null) {
@@ -219,13 +219,13 @@ final public class MobileCore {
             }
         }
 
-        AtomicInteger registeredExtensions = new AtomicInteger(0);
+        final AtomicInteger registeredExtensions = new AtomicInteger(0);
         for (final Class<? extends Extension> extension: allExtensions) {
             EventHub.Companion.getShared().registerExtension(extension, eventHubError -> {
-                Log.debug(LOG_TAG, "Finished registering extension " + extension + "with status "+ eventHubError);
+                Log.debug(LOG_TAG, "Registered extension " + extension + "with status "+ eventHubError);
 
                 if (registeredExtensions.incrementAndGet() == allExtensions.size()) {
-                    Log.debug(LOG_TAG, "Finished registering all extensions. Starting event processing.");
+                    Log.debug(LOG_TAG, "Registered all extensions. Starting event processing.");
                     EventHub.Companion.getShared().start();
                     if (completionCallback != null) {
                         completionCallback.call(null);

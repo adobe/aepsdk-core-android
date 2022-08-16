@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import java.util.Map;
+
 /**
  * Abstract class that defines an {@code Extension}
  *
@@ -54,8 +56,17 @@ public abstract class Extension {
 	}
 
 	/**
+	 * Optional metadata provided for use by the event hub for logging.
+	 *
+	 * @return the extension metadata as a {@code Map<String, String>}
+	 */
+	protected Map<String, String> getMetadata() {
+		return null;
+	}
+
+	/**
 	 * Called when the extension is registered by the core.
-	 * Implementers can implement this method to clean up resources when the extension is released.
+	 * Implementers can implement this method to setup event listeners and shared states.
 	 */
 	protected void onRegistered() {
 		Log.debug(getLogTag(), "Extension registered successfully.");

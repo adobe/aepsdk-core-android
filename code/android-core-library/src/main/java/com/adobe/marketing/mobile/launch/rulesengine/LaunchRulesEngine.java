@@ -65,7 +65,7 @@ public class LaunchRulesEngine {
      * Evaluates all the current rules against the supplied {@link Event}.
      *
      * @param event the {@link Event} against which to evaluate the rules
-     * @return the matched {@link List<LaunchRule>}
+     * @return the matched  {@code List<LaunchRule>}
      */
     public List<LaunchRule> process(final Event event) {
         return ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));

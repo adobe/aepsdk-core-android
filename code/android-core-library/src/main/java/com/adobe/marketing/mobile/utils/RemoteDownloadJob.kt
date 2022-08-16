@@ -14,7 +14,6 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.internal.utility.StringUtils
-import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.HttpMethod

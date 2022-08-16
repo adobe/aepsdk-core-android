@@ -69,7 +69,7 @@ public class AndroidEventHistory implements EventHistory {
      * @param eventHistoryRequests an array of {@code EventHistoryRequest}s to be matched
      * @param enforceOrder         {@code boolean} if true, consecutive lookups will use the oldest timestamp from the previous event
      *                             as their from date
-     * @param handler              {@link EventHistoryResultHandler<Integer>} containing the the total number of matching events in the {@code AndroidEventHistoryDatabase}
+     * @param handler              {@code EventHistoryResultHandler<Integer>} containing the the total number of matching events in the {@code EventHistoryDatabase}
      *                             if an "any" search was done. If an "ordered" search was done, the handler will contain a "1"
      *                             if the event history requests were found in the order specified in the eventHistoryRequests array
      *                             and a "0" if the events were not found in the order specified.

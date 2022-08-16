@@ -15,6 +15,8 @@ internal object EventHubConstants {
     const val NAME = "com.adobe.module.eventhub"
     const val FRIENDLY_NAME = "EventHub"
     const val VERSION_NUMBER = "2.0.0"
+    const val STATE_CHANGE = "Shared state change"
+    const val XDM_STATE_CHANGE = "Shared state change (XDM)"
 
     object EventDataKeys {
         const val VERSION = "version"
@@ -23,5 +25,29 @@ internal object EventHubConstants {
         const val TYPE = "type"
         const val METADATA = "metadata"
         const val FRIENDLY_NAME = "friendlyName"
+
+        object Configuration {
+            const val EVENT_STATE_OWNER = "stateowner"
+        }
+    }
+
+    object Wrapper {
+        object Name {
+            const val REACT_NATIVE = "React Native"
+            const val FLUTTER = "Flutter"
+            const val CORDOVA = "Cordova"
+            const val UNITY = " Unity"
+            const val XAMARIN = "Xamarin"
+            const val NONE = "None"
+        }
+
+        object Type {
+            const val REACT_NATIVE = "R"
+            const val FLUTTER = "F"
+            const val CORDOVA = "C"
+            const val UNITY = "U"
+            const val XAMARIN = "X"
+            const val NONE = "N"
+        }
     }
 }

@@ -10,11 +10,12 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine
 
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventPreprocessor
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 
 internal class LaunchRulesEvaluator(
     private val name: String,
@@ -24,12 +25,12 @@ internal class LaunchRulesEvaluator(
 
     private var cachedEvents: MutableList<Event>? = mutableListOf()
     private val logTag = "LaunchRulesEvaluator_$name"
-    private val launchRulesConsequence: LaunchRulesConsequence = LaunchRulesConsequence(extensionApi)
+    private val launchRulesConsequence: LaunchRulesConsequence =
+        LaunchRulesConsequence(extensionApi)
 
-    companion object {
-        // TODO: we should move the following event type/event source values to the public EventType/EventSource classes once we have those.
-        const val EVENT_SOURCE_REQUEST_RESET = "com.adobe.eventsource.requestreset"
-        const val EVENT_TYPE_RULES_ENGINE = "com.adobe.eventtype.rulesengine"
+    @VisibleForTesting
+    internal fun getCachedEventCount(): Int {
+        return cachedEvents?.size ?: 0
     }
 
     override fun process(event: Event?): Event? {
@@ -41,7 +42,7 @@ internal class LaunchRulesEvaluator(
         val matchedRules = launchRulesEngine.process(event)
         if (cachedEvents == null) {
             return launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
-        } else if (event.type == EVENT_TYPE_RULES_ENGINE && event.source == EVENT_SOURCE_REQUEST_RESET) {
+        } else if (event.type == EventType.RULES_ENGINE && event.source == EventSource.REQUEST_RESET) {
             reprocessCachedEvents()
         } else {
             cachedEvents?.add(event)
@@ -72,21 +73,9 @@ internal class LaunchRulesEvaluator(
         launchRulesEngine.replaceRules(rules)
         val dispatchEvent = Event.Builder(
             name,
-            EVENT_TYPE_RULES_ENGINE,
-            EVENT_SOURCE_REQUEST_RESET
+            EventType.RULES_ENGINE,
+            EventSource.REQUEST_RESET
         ).build()
-        if (extensionApi.dispatch(dispatchEvent)) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
-                logTag,
-                "Successfully dispatched consequence result event"
-            )
-        } else {
-            MobileCore.log(
-                LoggingMode.WARNING,
-                logTag,
-                "An error occurred when dispatching dispatch consequence result event"
-            )
-        }
+        extensionApi.dispatch(dispatchEvent)
     }
 }

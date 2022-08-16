@@ -14,8 +14,8 @@ package com.adobe.marketing.mobile.configuration
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.FileUtils.readAsString
-import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import com.adobe.marketing.mobile.utils.RemoteDownloader
+import com.adobe.marketing.mobile.utils.TimeUtil
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException

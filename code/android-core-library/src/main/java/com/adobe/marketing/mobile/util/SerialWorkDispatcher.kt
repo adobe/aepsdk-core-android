@@ -39,8 +39,8 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      */
     enum class State {
         /**
-         * Indicates that the dispatcher is not yet started.
-         * New work will be accepted and executed when started.
+         * Indicates that the dispatcher has not yet started.
+         * New work will be accepted but not executed until started.
          */
         NOT_STARTED,
 
@@ -49,6 +49,12 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
          * be accepted.
          */
         ACTIVE,
+
+        /**
+         * Indicates that the dispatcher has been paused. New work will
+         * be accepted but not executed until resumed
+         */
+        PAUSED,
 
         /**
          * Indicates that the dispatcher has been shutdown and no more work
@@ -73,16 +79,16 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     /**
      * The [Executor] to which work is submitted for sequencing.
      */
-    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
+    private var executorService: ExecutorService = Executors.newSingleThreadExecutor()
 
     /**
      * Holds the work items that need to be processed by this dispatcher.
      */
-    private val workQueue: Queue<T> = ConcurrentLinkedQueue<T>()
+    private val workQueue: Queue<T> = ConcurrentLinkedQueue()
 
     /**
      * A runnable responsible for draining the work items from the [workQueue]
-     * and processing them via [doWork].
+     * and processing them via [WorkHandler.doWork].
      */
     private val workProcessor: WorkProcessor by lazy { WorkProcessor() }
 
@@ -105,6 +111,8 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      */
     private val activenessMutex: Any = Any()
 
+    init {
+    }
     /**
      * Enqueues an item to the end of the [workQueue]. Additionally,
      * resumes the queue processing if the [SerialWorkDispatcher] is active
@@ -119,15 +127,13 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
         synchronized(activenessMutex) {
             if (state == State.SHUTDOWN) return false
             workQueue.offer(item)
-        }
 
-        if (state != State.SHUTDOWN) {
-            // resume the processing the work items in the queue if necessary
-            resume()
+            if (state == State.ACTIVE) {
+                // resume the processing the work items in the queue if necessary
+                resume()
+            }
             return true
         }
-
-        return false
     }
 
     /**
@@ -152,19 +158,72 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      */
     fun start(): Boolean {
         synchronized(activenessMutex) {
-            if (state == State.ACTIVE) {
-                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) is already active.")
-                return false
-            }
-
             if (state == State.SHUTDOWN) {
                 throw IllegalStateException("Cannot start SerialWorkDispatcher ($name). Already shutdown.")
             }
 
-            state = State.ACTIVE
+            if (state != State.NOT_STARTED) {
+                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) has already started.")
+                return false
+            }
 
+            state = State.ACTIVE
             prepare()
             resume()
+            return true
+        }
+    }
+
+    /**
+     * Puts the [SerialWorkDispatcher] in paused state and stops processing the {@link #workQueue}
+     *
+     * @return true - if [SerialWorkDispatcher] was successfully stopped,
+     *         false - if it is already stopped or was shutdown
+     * @throws IllegalStateException when attempting to start a dispatcher after being shutdown
+     */
+    fun pause(): Boolean {
+        synchronized(activenessMutex) {
+            if (state == State.SHUTDOWN) {
+                throw IllegalStateException("Cannot pause SerialWorkDispatcher ($name). Already shutdown.")
+            }
+
+            if (state != State.ACTIVE) {
+                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) is not active.")
+                return false
+            }
+
+            state = State.PAUSED
+            return true
+        }
+    }
+
+    /**
+     * Resumes processing the work items in the [workQueue] if the [SerialWorkDispatcher]
+     * is active and if no worker thread is actively processing the [workQueue].
+     * Implementers can optionally trigger work via [resume] after any changes to logic in [canWork]
+     * now being true, without having to wait for the next item to be added.
+     */
+    fun resume(): Boolean {
+        synchronized(activenessMutex) {
+            if (state == State.SHUTDOWN) {
+                throw IllegalStateException("Cannot resume SerialWorkDispatcher ($name). Already shutdown.")
+            }
+
+            if (state == State.NOT_STARTED) {
+                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) has not started.")
+                return false
+            }
+
+            state = State.ACTIVE
+            val activeWorkProcessor: Future<*>? = workProcessorFuture
+            if ((activeWorkProcessor != null && !activeWorkProcessor.isDone) || !canWork()) {
+                // if the dispatcher is inactive or, if there is any active worker processing
+                // the queue - do not do anything as the existing processor will process the items
+                return true
+            }
+
+            // start the work processor
+            workProcessorFuture = executorService.submit(workProcessor)
             return true
         }
     }
@@ -201,26 +260,6 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      */
     private fun getWorkItem(): T? {
         return workQueue.poll()
-    }
-
-    /**
-     * Resumes processing the work items in the [workQueue] if the [SerialWorkDispatcher]
-     * is active and if no worker thread is actively processing the [workQueue].
-     * Implementers can optionally trigger work via [resume] after any changes to logic in [canWork]
-     * now being true, without having to wait for the next item to be added.
-     */
-    protected fun resume() {
-        synchronized(activenessMutex) {
-            val activeWorkProcessor: Future<*>? = workProcessorFuture
-            if (state != State.ACTIVE || (activeWorkProcessor != null && !activeWorkProcessor.isDone) || !canWork()) {
-                // if the dispatcher is inactive or, if there is any active worker processing
-                // the queue - do not do anything as the existing processor will process the items
-                return
-            }
-
-            // start the work processor
-            workProcessorFuture = executorService.submit(workProcessor)
-        }
     }
 
     /**
@@ -272,7 +311,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
         override fun run() {
             // Perform work only if the dispatcher is unblocked and there are
             // items in the queue to perform work on.
-            while (!Thread.interrupted() && canWork() && hasWork()) {
+            while (!Thread.interrupted() && state == State.ACTIVE && canWork() && hasWork()) {
                 try {
                     val workItem = getWorkItem() ?: return
                     workHandler.doWork(workItem)
@@ -286,5 +325,10 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
                 }
             }
         }
+    }
+
+    @VisibleForTesting
+    fun setExecutorService(executorService: ExecutorService) {
+        this.executorService = executorService
     }
 }

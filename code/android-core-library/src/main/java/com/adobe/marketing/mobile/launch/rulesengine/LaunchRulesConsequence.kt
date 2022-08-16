@@ -11,9 +11,12 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.utility.EventDataMerger
 import com.adobe.marketing.mobile.internal.utility.prettify
 import com.adobe.marketing.mobile.rulesengine.DelimiterPair
@@ -28,9 +31,6 @@ class LaunchRulesConsequence(
     private val logTag = "LaunchRulesConsequence"
     private var dispatchChainedEventsCount = mutableMapOf<String, Int>()
     companion object {
-        // TODO: we should move the following event type/event source values to the public EventType/EventSource classes once we have those.
-        private const val EVENT_SOURCE_RESPONSE_CONTENT = "com.adobe.eventSource.responseContent"
-        private const val EVENT_TYPE_RULES_ENGINE = "com.adobe.eventtype.rulesengine"
         private const val LAUNCH_RULE_TOKEN_LEFT_DELIMITER = "{%"
         private const val LAUNCH_RULE_TOKEN_RIGHT_DELIMITER = "%}"
         private const val CONSEQUENCE_TYPE_ADD = "add"
@@ -48,7 +48,7 @@ class LaunchRulesConsequence(
         private const val CONSEQUENCE_EVENT_NAME = "Rules Consequence Event"
     }
 
-    fun evaluateRulesConsequence(event: Event, matchedRules: List<LaunchRule>): Event? {
+    fun evaluateRulesConsequence(event: Event, matchedRules: List<LaunchRule>): Event {
         val dispatchChainCount = dispatchChainedEventsCount.remove(event.uniqueIdentifier) ?: 0
         val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
         var processedEvent: Event = event
@@ -85,24 +85,13 @@ class LaunchRulesConsequence(
                             consequenceWithConcreteValue,
                             processedEvent.eventData
                         ) ?: continue
+
                         MobileCore.log(
                             LoggingMode.VERBOSE,
                             logTag,
-                            " Generating new dispatch consequence result event $dispatchEvent"
+                            "processDispatchConsequence - Dispatching event - ${dispatchEvent.uniqueIdentifier}"
                         )
-                        if (extensionApi.dispatch(dispatchEvent)) {
-                            MobileCore.log(
-                                LoggingMode.VERBOSE,
-                                logTag,
-                                "Successfully dispatched consequence result event"
-                            )
-                        } else {
-                            MobileCore.log(
-                                LoggingMode.WARNING,
-                                logTag,
-                                "An error occurred when dispatching dispatch consequence result event"
-                            )
-                        }
+                        extensionApi.dispatch(dispatchEvent)
                         dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] = dispatchChainCount + 1
                     }
                     else -> {
@@ -110,21 +99,9 @@ class LaunchRulesConsequence(
                         MobileCore.log(
                             LoggingMode.VERBOSE,
                             logTag,
-                            "Generating new consequence event $consequenceEvent"
+                            "evaluateRulesConsequence - Dispatching consequence event ${consequenceEvent.uniqueIdentifier}"
                         )
-                        if (extensionApi.dispatch(consequenceEvent)) {
-                            MobileCore.log(
-                                LoggingMode.VERBOSE,
-                                logTag,
-                                "Successfully dispatched consequence result event"
-                            )
-                        } else {
-                            MobileCore.log(
-                                LoggingMode.WARNING,
-                                logTag,
-                                "An error occurred when dispatching dispatch consequence result event"
-                            )
-                        }
+                        extensionApi.dispatch(consequenceEvent)
                     }
                 }
             }
@@ -296,15 +273,15 @@ class LaunchRulesConsequence(
      * @param consequence [RuleConsequence] of the rule
      * @return a consequence [Event]
      */
-    private fun generateConsequenceEvent(consequence: RuleConsequence): Event? {
+    private fun generateConsequenceEvent(consequence: RuleConsequence): Event {
         val eventData = mutableMapOf<String, Any?>()
         eventData[CONSEQUENCE_EVENT_DATA_KEY_DETAIL] = consequence.detail
         eventData[CONSEQUENCE_EVENT_DATA_KEY_ID] = consequence.id
         eventData[CONSEQUENCE_EVENT_DATA_KEY_TYPE] = consequence.type
         return Event.Builder(
             CONSEQUENCE_EVENT_NAME,
-            EVENT_TYPE_RULES_ENGINE,
-            EVENT_SOURCE_RESPONSE_CONTENT
+            EventType.RULES_ENGINE,
+            EventSource.RESPONSE_CONTENT
         )
             .setEventData(mapOf(CONSEQUENCE_EVENT_DATA_KEY_CONSEQUENCE to eventData))
             .build()

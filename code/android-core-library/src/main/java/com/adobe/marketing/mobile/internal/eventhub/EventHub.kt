@@ -11,19 +11,26 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
-import androidx.annotation.NonNull
 import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
-import com.adobe.marketing.mobile.ExtensionError
-import com.adobe.marketing.mobile.ExtensionErrorCallback
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SharedStateResolution
+import com.adobe.marketing.mobile.SharedStateResolver
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.WrapperType
 import com.adobe.marketing.mobile.configuration.ConfigurationExtension
+import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
+import com.adobe.marketing.mobile.internal.utility.prettify
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
-import java.lang.Exception
+import com.adobe.marketing.mobile.utils.EventDataUtils
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -58,46 +65,63 @@ internal class EventHub {
      */
     private val eventHubExecutor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
 
-    private val registeredExtensions: ConcurrentHashMap<String, ExtensionContainer> = ConcurrentHashMap()
-    private val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> = ConcurrentLinkedQueue()
+    private val registeredExtensions: ConcurrentHashMap<String, ExtensionContainer> =
+        ConcurrentHashMap()
+    private val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> =
+        ConcurrentLinkedQueue()
     private val lastEventNumber: AtomicInteger = AtomicInteger(0)
     private var hubStarted = false
+    internal val eventHistory: EventHistory? = try {
+        AndroidEventHistory()
+    } catch (e: Exception) {
+        null
+    }
 
     /**
      * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching
      * an [Event] "e". Dispatch is regarded complete when [SerialWorkDispatcher.WorkHandler.doWork] finishes for "e".
      */
-    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler { event ->
-        // TODO: Perform pre-processing
+    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> =
+        SerialWorkDispatcher.WorkHandler { event ->
+            // TODO: Perform pre-processing
 
-        // Handle response event listeners
-        if (event.responseID != null) {
-            val matchingResponseListeners = responseEventListeners.filterRemove { listener ->
-                if (listener.shouldNotify(event)) {
-                    listener.timeoutTask?.cancel(false)
-                    true
-                } else {
-                    false
+            // Handle response event listeners
+            if (event.responseID != null) {
+                val matchingResponseListeners = responseEventListeners.filterRemove { listener ->
+                    if (listener.shouldNotify(event)) {
+                        listener.timeoutTask?.cancel(false)
+                        true
+                    } else {
+                        false
+                    }
+                }
+
+                matchingResponseListeners.forEach { listener ->
+                    listener.notify(event)
                 }
             }
 
-            matchingResponseListeners.forEach { listener ->
-                listener.notify(event)
+            // Notify to extensions for processing
+            registeredExtensions.values.forEach {
+                it.eventProcessor.offer(event)
+            }
+
+            event.mask?.let {
+                eventHistory?.recordEvent(event) { result ->
+                    MobileCore.log(
+                        LoggingMode.VERBOSE,
+                        LOG_TAG,
+                        if (result) "Successfully inserted an Event into EventHistory database" else "Failed to insert an Event into EventHistory database"
+                    )
+                }
             }
         }
-
-        // Notify to extensions for processing
-        registeredExtensions.values.forEach {
-            it.eventProcessor.offer(event)
-        }
-
-        // TODO: Record events in event history database.
-    }
 
     /**
      * Responsible for processing and dispatching each event.
      */
-    private val eventDispatcher: SerialWorkDispatcher<Event> = SerialWorkDispatcher("EventHub", dispatchJob)
+    private val eventDispatcher: SerialWorkDispatcher<Event> =
+        SerialWorkDispatcher("EventHub", dispatchJob)
 
     /**
      * A cache that maps UUID of an Event to an internal sequence of its dispatch.
@@ -113,6 +137,32 @@ internal class EventHub {
             )
         }
     }
+
+    private var _wrapperType = WrapperType.NONE
+    var wrapperType: WrapperType
+        get() {
+            return eventHubExecutor.submit(
+                Callable {
+                    return@Callable _wrapperType
+                }
+            ).get()
+        }
+        set(value) {
+            eventHubExecutor.submit(
+                Callable {
+                    if (hubStarted) {
+                        MobileCore.log(
+                            LoggingMode.WARNING,
+                            LOG_TAG,
+                            "Wrapper type can not be set after EventHub starts processing events"
+                        )
+                        return@Callable
+                    }
+
+                    _wrapperType = value
+                }
+            ).get()
+        }
 
     /**
      * `EventHub` will begin processing `Event`s when this API is invoked.
@@ -133,37 +183,47 @@ internal class EventHub {
      *
      * @param event the [Event] to be dispatched to listeners
      */
-    fun dispatch(@NonNull event: Event) {
+    fun dispatch(event: Event) {
         eventHubExecutor.submit {
-            // Assign the next available event number to the event.
-            eventNumberMap[event.uniqueIdentifier] = lastEventNumber.incrementAndGet()
-
-            // Offer event to the serial dispatcher to perform operations on the event.
-            if (eventDispatcher.offer(event)) {
-                MobileCore.log(
-                    LoggingMode.VERBOSE,
-                    LOG_TAG,
-                    "Dispatching Event #${eventNumberMap[event.uniqueIdentifier]} - ($event)"
-                )
-            } else {
-                MobileCore.log(
-                    LoggingMode.WARNING,
-                    LOG_TAG,
-                    "Failed to dispatch event #${eventNumberMap[event.uniqueIdentifier]} - ($event)"
-                )
-            }
-
-            // TODO: Record event to event history database if required.
+            dispatchInternal(event)
         }
     }
 
     /**
-     * Registers a new `Extension` to the `EventHub`. This `Extension` must extends `Extension` class
+     * Internal method to dispatch an event
+     */
+    private fun dispatchInternal(event: Event) {
+        val eventNumber = lastEventNumber.incrementAndGet()
+        eventNumberMap[event.uniqueIdentifier] = eventNumber
+
+        // Offer event to the serial dispatcher to perform operations on the event.
+        if (!eventDispatcher.offer(event)) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                "Failed to dispatch event #$eventNumber - ($event)"
+            )
+        }
+
+        if (MobileCore.getLogLevel() == LoggingMode.VERBOSE) {
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                LOG_TAG,
+                "Dispatched Event #$eventNumber - ($event)"
+            )
+        }
+    }
+
+    /**
+     * Registers a new [Extension] to the `EventHub`. This extension must extend [Extension] class
      *
      * @param extensionClass The class of extension to register
      * @param completion Invoked when the extension has been registered or failed to register
      */
-    fun registerExtension(extensionClass: Class<out Extension>?, completion: (error: EventHubError) -> Unit) {
+    fun registerExtension(
+        extensionClass: Class<out Extension>?,
+        completion: (error: EventHubError) -> Unit
+    ) {
         eventHubExecutor.submit {
             if (extensionClass == null) {
                 completion(EventHubError.ExtensionInitializationFailure)
@@ -186,7 +246,10 @@ internal class EventHub {
      * @param extensionClass The class of extension to unregister
      * @param completion Invoked when the extension has been unregistered or failed to unregister
      */
-    fun unregisterExtension(extensionClass: Class<out Extension>?, completion: ((error: EventHubError) -> Unit)) {
+    fun unregisterExtension(
+        extensionClass: Class<out Extension>?,
+        completion: ((error: EventHubError) -> Unit)
+    ) {
         eventHubExecutor.submit {
             val extensionName = extensionClass?.extensionTypeName
             val container = registeredExtensions.remove(extensionName)
@@ -205,17 +268,25 @@ internal class EventHub {
      * Registers an event listener which will be invoked when the response event to trigger event is dispatched
      * @param triggerEvent An [Event] which will trigger a response event
      * @param timeoutMS A timeout in milliseconds, if the response listener is not invoked within the timeout, then the `EventHub` invokes the fail method.
-     * @param listener An [AdobeCallbackWithError] which will be invoked whenever the [EventHub] receives the response [Event] for trigger event
+     * @param listener An [AdobeCallbackWithError] which will be invoked whenever the `EventHub` receives the response event for trigger event
      */
-    fun registerResponseListener(triggerEvent: Event, timeoutMS: Long, callback: AdobeCallbackWithError<Event>) {
+    fun registerResponseListener(
+        triggerEvent: Event,
+        timeoutMS: Long,
+        listener: AdobeCallbackWithError<Event>
+    ) {
         eventHubExecutor.submit {
             val triggerEventId = triggerEvent.uniqueIdentifier
             val timeoutCallable: Callable<Unit> = Callable {
                 responseEventListeners.filterRemove { it.triggerEventId == triggerEventId }
                 try {
-                    callback.fail(AdobeError.CALLBACK_TIMEOUT)
+                    listener.fail(AdobeError.CALLBACK_TIMEOUT)
                 } catch (ex: Exception) {
-                    MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Exception thrown from ResponseListener. $ex")
+                    MobileCore.log(
+                        LoggingMode.DEBUG,
+                        LOG_TAG,
+                        "Exception thrown from ResponseListener - $ex"
+                    )
                 }
             }
             val timeoutTask =
@@ -225,146 +296,262 @@ internal class EventHub {
                 ResponseListenerContainer(
                     triggerEventId,
                     timeoutTask,
-                    callback
+                    listener
                 )
             )
         }
     }
 
     /**
-     * Registers an [EventListener] which will be invoked whenever a event with matched type and source is dispatched
-     * @param type A String indicating the event type the current listener is listening for
-     * @param source A `String` indicating the event source the current listener is listening for
-     * @param listener An [AdobeCallback] which will be invoked whenever the [EventHub] receives a event with matched type and source
+     * Registers an event listener which will be invoked whenever an [Event] with matched type and source is dispatched
+     * @param eventType A String indicating the event type the current listener is listening for
+     * @param eventSource A `String` indicating the event source the current listener is listening for
+     * @param listener An [AdobeCallback] which will be invoked whenever the `EventHub` receives a event with matched type and source
      */
     fun registerListener(eventType: String, eventSource: String, listener: AdobeCallback<Event>) {
         eventHubExecutor.submit {
             val eventHubContainer = getExtensionContainer(EventHubPlaceholderExtension::class.java)
-            eventHubContainer?.registerEventListener(eventType, eventSource, { listener.call(it) })
+            eventHubContainer?.registerEventListener(eventType, eventSource) { listener.call(it) }
         }
     }
 
     /**
-     * Sets the shared state for the extension - [extensionName] with [data]
-     * TODO : Make the [data] parameter immutable when EventData#toImmutableMap() is implemented.
-     *
-     * @param sharedStateType the type of shared state that needs to be set.
-     * @param extensionName the name of the extension for which the state is being set
-     * @param data a map representing state of [extensionName] extension. Passing null will set the extension's
-     *              shared state on pending until it is resolved. Another call with non-null state is expected in order
-     *              to resolve this share state.
-     * @param event The [Event] for which the state is being set. Passing null will set the state for the next shared
-     *              state version.
-     * @param errorCallback the callback which will be notified in the event of an error
-     *
-     * @return true if the state was successfully set, false otherwise
+     * Creates a new shared state for the extension with provided data, versioned at [Event]
+     * If `event` is nil, one of two behaviors will be observed:
+     * 1. If this extension has not previously published a shared state, shared state will be versioned at 0
+     * 2. If this extension has previously published a shared state, shared state will be versioned at the latest
+     * @param sharedStateType The type of shared state to be set
+     * @param extensionName Extension whose shared state is to be updated
+     * @param state Map which contains data for the shared state
+     * @param event [Event] for which the `SharedState` should be versioned
+     * @return true - if shared state is created successfully
      */
-    fun setSharedState(
+    fun createSharedState(
         sharedStateType: SharedStateType,
-        extensionName: String?,
-        data: MutableMap<String, Any?>?,
+        extensionName: String,
+        state: MutableMap<String, Any?>?,
         event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): Boolean {
-
-        val setSharedStateCallable: Callable<Boolean> = Callable<Boolean> {
-
-            if (extensionName.isNullOrBlank()) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Unable to set SharedState for extension: [$extensionName]. ExtensionName is invalid.")
-
-                errorCallback?.error(ExtensionError.BAD_NAME)
-                return@Callable false
-            }
-
-            val extensionContainer: ExtensionContainer? = getExtensionContainer(extensionName)
-
-            if (extensionContainer == null) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Error setting SharedState for extension: [$extensionName]. Extension may not have been registered.")
-
-                errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-                return@Callable false
-            }
-
-            // Find the version where this state needs to be set
-            val version: Int = if (event == null) {
-                // Use the next available version if event is null
-                lastEventNumber.incrementAndGet()
-            } else {
-                // Fetch the event number for the event if it has been dispatched.
-                // If no such event exists, use the next available sequence number
-                getEventNumber(event) ?: lastEventNumber.incrementAndGet()
-            }
-
-            val result: SharedState.Status = extensionContainer.setSharedState(sharedStateType, data, version)
-            val wasSet = (result == SharedState.Status.SET)
-
-            // Check if the new state can be dispatched as a state change event(currently implies a
-            // non null/non pending state according to the ExtensionAPI)
-            val shouldDispatch = (data == null)
-
-            if (shouldDispatch && wasSet) {
-                // If the new state can be dispatched and was successfully
-                // set (via a new state being created or a state being updated),
-                // dispatch a shared state notification.
-                //  TODO: dispatch()
-            }
-            return@Callable (wasSet || result == SharedState.Status.PENDING)
+        val immutableState = try {
+            EventDataUtils.immutableClone(state)
+        } catch (ex: Exception) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                "Creating $sharedStateType shared state for extension $extensionName at event ${event?.uniqueIdentifier} with null - Cloning state failed with exception $ex"
+            )
+            null
         }
 
-        return eventHubExecutor.submit(setSharedStateCallable).get()
+        val callable = Callable {
+            return@Callable createSharedStateInternal(
+                sharedStateType,
+                extensionName,
+                immutableState,
+                event
+            )
+        }
+        return eventHubExecutor.submit(callable).get()
     }
 
     /**
-     * Retrieves the shared state for the extension [extensionName] at the [event]
-     *
-     * @param sharedStateType the type of shared state that needs to be retrieved.
-     * @param extensionName the name of the extension for which the state is being retrieved
-     * @param event The [Event] for which the state is being retrieved. Passing null will retrieve latest state available.
-     *              state version.
-     * @param errorCallback the callback which will be notified in the event of an error
-     * @return a [Map] containing the shared state data at [event],
-     *         null if the state is pending, not yet set or, in case of an error
+     * Internal method to creates a new shared state for the extension with provided data, versioned at [Event]
+     */
+    private fun createSharedStateInternal(
+        sharedStateType: SharedStateType,
+        extensionName: String,
+        state: MutableMap<String, Any?>?,
+        event: Event?,
+    ): Boolean {
+        val sharedStateManager = getSharedStateManager(sharedStateType, extensionName)
+        sharedStateManager ?: run {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
+            )
+            return false
+        }
+
+        val version = resolveSharedStateVersion(sharedStateManager, event)
+        val didSet = sharedStateManager.setState(version, state)
+        if (!didSet) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
+            )
+        } else {
+            dispatchSharedStateEvent(sharedStateType, extensionName)
+            MobileCore.log(
+                LoggingMode.DEBUG,
+                LOG_TAG,
+                "Created $sharedStateType shared state for extension $extensionName with version $version and data ${state?.prettify()}"
+            )
+        }
+
+        return didSet
+    }
+
+    /**
+     * Sets the shared state for the extension to pending at event's version and returns a [SharedStateResolver] which is to be invoked with data for the shared state once available.
+     * If event is nil, one of two behaviors will be observed:
+     * 1. If this extension has not previously published a shared state, shared state will be versioned at 0
+     * 2. If this extension has previously published a shared state, shared state will be versioned at the latest
+     * @param sharedStateType The type of shared state to be set
+     * @param extensionName Extension whose shared state is to be updated
+     * @param event [Event] for which the `SharedState` should be versioned
+     * @return A [SharedStateResolver] which is invoked to set pending the shared state versioned at [Event]
+     */
+    fun createPendingSharedState(
+        sharedStateType: SharedStateType,
+        extensionName: String,
+        event: Event?,
+    ): SharedStateResolver? {
+        val callable = Callable<SharedStateResolver?> {
+            val sharedStateManager = getSharedStateManager(sharedStateType, extensionName)
+            sharedStateManager ?: run {
+                MobileCore.log(
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    "Create pending $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
+                )
+                return@Callable null
+            }
+
+            val pendingVersion = resolveSharedStateVersion(sharedStateManager, event)
+            val didSetPending = sharedStateManager.setPendingState(pendingVersion)
+            if (!didSetPending) {
+                MobileCore.log(
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    "Create pending $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
+                )
+                return@Callable null
+            }
+
+            MobileCore.log(
+                LoggingMode.DEBUG,
+                LOG_TAG,
+                "Created pending $sharedStateType shared state for extension $extensionName with version $pendingVersion"
+            )
+            return@Callable SharedStateResolver {
+                resolvePendingSharedState(sharedStateType, extensionName, it, pendingVersion)
+            }
+        }
+
+        return eventHubExecutor.submit(callable).get()
+    }
+
+    /**
+     * Updates a pending shared state and dispatches it to the `EventHub`
+     * Providing a version for which there is no pending state will result in a no-op.
+     * @param sharedStateType The type of shared state to be set
+     * @param extensionName Extension whose shared state is to be updated
+     * @param state Map which contains data for the shared state
+     * @param version An `Int` containing the version of the state being updated
+     */
+    private fun resolvePendingSharedState(
+        sharedStateType: SharedStateType,
+        extensionName: String,
+        state: MutableMap<String, Any?>?,
+        version: Int
+    ) {
+        val immutableState = try {
+            EventDataUtils.immutableClone(state)
+        } catch (ex: Exception) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                LOG_TAG,
+                "Resolving pending $sharedStateType shared state for extension $extensionName and version $version with null - Clone failed with exception $ex"
+            )
+            null
+        }
+
+        val callable = Callable {
+            val sharedStateManager = getSharedStateManager(sharedStateType, extensionName) ?: run {
+                MobileCore.log(
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    "Resolve pending $sharedStateType shared state for extension $extensionName and version $version failed - SharedStateManager is null"
+                )
+                return@Callable
+            }
+
+            val didUpdate = sharedStateManager.updatePendingState(version, immutableState)
+            if (!didUpdate) {
+                MobileCore.log(
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    "Resolve pending $sharedStateType shared state for extension $extensionName and version $version failed - SharedStateManager failed"
+                )
+                return@Callable
+            }
+
+            dispatchSharedStateEvent(sharedStateType, extensionName)
+            MobileCore.log(
+                LoggingMode.DEBUG,
+                LOG_TAG,
+                "Resolved pending $sharedStateType shared state for $extensionName and version $version with data ${immutableState?.prettify()}"
+            )
+        }
+        eventHubExecutor.submit(callable).get()
+    }
+
+    /**
+     * Retrieves the shared state for a specific extension
+     * @param sharedStateType The type of shared state to be set
+     * @param extensionName Extension whose shared state will be returned
+     * @param event If not nil, will retrieve the shared state that corresponds with this event's version or latest if not yet versioned. If event is nil will return the latest shared state
+     * @param barrier If true, the `EventHub` will only return [SharedStateStatus.SET] if [extensionName] has moved past [Event]
+     * @param resolution The [SharedStateResolution] to determine how to resolve the shared state
+     * @return The shared state data and status for the extension with [extensionName]
      */
     fun getSharedState(
         sharedStateType: SharedStateType,
-        extensionName: String?,
+        extensionName: String,
         event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Map<String, Any?>? {
-
-        val getSharedStateCallable: Callable<Map<String, Any?>?> = Callable {
-            if (extensionName.isNullOrEmpty() || extensionName.isBlank()) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Unable to get SharedState. State name [$extensionName] is invalid.")
-
-                errorCallback?.error(ExtensionError.BAD_NAME)
-                return@Callable null
-            }
-
-            val extensionContainer: ExtensionContainer? = getExtensionContainer(extensionName)
-
-            if (extensionContainer == null) {
+        barrier: Boolean,
+        resolution: SharedStateResolution,
+    ): SharedStateResult? {
+        val callable = Callable<SharedStateResult?> {
+            val container = getExtensionContainer(extensionName) ?: run {
                 MobileCore.log(
-                    LoggingMode.ERROR, LOG_TAG,
-                    "Error retrieving SharedState for extension: [$extensionName]." +
-                        "Extension may not have been registered."
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    "Get $sharedStateType shared state for extension $extensionName and event ${event?.uniqueIdentifier} failed - ExtensionContainer is null"
                 )
-                errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return@Callable null
             }
 
-            val version: Int = if (event == null) {
-                // Get the most recent number if event is not specified
-                SharedStateManager.VERSION_LATEST
-            } else {
-                // Fetch event number from the provided event.
-                // If not such event was dispatched, return the most recent state.
-                getEventNumber(event) ?: SharedStateManager.VERSION_LATEST
+            val sharedStateManager = getSharedStateManager(sharedStateType, extensionName) ?: run {
+                MobileCore.log(
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    "Get $sharedStateType shared state for extension $extensionName and event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
+                )
+                return@Callable null
             }
 
-            return@Callable extensionContainer.getSharedState(sharedStateType, version)?.data
+            val version = getEventNumber(event) ?: SharedStateManager.VERSION_LATEST
+
+            val result: SharedStateResult = when (resolution) {
+                SharedStateResolution.ANY -> sharedStateManager.resolve(version)
+                SharedStateResolution.LAST_SET -> sharedStateManager.resolveLastSet(version)
+            }
+
+            val stateProviderLastVersion = getEventNumber(container.lastProcessedEvent) ?: 0
+            // shared state is still considered pending if barrier is used and the state provider has not processed past the previous event
+            val hasProcessedEvent =
+                if (event == null) true else stateProviderLastVersion > version - 1
+            return@Callable if (barrier && !hasProcessedEvent && result.status == SharedStateStatus.SET) {
+                SharedStateResult(SharedStateStatus.PENDING, result.value)
+            } else {
+                result
+            }
         }
 
-        return eventHubExecutor.submit(getSharedStateCallable).get()
+        return eventHubExecutor.submit(callable).get()
     }
 
     /**
@@ -372,37 +559,32 @@ internal class EventHub {
      *
      * @param sharedStateType the type of shared state that needs to be cleared.
      * @param extensionName the name of the extension for which the state is being cleared
-     * @param errorCallback the callback which will be notified in the event of an error
      * @return true - if the shared state has been cleared, false otherwise
      */
     fun clearSharedState(
         sharedStateType: SharedStateType,
-        extensionName: String?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
+        extensionName: String,
     ): Boolean {
-        val clearSharedStateCallable: Callable<Boolean> = Callable {
-            if (extensionName.isNullOrEmpty() || extensionName.isBlank()) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Unable to clear SharedState. State name [$extensionName] is invalid.")
-
-                errorCallback?.error(ExtensionError.BAD_NAME)
-                return@Callable false
-            }
-
-            val extensionContainer: ExtensionContainer? = getExtensionContainer(extensionName)
-
-            if (extensionContainer == null) {
+        val callable = Callable {
+            val sharedStateManager = getSharedStateManager(sharedStateType, extensionName) ?: run {
                 MobileCore.log(
-                    LoggingMode.ERROR,
-                    LOG_TAG, "Error clearing SharedState for extension: [$extensionName]. Extension may not have been registered."
+                    LoggingMode.WARNING,
+                    LOG_TAG,
+                    "Clear $sharedStateType shared state for extension $extensionName failed - SharedStateManager is null"
                 )
-                errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return@Callable false
             }
 
-            return@Callable extensionContainer.clearSharedState(sharedStateType)
+            sharedStateManager.clear()
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                LOG_TAG,
+                "Cleared $sharedStateType shared state for extension $extensionName"
+            )
+            return@Callable true
         }
 
-        return eventHubExecutor.submit(clearSharedStateCallable).get()
+        return eventHubExecutor.submit(callable).get()
     }
 
     /**
@@ -422,69 +604,151 @@ internal class EventHub {
         eventHubExecutor.shutdown()
     }
 
-    private fun shareEventHubSharedState() {
-        if (!hubStarted) return
-        // Update shared state with registered extensions
-    }
-
     /**
      * Retrieve the event number for the Event from the [eventNumberMap]
      *
-     * @param [event] the Event for which the event number should be resolved
+     * @param event the [Event] for which the event number should be resolved
      * @return the event number for the event if it exists (if it has been recorded/dispatched),
      *         null otherwise
      */
     private fun getEventNumber(event: Event?): Int? {
-        val eventUUID = event?.uniqueIdentifier
-        return if (eventUUID == null) {
-            null
-        } else eventNumberMap[eventUUID]
+        if (event == null) {
+            return null
+        }
+        val eventUUID = event.uniqueIdentifier
+        return eventNumberMap[eventUUID]
     }
 
     /**
      * Retrieves a registered [ExtensionContainer] with [extensionClass] provided.
      *
-     * @param [extensionClass] the extension class for which an [ExtensionContainer] should be fetched.
+     * @param extensionClass the extension class for which an [ExtensionContainer] should be fetched.
      * @return [ExtensionContainer] with [extensionName] provided if one was registered,
      *         null if no extension is registered with the [extensionName]
      */
     internal fun getExtensionContainer(extensionClass: Class<out Extension>): ExtensionContainer? {
-        val extensionTypeName = extensionClass.extensionTypeName
-        return if (extensionTypeName != null) {
-            registeredExtensions[extensionTypeName]
-        } else {
-            null
-        }
+        return registeredExtensions[extensionClass.extensionTypeName]
     }
 
     /**
      * Retrieves a registered [ExtensionContainer] with [extensionTypeName] provided.
      *
-     * @param [extensionName] the name of the extension for which an [ExtensionContainer] should be fetched.
+     * @param extensionName the name of the extension for which an [ExtensionContainer] should be fetched.
      *        This should match [Extension.name] of an extension registered with the event hub.
      * @return [ExtensionContainer] with [extensionName] provided if one was registered,
      *         null if no extension is registered with the [extensionName]
      */
     private fun getExtensionContainer(extensionName: String): ExtensionContainer? {
-        val extensionTypeName = getExtensionTypeName(extensionName)
-        return if (extensionTypeName == null) {
-            null
-        } else {
-            registeredExtensions[extensionTypeName]
+        val extensionContainer = registeredExtensions.entries.firstOrNull {
+            return@firstOrNull (
+                it.value.sharedStateName?.equals(
+                    extensionName,
+                    true
+                ) ?: false
+                )
         }
+        return extensionContainer?.value
     }
 
     /**
-     * Retrieves the [extensionTypeName] for the provided [extensionName]
-     * This is required because [registeredExtensions] maintains a mapping between [extensionTypeName]
-     * and [ExtensionContainer] and most state based operations rely on the name of an extension.
+     * Retrieves the [SharedStateManager] of type [sharedStateType] with [extensionName] provided.
      *
-     * @param [extensionName] the name of the extension for which an extensionTypeName should be fetched.
+     * @param sharedStateType the [SharedStateType] for which an [SharedStateManager] should be fetched.
+     * @param extensionName the name of the extension for which an [SharedStateManager] should be fetched.
      *        This should match [Extension.name] of an extension registered with the event hub.
-     * @return the [extensionTypeName] for the provided [extensionName]
+     * @return [SharedStateManager] with [extensionName] provided if one was registered and initialized
+     *         null otherwise
      */
-    private fun getExtensionTypeName(extensionName: String): String? {
-        return registeredExtensions.entries.firstOrNull { extensionName == it.value.sharedStateName }?.key
+    private fun getSharedStateManager(
+        sharedStateType: SharedStateType,
+        extensionName: String
+    ): SharedStateManager? {
+        val extensionContainer = getExtensionContainer(extensionName) ?: run {
+            return null
+        }
+        val sharedStateManager = extensionContainer.getSharedStateManager(sharedStateType) ?: run {
+            return null
+        }
+        return sharedStateManager
+    }
+
+    /**
+     * Retrieves the appropriate shared state version for the event.
+     *
+     * @param sharedStateManager A [SharedStateManager] to version the event.
+     * @param event An [Event] which may contain a specific event from which the correct shared state can be retrieved
+     * @return Int denoting the version number
+     */
+    private fun resolveSharedStateVersion(
+        sharedStateManager: SharedStateManager,
+        event: Event?,
+    ): Int {
+        // 1) If event is not null, pull the version number from internal map
+        // 2) If event is null, start with version 0 if shared state is empty.
+        //    We start with '0' because extensions can call createSharedState() to export initial state
+        //    before handling any event and other extensions should be able to read this state.
+        var version = 0
+        if (event != null) {
+            version = getEventNumber(event) ?: 0
+        } else if (!sharedStateManager.isEmpty()) {
+            version = lastEventNumber.incrementAndGet()
+        }
+
+        return version
+    }
+
+    /**
+     * Dispatch shared state update event for the [sharedStateType] and [extensionName]
+     * @param sharedStateType The type of shared state set
+     * @param extensionName Extension whose shared state was updated
+     */
+    private fun dispatchSharedStateEvent(sharedStateType: SharedStateType, extensionName: String) {
+        val eventName =
+            if (sharedStateType == SharedStateType.STANDARD) EventHubConstants.STATE_CHANGE else EventHubConstants.XDM_STATE_CHANGE
+        val data =
+            mapOf(EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to extensionName)
+
+        val event = Event.Builder(eventName, EventType.HUB, EventSource.SHARED_STATE)
+            .setEventData(data).build()
+        dispatchInternal(event)
+    }
+
+    private fun shareEventHubSharedState() {
+        if (!hubStarted) return
+
+        val extensionsInfo = mutableMapOf<String, Any?>()
+        registeredExtensions.values.forEach {
+            val extensionName = it.sharedStateName
+            if (extensionName != null && extensionName != EventHubConstants.NAME) {
+                val extensionInfo = mutableMapOf<String, Any?>(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to it.friendlyName,
+                    EventHubConstants.EventDataKeys.VERSION to it.version
+                )
+                it.metadata?.let { metadata ->
+                    extensionInfo[EventHubConstants.EventDataKeys.METADATA] = metadata
+                }
+
+                extensionsInfo[extensionName] = extensionInfo
+            }
+        }
+
+        val wrapperInfo = mapOf(
+            EventHubConstants.EventDataKeys.TYPE to _wrapperType.wrapperTag,
+            EventHubConstants.EventDataKeys.FRIENDLY_NAME to _wrapperType.friendlyName
+        )
+
+        val data = mapOf(
+            EventHubConstants.EventDataKeys.VERSION to EventHubConstants.VERSION_NUMBER,
+            EventHubConstants.EventDataKeys.WRAPPER to wrapperInfo,
+            EventHubConstants.EventDataKeys.EXTENSIONS to extensionsInfo
+        )
+
+        createSharedStateInternal(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            EventDataUtils.clone(data),
+            null
+        )
     }
 }
 

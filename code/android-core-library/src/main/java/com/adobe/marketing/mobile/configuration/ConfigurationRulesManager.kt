@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.configuration
 
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.FileUtils
@@ -55,7 +56,7 @@ internal class ConfigurationRulesManager(
     /**
      * Replaces the rules with the ones cached locally.
      */
-    internal fun applyCachedRules() {
+    internal fun applyCachedRules(extensionApi: ExtensionApi) {
         val rulesCollection: NamedCollection? = dataStoreService.getNamedCollection(
             ConfigurationExtension.DATASTORE_KEY
         )
@@ -87,7 +88,7 @@ internal class ConfigurationRulesManager(
                 RULES_CACHE_FOLDER,
                 false
             )
-        replaceRules(cachedRulesDirectory)
+        replaceRules(cachedRulesDirectory, extensionApi)
     }
 
     /**
@@ -95,7 +96,7 @@ internal class ConfigurationRulesManager(
      *
      * @param url the URL from which the rules must be downloaded
      */
-    internal fun applyDownloadedRules(url: String) {
+    internal fun applyDownloadedRules(url: String, extensionApi: ExtensionApi) {
         val rulesCollection: NamedCollection? = dataStoreService.getNamedCollection(
             ConfigurationExtension.DATASTORE_KEY
         )
@@ -118,7 +119,7 @@ internal class ConfigurationRulesManager(
                 ZipFileMetadataProvider()
             )
         configurationRulesDownloader.download(url, RULES_CACHE_FOLDER) { rulesFileDir ->
-            replaceRules(rulesFileDir)
+            replaceRules(rulesFileDir, extensionApi)
         }
     }
 
@@ -128,7 +129,7 @@ internal class ConfigurationRulesManager(
      *
      * @param rulesDirectory the directory from which rules must be parsed
      */
-    private fun replaceRules(rulesDirectory: File?) {
+    private fun replaceRules(rulesDirectory: File?, extensionApi: ExtensionApi) {
         if (rulesDirectory == null || !rulesDirectory.isDirectory) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
@@ -143,7 +144,7 @@ internal class ConfigurationRulesManager(
         val rulesFile = File(rulesFilePath)
         val content = FileUtils.readAsString(rulesFile)
         if (content != null) {
-            val rules = JSONRulesParser.parse(content)
+            val rules = JSONRulesParser.parse(content, extensionApi)
             if (rules == null) {
                 MobileCore.log(
                     LoggingMode.VERBOSE,

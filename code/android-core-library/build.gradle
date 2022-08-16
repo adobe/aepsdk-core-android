@@ -4,12 +4,12 @@ apply plugin: 'org.jlleitschuh.gradle.ktlint'
 apply plugin: 'org.jetbrains.dokka'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 19
         //noinspection OldTargetApi
-        targetSdkVersion 30
+        targetSdkVersion 31
         //Include the Proguard rules for Core Extension in the aar
         consumerProguardFiles 'lib-proguard-rules.pro'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -33,7 +33,6 @@ android {
         }
         androidTest{
             java.srcDirs += "src/legacy/androidTest-common/java"
-            java.srcDirs += "src/androidTest/kotlin"
         }
     }
 
@@ -53,7 +52,6 @@ android {
     buildTypes {
         debug {
             testCoverageEnabled false
-            debuggable true
         }
         release {
             minifyEnabled false
@@ -90,8 +88,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testPhoneDebugUnitTest','
 }
 
 android.libraryVariants.all { variant ->
-    tasks.withType(Javadoc) { task ->
-
+    tasks.withType(Javadoc) {
         source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
         ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
 
@@ -107,35 +104,76 @@ android.libraryVariants.all { variant ->
 
 
 apply from: 'checkStyle.gradle'
-apply from: 'release.gradle'
+//apply from: 'release.gradle'
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.adobe.marketing.mobile'
+            artifactId = rootProject.coreExtensionName
+            version = rootProject.coreExtensionVersion
+            artifact("$buildDir/outputs/aar/${rootProject.coreExtensionAARName}")
+
+            pom {
+                name = rootProject.mavenRepoName
+                description = rootProject.mavenRepoDescription
+                url = 'https://aep-sdks.gitbook.io'
+                licenses {
+                    license {
+                        name = 'Adobe Proprietary'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'adobe'
+                        name = 'adobe'
+                        email = 'adobe-mobile-testing@adobe.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:github.com//Adobe-Marketing-Cloud/acp-sdks.git'
+                    developerConnection = 'scm:git:ssh://github.com//Adobe-Marketing-Cloud/acp-sdks.git'
+                    url = 'https://github.com/Adobe-Marketing-Cloud/acp-sdks'
+                }
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+
+                    def coreDependencyNode = dependenciesNode.appendNode('dependency')
+                    coreDependencyNode.appendNode('groupId', 'org.jetbrains.kotlin')
+                    coreDependencyNode.appendNode('artifactId', 'kotlin-stdlib-jdk8')
+                    coreDependencyNode.appendNode('version', rootProject.kotlin_version)
+                }
+            }
+        }
+    }
+}
+tasks.withType(Javadoc).all { enabled = false }
+publish.dependsOn('assemblePhone')
 
 dependencies {
-    //noinspection GradleCompatible
+    //noinspection GradleDependency,GradleCompatible
     implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation 'androidx.annotation:annotation:1.3.0'
+    //noinspection GradleDependency
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     // unit tests
     testImplementation "junit:junit:4.13.2"
+    testImplementation "org.mockito:mockito-core:4.5.1"
+    testImplementation 'org.mockito:mockito-inline:4.5.1'
     //noinspection GradleDependency
-    testImplementation "org.mockito:mockito-core:2.22.0"
-    testImplementation 'org.powermock:powermock-api-mockito2:2.0.9'
-    testImplementation 'org.powermock:powermock-module-junit4:2.0.9'
     testImplementation 'commons-codec:commons-codec:1.15'
     testImplementation 'org.robolectric:robolectric:3.6.2'
     testImplementation "org.mockito.kotlin:mockito-kotlin:3.2.0"
     //noinspection GradleDependency
     testImplementation 'org.json:json:20160810'
+    //noinspection GradleDependency
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_version"
 //    testImplementation project(path: ':android-core-library')
     // instrumentation tests
 
-    androidTestImplementation "com.android.support.test:rules:1.0.2"
-    androidTestImplementation 'androidx.test:rules:1.1.1'
+
+    // instrumentation tests
+    androidTestImplementation 'androidx.test:rules:1.4.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_version"
-}
-
-repositories {
-    mavenCentral()
 }

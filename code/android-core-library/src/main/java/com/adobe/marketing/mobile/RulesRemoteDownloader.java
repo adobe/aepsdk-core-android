@@ -154,7 +154,7 @@ class RulesRemoteDownloader extends RemoteDownloader {
 	 * @return The destination path where the processed file contents were stored. Will be null if the processing failed.
 	 */
 	protected File processBundle(final File downloadedFile) {
-		Log.trace(ConfigurationExtension.LOG_SOURCE, "Processing downloaded rules bundle");
+		Log.trace(LOG_TAG, "Processing downloaded rules bundle");
 		File processedFile = null;
 
 		if (downloadedFile == null) {
@@ -194,7 +194,7 @@ class RulesRemoteDownloader extends RemoteDownloader {
 	 */
 	@Override
 	public File startDownloadSync() {
-		Log.trace(ConfigurationExtension.LOG_SOURCE, "Start download of rules bundle file");
+		Log.trace(LOG_TAG, "Start download of rules bundle file");
 		File downloadedBundle =  super.startDownloadSync();
 		//The downloaded file will be a zip / or something else.
 		//We will need to convert that into a folder.

@@ -11,6 +11,8 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import org.junit.Before
 import org.junit.Test
@@ -22,7 +24,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
-import org.powermock.reflect.Whitebox
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -35,20 +36,18 @@ class LaunchRulesEvaluatorTests {
 
     private lateinit var extensionApi: ExtensionApi
     private lateinit var launchRulesEvaluator: LaunchRulesEvaluator
-    private val cachedEvents: MutableList<Event> = mutableListOf()
 
     @Before
     fun setup() {
         extensionApi = Mockito.mock(ExtensionApi::class.java)
         launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine, extensionApi)
-        Whitebox.setInternalState(launchRulesEvaluator, "cachedEvents", cachedEvents)
     }
 
     @Test
     fun `Process a null event`() {
         assertNull(launchRulesEvaluator.process(null))
         verify(launchRulesEngine, never()).process(any())
-        assertEquals(0, cachedEvents.size)
+        assertEquals(0, launchRulesEvaluator.getCachedEventCount())
     }
 
     @Test
@@ -58,43 +57,41 @@ class LaunchRulesEvaluatorTests {
                 Event.Builder("event-$it", "type", "source").build()
             )
         }
-        assertEquals(100, cachedEvents.size)
+        assertEquals(100, launchRulesEvaluator.getCachedEventCount())
     }
 
     @Test
     fun `Reprocess cached events when rules are ready`() {
-        Mockito.`when`(extensionApi.dispatch(any())).thenReturn(true)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
             )
         }
-        assertEquals(10, cachedEvents.size)
+        assertEquals(10, launchRulesEvaluator.getCachedEventCount())
         val eventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
         launchRulesEvaluator.replaceRules(listOf())
         verify(extensionApi, Mockito.times(1)).dispatch(eventCaptor.capture())
         assertNotNull(eventCaptor.value)
-        assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestreset", eventCaptor.value.source)
+        assertEquals(EventType.RULES_ENGINE, eventCaptor.value.type)
+        assertEquals(EventSource.REQUEST_RESET, eventCaptor.value.source)
         launchRulesEvaluator.process(eventCaptor.value)
-        assertEquals(0, cachedEvents.size)
+        assertEquals(0, launchRulesEvaluator.getCachedEventCount())
     }
 
     @Test
     fun `Reprocess cached events in the right order`() {
-        Mockito.`when`(extensionApi.dispatch(any())).thenReturn(true)
         repeat(10) {
             launchRulesEvaluator.process(
                 Event.Builder("event-$it", "type", "source").build()
             )
         }
-        assertEquals(10, cachedEvents.size)
+        assertEquals(10, launchRulesEvaluator.getCachedEventCount())
         val eventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
         launchRulesEvaluator.replaceRules(listOf())
         verify(extensionApi, Mockito.times(1)).dispatch(eventCaptor.capture())
         assertNotNull(eventCaptor.value)
-        assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestreset", eventCaptor.value.source)
+        assertEquals(EventType.RULES_ENGINE, eventCaptor.value.type)
+        assertEquals(EventSource.REQUEST_RESET, eventCaptor.value.source)
         Mockito.reset(launchRulesEngine)
         launchRulesEvaluator.process(eventCaptor.value)
         val cachedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
@@ -104,7 +101,7 @@ class LaunchRulesEvaluatorTests {
         for (index in 1 until cachedEventCaptor.allValues.size) {
             assertEquals("event-${index - 1}", cachedEventCaptor.allValues[index].name)
         }
-        assertEquals(0, cachedEvents.size)
+        assertEquals(0, launchRulesEvaluator.getCachedEventCount())
     }
 
     @Test
@@ -114,9 +111,9 @@ class LaunchRulesEvaluatorTests {
                 Event.Builder("event-$it", "type", "source").build()
             )
         }
-        assertEquals(10, cachedEvents.size)
+        assertEquals(10, launchRulesEvaluator.getCachedEventCount())
         launchRulesEvaluator.replaceRules(null)
         Mockito.verifyNoInteractions(extensionApi)
-        assertEquals(10, cachedEvents.size)
+        assertEquals(10, launchRulesEvaluator.getCachedEventCount())
     }
 }

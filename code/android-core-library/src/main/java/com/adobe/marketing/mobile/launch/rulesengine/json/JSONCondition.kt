@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.rulesengine.Evaluable
@@ -38,7 +39,7 @@ internal abstract class JSONCondition {
          * @return a subclass of [JSONCondition]
          */
         @JvmSynthetic
-        internal fun build(jsonCondition: JSONObject?): JSONCondition? {
+        internal fun build(jsonCondition: JSONObject?, extensionApi: ExtensionApi): JSONCondition? {
             if (jsonCondition !is JSONObject) return null
             return try {
                 when (val type = jsonCondition.getString(KEY_TYPE)) {
@@ -46,22 +47,26 @@ internal abstract class JSONCondition {
                         JSONDefinition.buildDefinitionFromJSON(
                             jsonCondition.getJSONObject(
                                 KEY_DEFINITION
-                            )
+                            ),
+                            extensionApi
                         )
                     )
                     TYPE_VALUE_MATCHER -> MatcherCondition(
                         JSONDefinition.buildDefinitionFromJSON(
                             jsonCondition.getJSONObject(
                                 KEY_DEFINITION
-                            )
+                            ),
+                            extensionApi
                         )
                     )
                     TYPE_VALUE_HISTORICAL -> HistoricalCondition(
                         JSONDefinition.buildDefinitionFromJSON(
                             jsonCondition.getJSONObject(
                                 KEY_DEFINITION
-                            )
-                        )
+                            ),
+                            extensionApi
+                        ),
+                        extensionApi
                     )
                     else -> {
                         MobileCore.log(

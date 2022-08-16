@@ -19,6 +19,7 @@ import com.adobe.marketing.mobile.ExtensionEventListener
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.compatibility.CacheManager
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
@@ -186,6 +187,8 @@ internal class ConfigurationExtension : Extension {
      * @param event the event request dispatched to the [ConfigurationExtension]
      */
     internal fun handleConfigurationRequestEvent(event: Event) {
+        if (event.eventData == null) return
+
         when {
             event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) -> {
                 configureWithAppID(event)
@@ -390,10 +393,10 @@ internal class ConfigurationExtension : Extension {
         )
             .setEventData(eventData)
             .build()
-
-        MobileCore.dispatchResponseEvent(event, triggerEvent) {
-            MobileCore.log(LoggingMode.ERROR, TAG, "${it.errorCode}-${it.errorName}")
-        }
+//
+//        MobileCore.dispatchResponseEvent(event, triggerEvent) {
+//            MobileCore.log(LoggingMode.ERROR, TAG, "${it.errorCode}-${it.errorName}")
+//        }
     }
 
     private fun dispatchConfigurationRequest(eventData: Map<String, Any?>) {
@@ -432,11 +435,11 @@ internal class ConfigurationExtension : Extension {
      */
     private fun replaceRules(config: Map<String, Any?>, useCache: Boolean) {
         if (useCache) {
-            configurationRulesManager.applyCachedRules()
+            configurationRulesManager.applyCachedRules(api)
         } else {
             val rulesURL: String? = config[RULES_CONFIG_URL] as? String
             if (!rulesURL.isNullOrBlank()) {
-                configurationRulesManager.applyDownloadedRules(rulesURL)
+                configurationRulesManager.applyDownloadedRules(rulesURL, api)
             } else {
                 MobileCore.log(
                     LoggingMode.ERROR,

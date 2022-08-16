@@ -32,9 +32,7 @@ public class EventCoder {
 	private static final String TYPE = "type";
 	private static final String SOURCE = "source";
 	private static final String UUID = "uuid";
-	private static final String NUMBER = "number";
-	private static final String PAIR_ID = "pairId";
-	private static final String RESPONSE_PAIR_ID = "responsePairId";
+	private static final String RESPONSE_ID = "responseId";
 	private static final String TIMESTAMP = "timestamp";
 	private static final String DATA = "data";
 
@@ -50,15 +48,22 @@ public class EventCoder {
 
 		try {
 			JSONObject json = new JSONObject(eventString);
-			return new Event.Builder(json.optString(NAME, null), json.getString(TYPE), json.getString(SOURCE))
-				   .setUniqueIdentifier(json.getString(UUID))
-				   .setEventNumber(json.getInt(NUMBER))
-				   .setPairID(json.optString(PAIR_ID, null))
-				   .setResponsePairID(json.optString(RESPONSE_PAIR_ID, null))
-				   .setTimestamp(json.getLong(TIMESTAMP))
-				   .setEventData(toMap(json.getJSONObject(DATA)))
-				   .build();
 
+			String name = json.optString(NAME, null);
+			String type = json.optString(TYPE, null);
+			String source = json.optString(SOURCE, null);
+			String uniqueIdentifier = json.optString(UUID, null);
+			long timestamp = json.optLong(TIMESTAMP, 0);
+			Map<String, Object> data = toMap(json.optJSONObject(DATA));
+			String responseId = json.optString(RESPONSE_ID, null);
+
+			Event ret = new Event.Builder(name, type, source)
+					.setUniqueIdentifier(uniqueIdentifier)
+					.setTimestamp(timestamp)
+					.setEventData(data)
+					.setResponseId(responseId)
+					.build();
+			return ret;
 		} catch (JSONException e) {
 			return null;
 		}
@@ -75,17 +80,14 @@ public class EventCoder {
 		}
 
 		JSONObject json = new JSONObject();
-
 		try {
-			json.put(TYPE, event.getEventType().getName());
-			json.put(SOURCE, event.getEventSource().getName());
-			json.put(NUMBER, event.getEventNumber());
 			json.put(NAME, event.getName());
-			json.put(TIMESTAMP, event.getTimestamp());
-			json.put(PAIR_ID, event.getPairID());
-			json.put(RESPONSE_PAIR_ID, event.getResponsePairID());
-			json.put(DATA, wrap(event.getEventData()));
+			json.put(TYPE, event.getType());
+			json.put(SOURCE, event.getSource());
 			json.put(UUID, event.getUniqueIdentifier());
+			json.put(TIMESTAMP, event.getTimestamp());
+			json.put(DATA, wrap(event.getEventData()));
+			json.put(RESPONSE_ID, event.getResponseID());
 		} catch (JSONException e) {
 			return null;
 		}
@@ -171,7 +173,7 @@ public class EventCoder {
 		Map<String, Object> map = new HashMap<String, Object>();
 
 		if (object == null) {
-			return map;
+			return null;
 		}
 
 		Iterator<String> keys = object.keys();

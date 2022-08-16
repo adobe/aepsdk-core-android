@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.internal.utility.UrlUtilities
 import com.adobe.marketing.mobile.rulesengine.Transformer
+import com.adobe.marketing.mobile.rulesengine.TransformerBlock
 import com.adobe.marketing.mobile.rulesengine.Transforming
 
 internal object LaunchRuleTransformer {

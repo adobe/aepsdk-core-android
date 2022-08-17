@@ -16,3 +16,4 @@ include ':android-core-library',
         ':test-third-party-extension',
         ':testapp'
 include ':integration-tests'
+include ':testapp-kotlin'

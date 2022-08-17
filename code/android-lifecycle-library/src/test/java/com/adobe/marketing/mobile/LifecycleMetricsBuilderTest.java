@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
-import com.adobe.marketing.mobile.services.ServiceProviderTestHelper;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class LifecycleMetricsBuilderTest {

@@ -404,9 +404,8 @@ public class LifecycleStateTest {
 
     @Test
     public void pause_Happy() {
-        Event testEvent = new Event.Builder(null, EventType.TYPE_GENERIC_LIFECYCLE, EventSource.TYPE_REQUEST_CONTENT)
+        Event testEvent = new Event.Builder(null, EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT)
                 .setTimestamp(currentTimestampInMilliSeconds)
-                .setEventNumber(1)
                 .build();
 
         lifecycleState.pause(testEvent);

@@ -69,10 +69,18 @@ class LifecycleState {
                                        String advertisingIdentifier,
                                        long sessionTimeoutInSeconds,
                                        boolean isInstall) {
+        String previousOsVersion = "";
+        String previousAppId = "";
+        if (namedCollection != null) {
+            previousOsVersion = namedCollection.getString(LifecycleConstants.DataStoreKeys.OS_VERSION, "");
+            previousAppId = namedCollection.getString(LifecycleConstants.DataStoreKeys.APP_ID, "");
+        }
+
         LifecycleMetricsBuilder metricsBuilder = new LifecycleMetricsBuilder(deviceInfoService, namedCollection, startTimestampInSeconds);
         Map<String, String> defaultData = metricsBuilder.addCoreData()
                 .addGenericData()
                 .build();
+
         if (!isInstall) {
             checkForApplicationUpgrade(defaultData.get(LifecycleConstants.EventDataKeys.Lifecycle.APP_ID));
         }
@@ -107,16 +115,11 @@ class LifecycleState {
                 lifecycleData.putAll(sessionContextData);
             }
 
-            if (namedCollection != null) {
-                final String previousOsVersion = namedCollection.getString(LifecycleConstants.DataStoreKeys.OS_VERSION, "");
-                if (previousOsVersion != null && !previousOsVersion.isEmpty()) {
-                    lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_OS_VERSION, previousOsVersion);
-                }
-
-                final String previousAppId = namedCollection.getString(LifecycleConstants.DataStoreKeys.APP_ID, "");
-                if (previousAppId != null && !previousAppId.isEmpty()) {
-                    lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_APP_ID, previousAppId);
-                }
+            if (previousOsVersion != null && !previousOsVersion.isEmpty()) {
+                lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_OS_VERSION, previousOsVersion);
+            }
+            if (previousAppId != null && !previousAppId.isEmpty()) {
+                lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_APP_ID, previousAppId);
             }
         }
 

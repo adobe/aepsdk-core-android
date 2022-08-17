@@ -49,6 +49,18 @@ class LifecycleExtension extends Extension {
 		lifecycleV2 = new LifecycleV2Extension(getDataStore(), geDeviceInfoService(), getApi());
 	}
 
+	/**
+	 * This constructor is intended for testing purposes.
+	 *
+	 * @param extensionApi {@code ExtensionApi} instance
+	 * @param lifecycleState {@code LifecycleState} instance. If null, a new instance will be created
+	 */
+	protected LifecycleExtension(final ExtensionApi extensionApi, final LifecycleState lifecycleState, final LifecycleV2Extension lifecycleV2Extension) {
+		super(extensionApi);
+		this.lifecycleState = lifecycleState != null ? lifecycleState : new LifecycleState(getDataStore(), geDeviceInfoService());
+		lifecycleV2 = lifecycleV2Extension != null ? lifecycleV2Extension : new LifecycleV2Extension(getDataStore(), geDeviceInfoService(), getApi());
+	}
+
 	@Override
 	protected String getName() {
 		return LifecycleConstants.EventDataKeys.Lifecycle.MODULE_NAME;
@@ -153,7 +165,7 @@ class LifecycleExtension extends Extension {
 	 *
 	 * @return the advertising identifier
 	 */
-	String getAdvertisingIdentifier(final Event event) {
+	private String getAdvertisingIdentifier(final Event event) {
 		if (event == null) {
 			Log.trace(LifecycleConstants.LOG_TAG, "%s - Failed to get advertising identifier, %s (Event)", SELF_LOG_TAG,
 					Log.UNEXPECTED_NULL_VALUE);
@@ -206,7 +218,6 @@ class LifecycleExtension extends Extension {
 				getSessionTimeoutLength(configurationSharedState),
 				isInstall);
 
-		//todo verify logic
 		if (previousSessionInfo == null) {
 			// Analytics extension needs adjusted start date to calculate timeSinceLaunch param.
 			final NamedCollection namedCollection = getDataStore();
@@ -272,11 +283,14 @@ class LifecycleExtension extends Extension {
 	 */
 	private long getSessionTimeoutLength(Map<String, Object> configurationSharedState) {
 		long sessionTimeoutInSeconds = LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT;
-		if (configurationSharedState != null && configurationSharedState.get(LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT) != null) {
-			try {
-				sessionTimeoutInSeconds = (long) configurationSharedState.get(LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT);
-			} catch (Exception e) {
-				return sessionTimeoutInSeconds;
+		if (configurationSharedState != null) {
+			Object sessionTimeout = configurationSharedState.get(LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT);
+			if(sessionTimeout != null) {
+				try {
+					sessionTimeoutInSeconds = (long) sessionTimeout;
+				} catch (Exception e) {
+					return sessionTimeoutInSeconds;
+				}
 			}
 		}
 		return sessionTimeoutInSeconds;

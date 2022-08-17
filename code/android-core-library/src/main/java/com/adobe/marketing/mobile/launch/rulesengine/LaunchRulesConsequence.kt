@@ -11,6 +11,8 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
@@ -29,9 +31,6 @@ class LaunchRulesConsequence(
     private val logTag = "LaunchRulesConsequence"
     private var dispatchChainedEventsCount = mutableMapOf<String, Int>()
     companion object {
-        // TODO: we should move the following event type/event source values to the public EventType/EventSource classes once we have those.
-        private const val EVENT_SOURCE_RESPONSE_CONTENT = "com.adobe.eventSource.responseContent"
-        private const val EVENT_TYPE_RULES_ENGINE = "com.adobe.eventtype.rulesengine"
         private const val LAUNCH_RULE_TOKEN_LEFT_DELIMITER = "{%"
         private const val LAUNCH_RULE_TOKEN_RIGHT_DELIMITER = "%}"
         private const val CONSEQUENCE_TYPE_ADD = "add"
@@ -281,8 +280,8 @@ class LaunchRulesConsequence(
         eventData[CONSEQUENCE_EVENT_DATA_KEY_TYPE] = consequence.type
         return Event.Builder(
             CONSEQUENCE_EVENT_NAME,
-            EVENT_TYPE_RULES_ENGINE,
-            EVENT_SOURCE_RESPONSE_CONTENT
+            EventType.RULES_ENGINE,
+            EventSource.RESPONSE_CONTENT
         )
             .setEventData(mapOf(CONSEQUENCE_EVENT_DATA_KEY_CONSEQUENCE to eventData))
             .build()

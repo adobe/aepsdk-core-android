@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
@@ -30,11 +31,11 @@ object JSONRulesParser {
      * @return a list of [LaunchRule]s
      */
     @JvmStatic
-    fun parse(jsonString: String): List<LaunchRule>? {
+    fun parse(jsonString: String, extensionApi: ExtensionApi): List<LaunchRule>? {
         try {
             val jsonObject = JSONTokener(jsonString).nextValue()
             if (jsonObject is JSONObject) {
-                return JSONRuleRoot(jsonObject)?.toLaunchRules()
+                return JSONRuleRoot(jsonObject)?.toLaunchRules(extensionApi)
             }
         } catch (e: Exception) {
             MobileCore.log(

@@ -63,7 +63,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                     throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table in the Android Event History database.");
                 }
             }
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             throw new EventHistoryDatabaseCreationException(String.format("An error occurred while creating the \"Events\" table in the Android Event History database, error message: %s",
                     (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
         }

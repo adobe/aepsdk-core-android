@@ -10,14 +10,27 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.LogicalExpression
 import com.adobe.marketing.mobile.test.utility.buildJSONObject
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnitRunner
 import kotlin.test.assertTrue
 
+@RunWith(MockitoJUnitRunner.Silent::class)
 class JSONConditionTests {
+    private lateinit var extensionApi: ExtensionApi
+
+    @Before
+    fun setup() {
+        extensionApi = Mockito.mock(ExtensionApi::class.java)
+    }
+
     @Test
     fun testBadJsonFormatWithoutMatcherValue() {
         val jsonConditionString = """
@@ -31,7 +44,7 @@ class JSONConditionTests {
           }
         }
         """.trimIndent()
-        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString))
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
         assertTrue(jsonCondition is MatcherCondition)
         val evaluable = jsonCondition.toEvaluable()
         assertTrue(evaluable == null)
@@ -51,7 +64,7 @@ class JSONConditionTests {
           }
         }
         """.trimIndent()
-        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString))
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
         assertTrue(jsonCondition is MatcherCondition)
         val evaluable = jsonCondition.toEvaluable()
         assertTrue(evaluable == null)
@@ -71,7 +84,7 @@ class JSONConditionTests {
           }
         }
         """.trimIndent()
-        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString))
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
         assertTrue(jsonCondition is MatcherCondition)
         val evaluable = jsonCondition.toEvaluable()
         assertTrue(evaluable is Evaluable)
@@ -90,7 +103,7 @@ class JSONConditionTests {
           }
         }
         """.trimIndent()
-        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString))
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
         assertTrue(jsonCondition is MatcherCondition)
         val evaluable = jsonCondition.toEvaluable()
         assertTrue(evaluable is Evaluable)
@@ -112,7 +125,7 @@ class JSONConditionTests {
           }
         }
         """.trimIndent()
-        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString))
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
         assertTrue(jsonCondition is MatcherCondition)
         val evaluable = jsonCondition.toEvaluable()
         assertTrue(evaluable is Evaluable)
@@ -151,7 +164,7 @@ class JSONConditionTests {
           }
         }
         """.trimIndent()
-        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString))
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
         assertTrue(jsonCondition is GroupCondition)
         val evaluable = jsonCondition.toEvaluable()
         assertTrue(evaluable is Evaluable)

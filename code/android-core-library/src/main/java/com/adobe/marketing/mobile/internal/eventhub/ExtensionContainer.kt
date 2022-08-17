@@ -259,7 +259,13 @@ internal class ExtensionContainer constructor(
             return null
         }
 
-        return EventHub.shared.getSharedState(SharedStateType.STANDARD, extensionName, event, barrier, resolution ?: SharedStateResolution.ANY)
+        return EventHub.shared.getSharedState(
+            SharedStateType.STANDARD,
+            extensionName,
+            event,
+            barrier,
+            resolution ?: SharedStateResolution.ANY
+        )
     }
 
     override fun createXDMSharedState(
@@ -308,7 +314,13 @@ internal class ExtensionContainer constructor(
             return null
         }
 
-        return EventHub.shared.getSharedState(SharedStateType.XDM, extensionName, event, barrier, resolution ?: SharedStateResolution.ANY)
+        return EventHub.shared.getSharedState(
+            SharedStateType.XDM,
+            extensionName,
+            event,
+            barrier,
+            resolution ?: SharedStateResolution.ANY
+        )
     }
 
     override fun unregisterExtension() {

@@ -28,6 +28,8 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -62,7 +64,9 @@ internal class ExtensionContainer constructor(
         private set
 
     private var sharedStateManagers: Map<SharedStateType, SharedStateManager>? = null
-    private val eventListeners: ConcurrentLinkedQueue<ExtensionListenerContainer> = ConcurrentLinkedQueue()
+    private val eventListeners: ConcurrentLinkedQueue<ExtensionListenerContainer> =
+        ConcurrentLinkedQueue()
+
     // Event Resolver mapping to support legacy shared state APIs.
     private val eventStandardResolverMapping = ConcurrentHashMap<String, SharedStateResolver>()
     private val eventXDMResolverMapping = ConcurrentHashMap<String, SharedStateResolver>()
@@ -71,21 +75,23 @@ internal class ExtensionContainer constructor(
      * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching
      * an [Event] "e". Dispatch is regarded complete when [SerialWorkDispatcher.WorkHandler.doWork] finishes for "e".
      */
-    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> = SerialWorkDispatcher.WorkHandler { event ->
-        if (extension?.readyForEvent(event) != true) {
-            return@WorkHandler
-        }
-
-        eventListeners.forEach {
-            if (it.shouldNotify(event)) {
-                it.notify(event)
+    private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> =
+        SerialWorkDispatcher.WorkHandler { event ->
+            if (extension?.readyForEvent(event) != true) {
+                return@WorkHandler
             }
+
+            eventListeners.forEach {
+                if (it.shouldNotify(event)) {
+                    it.notify(event)
+                }
+            }
+
+            lastProcessedEvent = event
         }
 
-        lastProcessedEvent = event
-    }
-
-    val eventProcessor: SerialWorkDispatcher<Event> = SerialWorkDispatcher(extensionClass.extensionTypeName, dispatchJob)
+    val eventProcessor: SerialWorkDispatcher<Event> =
+        SerialWorkDispatcher(extensionClass.extensionTypeName, dispatchJob)
 
     init {
         taskExecutor.submit {
@@ -210,7 +216,12 @@ internal class ExtensionContainer constructor(
             return false
         }
 
-        return EventHub.shared.createSharedState(SharedStateType.STANDARD, sharedStateName, state, event)
+        return EventHub.shared.createSharedState(
+            SharedStateType.STANDARD,
+            sharedStateName,
+            state,
+            event
+        )
     }
 
     override fun createPendingSharedState(
@@ -225,7 +236,11 @@ internal class ExtensionContainer constructor(
             return null
         }
 
-        return EventHub.shared.createPendingSharedState(SharedStateType.STANDARD, sharedStateName, event)
+        return EventHub.shared.createPendingSharedState(
+            SharedStateType.STANDARD,
+            sharedStateName,
+            event
+        )
     }
 
     override fun getSharedState(
@@ -244,7 +259,13 @@ internal class ExtensionContainer constructor(
             return null
         }
 
-        return EventHub.shared.getSharedState(SharedStateType.STANDARD, sharedStateName, event, barrier, resolution ?: SharedStateResolution.ANY)
+        return EventHub.shared.getSharedState(
+            SharedStateType.STANDARD,
+            sharedStateName,
+            event,
+            barrier,
+            resolution ?: SharedStateResolution.ANY
+        )
     }
 
     override fun createXDMSharedState(
@@ -293,7 +314,13 @@ internal class ExtensionContainer constructor(
             return null
         }
 
-        return EventHub.shared.getSharedState(SharedStateType.XDM, sharedStateName, event, barrier, resolution ?: SharedStateResolution.ANY)
+        return EventHub.shared.getSharedState(
+            SharedStateType.XDM,
+            sharedStateName,
+            event,
+            barrier,
+            resolution ?: SharedStateResolution.ANY
+        )
     }
 
     override fun unregisterExtension() {
@@ -306,7 +333,13 @@ internal class ExtensionContainer constructor(
         event: Event?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,
     ): Boolean {
-        return setSharedEventStateCommon(SharedStateType.STANDARD, eventStandardResolverMapping, state, event, errorCallback)
+        return setSharedEventStateCommon(
+            SharedStateType.STANDARD,
+            eventStandardResolverMapping,
+            state,
+            event,
+            errorCallback
+        )
     }
 
     override fun setXDMSharedEventState(
@@ -314,7 +347,13 @@ internal class ExtensionContainer constructor(
         event: Event?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,
     ): Boolean {
-        return setSharedEventStateCommon(SharedStateType.XDM, eventXDMResolverMapping, state, event, errorCallback)
+        return setSharedEventStateCommon(
+            SharedStateType.XDM,
+            eventXDMResolverMapping,
+            state,
+            event,
+            errorCallback
+        )
     }
 
     private fun setSharedEventStateCommon(
@@ -341,7 +380,11 @@ internal class ExtensionContainer constructor(
                 errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
                 return false
             } else {
-                val resolver = EventHub.shared.createPendingSharedState(sharedStateType, sharedStateName, event)
+                val resolver = EventHub.shared.createPendingSharedState(
+                    sharedStateType,
+                    sharedStateName,
+                    event
+                )
                 // Created pending shared state, map the reference to event so that we can resolve during later call.
                 resolver?.let {
                     eventResolverMap[event.uniqueIdentifier] = it
@@ -363,7 +406,12 @@ internal class ExtensionContainer constructor(
                 return true
             } ?: run {
                 // Create shared state if no resolver is present for event.
-                return EventHub.shared.createSharedState(sharedStateType, sharedStateName, state, event)
+                return EventHub.shared.createSharedState(
+                    sharedStateType,
+                    sharedStateName,
+                    state,
+                    event
+                )
             }
         }
     }
@@ -386,7 +434,11 @@ internal class ExtensionContainer constructor(
 
     override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
-            MobileCore.log(LoggingMode.ERROR, LOG_TAG, "ExtensionContainer is not fully initialized. clearSharedEventStates should not be called from 'Extension' constructor")
+            MobileCore.log(
+                LoggingMode.ERROR,
+                LOG_TAG,
+                "ExtensionContainer is not fully initialized. clearSharedEventStates should not be called from 'Extension' constructor"
+            )
             return false
         }
         return EventHub.shared.clearSharedState(SharedStateType.STANDARD, sharedStateName)
@@ -394,7 +446,11 @@ internal class ExtensionContainer constructor(
 
     override fun clearXDMSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
-            MobileCore.log(LoggingMode.ERROR, LOG_TAG, "ExtensionContainer is not fully initialized. clearXDMSharedEventStates should not be called from 'Extension' constructor")
+            MobileCore.log(
+                LoggingMode.ERROR,
+                LOG_TAG,
+                "ExtensionContainer is not fully initialized. clearXDMSharedEventStates should not be called from 'Extension' constructor"
+            )
             return false
         }
         return EventHub.shared.clearSharedState(SharedStateType.XDM, sharedStateName)
@@ -420,12 +476,24 @@ internal class ExtensionContainer constructor(
         extensionListenerClass: Class<T>?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,
     ): Boolean {
-        val extensionListener = extensionListenerClass?.initWith(this, EventType.WILDCARD, EventSource.WILDCARD)
+        val extensionListener =
+            extensionListenerClass?.initWith(this, EventType.WILDCARD, EventSource.WILDCARD)
         if (extensionListener == null) {
             errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
             return false
         }
-        registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) { extensionListener.hear(it) }
+        registerEventListener(
+            EventType.WILDCARD,
+            EventSource.WILDCARD
+        ) { extensionListener.hear(it) }
         return true
+    }
+
+    override fun getHistoricalEvents(
+        eventHistoryRequests: Array<out EventHistoryRequest>?,
+        enforceOrder: Boolean,
+        handler: EventHistoryResultHandler<Int>?
+    ) {
+        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler)
     }
 }

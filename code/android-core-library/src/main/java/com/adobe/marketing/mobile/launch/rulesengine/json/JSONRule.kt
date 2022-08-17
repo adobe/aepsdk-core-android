@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.map
@@ -60,8 +61,8 @@ internal class JSONRule private constructor(
      * @return an object of [LaunchRule]
      */
     @JvmSynthetic
-    internal fun toLaunchRule(): LaunchRule? {
-        val evaluable = JSONCondition.build(condition)?.toEvaluable()
+    internal fun toLaunchRule(extensionApi: ExtensionApi): LaunchRule? {
+        val evaluable = JSONCondition.build(condition, extensionApi)?.toEvaluable()
         if (evaluable !is Evaluable) {
             MobileCore.log(
                 LoggingMode.ERROR,

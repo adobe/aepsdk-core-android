@@ -30,6 +30,7 @@ internal fun Event.isCollectPii(): Boolean {
     return this.consequenceType() == SignalConstants.EventDataKeys.Signal.RULES_RESPONSE_CONSEQUENCE_TYPE_PII
 }
 
+//TODO: change the DataReader API calls to optType
 @JvmSynthetic
 internal fun Event.contentType(): String {
     return try {

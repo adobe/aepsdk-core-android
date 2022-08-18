@@ -25,7 +25,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-//                    Greeting("Android")
                     NavigationInit()
                 }
             }
@@ -49,9 +48,14 @@ fun NavigationInit() {
             CoreView(navController = navController)
         }
 
+        composable(NavRoutes.ServicesView.route) {
+            ServicesView(navController = navController)
+        }
+
         composable(NavRoutes.SignalView.route) {
             SignalView(navController = navController)
         }
+
         composable(NavRoutes.LifecycleView.route) {
             LifecycleView(navController = navController)
         }

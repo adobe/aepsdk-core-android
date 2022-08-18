@@ -1,0 +1,9 @@
+jdk:
+  - openjdk11
+# before_install:
+#    - ./custom_setup.sh
+install:
+   - echo "Running a custom install command"
+   - ./code/gradlew -p code/android-core-library publishToMavenLocal -Pjitpack
+# env:
+#    MYVAR: "custom environment variable"

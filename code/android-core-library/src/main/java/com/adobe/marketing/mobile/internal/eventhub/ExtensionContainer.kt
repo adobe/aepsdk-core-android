@@ -250,18 +250,18 @@ internal class ExtensionContainer constructor(
         resolution: SharedStateResolution?
     ): SharedStateResult? {
 
-        val sharedStateName = this.sharedStateName ?: run {
+        val extensionName = extensionName ?: run {
             MobileCore.log(
                 LoggingMode.WARNING,
                 getTag(),
-                "ExtensionContainer is not fully initialized. getSharedState should not be called from 'Extension' constructor"
+                "getSharedState failed as extensionName is null."
             )
             return null
         }
 
         return EventHub.shared.getSharedState(
             SharedStateType.STANDARD,
-            sharedStateName,
+            extensionName,
             event,
             barrier,
             resolution ?: SharedStateResolution.ANY
@@ -305,18 +305,18 @@ internal class ExtensionContainer constructor(
         barrier: Boolean,
         resolution: SharedStateResolution?
     ): SharedStateResult? {
-        val sharedStateName = this.sharedStateName ?: run {
+        val extensionName = extensionName ?: run {
             MobileCore.log(
                 LoggingMode.WARNING,
                 getTag(),
-                "ExtensionContainer is not fully initialized. getXDMSharedState should not be called from 'Extension' constructor"
+                "getXDMSharedState failed as extensionName is null."
             )
             return null
         }
 
         return EventHub.shared.getSharedState(
             SharedStateType.XDM,
-            sharedStateName,
+            extensionName,
             event,
             barrier,
             resolution ?: SharedStateResolution.ANY

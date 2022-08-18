@@ -43,7 +43,7 @@ class SignalExtensionProtectedMethodsTests {
     }
 
     @Test
-    fun `Test SignalExtension registration `() {
+    fun `Test SignalExtension registration`() {
 
         signalExtension.onRegistered()
 
@@ -62,12 +62,10 @@ class SignalExtensionProtectedMethodsTests {
             eventSourceCaptor.capture(),
             listenerCaptor.capture()
         )
-
-        // TODO: need to change it to the actual string after Core exposed all EventType/EventSource constants
-        assertEquals("", eventTypeCaptor.allValues[0])
-        assertEquals("", eventTypeCaptor.allValues[1])
-        assertEquals("", eventSourceCaptor.allValues[0])
-        assertEquals("", eventSourceCaptor.allValues[1])
+        assertEquals("com.adobe.eventType.rulesEngine", eventTypeCaptor.allValues[0])
+        assertEquals("com.adobe.eventType.configuration", eventTypeCaptor.allValues[1])
+        assertEquals("com.adobe.eventSource.responseContent", eventSourceCaptor.allValues[0])
+        assertEquals("com.adobe.eventSource.responseContent", eventSourceCaptor.allValues[1])
         assertNotNull(listenerCaptor.allValues[0])
         assertNotNull(listenerCaptor.allValues[1])
     }

@@ -32,6 +32,7 @@ public class Signal {
      * Registers the Signal extension with the Mobile Core.
      * This method should be called before calling {@link MobileCore#start(AdobeCallback)}.
      */
+    @Deprecated
     public static void registerExtension() {
         MobileCore.registerExtension(SignalExtension.class, extensionError -> {
             Log.error(TAG, "There was an error when registering the UserProfile extension: %s",

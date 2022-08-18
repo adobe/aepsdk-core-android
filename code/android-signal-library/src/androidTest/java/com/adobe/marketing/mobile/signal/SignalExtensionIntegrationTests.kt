@@ -24,77 +24,80 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.InputStream
 
-@RunWith(AndroidJUnit4::class)
-class SignalExtensionIntegrationTests {
+//TODO: remove those undone tests and add integration tests for Signal in https://github.com/adobe/aepsdk-core-android/tree/feature/eventhub/code/integration-tests/src/androidTest/java/com/adobe/marketing/mobile/integration
 
-    companion object {
-        @BeforeClass
-        @JvmStatic
-        fun setupClass() {
-            ServiceProvider.getInstance().networkService = Networking { request, callback ->
-                with(request.url) {
-                    when {
-                        startsWith("https://adobe.com") && contains("rules_signal.zip") -> {
-                            MockedHttpConnecting("rules_signal")
-                        }
-                        startsWith("https://adobe.com") && contains("rules_pii.zip") -> {
-                            MockedHttpConnecting("rules_pii")
-                        }
-                        else -> {
-                            fail("Unexpected url: ${request.url}")
-                        }
-                    }
-                }
-            }
-
-        }
-    }
-
-    @Before
-    fun setUP() {
-        EventHubProxy.resetEventhub()
-        MobileCore.start {
-
-        }
-    }
-
-    @Test
-    fun `x`() {
-// Context of the app under test.
-
-        // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-
-        Assert.assertEquals("com.adobe.marketing.mobile.signal.test", appContext.packageName)
-    }
-}
-
-private class MockedHttpConnecting(val rulesFileName: String) : HttpConnecting {
-    val rulesStream: InputStream = this::class.java.classLoader?.getResource("$rulesFileName.zip")
-        ?.openStream()!!
-
-    override fun getInputStream(): InputStream {
-        return rulesStream
-    }
-
-    override fun getErrorStream(): InputStream? {
-        return null
-    }
-
-    override fun getResponseCode(): Int {
-        return 200
-    }
-
-    override fun getResponseMessage(): String {
-        return ""
-    }
-
-    override fun getResponsePropertyValue(responsePropertyKey: String?): String {
-        return ""
-    }
-
-    override fun close() {
-        rulesStream.close()
-    }
-
-}
+//
+//@RunWith(AndroidJUnit4::class)
+//class SignalExtensionIntegrationTests {
+//
+//    companion object {
+//        @BeforeClass
+//        @JvmStatic
+//        fun setupClass() {
+//            ServiceProvider.getInstance().networkService = Networking { request, callback ->
+//                with(request.url) {
+//                    when {
+//                        startsWith("https://adobe.com") && contains("rules_signal.zip") -> {
+//                            MockedHttpConnecting("rules_signal")
+//                        }
+//                        startsWith("https://adobe.com") && contains("rules_pii.zip") -> {
+//                            MockedHttpConnecting("rules_pii")
+//                        }
+//                        else -> {
+//                            fail("Unexpected url: ${request.url}")
+//                        }
+//                    }
+//                }
+//            }
+//
+//        }
+//    }
+//
+//    @Before
+//    fun setUP() {
+//        EventHubProxy.resetEventhub()
+//        MobileCore.start {
+//
+//        }
+//    }
+//
+//    @Test
+//    fun `x`() {
+//// Context of the app under test.
+//
+//        // Context of the app under test.
+//        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+//
+//        Assert.assertEquals("com.adobe.marketing.mobile.signal.test", appContext.packageName)
+//    }
+//}
+//
+//private class MockedHttpConnecting(val rulesFileName: String) : HttpConnecting {
+//    val rulesStream: InputStream = this::class.java.classLoader?.getResource("$rulesFileName.zip")
+//        ?.openStream()!!
+//
+//    override fun getInputStream(): InputStream {
+//        return rulesStream
+//    }
+//
+//    override fun getErrorStream(): InputStream? {
+//        return null
+//    }
+//
+//    override fun getResponseCode(): Int {
+//        return 200
+//    }
+//
+//    override fun getResponseMessage(): String {
+//        return ""
+//    }
+//
+//    override fun getResponsePropertyValue(responsePropertyKey: String?): String {
+//        return ""
+//    }
+//
+//    override fun close() {
+//        rulesStream.close()
+//    }
+//
+//}

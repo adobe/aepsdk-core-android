@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.map
@@ -47,9 +48,9 @@ internal class JSONRuleRoot private constructor(val version: String, val jsonArr
      * @return a list of [LaunchRule]s
      */
     @JvmSynthetic
-    fun toLaunchRules(): List<LaunchRule> {
+    fun toLaunchRules(extensionApi: ExtensionApi): List<LaunchRule> {
         return jsonArray.map {
-            JSONRule(it as? JSONObject)?.toLaunchRule() ?: throw Exception()
+            JSONRule(it as? JSONObject)?.toLaunchRule(extensionApi) ?: throw Exception()
         }
     }
 }

@@ -24,10 +24,13 @@ import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
 import com.adobe.marketing.mobile.utils.DataReader;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 final public class MobileCore {
     private final static String LOG_TAG = "MobileCore";
@@ -94,6 +97,8 @@ final public class MobileCore {
             return;
         }
 
+        Log.setLoggingService(new AndroidLoggingService());
+
         // AMSDK-8502
         // workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
         // https://issuetracker.google.com/issues/110848122
@@ -126,8 +131,6 @@ final public class MobileCore {
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
-
-        Log.setLoggingService(new AndroidLoggingService());
     }
 
     /**
@@ -197,6 +200,39 @@ final public class MobileCore {
             case VERBOSE:
                 Log.trace(tag, message);
                 break;
+        }
+    }
+
+    public static void registerExtensions(@NonNull final List<Class<? extends Extension>> extensions, final AdobeCallback<?> completionCallback) {
+        if(!sdkInitializedWithContext.get()) {
+            Log.error(LOG_TAG, "Failed to registerExtensions - setApplication not called");
+            return;
+        }
+
+        final List<Class<? extends Extension>> allExtensions = new ArrayList<>();
+        // Todo - Register configuration extension once it is refactored to use Extension APIs. 
+        if (extensions != null) {
+            for(final Class<? extends Extension> extension: extensions) {
+                if (extension != null) {
+                    allExtensions.add(extension);
+                }
+            }
+        }
+
+        final AtomicInteger registeredExtensions = new AtomicInteger(0);
+        for (final Class<? extends Extension> extension: allExtensions) {
+            EventHub.Companion.getShared().registerExtension(extension, eventHubError -> {
+                Log.debug(LOG_TAG, "Registered extension " + extension + "with status "+ eventHubError);
+
+                if (registeredExtensions.incrementAndGet() == allExtensions.size()) {
+                    Log.debug(LOG_TAG, "Registered all extensions. Starting event processing.");
+                    EventHub.Companion.getShared().start();
+                    if (completionCallback != null) {
+                        completionCallback.call(null);
+                    }
+                }
+                return null;
+            });
         }
     }
 

@@ -107,10 +107,8 @@ public class DataReader {
                 } else if (Float.class.equals(tClass)) {
                     return (T) Float.valueOf(objAsNumber.floatValue());
                 }
-            } else if (String.class.equals(tClass)) {
-                // Todo :- Check if we should match the behavior with Variant. It has custom logic to
-                //  convert types to string.
-                return (T) obj.toString();
+            } else if (String.class.equals(tClass) && obj instanceof String) {
+                return (T) obj;
             } else {
                 return tClass.cast(obj);
             }

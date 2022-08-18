@@ -106,10 +106,14 @@ android.libraryVariants.all { variant ->
 apply from: 'checkStyle.gradle'
 //apply from: 'release.gradle'
 
+def isJitPackBuild() {
+    return hasProperty('jitpack')
+}
+def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
 publishing {
     publications {
         release(MavenPublication) {
-            groupId = 'com.adobe.marketing.mobile'
+            groupId = groupIdForPublish
             artifactId = rootProject.coreExtensionName
             version = rootProject.coreExtensionVersion
             artifact("$buildDir/outputs/aar/${rootProject.coreExtensionAARName}")
@@ -148,7 +152,7 @@ publishing {
     }
 }
 tasks.withType(Javadoc).all { enabled = false }
-publish.dependsOn('assemblePhone')
+publishToMavenLocal.dependsOn('assemblePhone')
 
 dependencies {
     //noinspection GradleDependency,GradleCompatible

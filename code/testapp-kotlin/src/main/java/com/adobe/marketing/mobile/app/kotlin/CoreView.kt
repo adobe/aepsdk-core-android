@@ -1,3 +1,13 @@
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
 package com.adobe.marketing.mobile.app.kotlin
 
 import androidx.compose.foundation.layout.Arrangement
@@ -7,6 +17,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +28,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.app.kotlin.ui.theme.AepsdkcoreandroidTheme
+import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.ui.AlertSetting
 
 @Composable
 fun CoreView(navController: NavHostController) {
@@ -29,6 +46,7 @@ fun CoreView(navController: NavHostController) {
         Spacer(modifier = Modifier.size(10.dp))
         Column(
             modifier = Modifier
+                .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
                 .fillMaxHeight()
                 .padding(8.dp),
@@ -36,77 +54,93 @@ fun CoreView(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                showCoreVersion()
             }) {
                 Text(text = "extensionVersion")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                updateConfiguration()
             }) {
-                Text(text = "updateConfiguration")
+                Text(text = "updateConfiguration(optedout)")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                clearUpdatedConfiguration()
             }) {
                 Text(text = "clearUpdatedConfiguration")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_IN)
             }) {
                 Text(text = "setPrivacyStatus(OptIn)")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
+            }) {
+                Text(text = "setPrivacyStatus(OptOut)")
+            }
+            Button(onClick = {
+                MobileCore.getPrivacyStatus { status ->
+                    showAlert("Privacy Status: $status")
+                }
+
             }) {
                 Text(text = "getPrivacyStatus")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
-            }) {
-                Text(text = "log")
-            }
-            Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.setLogLevel(LoggingMode.VERBOSE)
             }) {
                 Text(text = "setLogLevel(LogLevel.VERBOSE)")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.setLogLevel(LoggingMode.DEBUG)
+            }) {
+                Text(text = "setLogLevel(LogLevel.DEBUG)")
+            }
+            Button(onClick = {
+                MobileCore.log(LoggingMode.VERBOSE, "VERBOSE_TAG", "This is a VERBOSE message.")
+            }) {
+                Text(text = "log (VERBOSE)")
+            }
+
+            Button(onClick = {
+                showAlert("Log Level: ${MobileCore.getLogLevel()}")
             }) {
                 Text(text = "getLogLevel")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.setPushIdentifier("ABC")
             }) {
                 Text(text = "setPushIdentifier")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.setAdvertisingIdentifier("XYZ")
             }) {
                 Text(text = "setAdvertisingIdentifier")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.getSdkIdentities { json ->
+                    showAlert("Identities: $json")
+                }
             }) {
                 Text(text = "getSdkIdentities")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.collectPii(mapOf("key" to "value"))
             }) {
                 Text(text = "collectPii")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.trackAction("action", mapOf("key" to "value"))
             }) {
                 Text(text = "trackAction")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.trackState("state", mapOf("key" to "value"))
             }) {
                 Text(text = "trackState")
             }
             Button(onClick = {
-//                navController.navigate(NavRoutes.HomeView.route)
+                MobileCore.resetIdentities()
             }) {
                 Text(text = "resetIdentities")
             }
@@ -116,6 +150,39 @@ fun CoreView(navController: NavHostController) {
     }
 
 }
+
+private fun showCoreVersion() {
+    ServiceProvider.getInstance().uiService.showAlert(
+        AlertSetting.build(
+            "show core version",
+            "core: ${MobileCore.extensionVersion()}",
+            "OK",
+            "Cancel"
+        ), null
+    )
+}
+
+private fun updateConfiguration() {
+    registerEventListener(
+        "com.adobe.eventType.configuration",
+        "com.adobe.eventSource.requestContent"
+    ) { event ->
+        showAlert(event)
+    }
+
+    MobileCore.updateConfiguration(mapOf("'global.privacy" to "optedout"))
+}
+
+private fun clearUpdatedConfiguration() {
+    registerEventListener(
+        "com.adobe.eventType.configuration",
+        "com.adobe.eventSource.requestContent"
+    ) { event ->
+        showAlert(event)
+    }
+    MobileCore.clearUpdatedConfiguration()
+}
+
 
 @Preview(showBackground = true)
 @Composable

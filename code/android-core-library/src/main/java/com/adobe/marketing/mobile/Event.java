@@ -326,7 +326,7 @@ public final class Event {
 	/**
 	 * @return event timestamp in seconds
 	 */
-	long getTimestampInSeconds() {
+	public long getTimestampInSeconds() {
 		return TimeUnit.MILLISECONDS.toSeconds(timestamp);
 	}
 

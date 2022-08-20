@@ -8,20 +8,22 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.services;
 
-/**
- * Service Provider helper class to set mocked services during testing
- */
-public class ServiceProviderTestHelper {
+package com.adobe.marketing.mobile.lifecycle;
 
-    private ServiceProviderTestHelper() {}
+@SuppressWarnings("unused")
+enum XDMLifecycleCloseTypeEnum {
+	CLOSE("close"), // Close
+	UNKNOWN("unknown"); // Unknown
 
-    public static void setDeviceInfoService(DeviceInforming deviceInfoService) {
-        ServiceProvider.getInstance().setDeviceInfoService(deviceInfoService);
-    }
+	private final String value;
 
-    public static void setDataStoring(DataStoring dataStoring) {
-        ServiceProvider.getInstance().setDataStoreService(dataStoring);
-    }
+	XDMLifecycleCloseTypeEnum(final String enumValue) {
+		this.value = enumValue;
+	}
+
+	@Override
+	public String toString() {
+		return value;
+	}
 }

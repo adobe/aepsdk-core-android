@@ -17,9 +17,10 @@
 
 package com.adobe.marketing.mobile;
 
-import androidx.annotation.VisibleForTesting;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest;
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
+import com.adobe.marketing.mobile.lifecycle.ADBCountDownLatch;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -120,6 +121,11 @@ public class TestableExtensionApi extends ExtensionApi {
 	}
 
 	@Override
+	public void getHistoricalEvents(EventHistoryRequest[] eventHistoryRequests, boolean enforceOrder, EventHistoryResultHandler<Integer> handler) {
+		return;
+	}
+
+	@Override
 	public <T extends ExtensionListener> boolean registerEventListener(String eventType, String eventSource, Class<T> extensionListenerClass, ExtensionErrorCallback<ExtensionError> errorCallback) {
 		return false;
 	}
@@ -216,7 +222,7 @@ public class TestableExtensionApi extends ExtensionApi {
 	 * @param status {@code SharedStateStatus} instance
 	 * @param data shared state value
 	 */
-	public void simulateSharedState(String extensionName, Event event, SharedStateStatus status,  Map<String, Object> data) {
+	public void simulateSharedState(String extensionName, Event event, SharedStateStatus status, Map<String, Object> data) {
 		mockedSharedState.put(extensionName + "-" + event.getUniqueIdentifier(), new SharedStateResult(status, data));
 	}
 
@@ -279,8 +285,8 @@ public class TestableExtensionApi extends ExtensionApi {
 	 * Class defining {@link Event} specifications, contains Event's source and type.
 	 */
 	public static class EventSpec {
-		final String source;
-		final String type;
+		public final String source;
+		public final String type;
 
 		public EventSpec(final String source, final String type) {
 			if (source == null || source.isEmpty()) {

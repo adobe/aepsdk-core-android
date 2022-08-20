@@ -100,6 +100,10 @@ public class ServiceProvider {
 		return overrideDataStoreService != null ? overrideDataStoreService : defaultDataStoreService;
 	}
 
+	/**
+	 * For testing purpose. Overrides the default {@link DataStoring} service
+	 * @param dataStoring new {@link DataStoring} service
+	 */
 	protected void setDataStoreService(DataStoring dataStoring) {
 		overrideDataStoreService = dataStoring;
 	}

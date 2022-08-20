@@ -10,9 +10,7 @@
  */
 package com.adobe.marketing.mobile.services;
 
-import android.content.Context;
-
-public final class ServiceProviderTestHelper {
+public class ServiceProviderTestHelper {
 
     private ServiceProviderTestHelper() {}
 

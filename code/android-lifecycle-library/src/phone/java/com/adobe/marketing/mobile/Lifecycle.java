@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
+
 @SuppressWarnings("unused")
 public class Lifecycle {
 	private final static String TAG = Lifecycle.class.getSimpleName();

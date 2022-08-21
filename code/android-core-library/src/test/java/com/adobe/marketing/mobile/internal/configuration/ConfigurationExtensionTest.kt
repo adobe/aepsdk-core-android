@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
@@ -106,9 +106,6 @@ class ConfigurationExtensionTest {
         ExtensionHelper.notifyRegistered(configurationExtension)
 
         verify(mockExtensionApi).registerEventListener(anyString(), anyString(), any())
-
-        verify(mockExtensionApi).createSharedState(config, null)
-        verify(mockConfigurationRulesManager).applyCachedRules(mockExtensionApi)
     }
 
     @Test
@@ -135,7 +132,14 @@ class ConfigurationExtensionTest {
 
         verify(mockExtensionApi, never()).createSharedState(initialConfig, null)
         verify(mockConfigurationRulesManager, never()).applyCachedRules(mockExtensionApi)
-        verifyNoEventDispatch()
+        verifyEventDispatch(
+            mapOf(
+                "config.appId" to "SampleAppID",
+                "config.isinternalevent" to true
+            ),
+            null,
+            1
+        )
     }
 
     @Test
@@ -638,17 +642,21 @@ class ConfigurationExtensionTest {
         triggerEvent: Event?,
         times: Int
     ) {
-//        PowerMockito.verifyStatic(MobileCore::class.java, times(times))
-//        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
-//        MobileCore.dispatchResponseEvent(eventCaptor.capture(), eq(triggerEvent), any())
-//        if (times == 0) return
-//
-//        val capturedEvent = eventCaptor.firstValue
-//        assertEquals(expectedEventData, capturedEvent.eventData)
+        if (times == 0) {
+            verifyNoEventDispatch()
+        }
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockExtensionApi, times(times)).dispatch(eventCaptor.capture())
+        val capturedEvent = eventCaptor.firstValue
+        assertEquals(expectedEventData, capturedEvent.eventData)
+        if (triggerEvent != null) {
+            assertNotNull(triggerEvent)
+            assertEquals(triggerEvent.uniqueIdentifier, capturedEvent.responseID)
+        }
     }
 
     private fun verifyNoEventDispatch() {
-//        PowerMockito.verifyStatic(MobileCore::class.java, never())
-//        MobileCore.dispatchResponseEvent(any(), any(), any())
+        verify(mockExtensionApi, times(0)).dispatch(any())
     }
 }

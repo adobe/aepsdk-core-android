@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
@@ -67,9 +67,9 @@ internal class ZipFileMetadataProvider : RemoteDownloader.MetadataProvider {
      * @param metadataString the string to parse metadata from
      * @return a map of metadata headers if parsing the content is successful, empty map otherwise
      */
-    private fun getMetadataFromString(metadataString: String?): Map<String, String> {
+    private fun getMetadataFromString(metadataString: String?): Map<String, String>? {
         if (metadataString == null) {
-            return emptyMap()
+            return null
         }
 
         val metadata = mutableMapOf<String, String>()
@@ -82,7 +82,7 @@ internal class ZipFileMetadataProvider : RemoteDownloader.MetadataProvider {
                 size = tokens[1].toLong()
             } else {
                 MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Could not de-serialize metadata!")
-                return emptyMap()
+                return null
             }
         } catch (ne: NumberFormatException) {
             MobileCore.log(
@@ -90,7 +90,7 @@ internal class ZipFileMetadataProvider : RemoteDownloader.MetadataProvider {
                 LOG_TAG,
                 "Could not read metadata for zip file from string: $metadataString.  $ne"
             )
-            return emptyMap()
+            return null
         }
 
         if (date > 0L) {
@@ -105,7 +105,7 @@ internal class ZipFileMetadataProvider : RemoteDownloader.MetadataProvider {
         return metadata
     }
 
-    override fun getMetadata(file: File?): Map<String, String> {
+    override fun getMetadata(file: File): Map<String, String>? {
         val metaFile = File(file, META_FILE_NAME)
         return getMetadataFromString(readAsString(metaFile))
     }

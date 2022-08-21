@@ -9,17 +9,18 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.utils.RemoteDownloader
+import com.adobe.marketing.mobile.utils.RemoteDownloader.Reason
+import com.adobe.marketing.mobile.utils.RemoteDownloader.RemoteDownloadResult
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockedStatic
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mockStatic
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
@@ -62,12 +63,12 @@ class ConfigurationDownloaderTest {
     }
 
     @Test
-    fun `Download invokes remote downloader `() {
+    fun `Download invokes remote downloader`() {
         val mockConfigJson = "{}"
 
         mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn(mockConfigJson)
 
-        val callbackCaptor: KArgumentCaptor<(File?) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
 
         configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
 
@@ -80,7 +81,7 @@ class ConfigurationDownloaderTest {
         val capturedCallback = callbackCaptor.firstValue
 
         // Simulate callback from RemoteDownloader.download()
-        capturedCallback.invoke(mockDownloadedFile)
+        capturedCallback.invoke(RemoteDownloadResult(mockDownloadedFile, Reason.SUCCESS))
 
         // verify that the original callback is invoked with right content
         verify(mockCompletionCallback).invoke(emptyMap())
@@ -88,7 +89,7 @@ class ConfigurationDownloaderTest {
 
     @Test
     fun `Download when RemoteDownload result is a null file`() {
-        val callbackCaptor: KArgumentCaptor<(File?) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
 
         configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
 
@@ -101,7 +102,7 @@ class ConfigurationDownloaderTest {
         val capturedCallback = callbackCaptor.firstValue
 
         // Simulate callback from RemoteDownloader.download()
-        capturedCallback.invoke(null)
+        capturedCallback.invoke(RemoteDownloadResult(null, Reason.NO_DATA))
 
         // verify that the original callback is invoked with right content
         verify(mockCompletionCallback).invoke(null)
@@ -111,7 +112,7 @@ class ConfigurationDownloaderTest {
     fun `Download when RemoteDownload result file cannot be parsed`() {
         mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn(null)
 
-        val callbackCaptor: KArgumentCaptor<(File?) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
 
         configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
 
@@ -123,8 +124,8 @@ class ConfigurationDownloaderTest {
         )
         val capturedCallback = callbackCaptor.firstValue
 
-        // Simulate callback from RemoteDownloader.download()
-        capturedCallback.invoke(mockDownloadedFile)
+        // Simulate successful callback from RemoteDownloader.download() with a file that cannot be parsed
+        capturedCallback.invoke(RemoteDownloadResult(mockDownloadedFile, Reason.SUCCESS))
 
         // verify that the original callback is invoked with right content
         verify(mockCompletionCallback).invoke(null)
@@ -134,7 +135,7 @@ class ConfigurationDownloaderTest {
     fun `Download when RemoteDownload result file is empty`() {
         mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn("")
 
-        val callbackCaptor: KArgumentCaptor<(File?) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
 
         configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
 
@@ -146,8 +147,8 @@ class ConfigurationDownloaderTest {
         )
         val capturedCallback = callbackCaptor.firstValue
 
-        // Simulate callback from RemoteDownloader.download()
-        capturedCallback.invoke(mockDownloadedFile)
+        // Simulate successful callback from RemoteDownloader.download() with a file that is empty
+        capturedCallback.invoke(RemoteDownloadResult(mockDownloadedFile, Reason.SUCCESS))
 
         // verify that the original callback is invoked with right content
         verify(mockCompletionCallback).invoke(emptyMap())
@@ -166,7 +167,7 @@ class ConfigurationDownloaderTest {
 
         mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn(mockConfigContentJson)
 
-        val callbackCaptor: KArgumentCaptor<(File?) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
 
         configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
 
@@ -179,7 +180,7 @@ class ConfigurationDownloaderTest {
         val capturedCallback = callbackCaptor.firstValue
 
         // Simulate callback from RemoteDownloader.download()
-        capturedCallback.invoke(mockDownloadedFile)
+        capturedCallback.invoke(RemoteDownloadResult(mockDownloadedFile, Reason.SUCCESS))
 
         // verify that the original callback is invoked with right content
         val expectedConfig = mapOf<String, Any?>(
@@ -205,7 +206,7 @@ class ConfigurationDownloaderTest {
             "}"
         mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn(mockConfigContentJson)
 
-        val callbackCaptor: KArgumentCaptor<(File?) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
 
         configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
 
@@ -217,8 +218,8 @@ class ConfigurationDownloaderTest {
         )
         val capturedCallback = callbackCaptor.firstValue
 
-        // Simulate callback from RemoteDownloader.download()
-        capturedCallback.invoke(mockDownloadedFile)
+        // Simulate successful callback from RemoteDownloader.download() with a file that is malformed
+        capturedCallback.invoke(RemoteDownloadResult(mockDownloadedFile, Reason.SUCCESS))
 
         verify(mockCompletionCallback).invoke(null)
     }

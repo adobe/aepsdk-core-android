@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.LoggingMode
@@ -66,7 +66,8 @@ internal class ConfigurationRulesDownloader {
         cacheSubDirectory: String,
         completionCallback: (file: File?) -> Unit
     ) {
-        remoteDownloader.download(url, cacheSubDirectory, metadataProvider) { downloadedZip ->
+        remoteDownloader.download(url, cacheSubDirectory, metadataProvider) { downloadResult ->
+            val downloadedZip = downloadResult.data
             val zipFile: File? = processRulesZip(url, cacheSubDirectory, downloadedZip)
             completionCallback.invoke(zipFile)
         }
@@ -114,6 +115,12 @@ internal class ConfigurationRulesDownloader {
                         lastModifiedDate
                     )
                     downloadedZipFile.delete()
+                    MobileCore.log(
+                        LoggingMode.VERBOSE,
+                        LOG_TAG,
+                        "Successfully extracted rules zip."
+                    )
+
                     File(outputPath)
                 } else {
                     MobileCore.log(

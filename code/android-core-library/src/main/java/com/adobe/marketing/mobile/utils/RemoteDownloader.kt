@@ -37,6 +37,17 @@ class RemoteDownloader(
         private const val TAG = "RemoteDownloader"
     }
 
+    enum class Reason {
+        INVALID_URL,
+        RESPONSE_PROCESSING_FAILED,
+        CANNOT_WRITE_TO_CACHE_DIR,
+        NOT_MODIFIED,
+        NO_DATA,
+        SUCCESS
+    }
+
+    data class RemoteDownloadResult(val data: File?, val reason: Reason)
+
     /**
      * Represents a component that provides metadata about file content.
      */
@@ -55,9 +66,10 @@ class RemoteDownloader(
          *
          * @param file the [File] for which metadata is needed
          * @return the metadata of the [file] if it is valid;
-         *         emptymap if metadata cannot be computed
+         *         empty map if no metadata is needed,
+         *         null if metadata cannot be computed
          */
-        fun getMetadata(file: File?): Map<String, String>
+        fun getMetadata(file: File): Map<String, String>?
     }
 
     /**
@@ -92,7 +104,7 @@ class RemoteDownloader(
         url: String,
         downloadSubDirectory: String?,
         metadataProvider: MetadataProvider,
-        completionCallback: (File?) -> Unit
+        completionCallback: (RemoteDownloadResult) -> Unit
     ) {
         if (!StringUtils.stringIsUrl(url)) {
             MobileCore.log(
@@ -100,7 +112,7 @@ class RemoteDownloader(
                 TAG,
                 "Invalid URL: ($url). Contents cannot be downloaded."
             )
-            completionCallback.invoke(null)
+            completionCallback.invoke(RemoteDownloadResult(null, Reason.INVALID_URL))
             return
         }
 

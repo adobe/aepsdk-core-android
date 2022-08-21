@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.LoggingMode
@@ -139,6 +139,10 @@ internal class ConfigurationStateManager {
 
         val config: Map<String, Any?>? = if (appId.isNullOrEmpty()) {
             // Load bundled config
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                LOG_TAG, "AppID from persistence and manifest is null."
+            )
             getBundledConfig(CONFIG_BUNDLED_FILE_NAME)
         } else {
             getCachedConfig(appId) ?: getBundledConfig(CONFIG_BUNDLED_FILE_NAME)
@@ -158,15 +162,32 @@ internal class ConfigurationStateManager {
      *         null otherwise.
      */
     internal fun getBundledConfig(bundledConfigFileName: String): Map<String, Any?>? {
+        MobileCore.log(
+            LoggingMode.VERBOSE,
+            LOG_TAG,
+            "Attempting to load bundled config."
+        )
         val contentStream: InputStream? = deviceInfoService.getAsset(bundledConfigFileName)
         val contentString = StringUtils.streamToString(contentStream)
 
-        if (contentString.isNullOrEmpty()) return null
+        if (contentString.isNullOrEmpty()) {
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                LOG_TAG,
+                "Bundled config asset is not present/is empty. Cannot load bundled config."
+            )
+            return null
+        }
 
         return try {
             val bundledConfigJson = JSONObject(JSONTokener(contentString))
             bundledConfigJson.toMap()
         } catch (exception: JSONException) {
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                LOG_TAG,
+                "Failed to load bundled config $exception"
+            )
             null
         }
     }
@@ -251,15 +272,32 @@ internal class ConfigurationStateManager {
      *         null otherwise
      */
     private fun getCachedConfig(appId: String): Map<String, Any?>? {
+        MobileCore.log(
+            LoggingMode.VERBOSE,
+            LOG_TAG,
+            "Attempting to load cached config."
+        )
         val url = String.format(CONFIGURATION_URL_BASE, appId)
         val cacheFile: File? = cacheFileService.getCacheFile(url, null, false)
         val contentString = FileUtils.readAsString(cacheFile)
-        if (contentString.isNullOrEmpty()) return null
+        if (contentString.isNullOrEmpty()) {
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                LOG_TAG,
+                "Cached config is null/empty."
+            )
+            return null
+        }
 
         return try {
             val cachedConfig = JSONObject(JSONTokener(contentString))
             cachedConfig.toMap()
         } catch (exception: JSONException) {
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                LOG_TAG,
+                "Failed to load cached config $exception"
+            )
             null
         }
     }
@@ -311,6 +349,11 @@ internal class ConfigurationStateManager {
         currentConfiguration.clear()
         currentConfiguration.putAll(unmergedConfiguration)
         computeEnvironmentAwareConfig()
+        MobileCore.log(
+            LoggingMode.VERBOSE,
+            LOG_TAG,
+            "Cleared programmatic configuration."
+        )
     }
 
     /**
@@ -320,7 +363,7 @@ internal class ConfigurationStateManager {
      * @param config the configuration that should replace the [unmergedConfiguration]
      */
     internal fun replaceConfiguration(config: Map<String, Any?>?) {
-        // Replace the unmerged programamtic config with the new config
+        // Replace the unmerged programmatic config with the new config
         unmergedConfiguration.clear()
         config?.let { unmergedConfiguration.putAll(config) }
 
@@ -329,6 +372,11 @@ internal class ConfigurationStateManager {
         currentConfiguration.putAll(unmergedConfiguration)
         currentConfiguration.putAll(programmaticConfiguration)
         computeEnvironmentAwareConfig()
+        MobileCore.log(
+            LoggingMode.VERBOSE,
+            LOG_TAG,
+            "Replaced configuration."
+        )
     }
 
     /**
@@ -347,6 +395,11 @@ internal class ConfigurationStateManager {
         // Update the current configuration to reflect changes in programmatic config
         currentConfiguration.putAll(programmaticConfiguration)
         computeEnvironmentAwareConfig()
+        MobileCore.log(
+            LoggingMode.VERBOSE,
+            LOG_TAG,
+            "Updated programmatic configuration."
+        )
     }
 
     /**

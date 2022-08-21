@@ -20,7 +20,6 @@ import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
-import java.io.File
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class RemoteDownloaderTest {
@@ -35,7 +34,7 @@ class RemoteDownloaderTest {
     private lateinit var mockMetadataProvider: RemoteDownloader.MetadataProvider
 
     @Mock
-    private lateinit var mockCompletionCallback: (File?) -> Unit
+    private lateinit var mockCompletionCallback: (RemoteDownloader.RemoteDownloadResult) -> Unit
 
     @Mock
     private lateinit var mockRemoteDownloadJob: RemoteDownloadJob
@@ -91,7 +90,7 @@ class RemoteDownloaderTest {
             mockCompletionCallback
         )
 
-        verify(mockCompletionCallback).invoke(null)
+        verify(mockCompletionCallback).invoke(RemoteDownloader.RemoteDownloadResult(null, RemoteDownloader.Reason.INVALID_URL))
         verify(mockRemoteDownloadJob, never()).download(mockCompletionCallback)
     }
 }

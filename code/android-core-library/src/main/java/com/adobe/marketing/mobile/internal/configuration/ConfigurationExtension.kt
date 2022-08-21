@@ -9,13 +9,12 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.ExtensionEventListener
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.compatibility.CacheManager
@@ -39,6 +38,7 @@ internal class ConfigurationExtension : Extension {
     companion object {
         private const val TAG = "ConfigurationExtension"
         private const val EXTENSION_NAME = "com.adobe.module.configuration"
+        private const val EXTENSION_FRIENDLY_NAME = "Configuration"
         private const val EVENT_TYPE = "com.adobe.eventType.configuration"
         private const val EVENT_SOURCE_REQUEST_CONTENT = "com.adobe.eventSource.requestContent"
         private const val EVENT_SOURCE_RESPONSE_CONTENT = "com.adobe.eventSource.responseContent"
@@ -69,8 +69,11 @@ internal class ConfigurationExtension : Extension {
     private val configurationStateManager: ConfigurationStateManager
     private val configurationRulesManager: ConfigurationRulesManager
     private val retryWorker: ScheduledExecutorService
-    private val extensionEventListener: ExtensionEventListener = ExtensionEventListener {
-        handleConfigurationRequestEvent(it)
+
+    private enum class RulesSource {
+        CACHE,
+        BUNDLED,
+        URL
     }
 
     constructor(extensionApi: ExtensionApi) : this(extensionApi, ServiceProvider.getInstance())
@@ -116,6 +119,7 @@ internal class ConfigurationExtension : Extension {
         ConfigurationRulesManager(
             launchRulesEvaluator,
             serviceProvider.dataStoreService,
+            serviceProvider.deviceInfoService,
             serviceProvider.networkService,
             cacheFileService
         )
@@ -148,12 +152,17 @@ internal class ConfigurationExtension : Extension {
     override fun onRegistered() {
         super.onRegistered()
 
+        EventHub.shared.registerEventPreprocessor {
+            launchRulesEvaluator.process(it)
+        }
+
         // TODO: Register pre-processor
         api.registerEventListener(
             EVENT_TYPE,
-            EVENT_SOURCE_REQUEST_CONTENT,
-            extensionEventListener
-        )
+            EVENT_SOURCE_REQUEST_CONTENT
+        ) {
+            handleConfigurationRequestEvent(it)
+        }
 
         val appId = this.appIdManager.loadAppId()
 
@@ -169,7 +178,7 @@ internal class ConfigurationExtension : Extension {
         val initialConfig: Map<String, Any?> = this.configurationStateManager.loadInitialConfig()
 
         if (initialConfig.isNotEmpty()) {
-            publishConfigurationChanges(null, true)
+            applyConfigurationChanges(null, RulesSource.CACHE)
         }
     }
 
@@ -178,7 +187,11 @@ internal class ConfigurationExtension : Extension {
     }
 
     override fun getFriendlyName(): String {
-        return EXTENSION_NAME
+        return EXTENSION_FRIENDLY_NAME
+    }
+
+    override fun getVersion(): String {
+        return MobileCore.extensionVersion()
     }
 
     /**
@@ -218,7 +231,7 @@ internal class ConfigurationExtension : Extension {
      * @param event the event requesting/triggering an update to configuration with appId.
      */
     private fun configureWithAppID(event: Event) {
-        val appID = event.eventData[CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID] as? String
+        val appID = event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
 
         if (appID.isNullOrBlank()) {
             appIdManager.removeAppIDFromPersistence()
@@ -243,8 +256,8 @@ internal class ConfigurationExtension : Extension {
 
         configurationStateManager.updateConfigWithAppId(appID) { config ->
             if (config != null) {
-                publishConfigurationChanges(event, false)
-                // re-start event processign after new configuration download
+                applyConfigurationChanges(event, RulesSource.URL)
+                // re-start event processing after new configuration download
                 api.startEvents()
             } else {
                 // If the configuration download fails, retry download again.
@@ -261,7 +274,7 @@ internal class ConfigurationExtension : Extension {
      *              requesting a configuration change
      */
     private fun configureWithFilePath(event: Event) {
-        val filePath = event.eventData[CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH] as String?
+        val filePath = event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
 
         if (filePath.isNullOrBlank()) {
             MobileCore.log(
@@ -283,17 +296,27 @@ internal class ConfigurationExtension : Extension {
         }
 
         configurationStateManager.replaceConfiguration(config)
-        publishConfigurationChanges(event, false)
+        applyConfigurationChanges(event, RulesSource.URL)
     }
 
     /**
-     * Updates the current configuration with the content from [ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME]
+     * Updates the current configuration with the content from a file asset.
      *
      * @param event which contains [CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE] as part of its event data
      */
     private fun configureWithFileAsset(event: Event) {
-        val config =
-            configurationStateManager.getBundledConfig(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)
+        val fileAssetName = event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
+
+        if (fileAssetName.isNullOrBlank()) {
+            MobileCore.log(
+                LoggingMode.DEBUG,
+                TAG,
+                "Asset file name for configuration is null or empty."
+            )
+            return
+        }
+
+        val config = configurationStateManager.getBundledConfig(fileAssetName)
 
         if (config.isNullOrEmpty()) {
             MobileCore.log(
@@ -305,7 +328,7 @@ internal class ConfigurationExtension : Extension {
         }
 
         configurationStateManager.replaceConfiguration(config)
-        publishConfigurationChanges(event, false)
+        applyConfigurationChanges(event, RulesSource.URL)
     }
 
     /**
@@ -316,7 +339,7 @@ internal class ConfigurationExtension : Extension {
      */
     private fun updateConfiguration(event: Event) {
         val config: MutableMap<*, *> =
-            event.eventData[CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG] as?
+            event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) as?
                 MutableMap<*, *> ?: return
 
         if (!config.keys.isAllString()) {
@@ -331,12 +354,17 @@ internal class ConfigurationExtension : Extension {
         val programmaticConfig = try {
             config as? Map<String, Any?>
         } catch (e: Exception) {
+            MobileCore.log(
+                LoggingMode.DEBUG,
+                TAG,
+                "Invalid configuration."
+            )
             null
         }
 
         programmaticConfig?.let {
             configurationStateManager.updateProgrammaticConfig(it)
-            publishConfigurationChanges(event, false)
+            applyConfigurationChanges(event, RulesSource.URL)
         }
     }
 
@@ -348,7 +376,7 @@ internal class ConfigurationExtension : Extension {
      */
     private fun clearUpdatedConfiguration(event: Event) {
         configurationStateManager.clearProgrammaticConfig()
-        publishConfigurationChanges(event, false)
+        applyConfigurationChanges(event, RulesSource.URL)
     }
 
     /**
@@ -371,13 +399,17 @@ internal class ConfigurationExtension : Extension {
      *  - Replaces current rules and applies the new rules as necessary
      *
      *  @param triggerEvent the event that triggered the configuration change
-     *  @param useCachedRules whether cached rules should be used instead of downloading
+     *  @param rulesSource the source of the rules that need to be applied
      */
-    private fun publishConfigurationChanges(triggerEvent: Event?, useCachedRules: Boolean) {
+    private fun applyConfigurationChanges(triggerEvent: Event?, rulesSource: RulesSource) {
         val config = configurationStateManager.environmentAwareConfiguration
         publishConfigurationState(config, triggerEvent)
         dispatchConfigurationResponse(config, triggerEvent)
-        replaceRules(config, useCachedRules)
+
+        val rulesReplaced = replaceRules(config, rulesSource)
+        if (rulesSource == RulesSource.CACHE && !rulesReplaced) {
+            configurationRulesManager.applyBundledRules(api)
+        }
     }
 
     /**
@@ -387,16 +419,18 @@ internal class ConfigurationExtension : Extension {
      * @param triggerEvent the [Event] to which the response is being dispatched
      */
     private fun dispatchConfigurationResponse(eventData: Map<String, Any?>, triggerEvent: Event?) {
-        val event = Event.Builder(
+        val builder = Event.Builder(
             "Configuration Response Event",
             EVENT_TYPE, EVENT_SOURCE_RESPONSE_CONTENT
-        )
-            .setEventData(eventData)
-            .build()
-//
-//        MobileCore.dispatchResponseEvent(event, triggerEvent) {
-//            MobileCore.log(LoggingMode.ERROR, TAG, "${it.errorCode}-${it.errorName}")
-//        }
+        ).setEventData(eventData)
+
+        val event: Event = if (triggerEvent == null) {
+            builder.build()
+        } else {
+            builder.inResponseToEvent(triggerEvent).build()
+        }
+
+        api.dispatch(event)
     }
 
     private fun dispatchConfigurationRequest(eventData: Map<String, Any?>) {
@@ -405,9 +439,7 @@ internal class ConfigurationExtension : Extension {
             EVENT_TYPE, EVENT_SOURCE_REQUEST_CONTENT
         )
             .setEventData(eventData).build()
-        MobileCore.dispatchEvent(event) {
-            MobileCore.log(LoggingMode.ERROR, TAG, "${it.errorCode}-${it.errorName}")
-        }
+        api.dispatch(event)
     }
 
     /**
@@ -431,21 +463,30 @@ internal class ConfigurationExtension : Extension {
      * Replaces the existing rules in the rules engine.
      *
      * @param config the configuration from which the rules url is extracted
-     * @param useCache whether or not the rules url from the cached to be used
+     * @param rulesSource the source of the rules that need to be applied
      */
-    private fun replaceRules(config: Map<String, Any?>, useCache: Boolean) {
-        if (useCache) {
-            configurationRulesManager.applyCachedRules(api)
-        } else {
-            val rulesURL: String? = config[RULES_CONFIG_URL] as? String
-            if (!rulesURL.isNullOrBlank()) {
-                configurationRulesManager.applyDownloadedRules(rulesURL, api)
-            } else {
-                MobileCore.log(
-                    LoggingMode.ERROR,
-                    TAG,
-                    "Cannot load rules form rules URL: $rulesURL}"
-                )
+    private fun replaceRules(config: Map<String, Any?>, rulesSource: RulesSource): Boolean {
+        when (rulesSource) {
+            RulesSource.CACHE -> {
+                return configurationRulesManager.applyCachedRules(api)
+            }
+
+            RulesSource.BUNDLED -> {
+                return configurationRulesManager.applyBundledRules(api)
+            }
+
+            RulesSource.URL -> {
+                val rulesURL: String? = config[RULES_CONFIG_URL] as? String
+                return if (!rulesURL.isNullOrBlank()) {
+                    configurationRulesManager.applyDownloadedRules(rulesURL, api)
+                } else {
+                    MobileCore.log(
+                        LoggingMode.ERROR,
+                        TAG,
+                        "Cannot load rules form rules URL: $rulesURL}"
+                    )
+                    false
+                }
             }
         }
     }

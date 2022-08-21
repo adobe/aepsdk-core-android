@@ -9,13 +9,14 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.DataStoring
+import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
 import org.junit.After
@@ -46,6 +47,9 @@ class ConfigurationRulesManagerTest {
 
     @Mock
     private lateinit var mockDataStoreService: DataStoring
+
+    @Mock
+    private lateinit var mockDeviceInfoService: DeviceInforming
 
     @Mock
     private lateinit var mockNetworkService: Networking
@@ -87,7 +91,10 @@ class ConfigurationRulesManagerTest {
 
         configurationRulesManager = ConfigurationRulesManager(
             mockLaunchRulesEvaluator,
-            mockDataStoreService, mockNetworkService, mockCacheFileService
+            mockDataStoreService,
+            mockDeviceInfoService,
+            mockNetworkService,
+            mockCacheFileService
         )
         mockFileUtils = Mockito.mockStatic(FileUtils::class.java)
 

@@ -22,6 +22,8 @@ import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider
 import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_IF_MODIFIED_SINCE
 import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_IF_RANGE
 import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_RANGE
+import com.adobe.marketing.mobile.utils.RemoteDownloader.Reason
+import com.adobe.marketing.mobile.utils.RemoteDownloader.RemoteDownloadResult
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -73,7 +75,7 @@ class RemoteDownloadJobTest {
 
     private lateinit var remoteDownloadJob: RemoteDownloadJob
 
-    private var mockCallBack = mock<(File?) -> Unit>()
+    private var mockCallBack = mock<(RemoteDownloader.RemoteDownloadResult) -> Unit>()
 
     companion object {
         const val VALID_URL = "http://assets.adobe.com/1234"
@@ -103,7 +105,7 @@ class RemoteDownloadJobTest {
 
         mockFileUtils.`when`<Any> { FileUtils.isReadable(any()) }.thenReturn(true)
 
-        verify(mockCallBack).invoke(null)
+        verify(mockCallBack).invoke(RemoteDownloader.RemoteDownloadResult(null, Reason.INVALID_URL))
         verify(mockCacheFileService, never()).getCacheFile(VALID_URL, VALID_DIRECTORY, false)
         verify(mockNetworkService, never()).connectAsync(
             Mockito.any(NetworkRequest::class.java), Mockito.any(NetworkCallback::class.java)
@@ -196,7 +198,7 @@ class RemoteDownloadJobTest {
         remoteDownloadJob.download(mockCallBack)
         verify(mockCacheFileService).getCacheFile(VALID_URL, VALID_DIRECTORY, false)
         verify(mockNetworkService).connectAsync(any(), any())
-        verify(mockCallBack).invoke(null)
+        verify(mockCallBack).invoke(RemoteDownloadResult(null, Reason.NO_DATA))
     }
 
     @Test
@@ -229,7 +231,7 @@ class RemoteDownloadJobTest {
         verify(mockCacheFileService).createCacheFile(VALID_URL, expectedMetadata, VALID_DIRECTORY)
 
         verify(mockCacheFileService).markComplete(mockCachedFile)
-        verify(mockCallBack).invoke(mockCompletedFile)
+        verify(mockCallBack).invoke(RemoteDownloadResult(mockCompletedFile, Reason.SUCCESS))
     }
 
     @Test
@@ -264,7 +266,7 @@ class RemoteDownloadJobTest {
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
         verify(mockCacheFileService).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(null)
+        verify(mockCallBack).invoke(RemoteDownloadResult(null, Reason.CANNOT_WRITE_TO_CACHE_DIR))
     }
 
     @Test
@@ -297,7 +299,7 @@ class RemoteDownloadJobTest {
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
         verify(mockCacheFileService, never()).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(null)
+        verify(mockCallBack).invoke(RemoteDownloadResult(null, Reason.RESPONSE_PROCESSING_FAILED))
     }
 
     @Test
@@ -335,7 +337,7 @@ class RemoteDownloadJobTest {
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
         verify(mockCacheFileService).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(mockCompletedFile)
+        verify(mockCallBack).invoke(RemoteDownloadResult(mockCompletedFile, Reason.SUCCESS))
     }
 
     @Test
@@ -371,7 +373,7 @@ class RemoteDownloadJobTest {
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
         verify(mockCacheFileService).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(mockCompletedFile)
+        verify(mockCallBack).invoke(RemoteDownloadResult(mockCompletedFile, Reason.SUCCESS))
     }
 
     @Test
@@ -407,7 +409,7 @@ class RemoteDownloadJobTest {
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
         verify(mockCacheFileService).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(mockCompletedFile)
+        verify(mockCallBack).invoke(RemoteDownloadResult(mockCompletedFile, Reason.SUCCESS))
     }
 
     @After

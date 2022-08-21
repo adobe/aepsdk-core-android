@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
@@ -44,8 +44,9 @@ internal class ConfigurationDownloader(
      *
      */
     fun download(url: String, directory: String?, completionCallback: (Map<String, Any?>?) -> Unit) {
-        remoteDownloader.download(url, directory, metadataProvider) { downloadedFile ->
-            val content: String? = FileUtils.readAsString(downloadedFile)
+        remoteDownloader.download(url, directory, metadataProvider) { downloadResult ->
+            val file = downloadResult.data
+            val content: String? = FileUtils.readAsString(file)
             val config = when {
 
                 content == null -> null

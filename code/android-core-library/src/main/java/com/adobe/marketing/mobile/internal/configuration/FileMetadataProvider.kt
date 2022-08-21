@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider
@@ -27,13 +27,8 @@ import java.util.TimeZone
  */
 internal class FileMetadataProvider(private val cacheFileService: CacheFileService) : MetadataProvider {
 
-    override fun getMetadata(file: File?): Map<String, String> {
+    override fun getMetadata(file: File): Map<String, String>? {
         val params = mutableMapOf<String, String>()
-
-        if (file == null) {
-            return params
-        }
-
         val lastModified: String? = try {
             val epochString = cacheFileService.getMetadata(CacheFileService.METADATA_KEY_LAST_MODIFIED_EPOCH, file.path)
             if (epochString == null) {

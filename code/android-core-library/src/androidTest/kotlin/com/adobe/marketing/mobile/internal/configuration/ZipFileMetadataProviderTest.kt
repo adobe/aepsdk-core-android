@@ -9,12 +9,11 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.internal.utility.TimeUtil
 import com.adobe.marketing.mobile.utils.RemoteDownloader
+import com.adobe.marketing.mobile.utils.TimeUtil
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertTrue
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -25,6 +24,8 @@ import java.io.FileOutputStream
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
 
 class ZipFileMetadataProviderTest {
     companion object {
@@ -50,10 +51,10 @@ class ZipFileMetadataProviderTest {
         val metaFile: File = File(mockDirectory.root, METADATA_FILE_NAME)
         writeMetadataContentToFile("${sampleLastModifiedDate.time}|1234|", metaFile)
 
-        val metadata: Map<String, String> =
+        val metadata: Map<String, String>? =
             zipFileMetadataProvider.getMetadata(mockDirectory.root)
 
-        assertEquals(3, metadata.size)
+        assertEquals(3, metadata!!.size)
 
         // verify
         Assert.assertEquals(expectedLastModifiedHeader, metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE])
@@ -67,9 +68,9 @@ class ZipFileMetadataProviderTest {
         val metaFile: File = File(mockDirectory.root, METADATA_FILE_NAME)
         writeMetadataContentToFile("23123123/1234/", metaFile)
 
-        val metadata: Map<String, String> =
+        val metadata: Map<String, String>? =
             zipFileMetadataProvider.getMetadata(mockDirectory.root)
-        assertTrue(metadata.isEmpty())
+        assertNull(metadata)
     }
 
     @Test
@@ -78,9 +79,9 @@ class ZipFileMetadataProviderTest {
         val metaFile: File = File(mockDirectory.root, METADATA_FILE_NAME)
         writeMetadataContentToFile("NotAValidDate|1234|", metaFile)
 
-        val metadata: Map<String, String> =
+        val metadata: Map<String, String>? =
             zipFileMetadataProvider.getMetadata(mockDirectory.root)
-        assertTrue(metadata.isEmpty())
+        assertNull(metadata)
     }
 
     @Test
@@ -89,9 +90,9 @@ class ZipFileMetadataProviderTest {
         val metaFile: File = File(mockDirectory.root, METADATA_FILE_NAME)
         writeMetadataContentToFile("213123|NotAValidSize|", metaFile)
 
-        val metadata: Map<String, String> =
+        val metadata: Map<String, String>? =
             zipFileMetadataProvider.getMetadata(mockDirectory.root)
-        assertTrue(metadata.isEmpty())
+        assertNull(metadata)
     }
 
     @Test
@@ -100,24 +101,24 @@ class ZipFileMetadataProviderTest {
         val metaFile: File = File(mockDirectory.root, METADATA_FILE_NAME)
         writeMetadataContentToFile("", metaFile)
 
-        val metadata: Map<String, String> =
+        val metadata: Map<String, String>? =
             zipFileMetadataProvider.getMetadata(mockDirectory.root)
-        assertTrue(metadata.isEmpty())
+        assertNull(metadata)
     }
 
     @Test
     fun testGetMetadata_MetadataDoesNotExist() {
-        val metadata: Map<String, String> = zipFileMetadataProvider.getMetadata(mockDirectory.root)
-        assertTrue(metadata.isEmpty())
+        val metadata: Map<String, String>? = zipFileMetadataProvider.getMetadata(mockDirectory.root)
+        assertNull(metadata)
     }
 
     @Test
     fun testCreateMetadata_ValidDirectory() {
         zipFileMetadataProvider.createMetadata(mockDirectory.root.absolutePath, 500, sampleLastModifiedDate.time)
-        val metadata: Map<String, String> = zipFileMetadataProvider.getMetadata(mockDirectory.root)
+        val metadata: Map<String, String>? = zipFileMetadataProvider.getMetadata(mockDirectory.root)
 
-        assertTrue(metadata.isNotEmpty())
-        Assert.assertEquals(expectedLastModifiedHeader, metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE])
+        assertNotNull(metadata)
+        Assert.assertEquals(expectedLastModifiedHeader, metadata!![RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE])
         Assert.assertEquals(expectedLastModifiedHeader, metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_RANGE])
         Assert.assertEquals("bytes=500-", metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_RANGE])
     }
@@ -126,9 +127,9 @@ class ZipFileMetadataProviderTest {
     fun testCreateMetadata_NullDirectory() {
         val lastModified = Date().time
         zipFileMetadataProvider.createMetadata(null, 500, lastModified)
-        val metadata: Map<String, String> = zipFileMetadataProvider.getMetadata(mockDirectory.root)
+        val metadata: Map<String, String>? = zipFileMetadataProvider.getMetadata(mockDirectory.root)
 
-        assertTrue(metadata.isEmpty())
+        assertNull(metadata)
     }
 
     @Test
@@ -136,9 +137,9 @@ class ZipFileMetadataProviderTest {
         val lastModified = Date().time
         val invalidParentDir: File = File(mockDirectory.root, "SomeTextFile.txt")
         zipFileMetadataProvider.createMetadata(invalidParentDir.absolutePath, 500, lastModified)
-        val metadata: Map<String, String> = zipFileMetadataProvider.getMetadata(mockDirectory.root)
+        val metadata: Map<String, String>? = zipFileMetadataProvider.getMetadata(mockDirectory.root)
 
-        assertTrue(metadata.isEmpty())
+        assertNull(metadata)
     }
 
     private fun writeMetadataContentToFile(content: String, file: File) {

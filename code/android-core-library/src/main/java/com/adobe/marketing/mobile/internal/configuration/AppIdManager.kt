@@ -9,12 +9,13 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.configuration
+package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
+import com.adobe.marketing.mobile.services.NamedCollection
 
 /**
  * Manages the storage and retrieval of AEP appID from shared preferences and the app manifest.
@@ -27,6 +28,9 @@ internal class AppIdManager(
     companion object {
         private const val LOG_TAG = "AppIdManager"
     }
+
+    private val configStateStoreCollection: NamedCollection? =
+        dataStoreService.getNamedCollection(ConfigurationStateManager.DATASTORE_KEY)
 
     /**
      * Saves the appId provided into shared preferences.
@@ -43,16 +47,14 @@ internal class AppIdManager(
             return
         }
 
-        dataStoreService.getNamedCollection(ConfigurationStateManager.DATASTORE_KEY)
-            ?.setString(ConfigurationStateManager.PERSISTED_APPID, appId)
+        configStateStoreCollection?.setString(ConfigurationStateManager.PERSISTED_APPID, appId)
     }
 
     /**
      * Removes the existing appId stored in shared preferences.
      */
     internal fun removeAppIDFromPersistence() {
-        dataStoreService.getNamedCollection(ConfigurationStateManager.DATASTORE_KEY)
-            ?.remove(ConfigurationStateManager.PERSISTED_APPID)
+        configStateStoreCollection?.remove(ConfigurationStateManager.PERSISTED_APPID)
     }
 
     /**
@@ -75,8 +77,7 @@ internal class AppIdManager(
      *         null otherwise.
      */
     private fun getAppIDFromPersistence(): String? {
-        return dataStoreService.getNamedCollection(ConfigurationStateManager.DATASTORE_KEY)
-            ?.getString(ConfigurationStateManager.PERSISTED_APPID, null)
+        return configStateStoreCollection?.getString(ConfigurationStateManager.PERSISTED_APPID, null)
     }
 
     /**

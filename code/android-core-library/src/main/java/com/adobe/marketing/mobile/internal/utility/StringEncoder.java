@@ -32,7 +32,6 @@ final public class StringEncoder {
     private static final int HEX_RADIX = 16;
     private static final int PRIME = 0x1000193; // 16777619 as hex
     private static final int OFFSET = 0x811c9dc5; // 2166136261 as hex
-    public static final String CHARSET_UTF_8 = "UTF-8";
     private static final int LSB_8_MASK = 0xFF;
     private static final char[] BYTE_TO_HEX = (
             "000102030405060708090A0B0C0D0E0F" +
@@ -132,14 +131,7 @@ final public class StringEncoder {
             return null;
         }
 
-        byte[] bytes;
-
-        try {
-            bytes = originalString.getBytes(CHARSET_UTF_8);
-        } catch (UnsupportedEncodingException ex) {
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Failed to get hex from string " + ex.getMessage());
-            return null;
-        }
+        byte[] bytes = originalString.getBytes(StandardCharsets.UTF_8);
 
         final int bytesLength = bytes.length;
         final char[] chars = new char[bytesLength << 1];
@@ -179,11 +171,7 @@ final public class StringEncoder {
 
         String decodedString = null;
 
-        try {
-            decodedString = new String(data, CHARSET_UTF_8);
-        } catch (UnsupportedEncodingException ex) {
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Failed to get string from hex " + ex.getMessage());
-        }
+        decodedString = new String(data, StandardCharsets.UTF_8);
 
         return decodedString;
     }
@@ -201,7 +189,7 @@ final public class StringEncoder {
 
         try {
             final MessageDigest messagedigest = MessageDigest.getInstance("SHA-256");
-            messagedigest.update(input.getBytes(CHARSET_UTF_8));
+            messagedigest.update(input.getBytes(StandardCharsets.UTF_8));
             final byte[] messageDigest = messagedigest.digest();
             final StringBuilder sha2HexBuilder = new StringBuilder();
 
@@ -218,8 +206,6 @@ final public class StringEncoder {
             return sha2HexBuilder.toString();
         } catch (NoSuchAlgorithmException e) {
             MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Cached Files - Failed to get sha2 hash " + e);
-        } catch (UnsupportedEncodingException e) {
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Cached Files - Unsupported Encoding: UTF-8" + e);
         }
 
         return null;

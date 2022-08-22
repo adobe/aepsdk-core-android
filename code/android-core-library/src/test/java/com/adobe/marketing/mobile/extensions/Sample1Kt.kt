@@ -18,7 +18,7 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.utils.DataReader
 
-class Sample1Kt(extensionApi: ExtensionApi?) : Extension(extensionApi) {
+class Sample1Kt(extensionApi: ExtensionApi) : Extension(extensionApi) {
     override fun getName(): String {
         return NAME
     }

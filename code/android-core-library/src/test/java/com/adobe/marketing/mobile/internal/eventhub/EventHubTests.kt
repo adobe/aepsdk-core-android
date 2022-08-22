@@ -52,12 +52,6 @@ object MockExtensions {
         }
     }
 
-    class MockExtensionNullName(api: ExtensionApi) : Extension(api) {
-        override fun getName(): String? {
-            return null
-        }
-    }
-
     class MockExtensionNameException(api: ExtensionApi) : Extension(api) {
         override fun getName(): String {
             throw Exception()
@@ -192,10 +186,7 @@ internal class EventHubTests {
 
     @Test
     fun testRegisterExtensionFailure_InvalidExceptionName() {
-        var ret = registerExtension(MockExtensions.MockExtensionNullName::class.java)
-        assertEquals(EventHubError.InvalidExtensionName, ret)
-
-        ret = registerExtension(MockExtensions.MockExtensionNameException::class.java)
+        val ret = registerExtension(MockExtensions.MockExtensionNameException::class.java)
         assertEquals(EventHubError.InvalidExtensionName, ret)
     }
 

@@ -65,7 +65,7 @@ internal class ZipFileMetadataProvider : RemoteDownloader.MetadataProvider {
      * Parse the metadata from a string to map of metadata headers used for downloads.
      *
      * @param metadataString the string to parse metadata from
-     * @return a map of metadata headers if parsing the content is successful, empty map otherwise
+     * @return a map of metadata headers if parsing the content is successful, null otherwise
      */
     private fun getMetadataFromString(metadataString: String?): Map<String, String>? {
         if (metadataString == null) {

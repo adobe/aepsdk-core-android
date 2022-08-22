@@ -172,9 +172,6 @@ dependencies {
     //noinspection GradleDependency
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_version"
-//    testImplementation project(path: ':android-core-library')
-    // instrumentation tests
-
 
     // instrumentation tests
     androidTestImplementation 'androidx.test:rules:1.4.0'

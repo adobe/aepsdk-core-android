@@ -15,7 +15,6 @@ import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.creat
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createPauseEvent;
 import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.MAX_SESSION_LENGTH_SECONDS;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +38,6 @@ import com.adobe.marketing.mobile.TestableExtensionApi;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.ServiceProviderTestHelper;
 
 @RunWith(AndroidJUnit4.class)
 public class LifecycleFunctionalTest {
@@ -47,9 +45,7 @@ public class LifecycleFunctionalTest {
 	private TestableExtensionApi mockExtensionApi;
     private MockDeviceInfoService mockDeviceInfoService;
 	private NamedCollection lifecycleDataStore;
-	private LifecycleExtension lifecycleExtension;
 
-	private static final String ADDITIONAL_CONTEXT_DATA = "additionalcontextdata";
 	private static final String APP_ID                  = "appid";
 	private static final String CARRIER_NAME            = "carriername";
 	private static final String CRASH_EVENT             = "crashevent";
@@ -66,9 +62,7 @@ public class LifecycleFunctionalTest {
 	private static final String INSTALL_EVENT           = "installevent";
 	private static final String LAUNCH_EVENT            = "launchevent";
 	private static final String LAUNCHES                = "launches";
-	private static final String LIFECYCLE_ACTION_KEY    = "action";
 	private static final String LIFECYCLE_CONTEXT_DATA  = "lifecyclecontextdata";
-	private static final String LIFECYCLE_PAUSE         = "pause";
 	private static final String LIFECYCLE_START         = "start";
 	private static final String LOCALE                  = "locale";
 	private static final String MAX_SESSION_LENGTH      = "maxsessionlength";
@@ -95,11 +89,10 @@ public class LifecycleFunctionalTest {
 	public void beforeEach() {
 		setupMockDeviceInfoService();
 		ServiceProvider.getInstance().setContext(InstrumentationRegistry.getInstrumentation().getContext());
-		ServiceProviderTestHelper.setDeviceInfoService(mockDeviceInfoService);
 		lifecycleDataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(DATA_STORE_NAME);
 
 		mockExtensionApi = new TestableExtensionApi();
-		lifecycleExtension = new LifecycleExtension(mockExtensionApi);
+		LifecycleExtension lifecycleExtension = new LifecycleExtension(mockExtensionApi, lifecycleDataStore, mockDeviceInfoService);
 		lifecycleExtension.onRegistered();
 		mockExtensionApi.resetDispatchedEventAndCreatedSharedState();
 		mockExtensionApi.ignoreEvent(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
@@ -395,8 +388,8 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi.simulateComingEvent(createPauseEvent(firstSessionPauseTimeMillis));
 
 		mockDeviceInfoService.applicationVersion = "1.2";
-		LifecycleExtension lifecycleExtension2 = new LifecycleExtension(mockExtensionApi2);
-		lifecycleExtension2.onRegistered();
+		LifecycleExtension lifecycleSession2 = new LifecycleExtension(mockExtensionApi2, lifecycleDataStore, mockDeviceInfoService);
+		lifecycleSession2.onRegistered();
 		mockExtensionApi2.simulateComingEvent(createStartEvent(null, secondSessionStartTimeMillis));
 
 		// verify
@@ -524,7 +517,7 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, firstSessionStartTime));
 		mockExtensionApi.simulateComingEvent(createPauseEvent(firstSessionPauseTime));
 
-		LifecycleExtension lifecycleSession2 = new LifecycleExtension(mockExtensionApi2);
+		LifecycleExtension lifecycleSession2 = new LifecycleExtension(mockExtensionApi2, lifecycleDataStore, mockDeviceInfoService);
 		lifecycleSession2.onRegistered();
 		Event bootEvent = new Event.Builder(null, EventType.HUB, EventSource.BOOTED)
 				.build();

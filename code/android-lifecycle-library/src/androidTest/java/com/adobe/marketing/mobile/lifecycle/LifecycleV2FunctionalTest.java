@@ -28,7 +28,6 @@ import com.adobe.marketing.mobile.TestableExtensionApi;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.ServiceProviderTestHelper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,14 +45,9 @@ public class LifecycleV2FunctionalTest {
     private TestableExtensionApi mockExtensionApi;
     private MockDeviceInfoService mockDeviceInfoService;
     private NamedCollection lifecycleDataStore;
-    private LifecycleExtension lifecycleExtension;
 
-    private static final String ADDITIONAL_CONTEXT_DATA = "additionalcontextdata";
-    private static final String LIFECYCLE_ACTION_KEY    = "action";
     private static final String DATA                    = "data";
     private static final String XDM                     = "xdm";
-    private static final String LIFECYCLE_PAUSE         = "pause";
-    private static final String LIFECYCLE_START         = "start";
     private static final String DATA_STORE_NAME           = "AdobeMobile_Lifecycle";
     private static final String LIFECYCLE_CONFIG_SESSION_TIMEOUT = "lifecycle.sessionTimeout";
 
@@ -68,11 +62,10 @@ public class LifecycleV2FunctionalTest {
     public void beforeEach() {
         setupMockDeviceInfoService();
         ServiceProvider.getInstance().setContext(InstrumentationRegistry.getInstrumentation().getContext());
-        ServiceProviderTestHelper.setDeviceInfoService(mockDeviceInfoService);
         lifecycleDataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(DATA_STORE_NAME);
 
         mockExtensionApi = new TestableExtensionApi();
-        lifecycleExtension = new LifecycleExtension(mockExtensionApi);
+        LifecycleExtension lifecycleExtension = new LifecycleExtension(mockExtensionApi, lifecycleDataStore, mockDeviceInfoService);
         lifecycleExtension.onRegistered();
         mockExtensionApi.resetDispatchedEventAndCreatedSharedState();
         mockExtensionApi.ignoreEvent(EventType.LIFECYCLE, EventSource.RESPONSE_CONTENT);

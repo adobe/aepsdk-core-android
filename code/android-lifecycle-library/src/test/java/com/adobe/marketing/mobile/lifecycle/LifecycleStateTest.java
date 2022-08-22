@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
-import com.adobe.marketing.mobile.services.ServiceProviderTestHelper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -108,7 +107,6 @@ public class LifecycleStateTest {
 
     @Before
     public void beforeEach() {
-        ServiceProviderTestHelper.setDeviceInfoService(deviceInfoService);
         LifecycleTestHelper.initDeviceInfoService(deviceInfoService);
         initTimestamps();
 

@@ -37,25 +37,18 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.adobe.marketing.mobile.Event;
-import com.adobe.marketing.mobile.EventSource;
-import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.SharedStateResolution;
 import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
-import com.adobe.marketing.mobile.services.DataStoring;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
-import com.adobe.marketing.mobile.services.ServiceProviderTestHelper;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class LifecycleExtensionTest {
 
 	@Mock
 	ExtensionApi extensionApi;
-
-	@Mock
-	DataStoring dataStoring;
 
 	@Mock
 	NamedCollection lifecycleDataStore;
@@ -100,9 +93,6 @@ public class LifecycleExtensionTest {
 
 	@Before
 	public void beforeEach() {
-		ServiceProviderTestHelper.setDataStoring(dataStoring);
-		when(dataStoring.getNamedCollection(eq("AdobeMobile_Lifecycle"))).thenReturn(lifecycleDataStore);
-		ServiceProviderTestHelper.setDeviceInfoService(deviceInfoService);
 		LifecycleTestHelper.initDeviceInfoService(deviceInfoService);
 
 		Map<String, Object> configurationSharedState = new HashMap<>();
@@ -114,7 +104,11 @@ public class LifecycleExtensionTest {
 				eq(SharedStateResolution.ANY)
 		)).thenReturn(new SharedStateResult(SharedStateStatus.SET, configurationSharedState));
 
-		lifecycle = new LifecycleExtension(extensionApi, mockLifecycleState, mockLifecycleV2Extension);
+		lifecycle = new LifecycleExtension(extensionApi,
+				lifecycleDataStore,
+				deviceInfoService,
+				mockLifecycleState,
+				mockLifecycleV2Extension);
 	}
 
 	@Test

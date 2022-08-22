@@ -45,6 +45,8 @@ import java.util.Map;
 public class LifecycleExtension extends Extension {
 
 	private static final String SELF_LOG_TAG                = "LifecycleExtension";
+	private final NamedCollection lifecycleDataStore;
+	private final DeviceInforming deviceInfoService;
 	private final LifecycleState lifecycleState;
 	private final LifecycleV2Extension lifecycleV2;
 
@@ -56,21 +58,50 @@ public class LifecycleExtension extends Extension {
 	 */
 	protected LifecycleExtension(final ExtensionApi extensionApi) {
 		super(extensionApi);
-		lifecycleState = new LifecycleState(getDataStore(), geDeviceInfoService());
-		lifecycleV2 = new LifecycleV2Extension(getDataStore(), geDeviceInfoService(), getApi());
+		lifecycleDataStore = getDataStore();
+		deviceInfoService = getDeviceInfoService();
+		lifecycleState = new LifecycleState(lifecycleDataStore, deviceInfoService);
+		lifecycleV2 = new LifecycleV2Extension(lifecycleDataStore, deviceInfoService, getApi());
 	}
 
 	/**
 	 * This constructor is intended for testing purposes.
 	 *
 	 * @param extensionApi {@code ExtensionApi} instance
-	 * @param lifecycleState {@code LifecycleState} instance. If null, a new instance will be created
+	 * @param namedCollection {@code NamedCollection} instance
+	 * @param deviceInfoService {@code DeviceInforming} instance
 	 */
 	@VisibleForTesting
-	protected LifecycleExtension(final ExtensionApi extensionApi, final LifecycleState lifecycleState, final LifecycleV2Extension lifecycleV2Extension) {
+	protected LifecycleExtension(final ExtensionApi extensionApi,
+								 final NamedCollection namedCollection,
+								 final DeviceInforming deviceInfoService) {
 		super(extensionApi);
-		this.lifecycleState = lifecycleState != null ? lifecycleState : new LifecycleState(getDataStore(), geDeviceInfoService());
-		lifecycleV2 = lifecycleV2Extension != null ? lifecycleV2Extension : new LifecycleV2Extension(getDataStore(), geDeviceInfoService(), getApi());
+		lifecycleDataStore = namedCollection;
+		this.deviceInfoService = deviceInfoService;
+		lifecycleState = new LifecycleState(lifecycleDataStore, deviceInfoService);
+		lifecycleV2 = new LifecycleV2Extension(lifecycleDataStore, deviceInfoService, getApi());
+	}
+
+	/**
+	 * This constructor is intended for testing purposes.
+	 *
+	 * @param extensionApi {@code ExtensionApi} instance
+	 * @param namedCollection {@code NamedCollection} instance
+	 * @param deviceInfoService {@code DeviceInforming} instance
+	 * @param lifecycleState {@code LifecycleState} instance
+	 * @param lifecycleV2Extension {@code LifecycleV2Extension} instance
+	 */
+	@VisibleForTesting
+	protected LifecycleExtension(final ExtensionApi extensionApi,
+								 final NamedCollection namedCollection,
+								 final DeviceInforming deviceInfoService,
+								 final LifecycleState lifecycleState,
+								 final LifecycleV2Extension lifecycleV2Extension) {
+		super(extensionApi);
+		lifecycleDataStore = namedCollection;
+		this.deviceInfoService = deviceInfoService;
+		this.lifecycleState = lifecycleState;
+		lifecycleV2 = lifecycleV2Extension;
 	}
 
 	@Override
@@ -226,9 +257,8 @@ public class LifecycleExtension extends Extension {
 
 		if (previousSessionInfo == null) {
 			// Analytics extension needs adjusted start date to calculate timeSinceLaunch param.
-			final NamedCollection namedCollection = getDataStore();
-			if (namedCollection != null) {
-				final long startTime = namedCollection.getLong(LifecycleConstants.DataStoreKeys.START_DATE, 0L);
+			if (lifecycleDataStore != null) {
+				final long startTime = lifecycleDataStore.getLong(LifecycleConstants.DataStoreKeys.START_DATE, 0L);
 				updateLifecycleSharedState(event, startTime, lifecycleState.getContextData());
 				return;
 			}
@@ -262,14 +292,12 @@ public class LifecycleExtension extends Extension {
 	 * @param event lifecycle start event.
 	 */
 	private void persistInstallDate(final Event event) {
-		NamedCollection dataStore = getDataStore();
-
-		if (dataStore == null) {
+		if (lifecycleDataStore == null) {
 			return;
 		}
 
 		final long startTimestampInSeconds = event.getTimestampInSeconds();
-		dataStore.setLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, startTimestampInSeconds);
+		lifecycleDataStore.setLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, startTimestampInSeconds);
 	}
 
 	/**
@@ -278,8 +306,7 @@ public class LifecycleExtension extends Extension {
 	 * @return true if there is no install date stored in the data store
 	 */
 	private boolean isInstall() {
-		NamedCollection namedCollection = getDataStore();
-		return namedCollection != null && !namedCollection.contains(LifecycleConstants.DataStoreKeys.INSTALL_DATE);
+		return lifecycleDataStore != null && !lifecycleDataStore.contains(LifecycleConstants.DataStoreKeys.INSTALL_DATE);
 	}
 
 	/**
@@ -307,7 +334,7 @@ public class LifecycleExtension extends Extension {
 	 *
 	 * @return {@code DeviceInforming} or null if something went wrong
 	 */
-	private DeviceInforming geDeviceInfoService() {
+	private DeviceInforming getDeviceInfoService() {
 		return ServiceProvider.getInstance().getDeviceInfoService();
 	}
 

@@ -11,13 +11,15 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
+import com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Configuration
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.ServiceProvider
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.eq
@@ -74,12 +76,6 @@ class ConfigurationExtensionTest {
         private const val SAMPLE_RSID = "downloaded_rsid"
         private const val ANALYTICS_SERVER_KEY = "Analytics.server"
         private const val ANALYTICS_RSID_KEY = "Analytics.rsids"
-        private const val EVENT_TYPE = "com.adobe.eventType.configuration"
-        private const val EVENT_SOURCE = "com.adobe.eventSource.requestContent"
-    }
-
-    @Before
-    fun setUp() {
     }
 
     @Test
@@ -105,7 +101,9 @@ class ConfigurationExtensionTest {
 
         ExtensionHelper.notifyRegistered(configurationExtension)
 
-        verify(mockExtensionApi).registerEventListener(anyString(), anyString(), any())
+        verify(mockExtensionApi).registerEventListener(eq(EventType.CONFIGURATION), eq(EventSource.REQUEST_CONTENT), any())
+        verify(mockConfigStateManager).loadInitialConfig()
+        verify(mockConfigurationRulesManager).applyCachedRules(mockExtensionApi)
     }
 
     @Test
@@ -128,18 +126,18 @@ class ConfigurationExtensionTest {
 
         ExtensionHelper.notifyRegistered(configurationExtension)
 
-        verify(mockExtensionApi).registerEventListener(anyString(), anyString(), any())
-
         verify(mockExtensionApi, never()).createSharedState(initialConfig, null)
         verify(mockConfigurationRulesManager, never()).applyCachedRules(mockExtensionApi)
         verifyEventDispatch(
             mapOf(
-                "config.appId" to "SampleAppID",
+                Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
                 "config.isinternalevent" to true
             ),
             null,
             1
         )
+
+        verify(mockExtensionApi, times(1)).registerEventListener(anyString(), anyString(), any())
     }
 
     @Test
@@ -155,7 +153,7 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure With Event", EVENT_TYPE, EVENT_SOURCE).build()
+        val event: Event = Event.Builder("Configure With Event", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
@@ -193,9 +191,9 @@ class ConfigurationExtensionTest {
 
         val event: Event = Event.Builder(
             "Configure with appId",
-            EVENT_TYPE, EVENT_SOURCE
+            EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to null))
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to null))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -231,9 +229,9 @@ class ConfigurationExtensionTest {
 
         val event: Event = Event.Builder(
             "Configure with appId",
-            EVENT_TYPE, EVENT_SOURCE
+            EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to ""))
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to ""))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -266,9 +264,9 @@ class ConfigurationExtensionTest {
 
         val event: Event = Event.Builder(
             "Configure with appId",
-            EVENT_TYPE, EVENT_SOURCE
+            EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -318,9 +316,9 @@ class ConfigurationExtensionTest {
 
         val event: Event = Event.Builder(
             "Configure with appId",
-            EVENT_TYPE, EVENT_SOURCE
+            EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -374,8 +372,8 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file path", EVENT_TYPE, EVENT_SOURCE)
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
+        val event: Event = Event.Builder("Configure with file path", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -401,8 +399,8 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file path", EVENT_TYPE, EVENT_SOURCE)
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
+        val event: Event = Event.Builder("Configure with file path", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -429,8 +427,8 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file path", EVENT_TYPE, EVENT_SOURCE)
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to null))
+        val event: Event = Event.Builder("Configure with file path", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to null))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -457,8 +455,8 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file path", EVENT_TYPE, EVENT_SOURCE)
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to ""))
+        val event: Event = Event.Builder("Configure with file path", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to ""))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -484,8 +482,8 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file asset", EVENT_TYPE, EVENT_SOURCE)
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to null))
+        val event: Event = Event.Builder("Configure with file asset", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to null))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -514,8 +512,8 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file asset", EVENT_TYPE, EVENT_SOURCE)
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to "/some/asset"))
+        val event: Event = Event.Builder("Configure with file asset", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to "/some/asset"))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -551,8 +549,8 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file asset", EVENT_TYPE, EVENT_SOURCE)
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to "some/file/path"))
+        val event: Event = Event.Builder("Configure with file asset", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to "some/file/path"))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -592,8 +590,8 @@ class ConfigurationExtensionTest {
         )
         reset(mockExtensionApi)
 
-        val event: Event = Event.Builder("Update programmatic config", EVENT_TYPE, EVENT_SOURCE)
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to programmaticConfig))
+        val event: Event = Event.Builder("Update programmatic config", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to programmaticConfig))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
@@ -626,8 +624,8 @@ class ConfigurationExtensionTest {
         )
         reset(mockExtensionApi)
 
-        val event: Event = Event.Builder("Clear updated configuration", EVENT_TYPE, EVENT_SOURCE)
-            .setEventData(mapOf(ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG to true))
+        val event: Event = Event.Builder("Clear updated configuration", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG to true))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)

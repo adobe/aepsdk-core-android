@@ -54,6 +54,11 @@ internal class AppIdManager(
      * Removes the existing appId stored in shared preferences.
      */
     internal fun removeAppIDFromPersistence() {
+        MobileCore.log(
+            LoggingMode.VERBOSE,
+            LOG_TAG,
+            "Attempting to set empty App Id into persistence."
+        )
         configStateStoreCollection?.remove(ConfigurationStateManager.PERSISTED_APPID)
     }
 

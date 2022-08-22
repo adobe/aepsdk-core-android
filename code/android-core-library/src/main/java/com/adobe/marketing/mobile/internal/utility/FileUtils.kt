@@ -145,7 +145,7 @@ object FileUtils {
             return false
         }
 
-        var entryProcessedSuccessfully = true
+        var extractedSuccessfully = true
         try {
             ZipInputStream(FileInputStream(zipFile)).use { zipInputStream ->
                 // get the zipped file list entry
@@ -153,10 +153,10 @@ object FileUtils {
                 val outputFolderCanonicalPath = folder.canonicalPath
                 if (ze == null) {
                     // Invalid zip file!
-                    entryProcessedSuccessfully = false
                     MobileCore.log(LoggingMode.WARNING, TAG, "Zip file was invalid")
+                    return false
                 }
-
+                var entryProcessedSuccessfully = true
                 while (ze != null && entryProcessedSuccessfully) {
                     val fileName = ze.name
                     val newZipEntryFile = File(outputDirectoryPath + File.separator + fileName)
@@ -185,15 +185,18 @@ object FileUtils {
                             return false
                         }
                     }
+                    extractedSuccessfully = extractedSuccessfully && entryProcessedSuccessfully
+
+                    zipInputStream.closeEntry()
                     ze = zipInputStream.nextEntry
                 }
                 zipInputStream.closeEntry()
             }
         } catch (ex: Exception) {
             MobileCore.log(LoggingMode.ERROR, TAG, "Extraction failed - $ex")
-            entryProcessedSuccessfully = false
+            extractedSuccessfully = false
         }
 
-        return entryProcessedSuccessfully
+        return extractedSuccessfully
     }
 }

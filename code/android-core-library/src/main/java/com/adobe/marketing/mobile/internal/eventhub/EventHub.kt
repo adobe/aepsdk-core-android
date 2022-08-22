@@ -323,7 +323,14 @@ internal class EventHub {
         }
     }
 
-    fun registerEventPreprocessor(eventPreprocessor: EventPreprocessor) {
+    /**
+     * Registers an [EventPreprocessor] with the eventhub
+     * Note that this is an internal only method for use by ConfigurationExtension,
+     * until preprocessors are supported via a public api.
+     *
+     * @param eventPreprocessor the [EventPreprocessor] that should be registered
+     */
+    internal fun registerEventPreprocessor(eventPreprocessor: EventPreprocessor) {
         if (eventPreprocessors.contains(eventPreprocessor)) {
             return
         }

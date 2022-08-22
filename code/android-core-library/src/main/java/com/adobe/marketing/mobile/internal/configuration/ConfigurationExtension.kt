@@ -12,7 +12,10 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
+import com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Configuration
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
@@ -23,7 +26,6 @@ import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.ServiceProvider
-import java.lang.Exception
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -39,17 +41,7 @@ internal class ConfigurationExtension : Extension {
         private const val TAG = "ConfigurationExtension"
         private const val EXTENSION_NAME = "com.adobe.module.configuration"
         private const val EXTENSION_FRIENDLY_NAME = "Configuration"
-        private const val EVENT_TYPE = "com.adobe.eventType.configuration"
-        private const val EVENT_SOURCE_REQUEST_CONTENT = "com.adobe.eventSource.requestContent"
-        private const val EVENT_SOURCE_RESPONSE_CONTENT = "com.adobe.eventSource.responseContent"
-
-        internal const val CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID = "config.appId"
-        internal const val CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH = "config.filePath"
-        internal const val CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE = "config.assetFile"
-        internal const val CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG = "config.update"
-        internal const val CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG =
-            "config.clearUpdates"
-        internal const val CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG = "config.getData"
+        private const val EXTENSION_VERSION = "2.0.0"
         internal const val CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT =
             "config.isinternalevent"
 
@@ -62,6 +54,15 @@ internal class ConfigurationExtension : Extension {
         internal const val GLOBAL_CONFIG_PRIVACY = "global.privacy"
     }
 
+    /**
+     * Represents the source from which rules can be loaded.
+     */
+    private enum class RulesSource {
+        CACHE,
+        BUNDLED,
+        REMOTE
+    }
+
     private val serviceProvider: ServiceProvider
     private val appIdManager: AppIdManager
     private val cacheFileService: CacheFileService
@@ -69,12 +70,6 @@ internal class ConfigurationExtension : Extension {
     private val configurationStateManager: ConfigurationStateManager
     private val configurationRulesManager: ConfigurationRulesManager
     private val retryWorker: ScheduledExecutorService
-
-    private enum class RulesSource {
-        CACHE,
-        BUNDLED,
-        URL
-    }
 
     constructor(extensionApi: ExtensionApi) : this(extensionApi, ServiceProvider.getInstance())
 
@@ -156,10 +151,9 @@ internal class ConfigurationExtension : Extension {
             launchRulesEvaluator.process(it)
         }
 
-        // TODO: Register pre-processor
         api.registerEventListener(
-            EVENT_TYPE,
-            EVENT_SOURCE_REQUEST_CONTENT
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
         ) {
             handleConfigurationRequestEvent(it)
         }
@@ -169,7 +163,7 @@ internal class ConfigurationExtension : Extension {
         if (!appId.isNullOrBlank()) {
             val eventData: MutableMap<String, Any?> =
                 mutableMapOf(
-                    CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
+                    Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
                     CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
                 )
             dispatchConfigurationRequest(eventData)
@@ -179,6 +173,12 @@ internal class ConfigurationExtension : Extension {
 
         if (initialConfig.isNotEmpty()) {
             applyConfigurationChanges(null, RulesSource.CACHE)
+        } else {
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                TAG,
+                "Initial configuration loaded is empty."
+            )
         }
     }
 
@@ -191,7 +191,7 @@ internal class ConfigurationExtension : Extension {
     }
 
     override fun getVersion(): String {
-        return MobileCore.extensionVersion()
+        return EXTENSION_VERSION
     }
 
     /**
@@ -203,22 +203,22 @@ internal class ConfigurationExtension : Extension {
         if (event.eventData == null) return
 
         when {
-            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) -> {
+            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) -> {
                 configureWithAppID(event)
             }
-            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) -> {
+            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) -> {
                 configureWithFileAsset(event)
             }
-            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) -> {
+            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) -> {
                 configureWithFilePath(event)
             }
-            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) -> {
+            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) -> {
                 updateConfiguration(event)
             }
-            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG) -> {
+            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG) -> {
                 clearUpdatedConfiguration(event)
             }
-            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG) -> {
+            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG) -> {
                 retrieveConfiguration(event)
             }
         }
@@ -231,9 +231,14 @@ internal class ConfigurationExtension : Extension {
      * @param event the event requesting/triggering an update to configuration with appId.
      */
     private fun configureWithAppID(event: Event) {
-        val appID = event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
+        val appID = event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
 
         if (appID.isNullOrBlank()) {
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                TAG,
+                "AppId in configureWithAppID event is null.."
+            )
             appIdManager.removeAppIDFromPersistence()
 
             publishConfigurationState(
@@ -256,7 +261,7 @@ internal class ConfigurationExtension : Extension {
 
         configurationStateManager.updateConfigWithAppId(appID) { config ->
             if (config != null) {
-                applyConfigurationChanges(event, RulesSource.URL)
+                applyConfigurationChanges(event, RulesSource.REMOTE)
                 // re-start event processing after new configuration download
                 api.startEvents()
             } else {
@@ -274,7 +279,7 @@ internal class ConfigurationExtension : Extension {
      *              requesting a configuration change
      */
     private fun configureWithFilePath(event: Event) {
-        val filePath = event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
+        val filePath = event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
 
         if (filePath.isNullOrBlank()) {
             MobileCore.log(
@@ -296,7 +301,7 @@ internal class ConfigurationExtension : Extension {
         }
 
         configurationStateManager.replaceConfiguration(config)
-        applyConfigurationChanges(event, RulesSource.URL)
+        applyConfigurationChanges(event, RulesSource.REMOTE)
     }
 
     /**
@@ -305,7 +310,7 @@ internal class ConfigurationExtension : Extension {
      * @param event which contains [CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE] as part of its event data
      */
     private fun configureWithFileAsset(event: Event) {
-        val fileAssetName = event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
+        val fileAssetName = event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
 
         if (fileAssetName.isNullOrBlank()) {
             MobileCore.log(
@@ -328,7 +333,7 @@ internal class ConfigurationExtension : Extension {
         }
 
         configurationStateManager.replaceConfiguration(config)
-        applyConfigurationChanges(event, RulesSource.URL)
+        applyConfigurationChanges(event, RulesSource.REMOTE)
     }
 
     /**
@@ -337,9 +342,10 @@ internal class ConfigurationExtension : Extension {
      * @param event the event containing programmatic configuration that is to be applied on the
      *              current configuration
      */
+    @Suppress("UNCHECKED_CAST")
     private fun updateConfiguration(event: Event) {
         val config: MutableMap<*, *> =
-            event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) as?
+            event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) as?
                 MutableMap<*, *> ?: return
 
         if (!config.keys.isAllString()) {
@@ -355,16 +361,16 @@ internal class ConfigurationExtension : Extension {
             config as? Map<String, Any?>
         } catch (e: Exception) {
             MobileCore.log(
-                LoggingMode.DEBUG,
+                LoggingMode.VERBOSE,
                 TAG,
-                "Invalid configuration."
+                "Failed to load programmatic config. Invalid configuration."
             )
             null
         }
 
         programmaticConfig?.let {
             configurationStateManager.updateProgrammaticConfig(it)
-            applyConfigurationChanges(event, RulesSource.URL)
+            applyConfigurationChanges(event, RulesSource.REMOTE)
         }
     }
 
@@ -376,7 +382,7 @@ internal class ConfigurationExtension : Extension {
      */
     private fun clearUpdatedConfiguration(event: Event) {
         configurationStateManager.clearProgrammaticConfig()
-        applyConfigurationChanges(event, RulesSource.URL)
+        applyConfigurationChanges(event, RulesSource.REMOTE)
     }
 
     /**
@@ -421,7 +427,7 @@ internal class ConfigurationExtension : Extension {
     private fun dispatchConfigurationResponse(eventData: Map<String, Any?>, triggerEvent: Event?) {
         val builder = Event.Builder(
             "Configuration Response Event",
-            EVENT_TYPE, EVENT_SOURCE_RESPONSE_CONTENT
+            EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT
         ).setEventData(eventData)
 
         val event: Event = if (triggerEvent == null) {
@@ -436,7 +442,7 @@ internal class ConfigurationExtension : Extension {
     private fun dispatchConfigurationRequest(eventData: Map<String, Any?>) {
         val event = Event.Builder(
             "Configure with AppID Internal",
-            EVENT_TYPE, EVENT_SOURCE_REQUEST_CONTENT
+            EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
         )
             .setEventData(eventData).build()
         api.dispatch(event)
@@ -475,7 +481,7 @@ internal class ConfigurationExtension : Extension {
                 return configurationRulesManager.applyBundledRules(api)
             }
 
-            RulesSource.URL -> {
+            RulesSource.REMOTE -> {
                 val rulesURL: String? = config[RULES_CONFIG_URL] as? String
                 return if (!rulesURL.isNullOrBlank()) {
                     configurationRulesManager.applyDownloadedRules(rulesURL, api)

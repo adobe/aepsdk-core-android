@@ -19,9 +19,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public final class StringUtils {
-    public static final String CHARSET_UTF_8 = "UTF-8";
     private static final int STREAM_READ_BUFFER_SIZE = 1024;
     private static final String TAG = "StringUtils";
 
@@ -59,7 +59,7 @@ public final class StringUtils {
             }
 
             final byte[] byteArray = buffer.toByteArray();
-            return new String(byteArray, CHARSET_UTF_8);
+            return new String(byteArray, StandardCharsets.UTF_8);
         } catch (final IOException ex) {
             MobileCore.log(LoggingMode.DEBUG, TAG, "Unable to convert InputStream to String," + ex.getLocalizedMessage());
             return null;

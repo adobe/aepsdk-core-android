@@ -134,6 +134,11 @@ internal class ConfigurationRulesManager(
      * @return true if a rule replacement was triggered, false otherwise
      */
     internal fun applyBundledRules(api: ExtensionApi): Boolean {
+        MobileCore.log(
+            LoggingMode.DEBUG,
+            TAG,
+            "Attempting to apply bundled rules."
+        )
         val applicationCacheDir = deviceInfoService.applicationCacheDir?.absolutePath
         if (applicationCacheDir == null) {
             MobileCore.log(

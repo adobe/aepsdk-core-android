@@ -55,11 +55,11 @@ class RemoteDownloader(
      */
     interface MetadataProvider {
         companion object MetadataKeys {
-            internal const val HTTP_HEADER_IF_MODIFIED_SINCE = "If-Modified-Since"
-            internal const val HTTP_HEADER_IF_RANGE = "If-Range"
-            internal const val HTTP_HEADER_RANGE = "Range"
-            internal const val HTTP_HEADER_LAST_MODIFIED = "Last-Modified"
-            internal const val ETAG = "ETag"
+            const val HTTP_HEADER_IF_MODIFIED_SINCE = "If-Modified-Since"
+            const val HTTP_HEADER_IF_RANGE = "If-Range"
+            const val HTTP_HEADER_RANGE = "Range"
+            const val HTTP_HEADER_LAST_MODIFIED = "Last-Modified"
+            const val ETAG = "ETag"
         }
 
         /**

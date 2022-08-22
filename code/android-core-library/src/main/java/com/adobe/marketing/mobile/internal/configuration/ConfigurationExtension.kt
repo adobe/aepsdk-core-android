@@ -42,15 +42,13 @@ internal class ConfigurationExtension : Extension {
         private const val EXTENSION_NAME = "com.adobe.module.configuration"
         private const val EXTENSION_FRIENDLY_NAME = "Configuration"
         private const val EXTENSION_VERSION = "2.0.0"
+
         internal const val CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT =
             "config.isinternalevent"
-
         internal const val DATASTORE_KEY = "AdobeMobile_ConfigState"
         internal const val RULES_CONFIG_URL = "rules.url"
 
         internal const val CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS = 5L
-        internal const val CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS = "config.allIdentifiers"
-        internal const val EVENT_STATE_OWNER = "stateowner"
         internal const val GLOBAL_CONFIG_PRIVACY = "global.privacy"
     }
 
@@ -231,7 +229,8 @@ internal class ConfigurationExtension : Extension {
      * @param event the event requesting/triggering an update to configuration with appId.
      */
     private fun configureWithAppID(event: Event) {
-        val appID = event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
+        val appID =
+            event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
 
         if (appID.isNullOrBlank()) {
             MobileCore.log(
@@ -266,7 +265,11 @@ internal class ConfigurationExtension : Extension {
                 api.startEvents()
             } else {
                 // If the configuration download fails, retry download again.
-                retryWorker.schedule({ configureWithAppID(event) }, CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS, TimeUnit.SECONDS)
+                retryWorker.schedule(
+                    { configureWithAppID(event) },
+                    CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS,
+                    TimeUnit.SECONDS
+                )
             }
         }
     }
@@ -279,7 +282,8 @@ internal class ConfigurationExtension : Extension {
      *              requesting a configuration change
      */
     private fun configureWithFilePath(event: Event) {
-        val filePath = event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
+        val filePath =
+            event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
 
         if (filePath.isNullOrBlank()) {
             MobileCore.log(
@@ -307,10 +311,11 @@ internal class ConfigurationExtension : Extension {
     /**
      * Updates the current configuration with the content from a file asset.
      *
-     * @param event which contains [CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE] as part of its event data
+     * @param event which contains [Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE] as part of its event data
      */
     private fun configureWithFileAsset(event: Event) {
-        val fileAssetName = event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
+        val fileAssetName =
+            event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
 
         if (fileAssetName.isNullOrBlank()) {
             MobileCore.log(
@@ -321,7 +326,7 @@ internal class ConfigurationExtension : Extension {
             return
         }
 
-        val config = configurationStateManager.getBundledConfig(fileAssetName)
+        val config = configurationStateManager.loadBundledConfig(fileAssetName)
 
         if (config.isNullOrEmpty()) {
             MobileCore.log(

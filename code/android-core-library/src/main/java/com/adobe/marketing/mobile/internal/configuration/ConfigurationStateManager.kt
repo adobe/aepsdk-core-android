@@ -143,9 +143,9 @@ internal class ConfigurationStateManager {
                 LoggingMode.VERBOSE,
                 LOG_TAG, "AppID from persistence and manifest is null."
             )
-            getBundledConfig(CONFIG_BUNDLED_FILE_NAME)
+            loadBundledConfig(CONFIG_BUNDLED_FILE_NAME)
         } else {
-            getCachedConfig(appId) ?: getBundledConfig(CONFIG_BUNDLED_FILE_NAME)
+            loadCachedConfig(appId) ?: loadBundledConfig(CONFIG_BUNDLED_FILE_NAME)
         }
 
         // Replace the exiting configuration with new config.
@@ -161,7 +161,7 @@ internal class ConfigurationStateManager {
      * @return the configuration parsed from the bundled config file [bundledConfigFileName] if successful,
      *         null otherwise.
      */
-    internal fun getBundledConfig(bundledConfigFileName: String): Map<String, Any?>? {
+    internal fun loadBundledConfig(bundledConfigFileName: String): Map<String, Any?>? {
         MobileCore.log(
             LoggingMode.VERBOSE,
             LOG_TAG,
@@ -271,7 +271,7 @@ internal class ConfigurationStateManager {
      * @return configuration associated with [appId] if it was cached earlier,
      *         null otherwise
      */
-    private fun getCachedConfig(appId: String): Map<String, Any?>? {
+    private fun loadCachedConfig(appId: String): Map<String, Any?>? {
         MobileCore.log(
             LoggingMode.VERBOSE,
             LOG_TAG,

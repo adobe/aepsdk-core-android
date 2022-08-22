@@ -27,6 +27,8 @@ import org.mockito.Mock
 import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
@@ -36,8 +38,11 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.io.File
+import java.io.InputStream
 import java.lang.reflect.Field
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class ConfigurationRulesManagerTest {
@@ -112,7 +117,7 @@ class ConfigurationRulesManagerTest {
             )
         ).thenReturn(" ")
 
-        configurationRulesManager.applyCachedRules(mockExtensionApi)
+        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
         verifyNoInteractions(mockCacheFileService)
         verifyNoInteractions(mockLaunchRulesEvaluator)
@@ -127,7 +132,7 @@ class ConfigurationRulesManagerTest {
             )
         ).thenReturn(null)
 
-        configurationRulesManager.applyCachedRules(mockExtensionApi)
+        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
         verifyNoInteractions(mockCacheFileService)
         verifyNoInteractions(mockLaunchRulesEvaluator)
@@ -150,7 +155,7 @@ class ConfigurationRulesManagerTest {
             )
         ).thenReturn(null)
 
-        configurationRulesManager.applyCachedRules(mockExtensionApi)
+        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
         verifyNoInteractions(mockLaunchRulesEvaluator)
     }
@@ -173,7 +178,7 @@ class ConfigurationRulesManagerTest {
             )
         ).thenReturn(mockDownloadedRulesDir)
 
-        configurationRulesManager.applyCachedRules(mockExtensionApi)
+        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
         verifyNoInteractions(mockLaunchRulesEvaluator)
     }
@@ -197,7 +202,7 @@ class ConfigurationRulesManagerTest {
 
         mockFileUtils.`when`<Any> { FileUtils.readAsString(any()) }.thenReturn(null)
 
-        configurationRulesManager.applyCachedRules(mockExtensionApi)
+        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
         val fileCaptor: KArgumentCaptor<File> = argumentCaptor()
         mockFileUtils.verify { FileUtils.readAsString(fileCaptor.capture()) }
@@ -230,7 +235,7 @@ class ConfigurationRulesManagerTest {
             FileUtils.readAsString(any())
         }.thenReturn(validRulesJson)
 
-        configurationRulesManager.applyCachedRules(mockExtensionApi)
+        assertTrue(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
         val fileCaptor: KArgumentCaptor<File> = argumentCaptor()
 
@@ -265,7 +270,7 @@ class ConfigurationRulesManagerTest {
 
         mockFileUtils.`when`<Any> { FileUtils.readAsString(any()) }.thenReturn(invalidRulesJson)
 
-        configurationRulesManager.applyCachedRules(mockExtensionApi)
+        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
         val fileCaptor: KArgumentCaptor<File> = argumentCaptor()
         mockFileUtils.verify {
@@ -425,6 +430,111 @@ class ConfigurationRulesManagerTest {
         capturedCallback.invoke(mockDownloadedRulesDir)
 
         verify(mockLaunchRulesEvaluator, times(1)).replaceRules(any())
+    }
+
+    @Test
+    fun `Apply Bundled Rules - Application Cache Dir is null`() {
+        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(null)
+
+        assertFalse(configurationRulesManager.applyBundledRules(mockExtensionApi))
+        verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
+    }
+
+    @Test
+    fun `Apply Bundled Rules - Application Cache Dir cannot be created`() {
+        val mockApplicationCacheDir = mock(File::class.java)
+        val mockCacheDirPath = "/path/to/appCacheDir/"
+        `when`(mockApplicationCacheDir.absolutePath).thenReturn(mockCacheDirPath)
+        `when`(mockApplicationCacheDir.exists()).thenReturn(false)
+        `when`(mockApplicationCacheDir.mkdirs()).thenReturn(false)
+        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(mockApplicationCacheDir)
+
+        assertFalse(configurationRulesManager.applyBundledRules(mockExtensionApi))
+        verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
+    }
+
+    @Test
+    fun `Apply Bundled Rules - Bundled Asset cannot be read`() {
+        val mockCacheDirPath = this::class.java.classLoader?.getResource("")?.path
+        val mockApplicationCacheDir = mock(File::class.java)
+        `when`(mockApplicationCacheDir.exists()).thenReturn(true)
+        `when`(mockApplicationCacheDir.mkdirs()).thenReturn(true)
+        `when`(mockApplicationCacheDir.absolutePath).thenReturn(mockCacheDirPath)
+
+        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(mockApplicationCacheDir)
+        val mockBundledRulesStream = mock(InputStream::class.java)
+        `when`(mockDeviceInfoService.getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME))
+            .thenReturn(mockBundledRulesStream)
+        mockFileUtils.`when`<Any> {
+            FileUtils.readInputStreamIntoFile(
+                any(),
+                eq(mockBundledRulesStream), eq(false)
+            )
+        }.thenReturn(false)
+
+        assertFalse(configurationRulesManager.applyBundledRules(mockExtensionApi))
+
+        verify(mockDeviceInfoService).getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)
+        verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
+    }
+
+    @Test
+    fun `Apply Bundled Rules - Bundled Asset cannot be extracted`() {
+        val mockCacheDirPath = this::class.java.classLoader?.getResource("")?.path
+        val mockApplicationCacheDir = mock(File::class.java)
+        `when`(mockApplicationCacheDir.exists()).thenReturn(true)
+        `when`(mockApplicationCacheDir.mkdirs()).thenReturn(true)
+        `when`(mockApplicationCacheDir.absolutePath).thenReturn(mockCacheDirPath)
+        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(mockApplicationCacheDir)
+        val mockBundledRulesStream = mock(InputStream::class.java)
+        `when`(mockDeviceInfoService.getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME))
+            .thenReturn(mockBundledRulesStream)
+        mockFileUtils.`when`<Any> {
+            FileUtils.readInputStreamIntoFile(
+                any(),
+                eq(mockBundledRulesStream), eq(false)
+            )
+        }.thenReturn(true)
+        mockFileUtils.`when`<Any> { FileUtils.extractFromZip(any(), any()) }.thenReturn(false)
+
+        assertFalse(configurationRulesManager.applyBundledRules(mockExtensionApi))
+
+        verify(mockDeviceInfoService).getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)
+        mockFileUtils.verify {
+            FileUtils.extractFromZip(
+                any(),
+                eq(mockCacheDirPath + "adbdownloadcache")
+            )
+        }
+        verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
+    }
+
+    @Test
+    fun `Apply Bundled Rules - Bundled Asset is valid`() {
+        val mockCacheDirPath = this::class.java.classLoader?.getResource("")?.path
+        val bundledRulesPath = File(mockCacheDirPath, "adbdownloadcache/${ConfigurationRulesManager.BUNDLED_RULES_DIR}")
+        bundledRulesPath.mkdirs()
+        val mockApplicationCacheDir = mock(File::class.java)
+        `when`(mockApplicationCacheDir.absolutePath).thenReturn(mockCacheDirPath)
+        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(mockApplicationCacheDir)
+        val mockBundledRulesStream = mock(InputStream::class.java)
+        `when`(mockDeviceInfoService.getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME))
+            .thenReturn(mockBundledRulesStream)
+        mockFileUtils.`when`<Any> {
+            FileUtils.readInputStreamIntoFile(
+                any(),
+                eq(mockBundledRulesStream), eq(false)
+            )
+        }.thenReturn(true)
+        mockFileUtils.`when`<Any> { FileUtils.extractFromZip(any(), any()) }.thenReturn(true)
+        mockFileUtils.`when`<Any> { FileUtils.readAsString(any()) }.thenReturn(validRulesJson)
+
+        assertTrue(configurationRulesManager.applyBundledRules(mockExtensionApi))
+
+        verify(mockDeviceInfoService).getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)
+        verify(mockLaunchRulesEvaluator).replaceRules(any())
+
+        bundledRulesPath.deleteRecursively()
     }
 
     @After

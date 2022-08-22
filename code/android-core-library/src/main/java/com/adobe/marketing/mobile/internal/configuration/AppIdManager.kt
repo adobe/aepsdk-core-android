@@ -70,8 +70,23 @@ internal class AppIdManager(
      *         null otherwise
      */
     internal fun loadAppId(): String? {
-        return getAppIDFromPersistence() ?: getAppIDFromManifest().also { manifestAppId ->
-            manifestAppId?.let { saveAppIdToPersistence(it) }
+        return getAppIDFromPersistence().also { persistedAppId ->
+            persistedAppId?.let {
+                MobileCore.log(
+                    LoggingMode.VERBOSE,
+                    LOG_TAG,
+                    "Retrieved AppId from persistence."
+                )
+            }
+        } ?: getAppIDFromManifest().also { manifestAppId ->
+            manifestAppId?.let {
+                MobileCore.log(
+                    LoggingMode.VERBOSE,
+                    LOG_TAG,
+                    "Retrieved AppId from manifest."
+                )
+                saveAppIdToPersistence(it)
+            }
         }
     }
 
@@ -82,7 +97,10 @@ internal class AppIdManager(
      *         null otherwise.
      */
     private fun getAppIDFromPersistence(): String? {
-        return configStateStoreCollection?.getString(ConfigurationStateManager.PERSISTED_APPID, null)
+        return configStateStoreCollection?.getString(
+            ConfigurationStateManager.PERSISTED_APPID,
+            null
+        )
     }
 
     /**

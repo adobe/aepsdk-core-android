@@ -27,6 +27,8 @@ import java.io.File
  * This allows easier path for components using this class to add queuing logic for jobs internally,
  * maintaining compatibility when this class adds queuing logic in the future, and facilitating
  * cleaner tests in composing components.
+ *
+ * TODO: Refactor this class to either eliminate default caching or make caching optional.
  */
 class RemoteDownloader(
     private val networkService: Networking,

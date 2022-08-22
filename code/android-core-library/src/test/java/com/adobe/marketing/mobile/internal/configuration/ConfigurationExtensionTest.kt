@@ -107,6 +107,36 @@ class ConfigurationExtensionTest {
     }
 
     @Test
+    fun `ConfigurationExtension - onRegistered when cached rules cannot be applied`() {
+        `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
+        val config = mutableMapOf<String, Any?>(
+            ANALYTICS_RSID_KEY to SAMPLE_RSID,
+            ANALYTICS_SERVER_KEY to SAMPLE_SERVER
+        )
+        `when`(mockConfigurationRulesManager.applyCachedRules(mockExtensionApi)).thenReturn(false)
+        `when`(mockConfigStateManager.loadInitialConfig()).thenReturn(config)
+        `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(config)
+
+        val configurationExtension = ConfigurationExtension(
+            mockExtensionApi,
+            mockServiceProvider,
+            mockAppIdManager,
+            mockCacheFileService,
+            mockLaunchRulesEvaluator,
+            mockExecutorService,
+            mockConfigStateManager,
+            mockConfigurationRulesManager
+        )
+
+        ExtensionHelper.notifyRegistered(configurationExtension)
+
+        verify(mockExtensionApi).registerEventListener(eq(EventType.CONFIGURATION), eq(EventSource.REQUEST_CONTENT), any())
+        verify(mockConfigStateManager).loadInitialConfig()
+        verify(mockConfigurationRulesManager).applyCachedRules(mockExtensionApi)
+        verify(mockConfigurationRulesManager).applyBundledRules(mockExtensionApi)
+    }
+
+    @Test
     fun `ConfigurationExtension - onRegistered when initial config is empty`() {
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
         val initialConfig = mutableMapOf<String, Any?>()
@@ -469,7 +499,7 @@ class ConfigurationExtensionTest {
 
     @Test
     fun `Configure with file asset - null asset`() {
-        `when`(mockConfigStateManager.getBundledConfig(anyString())).thenReturn(null)
+        `when`(mockConfigStateManager.loadBundledConfig(anyString())).thenReturn(null)
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
@@ -499,7 +529,7 @@ class ConfigurationExtensionTest {
 
     @Test
     fun `Configure with file asset - null content from asset`() {
-        `when`(mockConfigStateManager.getBundledConfig(anyString())).thenReturn(null)
+        `when`(mockConfigStateManager.loadBundledConfig(anyString())).thenReturn(null)
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
@@ -535,7 +565,7 @@ class ConfigurationExtensionTest {
             ConfigurationExtension.RULES_CONFIG_URL to "rules.url"
         )
 
-        `when`(mockConfigStateManager.getBundledConfig(anyString())).thenReturn(mockBundledConfig)
+        `when`(mockConfigStateManager.loadBundledConfig(anyString())).thenReturn(mockBundledConfig)
         `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(mockBundledConfig)
 
         val configurationExtension = ConfigurationExtension(
@@ -575,7 +605,7 @@ class ConfigurationExtensionTest {
         )
 
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
-        `when`(mockConfigStateManager.getBundledConfig(anyString())).thenReturn(mockBundledConfig)
+        `when`(mockConfigStateManager.loadBundledConfig(anyString())).thenReturn(mockBundledConfig)
         `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(mockBundledConfig)
 
         val configurationExtension = ConfigurationExtension(

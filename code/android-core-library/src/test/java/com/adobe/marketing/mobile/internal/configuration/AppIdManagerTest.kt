@@ -26,8 +26,10 @@ import kotlin.test.assertEquals
 class AppIdManagerTest {
     @Mock
     private lateinit var mockDataStoreService: DataStoring
+
     @Mock
     private lateinit var mockDeviceInfoService: DeviceInforming
+
     @Mock
     private lateinit var mockNamedCollection: NamedCollection
 
@@ -45,8 +47,16 @@ class AppIdManagerTest {
     @Test
     fun `Get AppID favors persistence over manifest`() {
 
-        `when`(mockNamedCollection.getString(ConfigurationStateManager.PERSISTED_APPID, null)).thenReturn("PersistedAppID")
-        `when`(mockDeviceInfoService.getPropertyFromManifest(ConfigurationStateManager.CONFIG_MANIFEST_APPID_KEY)).thenReturn("ManifestAppID")
+        `when`(
+            mockNamedCollection.getString(
+                ConfigurationStateManager.PERSISTED_APPID,
+                null
+            )
+        ).thenReturn("PersistedAppID")
+
+        `when`(mockDeviceInfoService.getPropertyFromManifest(ConfigurationStateManager.CONFIG_MANIFEST_APPID_KEY)).thenReturn(
+            "ManifestAppID"
+        )
 
         val appId = appIdManager.loadAppId()
         assertEquals("PersistedAppID", appId)
@@ -55,13 +65,24 @@ class AppIdManagerTest {
     @Test
     fun `Get AppID gets from manifest when nothing is persisted`() {
         val manifestAppID = "ManifestAppID"
-        `when`(mockNamedCollection.getString(ConfigurationStateManager.PERSISTED_APPID, null)).thenReturn(null)
-        `when`(mockDeviceInfoService.getPropertyFromManifest(ConfigurationStateManager.CONFIG_MANIFEST_APPID_KEY)).thenReturn(manifestAppID)
+        `when`(
+            mockNamedCollection.getString(
+                ConfigurationStateManager.PERSISTED_APPID,
+                null
+            )
+        ).thenReturn(null)
+
+        `when`(mockDeviceInfoService.getPropertyFromManifest(ConfigurationStateManager.CONFIG_MANIFEST_APPID_KEY)).thenReturn(
+            manifestAppID
+        )
 
         val appId = appIdManager.loadAppId()
         assertEquals("ManifestAppID", appId)
 
-        verify(mockNamedCollection).setString(ConfigurationStateManager.PERSISTED_APPID, manifestAppID)
+        verify(mockNamedCollection).setString(
+            ConfigurationStateManager.PERSISTED_APPID,
+            manifestAppID
+        )
     }
 
     @Test
@@ -74,7 +95,10 @@ class AppIdManagerTest {
     fun `Save AppID to Persistence - does not allow empty appID in data store`() {
         val emptyAppID = "  "
         appIdManager.saveAppIdToPersistence(emptyAppID)
-        verify(mockNamedCollection, never()).setString(ConfigurationStateManager.PERSISTED_APPID, emptyAppID)
+        verify(mockNamedCollection, never()).setString(
+            ConfigurationStateManager.PERSISTED_APPID,
+            emptyAppID
+        )
     }
 
     @Test

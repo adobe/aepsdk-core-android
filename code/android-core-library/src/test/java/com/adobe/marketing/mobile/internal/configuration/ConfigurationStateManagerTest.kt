@@ -225,7 +225,7 @@ class ConfigurationStateManagerTest {
         val assetFileName = "SampleAssetFile"
         `when`(mockDeviceInfoService.getAsset(assetFileName)).thenReturn(null)
 
-        val bundledConfig = configurationStateManager.getBundledConfig(assetFileName)
+        val bundledConfig = configurationStateManager.loadBundledConfig(assetFileName)
         assertNull(bundledConfig)
     }
 
@@ -235,7 +235,7 @@ class ConfigurationStateManagerTest {
         val malformedInputStream = "{SomeMalformedContent}".byteInputStream()
         `when`(mockDeviceInfoService.getAsset(assetFileName)).thenReturn(malformedInputStream)
 
-        val bundledConfig = configurationStateManager.getBundledConfig(assetFileName)
+        val bundledConfig = configurationStateManager.loadBundledConfig(assetFileName)
         assertNull(bundledConfig)
     }
 
@@ -245,7 +245,7 @@ class ConfigurationStateManagerTest {
         val malformedInputStream = mockBundledConfigJson.byteInputStream()
         `when`(mockDeviceInfoService.getAsset(assetFileName)).thenReturn(malformedInputStream)
 
-        val bundledConfig = configurationStateManager.getBundledConfig(assetFileName)
+        val bundledConfig = configurationStateManager.loadBundledConfig(assetFileName)
         assertEquals(mapOf("Key" to true), bundledConfig)
     }
 

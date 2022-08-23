@@ -11,6 +11,7 @@
 package com.adobe.marketing.mobile.signal
 
 import androidx.annotation.VisibleForTesting
+import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.services.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit

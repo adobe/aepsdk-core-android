@@ -20,7 +20,7 @@ internal class SignalHitProcessor : HitProcessing {
     private val networkService: Networking
 
     companion object {
-        private const val LOG_TAG = "SignalHitProcessor"
+        private const val CLASS_NAME = "SignalHitProcessor"
         private const val HIT_QUEUE_RETRY_TIME_SECONDS = 30
     }
 
@@ -39,13 +39,13 @@ internal class SignalHitProcessor : HitProcessing {
 
     override fun processHit(entity: DataEntity?): Boolean {
         if (entity == null) {
-            Log.warning(LOG_TAG, "Drop this data entity as it is null.")
+            Log.warning(SignalConstants.LOG_TAG, "$CLASS_NAME - Drop this data entity as it is null.")
             return true
         }
         val request = buildNetworkRequest(entity) ?: run {
             Log.warning(
-                LOG_TAG,
-                "Drop this data entity as it's not able to convert it to a valid Signal request: ${entity.data}"
+                SignalConstants.LOG_TAG,
+                "$CLASS_NAME - Drop this data entity as it's not able to convert it to a valid Signal request: ${entity.data}"
             )
             return true
         }
@@ -60,22 +60,22 @@ internal class SignalHitProcessor : HitProcessing {
             result = when (responseCode) {
                 in SignalConstants.HTTP_SUCCESS_CODES -> {
                     Log.debug(
-                        LOG_TAG,
-                        "Signal request (${request.url}) successfully sent."
+                        SignalConstants.LOG_TAG,
+                        "$CLASS_NAME - Signal request (${request.url}) successfully sent."
                     )
                     true
                 }
                 in SignalConstants.RECOVERABLE_ERROR_CODES -> {
                     Log.debug(
-                        LOG_TAG,
-                        "Signal request failed with recoverable error ($result).Will retry sending the request (${request.url}) later."
+                        SignalConstants.LOG_TAG,
+                        "$CLASS_NAME - Signal request failed with recoverable error ($result).Will retry sending the request (${request.url}) later."
                     )
                     false
                 }
                 else -> {
                     Log.warning(
-                        LOG_TAG,
-                        "Signal request (${request.url}) failed with unrecoverable error ($result)."
+                        SignalConstants.LOG_TAG,
+                        "$CLASS_NAME - Signal request (${request.url}) failed with unrecoverable error ($result)."
                     )
                     true
                 }
@@ -90,8 +90,8 @@ internal class SignalHitProcessor : HitProcessing {
         val signalDataEntity = SignalHit.from(entity)
         if (signalDataEntity.url.isEmpty()) {
             Log.warning(
-                LOG_TAG,
-                "Failed to build Signal request (URL is null)."
+                SignalConstants.LOG_TAG,
+                "$CLASS_NAME - Failed to build Signal request (URL is null)."
             )
             return null
         }

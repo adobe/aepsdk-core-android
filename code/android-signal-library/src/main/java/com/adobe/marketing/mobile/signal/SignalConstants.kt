@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.signal
 internal object SignalConstants {
     const val EXTENSION_NAME = "com.adobe.module.signal"
     const val FRIENDLY_NAME = "Signal"
+    const val LOG_TAG = "Signal"
     const val DEFAULT_NETWORK_TIMEOUT = 2
 
     const val NETWORK_REQUEST_HEATER_CONTENT_TYPE = "Content-Type"

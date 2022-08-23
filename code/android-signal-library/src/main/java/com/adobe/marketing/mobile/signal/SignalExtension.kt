@@ -14,13 +14,14 @@ import com.adobe.marketing.mobile.*
 import com.adobe.marketing.mobile.services.HitQueuing
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.signal.SignalConstants.LOG_TAG
 import com.adobe.marketing.mobile.utils.DataReader
 
 class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
     private val hitQueue: HitQueuing
 
     companion object {
-        private const val LOG_TAG = "SignalExtension"
+        private const val CLASS_NAME = "SignalExtension"
     }
 
     init {

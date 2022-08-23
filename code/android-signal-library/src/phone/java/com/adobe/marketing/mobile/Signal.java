@@ -14,7 +14,7 @@ import com.adobe.marketing.mobile.signal.SignalExtension;
 
 public class Signal {
     private final static String EXTENSION_VERSION = "1.0.4";
-    private static final String TAG = "Signal";
+    private static final String CLASS_NAME = "Signal";
 
     private Signal() {
     }
@@ -35,7 +35,7 @@ public class Signal {
     @Deprecated
     public static void registerExtension() {
         MobileCore.registerExtension(SignalExtension.class, extensionError -> {
-            Log.error(TAG, "There was an error when registering the UserProfile extension: %s",
+            Log.error(CLASS_NAME, "%s - There was an error when registering the UserProfile extension: %s", CLASS_NAME,
                     extensionError.getErrorName());
         });
     }

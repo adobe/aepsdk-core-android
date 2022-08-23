@@ -9,7 +9,7 @@ import com.adobe.marketing.mobile.internal.utility.StringEncoder
  * @property fromDate Date that represents the lower bounds of the date range used when looking up an Event. If not provided, the lookup will use the beginning of Event History as the lower bounds.
  * @property toDate Date that represents the upper bounds of the date range used when looking up an Event. If not provided, there will be no upper bound on the date range.
  */
-internal data class EventHistoryRequest(
+data class EventHistoryRequest(
     val mask: Map<String, Any?>,
     val fromDate: Long,
     val toDate: Long

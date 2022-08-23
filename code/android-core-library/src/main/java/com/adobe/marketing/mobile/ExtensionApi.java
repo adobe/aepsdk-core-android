@@ -11,6 +11,9 @@
 
 package com.adobe.marketing.mobile;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
 
@@ -28,16 +31,16 @@ public abstract class ExtensionApi {
      * @param eventSource   required parameter, the event source as a valid string (not null or empty)
      * @param eventListener required parameter, the listener which extends the {@link ExtensionEventListener} interface
      */
-    public abstract void registerEventListener(final String eventType,
-                                               final String eventSource,
-                                               final ExtensionEventListener eventListener);
+    public abstract void registerEventListener(@NonNull final String eventType,
+                                               @NonNull final String eventSource,
+                                               @NonNull final ExtensionEventListener eventListener);
 
     /**
      * Dispatches an `Event` to the `EventHub`
      *
      * @param event An Event to be dispatched to the {@code EventHub}
      */
-    public abstract void dispatch(final Event event);
+    public abstract void dispatch(@NonNull final Event event);
 
     /**
      * Starts the `Event` queue for this extension
@@ -64,8 +67,8 @@ public abstract class ExtensionApi {
      *              state version
      * @return {@code boolean} indicating if the shared state was successfully set
      */
-    public abstract boolean createSharedState(final Map<String, Object> state,
-                                              final Event event);
+    public abstract boolean createSharedState(@NonNull final Map<String, Object> state,
+                                              @Nullable final Event event);
 
     /**
      * Creates a pending shared state for this extension.
@@ -78,7 +81,7 @@ public abstract class ExtensionApi {
      *              state version.
      * @return {@link SharedStateResolver} that should be called with the shared state data when it is ready
      */
-    public abstract SharedStateResolver createPendingSharedState(final Event event);
+    public abstract SharedStateResolver createPendingSharedState(@Nullable final Event event);
 
     /**
      * Gets the shared state data for a specified extension.
@@ -89,10 +92,10 @@ public abstract class ExtensionApi {
      * @param resolution    the {@link SharedStateResolution} to resolve for
      *                      return {@code SharedStateResult} for the requested extensionName and event
      */
-    public abstract SharedStateResult getSharedState(final String extensionName,
-                                                     final Event event,
+    public abstract SharedStateResult getSharedState(@NonNull final String extensionName,
+                                                     @Nullable final Event event,
                                                      final boolean barrier,
-                                                     final SharedStateResolution resolution);
+                                                     @NonNull final SharedStateResolution resolution);
 
     // XDM Shared state
 
@@ -109,8 +112,8 @@ public abstract class ExtensionApi {
      *              state version
      * @return {@code boolean} indicating if the shared state was successfully set
      */
-    public abstract boolean createXDMSharedState(final Map<String, Object> state,
-                                                 final Event event);
+    public abstract boolean createXDMSharedState(@NonNull final Map<String, Object> state,
+                                                 @Nullable final Event event);
 
     /**
      * Creates a pending XDM shared state for this extension.
@@ -123,7 +126,7 @@ public abstract class ExtensionApi {
      *              state version.
      * @return {@link SharedStateResolver} that should be called with the shared state data when it is ready
      */
-    public abstract SharedStateResolver createPendingXDMSharedState(final Event event);
+    public abstract SharedStateResolver createPendingXDMSharedState(@Nullable final Event event);
 
     /**
      * Gets the XDM shared state data for a specified extension. If the stateName extension populates multiple mixins in their shared state, all the data will be returned at once and it can be accessed using path discovery.
@@ -134,10 +137,10 @@ public abstract class ExtensionApi {
      * @param resolution    the {@link SharedStateResolution} to resolve for
      *                      return {@code SharedStateResult} for the requested extensionName and event
      */
-    public abstract SharedStateResult getXDMSharedState(final String extensionName,
-                                                        final Event event,
+    public abstract SharedStateResult getXDMSharedState(@NonNull final String extensionName,
+                                                        @Nullable final Event event,
                                                         final boolean barrier,
-                                                        final SharedStateResolution resolution);
+                                                        @NonNull final SharedStateResolution resolution);
 
     /**
      * Unregisters current extension.
@@ -156,8 +159,9 @@ public abstract class ExtensionApi {
      * @param enforceOrder         if `true`, consecutive lookups will use the oldest timestamp from the previous event as their from date
      * @param handler              the {@link EventHistoryResultHandler} for each provided request
      */
-    public abstract void getHistoricalEvents(EventHistoryRequest[] eventHistoryRequests, boolean enforceOrder,
-                                             EventHistoryResultHandler<Integer> handler);
+    public abstract void getHistoricalEvents(@NonNull EventHistoryRequest[] eventHistoryRequests,
+                                             boolean enforceOrder,
+                                             @NonNull EventHistoryResultHandler<Integer> handler);
 
     // Deprecated Methods
 

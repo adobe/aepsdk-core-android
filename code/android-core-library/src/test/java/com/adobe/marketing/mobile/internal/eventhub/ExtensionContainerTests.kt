@@ -72,7 +72,7 @@ internal class ExtensionContainerTests {
             return ""
         }
 
-        override fun onUnexpectedError(extensionUnexpectedError: ExtensionUnexpectedError?) {
+        override fun onUnexpectedError(extensionUnexpectedError: ExtensionUnexpectedError) {
             TestExtensionNameError_UnVerifiedExtension = extensionUnexpectedError
         }
     }

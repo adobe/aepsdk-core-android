@@ -15,7 +15,7 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.FileUtils.readAsString
 import com.adobe.marketing.mobile.utils.RemoteDownloader
-import com.adobe.marketing.mobile.utils.TimeUtil
+import com.adobe.marketing.mobile.utils.TimeUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -55,8 +55,9 @@ internal class ZipFileMetadataProvider : RemoteDownloader.MetadataProvider {
             }
         } catch (e: IOException) {
             MobileCore.log(
-                LoggingMode.VERBOSE, LOG_TAG,
-                "Failed to write metadata into metadata file: $metadataFile"
+                LoggingMode.VERBOSE,
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Failed to write metadata into metadata file: $metadataFile"
             )
         }
     }
@@ -96,7 +97,7 @@ internal class ZipFileMetadataProvider : RemoteDownloader.MetadataProvider {
         if (date > 0L) {
             // TODO : Implement cache control header instead - https://github.com/adobe/aepsdk-core-android/issues/135
             val lastModified: String =
-                TimeUtil.getRFC2822Date(date, TimeZone.getTimeZone("GMT"), Locale.US)
+                TimeUtils.getRFC2822Date(date, TimeZone.getTimeZone("GMT"), Locale.US)
             metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_RANGE] = lastModified
             metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE] = lastModified
         }

@@ -18,7 +18,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-object TimeUtil {
+object TimeUtils {
     private const val MILLISECONDS_PER_SECOND = 1000L
     private const val ISO8601_DATE_FORMATTER_TIMEZONE_RFC822 = "yyyy-MM-dd'T'HH:mm:ssZZZ"
     private const val ISO8601_DATE_FORMATTER_TIMEZONE_ISO8601 = "yyyy-MM-dd'T'HH:mm:ssXXX"

@@ -38,7 +38,7 @@ internal class ConfigurationRulesManager(
 ) {
 
     companion object {
-        private const val TAG = "ConfigurationRulesManager"
+        private const val LOG_TAG = "ConfigurationRulesManager"
         internal const val PERSISTED_RULES_URL = "config.last.rules.url"
         internal const val RULES_CACHE_FOLDER = "configRules"
         internal const val RULES_JSON_FILE_NAME = "rules.json"
@@ -47,7 +47,8 @@ internal class ConfigurationRulesManager(
         private const val ADOBE_CACHE_DIR = "adbdownloadcache"
     }
 
-    private val configDataStore: NamedCollection? = dataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)
+    private val configDataStore: NamedCollection? =
+        dataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)
 
     /**
      * A convenience wrapper for supplying a new [ConfigurationRulesDownloader] to allow mocking in tests.
@@ -71,8 +72,8 @@ internal class ConfigurationRulesManager(
         if (configDataStore == null) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                TAG,
-                "Cannot load rules from ${ConfigurationExtension.DATASTORE_KEY}. Cannot apply cached rules"
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Cannot load rules from ${ConfigurationExtension.DATASTORE_KEY}. Cannot apply cached rules"
             )
             return false
         }
@@ -83,8 +84,8 @@ internal class ConfigurationRulesManager(
         if (persistedRulesUrl.isNullOrBlank()) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                TAG,
-                "Persisted rules url is null or empty. Cannot apply cached rules"
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Persisted rules url is null or empty. Cannot apply cached rules"
             )
             return false
         }
@@ -108,8 +109,8 @@ internal class ConfigurationRulesManager(
         if (configDataStore == null) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                TAG,
-                "Cannot load rules from ${ConfigurationExtension.DATASTORE_KEY}. Cannot apply cached rules"
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Cannot load rules from ${ConfigurationExtension.DATASTORE_KEY}. Cannot apply cached rules"
             )
             return false
         }
@@ -136,54 +137,69 @@ internal class ConfigurationRulesManager(
     internal fun applyBundledRules(api: ExtensionApi): Boolean {
         MobileCore.log(
             LoggingMode.DEBUG,
-            TAG,
-            "Attempting to apply bundled rules."
+            ConfigurationExtension.TAG,
+            "$LOG_TAG - Attempting to apply bundled rules."
         )
         val applicationCacheDir = deviceInfoService.applicationCacheDir?.absolutePath
         if (applicationCacheDir == null) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                TAG,
-                "Cannot locate application cache directory. Will not load bundled rules."
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Cannot locate application cache directory. Will not load bundled rules."
             )
             return false
         }
 
         val cacheDir = File(applicationCacheDir, ADOBE_CACHE_DIR)
 
-        MobileCore.log(LoggingMode.VERBOSE, TAG, "Cache dir is: $cacheDir")
+        MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Cache dir is: $cacheDir")
         if (!cacheDir.exists() && !cacheDir.mkdirs()) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                TAG,
-                "Cannot create/write to cache directory. Will not load bundled rules."
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Cannot create/write to cache directory. Will not load bundled rules."
             )
             return false
         }
 
         val bundledRulesStream: InputStream? = deviceInfoService.getAsset(BUNDLED_RULES_FILE_NAME)
         if (bundledRulesStream == null) {
-            MobileCore.log(LoggingMode.VERBOSE, TAG, "Cannot load bundled rules.")
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Cannot load bundled rules."
+            )
             return false
         }
 
         // location in the cache where the asset stream should be read into
         val bundledRulesFilePath = cacheDir.path + File.separator + BUNDLED_RULES_FILE_NAME
-        val fileRead = FileUtils.readInputStreamIntoFile(File(bundledRulesFilePath), bundledRulesStream, false)
+        val fileRead =
+            FileUtils.readInputStreamIntoFile(File(bundledRulesFilePath), bundledRulesStream, false)
 
         if (!fileRead) {
-            MobileCore.log(LoggingMode.VERBOSE, TAG, "Failed to read bundled rules into cache.")
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Failed to read bundled rules into cache."
+            )
             return false
         }
 
         val extracted = FileUtils.extractFromZip(File(bundledRulesFilePath), cacheDir.path)
 
         if (!extracted) {
-            MobileCore.log(LoggingMode.VERBOSE, TAG, "Failed to extract bundled rules.")
+            MobileCore.log(
+                LoggingMode.VERBOSE, ConfigurationExtension.TAG,
+                "$LOG_TAG - Failed to extract bundled rules."
+            )
             return false
         }
 
-        MobileCore.log(LoggingMode.VERBOSE, TAG, "Applying bundled rules.")
+        MobileCore.log(
+            LoggingMode.VERBOSE, ConfigurationExtension.TAG,
+            "$LOG_TAG - Applying bundled rules."
+        )
 
         return replaceRules(File(cacheDir.path + File.separator + BUNDLED_RULES_DIR), api)
     }
@@ -200,8 +216,8 @@ internal class ConfigurationRulesManager(
         if (rulesDirectory == null || !rulesDirectory.isDirectory) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                TAG,
-                "Invalid rules directory: $rulesDirectory. Cannot apply cached rules"
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Invalid rules directory: $rulesDirectory. Cannot apply cached rules"
             )
             return false
         }
@@ -212,8 +228,8 @@ internal class ConfigurationRulesManager(
         if (content == null) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                TAG,
-                "Rules file content is null. Cannot apply new rules."
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Rules file content is null. Cannot apply new rules."
             )
             return false
         }
@@ -222,15 +238,15 @@ internal class ConfigurationRulesManager(
         return if (rules == null) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                TAG,
-                "Parsed rules are null. Cannot apply new rules."
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Parsed rules are null. Cannot apply new rules."
             )
             false
         } else {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                TAG,
-                "Replacing rules."
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Replacing rules."
             )
             launchRulesEvaluator.replaceRules(rules)
             true

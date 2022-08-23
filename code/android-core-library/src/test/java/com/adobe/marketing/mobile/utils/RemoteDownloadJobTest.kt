@@ -86,7 +86,7 @@ class RemoteDownloadJobTest {
         const val ETAG = "W/\"3a2-bMnM1spT5zNBH3xgDTaqZQ\""
     }
 
-    private val lastModifiedEpoch = TimeUtil.parseRFC2822Date(LAST_MODIFIED, TimeZone.getTimeZone("GMT"), Locale.US)?.time.toString()
+    private val lastModifiedEpoch = TimeUtils.parseRFC2822Date(LAST_MODIFIED, TimeZone.getTimeZone("GMT"), Locale.US)?.time.toString()
 
     @Before
     fun setUp() {
@@ -145,7 +145,7 @@ class RemoteDownloadJobTest {
     fun `Download with conditional fetch parameters`() {
         val cacheFileLastModified = Date(Date().time - TimeUnit.HOURS.toMillis(2)).time
         val rfc2822LastModifiedDate =
-            TimeUtil.getRFC2822Date(cacheFileLastModified, TimeZone.getTimeZone("GMT"), Locale.US)
+            TimeUtils.getRFC2822Date(cacheFileLastModified, TimeZone.getTimeZone("GMT"), Locale.US)
         val expectedHeaders = mapOf<String, String?>(
             HTTP_HEADER_IF_RANGE to rfc2822LastModifiedDate,
             HTTP_HEADER_IF_MODIFIED_SINCE to rfc2822LastModifiedDate,

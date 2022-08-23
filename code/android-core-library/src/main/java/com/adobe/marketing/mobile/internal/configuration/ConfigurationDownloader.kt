@@ -52,7 +52,11 @@ internal class ConfigurationDownloader(
                 content == null -> null
 
                 content.isEmpty() -> {
-                    MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Downloaded configuration is empty.")
+                    MobileCore.log(
+                        LoggingMode.DEBUG,
+                        ConfigurationExtension.TAG,
+                        "$LOG_TAG - Downloaded configuration is empty."
+                    )
                     emptyMap()
                 }
 
@@ -61,7 +65,11 @@ internal class ConfigurationDownloader(
                         val downloadedConfig = JSONObject(JSONTokener(content))
                         downloadedConfig.toMap()
                     } catch (exception: JSONException) {
-                        MobileCore.log(LoggingMode.ERROR, LOG_TAG, "Exception processing downloaded configuration $exception")
+                        MobileCore.log(
+                            LoggingMode.ERROR,
+                            ConfigurationExtension.TAG,
+                            "$LOG_TAG - Exception processing downloaded configuration $exception"
+                        )
                         null
                     }
                 }

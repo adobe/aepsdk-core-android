@@ -86,10 +86,18 @@ internal class ConfigurationRulesDownloader {
      *         null if extraction of zip fails
      */
     private fun processRulesZip(url: String, directory: String, downloadedZipFile: File?): File? {
-        MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Processing Rules bundle.")
+        MobileCore.log(
+            LoggingMode.VERBOSE,
+            ConfigurationExtension.TAG,
+            "$LOG_TAG - Processing Rules bundle."
+        )
 
         if (downloadedZipFile == null) {
-            MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Downloaded rules zip file is null.")
+            MobileCore.log(
+                LoggingMode.VERBOSE,
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Downloaded rules zip file is null."
+            )
             return null
         }
 
@@ -100,8 +108,8 @@ internal class ConfigurationRulesDownloader {
             if (outputPath == null) {
                 MobileCore.log(
                     LoggingMode.VERBOSE,
-                    LOG_TAG,
-                    "Failed to create output path for extracting rules bundle."
+                    ConfigurationExtension.TAG,
+                    "$LOG_TAG - Failed to create output path for extracting rules bundle."
                 )
                 null
             } else {
@@ -117,16 +125,16 @@ internal class ConfigurationRulesDownloader {
                     downloadedZipFile.delete()
                     MobileCore.log(
                         LoggingMode.VERBOSE,
-                        LOG_TAG,
-                        "Successfully extracted rules zip."
+                        ConfigurationExtension.TAG,
+                        "$LOG_TAG - Successfully extracted rules zip."
                     )
 
                     File(outputPath)
                 } else {
                     MobileCore.log(
                         LoggingMode.VERBOSE,
-                        LOG_TAG,
-                        "Failed to extract downloaded rules zip."
+                        ConfigurationExtension.TAG,
+                        "$LOG_TAG - Failed to extract downloaded rules zip."
                     )
                     downloadedZipFile.delete()
                     null

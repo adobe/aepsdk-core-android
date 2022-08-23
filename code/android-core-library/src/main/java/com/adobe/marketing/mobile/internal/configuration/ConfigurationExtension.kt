@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit
 internal class ConfigurationExtension : Extension {
 
     companion object {
-        private const val TAG = "ConfigurationExtension"
+        internal const val TAG = "ConfigurationExtension"
         private const val EXTENSION_NAME = "com.adobe.module.configuration"
         private const val EXTENSION_FRIENDLY_NAME = "Configuration"
         private const val EXTENSION_VERSION = "2.0.0"

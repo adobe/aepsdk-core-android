@@ -148,7 +148,7 @@ internal class RemoteDownloadJob(
             val lastModifiedHeader: String =
                 connection.getResponsePropertyValue(HTTP_HEADER_LAST_MODIFIED)
             val lastModifiedDate: Date =
-                TimeUtil.parseRFC2822Date(lastModifiedHeader, TimeZone.getTimeZone("GMT"), Locale.US)
+                TimeUtils.parseRFC2822Date(lastModifiedHeader, TimeZone.getTimeZone("GMT"), Locale.US)
                     ?: Date()
             val etag = connection.getResponsePropertyValue(ETAG)
 

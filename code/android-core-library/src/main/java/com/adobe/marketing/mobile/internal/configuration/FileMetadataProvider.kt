@@ -16,7 +16,7 @@ import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider
 import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_IF_MODIFIED_SINCE
 import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_IF_RANGE
 import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_RANGE
-import com.adobe.marketing.mobile.utils.TimeUtil
+import com.adobe.marketing.mobile.utils.TimeUtils
 import java.io.File
 import java.lang.NumberFormatException
 import java.util.Locale
@@ -34,7 +34,7 @@ internal class FileMetadataProvider(private val cacheFileService: CacheFileServi
             if (epochString == null) {
                 null
             } else {
-                TimeUtil.getRFC2822Date(
+                TimeUtils.getRFC2822Date(
                     epochString.toLong(),
                     TimeZone.getTimeZone("GMT"),
                     Locale.US

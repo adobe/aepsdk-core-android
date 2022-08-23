@@ -41,8 +41,8 @@ internal class AppIdManager(
         if (appId.isBlank()) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
-                LOG_TAG,
-                "Attempting to set empty App Id into persistence."
+                ConfigurationExtension.TAG,
+                "$LOG_TAG - Attempting to set empty App Id into persistence."
             )
             return
         }
@@ -56,8 +56,8 @@ internal class AppIdManager(
     internal fun removeAppIDFromPersistence() {
         MobileCore.log(
             LoggingMode.VERBOSE,
-            LOG_TAG,
-            "Attempting to set empty App Id into persistence."
+            ConfigurationExtension.TAG,
+            "$LOG_TAG - Attempting to set empty App Id into persistence."
         )
         configStateStoreCollection?.remove(ConfigurationStateManager.PERSISTED_APPID)
     }
@@ -74,16 +74,16 @@ internal class AppIdManager(
             persistedAppId?.let {
                 MobileCore.log(
                     LoggingMode.VERBOSE,
-                    LOG_TAG,
-                    "Retrieved AppId from persistence."
+                    ConfigurationExtension.TAG,
+                    "$LOG_TAG - Retrieved AppId from persistence."
                 )
             }
         } ?: getAppIDFromManifest().also { manifestAppId ->
             manifestAppId?.let {
                 MobileCore.log(
                     LoggingMode.VERBOSE,
-                    LOG_TAG,
-                    "Retrieved AppId from manifest."
+                    ConfigurationExtension.TAG,
+                    "$LOG_TAG - Retrieved AppId from manifest."
                 )
                 saveAppIdToPersistence(it)
             }

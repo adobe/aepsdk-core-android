@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.utils.RemoteDownloader
-import com.adobe.marketing.mobile.utils.TimeUtil
+import com.adobe.marketing.mobile.utils.TimeUtils
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert
 import org.junit.Before
@@ -33,7 +33,7 @@ class ZipFileMetadataProviderTest {
     }
     private val sampleLastModifiedDate = Date()
     private val expectedLastModifiedHeader: String =
-        TimeUtil.getRFC2822Date(sampleLastModifiedDate.time, TimeZone.getTimeZone("GMT"), Locale.US)
+        TimeUtils.getRFC2822Date(sampleLastModifiedDate.time, TimeZone.getTimeZone("GMT"), Locale.US)
 
     @get: Rule
     var mockDirectory = TemporaryFolder()

@@ -20,7 +20,8 @@ import com.adobe.marketing.mobile.services.ServiceProvider;
  * @version 5.0
  */
 public class Log {
-    private static Logging loggingService = ServiceProvider.getInstance().getLoggingService();
+    //TODO: we should consider changing not to update loggingService variable after we allow logging service overriding.
+    private static final Logging loggingService = ServiceProvider.getInstance().getLoggingService();
     private static LoggingMode loggingMode = LoggingMode.ERROR;
 
     static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";

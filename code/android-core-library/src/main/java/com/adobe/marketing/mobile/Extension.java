@@ -11,6 +11,9 @@
 
 package com.adobe.marketing.mobile;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.util.Map;
 
 /**
@@ -18,14 +21,14 @@ import java.util.Map;
  *
  */
 public abstract class Extension {
-	private ExtensionApi extensionApi;
+	private @NonNull ExtensionApi extensionApi;
 
 	/**
 	 * Construct the extension and initialize with the {@code ExtensionApi}.
 	 *
 	 * @param extensionApi the {@link ExtensionApi} this extension will use
 	 */
-	protected Extension(final ExtensionApi extensionApi) {
+	protected Extension(@NonNull final ExtensionApi extensionApi) {
 		this.extensionApi = extensionApi;
 	}
 
@@ -35,14 +38,14 @@ public abstract class Extension {
 	 *
 	 * @return the extension name as a {@link String}
 	 */
-	protected abstract String getName();
+	protected abstract @NonNull String getName();
 
 	/**
 	 * Get friendly, human-readable name of the extension.
 	 *
 	 * @return the friendly extension name as a {@link String}
 	 */
-	protected String getFriendlyName() {
+	protected @Nullable String getFriendlyName() {
 		return null;
 	}
 
@@ -51,7 +54,7 @@ public abstract class Extension {
 	 *
 	 * @return the extension version as a {@link String}
 	 */
-	protected String getVersion() {
+	protected @Nullable String getVersion() {
 		return null;
 	}
 
@@ -60,7 +63,7 @@ public abstract class Extension {
 	 *
 	 * @return the extension metadata as a {@code Map<String, String>}
 	 */
-	protected Map<String, String> getMetadata() {
+	protected @Nullable Map<String, String> getMetadata() {
 		return null;
 	}
 
@@ -88,7 +91,7 @@ public abstract class Extension {
 	 * @param extensionUnexpectedError the {@link ExtensionUnexpectedError} returned from the core
 	 */
 	@Deprecated
-	protected void onUnexpectedError(final ExtensionUnexpectedError extensionUnexpectedError) {
+	protected void onUnexpectedError(@NonNull  final ExtensionUnexpectedError extensionUnexpectedError) {
 		ExtensionError error = extensionUnexpectedError != null ? extensionUnexpectedError.getErrorCode() : null;
 
 		if (error != null) {
@@ -104,14 +107,14 @@ public abstract class Extension {
 	 * @param event {@link Event} that will be processed next
 	 * @return {@code boolean} to denote if event processing should continue for this `Extension`
 	 */
-	public boolean readyForEvent(final Event event) { return true; }
+	public boolean readyForEvent(@NonNull final Event event) { return true; }
 
 	/**
 	 * This provides the services the extension will need.
 	 *
 	 * @return the {@link ExtensionApi} used to handle this extension
 	 */
-	public final ExtensionApi getApi() {
+	public final @NonNull ExtensionApi getApi() {
 		return extensionApi;
 	}
 

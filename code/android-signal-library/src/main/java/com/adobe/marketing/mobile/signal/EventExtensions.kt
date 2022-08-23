@@ -30,95 +30,74 @@ internal fun Event.isCollectPii(): Boolean {
     return this.consequenceType() == SignalConstants.EventDataKeys.Signal.RULES_RESPONSE_CONSEQUENCE_TYPE_PII
 }
 
-//TODO: change the DataReader API calls to optType
 @JvmSynthetic
 internal fun Event.contentType(): String {
-    return try {
-        DataReader.getString(this.details(), SignalConstants.EventDataKeys.RuleEngine.CONTENT_TYPE)
-    } catch (e: Exception) {
+    return DataReader.optString(
+        this.details(),
+        SignalConstants.EventDataKeys.RuleEngine.CONTENT_TYPE,
         ""
-    }
+    )
 }
 
 @JvmSynthetic
 internal fun Event.templateUrl(): String? {
-    return try {
-        DataReader.getString(this.details(), SignalConstants.EventDataKeys.RuleEngine.TEMPLATE_URL)
-    } catch (e: Exception) {
+    return DataReader.optString(
+        this.details(),
+        SignalConstants.EventDataKeys.RuleEngine.TEMPLATE_URL,
         null
-    }
+    )
 }
 
 @JvmSynthetic
 internal fun Event.templateBody(): String? {
-    return try {
-        DataReader.getString(this.details(), SignalConstants.EventDataKeys.RuleEngine.TEMPLATE_BODY)
-    } catch (e: Exception) {
+    return DataReader.optString(
+        this.details(),
+        SignalConstants.EventDataKeys.RuleEngine.TEMPLATE_BODY,
         null
-    }
+    )
 }
 
 @JvmSynthetic
 internal fun Event.urlToOpen(): String? {
-    return try {
-        DataReader.getString(this.details(), SignalConstants.EventDataKeys.RuleEngine.URL)
-    } catch (e: Exception) {
-        null
-    }
+    return DataReader.optString(this.details(), SignalConstants.EventDataKeys.RuleEngine.URL, null)
 }
 
 @JvmSynthetic
 internal fun Event.timeout(): Int {
-    return try {
-        DataReader.getInt(this.details(), SignalConstants.EventDataKeys.RuleEngine.TIMEOUT)
-    } catch (e: Exception) {
-        0
-    }
+    return DataReader.optInt(this.details(), SignalConstants.EventDataKeys.RuleEngine.TIMEOUT, 0)
 }
 
 private fun Event.consequence(): Map<String, Any>? {
     this.eventData ?: return null
-    return try {
-        DataReader.getTypedMap(
-            Any::class.java,
-            this.eventData,
-            SignalConstants.EventDataKeys.RuleEngine.CONSEQUENCE_TRIGGERED
-        )
-    } catch (e: Exception) {
+    return DataReader.optTypedMap(
+        Any::class.java,
+        this.eventData,
+        SignalConstants.EventDataKeys.RuleEngine.CONSEQUENCE_TRIGGERED,
         null
-    }
+    )
 }
 
 private fun Event.consequenceId(): String? {
-    return try {
-        DataReader.getString(
-            this.consequence(),
-            SignalConstants.EventDataKeys.RuleEngine.RULES_RESPONSE_CONSEQUENCE_KEY_ID
-        )
-    } catch (e: Exception) {
+    return DataReader.optString(
+        this.consequence(),
+        SignalConstants.EventDataKeys.RuleEngine.RULES_RESPONSE_CONSEQUENCE_KEY_ID,
         null
-    }
+    )
 }
 
 private fun Event.details(): Map<String, Any>? {
-    return try {
-        DataReader.getTypedMap(
-            Any::class.java,
-            this.consequence(),
-            SignalConstants.EventDataKeys.RuleEngine.RULES_RESPONSE_CONSEQUENCE_KEY_DETAIL
-        )
-    } catch (e: Exception) {
+    return DataReader.optTypedMap(
+        Any::class.java,
+        this.consequence(),
+        SignalConstants.EventDataKeys.RuleEngine.RULES_RESPONSE_CONSEQUENCE_KEY_DETAIL,
         null
-    }
+    )
 }
 
 private fun Event.consequenceType(): String? {
-    return try {
-        DataReader.getString(
-            this.consequence(),
-            SignalConstants.EventDataKeys.RuleEngine.RULES_RESPONSE_CONSEQUENCE_KEY_TYPE
-        )
-    } catch (e: Exception) {
+    return DataReader.optString(
+        this.consequence(),
+        SignalConstants.EventDataKeys.RuleEngine.RULES_RESPONSE_CONSEQUENCE_KEY_TYPE,
         null
-    }
+    )
 }

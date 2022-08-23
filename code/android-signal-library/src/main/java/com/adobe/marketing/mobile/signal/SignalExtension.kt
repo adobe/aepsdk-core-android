@@ -16,7 +16,7 @@ import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.utils.DataReader
 
-class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
+class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
     private val hitQueue: HitQueuing
 
     companion object {
@@ -30,10 +30,10 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
     }
 
     override fun onRegistered() {
-        api?.registerEventListener(EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT) {
+        api.registerEventListener(EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT) {
             handleRulesEngineResponse(it)
         }
-        api?.registerEventListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT) {
+        api.registerEventListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT) {
             handleConfigurationResponse(it)
         }
     }
@@ -50,8 +50,7 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
         return Signal.extensionVersion()
     }
 
-    private fun handleConfigurationResponse(event: Event?) {
-        if (event == null) return
+    private fun handleConfigurationResponse(event: Event) {
         val privacyStatus = try {
             MobilePrivacyStatus.valueOf(
                 DataReader.getString(
@@ -69,8 +68,7 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
         }
     }
 
-    private fun handleRulesEngineResponse(event: Event?) {
-        if (event == null) return
+    private fun handleRulesEngineResponse(event: Event) {
         if (shouldIgnore(event)) {
             return
         }
@@ -81,8 +79,7 @@ class SignalExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
         }
     }
 
-    override fun readyForEvent(event: Event?): Boolean {
-        if (event == null) return false
+    override fun readyForEvent(event: Event): Boolean {
         return api.getSharedState(
             SignalConstants.EventDataKeys.Configuration.MODULE_NAME,
             event,

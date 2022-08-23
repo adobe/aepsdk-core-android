@@ -12,13 +12,19 @@ package com.adobe.marketing.mobile
 
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.signal.SignalExtension
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.*
+import org.mockito.Mockito.doNothing
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.mockConstruction
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner.Silent::class)
@@ -86,13 +92,12 @@ class SignalExtensionProtectedMethodsTests {
     }
 
     @Test
-    fun `Test readyForEvent() with null Event `() {
-        assertFalse(signalExtension.readyForEvent(null))
-    }
-
-    @Test
     fun `Test readyForEvent() when configuration is not ready `() {
-        assertFalse(signalExtension.readyForEvent(null))
+        assertFalse(
+            signalExtension.readyForEvent(
+                Event.Builder("event-name", "type", "source").build()
+            )
+        )
     }
 
 }

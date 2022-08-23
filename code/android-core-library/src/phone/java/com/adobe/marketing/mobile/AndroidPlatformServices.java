@@ -10,9 +10,9 @@
  */
 
 package com.adobe.marketing.mobile;
-
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
+@Deprecated
 class AndroidPlatformServices implements PlatformServices {
 
 	private AndroidJsonUtility jsonUtilityService;

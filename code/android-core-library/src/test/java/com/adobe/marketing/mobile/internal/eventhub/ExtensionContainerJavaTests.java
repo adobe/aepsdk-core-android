@@ -14,29 +14,22 @@ package com.adobe.marketing.mobile.internal.eventhub;
 import static org.junit.Assert.assertThrows;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventHistoryRequest;
 import com.adobe.marketing.mobile.Extension;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.SharedStateResolution;
-import com.adobe.marketing.mobile.SharedStateResult;
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest;
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
-
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
 import kotlin.Unit;
-import kotlin.jvm.Throws;
 import kotlin.jvm.functions.Function1;
 
 class TestExtension extends Extension {

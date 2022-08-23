@@ -13,10 +13,6 @@ package com.adobe.marketing.mobile;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest;
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
-
 import java.util.Map;
 
 /**

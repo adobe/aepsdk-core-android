@@ -1,4 +1,4 @@
-package com.adobe.marketing.mobile.internal.eventhub.history
+package com.adobe.marketing.mobile
 
 import com.adobe.marketing.mobile.internal.utility.StringEncoder
 

@@ -51,6 +51,54 @@ android {
     }
 }
 
+def isJitPackBuild() {
+    return hasProperty('jitpack')
+}
+def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = groupIdForPublish
+            artifactId = rootProject.signalExtensionName
+            version = rootProject.signalExtensionVersion
+            artifact("$buildDir/outputs/aar/${rootProject.signalExtensionAARName}")
+
+            pom {
+                name = rootProject.mavenRepoName
+                description = rootProject.mavenRepoDescription
+                url = 'https://aep-sdks.gitbook.io'
+                licenses {
+                    license {
+                        name = 'Adobe Proprietary'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'adobe'
+                        name = 'adobe'
+                        email = 'adobe-mobile-testing@adobe.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:github.com//Adobe-Marketing-Cloud/acp-sdks.git'
+                    developerConnection = 'scm:git:ssh://github.com//Adobe-Marketing-Cloud/acp-sdks.git'
+                    url = 'https://github.com/Adobe-Marketing-Cloud/acp-sdks'
+                }
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+
+                    def coreDependencyNode = dependenciesNode.appendNode('dependency')
+                    coreDependencyNode.appendNode('groupId', 'com.adobe.marketing.mobile')
+                    coreDependencyNode.appendNode('artifactId', 'core')
+                    coreDependencyNode.appendNode('version', rootProject.coreExtensionVersion)
+                }
+            }
+        }
+    }
+}
+tasks.withType(Javadoc).all { enabled = false }
+publishToMavenLocal.dependsOn('assemblePhone')
+
 dependencies {
     //noinspection GradleDependency,GradleCompatible
     implementation 'androidx.appcompat:appcompat:1.0.0'

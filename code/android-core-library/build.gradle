@@ -153,7 +153,7 @@ publishing {
 }
 tasks.withType(Javadoc).all { enabled = false }
 publishToMavenLocal.dependsOn('assemblePhone')
-
+publishReleasePublicationToMavenLocal.dependsOn('assemblePhone')
 dependencies {
     //noinspection GradleDependency,GradleCompatible
     implementation 'androidx.appcompat:appcompat:1.0.0'

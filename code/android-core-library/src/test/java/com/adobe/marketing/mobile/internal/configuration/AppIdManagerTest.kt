@@ -103,7 +103,7 @@ class AppIdManagerTest {
 
     @Test
     fun `Remove AppID to Persistence - removes PERSISTED_APPID from data store`() {
-        appIdManager.removeAppIDFromPersistence()
+        appIdManager.removeAppIdFromPersistence()
         verify(mockNamedCollection).remove(ConfigurationStateManager.PERSISTED_APPID)
     }
 }

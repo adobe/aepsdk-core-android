@@ -27,6 +27,7 @@ import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.ServiceProvider
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -68,6 +69,8 @@ internal class ConfigurationExtension : Extension {
     private val configurationStateManager: ConfigurationStateManager
     private val configurationRulesManager: ConfigurationRulesManager
     private val retryWorker: ScheduledExecutorService
+    private var retryConfigurationCounter: Int = 0
+    private var retryConfigTaskHandle: Future<*>? = null
 
     constructor(extensionApi: ExtensionApi) : this(extensionApi, ServiceProvider.getInstance())
 
@@ -229,16 +232,16 @@ internal class ConfigurationExtension : Extension {
      * @param event the event requesting/triggering an update to configuration with appId.
      */
     private fun configureWithAppID(event: Event) {
-        val appID =
+        val appId =
             event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
 
-        if (appID.isNullOrBlank()) {
+        if (appId.isNullOrBlank()) {
             MobileCore.log(
                 LoggingMode.VERBOSE,
                 TAG,
                 "AppId in configureWithAppID event is null.."
             )
-            appIdManager.removeAppIDFromPersistence()
+            appIdManager.removeAppIdFromPersistence()
 
             publishConfigurationState(
                 configurationStateManager.environmentAwareConfiguration,
@@ -247,7 +250,7 @@ internal class ConfigurationExtension : Extension {
             return
         }
 
-        if (!configurationStateManager.hasConfigExpired(appID)) {
+        if (!configurationStateManager.hasConfigExpired(appId)) {
             publishConfigurationState(
                 configurationStateManager.environmentAwareConfiguration,
                 event
@@ -255,22 +258,29 @@ internal class ConfigurationExtension : Extension {
             return
         }
 
-        // Stop all event processing for the extension until new configuration is downloaded
+        // Stop all event processing for the extension until new configuration download is attempted
         api.stopEvents()
 
-        configurationStateManager.updateConfigWithAppId(appID) { config ->
+        configurationStateManager.updateConfigWithAppId(appId) { config ->
             if (config != null) {
+                cancelConfigRetry()
                 applyConfigurationChanges(event, RulesSource.REMOTE)
-                // re-start event processing after new configuration download
-                api.startEvents()
             } else {
-                // If the configuration download fails, retry download again.
-                retryWorker.schedule(
-                    { configureWithAppID(event) },
-                    CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS,
-                    TimeUnit.SECONDS
+                MobileCore.log(
+                    LoggingMode.VERBOSE,
+                    TAG,
+                    "Failed to download configuration. Applying Will retry download."
                 )
+                // If the configuration download fails, publish current configuration and retry download again.
+                publishConfigurationState(
+                    configurationStateManager.environmentAwareConfiguration,
+                    event
+                )
+                retryConfigTaskHandle = retryConfigDownload(appId)
             }
+
+            // Start event processing again
+            api.startEvents()
         }
     }
 
@@ -401,6 +411,39 @@ internal class ConfigurationExtension : Extension {
             configurationStateManager.environmentAwareConfiguration,
             event
         )
+        retryConfigurationCounter++
+    }
+
+    /**
+     * Attempts to download the configuration associated with [appId] by dispatching
+     * an internal configuration request event.
+     *
+     * @param appId the appId for which the config download should be attempted
+     * @return the [Future] associated with the runnable that dispatches the configuration request event
+     */
+    private fun retryConfigDownload(appId: String): Future<*> {
+        val retryDelay = ++retryConfigurationCounter * CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS
+        return retryWorker.schedule(
+            {
+                dispatchConfigurationRequest(
+                    mutableMapOf(
+                        Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
+                        CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
+                    )
+                )
+            },
+            retryDelay,
+            TimeUnit.SECONDS
+        )
+    }
+
+    /**
+     * Cancels the configuration retry attempt and resets the retry counter.
+     */
+    private fun cancelConfigRetry() {
+        retryConfigTaskHandle?.cancel(false)
+        retryConfigTaskHandle = null
+        retryConfigurationCounter = 0
     }
 
     /**

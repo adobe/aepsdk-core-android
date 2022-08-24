@@ -15,7 +15,7 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.internal.utility.toMap
-import com.adobe.marketing.mobile.utils.RemoteDownloader
+import com.adobe.marketing.mobile.utils.remotedownload.RemoteDownloader
 import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener

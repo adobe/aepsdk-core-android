@@ -11,8 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.utils.RemoteDownloader
 import com.adobe.marketing.mobile.utils.TimeUtils
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert
 import org.junit.Before
@@ -57,9 +57,9 @@ class ZipFileMetadataProviderTest {
         assertEquals(3, metadata!!.size)
 
         // verify
-        Assert.assertEquals(expectedLastModifiedHeader, metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE])
-        Assert.assertEquals(expectedLastModifiedHeader, metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_RANGE])
-        Assert.assertEquals("bytes=1234-", metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_RANGE])
+        Assert.assertEquals(expectedLastModifiedHeader, metadata[MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE])
+        Assert.assertEquals(expectedLastModifiedHeader, metadata[MetadataProvider.HTTP_HEADER_IF_RANGE])
+        Assert.assertEquals("bytes=1234-", metadata[MetadataProvider.HTTP_HEADER_RANGE])
     }
 
     @Test
@@ -118,9 +118,9 @@ class ZipFileMetadataProviderTest {
         val metadata: Map<String, String>? = zipFileMetadataProvider.getMetadata(mockDirectory.root)
 
         assertNotNull(metadata)
-        Assert.assertEquals(expectedLastModifiedHeader, metadata!![RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE])
-        Assert.assertEquals(expectedLastModifiedHeader, metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_RANGE])
-        Assert.assertEquals("bytes=500-", metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_RANGE])
+        Assert.assertEquals(expectedLastModifiedHeader, metadata!![MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE])
+        Assert.assertEquals(expectedLastModifiedHeader, metadata[MetadataProvider.HTTP_HEADER_IF_RANGE])
+        Assert.assertEquals("bytes=500-", metadata[MetadataProvider.HTTP_HEADER_RANGE])
     }
 
     @Test

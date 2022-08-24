@@ -14,8 +14,8 @@ package com.adobe.marketing.mobile.internal.configuration
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.FileUtils.readAsString
-import com.adobe.marketing.mobile.utils.RemoteDownloader
 import com.adobe.marketing.mobile.utils.TimeUtils
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -26,7 +26,7 @@ import java.util.TimeZone
 /**
  * Responsible for creating and retrieving metadata for aiding remote downloads of zip files
  */
-internal class ZipFileMetadataProvider : RemoteDownloader.MetadataProvider {
+internal class ZipFileMetadataProvider : MetadataProvider {
     companion object {
         private const val LOG_TAG = "ZipFileMetadataProvider"
         private const val DEFAULT_CHARSET = "UTF-8"
@@ -98,11 +98,11 @@ internal class ZipFileMetadataProvider : RemoteDownloader.MetadataProvider {
             // TODO : Implement cache control header instead - https://github.com/adobe/aepsdk-core-android/issues/135
             val lastModified: String =
                 TimeUtils.getRFC2822Date(date, TimeZone.getTimeZone("GMT"), Locale.US)
-            metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_RANGE] = lastModified
-            metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE] = lastModified
+            metadata[MetadataProvider.HTTP_HEADER_IF_RANGE] = lastModified
+            metadata[MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE] = lastModified
         }
 
-        metadata[RemoteDownloader.MetadataProvider.HTTP_HEADER_RANGE] = String.format(Locale.US, "bytes=%d-", size)
+        metadata[MetadataProvider.HTTP_HEADER_RANGE] = String.format(Locale.US, "bytes=%d-", size)
         return metadata
     }
 

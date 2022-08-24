@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.utils
+package com.adobe.marketing.mobile.utils.remotedownload
 
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.services.CacheFileService
@@ -18,12 +18,11 @@ import com.adobe.marketing.mobile.services.HttpMethod
 import com.adobe.marketing.mobile.services.NetworkCallback
 import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_IF_MODIFIED_SINCE
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_IF_RANGE
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_RANGE
-import com.adobe.marketing.mobile.utils.RemoteDownloader.Reason
-import com.adobe.marketing.mobile.utils.RemoteDownloader.RemoteDownloadResult
+import com.adobe.marketing.mobile.utils.TimeUtils
+import com.adobe.marketing.mobile.utils.remotedownload.DownloadResult.Reason
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_IF_RANGE
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_RANGE
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -49,6 +48,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertNull
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class RemoteDownloadJobTest {
@@ -75,7 +75,7 @@ class RemoteDownloadJobTest {
 
     private lateinit var remoteDownloadJob: RemoteDownloadJob
 
-    private var mockCallBack = mock<(RemoteDownloader.RemoteDownloadResult) -> Unit>()
+    private var mockCallBack = mock<(DownloadResult) -> Unit>()
 
     companion object {
         const val VALID_URL = "http://assets.adobe.com/1234"
@@ -86,7 +86,11 @@ class RemoteDownloadJobTest {
         const val ETAG = "W/\"3a2-bMnM1spT5zNBH3xgDTaqZQ\""
     }
 
-    private val lastModifiedEpoch = TimeUtils.parseRFC2822Date(LAST_MODIFIED, TimeZone.getTimeZone("GMT"), Locale.US)?.time.toString()
+    private val lastModifiedEpoch = TimeUtils.parseRFC2822Date(
+        LAST_MODIFIED,
+        TimeZone.getTimeZone("GMT"),
+        Locale.US
+    )?.time.toString()
 
     @Before
     fun setUp() {
@@ -105,11 +109,16 @@ class RemoteDownloadJobTest {
 
         mockFileUtils.`when`<Any> { FileUtils.isReadable(any()) }.thenReturn(true)
 
-        verify(mockCallBack).invoke(RemoteDownloader.RemoteDownloadResult(null, Reason.INVALID_URL))
         verify(mockCacheFileService, never()).getCacheFile(VALID_URL, VALID_DIRECTORY, false)
         verify(mockNetworkService, never()).connectAsync(
             Mockito.any(NetworkRequest::class.java), Mockito.any(NetworkCallback::class.java)
         )
+
+        val downloadResultCaptor: KArgumentCaptor<DownloadResult> = argumentCaptor()
+        verify(mockCallBack).invoke(downloadResultCaptor.capture())
+        val capturedDownloadResult = downloadResultCaptor.firstValue
+        assertNull(capturedDownloadResult.data)
+        assertEquals(Reason.INVALID_URL, capturedDownloadResult.reason)
     }
 
     @Test
@@ -198,13 +207,38 @@ class RemoteDownloadJobTest {
         remoteDownloadJob.download(mockCallBack)
         verify(mockCacheFileService).getCacheFile(VALID_URL, VALID_DIRECTORY, false)
         verify(mockNetworkService).connectAsync(any(), any())
-        verify(mockCallBack).invoke(RemoteDownloadResult(null, Reason.NO_DATA))
+
+        val downloadResultCaptor: KArgumentCaptor<DownloadResult> = argumentCaptor()
+        verify(mockCallBack).invoke(downloadResultCaptor.capture())
+        val capturedDownloadResult = downloadResultCaptor.firstValue
+        assertNull(capturedDownloadResult.data)
+        assertEquals(Reason.NO_DATA, capturedDownloadResult.reason)
     }
 
     @Test
     fun `Download when response is HTTP_OK and no cache file exists`() {
-        `when`(mockCacheFileService.getCacheFile(VALID_URL, VALID_DIRECTORY, false)).thenReturn(null)
-        setupConnectionResponseMock(HttpURLConnection.HTTP_OK, LAST_MODIFIED, ETAG, SAMPLE_RESPONSE_BODY)
+        val expectedNetworkRequest = NetworkRequest(
+            VALID_URL,
+            HttpMethod.GET,
+            null,
+            emptyMap<String, String>(),
+            RemoteDownloadJob.DEFAULT_CONNECTION_TIMEOUT_MS,
+            RemoteDownloadJob.DEFAULT_READ_TIMEOUT_MS
+        )
+
+        `when`(
+            mockCacheFileService.getCacheFile(
+                VALID_URL,
+                VALID_DIRECTORY,
+                false
+            )
+        ).thenReturn(null)
+        setupConnectionResponseMock(
+            HttpURLConnection.HTTP_OK,
+            LAST_MODIFIED,
+            ETAG,
+            SAMPLE_RESPONSE_BODY
+        )
         `when`(mockCacheFileService.createCacheFile(any(), any(), any())).thenReturn(
             mockCachedFile
         )
@@ -220,6 +254,7 @@ class RemoteDownloadJobTest {
 
         val networkRequestCaptor: KArgumentCaptor<NetworkRequest> = argumentCaptor()
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
+        verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.firstValue)
 
         verify(mockCacheFileService).getCacheFile(VALID_URL, VALID_DIRECTORY, false)
         verify(mockCacheFileService).deleteCacheFile(VALID_URL, VALID_DIRECTORY)
@@ -229,15 +264,40 @@ class RemoteDownloadJobTest {
         )
 
         verify(mockCacheFileService).createCacheFile(VALID_URL, expectedMetadata, VALID_DIRECTORY)
-
         verify(mockCacheFileService).markComplete(mockCachedFile)
-        verify(mockCallBack).invoke(RemoteDownloadResult(mockCompletedFile, Reason.SUCCESS))
+
+        val downloadResultCaptor: KArgumentCaptor<DownloadResult> = argumentCaptor()
+        verify(mockCallBack).invoke(downloadResultCaptor.capture())
+        val capturedDownloadResult = downloadResultCaptor.firstValue
+        assertEquals(mockCompletedFile, capturedDownloadResult.data)
+        assertEquals(Reason.SUCCESS, capturedDownloadResult.reason)
     }
 
     @Test
     fun `Download when result is HTTP_OK and cache file fails to save`() {
-        `when`(mockCacheFileService.getCacheFile(VALID_URL, VALID_DIRECTORY, false)).thenReturn(null)
-        setupConnectionResponseMock(HttpURLConnection.HTTP_OK, LAST_MODIFIED, ETAG, SAMPLE_RESPONSE_BODY)
+        val expectedNetworkRequest = NetworkRequest(
+            VALID_URL,
+            HttpMethod.GET,
+            null,
+            emptyMap(),
+            RemoteDownloadJob.DEFAULT_CONNECTION_TIMEOUT_MS,
+            RemoteDownloadJob.DEFAULT_READ_TIMEOUT_MS
+        )
+
+        `when`(
+            mockCacheFileService.getCacheFile(
+                VALID_URL,
+                VALID_DIRECTORY,
+                false
+            )
+        ).thenReturn(null)
+
+        setupConnectionResponseMock(
+            HttpURLConnection.HTTP_OK,
+            LAST_MODIFIED,
+            ETAG,
+            SAMPLE_RESPONSE_BODY
+        )
         `when`(mockCacheFileService.createCacheFile(any(), any(), any())).thenReturn(
             mockCachedFile
         )
@@ -264,18 +324,43 @@ class RemoteDownloadJobTest {
         )
         val networkRequestCaptor: KArgumentCaptor<NetworkRequest> = argumentCaptor()
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
+        verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.firstValue)
         verify(mockCacheFileService).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(RemoteDownloadResult(null, Reason.CANNOT_WRITE_TO_CACHE_DIR))
+        val downloadResultCaptor: KArgumentCaptor<DownloadResult> = argumentCaptor()
+        verify(mockCallBack).invoke(downloadResultCaptor.capture())
+        val capturedDownloadResult = downloadResultCaptor.firstValue
+        assertNull(capturedDownloadResult.data)
+        assertEquals(Reason.CANNOT_WRITE_TO_CACHE_DIR, capturedDownloadResult.reason)
     }
 
     @Test
     fun `Download when result is HTTP_OK and input stream fails to copy`() {
-        `when`(mockCacheFileService.getCacheFile(VALID_URL, VALID_DIRECTORY, false)).thenReturn(null)
+        val expectedNetworkRequest = NetworkRequest(
+            VALID_URL,
+            HttpMethod.GET,
+            null,
+            emptyMap(),
+            RemoteDownloadJob.DEFAULT_CONNECTION_TIMEOUT_MS,
+            RemoteDownloadJob.DEFAULT_READ_TIMEOUT_MS
+        )
+
+        `when`(
+            mockCacheFileService.getCacheFile(
+                VALID_URL,
+                VALID_DIRECTORY,
+                false
+            )
+        ).thenReturn(null)
         `when`(mockCacheFileService.createCacheFile(any(), any(), any())).thenReturn(
             mockCachedFile
         )
-        setupConnectionResponseMock(HttpURLConnection.HTTP_OK, LAST_MODIFIED, ETAG, SAMPLE_RESPONSE_BODY)
+        setupConnectionResponseMock(
+            HttpURLConnection.HTTP_OK,
+            LAST_MODIFIED,
+            ETAG,
+            SAMPLE_RESPONSE_BODY
+        )
 
         mockFileUtils.`when`<Any> {
             FileUtils.readInputStreamIntoFile(any(), any(), anyBoolean())
@@ -295,11 +380,18 @@ class RemoteDownloadJobTest {
             ),
             VALID_DIRECTORY
         )
+
         val networkRequestCaptor: KArgumentCaptor<NetworkRequest> = argumentCaptor()
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
+        verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.firstValue)
+
         verify(mockCacheFileService, never()).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(RemoteDownloadResult(null, Reason.RESPONSE_PROCESSING_FAILED))
+        val downloadResultCaptor: KArgumentCaptor<DownloadResult> = argumentCaptor()
+        verify(mockCallBack).invoke(downloadResultCaptor.capture())
+        val capturedDownloadResult = downloadResultCaptor.firstValue
+        assertNull(capturedDownloadResult.data)
+        assertEquals(Reason.RESPONSE_PROCESSING_FAILED, capturedDownloadResult.reason)
     }
 
     @Test
@@ -307,8 +399,31 @@ class RemoteDownloadJobTest {
         `when`(mockCacheFileService.getCacheFile(VALID_URL, VALID_DIRECTORY, false)).thenReturn(
             mockCachedFile
         )
+        `when`(mockMetadataProvider.getMetadata(mockCachedFile)).thenReturn(
+            mapOf(
+                CacheFileService.METADATA_KEY_ETAG to ETAG,
+                CacheFileService.METADATA_KEY_LAST_MODIFIED_EPOCH to lastModifiedEpoch
+            )
+        )
 
-        setupConnectionResponseMock(HttpURLConnection.HTTP_OK, LAST_MODIFIED, ETAG, SAMPLE_RESPONSE_BODY)
+        val expectedNetworkRequest = NetworkRequest(
+            VALID_URL,
+            HttpMethod.GET,
+            null,
+            mapOf(
+                CacheFileService.METADATA_KEY_ETAG to ETAG,
+                CacheFileService.METADATA_KEY_LAST_MODIFIED_EPOCH to lastModifiedEpoch
+            ),
+            RemoteDownloadJob.DEFAULT_CONNECTION_TIMEOUT_MS,
+            RemoteDownloadJob.DEFAULT_READ_TIMEOUT_MS
+        )
+
+        setupConnectionResponseMock(
+            HttpURLConnection.HTTP_OK,
+            LAST_MODIFIED,
+            ETAG,
+            SAMPLE_RESPONSE_BODY
+        )
         `when`(mockCacheFileService.createCacheFile(any(), any(), any())).thenReturn(
             mockCachedFile
         )
@@ -335,9 +450,14 @@ class RemoteDownloadJobTest {
 
         val networkRequestCaptor: KArgumentCaptor<NetworkRequest> = argumentCaptor()
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
+        verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.firstValue)
         verify(mockCacheFileService).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(RemoteDownloadResult(mockCompletedFile, Reason.SUCCESS))
+        val downloadResultCaptor: KArgumentCaptor<DownloadResult> = argumentCaptor()
+        verify(mockCallBack).invoke(downloadResultCaptor.capture())
+        val capturedDownloadResult = downloadResultCaptor.firstValue
+        assertEquals(mockCompletedFile, capturedDownloadResult.data)
+        assertEquals(Reason.SUCCESS, capturedDownloadResult.reason)
     }
 
     @Test
@@ -345,7 +465,12 @@ class RemoteDownloadJobTest {
         `when`(mockCacheFileService.getCacheFile(VALID_URL, VALID_DIRECTORY, false)).thenReturn(
             mockCachedFile
         )
-        setupConnectionResponseMock(HttpURLConnection.HTTP_PARTIAL, LAST_MODIFIED, ETAG, SAMPLE_RESPONSE_BODY)
+        setupConnectionResponseMock(
+            HttpURLConnection.HTTP_PARTIAL,
+            LAST_MODIFIED,
+            ETAG,
+            SAMPLE_RESPONSE_BODY
+        )
         `when`(mockCacheFileService.createCacheFile(any(), any(), any())).thenReturn(
             mockCachedFile
         )
@@ -373,18 +498,34 @@ class RemoteDownloadJobTest {
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
         verify(mockCacheFileService).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(RemoteDownloadResult(mockCompletedFile, Reason.SUCCESS))
+        val downloadResultCaptor: KArgumentCaptor<DownloadResult> = argumentCaptor()
+        verify(mockCallBack).invoke(downloadResultCaptor.capture())
+        val capturedDownloadResult = downloadResultCaptor.firstValue
+        assertEquals(mockCompletedFile, capturedDownloadResult.data)
+        assertEquals(Reason.SUCCESS, capturedDownloadResult.reason)
     }
 
     @Test
     fun `Download when result is HTTP_PARTIAL and cache does not exist`() {
-        `when`(mockCacheFileService.getCacheFile(VALID_URL, VALID_DIRECTORY, false)).thenReturn(null)
-        setupConnectionResponseMock(HttpURLConnection.HTTP_PARTIAL, LAST_MODIFIED, ETAG, SAMPLE_RESPONSE_BODY)
+        `when`(
+            mockCacheFileService.getCacheFile(
+                VALID_URL,
+                VALID_DIRECTORY,
+                false
+            )
+        ).thenReturn(null)
+        setupConnectionResponseMock(
+            HttpURLConnection.HTTP_PARTIAL,
+            LAST_MODIFIED,
+            ETAG,
+            SAMPLE_RESPONSE_BODY
+        )
         `when`(mockCacheFileService.createCacheFile(any(), any(), any())).thenReturn(
             mockCachedFile
         )
 
-        mockFileUtils.`when`<Any> { FileUtils.readInputStreamIntoFile(any(), any(), anyBoolean()) }.thenReturn(true)
+        mockFileUtils.`when`<Any> { FileUtils.readInputStreamIntoFile(any(), any(), anyBoolean()) }
+            .thenReturn(true)
         `when`(mockCacheFileService.markComplete(any())).thenReturn(mockCompletedFile)
 
         remoteDownloadJob = setupRemoteDownloader(VALID_URL, VALID_DIRECTORY)
@@ -409,7 +550,11 @@ class RemoteDownloadJobTest {
         verify(mockNetworkService).connectAsync(networkRequestCaptor.capture(), any())
         verify(mockCacheFileService).markComplete(mockCachedFile)
 
-        verify(mockCallBack).invoke(RemoteDownloadResult(mockCompletedFile, Reason.SUCCESS))
+        val downloadResultCaptor: KArgumentCaptor<DownloadResult> = argumentCaptor()
+        verify(mockCallBack).invoke(downloadResultCaptor.capture())
+        val capturedDownloadResult = downloadResultCaptor.firstValue
+        assertEquals(mockCompletedFile, capturedDownloadResult.data)
+        assertEquals(Reason.SUCCESS, capturedDownloadResult.reason)
     }
 
     @After
@@ -440,7 +585,12 @@ class RemoteDownloadJobTest {
         assertEquals(expectedNetworkRequest.headers, actualNetworkRequest.headers)
     }
 
-    private fun setupConnectionResponseMock(responseCode: Int, lastModified: String, eTag: String, responseBody: String?) {
+    private fun setupConnectionResponseMock(
+        responseCode: Int,
+        lastModified: String,
+        eTag: String,
+        responseBody: String?
+    ) {
         `when`(mockHttpConnecting.responseCode).thenReturn(responseCode)
         `when`(mockHttpConnecting.getResponsePropertyValue("Last-Modified")).thenReturn(lastModified)
         `when`(mockHttpConnecting.getResponsePropertyValue("ETag")).thenReturn(eTag)

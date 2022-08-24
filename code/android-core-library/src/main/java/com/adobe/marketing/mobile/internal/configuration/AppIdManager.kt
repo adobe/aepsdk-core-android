@@ -53,7 +53,7 @@ internal class AppIdManager(
     /**
      * Removes the existing appId stored in shared preferences.
      */
-    internal fun removeAppIDFromPersistence() {
+    internal fun removeAppIdFromPersistence() {
         MobileCore.log(
             LoggingMode.VERBOSE,
             ConfigurationExtension.TAG,

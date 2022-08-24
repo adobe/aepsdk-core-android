@@ -27,6 +27,7 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.times
@@ -36,6 +37,7 @@ import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -101,7 +103,11 @@ class ConfigurationExtensionTest {
 
         ExtensionHelper.notifyRegistered(configurationExtension)
 
-        verify(mockExtensionApi).registerEventListener(eq(EventType.CONFIGURATION), eq(EventSource.REQUEST_CONTENT), any())
+        verify(mockExtensionApi).registerEventListener(
+            eq(EventType.CONFIGURATION),
+            eq(EventSource.REQUEST_CONTENT),
+            any()
+        )
         verify(mockConfigStateManager).loadInitialConfig()
         verify(mockConfigurationRulesManager).applyCachedRules(mockExtensionApi)
     }
@@ -130,7 +136,11 @@ class ConfigurationExtensionTest {
 
         ExtensionHelper.notifyRegistered(configurationExtension)
 
-        verify(mockExtensionApi).registerEventListener(eq(EventType.CONFIGURATION), eq(EventSource.REQUEST_CONTENT), any())
+        verify(mockExtensionApi).registerEventListener(
+            eq(EventType.CONFIGURATION),
+            eq(EventSource.REQUEST_CONTENT),
+            any()
+        )
         verify(mockConfigStateManager).loadInitialConfig()
         verify(mockConfigurationRulesManager).applyCachedRules(mockExtensionApi)
         verify(mockConfigurationRulesManager).applyBundledRules(mockExtensionApi)
@@ -183,13 +193,20 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure With Event", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).build()
+        val event: Event = Event.Builder(
+            "Configure With Event",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        ).build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
         verify(mockConfigStateManager, never()).replaceConfiguration(any())
         verify(mockExtensionApi, never()).createSharedState(any(), eq(event))
-        verify(mockConfigurationRulesManager, never()).applyDownloadedRules("rules.url", mockExtensionApi)
+        verify(mockConfigurationRulesManager, never()).applyDownloadedRules(
+            "rules.url",
+            mockExtensionApi
+        )
         verifyNoEventDispatch()
     }
 
@@ -228,7 +245,7 @@ class ConfigurationExtensionTest {
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
-        verify(mockAppIdManager).removeAppIDFromPersistence()
+        verify(mockAppIdManager).removeAppIdFromPersistence()
         verify(mockExtensionApi).createSharedState(existingEnvAwareConfig, event)
         verify(mockExtensionApi, never()).stopEvents()
         verify(mockExtensionApi, never()).startEvents()
@@ -266,7 +283,7 @@ class ConfigurationExtensionTest {
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
-        verify(mockAppIdManager).removeAppIDFromPersistence()
+        verify(mockAppIdManager).removeAppIdFromPersistence()
         verify(mockExtensionApi).createSharedState(existingEnvAwareConfig, event)
         verify(mockExtensionApi, never()).stopEvents()
         verify(mockExtensionApi, never()).startEvents()
@@ -322,16 +339,46 @@ class ConfigurationExtensionTest {
     }
 
     @Test
-    fun `Configure with AppId - Config failed to download`() {
-        val newAppID = "UpdatedAppID"
+    fun `Configure with AppId - Config failed to download twice`() {
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
-        val config = mutableMapOf<String, Any?>(
+        val currentConfig = mutableMapOf<String, Any?>(
             ANALYTICS_RSID_KEY to SAMPLE_RSID,
             ANALYTICS_SERVER_KEY to SAMPLE_SERVER,
             ConfigurationExtension.RULES_CONFIG_URL to "rules.url"
         )
 
         `when`(mockConfigStateManager.hasConfigExpired(anyString())).thenReturn(true)
+
+        val newAppID = "UpdatedAppID"
+        val newConfig = mapOf<String, Any?>(
+            ANALYTICS_RSID_KEY to SAMPLE_RSID,
+            ANALYTICS_SERVER_KEY to SAMPLE_SERVER,
+            ConfigurationExtension.RULES_CONFIG_URL to "new.rules.url"
+        )
+
+        `when`(mockConfigStateManager.environmentAwareConfiguration)
+            .thenReturn(currentConfig)
+            .thenReturn(currentConfig)
+            .thenReturn(newConfig)
+
+        val mockFuture = mock(ScheduledFuture::class.java)
+        `when`(mockExecutorService.schedule(any(), any(), any())).then {
+            val runnable: Runnable = it.getArgument(0) as Runnable
+            runnable.run()
+            return@then mockFuture
+        }
+
+        // Simulate returning cached config for the first 2 times and then return the new config
+        `when`(mockConfigStateManager.updateConfigWithAppId(any(), any())).then {
+            val completionCallback = it.getArgument<(Map<String, String>?) -> Unit>(1)
+            completionCallback.invoke(null)
+        }.then {
+            val completionCallback = it.getArgument<(Map<String, String>?) -> Unit>(1)
+            completionCallback.invoke(null)
+        }.then {
+            val completionCallback = it.getArgument<(Map<String, Any?>?) -> Unit>(1)
+            completionCallback.invoke(newConfig)
+        }
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
@@ -343,6 +390,11 @@ class ConfigurationExtensionTest {
             mockConfigStateManager,
             mockConfigurationRulesManager
         )
+
+        `when`(mockExtensionApi.dispatch(any())).then {
+            val dispatchedEvent = it.getArgument<Event>(0)
+            configurationExtension.handleConfigurationRequestEvent(dispatchedEvent)
+        }
 
         val event: Event = Event.Builder(
             "Configure with appId",
@@ -356,27 +408,48 @@ class ConfigurationExtensionTest {
         val appIdCaptor: KArgumentCaptor<String> = argumentCaptor()
         val completionCallbackCaptor: KArgumentCaptor<(Map<String, Any?>?) -> Unit> =
             argumentCaptor()
-        verify(mockConfigStateManager).updateConfigWithAppId(
+
+        // Should invoke update on state manager 2 times for retry and 3 time for success
+        verify(mockConfigStateManager, times(3)).updateConfigWithAppId(
             appIdCaptor.capture(),
             completionCallbackCaptor.capture()
         )
-        assertEquals(newAppID, appIdCaptor.firstValue)
-        assertNotNull(completionCallbackCaptor.firstValue)
 
-        // Simulate triggering of callback
-        completionCallbackCaptor.firstValue.invoke(null)
-
-        verify(mockExtensionApi, times(1)).stopEvents()
+        // Verify first retry scheduling
         verify(mockExecutorService).schedule(
             Mockito.any(Runnable::class.java),
             eq(5L),
             eq(TimeUnit.SECONDS)
         )
-        verify(mockExtensionApi, never()).createSharedState(config, event)
-        verify(mockConfigurationRulesManager, never()).applyDownloadedRules("rules.url", mockExtensionApi)
-        // Verify that events are not yet accepted
-        verify(mockExtensionApi, never()).startEvents()
-        verifyNoEventDispatch()
+
+        // Verify second retry scheduling
+        verify(mockExecutorService).schedule(
+            Mockito.any(Runnable::class.java),
+            eq(10L),
+            eq(TimeUnit.SECONDS)
+        )
+
+        // Verify that cached state is set twice for 2 failed downloads
+        verify(mockExtensionApi, times(2)).createSharedState(eq(currentConfig), any())
+
+        // Verify that new/downloaded state is set for final successful download
+        verify(mockExtensionApi, times(1)).createSharedState(eq(newConfig), any())
+
+        // verify that old rules are never re-applied
+        verify(mockConfigurationRulesManager, times(0)).applyDownloadedRules(
+            "rules.url",
+            mockExtensionApi
+        )
+
+        // Should download new rules from config
+        verify(mockConfigurationRulesManager, times(1)).applyDownloadedRules(
+            "new.rules.url",
+            mockExtensionApi
+        )
+
+        // Should start and resume for all 3 attempts
+        verify(mockExtensionApi, times(3)).stopEvents()
+        verify(mockExtensionApi, times(3)).startEvents()
     }
 
     @Test
@@ -402,7 +475,11 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file path", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+        val event: Event = Event.Builder(
+            "Configure with file path",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
             .build()
 
@@ -429,7 +506,11 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file path", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+        val event: Event = Event.Builder(
+            "Configure with file path",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
             .build()
 
@@ -437,7 +518,10 @@ class ConfigurationExtensionTest {
 
         verify(mockConfigStateManager, never()).replaceConfiguration(any())
         verify(mockExtensionApi, never()).createSharedState(any(), eq(event))
-        verify(mockConfigurationRulesManager, never()).applyDownloadedRules("rules.url", mockExtensionApi)
+        verify(mockConfigurationRulesManager, never()).applyDownloadedRules(
+            "rules.url",
+            mockExtensionApi
+        )
         verifyNoEventDispatch()
     }
 
@@ -457,7 +541,11 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file path", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+        val event: Event = Event.Builder(
+            "Configure with file path",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to null))
             .build()
 
@@ -465,7 +553,10 @@ class ConfigurationExtensionTest {
 
         verify(mockConfigStateManager, never()).replaceConfiguration(any())
         verify(mockExtensionApi, never()).createSharedState(any(), eq(event))
-        verify(mockConfigurationRulesManager, never()).applyDownloadedRules("rules.url", mockExtensionApi)
+        verify(mockConfigurationRulesManager, never()).applyDownloadedRules(
+            "rules.url",
+            mockExtensionApi
+        )
         verifyNoEventDispatch()
     }
 
@@ -485,7 +576,11 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file path", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+        val event: Event = Event.Builder(
+            "Configure with file path",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to ""))
             .build()
 
@@ -493,7 +588,10 @@ class ConfigurationExtensionTest {
 
         verify(mockConfigStateManager, never()).replaceConfiguration(any())
         verify(mockExtensionApi, never()).createSharedState(any(), eq(event))
-        verify(mockConfigurationRulesManager, never()).applyDownloadedRules("rules.url", mockExtensionApi)
+        verify(mockConfigurationRulesManager, never()).applyDownloadedRules(
+            "rules.url",
+            mockExtensionApi
+        )
         verifyNoEventDispatch()
     }
 
@@ -512,7 +610,11 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file asset", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+        val event: Event = Event.Builder(
+            "Configure with file asset",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to null))
             .build()
 
@@ -542,7 +644,11 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file asset", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+        val event: Event = Event.Builder(
+            "Configure with file asset",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to "/some/asset"))
             .build()
 
@@ -579,7 +685,11 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        val event: Event = Event.Builder("Configure with file asset", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+        val event: Event = Event.Builder(
+            "Configure with file asset",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to "some/file/path"))
             .build()
 
@@ -620,7 +730,11 @@ class ConfigurationExtensionTest {
         )
         reset(mockExtensionApi)
 
-        val event: Event = Event.Builder("Update programmatic config", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+        val event: Event = Event.Builder(
+            "Update programmatic config",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to programmaticConfig))
             .build()
 
@@ -654,14 +768,21 @@ class ConfigurationExtensionTest {
         )
         reset(mockExtensionApi)
 
-        val event: Event = Event.Builder("Clear updated configuration", EventType.CONFIGURATION, EventSource.REQUEST_CONTENT)
+        val event: Event = Event.Builder(
+            "Clear updated configuration",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG to true))
             .build()
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
         verify(mockExtensionApi).createSharedState(eq(mockUpdatedConfig), eq(event))
-        verify(mockConfigurationRulesManager).applyDownloadedRules("updated.rules.url", mockExtensionApi)
+        verify(mockConfigurationRulesManager).applyDownloadedRules(
+            "updated.rules.url",
+            mockExtensionApi
+        )
         verifyEventDispatch(mockUpdatedConfig, event, 1)
     }
 

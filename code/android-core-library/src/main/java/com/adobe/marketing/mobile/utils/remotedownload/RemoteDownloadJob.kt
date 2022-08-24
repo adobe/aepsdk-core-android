@@ -8,7 +8,7 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.utils
+package com.adobe.marketing.mobile.utils.remotedownload
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
@@ -20,10 +20,10 @@ import com.adobe.marketing.mobile.services.HttpMethod
 import com.adobe.marketing.mobile.services.NetworkCallback
 import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.ETAG
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_LAST_MODIFIED
-import com.adobe.marketing.mobile.utils.RemoteDownloader.Reason
-import com.adobe.marketing.mobile.utils.RemoteDownloader.RemoteDownloadResult
+import com.adobe.marketing.mobile.utils.TimeUtils
+import com.adobe.marketing.mobile.utils.remotedownload.DownloadResult.Reason
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.ETAG
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_LAST_MODIFIED
 import java.io.File
 import java.net.HttpURLConnection
 import java.util.Date
@@ -38,7 +38,7 @@ internal class RemoteDownloadJob(
     private val cacheFileService: CacheFileService,
     private val url: String,
     private val downloadDirectory: String?,
-    private val metadataProvider: RemoteDownloader.MetadataProvider
+    private val metadataProvider: MetadataProvider
 ) {
     companion object {
         private const val TAG = "RemoteDownloadJob"
@@ -53,14 +53,14 @@ internal class RemoteDownloadJob(
      *
      * @param completionCallback the callback that should be notified with the download result
      */
-    internal fun download(completionCallback: (RemoteDownloadResult) -> Unit) {
+    internal fun download(completionCallback: (DownloadResult) -> Unit) {
         if (!StringUtils.stringIsUrl(url)) {
             MobileCore.log(
                 LoggingMode.WARNING,
                 TAG,
                 "Invalid URL: ($url). Contents cannot be downloaded."
             )
-            completionCallback.invoke(RemoteDownloadResult(null, Reason.INVALID_URL))
+            completionCallback.invoke(DownloadResult(null, Reason.INVALID_URL))
             return
         }
 
@@ -82,9 +82,9 @@ internal class RemoteDownloadJob(
             NetworkCallback { response ->
 
                 if (response == null) {
-                    completionCallback.invoke(RemoteDownloadResult(null, Reason.NO_DATA))
+                    completionCallback.invoke(DownloadResult(null, Reason.NO_DATA))
                 } else {
-                    val downloadResult: RemoteDownloadResult = handleDownloadResponse(response, cachedFile)
+                    val downloadResult: DownloadResult = handleDownloadResponse(response, cachedFile)
                     completionCallback.invoke(downloadResult)
                 }
             }
@@ -103,7 +103,7 @@ internal class RemoteDownloadJob(
     private fun handleDownloadResponse(
         response: HttpConnecting,
         cacheFile: File?
-    ): RemoteDownloadResult {
+    ): DownloadResult {
         return when (response.responseCode) {
 
             HttpURLConnection.HTTP_OK -> {
@@ -115,10 +115,10 @@ internal class RemoteDownloadJob(
             }
 
             HttpURLConnection.HTTP_NOT_MODIFIED -> {
-                RemoteDownloadResult(null, Reason.NOT_MODIFIED)
+                DownloadResult(cacheFile, Reason.NOT_MODIFIED)
             }
 
-            else -> RemoteDownloadResult(null, Reason.NO_DATA)
+            else -> DownloadResult(null, Reason.NO_DATA)
         }
     }
 
@@ -131,14 +131,14 @@ internal class RemoteDownloadJob(
      *        into which the response needs to be downloaded
      * @param cacheFile an optional cache file that is previously associated with the url that this [RemoteDownloadJob]
      *        is downloading from
-     * @return the [RemoteDownloadResult] with file that has been saved into the cache if successful, null otherwise
+     * @return the [DownloadResult] with file that has been saved into the cache if successful, null otherwise
      *         along with the reason for such a result.
      */
     private fun saveContent(
         connection: HttpConnecting,
         directory: String?,
         cacheFile: File?
-    ): RemoteDownloadResult {
+    ): DownloadResult {
 
         val workFile: File? = if (cacheFile == null) {
             // If no cache file is provided, clear the cache directory for the url and
@@ -148,7 +148,11 @@ internal class RemoteDownloadJob(
             val lastModifiedHeader: String =
                 connection.getResponsePropertyValue(HTTP_HEADER_LAST_MODIFIED)
             val lastModifiedDate: Date =
-                TimeUtils.parseRFC2822Date(lastModifiedHeader, TimeZone.getTimeZone("GMT"), Locale.US)
+                TimeUtils.parseRFC2822Date(
+                    lastModifiedHeader,
+                    TimeZone.getTimeZone("GMT"),
+                    Locale.US
+                )
                     ?: Date()
             val etag = connection.getResponsePropertyValue(ETAG)
 
@@ -168,7 +172,7 @@ internal class RemoteDownloadJob(
                 TAG,
                 "Cannot find/create cache file on disk. Will not download from url ($url)"
             )
-            return RemoteDownloadResult(null, Reason.CANNOT_WRITE_TO_CACHE_DIR)
+            return DownloadResult(null, Reason.CANNOT_WRITE_TO_CACHE_DIR)
         }
 
         val append = (cacheFile != null)
@@ -182,17 +186,17 @@ internal class RemoteDownloadJob(
                     TAG,
                     "Cached Files - Could not save cached file ($url)"
                 )
-                RemoteDownloadResult(null, Reason.CANNOT_WRITE_TO_CACHE_DIR)
+                DownloadResult(null, Reason.CANNOT_WRITE_TO_CACHE_DIR)
             } else {
                 MobileCore.log(
                     LoggingMode.DEBUG,
                     TAG,
                     "Cached Files -Successfully downloaded content from ($url) into ${completedFile.absolutePath}"
                 )
-                RemoteDownloadResult(completedFile, Reason.SUCCESS)
+                DownloadResult(completedFile, Reason.SUCCESS)
             }
         } else {
-            RemoteDownloadResult(null, Reason.RESPONSE_PROCESSING_FAILED)
+            DownloadResult(null, Reason.RESPONSE_PROCESSING_FAILED)
         }
     }
 }

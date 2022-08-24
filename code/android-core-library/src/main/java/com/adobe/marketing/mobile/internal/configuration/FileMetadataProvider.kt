@@ -12,11 +12,11 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.services.CacheFileService
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_IF_MODIFIED_SINCE
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_IF_RANGE
-import com.adobe.marketing.mobile.utils.RemoteDownloader.MetadataProvider.MetadataKeys.HTTP_HEADER_RANGE
 import com.adobe.marketing.mobile.utils.TimeUtils
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_IF_RANGE
+import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_RANGE
 import java.io.File
 import java.lang.NumberFormatException
 import java.util.Locale
@@ -27,7 +27,7 @@ import java.util.TimeZone
  */
 internal class FileMetadataProvider(private val cacheFileService: CacheFileService) : MetadataProvider {
 
-    override fun getMetadata(file: File): Map<String, String>? {
+    override fun getMetadata(file: File): MutableMap<String, String>? {
         val params = mutableMapOf<String, String>()
         val lastModified: String? = try {
             val epochString = cacheFileService.getMetadata(CacheFileService.METADATA_KEY_LAST_MODIFIED_EPOCH, file.path)

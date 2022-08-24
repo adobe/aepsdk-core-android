@@ -9,14 +9,13 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.utils
+package com.adobe.marketing.mobile.utils.remotedownload
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.StringUtils
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.Networking
-import java.io.File
 
 /**
  * Facilitates downloading content from a URL into a local cache directory.
@@ -37,41 +36,6 @@ class RemoteDownloader(
 
     companion object {
         private const val TAG = "RemoteDownloader"
-    }
-
-    enum class Reason {
-        INVALID_URL,
-        RESPONSE_PROCESSING_FAILED,
-        CANNOT_WRITE_TO_CACHE_DIR,
-        NOT_MODIFIED,
-        NO_DATA,
-        SUCCESS
-    }
-
-    data class RemoteDownloadResult(val data: File?, val reason: Reason)
-
-    /**
-     * Represents a component that provides metadata about file content.
-     */
-    interface MetadataProvider {
-        companion object MetadataKeys {
-            const val HTTP_HEADER_IF_MODIFIED_SINCE = "If-Modified-Since"
-            const val HTTP_HEADER_IF_RANGE = "If-Range"
-            const val HTTP_HEADER_RANGE = "Range"
-            const val HTTP_HEADER_LAST_MODIFIED = "Last-Modified"
-            const val ETAG = "ETag"
-        }
-
-        /**
-         * Retrieves metadata for the [file] provided for the purpose of
-         * conditionally fetching content from the remote url.
-         *
-         * @param file the [File] for which metadata is needed
-         * @return the metadata of the [file] if it is valid;
-         *         empty map if no metadata is needed,
-         *         null if metadata cannot be computed
-         */
-        fun getMetadata(file: File): Map<String, String>?
     }
 
     /**
@@ -106,7 +70,7 @@ class RemoteDownloader(
         url: String,
         downloadSubDirectory: String?,
         metadataProvider: MetadataProvider,
-        completionCallback: (RemoteDownloadResult) -> Unit
+        completionCallback: (DownloadResult) -> Unit
     ) {
         if (!StringUtils.stringIsUrl(url)) {
             MobileCore.log(
@@ -114,7 +78,7 @@ class RemoteDownloader(
                 TAG,
                 "Invalid URL: ($url). Contents cannot be downloaded."
             )
-            completionCallback.invoke(RemoteDownloadResult(null, Reason.INVALID_URL))
+            completionCallback.invoke(DownloadResult(null, DownloadResult.Reason.INVALID_URL))
             return
         }
 

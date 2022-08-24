@@ -9,15 +9,18 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.utils
+package com.adobe.marketing.mobile.utils.remotedownload
 
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.Networking
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.KArgumentCaptor
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 
@@ -31,15 +34,15 @@ class RemoteDownloaderTest {
     private lateinit var mockCacheFileService: CacheFileService
 
     @Mock
-    private lateinit var mockMetadataProvider: RemoteDownloader.MetadataProvider
+    private lateinit var mockMetadataProvider: MetadataProvider
 
     @Mock
-    private lateinit var mockCompletionCallback: (RemoteDownloader.RemoteDownloadResult) -> Unit
+    private lateinit var mockCompletionCallback: (DownloadResult) -> Unit
 
     @Mock
     private lateinit var mockRemoteDownloadJob: RemoteDownloadJob
 
-    private var mockDownloadJobSupplier: (Networking, CacheFileService, url: String, downloadDirectory: String?, RemoteDownloader.MetadataProvider) -> RemoteDownloadJob =
+    private var mockDownloadJobSupplier: (Networking, CacheFileService, url: String, downloadDirectory: String?, MetadataProvider) -> RemoteDownloadJob =
         { _, _, _, _, _ -> mockRemoteDownloadJob }
 
     private lateinit var remoteDownloader: RemoteDownloader
@@ -90,7 +93,13 @@ class RemoteDownloaderTest {
             mockCompletionCallback
         )
 
-        verify(mockCompletionCallback).invoke(RemoteDownloader.RemoteDownloadResult(null, RemoteDownloader.Reason.INVALID_URL))
+        val downloadResultCaptor: KArgumentCaptor<DownloadResult> = argumentCaptor()
+        verify(mockCompletionCallback).invoke(downloadResultCaptor.capture())
+
+        val capturedDownloadResult = downloadResultCaptor.firstValue
+        Assert.assertNull(capturedDownloadResult.data)
+        Assert.assertEquals(DownloadResult.Reason.INVALID_URL, capturedDownloadResult.reason)
+
         verify(mockRemoteDownloadJob, never()).download(mockCompletionCallback)
     }
 }

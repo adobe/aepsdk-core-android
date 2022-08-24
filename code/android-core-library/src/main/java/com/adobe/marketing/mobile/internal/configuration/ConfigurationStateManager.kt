@@ -22,7 +22,7 @@ import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.utils.RemoteDownloader
+import com.adobe.marketing.mobile.utils.remotedownload.RemoteDownloader
 import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener

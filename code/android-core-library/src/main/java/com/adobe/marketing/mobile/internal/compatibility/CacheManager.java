@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  * Legacy cache file management class. Only exists to allow compatibility with
- * Configuration and Campaign extension for using {@link com.adobe.marketing.mobile.utils.RemoteDownloader}.
+ * Configuration and Campaign extension for using {@link RemoteDownloader}.
  * NOTE: Bulk of the logic in this class has been copied from
  * {@link com.adobe.marketing.mobile.CacheManager}.
  */

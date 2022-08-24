@@ -17,7 +17,7 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.utils.RemoteDownloader
+import com.adobe.marketing.mobile.utils.remotedownload.RemoteDownloader
 import java.io.File
 
 /**

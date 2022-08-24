@@ -13,9 +13,9 @@ package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.services.CacheFileService
-import com.adobe.marketing.mobile.utils.RemoteDownloader
-import com.adobe.marketing.mobile.utils.RemoteDownloader.Reason
-import com.adobe.marketing.mobile.utils.RemoteDownloader.RemoteDownloadResult
+import com.adobe.marketing.mobile.utils.remotedownload.DownloadResult
+import com.adobe.marketing.mobile.utils.remotedownload.DownloadResult.Reason
+import com.adobe.marketing.mobile.utils.remotedownload.RemoteDownloader
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -73,7 +73,7 @@ class ConfigurationRulesDownloaderTest {
 
     @Test
     fun `Process rules when downloaded zip is null`() {
-        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
 
         configurationRulesDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
         verify(mockRemoteDownloader).download(
@@ -84,7 +84,7 @@ class ConfigurationRulesDownloaderTest {
         )
 
         // Simulate null zip file
-        callbackCaptor.firstValue.invoke(RemoteDownloadResult(null, Reason.NO_DATA))
+        callbackCaptor.firstValue.invoke(DownloadResult(null, Reason.NO_DATA))
 
         // Verify that the completion callback is invoked with null
         verify(mockCompletionCallback).invoke(null)
@@ -95,7 +95,7 @@ class ConfigurationRulesDownloaderTest {
         `when`(mockDownloadedFile.isDirectory).thenReturn(true)
 
         configurationRulesDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
-        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
         verify(mockRemoteDownloader).download(
             eq(SAMPLE_URL),
             eq(SAMPLE_DIRECTORY),
@@ -103,7 +103,7 @@ class ConfigurationRulesDownloaderTest {
             callbackCaptor.capture()
         )
 
-        callbackCaptor.firstValue.invoke(RemoteDownloadResult(mockDownloadedFile, Reason.SUCCESS))
+        callbackCaptor.firstValue.invoke(DownloadResult(mockDownloadedFile, Reason.SUCCESS))
 
         verify(mockMetadataProvider, never()).createMetadata(any(), any(), any())
         verify(mockCacheFileService, never()).getBaseFilePath(SAMPLE_URL, SAMPLE_DIRECTORY)
@@ -117,7 +117,7 @@ class ConfigurationRulesDownloaderTest {
         `when`(mockCacheFileService.getBaseFilePath(SAMPLE_URL, SAMPLE_DIRECTORY)).thenReturn(null)
 
         configurationRulesDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
-        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
         verify(mockRemoteDownloader).download(
             eq(SAMPLE_URL),
             eq(SAMPLE_DIRECTORY),
@@ -125,7 +125,7 @@ class ConfigurationRulesDownloaderTest {
             callbackCaptor.capture()
         )
 
-        callbackCaptor.firstValue.invoke(RemoteDownloadResult(mockDownloadedFile, Reason.SUCCESS))
+        callbackCaptor.firstValue.invoke(DownloadResult(mockDownloadedFile, Reason.SUCCESS))
 
         verify(mockCacheFileService, times(1)).getBaseFilePath(SAMPLE_URL, SAMPLE_DIRECTORY)
         verify(mockMetadataProvider, never()).createMetadata(any(), any(), any())
@@ -141,7 +141,7 @@ class ConfigurationRulesDownloaderTest {
         mockFileUtils.`when`<Any> { FileUtils.extractFromZip(mockDownloadedFile, VALID_OUTPUT_PATH) }.thenReturn(false)
 
         configurationRulesDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
-        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
         verify(mockRemoteDownloader).download(
             eq(SAMPLE_URL),
             eq(SAMPLE_DIRECTORY),
@@ -149,7 +149,7 @@ class ConfigurationRulesDownloaderTest {
             callbackCaptor.capture()
         )
 
-        callbackCaptor.firstValue.invoke(RemoteDownloadResult(mockDownloadedFile, Reason.SUCCESS))
+        callbackCaptor.firstValue.invoke(DownloadResult(mockDownloadedFile, Reason.SUCCESS))
 
         verify(mockCacheFileService, times(1)).getBaseFilePath(SAMPLE_URL, SAMPLE_DIRECTORY)
         verify(mockMetadataProvider, never()).createMetadata(any(), any(), any())
@@ -173,7 +173,7 @@ class ConfigurationRulesDownloaderTest {
         mockFileUtils.`when`<Any> { FileUtils.extractFromZip(mockDownloadedFile, VALID_OUTPUT_PATH) }.thenReturn(true)
 
         configurationRulesDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
-        val callbackCaptor: KArgumentCaptor<(RemoteDownloadResult) -> Unit> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
         verify(mockRemoteDownloader).download(
             eq(SAMPLE_URL),
             eq(SAMPLE_DIRECTORY),
@@ -181,7 +181,7 @@ class ConfigurationRulesDownloaderTest {
             callbackCaptor.capture()
         )
 
-        callbackCaptor.firstValue.invoke(RemoteDownloadResult(mockDownloadedFile, Reason.SUCCESS))
+        callbackCaptor.firstValue.invoke(DownloadResult(mockDownloadedFile, Reason.SUCCESS))
 
         verify(mockCacheFileService, times(1)).getBaseFilePath(SAMPLE_URL, SAMPLE_DIRECTORY)
         verify(mockMetadataProvider, times(1)).createMetadata(

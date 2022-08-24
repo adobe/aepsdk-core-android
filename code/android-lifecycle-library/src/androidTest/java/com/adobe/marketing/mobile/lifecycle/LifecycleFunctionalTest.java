@@ -393,6 +393,7 @@ public class LifecycleFunctionalTest {
 
 		LifecycleExtension lifecycleSession2 = new LifecycleExtension(mockExtensionApi2);
 		lifecycleSession2.onRegistered();
+		mockExtensionApi2.resetDispatchedEventAndCreatedSharedState();
 		mockExtensionApi2.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
 
 		// verify second session start dispatches lifecycle response event
@@ -454,6 +455,7 @@ public class LifecycleFunctionalTest {
 		mockDeviceInfoService.applicationVersion = "1.2";
 		LifecycleExtension lifecycleSession2 = new LifecycleExtension(mockExtensionApi2, lifecycleDataStore, mockDeviceInfoService);
 		lifecycleSession2.onRegistered();
+		mockExtensionApi2.resetDispatchedEventAndCreatedSharedState();
 		mockExtensionApi2.simulateComingEvent(createStartEvent(null, secondSessionStartTimeMillis));
 
 		// verify
@@ -619,9 +621,6 @@ public class LifecycleFunctionalTest {
 
 		LifecycleExtension lifecycleSession2 = new LifecycleExtension(mockExtensionApi2, lifecycleDataStore, mockDeviceInfoService);
 		lifecycleSession2.onRegistered();
-		Event bootEvent = new Event.Builder(null, EventType.HUB, EventSource.BOOTED)
-				.build();
-		mockExtensionApi2.simulateComingEvent(bootEvent);
 
 		// verify second session start does not dispatch response event
 		assertEquals(0, mockExtensionApi2.dispatchedEvents.size());

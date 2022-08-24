@@ -10,7 +10,6 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
-import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createEventHubBootEvent;
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createStartEvent;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -27,7 +26,6 @@ import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.SharedStateResolution;
 import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
-import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
 
 import org.junit.Before;
@@ -243,16 +241,14 @@ public class LifecycleV1ExtensionTest {
     }
 
     @Test
-    public void handleEventHubBootEvent() {
-        Event eventHubBootEvent = createEventHubBootEvent(currentTimestampInMilliSeconds);
-        lifecycleV1Extension.processBootEvent(eventHubBootEvent);
+    public void processLifecycleExtensionRegistration() {
+        lifecycleV1Extension.processLifecycleExtensionRegistration();
 
-        verify(mockLifecycleState, times(1)).computeBootData(currentTimestampInSeconds);
+        verify(mockLifecycleState, times(1)).computeBootData();
 
         ArgumentCaptor<Map<String, Object>> lifecycleStateCaptor = ArgumentCaptor.forClass(Map.class);
         ArgumentCaptor<Event> eventCaptor = ArgumentCaptor.forClass(Event.class);
         verify(extensionApi, times(1)).createSharedState(lifecycleStateCaptor.capture(), eventCaptor.capture());
-        assertEquals(eventHubBootEvent, eventCaptor.getValue());
         assertEquals(0L, lifecycleStateCaptor.getValue().get(SESSION_START_TIMESTAMP));
         assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleStateCaptor.getValue().get(MAX_SESSION_LENGTH));
     }

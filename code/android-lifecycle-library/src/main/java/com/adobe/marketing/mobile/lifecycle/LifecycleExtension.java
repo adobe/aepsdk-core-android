@@ -29,7 +29,6 @@ import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -125,8 +124,8 @@ public class LifecycleExtension extends Extension {
 	@Override
 	protected void onRegistered() {
 		getApi().registerEventListener(EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT, this::handleLifecycleRequestEvent);
-		getApi().registerEventListener(EventType.HUB, EventSource.BOOTED, this::handleEventHubBootEvent);
 		getApi().registerEventListener(EventType.WILDCARD, EventSource.WILDCARD, this::updateLastKnownTimestamp);
+		lifecycleV1.processLifecycleExtensionRegistration();
 	}
 
 	@Override
@@ -177,15 +176,6 @@ public class LifecycleExtension extends Extension {
 		} else {
 			Log.warning(LifecycleConstants.LOG_TAG, "%s - Failed to read lifecycle data from persistence", SELF_LOG_TAG);
 		}
-	}
-
-	/**
-	 * Processes event hub boot event
-	 *
-	 * @param event event hub boot event
-	 */
-	void handleEventHubBootEvent(final Event event) {
-		lifecycleV1.processBootEvent(event);
 	}
 
 	/**

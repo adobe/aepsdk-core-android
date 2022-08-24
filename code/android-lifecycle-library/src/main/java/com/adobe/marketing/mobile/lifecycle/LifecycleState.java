@@ -22,6 +22,7 @@ import com.adobe.marketing.mobile.services.NamedCollection;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 // Manages the business logic of the Lifecycle extension
 class LifecycleState {
@@ -40,7 +41,7 @@ class LifecycleState {
         lifecycleSession = new LifecycleSession(namedCollection);
     }
 
-    Map<String, String> computeBootData(final long startTimestampInSeconds) {
+    Map<String, String> computeBootData() {
         Map<String, String> contextData = new HashMap<>();
         Map<String, String> currentContextData = getContextData();
 
@@ -51,7 +52,7 @@ class LifecycleState {
         Map<String, String> defaultData = new LifecycleMetricsBuilder(
                 deviceInfoService,
                 namedCollection,
-                startTimestampInSeconds)
+                TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()))
                 .addCoreData()
                 .addGenericData()
                 .build();
@@ -255,7 +256,8 @@ class LifecycleState {
     Map<String, String> getPersistedContextData() {
         // if we didn't have any lifecycle data, pull what was persisted last
         if (namedCollection != null) {
-            return namedCollection.getMap(LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA);
+            Map<String, String> lifecycleData = namedCollection.getMap(LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA);
+            return lifecycleData != null ? lifecycleData : new HashMap<>();
         } else {
             Log.warning(LifecycleConstants.LOG_TAG, "%s - Failed to read lifecycle data from persistence", SELF_LOG_TAG);
             return new HashMap<>();

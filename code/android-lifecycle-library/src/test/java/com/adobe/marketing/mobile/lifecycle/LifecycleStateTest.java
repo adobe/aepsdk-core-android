@@ -133,7 +133,7 @@ public class LifecycleStateTest {
 
     @Test
     public void computeBootData_Happy() {
-        Map<String, String> actualContextData = lifecycleState.computeBootData(currentTimestampInMilliSeconds);
+        Map<String, String> actualContextData = lifecycleState.computeBootData();
         assertNotNull(actualContextData.get(CONTEXT_DATA_KEY_APPLICATION_IDENTIFIER));
         assertEquals("100x100", actualContextData.get(CONTEXT_DATA_KEY_DEVICE_RESOLUTION));
         assertEquals("TEST_CARRIER", actualContextData.get(CONTEXT_DATA_KEY_CARRIER_NAME));
@@ -152,7 +152,7 @@ public class LifecycleStateTest {
         testMap.put("updateContextDataTestKey", "updateContextDataTestValue");
         when(lifecycleDataStore.getMap(DATASTORE_KEY_LIFECYCLE_DATA)).thenReturn(testMap);
 
-        Map<String, String> actualContextData = lifecycleState.computeBootData(currentTimestampInMilliSeconds);
+        Map<String, String> actualContextData = lifecycleState.computeBootData();
 
         assertNotNull(actualContextData.get(CONTEXT_DATA_KEY_APPLICATION_IDENTIFIER));
         assertEquals("100x100", actualContextData.get(CONTEXT_DATA_KEY_DEVICE_RESOLUTION));

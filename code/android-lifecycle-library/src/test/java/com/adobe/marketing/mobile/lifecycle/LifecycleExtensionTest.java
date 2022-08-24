@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
-import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createEventHubBootEvent;
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createLifecycleEvent;
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createPauseEvent;
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createStartEvent;
@@ -19,12 +18,10 @@ import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.creat
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -182,14 +179,6 @@ public class LifecycleExtensionTest {
 
 		verify(lifecycleDataStore, never()).setBoolean(eq(DATASTORE_KEY_SUCCESSFUL_CLOSE), anyBoolean());
 		verify(lifecycleDataStore, never()).setLong(eq(DATASTORE_KEY_PAUSE_DATE), anyLong());
-	}
-
-	@Test
-	public void handleEventHubBootEvent() {
-		Event eventHubBootEvent = createEventHubBootEvent(currentTimestampInMilliSeconds);
-		lifecycle.handleEventHubBootEvent(eventHubBootEvent);
-
-		verify(mockLifecycleV1Extension, times(1)).processBootEvent(eventHubBootEvent);
 	}
 
 	@Test

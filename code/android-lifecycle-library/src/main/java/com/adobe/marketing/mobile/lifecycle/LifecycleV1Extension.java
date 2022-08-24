@@ -125,14 +125,12 @@ public class LifecycleV1Extension {
     }
 
     /**
-     * Updates the lifecycle shared state with current context data and default data when a boot event is received
-     *
-     * @param bootEvent to be processed
-     */
-    void processBootEvent(final Event bootEvent) {
-        updateLifecycleSharedState(bootEvent,
+     * Updates the lifecycle shared state with current context data and default data when extension is registered
+     **/
+    void processLifecycleExtensionRegistration() {
+        updateLifecycleSharedState(null,
                 0,
-                lifecycleState.computeBootData(bootEvent.getTimestampInSeconds())
+                lifecycleState.computeBootData()
         );
     }
 

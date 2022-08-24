@@ -46,10 +46,4 @@ public class LifecycleEventGeneratorTestHelper {
                 .setEventData(eventData)
                 .build();
     }
-
-    public static Event createEventHubBootEvent(final long timestamp) {
-        return new Event.Builder(null, EventType.HUB, EventSource.BOOTED)
-                .setTimestamp(timestamp)
-                .build();
-    }
 }

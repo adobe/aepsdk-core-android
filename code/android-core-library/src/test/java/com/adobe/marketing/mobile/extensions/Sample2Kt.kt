@@ -43,7 +43,7 @@ object Sample2Kt {
     }
 }
 
-class Sample2KtExtension(extensionApi: ExtensionApi?) : Extension(extensionApi) {
+class Sample2KtExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
     override fun getName(): String {
         return NAME
     }

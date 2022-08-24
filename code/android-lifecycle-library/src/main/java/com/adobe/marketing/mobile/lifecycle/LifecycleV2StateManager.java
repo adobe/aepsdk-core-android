@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.lifecycle;
 
 import com.adobe.marketing.mobile.AdobeCallback;
+import com.adobe.marketing.mobile.Log;
 
 /**
  * Manager for current app session state updates for the XDM scenario based on the start/pause Lifecycle events.
@@ -69,11 +70,13 @@ class LifecycleV2StateManager {
 		synchronized (stateUpdatesMutex) {
 			if (updateTimer.isTimerRunning()) {
 				if (State.START.equals(newState)) {
-					Log.trace(SELF_LOG_TAG, "Consecutive pause-start state update detected, ignoring.");
+					Log.trace(LifecycleConstants.LOG_TAG, "%s - Consecutive pause-start state update detected, ignoring.",
+							SELF_LOG_TAG);
 					cancelTimer();
 					callback.call(false);
 				} else if (State.PAUSE.equals(newState)) {
-					Log.trace(SELF_LOG_TAG, "New pause state update received while waiting, restarting the count.");
+					Log.trace(LifecycleConstants.LOG_TAG, "%s - New pause state update received while waiting, restarting the count.",
+							SELF_LOG_TAG);
 					restartTimer(newState, callback);
 				}
 
@@ -81,18 +84,20 @@ class LifecycleV2StateManager {
 			}
 
 			if (this.currentState == newState) {
-				Log.trace(SELF_LOG_TAG, String.format("Consecutive %s state update received, ignoring.", currentState));
+				Log.trace(LifecycleConstants.LOG_TAG, "%s - Consecutive %s state update received, ignoring.",
+						SELF_LOG_TAG, currentState);
 				callback.call(false);
 				return;
 			}
 
 			if (State.PAUSE.equals(newState)) {
-				Log.trace(SELF_LOG_TAG, String.format("New pause state update received, waiting for %s (ms) before updating.",
-						LifecycleV2Constants.STATE_UPDATE_TIMEOUT_MILLIS));
+				Log.trace(LifecycleConstants.LOG_TAG, "%s - New pause state update received, waiting for %s (ms) before updating.",
+						SELF_LOG_TAG, LifecycleV2Constants.STATE_UPDATE_TIMEOUT_MILLIS);
 				startTimer(newState, callback);
 
 			} else {
-				Log.trace(SELF_LOG_TAG, "New start state update received");
+				Log.trace(LifecycleConstants.LOG_TAG, "%s - New start state update received.",
+						SELF_LOG_TAG);
 				currentState = newState;
 				callback.call(true);
 			}

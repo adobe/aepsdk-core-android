@@ -25,6 +25,10 @@ class LifecycleConstants {
 	static final String LOG_TAG = "Lifecycle";
 	static final String FRIENDLY_NAME = "Lifecycle";
 
+	static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
+	static final String UNEXPECTED_EMPTY_VALUE = "Unexpected Empty Value";
+	static final String INVALID_FORMAT = "Invalid Format";
+
 	static final class EventName {
 		static final String LIFECYCLE_START_EVENT = "LifecycleStart";
 

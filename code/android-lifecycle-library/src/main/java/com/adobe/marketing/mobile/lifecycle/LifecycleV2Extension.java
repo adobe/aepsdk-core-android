@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionApi;
+import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
 
@@ -202,7 +203,8 @@ class LifecycleV2Extension {
 	private void dispatchApplicationLaunch(final Map<String, Object> appLaunchXDMData,
 										   final Map<String, String> freeFormData){
 		if (appLaunchXDMData == null || appLaunchXDMData.isEmpty()) {
-			Log.trace(SELF_LOG_TAG, "Not dispatching application launch event as xdm data was null");
+			Log.trace(LifecycleConstants.LOG_TAG, "%s - Not dispatching application launch event as xdm data was null",
+					SELF_LOG_TAG);
 			return;
 		}
 		Map<String, Object> launchEventData = new HashMap<String, Object>();
@@ -224,7 +226,8 @@ class LifecycleV2Extension {
 	 */
 	private void dispatchApplicationClose(final Map<String, Object> appCloseXDMData) {
 		if (appCloseXDMData == null || appCloseXDMData.isEmpty()) {
-			Log.trace(SELF_LOG_TAG, "Not dispatching application close event as xdm data was null");
+			Log.trace(LifecycleConstants.LOG_TAG, "%s - Not dispatching application close event as xdm data was null",
+					SELF_LOG_TAG);
 			return;
 		}
 		Map<String, Object> closeEventData = new HashMap<String, Object>();

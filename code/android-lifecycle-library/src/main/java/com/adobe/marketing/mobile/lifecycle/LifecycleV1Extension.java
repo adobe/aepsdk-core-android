@@ -10,10 +10,14 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
+import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.INVALID_FORMAT;
+import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.UNEXPECTED_NULL_VALUE;
+
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionApi;
+import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.SharedStateResolution;
 import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
@@ -25,6 +29,7 @@ import java.util.Map;
 
 public class LifecycleV1Extension {
 
+    private static final String SELF_LOG_TAG = "LifecycleV1Extension";
     private final NamedCollection dataStore;
     private final ExtensionApi extensionApi;
     private final LifecycleState lifecycleState;
@@ -78,7 +83,8 @@ public class LifecycleV1Extension {
              try {
                  additionalContextData = (Map<String, String>) eventData.get(LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
              } catch (Exception e) {
-                 Log.trace(LifecycleConstants.LOG_TAG, "Request content event data error, event data is null");
+                 Log.trace(LifecycleConstants.LOG_TAG, "%s - '%s for additional context data'", SELF_LOG_TAG,
+                         INVALID_FORMAT);
              }
          }
 

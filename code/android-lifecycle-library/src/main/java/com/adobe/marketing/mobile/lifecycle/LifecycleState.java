@@ -10,9 +10,12 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
+import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.UNEXPECTED_NULL_VALUE;
+
 import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.internal.utility.StringUtils;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
@@ -254,7 +257,7 @@ class LifecycleState {
         if (namedCollection != null) {
             return namedCollection.getMap(LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA);
         } else {
-            Log.warning(SELF_LOG_TAG, "Failed to read lifecycle data from persistence");
+            Log.warning(LifecycleConstants.LOG_TAG, "%s - Failed to read lifecycle data from persistence", SELF_LOG_TAG);
             return new HashMap<>();
         }
     }
@@ -284,7 +287,8 @@ class LifecycleState {
      */
     private void persistLifecycleContextData(final long startTimestamp) {
         if (namedCollection == null) {
-            Log.debug(SELF_LOG_TAG, "Failed to update lifecycle data, lifecycle data store is null");
+            Log.debug(LifecycleConstants.LOG_TAG, "%s - Failed to update lifecycle data, %s (DataStore)", SELF_LOG_TAG,
+                    UNEXPECTED_NULL_VALUE);
             return;
         }
 

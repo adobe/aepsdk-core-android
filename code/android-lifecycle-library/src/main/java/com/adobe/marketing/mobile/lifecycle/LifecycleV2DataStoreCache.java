@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
+import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.services.NamedCollection;
 
 import java.util.concurrent.TimeUnit;
@@ -142,7 +143,8 @@ class LifecycleV2DataStoreCache {
 
 			if (value > 0) {
 				dataStore.setLong(keyMilliseconds, TimeUnit.SECONDS.toMillis(value));
-				Log.trace(SELF_LOG_TAG, String.format("Migrated persisted '%s' to '%s'.", keySeconds, keyMilliseconds));
+				Log.trace(LifecycleConstants.LOG_TAG, "%s - Migrated persisted '%s' to '%s'.",
+						SELF_LOG_TAG, keySeconds, keyMilliseconds);
 			}
 
 			dataStore.remove(keySeconds);

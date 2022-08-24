@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
+import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.UNEXPECTED_NULL_VALUE;
+
 import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.Event;
@@ -19,6 +21,7 @@ import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.Extension;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.Lifecycle;
+import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.SharedStateResolution;
 import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
@@ -150,27 +153,29 @@ public class LifecycleExtension extends Extension {
 				SharedStateResolution.ANY);
 
 		if (configurationSharedState == null ||  configurationSharedState.status == SharedStateStatus.PENDING) {
-			Log.trace(SELF_LOG_TAG, "Configuration is pending, lifecycle request event is not processed");
+			Log.trace(LifecycleConstants.LOG_TAG, "%s - Configuration is pending, waiting...", SELF_LOG_TAG);
 			return;
 		}
 
 		Map<String, Object> eventData = event.getEventData();
 
 		if (eventData == null) {
-			Log.trace(SELF_LOG_TAG, "Failed to process lifecycle event, event data is null");
+			Log.trace(LifecycleConstants.LOG_TAG, "%s - Failed to process lifecycle event '%s for %s'", SELF_LOG_TAG,
+					UNEXPECTED_NULL_VALUE,
+					event.getName());
 			return;
 		}
 
 		String lifecycleAction = (String) eventData.get(LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY);
 
 		if (LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_START.equals(lifecycleAction)) {
-			Log.debug(SELF_LOG_TAG, "Starting lifecycle");
+			Log.debug(LifecycleConstants.LOG_TAG, "%s - Starting lifecycle", SELF_LOG_TAG);
 			startApplicationLifecycle(event, configurationSharedState.value);
 		} else if (LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE.equals(lifecycleAction)) {
-			Log.debug(SELF_LOG_TAG, "Pausing lifecycle");
+			Log.debug(LifecycleConstants.LOG_TAG, "%s - Pausing lifecycle", SELF_LOG_TAG);
 			pauseApplicationLifecycle(event);
 		} else {
-			Log.trace(SELF_LOG_TAG, "Failed to process lifecycle request content event, invalid action");
+			Log.warning(LifecycleConstants.LOG_TAG, "%s - Failed to read lifecycle data from persistence", SELF_LOG_TAG);
 		}
 	}
 

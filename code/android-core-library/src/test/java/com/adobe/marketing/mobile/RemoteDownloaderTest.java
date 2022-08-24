@@ -71,7 +71,6 @@ public class RemoteDownloaderTest {
 
 
 
-		Log.setLoggingService(platformServices.getLoggingService());
 		Log.setLogLevel(LoggingMode.VERBOSE);
 	}
 
@@ -79,7 +78,6 @@ public class RemoteDownloaderTest {
 	public static void tearDownTests() {
 		//Reset logger
 		Log.setLogLevel(LoggingMode.ERROR);
-		Log.setLoggingService(null);
 	}
 
 	@Test

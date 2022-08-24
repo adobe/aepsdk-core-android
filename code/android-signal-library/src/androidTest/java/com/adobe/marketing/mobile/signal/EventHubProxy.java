@@ -8,25 +8,12 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-
-package com.adobe.marketing.mobile;
-
-/*
-    Define the fields for signal request
- */
-// TODO refactor to use public hit queue
-/*class SignalHit extends AbstractHit {
-	String url;
-	String body;
-	String contentType;
-	int timeout;
-
-	*//**
-	 *  Determine the Http command based off the request body
-	 *
-	 * @return HttpCommand.POST if the body has content, otherwise HttpCommand.GET
-	 *//*
-	NetworkService.HttpCommand getHttpCommand() {
-		return StringUtils.isNullOrEmpty(body) ? NetworkService.HttpCommand.GET : NetworkService.HttpCommand.POST;
-	}
-}*/
+//package com.adobe.marketing.mobile.signal;
+//
+//import com.adobe.marketing.mobile.internal.eventhub.EventHub;
+//
+//class EventHubProxy {
+//    static void resetEventhub() {
+//        EventHub.Companion.setShared(new EventHub());
+//    }
+//}

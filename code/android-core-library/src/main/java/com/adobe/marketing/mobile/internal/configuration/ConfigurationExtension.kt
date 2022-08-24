@@ -411,7 +411,6 @@ internal class ConfigurationExtension : Extension {
             configurationStateManager.environmentAwareConfiguration,
             event
         )
-        retryConfigurationCounter++
     }
 
     /**

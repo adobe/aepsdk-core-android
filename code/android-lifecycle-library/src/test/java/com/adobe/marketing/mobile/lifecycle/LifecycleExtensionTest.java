@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.lifecycle;
 
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createEventHubBootEvent;
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createLifecycleEvent;
+import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createPauseEvent;
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createStartEvent;
 
 import org.junit.Before;
@@ -57,44 +58,29 @@ public class LifecycleExtensionTest {
 	DeviceInforming deviceInfoService;
 
 	@Mock
-    LifecycleState mockLifecycleState;
+    LifecycleV1Extension mockLifecycleV1Extension;
 
 	@Mock
     LifecycleV2Extension mockLifecycleV2Extension;
 
 	private final long currentTimestampInMilliSeconds = System.currentTimeMillis();
-	private final long currentTimestampInSeconds = TimeUnit.MILLISECONDS.toSeconds(currentTimestampInMilliSeconds);
 	private LifecycleExtension lifecycle;
 
 	private static final String DATASTORE_KEY_INSTALL_DATE = "InstallDate";
 	private static final String DATASTORE_KEY_PAUSE_DATE = "PauseDate";
 	private static final String DATASTORE_KEY_SUCCESSFUL_CLOSE = "SuccessfulClose";
 
-
-	private static final String SESSION_START_TIMESTAMP = "starttimestampmillis";
-	private static final String MAX_SESSION_LENGTH      = "maxsessionlength";
-	private static final long MAX_SESSION_LENGTH_SECONDS = TimeUnit.DAYS.toSeconds(7);
-	private static final String ADDITIONAL_CONTEXT_DATA = "additionalcontextdata";
-
 	private static final String LIFECYCLE_ACTION_KEY = "action";
-	private static final String LIFECYCLE_PAUSE = "pause";
-	private static final String LIFECYCLE_START = "start";
 
 	private static final String LIFECYCLE_CONFIG_SESSION_TIMEOUT = "lifecycle.sessionTimeout";
 	private static final String CONFIGURATION_MODULE_NAME = "com.adobe.module.configuration";
 
-	private static final String IDENTITY_MODULE_NAME = "com.adobe.module.identity";
-	private static final String ADVERTISING_IDENTIFIER = "advertisingidentifier";
-
 	private static final String EVENT_TYPE_GENERIC_LIFECYCLE = "com.adobe.eventType.generic.lifecycle";
-	private static final String EVENT_TYPE_LIFECYCLE = "com.adobe.eventType.lifecycle";
 	private static final String EVENT_SOURCE_REQUEST_CONTENT = "com.adobe.eventSource.requestContent";
 
 
 	@Before
 	public void beforeEach() {
-		LifecycleTestHelper.initDeviceInfoService(deviceInfoService);
-
 		Map<String, Object> configurationSharedState = new HashMap<>();
 		configurationSharedState.put(LIFECYCLE_CONFIG_SESSION_TIMEOUT, 200L);
 		when(extensionApi.getSharedState(
@@ -107,7 +93,7 @@ public class LifecycleExtensionTest {
 		lifecycle = new LifecycleExtension(extensionApi,
 				lifecycleDataStore,
 				deviceInfoService,
-				mockLifecycleState,
+				mockLifecycleV1Extension,
 				mockLifecycleV2Extension);
 	}
 
@@ -140,12 +126,6 @@ public class LifecycleExtensionTest {
 	}
 
 	@Test
-	public void handleLifecycleRequestEvent_NullEvent() {
-		lifecycle.handleLifecycleRequestEvent(null);
-		verifyNoInteractions(mockLifecycleState);
-	}
-
-	@Test
 	public void handleLifecycleRequestEvent_ConfigurationSharedStateNull() {
 		when(extensionApi.getSharedState(
 				eq(CONFIGURATION_MODULE_NAME),
@@ -156,7 +136,7 @@ public class LifecycleExtensionTest {
 
 		lifecycle.handleLifecycleRequestEvent(createStartEvent(null, currentTimestampInMilliSeconds));
 
-		verifyNoInteractions(mockLifecycleState);
+		verifyNoInteractions(mockLifecycleV1Extension);
 	}
 
 	@Test
@@ -170,7 +150,7 @@ public class LifecycleExtensionTest {
 
 		lifecycle.handleLifecycleRequestEvent(createStartEvent(null, currentTimestampInMilliSeconds));
 
-		verifyNoInteractions(mockLifecycleState);
+		verifyNoInteractions(mockLifecycleV1Extension);
 	}
 
 	@Test
@@ -179,192 +159,16 @@ public class LifecycleExtensionTest {
 
 		lifecycle.handleLifecycleRequestEvent(lifecycleEvent);
 
-		verifyNoInteractions(mockLifecycleState);
-	}
-
-	@Test
-	public void handleLifecycleRequestEvent_LifecycleStart_FirstLaunch() {
-		Event lifecycleStartEvent = createStartEvent(null, currentTimestampInMilliSeconds);
-
-		lifecycle.handleLifecycleRequestEvent(lifecycleStartEvent);
-
-		ArgumentCaptor<Long> startTimeCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Map<String, String>> additionalDataCaptor = ArgumentCaptor.forClass(Map.class);
-		ArgumentCaptor<String> adIdCaptor = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Long> sessionTimeoutCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Boolean> isInstallCaptor = ArgumentCaptor.forClass(Boolean.class);
-
-		verify(mockLifecycleState, times(1)).start(startTimeCaptor.capture(),
-				additionalDataCaptor.capture(),
-				adIdCaptor.capture(),
-				sessionTimeoutCaptor.capture(),
-				isInstallCaptor.capture());
-		assertEquals(currentTimestampInSeconds, startTimeCaptor.getValue().longValue());
-		assertNull(additionalDataCaptor.getValue());
-		assertNull(adIdCaptor.getValue());
-		assertEquals(200L, sessionTimeoutCaptor.getValue().longValue());
-		assertTrue(isInstallCaptor.getValue());
-	}
-
-	@Test
-	public void handleLifecycleRequestEvent_LifecycleStart_SubsequentLaunch() {
-		when(lifecycleDataStore.contains(eq(DATASTORE_KEY_INSTALL_DATE))).thenReturn(true);
-		Event lifecycleStartEvent = createStartEvent(null, currentTimestampInMilliSeconds);
-
-		lifecycle.handleLifecycleRequestEvent(lifecycleStartEvent);
-
-		ArgumentCaptor<Long> startTimeCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Map<String, String>> additionalDataCaptor = ArgumentCaptor.forClass(Map.class);
-		ArgumentCaptor<String> adIdCaptor = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Long> sessionTimeoutCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Boolean> isInstallCaptor = ArgumentCaptor.forClass(Boolean.class);
-
-		verify(mockLifecycleState, times(1)).start(startTimeCaptor.capture(),
-				additionalDataCaptor.capture(),
-				adIdCaptor.capture(),
-				sessionTimeoutCaptor.capture(),
-				isInstallCaptor.capture());
-		assertEquals(currentTimestampInSeconds, startTimeCaptor.getValue().longValue());
-		assertNull(additionalDataCaptor.getValue());
-		assertNull(adIdCaptor.getValue());
-		assertEquals(200L, sessionTimeoutCaptor.getValue().longValue());
-		assertFalse(isInstallCaptor.getValue());
-	}
-
-	@Test
-	public void handleLifecycleRequestEvent_LifecycleStart_AdditionalData() {
-		Map<String, String> additionalData = new HashMap<>();
-		additionalData.put("testKey", "testVal");
-		Event lifecycleStartEvent = createStartEvent(additionalData, currentTimestampInMilliSeconds);
-
-		lifecycle.handleLifecycleRequestEvent(lifecycleStartEvent);
-
-		ArgumentCaptor<Long> startTimeCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Map<String, String>> additionalDataCaptor = ArgumentCaptor.forClass(Map.class);
-		ArgumentCaptor<String> adIdCaptor = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Long> sessionTimeoutCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Boolean> isInstallCaptor = ArgumentCaptor.forClass(Boolean.class);
-
-		verify(mockLifecycleState, times(1)).start(startTimeCaptor.capture(),
-				additionalDataCaptor.capture(),
-				adIdCaptor.capture(),
-				sessionTimeoutCaptor.capture(),
-				isInstallCaptor.capture());
-		assertEquals(currentTimestampInSeconds, startTimeCaptor.getValue().longValue());
-		assertEquals(additionalData, additionalDataCaptor.getValue());
-		assertNull(adIdCaptor.getValue());
-		assertEquals(200L, sessionTimeoutCaptor.getValue().longValue());
-		assertTrue(isInstallCaptor.getValue());
-	}
-
-	@Test
-	public void handleLifecycleRequestEvent_LifecycleStart_IdentitySharedStatePending() {
-		when(extensionApi.getSharedState(
-				eq(IDENTITY_MODULE_NAME),
-				any(),
-				eq(false),
-				eq(SharedStateResolution.ANY)
-		)).thenReturn(new SharedStateResult(SharedStateStatus.PENDING, new HashMap<>()));
-
-		Map<String, String> additionalData = new HashMap<>();
-		additionalData.put("testKey", "testVal");
-		Event lifecycleStartEvent = createStartEvent(additionalData, currentTimestampInMilliSeconds);
-
-		lifecycle.handleLifecycleRequestEvent(lifecycleStartEvent);
-
-		ArgumentCaptor<Long> startTimeCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Map<String, String>> additionalDataCaptor = ArgumentCaptor.forClass(Map.class);
-		ArgumentCaptor<String> adIdCaptor = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Long> sessionTimeoutCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Boolean> isInstallCaptor = ArgumentCaptor.forClass(Boolean.class);
-
-		verify(mockLifecycleState, times(1)).start(startTimeCaptor.capture(),
-				additionalDataCaptor.capture(),
-				adIdCaptor.capture(),
-				sessionTimeoutCaptor.capture(),
-				isInstallCaptor.capture());
-		assertEquals(currentTimestampInSeconds, startTimeCaptor.getValue().longValue());
-		assertEquals(additionalData, additionalDataCaptor.getValue());
-		assertNull(adIdCaptor.getValue());
-		assertEquals(200L, sessionTimeoutCaptor.getValue().longValue());
-		assertTrue(isInstallCaptor.getValue());
-	}
-
-	@Test
-	public void handleLifecycleRequestEvent_LifecycleStart_AdIdSet() {
-		Map<String, Object> identitySharedState = new HashMap<>();
-		identitySharedState.put(ADVERTISING_IDENTIFIER, "testAdid");
-		when(extensionApi.getSharedState(
-				eq(IDENTITY_MODULE_NAME),
-				any(),
-				eq(false),
-				eq(SharedStateResolution.ANY)
-		)).thenReturn(new SharedStateResult(SharedStateStatus.SET, identitySharedState));
-
-		Map<String, String> additionalData = new HashMap<>();
-		additionalData.put("testKey", "testVal");
-		Event lifecycleStartEvent = createStartEvent(additionalData, currentTimestampInMilliSeconds);
-
-		lifecycle.handleLifecycleRequestEvent(lifecycleStartEvent);
-
-		ArgumentCaptor<Long> startTimeCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Map<String, String>> additionalDataCaptor = ArgumentCaptor.forClass(Map.class);
-		ArgumentCaptor<String> adIdCaptor = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Long> sessionTimeoutCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Boolean> isInstallCaptor = ArgumentCaptor.forClass(Boolean.class);
-
-		verify(mockLifecycleState, times(1)).start(startTimeCaptor.capture(),
-				additionalDataCaptor.capture(),
-				adIdCaptor.capture(),
-				sessionTimeoutCaptor.capture(),
-				isInstallCaptor.capture());
-		assertEquals(currentTimestampInSeconds, startTimeCaptor.getValue().longValue());
-		assertEquals(additionalData, additionalDataCaptor.getValue());
-		assertEquals("testAdid", adIdCaptor.getValue());
-		assertEquals(200L, sessionTimeoutCaptor.getValue().longValue());
-		assertTrue(isInstallCaptor.getValue());
-	}
-
-	@Test
-	public void handleLifecycleRequestEvent_LifecycleStart_SessionTimeoutNotSet() {
-		when(extensionApi.getSharedState(
-				eq(CONFIGURATION_MODULE_NAME),
-				any(),
-				eq(false),
-				eq(SharedStateResolution.ANY)
-		)).thenReturn(new SharedStateResult(SharedStateStatus.SET, new HashMap<>()));
-
-		Event lifecycleStartEvent = createStartEvent(null, currentTimestampInMilliSeconds);
-
-		lifecycle.handleLifecycleRequestEvent(lifecycleStartEvent);
-
-		ArgumentCaptor<Long> startTimeCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Map<String, String>> additionalDataCaptor = ArgumentCaptor.forClass(Map.class);
-		ArgumentCaptor<String> adIdCaptor = ArgumentCaptor.forClass(String.class);
-		ArgumentCaptor<Long> sessionTimeoutCaptor = ArgumentCaptor.forClass(Long.class);
-		ArgumentCaptor<Boolean> isInstallCaptor = ArgumentCaptor.forClass(Boolean.class);
-
-		verify(mockLifecycleState, times(1)).start(startTimeCaptor.capture(),
-				additionalDataCaptor.capture(),
-				adIdCaptor.capture(),
-				sessionTimeoutCaptor.capture(),
-				isInstallCaptor.capture());
-		assertEquals(currentTimestampInSeconds, startTimeCaptor.getValue().longValue());
-		assertNull(additionalDataCaptor.getValue());
-		assertNull(adIdCaptor.getValue());
-		assertEquals(300L, sessionTimeoutCaptor.getValue().longValue());
-		assertTrue(isInstallCaptor.getValue());
+		verifyNoInteractions(mockLifecycleV1Extension);
 	}
 
 	@Test
 	public void handleLifecycleRequestEvent_LifecyclePause() {
-		Map<String, Object> eventData = new HashMap<>();
-		eventData.put(LIFECYCLE_ACTION_KEY, LIFECYCLE_PAUSE);
-		Event lifecyclePauseEvent = createLifecycleEvent(eventData, currentTimestampInMilliSeconds);
+		Event lifecyclePauseEvent = createPauseEvent(currentTimestampInMilliSeconds);
 
 		lifecycle.handleLifecycleRequestEvent(lifecyclePauseEvent);
 
-		verify(mockLifecycleState, times(1)).pause(lifecyclePauseEvent);
+		verify(mockLifecycleV1Extension, times(1)).pause(lifecyclePauseEvent);
 		verify(mockLifecycleV2Extension, times(1)).pause(lifecyclePauseEvent);
 	}
 
@@ -385,14 +189,7 @@ public class LifecycleExtensionTest {
 		Event eventHubBootEvent = createEventHubBootEvent(currentTimestampInMilliSeconds);
 		lifecycle.handleEventHubBootEvent(eventHubBootEvent);
 
-		verify(mockLifecycleState, times(1)).computeBootData(eq(currentTimestampInSeconds));
-
-		ArgumentCaptor<Map<String, Object>> lifecycleStateCaptor = ArgumentCaptor.forClass(Map.class);
-		ArgumentCaptor<Event> eventCaptor = ArgumentCaptor.forClass(Event.class);
-		verify(extensionApi, times(1)).createSharedState(lifecycleStateCaptor.capture(), eventCaptor.capture());
-		assertEquals(eventHubBootEvent, eventCaptor.getValue());
-		assertEquals(0L, lifecycleStateCaptor.getValue().get(SESSION_START_TIMESTAMP));
-		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleStateCaptor.getValue().get(MAX_SESSION_LENGTH));
+		verify(mockLifecycleV1Extension, times(1)).processBootEvent(eventHubBootEvent);
 	}
 
 	@Test

@@ -43,6 +43,7 @@ class LifecycleV2Extension {
 	 *
 	 * @param dataStore {@code NamedCollection} instance
 	 * @param deviceInfoService {@code DeviceInforming} instance
+	 * @param extensionApi {@code ExtensionApi} instance
 	 */
 	LifecycleV2Extension(final NamedCollection dataStore,
 						 final DeviceInforming deviceInfoService,
@@ -55,7 +56,7 @@ class LifecycleV2Extension {
 	 *
 	 * @param dataStore {@code NamedCollection} instance
 	 * @param deviceInfoService {@code DeviceInforming} instance
-	 * @param metricsBuilder	XDM LifecycleMetricsBuilder instance. If null, a new instance will be created
+	 * @param metricsBuilder XDM LifecycleMetricsBuilder instance. If null, a new instance will be created
 	 */
 	LifecycleV2Extension(final NamedCollection dataStore,
 						 final DeviceInforming deviceInfoService,

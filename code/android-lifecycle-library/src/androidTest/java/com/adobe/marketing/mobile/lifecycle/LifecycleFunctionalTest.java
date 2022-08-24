@@ -160,25 +160,13 @@ public class LifecycleFunctionalTest {
 		// test
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
 
-		// verify
+		// verify session start dispatches response content event
 		List<Event> events = mockExtensionApi.dispatchedEvents;
 		assertEquals(1, events.size());
 
+		// verify session start updates lifecycle shared state
 		List<Map<String, Object>> sharedStateList = mockExtensionApi.createdSharedState;
 		assertEquals(1, sharedStateList.size());
-
-		Event lifecycleEvent = events.get(0);
-		assertEquals(EventType.LIFECYCLE, lifecycleEvent.getType());
-		assertEquals(EventSource.RESPONSE_CONTENT, lifecycleEvent.getSource());
-		assertEquals(0L, lifecycleEvent.getEventData().get(PREVIOUS_SESSION_START_TIMESTAMP));
-		assertEquals(0L, lifecycleEvent.getEventData().get(PREVIOUS_SESSION_PAUSE_TIMESTAMP));
-		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleEvent.getEventData().get(MAX_SESSION_LENGTH));
-		assertEquals(TimeUnit.MILLISECONDS.toSeconds(currentTimestampMillis), lifecycleEvent.getEventData().get(SESSION_START_TIMESTAMP));
-		assertEquals(LIFECYCLE_START, lifecycleEvent.getEventData().get(SESSION_EVENT));
-
-		Map<String, Object> lifecycleSharedState = sharedStateList.get(0);
-		assertEquals(MAX_SESSION_LENGTH_SECONDS, lifecycleSharedState.get(MAX_SESSION_LENGTH));
-		assertEquals(TimeUnit.MILLISECONDS.toSeconds(currentTimestampMillis), lifecycleSharedState.get(SESSION_START_TIMESTAMP));
 
 		Map<String, String> expectedContextData = new HashMap<String, String>() {
 			{
@@ -199,8 +187,32 @@ public class LifecycleFunctionalTest {
 				put(MONTHLY_ENGAGED_EVENT, "MonthlyEngUserEvent");
 			}
 		};
-		assertEquals(expectedContextData, lifecycleEvent.getEventData().get(LIFECYCLE_CONTEXT_DATA));
-		assertEquals(expectedContextData, sharedStateList.get(0).get(LIFECYCLE_CONTEXT_DATA));
+		Map<String, Object> expectedEventData = new HashMap<String, Object>() {
+			{
+				put(PREVIOUS_SESSION_START_TIMESTAMP, 0L);
+				put(PREVIOUS_SESSION_PAUSE_TIMESTAMP, 0L);
+				put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
+				put(SESSION_START_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(currentTimestampMillis));
+				put(SESSION_EVENT, LIFECYCLE_START);
+				put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
+			}
+		};
+		Map<String, Object> expectedSharedState = new HashMap<String, Object>() {
+			{
+				put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
+				put(SESSION_START_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(currentTimestampMillis));
+				put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
+			}
+		};
+
+		Event sessionStartResponseEvent = events.get(0);
+		assertEquals(EventType.LIFECYCLE, sessionStartResponseEvent.getType());
+		assertEquals(EventSource.RESPONSE_CONTENT, sessionStartResponseEvent.getSource());
+		assertEquals(expectedEventData, sessionStartResponseEvent.getEventData());
+
+		Map<String, Object> updatedLifecycleSharedState = sharedStateList.get(0);
+		assertEquals(expectedSharedState, updatedLifecycleSharedState);
+
 		assertEquals(TimeUnit.MILLISECONDS.toSeconds(currentTimestampMillis), lifecycleDataStore.getLong("InstallDate", 0L));
 	}
 
@@ -211,15 +223,17 @@ public class LifecycleFunctionalTest {
 		additionalContextData.put("testKey", "testVal");
 		mockExtensionApi.simulateComingEvent(createStartEvent(additionalContextData, currentTimestampMillis));
 
-		// verify
+		// verify session start dispatches response content event
 		List<Event> events = mockExtensionApi.dispatchedEvents;
 		assertEquals(1, events.size());
 
+		// verify session start updates lifecycle shared state
 		List<Map<String, Object>> sharedStateList = mockExtensionApi.createdSharedState;
 		assertEquals(1, sharedStateList.size());
 
-		Map<String, String> lifecycleContextData = (Map<String, String>) events.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("testVal", lifecycleContextData.get("testKey"));
+		// verify updated shared state context data has additional context data from lifecycle request event
+		Map<String, String> sessionStartContextData = (Map<String, String>) events.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("testVal", sessionStartContextData.get("testKey"));
 	}
 
 	@Test
@@ -227,19 +241,26 @@ public class LifecycleFunctionalTest {
 		// setup
 		long firstSessionStartTimeMillis = currentTimestampMillis;
 		long firstSessionPauseTimeMillis = firstSessionStartTimeMillis +  TimeUnit.SECONDS.toMillis(10);
-		long secondSessionStartTimeMillis = firstSessionStartTimeMillis + TimeUnit.SECONDS.toMillis(20);
+		long secondSessionStartTimeMillis = firstSessionStartTimeMillis + TimeUnit.SECONDS.toMillis(30);
 
 		// test
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, firstSessionStartTimeMillis));
 		mockExtensionApi.simulateComingEvent(createPauseEvent(firstSessionPauseTimeMillis));
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTimeMillis));
 
-		// verify
+		// verify only first session start dispatches response content event
 		assertEquals(1, mockExtensionApi.dispatchedEvents.size());
+
+		// verify both session starts updates lifecycle shared state
 		assertEquals(2, mockExtensionApi.createdSharedState.size());
 
-		assertEquals(TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis), mockExtensionApi.createdSharedState.get(0).get(SESSION_START_TIMESTAMP));
-		assertEquals(TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis) + 10, mockExtensionApi.createdSharedState.get(1).get(SESSION_START_TIMESTAMP));
+		Map<String, Object> firstSessionStartSharedState = mockExtensionApi.createdSharedState.get(0);
+		assertEquals(TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis), firstSessionStartSharedState.get(SESSION_START_TIMESTAMP));
+
+		Map<String, Object> secondSessionStartSharedState = mockExtensionApi.createdSharedState.get(1);
+		// Adjusted start time =  previous start time + new start time - previous pause time
+		assertEquals(TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis + secondSessionStartTimeMillis - firstSessionPauseTimeMillis),
+				secondSessionStartSharedState.get(SESSION_START_TIMESTAMP));
 	}
 
 	@Test
@@ -254,8 +275,10 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi.simulateComingEvent(createPauseEvent(firstSessionPauseTimeMillis));
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTimeMillis));
 
-		// verify
+		// verify both session start dispatches response content event
 		assertEquals(2, mockExtensionApi.dispatchedEvents.size());
+
+		// verify both session starts updates lifecycle shared state
 		assertEquals(2, mockExtensionApi.createdSharedState.size());
 
 		Map<String, String> expectedContextData = new HashMap<String, String>() {
@@ -278,8 +301,12 @@ public class LifecycleFunctionalTest {
 				put(IGNORED_SESSION_LENGTH, "0");
 			}
 		};
-		assertEquals(expectedContextData, mockExtensionApi.dispatchedEvents.get(1).getEventData().get(LIFECYCLE_CONTEXT_DATA));
-		assertEquals(expectedContextData, mockExtensionApi.createdSharedState.get(1).get(LIFECYCLE_CONTEXT_DATA));
+
+		Map<String, Object> secondSessionStartResponseEventData = mockExtensionApi.dispatchedEvents.get(1).getEventData();
+		assertEquals(expectedContextData, secondSessionStartResponseEventData.get(LIFECYCLE_CONTEXT_DATA));
+
+		Map<String, Object> secondSessionStartSharedState = mockExtensionApi.createdSharedState.get(1);
+		assertEquals(expectedContextData, secondSessionStartSharedState.get(LIFECYCLE_CONTEXT_DATA));
 	}
 
 	@Test
@@ -294,28 +321,59 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi.simulateComingEvent(createPauseEvent(firstSessionPauseTimeMillis));
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTimeMillis));
 
-		// verify
+		// verify both session start dispatches response content event
 		assertEquals(2, mockExtensionApi.dispatchedEvents.size());
+
+		// verify both session starts updates lifecycle shared state
 		assertEquals(2, mockExtensionApi.createdSharedState.size());
 
-		Map<String, String> lifecycleContextData1 = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		Map<String, String> lifecycleContextData2 = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(1).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("1", lifecycleContextData1.get(LAUNCHES));
-		assertEquals("2", lifecycleContextData2.get(LAUNCHES));
+		Map<String, String> firstSessionStartResponseEventContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("1", firstSessionStartResponseEventContextData.get(LAUNCHES));
 
-		assertEquals(TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis),
-				mockExtensionApi.dispatchedEvents.get(1).getEventData().get(PREVIOUS_SESSION_START_TIMESTAMP));
-		assertEquals(TimeUnit.MILLISECONDS.toSeconds(firstSessionPauseTimeMillis),
-				mockExtensionApi.dispatchedEvents.get(1).getEventData().get(PREVIOUS_SESSION_PAUSE_TIMESTAMP));
-		assertEquals(MAX_SESSION_LENGTH_SECONDS, mockExtensionApi.dispatchedEvents.get(1).getEventData().get(MAX_SESSION_LENGTH));
-		assertEquals(LIFECYCLE_START, mockExtensionApi.dispatchedEvents.get(1).getEventData().get(SESSION_EVENT));
+		Map<String, String> expectedContextData = new HashMap<String, String>() {
+			{
+				put(LAUNCH_EVENT, "LaunchEvent");
+				put(HOUR_OF_DAY, hourOfDay);
+				put(DAY_OF_WEEK, dayOfWeek);
+				put(LAUNCHES, "2");
+				put(OPERATING_SYSTEM, "TEST_OS 5.55");
+				put(LOCALE, "en-US");
+				put(DEVICE_RESOLUTION, "100x100");
+				put(CARRIER_NAME, "TEST_CARRIER");
+				put(DEVICE_NAME, "deviceName");
+				put(APP_ID, "TEST_APPLICATION_NAME 1.1 (12345)");
+				put(RUN_MODE, "APPLICATION");
+				put(PREVIOUS_SESSION_LENGTH, "10");
+				put(DAYS_SINCE_FIRST_LAUNCH, "0");
+				put(DAYS_SINCE_LAST_LAUNCH, "0");
+				put(PREVIOUS_APPID, "TEST_APPLICATION_NAME 1.1 (12345)");
+				put(PREVIOUS_OS, "TEST_OS 5.55");
+			}
+		};
+		Map<String, Object> expectedEventData = new HashMap<String, Object>() {
+			{
+				put(PREVIOUS_SESSION_START_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis));
+				put(PREVIOUS_SESSION_PAUSE_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(firstSessionPauseTimeMillis));
+				put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
+				put(SESSION_START_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis));
+				put(SESSION_EVENT, LIFECYCLE_START);
+				put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
+			}
+		};
 
-		assertEquals(TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis), mockExtensionApi.createdSharedState.get(0).get(SESSION_START_TIMESTAMP));
-		assertEquals(TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis), mockExtensionApi.createdSharedState.get(1).get(SESSION_START_TIMESTAMP));
+		Map<String, Object> expectedSharedState = new HashMap<String, Object>() {
+			{
+				put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
+				put(SESSION_START_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis));
+				put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
+			}
+		};
 
-		assertEquals("10", lifecycleContextData2.get(PREVIOUS_SESSION_LENGTH));
-		Map<String, String> lifecycleSharedSate = (Map<String, String>) mockExtensionApi.createdSharedState.get(1).get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("10", lifecycleSharedSate.get(PREVIOUS_SESSION_LENGTH));
+		Map<String, Object> secondSessionStartResponseEventData = mockExtensionApi.dispatchedEvents.get(1).getEventData();
+		assertEquals(expectedEventData, secondSessionStartResponseEventData);
+
+		Map<String, Object> secondSessionSharedState = mockExtensionApi.createdSharedState.get(1);
+		assertEquals(expectedSharedState, secondSessionSharedState);
 
 	}
 
@@ -337,11 +395,11 @@ public class LifecycleFunctionalTest {
 		lifecycleSession2.onRegistered();
 		mockExtensionApi2.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
 
-		// verify
+		// verify second session start dispatches lifecycle response event
 		assertEquals(1, mockExtensionApi2.dispatchedEvents.size());
 
-		Map<String, String> lifecycleContextData = (Map<String, String>) mockExtensionApi2.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("CrashEvent", lifecycleContextData.get(CRASH_EVENT));
+		Map<String, String> secondSessionStartResponseEventContextData = (Map<String, String>) mockExtensionApi2.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("CrashEvent", secondSessionStartResponseEventContextData.get(CRASH_EVENT));
 	}
 
 	@Test
@@ -356,16 +414,22 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi.simulateComingEvent(createPauseEvent(firstSessionPauseTimeMillis));
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTimeMillis));
 
-		// verify
+		// verify both session start dispatches response content event
 		assertEquals(2, mockExtensionApi.dispatchedEvents.size());
+
+		// verify both session starts updates lifecycle shared state
 		assertEquals(2, mockExtensionApi.createdSharedState.size());
 
-		Map<String, String> lifecycleContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(1).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals(String.valueOf(TimeUnit.DAYS.toSeconds(8)), lifecycleContextData.get(IGNORED_SESSION_LENGTH));
-		Map<String, String> lifecycleSharedState = (Map<String, String>) mockExtensionApi.createdSharedState.get(1).get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals(String.valueOf(TimeUnit.DAYS.toSeconds(8)), lifecycleSharedState.get(IGNORED_SESSION_LENGTH));
-		assertEquals(MAX_SESSION_LENGTH_SECONDS, mockExtensionApi.dispatchedEvents.get(1).getEventData().get(MAX_SESSION_LENGTH));
-		assertEquals(MAX_SESSION_LENGTH_SECONDS, mockExtensionApi.createdSharedState.get(1).get(MAX_SESSION_LENGTH));
+		Map<String, Object> secondSessionStartResponseEventData = mockExtensionApi.dispatchedEvents.get(1).getEventData();
+		Map<String, String> secondSessionStartResponseEventContextData = (Map<String, String>) secondSessionStartResponseEventData.get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals(String.valueOf(TimeUnit.DAYS.toSeconds(8)), secondSessionStartResponseEventContextData.get(IGNORED_SESSION_LENGTH));
+
+		Map<String, Object> secondSessionStartSharedState = mockExtensionApi.createdSharedState.get(1);
+		Map<String, String> secondSessionStartSharedStateContextData = (Map<String, String>)secondSessionStartSharedState.get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals(String.valueOf(TimeUnit.DAYS.toSeconds(8)), secondSessionStartSharedStateContextData.get(IGNORED_SESSION_LENGTH));
+
+		assertEquals(MAX_SESSION_LENGTH_SECONDS, secondSessionStartResponseEventData.get(MAX_SESSION_LENGTH));
+		assertEquals(MAX_SESSION_LENGTH_SECONDS, secondSessionStartSharedState.get(MAX_SESSION_LENGTH));
 	}
 
 	@Test
@@ -393,15 +457,50 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi2.simulateComingEvent(createStartEvent(null, secondSessionStartTimeMillis));
 
 		// verify
-		Map<String, String> lifecycleContextData = (Map<String, String>) mockExtensionApi2.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("UpgradeEvent", lifecycleContextData.get(UPGRADE_EVENT));
-		assertEquals("TEST_APPLICATION_NAME 1.1 (12345)", lifecycleContextData.get(PREVIOUS_APPID));
-		assertEquals("TEST_APPLICATION_NAME 1.2 (12345)", lifecycleContextData.get(APP_ID));
-		assertEquals("2", lifecycleContextData.get(LAUNCHES));
-		assertEquals("LaunchEvent", lifecycleContextData.get(LAUNCH_EVENT));
-		assertEquals("LaunchEvent", lifecycleContextData.get(LAUNCH_EVENT));
-		Map<String, String> lifecycleSharedState = (Map<String, String>) mockExtensionApi2.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("UpgradeEvent", lifecycleSharedState.get(UPGRADE_EVENT));
+		Map<String, String> expectedContextData = new HashMap<String, String>() {
+			{
+				put(LAUNCH_EVENT, "LaunchEvent");
+				put(UPGRADE_EVENT, "UpgradeEvent");
+				put(HOUR_OF_DAY, hourOfDay);
+				put(DAY_OF_WEEK, getDayOfWeek(secondSessionStartTimeMillis));
+				put(LAUNCHES, "2");
+				put(OPERATING_SYSTEM, "TEST_OS 5.55");
+				put(LOCALE, "en-US");
+				put(DEVICE_RESOLUTION, "100x100");
+				put(CARRIER_NAME, "TEST_CARRIER");
+				put(DEVICE_NAME, "deviceName");
+				put(APP_ID, "TEST_APPLICATION_NAME 1.2 (12345)");
+				put(RUN_MODE, "APPLICATION");
+				put(PREVIOUS_SESSION_LENGTH, "10");
+				put(DAYS_SINCE_FIRST_LAUNCH, "1");
+				put(DAYS_SINCE_LAST_LAUNCH, "1");
+				put(PREVIOUS_APPID, "TEST_APPLICATION_NAME 1.1 (12345)");
+				put(PREVIOUS_OS, "TEST_OS 5.55");
+				put(DAILY_ENGAGED_EVENT, "DailyEngUserEvent");
+			}
+		};
+		Map<String, Object> expectedEventData = new HashMap<String, Object>() {
+			{
+				put(PREVIOUS_SESSION_START_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis));
+				put(PREVIOUS_SESSION_PAUSE_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(firstSessionPauseTimeMillis));
+				put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
+				put(SESSION_START_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis));
+				put(SESSION_EVENT, LIFECYCLE_START);
+				put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
+			}
+		};
+		Map<String, Object> expectedSharedState = new HashMap<String, Object>() {
+			{
+				put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
+				put(SESSION_START_TIMESTAMP, TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis));
+				put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
+			}
+		};
+
+		Map<String, Object> secondSessionStartResponseEventData = mockExtensionApi2.dispatchedEvents.get(0).getEventData();
+		assertEquals(expectedEventData, secondSessionStartResponseEventData);
+		Map<String, Object> secondSessionStarSharedState = mockExtensionApi2.createdSharedState.get(0);
+		assertEquals(expectedSharedState, secondSessionStarSharedState);
 
 		assertEquals(TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis), lifecycleDataStore.getLong("InstallDate", 0L));
 		assertEquals(TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis), lifecycleDataStore.getLong("UpgradeDate", 0L));
@@ -421,14 +520,15 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTime));
 
 		// verify
-		Map<String, String> lifecycleContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("3", lifecycleContextData.get(DAYS_SINCE_FIRST_LAUNCH));
-		assertEquals("DailyEngUserEvent", lifecycleContextData.get(DAILY_ENGAGED_EVENT));
-		assertNull(lifecycleContextData.get(MONTHLY_ENGAGED_EVENT));
-		Map<String, String> lifecycleSharedState = (Map<String, String>) mockExtensionApi.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("3", lifecycleSharedState.get(DAYS_SINCE_FIRST_LAUNCH));
-		assertEquals("DailyEngUserEvent", lifecycleSharedState.get(DAILY_ENGAGED_EVENT));
-		assertNull(lifecycleSharedState.get(MONTHLY_ENGAGED_EVENT));
+		Map<String, String> secondSessionStartResponseEventContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("3", secondSessionStartResponseEventContextData.get(DAYS_SINCE_FIRST_LAUNCH));
+		assertEquals("DailyEngUserEvent", secondSessionStartResponseEventContextData.get(DAILY_ENGAGED_EVENT));
+		assertNull(secondSessionStartResponseEventContextData.get(MONTHLY_ENGAGED_EVENT));
+
+		Map<String, String> secondSessionStartSharedStateContextData = (Map<String, String>) mockExtensionApi.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("3", secondSessionStartSharedStateContextData.get(DAYS_SINCE_FIRST_LAUNCH));
+		assertEquals("DailyEngUserEvent", secondSessionStartSharedStateContextData.get(DAILY_ENGAGED_EVENT));
+		assertNull(secondSessionStartSharedStateContextData.get(MONTHLY_ENGAGED_EVENT));
 	}
 
 	@Test
@@ -445,10 +545,10 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTime));
 
 		// verify
-		Map<String, String> lifecycleContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("3", lifecycleContextData.get(DAYS_SINCE_LAST_LAUNCH));
-		Map<String, String> lifecycleSharedState = (Map<String, String>) mockExtensionApi.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("3", lifecycleSharedState.get(DAYS_SINCE_LAST_LAUNCH));
+		Map<String, String> secondSessionStartResponseEventContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("3", secondSessionStartResponseEventContextData.get(DAYS_SINCE_LAST_LAUNCH));
+		Map<String, String> secondSessionStartSharedStateContextData = (Map<String, String>) mockExtensionApi.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("3", secondSessionStartSharedStateContextData.get(DAYS_SINCE_LAST_LAUNCH));
 	}
 
 	@Test
@@ -473,10 +573,10 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, thirdSessionStartTimeMillis));
 
 		// verify
-		Map<String, String> lifecycleContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("3", lifecycleContextData.get(DAYS_SINCE_LAST_UPGRADE));
-		Map<String, String> lifecycleSharedState = (Map<String, String>) mockExtensionApi.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("3", lifecycleSharedState.get(DAYS_SINCE_LAST_UPGRADE));
+		Map<String, String> secondSessionStartResponseEventContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("3", secondSessionStartResponseEventContextData.get(DAYS_SINCE_LAST_UPGRADE));
+		Map<String, String> secondSessionStartSharedStateContextData = (Map<String, String>) mockExtensionApi.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("3", secondSessionStartSharedStateContextData.get(DAYS_SINCE_LAST_UPGRADE));
 	}
 
 	@Test
@@ -493,10 +593,10 @@ public class LifecycleFunctionalTest {
 		mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTime));
 
 		// verify
-		Map<String, String> lifecycleContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("MonthlyEngUserEvent", lifecycleContextData.get(MONTHLY_ENGAGED_EVENT));
-		Map<String, String> lifecycleSharedState = (Map<String, String>) mockExtensionApi.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
-		assertEquals("MonthlyEngUserEvent", lifecycleSharedState.get(MONTHLY_ENGAGED_EVENT));
+		Map<String, String> secondSessionStartResponseEventContextData = (Map<String, String>) mockExtensionApi.dispatchedEvents.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("MonthlyEngUserEvent", secondSessionStartResponseEventContextData.get(MONTHLY_ENGAGED_EVENT));
+		Map<String, String> secondSessionStartSharedStateContextData = (Map<String, String>) mockExtensionApi.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals("MonthlyEngUserEvent", secondSessionStartSharedStateContextData.get(MONTHLY_ENGAGED_EVENT));
 	}
 
 	@Test
@@ -523,8 +623,10 @@ public class LifecycleFunctionalTest {
 				.build();
 		mockExtensionApi2.simulateComingEvent(bootEvent);
 
-		// verify
+		// verify second session start does not dispatch response event
 		assertEquals(0, mockExtensionApi2.dispatchedEvents.size());
+
+		// verify second session start updates shared state
 		assertEquals(1, mockExtensionApi2.createdSharedState.size());
 
 		Map<String, String> expectedContextData = new HashMap<String, String>() {
@@ -546,7 +648,8 @@ public class LifecycleFunctionalTest {
 				put(MONTHLY_ENGAGED_EVENT, "MonthlyEngUserEvent");
 			}
 		};
-		assertEquals(expectedContextData, mockExtensionApi2.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA));
+		Map<String, String> secondSessionStartResponseEventContextData = (Map<String, String>) mockExtensionApi2.createdSharedState.get(0).get(LIFECYCLE_CONTEXT_DATA);
+		assertEquals(expectedContextData, secondSessionStartResponseEventContextData);
 	}
 
 }

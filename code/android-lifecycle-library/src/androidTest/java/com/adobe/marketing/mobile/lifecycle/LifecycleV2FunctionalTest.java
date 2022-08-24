@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @RunWith(AndroidJUnit4.class)
@@ -132,6 +133,18 @@ public class LifecycleV2FunctionalTest {
     public void testLifecycleV2__When__Start__Then__DispatchLifecycleApplicationLaunchEvent_When__WithFreeFormData() throws InterruptedException {
         // setup
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 1, mockExtensionApi);
+
+        Map<String, String> expectedFreeFormData = new HashMap<>();
+        expectedFreeFormData.put("key1", "val1");
+        expectedFreeFormData.put("key2", "val2");
+
+        // test
+        long sessionStartTimeInMillis = currentTimestampMillis;
+        mockExtensionApi.simulateComingEvent(createStartEvent(expectedFreeFormData, sessionStartTimeInMillis));
+
+        //verify
+        assertExpectedEvents(mockExtensionApi);
+
         Map<String, Object> expectedApplicationInfo = new HashMap<>();
         expectedApplicationInfo.put("name", "TEST_APPLICATION_NAME");
         expectedApplicationInfo.put( "version", "1.1 (12345)");
@@ -139,28 +152,26 @@ public class LifecycleV2FunctionalTest {
         expectedApplicationInfo.put("isLaunch", true);
         expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
 
-        Map<String, String> expectedFreeFormData = new HashMap<>();
-        expectedFreeFormData.put("key1", "val1");
-        expectedFreeFormData.put("key2", "val2");
-
-        // test
-        mockExtensionApi.simulateComingEvent(createStartEvent(expectedFreeFormData, currentTimestampMillis));
-
-        //verify
-        assertExpectedEvents(mockExtensionApi);
-
-        Event lifecycleEvent = mockExtensionApi.dispatchedEvents.get(0);
-        Map<String, Object> xdm = (Map<String, Object>) lifecycleEvent.getEventData().get(XDM);
-        Map<String, String> data = (Map<String, String>) lifecycleEvent.getEventData().get(DATA);
-
-        assertEquals("Application Launch (Foreground)", lifecycleEvent.getName());
-        assertEquals(EventType.LIFECYCLE, lifecycleEvent.getType());
-        assertEquals(EventSource.APPLICATION_LAUNCH, lifecycleEvent.getSource());
-        assertEquals(expectedFreeFormData, data);
-        assertNotNull((String)xdm.get("timestamp"));
-        assertEquals(expectedEnvironmentInfo, xdm.get("environment"));
-        assertEquals(expectedDeviceInfo, xdm.get("device"));
-        assertEquals(expectedApplicationInfo, xdm.get("application"));
+        Map<String, Object> expectedXDMData = new HashMap<String, Object>() {
+            {
+                put("environment", expectedEnvironmentInfo);
+                put("device", expectedDeviceInfo);
+                put("application", expectedApplicationInfo);
+                put("timestamp", LifecycleUtil.dateTimeISO8601String(new Date(sessionStartTimeInMillis)));
+                put("eventType", "application.launch");
+            }
+        };
+        Map<String, Object> expectedEventData = new HashMap<String, Object>() {
+            {
+                put(XDM, expectedXDMData);
+                put(DATA, expectedFreeFormData);
+            }
+        };
+        Event sessionStartApplicationLaunchEvent = mockExtensionApi.dispatchedEvents.get(0);
+        assertEquals("Application Launch (Foreground)", sessionStartApplicationLaunchEvent.getName());
+        assertEquals(EventType.LIFECYCLE, sessionStartApplicationLaunchEvent.getType());
+        assertEquals(EventSource.APPLICATION_LAUNCH, sessionStartApplicationLaunchEvent.getSource());
+        assertEquals(expectedEventData, sessionStartApplicationLaunchEvent.getEventData());
     }
 
     @Test
@@ -168,39 +179,46 @@ public class LifecycleV2FunctionalTest {
         // setup
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 1, mockExtensionApi);
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE, 1, mockExtensionApi);
+
+        // test
+        mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
+        long sessionPauseTimeInMillis = currentTimestampMillis + 1000;
+        mockExtensionApi.simulateComingEvent(createPauseEvent(sessionPauseTimeInMillis));
+
+        //verify
+        assertExpectedEvents(mockExtensionApi);
+
         Map<String, Object> expectedApplicationInfo = new HashMap<>();
         expectedApplicationInfo.put("closeType", "close");
         expectedApplicationInfo.put( "isClose", true);
         expectedApplicationInfo.put("sessionLength", 1);
 
-        // test
-        mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
-        mockExtensionApi.simulateComingEvent(createPauseEvent(currentTimestampMillis + 1000));
-
-        //verify
-        assertExpectedEvents(mockExtensionApi);
-
-        Event lifecycleEvent = mockExtensionApi.dispatchedEvents.get(1);
-        Map<String, Object> xdm = (Map<String, Object>) lifecycleEvent.getEventData().get(XDM);
-
-        assertEquals("Application Close (Background)", lifecycleEvent.getName());
-        assertEquals(EventType.LIFECYCLE, lifecycleEvent.getType());
-        assertEquals(EventSource.APPLICATION_CLOSE, lifecycleEvent.getSource());
-        assertNotNull((String)xdm.get("timestamp"));
-        assertEquals(expectedApplicationInfo, xdm.get("application"));
+        Map<String, Object> expectedXDMData = new HashMap<String, Object>() {
+            {
+                put("application", expectedApplicationInfo);
+                put("timestamp", LifecycleUtil.dateTimeISO8601String(new Date(sessionPauseTimeInMillis)));
+                put("eventType", "application.close");
+            }
+        };
+        Map<String, Object> expectedEventData = new HashMap<String, Object>() {
+            {
+                put(XDM, expectedXDMData);
+            }
+        };
+        Event sessionPauseApplicationCloseEvent = mockExtensionApi.dispatchedEvents.get(1);
+        assertEquals("Application Close (Background)", sessionPauseApplicationCloseEvent.getName());
+        assertEquals(EventType.LIFECYCLE, sessionPauseApplicationCloseEvent.getType());
+        assertEquals(EventSource.APPLICATION_CLOSE, sessionPauseApplicationCloseEvent.getSource());
+        assertEquals(expectedEventData, sessionPauseApplicationCloseEvent.getEventData());
     }
 
     @Test
     public void testLifecycleV2__When__SecondLaunch_VersionNumberChanged__Then__GetApplicationLaunchEvent__withIsUpgradeTrue() throws InterruptedException {
         // setup
+        // both session starts dispatch application launch event
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 2, mockExtensionApi);
+        // session pauses dispatches application close event
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE, 1, mockExtensionApi);
-        Map<String, Object> expectedApplicationInfo = new HashMap<>();
-        expectedApplicationInfo.put("name", "TEST_APPLICATION_NAME");
-        expectedApplicationInfo.put( "version", "1.2 (12345)");
-        expectedApplicationInfo.put("isUpgrade", true);
-        expectedApplicationInfo.put("isLaunch", true);
-        expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
 
         // test
         mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
@@ -209,33 +227,48 @@ public class LifecycleV2FunctionalTest {
         sleep(1000);
         mockDeviceInfoService.applicationVersion = "1.2";
 
-        mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis +  TimeUnit.DAYS.toMillis(1)));
+        long secondSessionStartTimeInMillis = currentTimestampMillis +  TimeUnit.DAYS.toMillis(1);
+        mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTimeInMillis));
 
         //verify
         assertExpectedEvents(mockExtensionApi);
 
-        Event lifecycleEvent = mockExtensionApi.dispatchedEvents.get(2);
-        Map<String, Object> xdm = (Map<String, Object>) lifecycleEvent.getEventData().get(XDM);
+        Map<String, Object> expectedApplicationInfo = new HashMap<>();
+        expectedApplicationInfo.put("name", "TEST_APPLICATION_NAME");
+        expectedApplicationInfo.put( "version", "1.2 (12345)");
+        expectedApplicationInfo.put("isUpgrade", true);
+        expectedApplicationInfo.put("isLaunch", true);
+        expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
 
-        assertEquals("Application Launch (Foreground)", lifecycleEvent.getName());
-        assertEquals(EventType.LIFECYCLE, lifecycleEvent.getType());
-        assertEquals(EventSource.APPLICATION_LAUNCH, lifecycleEvent.getSource());
-        assertNotNull((String)xdm.get("timestamp"));
-        assertEquals(expectedEnvironmentInfo, xdm.get("environment"));
-        assertEquals(expectedDeviceInfo, xdm.get("device"));
-        assertEquals(expectedApplicationInfo, xdm.get("application"));
+        Map<String, Object> expectedXDMData = new HashMap<String, Object>() {
+            {
+                put("environment", expectedEnvironmentInfo);
+                put("device", expectedDeviceInfo);
+                put("application", expectedApplicationInfo);
+                put("timestamp", LifecycleUtil.dateTimeISO8601String(new Date(secondSessionStartTimeInMillis)));
+                put("eventType", "application.launch");
+            }
+        };
+        Map<String, Object> expectedEventData = new HashMap<String, Object>() {
+            {
+                put(XDM, expectedXDMData);
+            }
+        };
+
+        Event secondSessionStartApplicationLaunchEvent = mockExtensionApi.dispatchedEvents.get(2);
+        assertEquals("Application Launch (Foreground)", secondSessionStartApplicationLaunchEvent.getName());
+        assertEquals(EventType.LIFECYCLE, secondSessionStartApplicationLaunchEvent.getType());
+        assertEquals(EventSource.APPLICATION_LAUNCH, secondSessionStartApplicationLaunchEvent.getSource());
+        assertEquals(expectedEventData, secondSessionStartApplicationLaunchEvent.getEventData());
     }
 
     @Test
     public void testLifecycleV2__When__SecondLaunch_VersionNumberNotChanged__Then__GetApplicationLaunchEvent() throws InterruptedException {
         // setup
+        // both session starts dispatch application launch event
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 2, mockExtensionApi);
+        // session pauses dispatches application close event
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE, 1, mockExtensionApi);
-        Map<String, Object> expectedApplicationInfo = new HashMap<>();
-        expectedApplicationInfo.put("name", "TEST_APPLICATION_NAME");
-        expectedApplicationInfo.put( "version", "1.1 (12345)");
-        expectedApplicationInfo.put("isLaunch", true);
-        expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
 
         // test
         mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
@@ -243,34 +276,48 @@ public class LifecycleV2FunctionalTest {
 
         sleep(1000);
 
-        mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis +  TimeUnit.DAYS.toMillis(1)));
+        long secondSessionStartTimeInMillis = currentTimestampMillis +  TimeUnit.DAYS.toMillis(1);
+        mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTimeInMillis));
 
         //verify
         assertExpectedEvents(mockExtensionApi);
 
-        Event lifecycleEvent = mockExtensionApi.dispatchedEvents.get(2);
-        Map<String, Object> xdm = (Map<String, Object>) lifecycleEvent.getEventData().get(XDM);
+        Map<String, Object> expectedApplicationInfo = new HashMap<>();
+        expectedApplicationInfo.put("name", "TEST_APPLICATION_NAME");
+        expectedApplicationInfo.put( "version", "1.1 (12345)");
+        expectedApplicationInfo.put("isLaunch", true);
+        expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
 
-        assertEquals("Application Launch (Foreground)", lifecycleEvent.getName());
-        assertEquals(EventType.LIFECYCLE, lifecycleEvent.getType());
-        assertEquals(EventSource.APPLICATION_LAUNCH, lifecycleEvent.getSource());
-        assertNotNull((String)xdm.get("timestamp"));
-        assertEquals(expectedEnvironmentInfo, xdm.get("environment"));
-        assertEquals(expectedDeviceInfo, xdm.get("device"));
-        assertEquals(expectedApplicationInfo, xdm.get("application"));
+        Map<String, Object> expectedXDMData = new HashMap<String, Object>() {
+            {
+                put("environment", expectedEnvironmentInfo);
+                put("device", expectedDeviceInfo);
+                put("application", expectedApplicationInfo);
+                put("timestamp", LifecycleUtil.dateTimeISO8601String(new Date(secondSessionStartTimeInMillis)));
+                put("eventType", "application.launch");
+            }
+        };
+        Map<String, Object> expectedEventData = new HashMap<String, Object>() {
+            {
+                put(XDM, expectedXDMData);
+            }
+        };
+        Event secondSessionStartApplicationLaunchEvent = mockExtensionApi.dispatchedEvents.get(2);
+        assertEquals("Application Launch (Foreground)", secondSessionStartApplicationLaunchEvent.getName());
+        assertEquals(EventType.LIFECYCLE, secondSessionStartApplicationLaunchEvent.getType());
+        assertEquals(EventSource.APPLICATION_LAUNCH, secondSessionStartApplicationLaunchEvent.getSource());
+        assertEquals(expectedEventData, secondSessionStartApplicationLaunchEvent.getEventData());
     }
 
     @Test
     public void testLifecycleV2__When__Crash__Then__withCloseTypeUnknown() throws InterruptedException {
         // setup
+        // first session start dispatches application launch event
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 1, mockExtensionApi);
-        Map<String, Object> expectedApplicationInfo = new HashMap<>();
-        expectedApplicationInfo.put("closeType", "unknown");
-        expectedApplicationInfo.put( "isClose", true);
-        expectedApplicationInfo.put("sessionLength", 2);
 
         // test
-        mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
+        long firstSessionStartTimeInMillis = currentTimestampMillis;
+        mockExtensionApi.simulateComingEvent(createStartEvent(null, firstSessionStartTimeInMillis));
 
         TestableExtensionApi mockExtensionApi2 = new TestableExtensionApi();
         mockExtensionApi2.ignoreEvent(EventType.LIFECYCLE, EventSource.RESPONSE_CONTENT);
@@ -280,29 +327,45 @@ public class LifecycleV2FunctionalTest {
         LifecycleExtension lifecycleSession2 = new LifecycleExtension(mockExtensionApi2);
         lifecycleSession2.onRegistered();
 
+        // second session start after crash dispatches application close event
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 1, mockExtensionApi2);
-        mockExtensionApi2.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
+        long secondSessionStartTimeInMillis = currentTimestampMillis;
+        mockExtensionApi2.simulateComingEvent(createStartEvent(null, secondSessionStartTimeInMillis));
 
         //verify
         assertExpectedEvents(mockExtensionApi);
         assertExpectedEvents(mockExtensionApi2);
 
-        Event lifecycleEvent = mockExtensionApi2.dispatchedEvents.get(0);
-        Map<String, Object> xdm = (Map<String, Object>) lifecycleEvent.getEventData().get(XDM);
-        assertEquals("Application Close (Background)", lifecycleEvent.getName());
-        assertEquals(EventType.LIFECYCLE, lifecycleEvent.getType());
-        assertEquals(EventSource.APPLICATION_CLOSE, lifecycleEvent.getSource());
-        assertNotNull((String)xdm.get("timestamp"));
-        assertEquals(expectedApplicationInfo, xdm.get("application"));
+        Map<String, Object> expectedApplicationInfo = new HashMap<>();
+        expectedApplicationInfo.put("closeType", "unknown");
+        expectedApplicationInfo.put( "isClose", true);
+        expectedApplicationInfo.put("sessionLength", 2);
+
+        Map<String, Object> expectedXDMData = new HashMap<String, Object>() {
+            {
+                put("application", expectedApplicationInfo);
+                put("timestamp", LifecycleUtil.dateTimeISO8601String(new Date(firstSessionStartTimeInMillis + LifecycleV2Constants.CACHE_TIMEOUT_MILLIS)));
+                put("eventType", "application.close");
+            }
+        };
+        Map<String, Object> expectedEventData = new HashMap<String, Object>() {
+            {
+                put(XDM, expectedXDMData);
+            }
+        };
+        Event secondSessionStartApplicationCloseEvent = mockExtensionApi2.dispatchedEvents.get(0);
+        Map<String, Object> xdm = (Map<String, Object>) secondSessionStartApplicationCloseEvent.getEventData().get(XDM);
+        assertEquals("Application Close (Background)", secondSessionStartApplicationCloseEvent.getName());
+        assertEquals(EventType.LIFECYCLE, secondSessionStartApplicationCloseEvent.getType());
+        assertEquals(EventSource.APPLICATION_CLOSE, secondSessionStartApplicationCloseEvent.getSource());
+        assertEquals(expectedEventData, secondSessionStartApplicationCloseEvent.getEventData());
     }
 
     @Test
     public void testLifecycleV2__When__CrashWithCloseTimestampMissing__Then__BackdateToStartTimestampMinusOneSecond() throws InterruptedException {
         // setup
+        // first session start dispatches application launch event
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 1, mockExtensionApi);
-        Map<String, Object> expectedApplicationInfo = new HashMap<>();
-        expectedApplicationInfo.put("closeType", "unknown");
-        expectedApplicationInfo.put( "isClose", true);
 
         // test
         mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
@@ -317,6 +380,7 @@ public class LifecycleV2FunctionalTest {
         LifecycleExtension lifecycleSession2 = new LifecycleExtension(mockExtensionApi2);
         lifecycleSession2.onRegistered();
 
+        // second session start after crash dispatches application close event
         setExpectationEvent(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 1, mockExtensionApi2);
         Event startEvent2 = createStartEvent(null, currentTimestampMillis);
         mockExtensionApi2.simulateComingEvent(startEvent2);
@@ -325,14 +389,29 @@ public class LifecycleV2FunctionalTest {
         assertExpectedEvents(mockExtensionApi);
         assertExpectedEvents(mockExtensionApi2);
 
-        Event lifecycleEvent = mockExtensionApi2.dispatchedEvents.get(0);
-        Map<String, Object> xdm = (Map<String, Object>) lifecycleEvent.getEventData().get(XDM);
-        assertEquals("Application Close (Background)", lifecycleEvent.getName());
-        assertEquals(EventType.LIFECYCLE, lifecycleEvent.getType());
-        assertEquals(EventSource.APPLICATION_CLOSE, lifecycleEvent.getSource());
-        assertNotNull((String)xdm.get("timestamp"));
-        assertEquals(LifecycleUtil.dateTimeISO8601String(new Date(startEvent2.getTimestamp() - 1000)), (String)xdm.get("timestamp"));
-        assertEquals(expectedApplicationInfo, xdm.get("application"));
+        Map<String, Object> expectedApplicationInfo = new HashMap<>();
+        expectedApplicationInfo.put("closeType", "unknown");
+        expectedApplicationInfo.put( "isClose", true);
+
+        // if no close timestamp was persisted, backdate this event to start timestamp - 1 second
+        Map<String, Object> expectedXDMData = new HashMap<String, Object>() {
+            {
+                put("application", expectedApplicationInfo);
+                put("timestamp", LifecycleUtil.dateTimeISO8601String(new Date(startEvent2.getTimestamp() - 1000)));
+                put("eventType", "application.close");
+            }
+        };
+        Map<String, Object> expectedEventData = new HashMap<String, Object>() {
+            {
+                put(XDM, expectedXDMData);
+            }
+        };
+
+        Event secondSessionStartApplicationCloseEvent = mockExtensionApi2.dispatchedEvents.get(0);
+        assertEquals("Application Close (Background)", secondSessionStartApplicationCloseEvent.getName());
+        assertEquals(EventType.LIFECYCLE, secondSessionStartApplicationCloseEvent.getType());
+        assertEquals(EventSource.APPLICATION_CLOSE, secondSessionStartApplicationCloseEvent.getSource());
+        assertEquals(expectedEventData, secondSessionStartApplicationCloseEvent.getEventData());
     }
 
     /**
@@ -340,22 +419,18 @@ public class LifecycleV2FunctionalTest {
      * @throws InterruptedException
      */
     private void assertExpectedEvents(final TestableExtensionApi mockExtensionApi) throws InterruptedException {
-        Map<TestableExtensionApi.EventSpec, ADBCountDownLatch> expectedEvents = mockExtensionApi.getExpectedEvents();
+        Map<TestableExtensionApi.EventSpec, CountDownLatch> expectedEvents = mockExtensionApi.getExpectedEvents();
 
         if (expectedEvents.isEmpty()) {
             fail("There are no event expectations set, use this API after calling setExpectationEvent");
             return;
         }
 
-        for (Map.Entry<TestableExtensionApi.EventSpec, ADBCountDownLatch> expected : expectedEvents.entrySet()) {
+        for (Map.Entry<TestableExtensionApi.EventSpec, CountDownLatch> expected : expectedEvents.entrySet()) {
             boolean awaitResult = expected.getValue().await(WAIT_EVENT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
             assertTrue("Timed out waiting for event type " + expected.getKey().type + " and source " + expected.getKey().source,
                     awaitResult);
-            int expectedCount = expected.getValue().getInitialCount();
-            int receivedCount = expected.getValue().getCurrentCount();
-            String failMessage = String.format("Expected %d events for '%s', but received %d", expectedCount, expected.getKey(),
-                    receivedCount);
-            assertEquals(failMessage, expectedCount, receivedCount);
+            assertEquals("Failed to receive as many events as expected", 0, expected.getValue().getCount());
         }
     }
 

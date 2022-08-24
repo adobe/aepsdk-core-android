@@ -47,7 +47,7 @@ public class LifecycleExtension extends Extension {
 	private static final String SELF_LOG_TAG                = "LifecycleExtension";
 	private final NamedCollection lifecycleDataStore;
 	private final DeviceInforming deviceInfoService;
-	private final LifecycleState lifecycleState;
+	private final LifecycleV1Extension lifecycleV1;
 	private final LifecycleV2Extension lifecycleV2;
 
 	/**
@@ -60,7 +60,7 @@ public class LifecycleExtension extends Extension {
 		super(extensionApi);
 		lifecycleDataStore = getDataStore();
 		deviceInfoService = getDeviceInfoService();
-		lifecycleState = new LifecycleState(lifecycleDataStore, deviceInfoService);
+		lifecycleV1 = new LifecycleV1Extension(lifecycleDataStore, deviceInfoService, getApi());
 		lifecycleV2 = new LifecycleV2Extension(lifecycleDataStore, deviceInfoService, getApi());
 	}
 
@@ -78,7 +78,7 @@ public class LifecycleExtension extends Extension {
 		super(extensionApi);
 		lifecycleDataStore = namedCollection;
 		this.deviceInfoService = deviceInfoService;
-		lifecycleState = new LifecycleState(lifecycleDataStore, deviceInfoService);
+		lifecycleV1 = new LifecycleV1Extension(lifecycleDataStore, deviceInfoService, getApi());
 		lifecycleV2 = new LifecycleV2Extension(lifecycleDataStore, deviceInfoService, getApi());
 	}
 
@@ -88,19 +88,19 @@ public class LifecycleExtension extends Extension {
 	 * @param extensionApi {@code ExtensionApi} instance
 	 * @param namedCollection {@code NamedCollection} instance
 	 * @param deviceInfoService {@code DeviceInforming} instance
-	 * @param lifecycleState {@code LifecycleState} instance
+	 * @param lifecycleV1Extension {@code LifecycleV1Extension} instance
 	 * @param lifecycleV2Extension {@code LifecycleV2Extension} instance
 	 */
 	@VisibleForTesting
 	protected LifecycleExtension(final ExtensionApi extensionApi,
 								 final NamedCollection namedCollection,
 								 final DeviceInforming deviceInfoService,
-								 final LifecycleState lifecycleState,
+								 final LifecycleV1Extension lifecycleV1Extension,
 								 final LifecycleV2Extension lifecycleV2Extension) {
 		super(extensionApi);
 		lifecycleDataStore = namedCollection;
 		this.deviceInfoService = deviceInfoService;
-		this.lifecycleState = lifecycleState;
+		this.lifecycleV1 = lifecycleV1Extension;
 		lifecycleV2 = lifecycleV2Extension;
 	}
 
@@ -144,12 +144,10 @@ public class LifecycleExtension extends Extension {
 	 * @param event lifecycle request content {@code Event}
 	 */
 	void handleLifecycleRequestEvent(final Event event) {
-		if (event == null) {
-			Log.trace(SELF_LOG_TAG, "Failed to process request content event, event is null");
-			return;
-		}
-
-		SharedStateResult configurationSharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Configuration.MODULE_NAME, event, false, SharedStateResolution.ANY);
+		SharedStateResult configurationSharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Configuration.MODULE_NAME,
+				event,
+				false,
+				SharedStateResolution.ANY);
 
 		if (configurationSharedState == null ||  configurationSharedState.status == SharedStateStatus.PENDING) {
 			Log.trace(SELF_LOG_TAG, "Configuration is pending, lifecycle request event is not processed");
@@ -177,15 +175,12 @@ public class LifecycleExtension extends Extension {
 	}
 
 	/**
-	 * Updates the lifecycle shared state with current context data and default data when a boot event is received
+	 * Processes event hub boot event
 	 *
-	 * @param event to be processed
+	 * @param event event hub boot event
 	 */
 	void handleEventHubBootEvent(final Event event) {
-		updateLifecycleSharedState(event,
-				0,
-				lifecycleState.computeBootData(event.getTimestampInSeconds())
-		);
+		lifecycleV1.processBootEvent(event);
 	}
 
 	/**
@@ -198,36 +193,6 @@ public class LifecycleExtension extends Extension {
 	}
 
 	/**
-	 * Gets advertising identifier.
-	 *
-	 * @param event Event containing advertising identifier data
-	 *
-	 * @return the advertising identifier
-	 */
-	private String getAdvertisingIdentifier(final Event event) {
-		if (event == null) {
-			Log.trace(SELF_LOG_TAG, "Failed to get advertising identifier, event is null");
-			return null;
-		}
-
-		SharedStateResult identitySharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Identity.MODULE_NAME, event, false, SharedStateResolution.ANY);
-
-		if (identitySharedState != null && identitySharedState.status == SharedStateStatus.PENDING) {
-			return null;
-		}
-
-		if (identitySharedState != null && identitySharedState.value != null) {
-			try {
-				return (String) identitySharedState.value.get(LifecycleConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER);
-			} catch (Exception e) {
-				return null;
-			}
-		}
-
-		return null;
-	}
-
-	/**
 	 * Start the lifecycle session for standard and XDM workflows
 	 *
 	 * @param event current lifecycle event to be processed
@@ -235,44 +200,8 @@ public class LifecycleExtension extends Extension {
 	 */
 	private void startApplicationLifecycle(final Event event, final Map<String, Object> configurationSharedState) {
 		boolean isInstall = isInstall();
-
-		final long startTimestampInSeconds = event.getTimestampInSeconds();
-
-		Map<String, Object> eventData = event.getEventData();
-		Map<String, String> additionalContextData = null;
-
-		if (eventData != null) {
-			try {
-				additionalContextData = (Map<String, String>) eventData.get(LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
-			} catch (Exception e) {
-				Log.trace(SELF_LOG_TAG, "Request content event data error, event data is null");
-			}
-		}
-
-		LifecycleSession.SessionInfo previousSessionInfo = lifecycleState.start(startTimestampInSeconds,
-				additionalContextData,
-				getAdvertisingIdentifier(event),
-				getSessionTimeoutLength(configurationSharedState),
-				isInstall);
-
-		if (previousSessionInfo == null) {
-			// Analytics extension needs adjusted start date to calculate timeSinceLaunch param.
-			if (lifecycleDataStore != null) {
-				final long startTime = lifecycleDataStore.getLong(LifecycleConstants.DataStoreKeys.START_DATE, 0L);
-				updateLifecycleSharedState(event, startTime, lifecycleState.getContextData());
-				return;
-			}
-		}
-
-		updateLifecycleSharedState(event, startTimestampInSeconds, lifecycleState.getContextData());
-		if (previousSessionInfo != null) {
-			dispatchSessionStart(startTimestampInSeconds, previousSessionInfo.getStartTimestampInSeconds(), previousSessionInfo.getPauseTimestampInSeconds());
-		}
-
-		lifecycleV2.start(event, isInstall);
-
-		if (isInstall) {
-			persistInstallDate(event);
+		if (lifecycleV1.start(event, configurationSharedState, isInstall)) {
+			lifecycleV2.start(event, isInstall);
 		}
 	}
 
@@ -282,22 +211,8 @@ public class LifecycleExtension extends Extension {
 	 * @param event current lifecycle event to be processed
 	 */
 	private void pauseApplicationLifecycle(final Event event) {
-		lifecycleState.pause(event);
+		lifecycleV1.pause(event);
 		lifecycleV2.pause(event);
-	}
-
-	/**
-	 * Persist Application install date.
-	 *
-	 * @param event lifecycle start event.
-	 */
-	private void persistInstallDate(final Event event) {
-		if (lifecycleDataStore == null) {
-			return;
-		}
-
-		final long startTimestampInSeconds = event.getTimestampInSeconds();
-		lifecycleDataStore.setLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, startTimestampInSeconds);
 	}
 
 	/**
@@ -307,26 +222,6 @@ public class LifecycleExtension extends Extension {
 	 */
 	private boolean isInstall() {
 		return lifecycleDataStore != null && !lifecycleDataStore.contains(LifecycleConstants.DataStoreKeys.INSTALL_DATE);
-	}
-
-	/**
-	 * Reads the session timeout from the configuration shared state, if not found returns the default session timeout
-	 * @param configurationSharedState current configuration shared state
-	 * @return session timeout
-	 */
-	private long getSessionTimeoutLength(Map<String, Object> configurationSharedState) {
-		long sessionTimeoutInSeconds = LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT;
-		if (configurationSharedState != null) {
-			Object sessionTimeout = configurationSharedState.get(LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT);
-			if(sessionTimeout != null) {
-				try {
-					sessionTimeoutInSeconds = (long) sessionTimeout;
-				} catch (Exception e) {
-					return sessionTimeoutInSeconds;
-				}
-			}
-		}
-		return sessionTimeoutInSeconds;
 	}
 
 	/**
@@ -345,50 +240,5 @@ public class LifecycleExtension extends Extension {
 	 */
 	private NamedCollection getDataStore() {
 		return ServiceProvider.getInstance().getDataStoreService().getNamedCollection(LifecycleConstants.DATA_STORE_NAME);
-	}
-
-	/**
-	 * Updates lifecycle shared state versioned at {@code event} with {@code contextData}
-	 *
-	 * @param event the event to version the shared state at
-	 * @param startTimestampInSeconds  The current session start timestamp in seconds
-	 * @param contextData {@code Map<String, String>} context data to be updated
-	 */
-	private void updateLifecycleSharedState(final Event event,
-											final long startTimestampInSeconds,
-											final Map<String, String> contextData) {
-		Map<String, Object> lifecycleSharedState = new HashMap<>();
-		lifecycleSharedState.put(LifecycleConstants.EventDataKeys.Lifecycle.SESSION_START_TIMESTAMP,
-									 startTimestampInSeconds);
-		lifecycleSharedState.put(LifecycleConstants.EventDataKeys.Lifecycle.MAX_SESSION_LENGTH,
-									 LifecycleConstants.MAX_SESSION_LENGTH_SECONDS);
-		lifecycleSharedState.put(LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_CONTEXT_DATA, contextData);
-		getApi().createSharedState(lifecycleSharedState, event);
-	}
-
-	/**
-	 * Dispatches a Lifecycle response content event with appropriate event data
-	 * @param startTimestampInSeconds session start time
-	 * @param previousStartTime start time of previous session
-	 * @param previousPauseTime pause time of previous session
-	 */
-	private void dispatchSessionStart(long startTimestampInSeconds, long previousStartTime, long previousPauseTime){
-		// Dispatch a new event with session related data
-		Map<String, Object> eventDataMap = new HashMap<>();
-		eventDataMap.put(LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_CONTEXT_DATA, lifecycleState.getContextData());
-		eventDataMap.put(LifecycleConstants.EventDataKeys.Lifecycle.SESSION_EVENT,
-				LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_START);
-		eventDataMap.put(LifecycleConstants.EventDataKeys.Lifecycle.SESSION_START_TIMESTAMP, startTimestampInSeconds);
-		eventDataMap.put(LifecycleConstants.EventDataKeys.Lifecycle.MAX_SESSION_LENGTH,
-				LifecycleConstants.MAX_SESSION_LENGTH_SECONDS);
-		eventDataMap.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_SESSION_START_TIMESTAMP, previousStartTime);
-		eventDataMap.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_SESSION_PAUSE_TIMESTAMP, previousPauseTime);
-
-		final Event startEvent = new Event.Builder(
-				LifecycleConstants.EventName.LIFECYCLE_START_EVENT,
-				EventType.LIFECYCLE,
-				EventSource.RESPONSE_CONTENT).setEventData(eventDataMap).build();
-
-		getApi().dispatch(startEvent);
 	}
 }

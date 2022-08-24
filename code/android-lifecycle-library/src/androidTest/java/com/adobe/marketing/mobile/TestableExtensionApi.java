@@ -19,7 +19,6 @@ package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest;
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
-import com.adobe.marketing.mobile.lifecycle.ADBCountDownLatch;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 public class TestableExtensionApi extends ExtensionApi {
 
@@ -38,7 +38,7 @@ public class TestableExtensionApi extends ExtensionApi {
 	public Map<String, SharedStateResult> mockedSharedState = new HashMap<>();
 	public Map<String, SharedStateResult> mockedXDMSharedState = new HashMap<>();
 	public Set<String> ignoredEvents = new HashSet<>();
-	private final Map<EventSpec, ADBCountDownLatch> expectedEvents = new HashMap<>();
+	private final Map<EventSpec, CountDownLatch> expectedEvents = new HashMap<>();
 
 	public TestableExtensionApi() {}
 
@@ -53,12 +53,10 @@ public class TestableExtensionApi extends ExtensionApi {
 			return;
 		}
 		dispatchedEvents.add(event);
+
 		EventSpec eventSpec = new EventSpec(event.getSource(), event.getType());
-
-		MobileCore.log(LoggingMode.DEBUG, "test", "Received and processing event " + eventSpec);
-
 		if (expectedEvents.containsKey(eventSpec)) {
-			ADBCountDownLatch countDownLatch = expectedEvents.get(eventSpec);
+			CountDownLatch countDownLatch = expectedEvents.get(eventSpec);
 			if (countDownLatch != null) {
 				countDownLatch.countDown();
 			}
@@ -274,10 +272,10 @@ public class TestableExtensionApi extends ExtensionApi {
 	 */
 	public void setExpectedEvent(final String type, final String source, final int count) {
 		EventSpec eventSpec = new EventSpec(source, type);
-		expectedEvents.put(eventSpec, new ADBCountDownLatch(count));
+		expectedEvents.put(eventSpec, new CountDownLatch(count));
 	}
 
-	public Map<EventSpec, ADBCountDownLatch> getExpectedEvents() {
+	public Map<EventSpec, CountDownLatch> getExpectedEvents() {
 		return expectedEvents;
 	}
 

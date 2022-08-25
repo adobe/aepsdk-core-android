@@ -41,15 +41,15 @@ public class ServiceProvider {
     private volatile WeakReference<Activity> currentActivity;
     private volatile WeakReference<Context> applicationContext;
 
-	private DeviceInfoService defaultDeviceInfoService;
-	private DeviceInforming overrideDeviceInfoService;
-	private NetworkService defaultNetworkService;
-	private Networking overrideNetworkService;
-	private DataQueueService dataQueueService;
-	private DataStoring defaultDataStoreService;
-	private UIService defaultUIService;
-	private FullscreenMessageDelegate messageDelegate;
-	private Logging defaultLoggingService;
+    private DeviceInfoService defaultDeviceInfoService;
+    private DeviceInforming overrideDeviceInfoService;
+    private NetworkService defaultNetworkService;
+    private Networking overrideNetworkService;
+    private DataQueueService dataQueueService;
+    private DataStoring defaultDataStoreService;
+    private UIService defaultUIService;
+    private FullscreenMessageDelegate messageDelegate;
+    private Logging defaultLoggingService;
 
     private ServiceProvider() {
         defaultNetworkService = new NetworkService();

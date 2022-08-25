@@ -8,23 +8,12 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile;
-
-import java.util.HashMap;
-import java.util.Map;
-
-final class SignalModuleDetails implements ModuleDetails {
-	private final String FRIENDLY_NAME = "Signal";
-
-	public String getName() {
-		return FRIENDLY_NAME;
-	}
-
-	public String getVersion() {
-		return Signal.extensionVersion();
-	}
-
-	public Map<String, String> getAdditionalInfo() {
-		return new HashMap<>();
-	}
-}
+//package com.adobe.marketing.mobile.signal;
+//
+//import com.adobe.marketing.mobile.internal.eventhub.EventHub;
+//
+//class EventHubProxy {
+//    static void resetEventhub() {
+//        EventHub.Companion.setShared(new EventHub());
+//    }
+//}

@@ -21,7 +21,6 @@ import androidx.annotation.Nullable;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
 import com.adobe.marketing.mobile.utils.DataReader;
 
 import java.util.ArrayList;
@@ -97,7 +96,6 @@ final public class MobileCore {
             return;
         }
 
-        Log.setLoggingService(new AndroidLoggingService());
 
         // AMSDK-8502
         // workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl

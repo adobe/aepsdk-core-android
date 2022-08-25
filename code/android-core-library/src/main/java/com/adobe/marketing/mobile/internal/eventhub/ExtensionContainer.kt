@@ -152,46 +152,16 @@ internal class ExtensionContainer constructor(
 
     // Override ExtensionApi Methods
     override fun registerEventListener(
-        eventType: String?,
-        eventSource: String?,
-        eventListener: ExtensionEventListener?
+        eventType: String,
+        eventSource: String,
+        eventListener: ExtensionEventListener
     ) {
-
-        if (eventType == null) {
-            MobileCore.log(
-                LoggingMode.WARNING, getTag(),
-                "'registerEventListener' failed as event type is null"
-            )
-            return
-        }
-        if (eventSource == null) {
-            MobileCore.log(
-                LoggingMode.WARNING, getTag(),
-                "'registerEventListener' failed as event source is null"
-            )
-            return
-        }
-        if (eventListener == null) {
-            MobileCore.log(
-                LoggingMode.WARNING, getTag(),
-                "'registerEventListener' failed as event listener is null"
-            )
-            return
-        }
-
         eventListeners.add(ExtensionListenerContainer(eventType, eventSource, eventListener))
     }
 
     override fun dispatch(
-        event: Event?
+        event: Event
     ) {
-        if (event == null) {
-            MobileCore.log(
-                LoggingMode.WARNING, getTag(),
-                "'dispatch' failed as event is null"
-            )
-            return
-        }
         EventHub.shared.dispatch(event)
     }
 
@@ -204,7 +174,7 @@ internal class ExtensionContainer constructor(
     }
 
     override fun createSharedState(
-        state: MutableMap<String, Any?>?,
+        state: MutableMap<String, Any?>,
         event: Event?
     ): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
@@ -244,21 +214,11 @@ internal class ExtensionContainer constructor(
     }
 
     override fun getSharedState(
-        extensionName: String?,
+        extensionName: String,
         event: Event?,
         barrier: Boolean,
-        resolution: SharedStateResolution?
+        resolution: SharedStateResolution
     ): SharedStateResult? {
-
-        val extensionName = extensionName ?: run {
-            MobileCore.log(
-                LoggingMode.WARNING,
-                getTag(),
-                "getSharedState failed as extensionName is null."
-            )
-            return null
-        }
-
         return EventHub.shared.getSharedState(
             SharedStateType.STANDARD,
             extensionName,
@@ -269,7 +229,7 @@ internal class ExtensionContainer constructor(
     }
 
     override fun createXDMSharedState(
-        state: MutableMap<String, Any?>?,
+        state: MutableMap<String, Any?>,
         event: Event?
     ): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
@@ -300,26 +260,17 @@ internal class ExtensionContainer constructor(
     }
 
     override fun getXDMSharedState(
-        extensionName: String?,
+        extensionName: String,
         event: Event?,
         barrier: Boolean,
-        resolution: SharedStateResolution?
+        resolution: SharedStateResolution
     ): SharedStateResult? {
-        val extensionName = extensionName ?: run {
-            MobileCore.log(
-                LoggingMode.WARNING,
-                getTag(),
-                "getXDMSharedState failed as extensionName is null."
-            )
-            return null
-        }
-
         return EventHub.shared.getSharedState(
             SharedStateType.XDM,
             extensionName,
             event,
             barrier,
-            resolution ?: SharedStateResolution.ANY
+            resolution
         )
     }
 
@@ -421,7 +372,12 @@ internal class ExtensionContainer constructor(
         event: Event?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,
     ): MutableMap<String, Any>? {
-        return getSharedState(stateName, event, true, SharedStateResolution.ANY)?.value
+        stateName?.let {
+            return getSharedState(it, event, true, SharedStateResolution.ANY)?.value
+        }
+
+        errorCallback?.error(ExtensionError.BAD_NAME)
+        return null
     }
 
     override fun getXDMSharedEventState(
@@ -429,7 +385,12 @@ internal class ExtensionContainer constructor(
         event: Event?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,
     ): MutableMap<String, Any>? {
-        return getXDMSharedState(stateName, event, true, SharedStateResolution.ANY)?.value
+        stateName?.let {
+            return getXDMSharedState(it, event, true, SharedStateResolution.ANY)?.value
+        }
+
+        errorCallback?.error(ExtensionError.BAD_NAME)
+        return null
     }
 
     override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
@@ -490,9 +451,9 @@ internal class ExtensionContainer constructor(
     }
 
     override fun getHistoricalEvents(
-        eventHistoryRequests: Array<out EventHistoryRequest>?,
+        eventHistoryRequests: Array<out EventHistoryRequest>,
         enforceOrder: Boolean,
-        handler: EventHistoryResultHandler<Int>?
+        handler: EventHistoryResultHandler<Int>
     ) {
         EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler)
     }

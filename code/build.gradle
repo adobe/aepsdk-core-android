@@ -3,11 +3,12 @@ buildscript {
         compose_version = '1.1.0-beta01'
     }
     repositories {
+        google()
         maven {
             url "https://plugins.gradle.org/m2/"
         }
         mavenCentral()
-        google()
+        
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.2.1'

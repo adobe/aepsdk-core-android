@@ -8,25 +8,16 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
+package com.adobe.marketing.mobile.services;
 
-package com.adobe.marketing.mobile;
+public interface Logging {
 
-/*
-    Define the fields for signal request
- */
-// TODO refactor to use public hit queue
-/*class SignalHit extends AbstractHit {
-	String url;
-	String body;
-	String contentType;
-	int timeout;
+	void trace(String tag, String message);
 
-	*//**
-	 *  Determine the Http command based off the request body
-	 *
-	 * @return HttpCommand.POST if the body has content, otherwise HttpCommand.GET
-	 *//*
-	NetworkService.HttpCommand getHttpCommand() {
-		return StringUtils.isNullOrEmpty(body) ? NetworkService.HttpCommand.GET : NetworkService.HttpCommand.POST;
-	}
-}*/
+	void debug(String tag, String message);
+
+	void warning(String tag, String message);
+
+	void error(String tag, String message);
+
+}

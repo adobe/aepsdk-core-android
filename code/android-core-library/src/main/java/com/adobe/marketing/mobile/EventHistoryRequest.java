@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.utility.MapUtilsKt;
 import com.adobe.marketing.mobile.internal.utility.StringEncoder;
 
 import java.util.Map;
@@ -34,13 +35,7 @@ public class EventHistoryRequest {
     }
 
     public long getMaskAsDecimalHash() {
-        StringBuilder kvpStringBuilder = new StringBuilder();
-        if (map != null && !map.isEmpty()) {
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                kvpStringBuilder.append(entry.getKey() + ":" + entry.getValue());
-            }
-        }
-        return StringEncoder.convertStringToDecimalHash(kvpStringBuilder.toString());
+        return MapUtilsKt.convertMapToFnv1aHash(map, null);
     }
 
     public long getFromDate() {

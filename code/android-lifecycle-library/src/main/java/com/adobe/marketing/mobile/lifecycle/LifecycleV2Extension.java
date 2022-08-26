@@ -10,7 +10,6 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
-import com.adobe.marketing.mobile.AdobeCallback;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
@@ -18,6 +17,7 @@ import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
+import com.adobe.marketing.mobile.utils.DataReader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -79,45 +79,40 @@ class LifecycleV2Extension {
 	 * @param isInstall boolean indicating whether this is an application install scenario
 	 */
 	void start(final Event event, final boolean isInstall) {
-		stateManager.updateState(LifecycleV2StateManager.State.START, new AdobeCallback<Boolean>() {
-			@Override
-			public void call(final Boolean updated) {
-				if (!updated) {
-					return;
-				}
-
-				// detect a possible crash/incorrect start/pause implementation
-				if (!isInstall
-						&& isCloseUnknown(dataStoreCache.getAppStartTimestampMillis(), dataStoreCache.getAppPauseTimestampMillis())) {
-					// in case of an unknown close situation, use the last known app close event timestamp
-					// if no close timestamp was persisted, backdate this event to start timestamp - 1 second
-					Map<String, Object> appCloseXDMData = xdmMetricsBuilder.buildAppCloseXDMData(
-								dataStoreCache.getAppStartTimestampMillis(),
-								dataStoreCache.getCloseTimestampMillis(),
-								event.getTimestamp() - BACKDATE_TIMESTAMP_OFFSET_MILLIS,
-								true
-					);
-					// Dispatch application close event with xdm data
-					dispatchApplicationClose(appCloseXDMData);
-				}
-
-				final long startTimestamp = event.getTimestamp();
-				dataStoreCache.setAppStartTimestamp(startTimestamp);
-
-				Map<String, Object> appLaunchXDMData = xdmMetricsBuilder.buildAppLaunchXDMData(startTimestamp, isInstall,
-													   isUpgrade());
-				Map<String, String> freeFormData = null;
-				if (event.getEventData() != null) {
-					freeFormData = (Map<String, String>) event.getEventData()
-							.get(LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
-				}
-
-				// Dispatch application launch event with xdm data
-				dispatchApplicationLaunch(appLaunchXDMData, freeFormData);
-
-				// persist App version to track App upgrades
-				persistAppVersion();
+		stateManager.updateState(LifecycleV2StateManager.State.START, updated -> {
+			if (!updated) {
+				return;
 			}
+
+			// detect a possible crash/incorrect start/pause implementation
+			if (!isInstall
+					&& isCloseUnknown(dataStoreCache.getAppStartTimestampMillis(), dataStoreCache.getAppPauseTimestampMillis())) {
+				// in case of an unknown close situation, use the last known app close event timestamp
+				// if no close timestamp was persisted, backdate this event to start timestamp - 1 second
+				Map<String, Object> appCloseXDMData = xdmMetricsBuilder.buildAppCloseXDMData(
+							dataStoreCache.getAppStartTimestampMillis(),
+							dataStoreCache.getCloseTimestampMillis(),
+							event.getTimestamp() - BACKDATE_TIMESTAMP_OFFSET_MILLIS,
+							true
+				);
+				// Dispatch application close event with xdm data
+				dispatchApplicationClose(appCloseXDMData);
+			}
+
+			final long startTimestamp = event.getTimestamp();
+			dataStoreCache.setAppStartTimestamp(startTimestamp);
+
+			Map<String, Object> appLaunchXDMData = xdmMetricsBuilder.buildAppLaunchXDMData(startTimestamp, isInstall,
+												   isUpgrade());
+			Map<String, String> freeFormData = DataReader.optStringMap(event.getEventData(),
+					LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA,
+					null);
+
+			// Dispatch application launch event with xdm data
+			dispatchApplicationLaunch(appLaunchXDMData, freeFormData);
+
+			// persist App version to track App upgrades
+			persistAppVersion();
 		});
 	}
 
@@ -127,21 +122,18 @@ class LifecycleV2Extension {
 	 * @param event event containing lifecycle pause timestamp
 	 */
 	void pause(final Event event) {
-		stateManager.updateState(LifecycleV2StateManager.State.PAUSE, new AdobeCallback<Boolean>() {
-			@Override
-			public void call(final Boolean updated) {
-				if (!updated) {
-					return;
-				}
-
-				final long pauseTimestamp = event.getTimestamp();
-				dataStoreCache.setAppPauseTimestamp(pauseTimestamp);
-
-				Map<String, Object> appCloseXDMData = xdmMetricsBuilder.buildAppCloseXDMData(
-						dataStoreCache.getAppStartTimestampMillis(), pauseTimestamp, pauseTimestamp, false);
-				// Dispatch application close event with xdm data
-				dispatchApplicationClose(appCloseXDMData);
+		stateManager.updateState(LifecycleV2StateManager.State.PAUSE, updated -> {
+			if (!updated) {
+				return;
 			}
+
+			final long pauseTimestamp = event.getTimestamp();
+			dataStoreCache.setAppPauseTimestamp(pauseTimestamp);
+
+			Map<String, Object> appCloseXDMData = xdmMetricsBuilder.buildAppCloseXDMData(
+					dataStoreCache.getAppStartTimestampMillis(), pauseTimestamp, pauseTimestamp, false);
+			// Dispatch application close event with xdm data
+			dispatchApplicationClose(appCloseXDMData);
 		});
 	}
 
@@ -207,7 +199,7 @@ class LifecycleV2Extension {
 					SELF_LOG_TAG);
 			return;
 		}
-		Map<String, Object> launchEventData = new HashMap<String, Object>();
+		Map<String, Object> launchEventData = new HashMap<>();
 		launchEventData.put(LifecycleV2Constants.EventDataKeys.XDM, appLaunchXDMData);
 		if (freeFormData != null && !freeFormData.isEmpty()) {
 			launchEventData.put(LifecycleV2Constants.EventDataKeys.DATA, freeFormData);
@@ -230,7 +222,7 @@ class LifecycleV2Extension {
 					SELF_LOG_TAG);
 			return;
 		}
-		Map<String, Object> closeEventData = new HashMap<String, Object>();
+		Map<String, Object> closeEventData = new HashMap<>();
 		closeEventData.put(LifecycleV2Constants.EventDataKeys.XDM, appCloseXDMData);
 
 		Event lifecycleCloseEvent = new Event.Builder(

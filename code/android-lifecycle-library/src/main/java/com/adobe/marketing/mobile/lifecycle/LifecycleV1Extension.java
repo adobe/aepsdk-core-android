@@ -11,7 +11,6 @@
 package com.adobe.marketing.mobile.lifecycle;
 
 import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.INVALID_FORMAT;
-import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.UNEXPECTED_NULL_VALUE;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
@@ -23,6 +22,7 @@ import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
+import com.adobe.marketing.mobile.utils.DataReader;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -70,7 +70,7 @@ public class LifecycleV1Extension {
      * @param startEvent current lifecycle event to be processed
      * @param configurationSharedState configuration shared state data for this event
      */
-     boolean start(final Event startEvent,
+     void start(final Event startEvent,
                    final Map<String, Object> configurationSharedState,
                    boolean isInstall) {
 
@@ -81,7 +81,9 @@ public class LifecycleV1Extension {
 
          if (eventData != null) {
              try {
-                 additionalContextData = (Map<String, String>) eventData.get(LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA);
+                 additionalContextData = DataReader.optStringMap(eventData,
+                         LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA,
+                         null);
              } catch (Exception e) {
                  Log.trace(LifecycleConstants.LOG_TAG, "%s - '%s for additional context data'", SELF_LOG_TAG,
                          INVALID_FORMAT);
@@ -99,7 +101,7 @@ public class LifecycleV1Extension {
              if (dataStore != null) {
                  final long startTime = dataStore.getLong(LifecycleConstants.DataStoreKeys.START_DATE, 0L);
                  updateLifecycleSharedState(startEvent, startTime, lifecycleState.getContextData());
-                 return false;
+                 return;
              }
          }
 
@@ -108,11 +110,6 @@ public class LifecycleV1Extension {
              dispatchSessionStart(startTimestampInSeconds, previousSessionInfo.getStartTimestampInSeconds(), previousSessionInfo.getPauseTimestampInSeconds());
          }
 
-         if (isInstall) {
-             persistInstallDate(startEvent);
-         }
-
-         return true;
     }
 
     /**
@@ -127,7 +124,7 @@ public class LifecycleV1Extension {
     /**
      * Updates the lifecycle shared state with current context data and default data when extension is registered
      **/
-    void processLifecycleExtensionRegistration() {
+    void onRegistered() {
         updateLifecycleSharedState(null,
                 0,
                 lifecycleState.computeBootData()
@@ -144,33 +141,10 @@ public class LifecycleV1Extension {
     private String getAdvertisingIdentifier(final Event event) {
         SharedStateResult identitySharedState = extensionApi.getSharedState(LifecycleConstants.EventDataKeys.Identity.MODULE_NAME, event, false, SharedStateResolution.ANY);
 
-        if (identitySharedState != null && identitySharedState.status == SharedStateStatus.PENDING) {
-            return null;
+        if (identitySharedState != null && identitySharedState.status == SharedStateStatus.SET) {
+            return DataReader.optString(identitySharedState.value, LifecycleConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER, null);
         }
-
-        if (identitySharedState != null && identitySharedState.value != null) {
-            try {
-                return (String) identitySharedState.value.get(LifecycleConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER);
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
         return null;
-    }
-
-    /**
-     * Persist Application install date.
-     *
-     * @param event lifecycle start event.
-     */
-    private void persistInstallDate(final Event event) {
-        if (dataStore == null) {
-            return;
-        }
-
-        final long startTimestampInSeconds = event.getTimestampInSeconds();
-        dataStore.setLong(LifecycleConstants.DataStoreKeys.INSTALL_DATE, startTimestampInSeconds);
     }
 
     /**
@@ -179,18 +153,9 @@ public class LifecycleV1Extension {
      * @return session timeout
      */
     private long getSessionTimeoutLength(Map<String, Object> configurationSharedState) {
-        long sessionTimeoutInSeconds = LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT;
-        if (configurationSharedState != null) {
-            Object sessionTimeout = configurationSharedState.get(LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT);
-            if(sessionTimeout != null) {
-                try {
-                    sessionTimeoutInSeconds = (long) sessionTimeout;
-                } catch (Exception e) {
-                    return sessionTimeoutInSeconds;
-                }
-            }
-        }
-        return sessionTimeoutInSeconds;
+        return DataReader.optLong(configurationSharedState,
+                LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT,
+                LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT);
     }
 
     /**

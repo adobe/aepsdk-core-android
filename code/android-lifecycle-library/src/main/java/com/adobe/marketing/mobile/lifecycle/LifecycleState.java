@@ -107,12 +107,14 @@ class LifecycleState {
             metricsBuilder.addInstallData()
                     .addGenericData()
                     .addCoreData();
+            lifecycleData.putAll(metricsBuilder.build());
         } else { // upgrade and launch hits
             metricsBuilder.addLaunchData()
                     .addUpgradeData(isUpgrade())
                     .addCrashData(previousSessionInfo.isCrash())
                     .addGenericData()
                     .addCoreData();
+            lifecycleData.putAll(metricsBuilder.build());
 
             Map<String, String> sessionContextData = lifecycleSession.getSessionData(startTimestampInSeconds,
                     sessionTimeoutInSeconds, previousSessionInfo);
@@ -128,8 +130,6 @@ class LifecycleState {
                 lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_APP_ID, previousAppId);
             }
         }
-
-        lifecycleData.putAll(metricsBuilder.build());
 
         if (additionalContextData != null) {
             lifecycleData.putAll(additionalContextData);

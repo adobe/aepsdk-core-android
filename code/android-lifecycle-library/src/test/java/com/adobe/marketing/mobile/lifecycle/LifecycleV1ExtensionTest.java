@@ -242,7 +242,7 @@ public class LifecycleV1ExtensionTest {
 
     @Test
     public void processLifecycleExtensionRegistration() {
-        lifecycleV1Extension.processLifecycleExtensionRegistration();
+        lifecycleV1Extension.onRegistered();
 
         verify(mockLifecycleState, times(1)).computeBootData();
 

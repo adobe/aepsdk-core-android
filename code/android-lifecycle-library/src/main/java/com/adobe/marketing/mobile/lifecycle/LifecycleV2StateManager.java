@@ -112,16 +112,13 @@ class LifecycleV2StateManager {
 	 */
 	private void startTimer(final State newState, final AdobeCallback<Boolean> callback) {
 		cancelableCallback = callback;
-		updateTimer.startTimer(LifecycleV2Constants.STATE_UPDATE_TIMEOUT_MILLIS, new AdobeCallback<Boolean>() {
-			@Override
-			public void call(final Boolean complete) {
-				// no other event interrupted this timer, proceed with processing the new state
-				synchronized (stateUpdatesMutex) {
-					currentState = newState;
-					updateTimer.cancel();
-					callback.call(true);
-					cancelableCallback = null;
-				}
+		updateTimer.startTimer(LifecycleV2Constants.STATE_UPDATE_TIMEOUT_MILLIS, complete -> {
+			// no other event interrupted this timer, proceed with processing the new state
+			synchronized (stateUpdatesMutex) {
+				currentState = newState;
+				updateTimer.cancel();
+				callback.call(true);
+				cancelableCallback = null;
 			}
 		});
 	}

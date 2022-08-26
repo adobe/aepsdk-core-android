@@ -52,9 +52,6 @@ public class LifecycleExtensionTest {
 	NamedCollection lifecycleDataStore;
 
 	@Mock
-	DeviceInforming deviceInfoService;
-
-	@Mock
     LifecycleV1Extension mockLifecycleV1Extension;
 
 	@Mock
@@ -89,7 +86,6 @@ public class LifecycleExtensionTest {
 
 		lifecycle = new LifecycleExtension(extensionApi,
 				lifecycleDataStore,
-				deviceInfoService,
 				mockLifecycleV1Extension,
 				mockLifecycleV2Extension);
 	}

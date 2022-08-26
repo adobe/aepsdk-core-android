@@ -13,10 +13,9 @@ package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
 
-@SuppressWarnings("unused")
 public class Lifecycle {
 	private final static String TAG = Lifecycle.class.getSimpleName();
-	private final static String EXTENSION_VERSION = "1.1.1";
+	private final static String EXTENSION_VERSION = "2.0.0";
 
 	private Lifecycle() {
 

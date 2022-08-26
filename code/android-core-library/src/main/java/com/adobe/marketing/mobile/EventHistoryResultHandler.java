@@ -9,11 +9,10 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.internal.eventhub.history;
-
+package com.adobe.marketing.mobile;
 
 /**
- * Interface defining a callback which contains the result of {@link EventHistoryDatabase} operations.
+ * Interface defining a callback which contains the result of event history database operations.
  */
 public interface EventHistoryResultHandler<T> {
 	void call(final T value);

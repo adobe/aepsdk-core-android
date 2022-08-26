@@ -14,6 +14,8 @@
 package com.adobe.marketing.mobile.internal.eventhub
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventHistoryRequest
+import com.adobe.marketing.mobile.EventHistoryResultHandler
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
@@ -28,8 +30,6 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue

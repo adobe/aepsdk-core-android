@@ -16,6 +16,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;

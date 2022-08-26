@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile;
 import com.adobe.marketing.mobile.services.Logging;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Logging class to handle log levels and platform-specific log output
  *
@@ -63,7 +65,7 @@ public class Log {
      * @param params    values to be inserted into the format
      * @see LoggingMode
      */
-    public static void trace(final String extension, final String source, final String format, final Object... params) {
+    public static void trace(@NotNull final String extension, @NotNull final String source, @NotNull final String format, final Object... params) {
         if (loggingService != null && loggingMode.id >= LoggingMode.VERBOSE.id) {
             try {
                 loggingService.trace(extension + "-" + source, String.format(format, params));
@@ -75,7 +77,7 @@ public class Log {
 
     @Deprecated
     public static void trace(final String source, final String format, final Object... params) {
-        trace(null, source, format, params);
+        trace("", source, format, params);
     }
 
 
@@ -89,7 +91,7 @@ public class Log {
      * @param params    values to be inserted into the format
      * @see LoggingMode
      */
-    public static void debug(final String extension, final String source, final String format, final Object... params) {
+    public static void debug(@NotNull final String extension, @NotNull final String source, @NotNull final String format, final Object... params) {
         if (loggingService != null && loggingMode.id >= LoggingMode.DEBUG.id) {
             try {
                 loggingService.debug(extension + "-" + source, String.format(format, params));
@@ -101,7 +103,7 @@ public class Log {
 
     @Deprecated
     public static void debug(final String source, final String format, final Object... params) {
-        debug(null, source, format, params);
+        debug("", source, format, params);
     }
 
     /**
@@ -116,7 +118,7 @@ public class Log {
      * @param params    values to be inserted into the format
      * @see LoggingMode
      */
-    public static void warning(final String extension, final String source, final String format, final Object... params) {
+    public static void warning(@NotNull final String extension, @NotNull final String source, @NotNull final String format, final Object... params) {
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.WARNING.id) {
             try {
                 loggingService.warning(extension + "-" + source, String.format(format, params));
@@ -128,7 +130,7 @@ public class Log {
 
     @Deprecated
     public static void warning(final String source, final String format, final Object... params) {
-        warning(null, source, format, params);
+        warning("", source, format, params);
     }
 
     /**
@@ -141,7 +143,7 @@ public class Log {
      * @param params    values to be inserted into the format
      * @see LoggingMode
      */
-    public static void error(final String extension, final String source, final String format, final Object... params) {
+    public static void error(@NotNull final String extension, @NotNull final String source, @NotNull final String format, final Object... params) {
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.ERROR.id) {
             try {
                 loggingService.error(extension + "-" + source, String.format(format, params));
@@ -153,6 +155,6 @@ public class Log {
 
     @Deprecated
     public static void error(final String source, final String format, final Object... params) {
-        error(null, source, format, params);
+        error("", source, format, params);
     }
 }

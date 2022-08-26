@@ -10,10 +10,11 @@
  */
 package com.adobe.marketing.mobile;
 
+import androidx.annotation.NonNull;
+
 import com.adobe.marketing.mobile.services.Logging;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Logging class to handle log levels and platform-specific log output
@@ -65,7 +66,7 @@ public class Log {
      * @param params    values to be inserted into the format
      * @see LoggingMode
      */
-    public static void trace(@NotNull final String extension, @NotNull final String source, @NotNull final String format, final Object... params) {
+    public static void trace(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
         if (loggingService != null && loggingMode.id >= LoggingMode.VERBOSE.id) {
             try {
                 loggingService.trace(extension + "-" + source, String.format(format, params));
@@ -91,7 +92,7 @@ public class Log {
      * @param params    values to be inserted into the format
      * @see LoggingMode
      */
-    public static void debug(@NotNull final String extension, @NotNull final String source, @NotNull final String format, final Object... params) {
+    public static void debug(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
         if (loggingService != null && loggingMode.id >= LoggingMode.DEBUG.id) {
             try {
                 loggingService.debug(extension + "-" + source, String.format(format, params));
@@ -118,7 +119,7 @@ public class Log {
      * @param params    values to be inserted into the format
      * @see LoggingMode
      */
-    public static void warning(@NotNull final String extension, @NotNull final String source, @NotNull final String format, final Object... params) {
+    public static void warning(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.WARNING.id) {
             try {
                 loggingService.warning(extension + "-" + source, String.format(format, params));
@@ -143,7 +144,7 @@ public class Log {
      * @param params    values to be inserted into the format
      * @see LoggingMode
      */
-    public static void error(@NotNull final String extension, @NotNull final String source, @NotNull final String format, final Object... params) {
+    public static void error(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.ERROR.id) {
             try {
                 loggingService.error(extension + "-" + source, String.format(format, params));

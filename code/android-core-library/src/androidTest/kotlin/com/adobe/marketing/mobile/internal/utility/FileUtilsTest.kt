@@ -34,9 +34,9 @@ class FileUtilsTest {
     var folder = TemporaryFolder()
 
     var zipSource: File? = null
-    val sampleContent = "Some Random Content Written To File"
-    val additonalSaampleContent = "Some Additional Random Content Written To File"
-    val MOCK_CONTENT_DIR =
+    private val sampleContent = "Some Random Content Written To File"
+    private val additonalSaampleContent = "Some Additional Random Content Written To File"
+    private val MOCK_CONTENT_DIR =
         InstrumentationRegistry.getInstrumentation().context.cacheDir.path + File.separator + "/TestDir"
 
     companion object {

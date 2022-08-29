@@ -134,7 +134,9 @@ object FileUtils {
      *         false otherwise
      */
     @JvmStatic
-    fun extractFromZip(zipFile: File, outputDirectoryPath: String): Boolean {
+    fun extractFromZip(zipFile: File?, outputDirectoryPath: String): Boolean {
+        if (zipFile == null) return false
+
         val folder = File(outputDirectoryPath)
         if (!folder.exists() && !folder.mkdir()) {
             MobileCore.log(

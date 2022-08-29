@@ -13,10 +13,12 @@ package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Configuration
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.ServiceProvider
@@ -81,7 +83,10 @@ class ConfigurationExtensionTest {
     }
 
     @Test
-    fun `ConfigurationExtension - onRegistered when initial config exists`() {
+    fun `ConfigurationExtension - constructor when initial config exists`() {
+        val mockEventHub = mock(EventHub::class.java)
+        EventHub.shared = mockEventHub
+
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
         val config = mutableMapOf<String, Any?>(
             ANALYTICS_RSID_KEY to SAMPLE_RSID,
@@ -101,19 +106,43 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        ExtensionHelper.notifyRegistered(configurationExtension)
-
-        verify(mockExtensionApi).registerEventListener(
-            eq(EventType.CONFIGURATION),
-            eq(EventSource.REQUEST_CONTENT),
-            any()
-        )
+        verify(mockAppIdManager).loadAppId()
         verify(mockConfigStateManager).loadInitialConfig()
         verify(mockConfigurationRulesManager).applyCachedRules(mockExtensionApi)
+        verify(mockExtensionApi, never()).createSharedState(any(), any())
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockExtensionApi, times(2)).dispatch(eventCaptor.capture())
+        verifyDispatchedEvent(
+            eventCaptor.firstValue,
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT,
+            mapOf(
+                Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
+                ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
+            ),
+            null
+        )
+        verifyDispatchedEvent(
+            eventCaptor.secondValue,
+            EventType.CONFIGURATION,
+            EventSource.RESPONSE_CONTENT,
+            config, null
+        )
+
+        // Verify that launch rule evaluator is registered and configured correctly
+        val preprocessorCaptor: KArgumentCaptor<EventPreprocessor> = argumentCaptor()
+        verify(mockEventHub).registerEventPreprocessor(preprocessorCaptor.capture())
+        val mockEvent = Event.Builder("Verify preprocessor event", "name", "source").build()
+        preprocessorCaptor.firstValue.process(mockEvent)
+        verify(mockLaunchRulesEvaluator).process(mockEvent)
     }
 
     @Test
-    fun `ConfigurationExtension - onRegistered when cached rules cannot be applied`() {
+    fun `ConfigurationExtension - constructor when cached rules cannot be applied`() {
+        val mockEventHub = mock(EventHub::class.java)
+        EventHub.shared = mockEventHub
+
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
         val config = mutableMapOf<String, Any?>(
             ANALYTICS_RSID_KEY to SAMPLE_RSID,
@@ -134,20 +163,22 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        ExtensionHelper.notifyRegistered(configurationExtension)
-
-        verify(mockExtensionApi).registerEventListener(
-            eq(EventType.CONFIGURATION),
-            eq(EventSource.REQUEST_CONTENT),
-            any()
-        )
+        verify(mockAppIdManager).loadAppId()
         verify(mockConfigStateManager).loadInitialConfig()
+        verify(mockExtensionApi, never()).createSharedState(any(), any())
         verify(mockConfigurationRulesManager).applyCachedRules(mockExtensionApi)
         verify(mockConfigurationRulesManager).applyBundledRules(mockExtensionApi)
+
+        // Verify that launch rule evaluator is registered and configured correctly
+        val preprocessorCaptor: KArgumentCaptor<EventPreprocessor> = argumentCaptor()
+        verify(mockEventHub).registerEventPreprocessor(preprocessorCaptor.capture())
+        val mockEvent = Event.Builder("Verify preprocessor event", "name", "source").build()
+        preprocessorCaptor.firstValue.process(mockEvent)
+        verify(mockLaunchRulesEvaluator).process(mockEvent)
     }
 
     @Test
-    fun `ConfigurationExtension - onRegistered when initial config is empty`() {
+    fun `ConfigurationExtension - constructor when initial config is empty`() {
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
         val initialConfig = mutableMapOf<String, Any?>()
         `when`(mockConfigStateManager.loadInitialConfig()).thenReturn(initialConfig)
@@ -164,20 +195,44 @@ class ConfigurationExtensionTest {
             mockConfigurationRulesManager
         )
 
-        ExtensionHelper.notifyRegistered(configurationExtension)
-
         verify(mockExtensionApi, never()).createSharedState(initialConfig, null)
         verify(mockConfigurationRulesManager, never()).applyCachedRules(mockExtensionApi)
-        verifyEventDispatch(
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockExtensionApi, times(1)).dispatch(eventCaptor.capture())
+
+        verifyDispatchedEvent(
+            eventCaptor.firstValue,
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT,
             mapOf(
                 Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
                 "config.isinternalevent" to true
             ),
-            null,
-            1
+            null
+        )
+    }
+
+    @Test
+    fun `ConfigurationExtension - registers listener onRegistered`() {
+        val configurationExtension = ConfigurationExtension(
+            mockExtensionApi,
+            mockServiceProvider,
+            mockAppIdManager,
+            mockCacheFileService,
+            mockLaunchRulesEvaluator,
+            mockExecutorService,
+            mockConfigStateManager,
+            mockConfigurationRulesManager
         )
 
-        verify(mockExtensionApi, times(1)).registerEventListener(anyString(), anyString(), any())
+        ExtensionHelper.notifyRegistered(configurationExtension)
+
+        verify(mockExtensionApi).registerEventListener(
+            eq(EventType.CONFIGURATION),
+            eq(EventSource.REQUEST_CONTENT),
+            any()
+        )
     }
 
     @Test
@@ -254,7 +309,7 @@ class ConfigurationExtensionTest {
 
     @Test
     fun `Configure with AppId - Empty App ID from event`() {
-        `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
+        // `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
         val config = mutableMapOf<String, Any?>(
             ANALYTICS_RSID_KEY to SAMPLE_RSID,
             ANALYTICS_SERVER_KEY to SAMPLE_SERVER,
@@ -293,6 +348,7 @@ class ConfigurationExtensionTest {
     @Test
     fun `Configure with AppId - Config has expired`() {
         val newAppID = "UpdatedAppID"
+
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
         val config = mutableMapOf<String, Any?>(
             ANALYTICS_RSID_KEY to SAMPLE_RSID,
@@ -335,7 +391,28 @@ class ConfigurationExtensionTest {
         verify(mockExtensionApi).createSharedState(config, event)
         verify(mockConfigurationRulesManager).applyDownloadedRules("rules.url", mockExtensionApi)
         verify(mockExtensionApi, times(1)).startEvents()
-        verifyEventDispatch(config, event, 1)
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockExtensionApi, times(2)).dispatch(eventCaptor.capture())
+
+        verifyDispatchedEvent(
+            eventCaptor.firstValue,
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT,
+            mapOf(
+                Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
+                "config.isinternalevent" to true
+            ),
+            null
+        )
+
+        verifyDispatchedEvent(
+            eventCaptor.secondValue,
+            EventType.CONFIGURATION,
+            EventSource.RESPONSE_CONTENT,
+            config,
+            event
+        )
     }
 
     @Test
@@ -488,7 +565,16 @@ class ConfigurationExtensionTest {
         verify(mockConfigStateManager).replaceConfiguration(config)
         verify(mockExtensionApi).createSharedState(config, event)
         verify(mockConfigurationRulesManager).applyDownloadedRules("rules.url", mockExtensionApi)
-        verifyEventDispatch(config, event, 1)
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockExtensionApi, times(1)).dispatch(eventCaptor.capture())
+        verifyDispatchedEvent(
+            eventCaptor.firstValue,
+            EventType.CONFIGURATION,
+            EventSource.RESPONSE_CONTENT,
+            config,
+            event
+        )
     }
 
     @Test
@@ -695,10 +781,19 @@ class ConfigurationExtensionTest {
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
-        verifyEventDispatch(mockBundledConfig, event, 1)
         verify(mockConfigStateManager).replaceConfiguration(mockBundledConfig)
         verify(mockExtensionApi).createSharedState(mockBundledConfig, event)
         verify(mockConfigurationRulesManager).applyDownloadedRules("rules.url", mockExtensionApi)
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockExtensionApi, times(1)).dispatch(eventCaptor.capture())
+        verifyDispatchedEvent(
+            eventCaptor.firstValue,
+            EventType.CONFIGURATION,
+            EventSource.RESPONSE_CONTENT,
+            mockBundledConfig,
+            event
+        )
     }
 
     @Test
@@ -783,21 +878,27 @@ class ConfigurationExtensionTest {
             "updated.rules.url",
             mockExtensionApi
         )
-        verifyEventDispatch(mockUpdatedConfig, event, 1)
-    }
-
-    private fun verifyEventDispatch(
-        expectedEventData: Map<String, Any?>?,
-        triggerEvent: Event?,
-        times: Int
-    ) {
-        if (times == 0) {
-            verifyNoEventDispatch()
-        }
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
-        verify(mockExtensionApi, times(times)).dispatch(eventCaptor.capture())
-        val capturedEvent = eventCaptor.firstValue
+        verify(mockExtensionApi, times(1)).dispatch(eventCaptor.capture())
+        verifyDispatchedEvent(
+            eventCaptor.firstValue,
+            EventType.CONFIGURATION,
+            EventSource.RESPONSE_CONTENT,
+            mockUpdatedConfig,
+            event
+        )
+    }
+
+    private fun verifyDispatchedEvent(
+        capturedEvent: Event,
+        expectedEventType: String,
+        expectedEventSource: String,
+        expectedEventData: Map<String, Any?>?,
+        triggerEvent: Event?,
+    ) {
+        assertEquals(expectedEventType, capturedEvent.type)
+        assertEquals(expectedEventSource, capturedEvent.source)
         assertEquals(expectedEventData, capturedEvent.eventData)
         if (triggerEvent != null) {
             assertNotNull(triggerEvent)

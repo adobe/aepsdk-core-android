@@ -139,26 +139,18 @@ internal class ConfigurationExtension : Extension {
         this.retryWorker = retryWorker
         this.configurationStateManager = configurationStateManager
         this.configurationRulesManager = configurationRulesManager
-    }
 
-    /**
-     * Sets up the Configuration extension for the SDK by loading the appId, publishing initial state
-     * and registering relevant event listener for processing events.
-     */
-    override fun onRegistered() {
-        super.onRegistered()
+        loadInitialConfiguration()
 
         EventHub.shared.registerEventPreprocessor {
             launchRulesEvaluator.process(it)
         }
+    }
 
-        api.registerEventListener(
-            EventType.CONFIGURATION,
-            EventSource.REQUEST_CONTENT
-        ) {
-            handleConfigurationRequestEvent(it)
-        }
-
+    /**
+     * Loads the initial configuration.
+     */
+    private fun loadInitialConfiguration() {
         val appId = this.appIdManager.loadAppId()
 
         if (!appId.isNullOrBlank()) {
@@ -173,13 +165,36 @@ internal class ConfigurationExtension : Extension {
         val initialConfig: Map<String, Any?> = this.configurationStateManager.loadInitialConfig()
 
         if (initialConfig.isNotEmpty()) {
-            applyConfigurationChanges(null, RulesSource.CACHE)
+            applyConfigurationChanges(null, RulesSource.CACHE, false)
         } else {
             MobileCore.log(
                 LoggingMode.VERBOSE,
                 TAG,
                 "Initial configuration loaded is empty."
             )
+        }
+    }
+
+    /**
+     * Sets up the Configuration extension for the SDK by registering
+     * event listeners for processing events.
+     */
+    override fun onRegistered() {
+        super.onRegistered()
+
+        // States should not be created in the constructor of the Extension.
+        // Publish initial state that is pre-computed in the constructor when the
+        // registration completes.
+        val initialConfigState = configurationStateManager.environmentAwareConfiguration
+        if (initialConfigState.isNotEmpty()) {
+            publishConfigurationState(initialConfigState, null)
+        }
+
+        api.registerEventListener(
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        ) {
+            handleConfigurationRequestEvent(it)
         }
     }
 
@@ -447,16 +462,25 @@ internal class ConfigurationExtension : Extension {
 
     /**
      * Does three things
-     *  - Publishes the current configuration as configuration state at [triggerEvent]
+     *  - Publishes the current configuration as configuration state at [triggerEvent] per [publishState]
      *  - Dispatches an event response to the [triggerEvent]
-     *  - Replaces current rules and applies the new rules as necessary
+     *  - Replaces current rules and applies the new rules based on [rulesSource]
      *
      *  @param triggerEvent the event that triggered the configuration change
      *  @param rulesSource the source of the rules that need to be applied
+     *  @param publishState boolean indicating whether the config state should be published
      */
-    private fun applyConfigurationChanges(triggerEvent: Event?, rulesSource: RulesSource) {
+    private fun applyConfigurationChanges(
+        triggerEvent: Event?,
+        rulesSource: RulesSource,
+        publishState: Boolean = true
+    ) {
         val config = configurationStateManager.environmentAwareConfiguration
-        publishConfigurationState(config, triggerEvent)
+
+        if (publishState) {
+            publishConfigurationState(config, triggerEvent)
+        }
+
         dispatchConfigurationResponse(config, triggerEvent)
 
         val rulesReplaced = replaceRules(config, rulesSource)

@@ -1,12 +1,12 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventHistoryRequest
+import com.adobe.marketing.mobile.EventHistoryResultHandler
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
 import com.adobe.marketing.mobile.test.utility.readTestResources
 import org.junit.Before

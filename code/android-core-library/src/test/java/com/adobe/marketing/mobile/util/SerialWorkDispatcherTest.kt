@@ -139,7 +139,7 @@ class SerialWorkDispatcherTest {
 
         serialWorkDispatcher.start()
         assertNotNull(serialWorkDispatcher.processedEvents)
-        assertEquals(listOf(event1, event2, event3), serialWorkDispatcher.processedEvents)
+        assertEquals(arrayListOf(event1, event2, event3), serialWorkDispatcher.processedEvents)
     }
 
     @Test
@@ -231,7 +231,7 @@ class SerialWorkDispatcherTest {
         assertNull(serialWorkDispatcher.processedEvents)
 
         serialWorkDispatcher.start()
-        assertEquals(listOf(event1, event2, event3), serialWorkDispatcher.processedEvents)
+        assertEquals(arrayListOf(event1, event2, event3), serialWorkDispatcher.processedEvents)
 
         serialWorkDispatcher.pause()
         serialWorkDispatcher.processedEvents = ArrayList()
@@ -239,7 +239,7 @@ class SerialWorkDispatcherTest {
         serialWorkDispatcher.offer(event5)
 
         serialWorkDispatcher.resume()
-        assertEquals(listOf(event4, event5), serialWorkDispatcher.processedEvents)
+        assertEquals(arrayListOf(event4, event5), serialWorkDispatcher.processedEvents)
     }
 
     @Test

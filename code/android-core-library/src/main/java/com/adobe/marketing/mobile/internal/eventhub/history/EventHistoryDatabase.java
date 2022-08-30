@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile.internal.eventhub.history;
 
 import android.database.Cursor;
 
+import com.adobe.marketing.mobile.EventHistoryResultHandler;
+
 /**
  * Interface defining a database to be used by the SDK for storing event history.
  */

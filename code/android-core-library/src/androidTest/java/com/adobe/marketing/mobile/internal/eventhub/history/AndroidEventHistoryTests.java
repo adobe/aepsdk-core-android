@@ -21,6 +21,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventHistoryRequest;
+import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.TestUtils;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 

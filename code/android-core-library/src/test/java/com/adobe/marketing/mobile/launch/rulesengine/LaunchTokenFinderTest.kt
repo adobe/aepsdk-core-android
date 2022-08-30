@@ -16,7 +16,7 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
-import com.adobe.marketing.mobile.utils.TimeUtil
+import com.adobe.marketing.mobile.utils.TimeUtils
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -78,7 +78,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~timestampu")
         // verify
-        assertEquals(TimeUtil.getUnixTimeInSeconds().toString(), result)
+        assertEquals(TimeUtils.getUnixTimeInSeconds().toString(), result)
     }
 
     @Test
@@ -89,7 +89,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~timestampz")
         // verify
-        assertEquals(TimeUtil.getIso8601Date(), result)
+        assertEquals(TimeUtils.getIso8601Date(), result)
     }
 
     @Test

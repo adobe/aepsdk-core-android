@@ -12,6 +12,8 @@
 package com.adobe.marketing.mobile.internal.eventhub.history;
 
 import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventHistoryRequest;
+import com.adobe.marketing.mobile.EventHistoryResultHandler;
 
 /**
  * Defines an interface for performing database operations on an {@link EventHistoryDatabase}.

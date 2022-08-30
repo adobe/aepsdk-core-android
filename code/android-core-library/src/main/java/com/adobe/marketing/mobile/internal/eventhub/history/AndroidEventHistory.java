@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile.internal.eventhub.history;
 
 import android.database.Cursor;
 import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventHistoryRequest;
+import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.internal.utility.MapUtilsKt;

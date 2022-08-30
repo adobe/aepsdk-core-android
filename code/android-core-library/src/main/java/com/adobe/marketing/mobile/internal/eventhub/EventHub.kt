@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
@@ -25,6 +26,7 @@ import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.WrapperType
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import com.adobe.marketing.mobile.internal.utility.prettify
@@ -68,6 +70,7 @@ internal class EventHub {
         ConcurrentHashMap()
     private val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> =
         ConcurrentLinkedQueue()
+    private val eventPreprocessors: ConcurrentLinkedQueue<EventPreprocessor> = ConcurrentLinkedQueue()
     private val lastEventNumber: AtomicInteger = AtomicInteger(0)
     private var hubStarted = false
     internal val eventHistory: EventHistory? = try {
@@ -82,12 +85,16 @@ internal class EventHub {
      */
     private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> =
         SerialWorkDispatcher.WorkHandler { event ->
-            // TODO: Perform pre-processing
+
+            var processedEvent: Event = event
+            for (eventPreprocessor in eventPreprocessors) {
+                processedEvent = eventPreprocessor.process(processedEvent)
+            }
 
             // Handle response event listeners
-            if (event.responseID != null) {
+            if (processedEvent.responseID != null) {
                 val matchingResponseListeners = responseEventListeners.filterRemove { listener ->
-                    if (listener.shouldNotify(event)) {
+                    if (listener.shouldNotify(processedEvent)) {
                         listener.timeoutTask?.cancel(false)
                         true
                     } else {
@@ -96,17 +103,17 @@ internal class EventHub {
                 }
 
                 matchingResponseListeners.forEach { listener ->
-                    listener.notify(event)
+                    listener.notify(processedEvent)
                 }
             }
 
             // Notify to extensions for processing
             registeredExtensions.values.forEach {
-                it.eventProcessor.offer(event)
+                it.eventProcessor.offer(processedEvent)
             }
 
-            event.mask?.let {
-                eventHistory?.recordEvent(event) { result ->
+            processedEvent.mask?.let {
+                eventHistory?.recordEvent(processedEvent) { result ->
                     MobileCore.log(
                         LoggingMode.VERBOSE,
                         LOG_TAG,
@@ -129,6 +136,14 @@ internal class EventHub {
 
     init {
         registerExtension(EventHubPlaceholderExtension::class.java) {}
+        registerExtension(ConfigurationExtension::class.java) {
+            if (it == EventHubError.None) return@registerExtension
+
+            MobileCore.log(
+                LoggingMode.ERROR, LOG_TAG,
+                "Failed to register Configuration extension: ${it.name}"
+            )
+        }
     }
 
     private var _wrapperType = WrapperType.NONE
@@ -306,6 +321,20 @@ internal class EventHub {
             val eventHubContainer = getExtensionContainer(EventHubPlaceholderExtension::class.java)
             eventHubContainer?.registerEventListener(eventType, eventSource) { listener.call(it) }
         }
+    }
+
+    /**
+     * Registers an [EventPreprocessor] with the eventhub
+     * Note that this is an internal only method for use by ConfigurationExtension,
+     * until preprocessors are supported via a public api.
+     *
+     * @param eventPreprocessor the [EventPreprocessor] that should be registered
+     */
+    internal fun registerEventPreprocessor(eventPreprocessor: EventPreprocessor) {
+        if (eventPreprocessors.contains(eventPreprocessor)) {
+            return
+        }
+        eventPreprocessors.add(eventPreprocessor)
     }
 
     /**

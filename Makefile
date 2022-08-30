@@ -48,6 +48,9 @@ javadoc:
 build-third-party-extension:
 		(./code/gradlew test-third-party-extension:build)
 
+publishCoreToMavenLocal:
+		(./code/gradlew -p code/android-core-library publishReleasePublicationToMavenLocal)
+
 
 
 

@@ -153,7 +153,7 @@ publishing {
 }
 tasks.withType(Javadoc).all { enabled = false }
 publishToMavenLocal.dependsOn('assemblePhone')
-
+publishReleasePublicationToMavenLocal.dependsOn('assemblePhone')
 dependencies {
     //noinspection GradleDependency,GradleCompatible
     implementation 'androidx.appcompat:appcompat:1.0.0'
@@ -166,10 +166,12 @@ dependencies {
     //noinspection GradleDependency
     testImplementation 'commons-codec:commons-codec:1.15'
     testImplementation 'org.robolectric:robolectric:3.6.2'
+    testImplementation "org.mockito.kotlin:mockito-kotlin:3.2.0"
     //noinspection GradleDependency
     testImplementation 'org.json:json:20160810'
     //noinspection GradleDependency
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_version"
 
     // instrumentation tests
     androidTestImplementation 'androidx.test:rules:1.4.0'

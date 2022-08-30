@@ -25,6 +25,7 @@ import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.utils.DataReader
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.ScheduledExecutorService
@@ -375,38 +376,26 @@ internal class ConfigurationExtension : Extension {
      *              current configuration
      * @param sharedStateResolver the resolver should be used for resolving the current state
      */
-    @Suppress("UNCHECKED_CAST")
     private fun updateConfiguration(event: Event, sharedStateResolver: SharedStateResolver) {
-        val config: MutableMap<*, *> =
-            event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) as?
-                MutableMap<*, *> ?: return
+        val programmaticConfig: Map<String, Any?>? = DataReader.optTypedMap(
+            Any::class.java,
+            event.eventData,
+            CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG,
+            null
+        )
 
-        if (!config.keys.isAllString()) {
+        if (programmaticConfig == null) {
             Log.debug(
                 TAG,
                 TAG,
-                "Invalid configuration. Configuration contains non string keys."
+                "Invalid configuration. Provided configuration is null or contains non string keys."
             )
             sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
-        val programmaticConfig = try {
-            config as? Map<String, Any?>
-        } catch (e: Exception) {
-            Log.warning(
-                TAG,
-                TAG,
-                "Failed to load programmatic config. Invalid configuration."
-            )
-            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
-            null
-        }
-
-        programmaticConfig?.let {
-            configurationStateManager.updateProgrammaticConfig(it)
-            applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
-        }
+        configurationStateManager.updateProgrammaticConfig(programmaticConfig)
+        applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
     }
 
     /**

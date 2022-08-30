@@ -827,7 +827,46 @@ class ConfigurationExtensionTest {
     }
 
     @Test
-    fun `Update Configuration - valid programmatic config`() {
+    fun `Update Configuration - no programmatic config`() {
+        val mockBundledConfig = mutableMapOf<String, Any?>(
+            ANALYTICS_RSID_KEY to SAMPLE_RSID,
+            ANALYTICS_SERVER_KEY to SAMPLE_SERVER,
+            ConfigurationExtension.RULES_CONFIG_URL to "rules.url"
+        )
+
+        `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
+        `when`(mockConfigStateManager.loadBundledConfig(anyString())).thenReturn(mockBundledConfig)
+        `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(mockBundledConfig)
+
+        val configurationExtension = ConfigurationExtension(
+            mockExtensionApi,
+            mockServiceProvider,
+            mockAppIdManager,
+            mockCacheFileService,
+            mockLaunchRulesEvaluator,
+            mockExecutorService,
+            mockConfigStateManager,
+            mockConfigurationRulesManager
+        )
+        reset(mockExtensionApi)
+
+        val event: Event = Event.Builder(
+            "Update invalid programmatic config",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to null))
+            .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
+
+        configurationExtension.handleConfigurationRequestEvent(event)
+
+        verify(mockConfigStateManager, never()).updateProgrammaticConfig(any())
+        verify(mockSharedStateResolver).resolve(mockBundledConfig)
+    }
+
+    @Test
+    fun `Update Configuration - invalid programmatic config`() {
         val mockBundledConfig = mutableMapOf<String, Any?>(
             ANALYTICS_RSID_KEY to SAMPLE_RSID,
             ANALYTICS_SERVER_KEY to SAMPLE_SERVER,

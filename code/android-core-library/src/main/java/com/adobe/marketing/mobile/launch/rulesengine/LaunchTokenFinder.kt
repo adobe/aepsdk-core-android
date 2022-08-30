@@ -19,7 +19,7 @@ import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.internal.utility.flattening
 import com.adobe.marketing.mobile.internal.utility.serializeToQueryString
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
-import com.adobe.marketing.mobile.utils.TimeUtil
+import com.adobe.marketing.mobile.utils.TimeUtils
 import org.json.JSONObject
 import java.security.SecureRandom
 
@@ -63,9 +63,9 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             EMPTY_STRING -> null
             KEY_EVENT_TYPE -> event.type
             KEY_EVENT_SOURCE -> event.source
-            KEY_TIMESTAMP_UNIX -> TimeUtil.getUnixTimeInSeconds().toString()
-            KEY_TIMESTAMP_ISO8601 -> TimeUtil.getIso8601Date()
-            KEY_TIMESTAMP_PLATFORM -> TimeUtil.getIso8601DateTimeZoneISO8601()
+            KEY_TIMESTAMP_UNIX -> TimeUtils.getUnixTimeInSeconds().toString()
+            KEY_TIMESTAMP_ISO8601 -> TimeUtils.getIso8601Date()
+            KEY_TIMESTAMP_PLATFORM -> TimeUtils.getIso8601DateTimeZoneISO8601()
             KEY_SDK_VERSION -> MobileCore.extensionVersion()
             KEY_CACHEBUST -> SecureRandom().nextInt(RANDOM_INT_BOUNDARY).toString()
             KEY_ALL_URL -> {

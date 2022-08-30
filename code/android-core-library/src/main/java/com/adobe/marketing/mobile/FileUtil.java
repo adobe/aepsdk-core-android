@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile;
 
 import java.io.*;
 
+@Deprecated
 final class FileUtil {
 
 	private final static String LOG_TAG = "FileUtil";

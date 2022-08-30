@@ -17,8 +17,7 @@ import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.compatibility.CacheManager
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
@@ -175,8 +174,8 @@ internal class ConfigurationExtension : Extension {
         if (initialConfig.isNotEmpty()) {
             applyConfigurationChanges(null, RulesSource.CACHE, null)
         } else {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.trace(
+                TAG,
                 TAG,
                 "Initial configuration loaded is empty."
             )
@@ -260,10 +259,10 @@ internal class ConfigurationExtension : Extension {
             event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
 
         if (appId.isNullOrBlank()) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.trace(
                 TAG,
-                "AppId in configureWithAppID event is null.."
+                TAG,
+                "AppId in configureWithAppID event is null."
             )
 
             appIdManager.removeAppIdFromPersistence()
@@ -284,8 +283,8 @@ internal class ConfigurationExtension : Extension {
                 cancelConfigRetry()
                 applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
             } else {
-                MobileCore.log(
-                    LoggingMode.VERBOSE,
+                Log.trace(
+                    TAG,
                     TAG,
                     "Failed to download configuration. Applying Will retry download."
                 )
@@ -314,8 +313,8 @@ internal class ConfigurationExtension : Extension {
             event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
 
         if (filePath.isNullOrBlank()) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                TAG,
                 TAG,
                 "Unable to read config from provided file (filePath: $filePath is invalid)"
             )
@@ -327,8 +326,8 @@ internal class ConfigurationExtension : Extension {
         if (result) {
             applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
         } else {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                TAG,
                 TAG,
                 "Could not update configuration from file path: $filePath"
             )
@@ -347,8 +346,8 @@ internal class ConfigurationExtension : Extension {
             event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
 
         if (fileAssetName.isNullOrBlank()) {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                TAG,
                 TAG,
                 "Asset file name for configuration is null or empty."
             )
@@ -360,8 +359,8 @@ internal class ConfigurationExtension : Extension {
         if (result) {
             applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
         } else {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                TAG,
                 TAG,
                 "Could not update configuration from file asset: $fileAssetName"
             )
@@ -383,8 +382,8 @@ internal class ConfigurationExtension : Extension {
                 MutableMap<*, *> ?: return
 
         if (!config.keys.isAllString()) {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                TAG,
                 TAG,
                 "Invalid configuration. Configuration contains non string keys."
             )
@@ -395,8 +394,8 @@ internal class ConfigurationExtension : Extension {
         val programmaticConfig = try {
             config as? Map<String, Any?>
         } catch (e: Exception) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.warning(
+                TAG,
                 TAG,
                 "Failed to load programmatic config. Invalid configuration."
             )
@@ -533,8 +532,8 @@ internal class ConfigurationExtension : Extension {
     private fun publishConfigurationState(state: Map<String, Any?>, event: Event?) {
         val successful = api.createSharedState(state, event)
         if (!successful) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.warning(
+                TAG,
                 TAG,
                 "Failed to update configuration state."
             )
@@ -562,8 +561,8 @@ internal class ConfigurationExtension : Extension {
                 return if (!rulesURL.isNullOrBlank()) {
                     configurationRulesManager.applyDownloadedRules(rulesURL, api)
                 } else {
-                    MobileCore.log(
-                        LoggingMode.ERROR,
+                    Log.warning(
+                        TAG,
                         TAG,
                         "Cannot load rules form rules URL: $rulesURL}"
                     )

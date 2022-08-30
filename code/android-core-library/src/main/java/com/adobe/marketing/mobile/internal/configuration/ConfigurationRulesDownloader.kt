@@ -12,8 +12,7 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.Networking
@@ -86,17 +85,17 @@ internal class ConfigurationRulesDownloader {
      *         null if extraction of zip fails
      */
     private fun processRulesZip(url: String, directory: String, downloadedZipFile: File?): File? {
-        MobileCore.log(
-            LoggingMode.VERBOSE,
+        Log.trace(
             ConfigurationExtension.TAG,
-            "$LOG_TAG - Processing Rules bundle."
+            LOG_TAG,
+            "Processing Rules bundle."
         )
 
         if (downloadedZipFile == null) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.trace(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Downloaded rules zip file is null."
+                LOG_TAG,
+                "Downloaded rules zip file is null."
             )
             return null
         }
@@ -106,10 +105,10 @@ internal class ConfigurationRulesDownloader {
         } else {
             val outputPath: String? = cacheFileService.getBaseFilePath(url, directory)
             if (outputPath == null) {
-                MobileCore.log(
-                    LoggingMode.VERBOSE,
+                Log.trace(
                     ConfigurationExtension.TAG,
-                    "$LOG_TAG - Failed to create output path for extracting rules bundle."
+                    LOG_TAG,
+                    "Failed to create output path for extracting rules bundle."
                 )
                 null
             } else {
@@ -123,18 +122,18 @@ internal class ConfigurationRulesDownloader {
                         lastModifiedDate
                     )
                     downloadedZipFile.delete()
-                    MobileCore.log(
-                        LoggingMode.VERBOSE,
+                    Log.trace(
                         ConfigurationExtension.TAG,
-                        "$LOG_TAG - Successfully extracted rules zip."
+                        LOG_TAG,
+                        "Successfully extracted rules zip."
                     )
 
                     File(outputPath)
                 } else {
-                    MobileCore.log(
-                        LoggingMode.VERBOSE,
+                    Log.trace(
                         ConfigurationExtension.TAG,
-                        "$LOG_TAG - Failed to extract downloaded rules zip."
+                        LOG_TAG,
+                        "Failed to extract downloaded rules zip."
                     )
                     downloadedZipFile.delete()
                     null

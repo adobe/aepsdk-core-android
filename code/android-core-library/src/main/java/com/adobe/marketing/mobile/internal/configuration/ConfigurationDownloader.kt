@@ -11,8 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.internal.utility.toMap
 import com.adobe.marketing.mobile.utils.remotedownload.RemoteDownloader
@@ -43,7 +42,11 @@ internal class ConfigurationDownloader(
      * @param completionCallback the callback to invoke with the parsed/processed configuration
      *
      */
-    fun download(url: String, directory: String?, completionCallback: (Map<String, Any?>?) -> Unit) {
+    fun download(
+        url: String,
+        directory: String?,
+        completionCallback: (Map<String, Any?>?) -> Unit
+    ) {
         remoteDownloader.download(url, directory, metadataProvider) { downloadResult ->
             val file = downloadResult.data
             val content: String? = FileUtils.readAsString(file)
@@ -52,10 +55,10 @@ internal class ConfigurationDownloader(
                 content == null -> null
 
                 content.isEmpty() -> {
-                    MobileCore.log(
-                        LoggingMode.DEBUG,
+                    Log.debug(
                         ConfigurationExtension.TAG,
-                        "$LOG_TAG - Downloaded configuration is empty."
+                        LOG_TAG,
+                        "Downloaded configuration is empty."
                     )
                     emptyMap()
                 }
@@ -65,10 +68,10 @@ internal class ConfigurationDownloader(
                         val downloadedConfig = JSONObject(JSONTokener(content))
                         downloadedConfig.toMap()
                     } catch (exception: JSONException) {
-                        MobileCore.log(
-                            LoggingMode.ERROR,
+                        Log.error(
                             ConfigurationExtension.TAG,
-                            "$LOG_TAG - Exception processing downloaded configuration $exception"
+                            LOG_TAG,
+                            "Exception processing downloaded configuration $exception"
                         )
                         null
                     }

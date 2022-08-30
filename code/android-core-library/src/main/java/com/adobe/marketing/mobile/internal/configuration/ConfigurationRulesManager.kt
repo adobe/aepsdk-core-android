@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.utility.FileUtils
@@ -107,9 +108,9 @@ internal class ConfigurationRulesManager(
      */
     internal fun applyDownloadedRules(url: String, extensionApi: ExtensionApi): Boolean {
         if (configDataStore == null) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.trace(
                 ConfigurationExtension.TAG,
+                LOG_TAG,
                 "$LOG_TAG - Cannot load rules from ${ConfigurationExtension.DATASTORE_KEY}. Cannot apply cached rules"
             )
             return false

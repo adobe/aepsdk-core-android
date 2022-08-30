@@ -12,8 +12,7 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.internal.utility.StringUtils
 import com.adobe.marketing.mobile.internal.utility.toMap
@@ -139,10 +138,10 @@ internal class ConfigurationStateManager {
 
         val config: Map<String, Any?>? = if (appId.isNullOrEmpty()) {
             // Load bundled config
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.trace(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - AppID from persistence and manifest is null."
+                LOG_TAG,
+                "AppID from persistence and manifest is null."
             )
             loadBundledConfig(CONFIG_BUNDLED_FILE_NAME)
         } else {
@@ -164,19 +163,19 @@ internal class ConfigurationStateManager {
      */
     @VisibleForTesting
     internal fun loadBundledConfig(bundledConfigFileName: String): Map<String, Any?>? {
-        MobileCore.log(
-            LoggingMode.VERBOSE,
+        Log.trace(
             ConfigurationExtension.TAG,
-            "$LOG_TAG - Attempting to load bundled config."
+            LOG_TAG,
+            "Attempting to load bundled config."
         )
         val contentStream: InputStream? = deviceInfoService.getAsset(bundledConfigFileName)
         val contentString = StringUtils.streamToString(contentStream)
 
         if (contentString.isNullOrEmpty()) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.debug(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Bundled config asset is not present/is empty. Cannot load bundled config."
+                LOG_TAG,
+                "Bundled config asset is not present/is empty. Cannot load bundled config."
             )
             return null
         }
@@ -185,10 +184,10 @@ internal class ConfigurationStateManager {
             val bundledConfigJson = JSONObject(JSONTokener(contentString))
             bundledConfigJson.toMap()
         } catch (exception: JSONException) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.debug(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Failed to load bundled config $exception"
+                LOG_TAG,
+                "Failed to load bundled config $exception"
             )
             null
         }
@@ -206,9 +205,9 @@ internal class ConfigurationStateManager {
         val config = loadBundledConfig(fileAssetName)
 
         if (config.isNullOrEmpty()) {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
                 ConfigurationExtension.TAG,
+                LOG_TAG,
                 "Empty configuration found when processing JSON string."
             )
             return false
@@ -229,9 +228,9 @@ internal class ConfigurationStateManager {
     internal fun updateConfigWithFilePath(filePath: String): Boolean {
         val config = getConfigFromFile(filePath)
         if (config == null) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.debug(
                 ConfigurationExtension.TAG,
+                LOG_TAG,
                 "Unable to read config from provided file (content is invalid)"
             )
             return false
@@ -253,10 +252,10 @@ internal class ConfigurationStateManager {
         val configFile = File(filePath)
         val configFileContent = FileUtils.readAsString(configFile)
         if (configFileContent.isNullOrEmpty()) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.debug(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Empty configuration from file path while configuring with file path."
+                LOG_TAG,
+                "Empty configuration from file path while configuring with file path."
             )
             return null
         }
@@ -265,19 +264,19 @@ internal class ConfigurationStateManager {
             val configJson = JSONObject(JSONTokener(configFileContent))
             configJson.toMap()
         } catch (exception: JSONException) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Failed to parse JSON config from file while configuring with file path."
+                LOG_TAG,
+                "Failed to parse JSON config from file while configuring with file path."
             )
             null
         }
 
         if (config.isNullOrEmpty()) {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Empty configuration found when processing JSON string."
+                LOG_TAG,
+                "Empty configuration found when processing JSON string."
             )
             return null
         }
@@ -298,17 +297,17 @@ internal class ConfigurationStateManager {
 
         try {
             val overriddenConfigObj = JSONObject(JSONTokener(persistedConfigContent))
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.trace(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Loaded persisted programmatic Configuration"
+                LOG_TAG,
+                "Loaded persisted programmatic Configuration"
             )
             return overriddenConfigObj.toMap()
         } catch (exception: JSONException) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.debug(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Unable to parse the Configuration from JSON Object. Exception: ($exception)"
+                LOG_TAG,
+                "Unable to parse the Configuration from JSON Object. Exception: ($exception)"
             )
         }
 
@@ -323,19 +322,19 @@ internal class ConfigurationStateManager {
      *         null otherwise
      */
     private fun loadCachedConfig(appId: String): Map<String, Any?>? {
-        MobileCore.log(
-            LoggingMode.VERBOSE,
+        Log.trace(
             ConfigurationExtension.TAG,
-            "$LOG_TAG - Attempting to load cached config."
+            LOG_TAG,
+            "Attempting to load cached config."
         )
         val url = String.format(CONFIGURATION_URL_BASE, appId)
         val cacheFile: File? = cacheFileService.getCacheFile(url, null, false)
         val contentString = FileUtils.readAsString(cacheFile)
         if (contentString.isNullOrEmpty()) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.trace(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Cached config is null/empty."
+                LOG_TAG,
+                "Cached config is null/empty."
             )
             return null
         }
@@ -344,10 +343,10 @@ internal class ConfigurationStateManager {
             val cachedConfig = JSONObject(JSONTokener(contentString))
             cachedConfig.toMap()
         } catch (exception: JSONException) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.debug(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Failed to load cached config $exception"
+                LOG_TAG,
+                "Failed to load cached config $exception"
             )
             null
         }
@@ -361,10 +360,10 @@ internal class ConfigurationStateManager {
      */
     internal fun updateConfigWithAppId(appId: String, completion: (Map<String, Any?>?) -> Unit) {
         if (appId.isBlank()) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.trace(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Attempting to set empty App Id into persistence."
+                LOG_TAG,
+                "Attempting to set empty App Id into persistence."
             )
             return
         }
@@ -404,10 +403,10 @@ internal class ConfigurationStateManager {
         currentConfiguration.clear()
         currentConfiguration.putAll(unmergedConfiguration)
         computeEnvironmentAwareConfig()
-        MobileCore.log(
-            LoggingMode.VERBOSE,
+        Log.trace(
             ConfigurationExtension.TAG,
-            "$LOG_TAG - Cleared programmatic configuration."
+            LOG_TAG,
+            "Cleared programmatic configuration."
         )
     }
 
@@ -428,10 +427,10 @@ internal class ConfigurationStateManager {
         currentConfiguration.putAll(unmergedConfiguration)
         currentConfiguration.putAll(programmaticConfiguration)
         computeEnvironmentAwareConfig()
-        MobileCore.log(
-            LoggingMode.VERBOSE,
+        Log.trace(
             ConfigurationExtension.TAG,
-            "$LOG_TAG - Replaced configuration."
+            LOG_TAG,
+            "Replaced configuration."
         )
     }
 
@@ -451,10 +450,10 @@ internal class ConfigurationStateManager {
         // Update the current configuration to reflect changes in programmatic config
         currentConfiguration.putAll(programmaticConfiguration)
         computeEnvironmentAwareConfig()
-        MobileCore.log(
-            LoggingMode.VERBOSE,
+        Log.debug(
             ConfigurationExtension.TAG,
-            "$LOG_TAG - Updated programmatic configuration."
+            LOG_TAG,
+            "Updated programmatic configuration."
         )
     }
 

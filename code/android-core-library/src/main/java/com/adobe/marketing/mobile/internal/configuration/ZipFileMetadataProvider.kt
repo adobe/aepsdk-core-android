@@ -11,8 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.internal.utility.FileUtils.readAsString
 import com.adobe.marketing.mobile.utils.TimeUtils
 import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider
@@ -54,10 +53,10 @@ internal class ZipFileMetadataProvider : MetadataProvider {
                 fileOutputStream.write(metadataString.toByteArray(charset(DEFAULT_CHARSET)))
             }
         } catch (e: IOException) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.debug(
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Failed to write metadata into metadata file: $metadataFile"
+                LOG_TAG,
+                "Failed to write metadata into metadata file: $metadataFile"
             )
         }
     }
@@ -82,12 +81,12 @@ internal class ZipFileMetadataProvider : MetadataProvider {
                 date = tokens[0].toLong()
                 size = tokens[1].toLong()
             } else {
-                MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Could not de-serialize metadata!")
+                Log.debug(ConfigurationExtension.TAG, LOG_TAG, "Could not de-serialize metadata!")
                 return null
             }
         } catch (ne: NumberFormatException) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                ConfigurationExtension.TAG,
                 LOG_TAG,
                 "Could not read metadata for zip file from string: $metadataString.  $ne"
             )

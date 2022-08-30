@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Configuration
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
@@ -45,12 +44,20 @@ internal class ConfigurationExtension : Extension {
         private const val EXTENSION_FRIENDLY_NAME = "Configuration"
         private const val EXTENSION_VERSION = "2.0.0"
 
+        internal const val CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID = "config.appId"
+        internal const val CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH = "config.filePath"
+        internal const val CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE = "config.assetFile"
+        internal const val CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG = "config.update"
+        internal const val CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG =
+            "config.clearUpdates"
+        internal const val CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG = "config.getData"
         internal const val CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT =
             "config.isinternalevent"
         internal const val DATASTORE_KEY = "AdobeMobile_ConfigState"
         internal const val RULES_CONFIG_URL = "rules.url"
-
         internal const val CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS = 5L
+        internal const val CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS = "config.allIdentifiers"
+        internal const val EVENT_STATE_OWNER = "stateowner"
         internal const val GLOBAL_CONFIG_PRIVACY = "global.privacy"
     }
 
@@ -157,7 +164,7 @@ internal class ConfigurationExtension : Extension {
         if (!appId.isNullOrBlank()) {
             val eventData: MutableMap<String, Any?> =
                 mutableMapOf(
-                    Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
+                    CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
                     CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
                 )
             dispatchConfigurationRequest(eventData)
@@ -220,22 +227,22 @@ internal class ConfigurationExtension : Extension {
         if (event.eventData == null) return
 
         when {
-            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) -> {
+            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) -> {
                 configureWithAppID(event, api.createPendingSharedState(event))
             }
-            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) -> {
+            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) -> {
                 configureWithFileAsset(event, api.createPendingSharedState(event))
             }
-            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) -> {
+            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) -> {
                 configureWithFilePath(event, api.createPendingSharedState(event))
             }
-            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) -> {
+            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) -> {
                 updateConfiguration(event, api.createPendingSharedState(event))
             }
-            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG) -> {
+            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG) -> {
                 clearUpdatedConfiguration(event, api.createPendingSharedState(event))
             }
-            event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG) -> {
+            event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG) -> {
                 retrieveConfiguration(event)
             }
         }
@@ -250,7 +257,7 @@ internal class ConfigurationExtension : Extension {
      */
     private fun configureWithAppID(event: Event, sharedStateResolver: SharedStateResolver) {
         val appId =
-            event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
+            event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
 
         if (appId.isNullOrBlank()) {
             MobileCore.log(
@@ -304,7 +311,7 @@ internal class ConfigurationExtension : Extension {
      */
     private fun configureWithFilePath(event: Event, sharedStateResolver: SharedStateResolver) {
         val filePath =
-            event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
+            event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
 
         if (filePath.isNullOrBlank()) {
             MobileCore.log(
@@ -332,12 +339,12 @@ internal class ConfigurationExtension : Extension {
     /**
      * Updates the current configuration with the content from a file asset.
      *
-     * @param event which contains [Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE] as part of its event data
+     * @param event which contains [CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE] as part of its event data
      * @param sharedStateResolver the resolver should be used for resolving the current state
      */
     private fun configureWithFileAsset(event: Event, sharedStateResolver: SharedStateResolver) {
         val fileAssetName =
-            event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
+            event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
 
         if (fileAssetName.isNullOrBlank()) {
             MobileCore.log(
@@ -372,7 +379,7 @@ internal class ConfigurationExtension : Extension {
     @Suppress("UNCHECKED_CAST")
     private fun updateConfiguration(event: Event, sharedStateResolver: SharedStateResolver) {
         val config: MutableMap<*, *> =
-            event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) as?
+            event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) as?
                 MutableMap<*, *> ?: return
 
         if (!config.keys.isAllString()) {
@@ -440,7 +447,7 @@ internal class ConfigurationExtension : Extension {
             {
                 dispatchConfigurationRequest(
                     mutableMapOf(
-                        Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
+                        CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
                         CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
                     )
                 )

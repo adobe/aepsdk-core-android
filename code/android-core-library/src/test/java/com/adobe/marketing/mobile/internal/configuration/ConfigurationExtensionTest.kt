@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Configuration
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.EventSource
@@ -19,6 +18,11 @@ import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
 import com.adobe.marketing.mobile.SharedStateResolver
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
@@ -122,7 +126,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT,
             mapOf(
-                Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
+                CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
                 ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
             ),
             null
@@ -210,7 +214,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT,
             mapOf(
-                Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
+                CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
                 "config.isinternalevent" to true
             ),
             null
@@ -300,7 +304,7 @@ class ConfigurationExtensionTest {
             "Configure with appId",
             EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to null))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to null))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -339,7 +343,7 @@ class ConfigurationExtensionTest {
             "Configure with appId",
             EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to ""))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to ""))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -381,7 +385,7 @@ class ConfigurationExtensionTest {
             "Configure with appId",
             EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -410,7 +414,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT,
             mapOf(
-                Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
+                CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
                 "config.isinternalevent" to true
             ),
             null
@@ -487,7 +491,7 @@ class ConfigurationExtensionTest {
             "Configure with appId",
             EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(any())).thenReturn(mockSharedStateResolver)
 
@@ -570,7 +574,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to filePath))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to filePath))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -611,7 +615,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -647,7 +651,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to null))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to null))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -683,7 +687,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to ""))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to ""))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -718,7 +722,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to null))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to null))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -754,7 +758,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to fileAssetName))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to fileAssetName))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -799,7 +803,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to fileAsset))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to fileAsset))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -856,7 +860,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to programmaticConfig))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to programmaticConfig))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
@@ -895,7 +899,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG to true))
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG to true))
             .build()
         `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 

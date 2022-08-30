@@ -11,11 +11,11 @@
 
 package com.adobe.marketing.mobile;
 
-public final class CoreConstants {
+final class CoreConstants {
 
 	private CoreConstants() {}
 
-	public static class EventDataKeys {
+	static class EventDataKeys {
 
 		private EventDataKeys() {}
 
@@ -37,12 +37,12 @@ public final class CoreConstants {
 			static final String GLOBAL_CONFIG_PRIVACY            = "global.privacy";
 
 			// Configuration EventData Keys
-			public static final String CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID			= "config.appId";
-			public static final String CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH			= "config.filePath";
-			public static final String CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE		= "config.assetFile";
-			public static final String CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG			= "config.update";
-			public static final String CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG 	= "config.clearUpdates";
-			public static final String CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG 		= "config.getData";
+			static final String CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID			= "config.appId";
+			static final String CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH		= "config.filePath";
+			static final String CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE		= "config.assetFile";
+			static final String CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG			= "config.update";
+			static final String CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG = "config.clearUpdates";
+			static final String CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG 		= "config.getData";
 
 			private Configuration() {}
 		}

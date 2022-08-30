@@ -18,6 +18,7 @@ import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
+import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
@@ -74,6 +75,9 @@ class ConfigurationExtensionTest {
 
     @Mock
     private lateinit var mockExecutorService: ScheduledExecutorService
+
+    @Mock
+    private lateinit var mockSharedStateResolver: SharedStateResolver
 
     companion object {
         private const val SAMPLE_SERVER = "downloaded_server"
@@ -253,6 +257,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         ).build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
@@ -297,11 +302,12 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to null))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
         verify(mockAppIdManager).removeAppIdFromPersistence()
-        verify(mockExtensionApi).createSharedState(existingEnvAwareConfig, event)
+        verify(mockSharedStateResolver).resolve(existingEnvAwareConfig)
         verify(mockExtensionApi, never()).stopEvents()
         verify(mockExtensionApi, never()).startEvents()
         verifyNoEventDispatch()
@@ -335,11 +341,12 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to ""))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
         verify(mockAppIdManager).removeAppIdFromPersistence()
-        verify(mockExtensionApi).createSharedState(existingEnvAwareConfig, event)
+        verify(mockSharedStateResolver).resolve(existingEnvAwareConfig)
         verify(mockExtensionApi, never()).stopEvents()
         verify(mockExtensionApi, never()).startEvents()
         verifyNoEventDispatch()
@@ -350,7 +357,7 @@ class ConfigurationExtensionTest {
         val newAppID = "UpdatedAppID"
 
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
-        val config = mutableMapOf<String, Any?>(
+        val config = mapOf<String, String?>(
             ANALYTICS_RSID_KEY to SAMPLE_RSID,
             ANALYTICS_SERVER_KEY to SAMPLE_SERVER,
             ConfigurationExtension.RULES_CONFIG_URL to "rules.url"
@@ -358,6 +365,11 @@ class ConfigurationExtensionTest {
 
         `when`(mockConfigStateManager.hasConfigExpired(anyString())).thenReturn(true)
         `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(config)
+        `when`(mockConfigStateManager.updateConfigWithAppId(any(), any())).then {
+            // Simulate invoking of callback
+            val completionCallback = it.getArgument<(Map<String, String?>) -> Unit>(1)
+            completionCallback.invoke(config)
+        }
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi, mockServiceProvider,
@@ -371,6 +383,7 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
@@ -385,10 +398,7 @@ class ConfigurationExtensionTest {
         assertEquals(newAppID, appIdCaptor.firstValue)
         assertNotNull(completionCallbackCaptor.firstValue)
 
-        // Simulate invoking of callback
-        completionCallbackCaptor.firstValue.invoke(config)
-
-        verify(mockExtensionApi).createSharedState(config, event)
+        verify(mockSharedStateResolver).resolve(config)
         verify(mockConfigurationRulesManager).applyDownloadedRules("rules.url", mockExtensionApi)
         verify(mockExtensionApi, times(1)).startEvents()
 
@@ -479,6 +489,7 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(any())).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
@@ -507,10 +518,10 @@ class ConfigurationExtensionTest {
         )
 
         // Verify that cached state is set twice for 2 failed downloads
-        verify(mockExtensionApi, times(2)).createSharedState(eq(currentConfig), any())
+        verify(mockSharedStateResolver, times(2)).resolve(eq(currentConfig))
 
         // Verify that new/downloaded state is set for final successful download
-        verify(mockExtensionApi, times(1)).createSharedState(eq(newConfig), any())
+        verify(mockSharedStateResolver, times(1)).resolve(eq(newConfig))
 
         // verify that old rules are never re-applied
         verify(mockConfigurationRulesManager, times(0)).applyDownloadedRules(
@@ -531,6 +542,9 @@ class ConfigurationExtensionTest {
 
     @Test
     fun `Configure with valid file path`() {
+        val filePath = "some/file/path"
+        `when`(mockConfigStateManager.updateConfigWithFilePath(filePath)).thenReturn(true)
+
         val config = mutableMapOf<String, Any?>(
             ANALYTICS_RSID_KEY to SAMPLE_RSID,
             ANALYTICS_SERVER_KEY to SAMPLE_SERVER,
@@ -539,7 +553,6 @@ class ConfigurationExtensionTest {
 
         `when`(mockConfigStateManager.getConfigFromFile(anyString())).thenReturn(config)
         `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(config)
-        reset(mockExtensionApi)
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
@@ -557,13 +570,14 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to filePath))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
-        verify(mockConfigStateManager).replaceConfiguration(config)
-        verify(mockExtensionApi).createSharedState(config, event)
+        verify(mockConfigStateManager).updateConfigWithFilePath(filePath)
+        verify(mockSharedStateResolver).resolve(config)
         verify(mockConfigurationRulesManager).applyDownloadedRules("rules.url", mockExtensionApi)
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -599,6 +613,7 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to "some/file/path"))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
@@ -634,6 +649,7 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to null))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
@@ -669,6 +685,7 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH to ""))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
@@ -703,10 +720,11 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to null))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
-        verify(mockConfigStateManager, never()).replaceConfiguration(any())
+        verify(mockConfigStateManager, never()).updateConfigWithFileAsset(any())
         verify(mockExtensionApi, never()).createSharedState(any(), eq(event))
         verifyNoEventDispatch()
         verify(
@@ -719,6 +737,7 @@ class ConfigurationExtensionTest {
     fun `Configure with file asset - null content from asset`() {
         `when`(mockConfigStateManager.loadBundledConfig(anyString())).thenReturn(null)
 
+        val fileAssetName = "/some/asset"
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
             mockServiceProvider,
@@ -735,13 +754,14 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to "/some/asset"))
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to fileAssetName))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
-        verify(mockConfigStateManager, never()).replaceConfiguration(any())
-        verify(mockExtensionApi, never()).createSharedState(any(), eq(event))
+        verify(mockConfigStateManager).updateConfigWithFileAsset(fileAssetName)
+        verify(mockSharedStateResolver).resolve(any())
         verifyNoEventDispatch()
         verify(
             mockConfigurationRulesManager,
@@ -751,13 +771,16 @@ class ConfigurationExtensionTest {
 
     @Test
     fun `Configure with file asset - valid asset`() {
+        // Setup
         val mockBundledConfig = mutableMapOf<String, Any?>(
             ANALYTICS_RSID_KEY to SAMPLE_RSID,
             ANALYTICS_SERVER_KEY to SAMPLE_SERVER,
             ConfigurationExtension.RULES_CONFIG_URL to "rules.url"
         )
+        val fileAsset = "some/file/path"
 
         `when`(mockConfigStateManager.loadBundledConfig(anyString())).thenReturn(mockBundledConfig)
+        `when`(mockConfigStateManager.updateConfigWithFileAsset(fileAsset)).thenReturn(true)
         `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(mockBundledConfig)
 
         val configurationExtension = ConfigurationExtension(
@@ -776,13 +799,16 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )
-            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to "some/file/path"))
+            .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE to fileAsset))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
+        // Test
         configurationExtension.handleConfigurationRequestEvent(event)
 
-        verify(mockConfigStateManager).replaceConfiguration(mockBundledConfig)
-        verify(mockExtensionApi).createSharedState(mockBundledConfig, event)
+        // Verify
+        verify(mockConfigStateManager).updateConfigWithFileAsset(fileAsset)
+        verify(mockSharedStateResolver).resolve(any())
         verify(mockConfigurationRulesManager).applyDownloadedRules("rules.url", mockExtensionApi)
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -832,6 +858,7 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG to programmaticConfig))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
         val updateConfigCaptor: KArgumentCaptor<Map<String, Any?>> = argumentCaptor()
@@ -870,10 +897,11 @@ class ConfigurationExtensionTest {
         )
             .setEventData(mapOf(Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG to true))
             .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
 
         configurationExtension.handleConfigurationRequestEvent(event)
 
-        verify(mockExtensionApi).createSharedState(eq(mockUpdatedConfig), eq(event))
+        verify(mockSharedStateResolver).resolve(mockUpdatedConfig)
         verify(mockConfigurationRulesManager).applyDownloadedRules(
             "updated.rules.url",
             mockExtensionApi

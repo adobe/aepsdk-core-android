@@ -162,6 +162,7 @@ internal class ConfigurationStateManager {
      * @return the configuration parsed from the bundled config file [bundledConfigFileName] if successful,
      *         null otherwise.
      */
+    @VisibleForTesting
     internal fun loadBundledConfig(bundledConfigFileName: String): Map<String, Any?>? {
         MobileCore.log(
             LoggingMode.VERBOSE,
@@ -194,12 +195,60 @@ internal class ConfigurationStateManager {
     }
 
     /**
+     * Updates the existing configuration with the one from [fileAssetName]
+     *
+     * @param fileAssetName the asset file name from which new configuration
+     *        should be read
+     * @return true if the configuration has been updated with content from [fileAssetName],
+     *         false otherwise
+     */
+    internal fun updateConfigWithFileAsset(fileAssetName: String): Boolean {
+        val config = loadBundledConfig(fileAssetName)
+
+        if (config.isNullOrEmpty()) {
+            MobileCore.log(
+                LoggingMode.DEBUG,
+                ConfigurationExtension.TAG,
+                "Empty configuration found when processing JSON string."
+            )
+            return false
+        }
+
+        replaceConfiguration(config)
+        return true
+    }
+
+    /**
+     * Updates the existing configuration with the one from [filePath]
+     *
+     * @param filePath the file name from which new configuration
+     *        should be read
+     * @return true if the configuration has been updated with content from [filePath],
+     *         false otherwise
+     */
+    internal fun updateConfigWithFilePath(filePath: String): Boolean {
+        val config = getConfigFromFile(filePath)
+        if (config == null) {
+            MobileCore.log(
+                LoggingMode.WARNING,
+                ConfigurationExtension.TAG,
+                "Unable to read config from provided file (content is invalid)"
+            )
+            return false
+        }
+
+        replaceConfiguration(config)
+        return true
+    }
+
+    /**
      * Retrieves the configuration from config file specified by [filePath].
      *
      * @param filePath the file path from which the config must be retrieved
      * @return the configuration as a map parsed from the file if successful,
      *         null otherwise.
      */
+    @VisibleForTesting
     internal fun getConfigFromFile(filePath: String): Map<String, Any?>? {
         val configFile = File(filePath)
         val configFileContent = FileUtils.readAsString(configFile)
@@ -368,6 +417,7 @@ internal class ConfigurationStateManager {
      *
      * @param config the configuration that should replace the [unmergedConfiguration]
      */
+    @VisibleForTesting
     internal fun replaceConfiguration(config: Map<String, Any?>?) {
         // Replace the unmerged programmatic config with the new config
         unmergedConfiguration.clear()

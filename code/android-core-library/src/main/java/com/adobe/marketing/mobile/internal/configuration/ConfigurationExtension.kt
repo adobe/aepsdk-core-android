@@ -20,6 +20,7 @@ import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.compatibility.CacheManager
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
@@ -165,7 +166,7 @@ internal class ConfigurationExtension : Extension {
         val initialConfig: Map<String, Any?> = this.configurationStateManager.loadInitialConfig()
 
         if (initialConfig.isNotEmpty()) {
-            applyConfigurationChanges(null, RulesSource.CACHE, false)
+            applyConfigurationChanges(null, RulesSource.CACHE, null)
         } else {
             MobileCore.log(
                 LoggingMode.VERBOSE,
@@ -220,19 +221,19 @@ internal class ConfigurationExtension : Extension {
 
         when {
             event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) -> {
-                configureWithAppID(event)
+                configureWithAppID(event, api.createPendingSharedState(event))
             }
             event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) -> {
-                configureWithFileAsset(event)
+                configureWithFileAsset(event, api.createPendingSharedState(event))
             }
             event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) -> {
-                configureWithFilePath(event)
+                configureWithFilePath(event, api.createPendingSharedState(event))
             }
             event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) -> {
-                updateConfiguration(event)
+                updateConfiguration(event, api.createPendingSharedState(event))
             }
             event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG) -> {
-                clearUpdatedConfiguration(event)
+                clearUpdatedConfiguration(event, api.createPendingSharedState(event))
             }
             event.eventData.containsKey(Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG) -> {
                 retrieveConfiguration(event)
@@ -245,8 +246,9 @@ internal class ConfigurationExtension : Extension {
      * the current app configuration with the resulting downloaded configuration.
      *
      * @param event the event requesting/triggering an update to configuration with appId.
+     * @param sharedStateResolver the resolver should be used for resolving the current state
      */
-    private fun configureWithAppID(event: Event) {
+    private fun configureWithAppID(event: Event, sharedStateResolver: SharedStateResolver) {
         val appId =
             event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
 
@@ -256,20 +258,14 @@ internal class ConfigurationExtension : Extension {
                 TAG,
                 "AppId in configureWithAppID event is null.."
             )
-            appIdManager.removeAppIdFromPersistence()
 
-            publishConfigurationState(
-                configurationStateManager.environmentAwareConfiguration,
-                event
-            )
+            appIdManager.removeAppIdFromPersistence()
+            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
         if (!configurationStateManager.hasConfigExpired(appId)) {
-            publishConfigurationState(
-                configurationStateManager.environmentAwareConfiguration,
-                event
-            )
+            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
@@ -279,18 +275,17 @@ internal class ConfigurationExtension : Extension {
         configurationStateManager.updateConfigWithAppId(appId) { config ->
             if (config != null) {
                 cancelConfigRetry()
-                applyConfigurationChanges(event, RulesSource.REMOTE)
+                applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
             } else {
                 MobileCore.log(
                     LoggingMode.VERBOSE,
                     TAG,
                     "Failed to download configuration. Applying Will retry download."
                 )
+
                 // If the configuration download fails, publish current configuration and retry download again.
-                publishConfigurationState(
-                    configurationStateManager.environmentAwareConfiguration,
-                    event
-                )
+                sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
+
                 retryConfigTaskHandle = retryConfigDownload(appId)
             }
 
@@ -305,8 +300,9 @@ internal class ConfigurationExtension : Extension {
      *
      * @param event the trigger event (whose event data contains the file path for retrieving the config)
      *              requesting a configuration change
+     * @param sharedStateResolver the resolver should be used for resolving the current state
      */
-    private fun configureWithFilePath(event: Event) {
+    private fun configureWithFilePath(event: Event, sharedStateResolver: SharedStateResolver) {
         val filePath =
             event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
 
@@ -314,31 +310,32 @@ internal class ConfigurationExtension : Extension {
             MobileCore.log(
                 LoggingMode.WARNING,
                 TAG,
-                "Unable to read config from provided file (filePath is invalid)"
+                "Unable to read config from provided file (filePath: $filePath is invalid)"
             )
+            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
-        val config = configurationStateManager.getConfigFromFile(filePath)
-        if (config == null) {
+        val result = configurationStateManager.updateConfigWithFilePath(filePath)
+        if (result) {
+            applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+        } else {
             MobileCore.log(
-                LoggingMode.WARNING,
+                LoggingMode.DEBUG,
                 TAG,
-                "Unable to read config from provided file (content is invalid)"
+                "Could not update configuration from file path: $filePath"
             )
-            return
+            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
         }
-
-        configurationStateManager.replaceConfiguration(config)
-        applyConfigurationChanges(event, RulesSource.REMOTE)
     }
 
     /**
      * Updates the current configuration with the content from a file asset.
      *
      * @param event which contains [Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE] as part of its event data
+     * @param sharedStateResolver the resolver should be used for resolving the current state
      */
-    private fun configureWithFileAsset(event: Event) {
+    private fun configureWithFileAsset(event: Event, sharedStateResolver: SharedStateResolver) {
         val fileAssetName =
             event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
 
@@ -348,22 +345,21 @@ internal class ConfigurationExtension : Extension {
                 TAG,
                 "Asset file name for configuration is null or empty."
             )
+            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
-        val config = configurationStateManager.loadBundledConfig(fileAssetName)
-
-        if (config.isNullOrEmpty()) {
+        val result = configurationStateManager.updateConfigWithFileAsset(fileAssetName)
+        if (result) {
+            applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+        } else {
             MobileCore.log(
                 LoggingMode.DEBUG,
                 TAG,
-                "Empty configuration found when processing JSON string."
+                "Could not update configuration from file asset: $fileAssetName"
             )
-            return
+            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
         }
-
-        configurationStateManager.replaceConfiguration(config)
-        applyConfigurationChanges(event, RulesSource.REMOTE)
     }
 
     /**
@@ -371,9 +367,10 @@ internal class ConfigurationExtension : Extension {
      *
      * @param event the event containing programmatic configuration that is to be applied on the
      *              current configuration
+     * @param sharedStateResolver the resolver should be used for resolving the current state
      */
     @Suppress("UNCHECKED_CAST")
-    private fun updateConfiguration(event: Event) {
+    private fun updateConfiguration(event: Event, sharedStateResolver: SharedStateResolver) {
         val config: MutableMap<*, *> =
             event.eventData?.get(Configuration.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG) as?
                 MutableMap<*, *> ?: return
@@ -384,6 +381,7 @@ internal class ConfigurationExtension : Extension {
                 TAG,
                 "Invalid configuration. Configuration contains non string keys."
             )
+            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
@@ -395,12 +393,13 @@ internal class ConfigurationExtension : Extension {
                 TAG,
                 "Failed to load programmatic config. Invalid configuration."
             )
+            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
             null
         }
 
         programmaticConfig?.let {
             configurationStateManager.updateProgrammaticConfig(it)
-            applyConfigurationChanges(event, RulesSource.REMOTE)
+            applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
         }
     }
 
@@ -410,9 +409,9 @@ internal class ConfigurationExtension : Extension {
      *
      * @param event an event requesting configuration to be cleared.
      */
-    private fun clearUpdatedConfiguration(event: Event) {
+    private fun clearUpdatedConfiguration(event: Event, sharedStateResolver: SharedStateResolver) {
         configurationStateManager.clearProgrammaticConfig()
-        applyConfigurationChanges(event, RulesSource.REMOTE)
+        applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
     }
 
     /**
@@ -468,18 +467,17 @@ internal class ConfigurationExtension : Extension {
      *
      *  @param triggerEvent the event that triggered the configuration change
      *  @param rulesSource the source of the rules that need to be applied
-     *  @param publishState boolean indicating whether the config state should be published
+     *  @param sharedStateResolver resolver to be notified with current state.
+     *         State will not be set if this is null.
      */
     private fun applyConfigurationChanges(
         triggerEvent: Event?,
         rulesSource: RulesSource,
-        publishState: Boolean = true
+        sharedStateResolver: SharedStateResolver?
     ) {
         val config = configurationStateManager.environmentAwareConfiguration
 
-        if (publishState) {
-            publishConfigurationState(config, triggerEvent)
-        }
+        sharedStateResolver?.resolve(config)
 
         dispatchConfigurationResponse(config, triggerEvent)
 

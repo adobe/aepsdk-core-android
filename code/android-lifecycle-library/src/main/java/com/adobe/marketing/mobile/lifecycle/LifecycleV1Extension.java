@@ -78,16 +78,9 @@ public class LifecycleV1Extension {
          Map<String, String> additionalContextData = null;
 
          if (eventData != null) {
-             try {
-                 additionalContextData = DataReader.optStringMap(eventData,
-                         LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA,
-                         null);
-             } catch (Exception e) {
-                 Log.trace(LifecycleConstants.LOG_TAG,
-                         SELF_LOG_TAG,
-                         "%s for additional context data",
-                         Log.INVALID_FORMAT);
-             }
+             additionalContextData = DataReader.optStringMap(eventData,
+                     LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA,
+                     null);
          }
 
          LifecycleSession.SessionInfo previousSessionInfo = lifecycleState.start(startTimestampInSeconds,

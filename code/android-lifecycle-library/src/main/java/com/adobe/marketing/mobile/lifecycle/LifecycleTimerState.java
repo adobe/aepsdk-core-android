@@ -63,7 +63,7 @@ class LifecycleTimerState {
         synchronized (timerMutex) {
 
             if (timerTask != null) {
-                Log.debug(LifecycleConstants.LOG_TAG, "%s - Timer has already started.", SELF_LOG_TAG);
+                Log.debug(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Timer has already started.");
                 return;
             }
 
@@ -85,9 +85,9 @@ class LifecycleTimerState {
                 };
                 timer = new Timer(this.debugName);
                 timer.schedule(timerTask, timeout);
-                Log.trace(LifecycleConstants.LOG_TAG, "%s - %s timer scheduled having timeout %s ms", SELF_LOG_TAG, this.debugName, this.timeout);
+                Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "%s timer scheduled having timeout %s ms", this.debugName, this.timeout);
             } catch (Exception e) {
-                Log.warning(LifecycleConstants.LOG_TAG, "%s - Error creating %s timer, failed with error: (%s)", SELF_LOG_TAG, this.debugName, e);
+                Log.warning(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "Error creating %s timer, failed with error: (%s)", this.debugName, e);
             }
         }
     }
@@ -100,9 +100,9 @@ class LifecycleTimerState {
             if (timer != null) {
                 try {
                     timer.cancel();
-                    Log.trace(LifecycleConstants.LOG_TAG, "%s - %s timer was canceled", SELF_LOG_TAG, this.debugName);
+                    Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"%s timer was canceled", this.debugName);
                 } catch (Exception e) {
-                    Log.warning(LifecycleConstants.LOG_TAG, "%s - Error cancelling %s timer, failed with error: (%s)", SELF_LOG_TAG, this.debugName, e);
+                    Log.warning(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "Error cancelling %s timer, failed with error: (%s)", this.debugName, e);
                 }
 
                 timerTask = null;

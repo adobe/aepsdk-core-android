@@ -10,8 +10,6 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
-import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.UNEXPECTED_NULL_VALUE;
-
 import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.internal.utility.StringUtils;
 import com.adobe.marketing.mobile.services.DeviceInforming;
@@ -46,14 +44,17 @@ final class LifecycleMetricsBuilder {
 		this.timestampInSeconds = timestampInSeconds;
 
 		if (dataStore == null) {
-			Log.debug(LifecycleConstants.LOG_TAG, "%s - %s (Data Store), while creating LifecycleExtension Metrics Builder.",
-					SELF_LOG_TAG, UNEXPECTED_NULL_VALUE);
+			Log.debug(LifecycleConstants.LOG_TAG,
+					SELF_LOG_TAG,
+					"%s (Data Store), while creating LifecycleExtension Metrics Builder.",
+					Log.UNEXPECTED_NULL_VALUE);
 		}
 
 		if (deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG,
-					"%s - %s (Device Info Services), while creating LifecycleExtension Metrics Builder", SELF_LOG_TAG,
-					UNEXPECTED_NULL_VALUE);
+					SELF_LOG_TAG,
+					"%s (Device Info Services), while creating LifecycleExtension Metrics Builder",
+					 Log.UNEXPECTED_NULL_VALUE);
 		}
 	}
 
@@ -72,7 +73,7 @@ final class LifecycleMetricsBuilder {
 	 * @return the builder itself
 	 */
 	LifecycleMetricsBuilder addInstallData() {
-		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding install data to lifecycle data map", SELF_LOG_TAG);
+		Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "Adding install data to lifecycle data map");
 
 		lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.DAILY_ENGAGED_EVENT,
 						  LifecycleConstants.ContextDataValues.DAILY_ENG_USER_EVENT);
@@ -91,7 +92,7 @@ final class LifecycleMetricsBuilder {
 	 * @return the builder itself
 	 */
 	LifecycleMetricsBuilder addLaunchData() {
-		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding launch data to the lifecycle data map", SELF_LOG_TAG);
+		Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Adding launch data to the lifecycle data map");
 
 		if (lifecycleDataStore == null) {
 			return this;
@@ -136,7 +137,7 @@ final class LifecycleMetricsBuilder {
 	 * @return the builder itself
 	 */
 	LifecycleMetricsBuilder addGenericData() {
-		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding generic data to the lifecycle data map", SELF_LOG_TAG);
+		Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "Adding generic data to the lifecycle data map");
 
 		if (lifecycleDataStore != null) {
 			int launches = lifecycleDataStore.getInt(LifecycleConstants.DataStoreKeys.LAUNCHES, -1);
@@ -166,7 +167,7 @@ final class LifecycleMetricsBuilder {
 	 * @return the builder itself
 	 */
 	LifecycleMetricsBuilder addUpgradeData(final boolean upgrade) {
-		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding upgrade data to lifecycle data map", SELF_LOG_TAG);
+		Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Adding upgrade data to lifecycle data map");
 
 		if (upgrade) {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.UPGRADE_EVENT,
@@ -206,7 +207,7 @@ final class LifecycleMetricsBuilder {
 	 * @return the builder itself
 	 */
 	LifecycleMetricsBuilder addCrashData(final boolean previousSessionCrash) {
-		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding crash data to lifecycle data map", SELF_LOG_TAG);
+		Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Adding crash data to lifecycle data map");
 
 		if (previousSessionCrash) {
 			lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.CRASH_EVENT,
@@ -223,7 +224,7 @@ final class LifecycleMetricsBuilder {
 	 * @return the builder itself
 	 */
 	LifecycleMetricsBuilder addCoreData() {
-		Log.trace(LifecycleConstants.LOG_TAG, "%s - Adding core data to lifecycle data map", SELF_LOG_TAG);
+		Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "Adding core data to lifecycle data map");
 
 		if (deviceInfoService == null) {
 			return this;
@@ -286,7 +287,8 @@ final class LifecycleMetricsBuilder {
 		if (startTimestampInSeconds < LifecycleConstants.WRONG_EPOCH_MAX_LENGTH_SECONDS
 				|| endTimestampInSeconds < LifecycleConstants.WRONG_EPOCH_MAX_LENGTH_SECONDS) {
 			Log.debug(LifecycleConstants.LOG_TAG,
-					"%s - Invalid timestamp - startTimestampInSeconds (%d), endTimestampInSeconds (%d)", SELF_LOG_TAG,
+					SELF_LOG_TAG,
+					"Invalid timestamp - startTimestampInSeconds (%d), endTimestampInSeconds (%d)",
 					startTimestampInSeconds, endTimestampInSeconds);
 			return -1;
 		}
@@ -367,7 +369,7 @@ final class LifecycleMetricsBuilder {
 		DeviceInforming.DisplayInformation displayInfo = deviceInfoService.getDisplayInformation();
 
 		if (displayInfo == null) {
-			Log.debug(LifecycleConstants.LOG_TAG, "%s - Failed to get resolution (DisplayInformation was null)", SELF_LOG_TAG);
+			Log.debug(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "Failed to get resolution %s for DisplayInformation", Log.UNEXPECTED_NULL_VALUE);
 			return null;
 		}
 

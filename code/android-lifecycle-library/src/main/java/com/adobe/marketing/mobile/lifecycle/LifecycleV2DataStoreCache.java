@@ -37,7 +37,10 @@ class LifecycleV2DataStoreCache {
 		this.dataStore = dataStore;
 
 		if (this.dataStore == null) {
-			Log.warning(SELF_LOG_TAG, " nexpected null DataStore was provided, the functionality is limited");
+			Log.warning(LifecycleConstants.LOG_TAG,
+					SELF_LOG_TAG,
+					"%s DataStore was provided, the functionality is limited",
+					Log.UNEXPECTED_EMPTY_VALUE);
 			closeTimestampMillis = 0L;
 			return;
 		}
@@ -143,8 +146,10 @@ class LifecycleV2DataStoreCache {
 
 			if (value > 0) {
 				dataStore.setLong(keyMilliseconds, TimeUnit.SECONDS.toMillis(value));
-				Log.trace(LifecycleConstants.LOG_TAG, "%s - Migrated persisted '%s' to '%s'.",
-						SELF_LOG_TAG, keySeconds, keyMilliseconds);
+				Log.trace(LifecycleConstants.LOG_TAG,
+						SELF_LOG_TAG,
+						"Migrated persisted '%s' to '%s'.",
+						keySeconds, keyMilliseconds);
 			}
 
 			dataStore.remove(keySeconds);

@@ -195,8 +195,9 @@ class LifecycleV2Extension {
 	private void dispatchApplicationLaunch(final Map<String, Object> appLaunchXDMData,
 										   final Map<String, String> freeFormData){
 		if (appLaunchXDMData == null || appLaunchXDMData.isEmpty()) {
-			Log.trace(LifecycleConstants.LOG_TAG, "%s - Not dispatching application launch event as xdm data was null",
-					SELF_LOG_TAG);
+			Log.trace(LifecycleConstants.LOG_TAG,
+					SELF_LOG_TAG,
+					"Not dispatching application launch event as xdm data was null");
 			return;
 		}
 		Map<String, Object> launchEventData = new HashMap<>();
@@ -218,8 +219,9 @@ class LifecycleV2Extension {
 	 */
 	private void dispatchApplicationClose(final Map<String, Object> appCloseXDMData) {
 		if (appCloseXDMData == null || appCloseXDMData.isEmpty()) {
-			Log.trace(LifecycleConstants.LOG_TAG, "%s - Not dispatching application close event as xdm data was null",
-					SELF_LOG_TAG);
+			Log.trace(LifecycleConstants.LOG_TAG,
+					SELF_LOG_TAG,
+					"Not dispatching application close event as xdm data was null");
 			return;
 		}
 		Map<String, Object> closeEventData = new HashMap<>();

@@ -17,8 +17,7 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest;
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
+import androidx.annotation.NonNull;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,12 +42,12 @@ public class TestableExtensionApi extends ExtensionApi {
 	public TestableExtensionApi() {}
 
 	@Override
-	public void registerEventListener(String eventType, String eventSource, ExtensionEventListener eventListener) {
+	public void registerEventListener(@NonNull String eventType, @NonNull String eventSource, @NonNull ExtensionEventListener eventListener) {
 		listeners.put(eventType + "-" + eventSource, eventListener);
 	}
 
 	@Override
-	public void dispatch(Event event) {
+	public void dispatch(@NonNull Event event) {
 		if(shouldIgnore(event)) {
 			return;
 		}
@@ -74,7 +73,7 @@ public class TestableExtensionApi extends ExtensionApi {
 	}
 
 	@Override
-	public boolean createSharedState(Map<String, Object> state, Event event) {
+	public boolean createSharedState(@NonNull Map<String, Object> state, Event event) {
 		createdSharedState.add(state);
 		return true;
 	}
@@ -85,7 +84,7 @@ public class TestableExtensionApi extends ExtensionApi {
 	}
 
 	@Override
-	public SharedStateResult getSharedState(String extensionName, Event event, boolean barrier, SharedStateResolution resolution) {
+	public SharedStateResult getSharedState(@NonNull String extensionName, Event event, boolean barrier, @NonNull SharedStateResolution resolution) {
 		if (event != null) {
 			SharedStateResult result = mockedSharedState.get(extensionName + "-" +  event.getUniqueIdentifier());
 			return result != null ? result : mockedSharedState.get(extensionName);
@@ -94,7 +93,7 @@ public class TestableExtensionApi extends ExtensionApi {
 	}
 
 	@Override
-	public boolean createXDMSharedState(Map<String, Object> state, Event event) {
+	public boolean createXDMSharedState(@NonNull Map<String, Object> state, Event event) {
 		createdXDMSharedState.add(state);
 		return true;
 	}
@@ -105,7 +104,7 @@ public class TestableExtensionApi extends ExtensionApi {
 	}
 
 	@Override
-	public SharedStateResult getXDMSharedState(String extensionName, Event event, boolean barrier, SharedStateResolution resolution) {
+	public SharedStateResult getXDMSharedState(@NonNull String extensionName, Event event, boolean barrier, @NonNull SharedStateResolution resolution) {
 		if (event != null) {
 			SharedStateResult result = mockedXDMSharedState.get(extensionName + "-" +  event.getUniqueIdentifier());
 			return result != null ? result : mockedXDMSharedState.get(extensionName);
@@ -119,8 +118,7 @@ public class TestableExtensionApi extends ExtensionApi {
 	}
 
 	@Override
-	public void getHistoricalEvents(EventHistoryRequest[] eventHistoryRequests, boolean enforceOrder, EventHistoryResultHandler<Integer> handler) {
-		return;
+	public void getHistoricalEvents(@NonNull EventHistoryRequest[] eventHistoryRequests, boolean enforceOrder, @NonNull EventHistoryResultHandler<Integer> handler) {
 	}
 
 	@Override
@@ -300,6 +298,7 @@ public class TestableExtensionApi extends ExtensionApi {
 			this.type = type.toLowerCase();
 		}
 
+		@NonNull
 		@Override
 		public String toString() {
 			return "type '" + type + "' and source '" + source + "'";

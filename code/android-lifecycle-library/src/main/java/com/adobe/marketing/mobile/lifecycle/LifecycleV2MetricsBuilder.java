@@ -11,8 +11,6 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
-import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.UNEXPECTED_NULL_VALUE;
-
 import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.internal.utility.StringUtils;
 import com.adobe.marketing.mobile.services.DeviceInforming;
@@ -45,9 +43,10 @@ class LifecycleV2MetricsBuilder {
 		this.deviceInfoService = deviceInfoService;
 
 		if (deviceInfoService == null) {
-			Log.debug(LifecycleConstants.LOG_TAG, "%s - %s (Device Info Services), while creating XDMLifecycleMetricsBuilder.",
+			Log.debug(LifecycleConstants.LOG_TAG,
 					SELF_LOG_TAG,
-					UNEXPECTED_NULL_VALUE);
+					"%s (Device Info Services), while creating XDMLifecycleMetricsBuilder.",
+					Log.UNEXPECTED_NULL_VALUE);
 		}
 	}
 
@@ -118,8 +117,8 @@ class LifecycleV2MetricsBuilder {
 
 		if (deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG,
-					"%s - Unable to add XDM Application data for app launch due to DeviceInfoService being not initialized.",
-					SELF_LOG_TAG);
+					SELF_LOG_TAG,
+					"Unable to add XDM Application data for app launch due to DeviceInfoService being not initialized.");
 			return xdmApplicationInfoLaunch;
 		}
 
@@ -166,8 +165,8 @@ class LifecycleV2MetricsBuilder {
 
 		if (deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG,
-					"%s - Unable to add XDM Environment data due to DeviceInfoService being not initialized.",
-					SELF_LOG_TAG);
+					SELF_LOG_TAG,
+					"Unable to add XDM Environment data due to DeviceInfoService being not initialized.");
 			return null;
 		}
 
@@ -194,7 +193,8 @@ class LifecycleV2MetricsBuilder {
 
 		if (deviceInfoService == null) {
 			Log.debug(LifecycleConstants.LOG_TAG,
-					"%s - Unable to add XDM Device data due to DeviceInfoService being not initialized.", SELF_LOG_TAG);
+					SELF_LOG_TAG,
+					"Unable to add XDM Device data due to DeviceInfoService being not initialized.");
 			return null;
 		}
 

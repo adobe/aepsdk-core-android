@@ -446,7 +446,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void checkForApplicationUpgrade_ExistingLifecycleDataPeristed() {
+    public void checkForApplicationUpgrade_ExistingLifecycleDataPersisted() {
         final Map<String, String> mockLifecycleMapJson = new HashMap<>();
         mockLifecycleMapJson.put(CONTEXT_DATA_KEY_APPLICATION_IDENTIFIER, "NEW_APP_ID");
         when(lifecycleDataStore.getMap(DATASTORE_KEY_LIFECYCLE_DATA)).thenReturn(mockLifecycleMapJson);

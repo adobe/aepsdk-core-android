@@ -11,8 +11,6 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
-import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.UNEXPECTED_NULL_VALUE;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
@@ -144,28 +142,28 @@ public class LifecycleExtension extends Extension {
 				SharedStateResolution.ANY);
 
 		if (configurationSharedState == null ||  configurationSharedState.status == SharedStateStatus.PENDING) {
-			Log.trace(LifecycleConstants.LOG_TAG, "%s - Waiting for configuration to process lifecycle request event", SELF_LOG_TAG);
+			Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Waiting for configuration to process lifecycle request event");
 			return;
 		}
 
 		Map<String, Object> eventData = event.getEventData();
 
 		if (eventData == null) {
-			Log.trace(LifecycleConstants.LOG_TAG, "%s - Failed to process lifecycle event '%s for event data'", SELF_LOG_TAG,
-					UNEXPECTED_NULL_VALUE);
+			Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Failed to process lifecycle event '%s for event data'",
+					Log.UNEXPECTED_NULL_VALUE);
 			return;
 		}
 
 		String lifecycleAction = DataReader.optString(eventData, LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY, "");
 
 		if (LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_START.equals(lifecycleAction)) {
-			Log.debug(LifecycleConstants.LOG_TAG, "%s - Starting lifecycle", SELF_LOG_TAG);
+			Log.debug(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Starting lifecycle");
 			startApplicationLifecycle(event, configurationSharedState.value);
 		} else if (LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE.equals(lifecycleAction)) {
-			Log.debug(LifecycleConstants.LOG_TAG, "%s - Pausing lifecycle", SELF_LOG_TAG);
+			Log.debug(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Pausing lifecycle");
 			pauseApplicationLifecycle(event);
 		} else {
-			Log.warning(LifecycleConstants.LOG_TAG, "%s - Invalid action for lifecycle request event", SELF_LOG_TAG);
+			Log.warning(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "Invalid action for lifecycle request event");
 		}
 	}
 

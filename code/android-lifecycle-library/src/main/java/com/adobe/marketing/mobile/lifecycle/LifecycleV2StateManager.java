@@ -70,13 +70,15 @@ class LifecycleV2StateManager {
 		synchronized (stateUpdatesMutex) {
 			if (updateTimer.isTimerRunning()) {
 				if (State.START.equals(newState)) {
-					Log.trace(LifecycleConstants.LOG_TAG, "%s - Consecutive pause-start state update detected, ignoring.",
-							SELF_LOG_TAG);
+					Log.trace(LifecycleConstants.LOG_TAG,
+							SELF_LOG_TAG,
+							"Consecutive pause-start state update detected, ignoring.");
 					cancelTimer();
 					callback.call(false);
 				} else if (State.PAUSE.equals(newState)) {
-					Log.trace(LifecycleConstants.LOG_TAG, "%s - New pause state update received while waiting, restarting the count.",
-							SELF_LOG_TAG);
+					Log.trace(LifecycleConstants.LOG_TAG,
+							SELF_LOG_TAG,
+							"New pause state update received while waiting, restarting the count.");
 					restartTimer(newState, callback);
 				}
 
@@ -84,20 +86,25 @@ class LifecycleV2StateManager {
 			}
 
 			if (this.currentState == newState) {
-				Log.trace(LifecycleConstants.LOG_TAG, "%s - Consecutive %s state update received, ignoring.",
-						SELF_LOG_TAG, currentState);
+				Log.trace(LifecycleConstants.LOG_TAG,
+						SELF_LOG_TAG,
+						"Consecutive %s state update received, ignoring.",
+						currentState);
 				callback.call(false);
 				return;
 			}
 
 			if (State.PAUSE.equals(newState)) {
-				Log.trace(LifecycleConstants.LOG_TAG, "%s - New pause state update received, waiting for %s (ms) before updating.",
-						SELF_LOG_TAG, LifecycleV2Constants.STATE_UPDATE_TIMEOUT_MILLIS);
+				Log.trace(LifecycleConstants.LOG_TAG,
+						SELF_LOG_TAG,
+						"New pause state update received, waiting for %s (ms) before updating.",
+						LifecycleV2Constants.STATE_UPDATE_TIMEOUT_MILLIS);
 				startTimer(newState, callback);
 
 			} else {
-				Log.trace(LifecycleConstants.LOG_TAG, "%s - New start state update received.",
-						SELF_LOG_TAG);
+				Log.trace(LifecycleConstants.LOG_TAG,
+						SELF_LOG_TAG,
+						"New start state update received.");
 				currentState = newState;
 				callback.call(true);
 			}

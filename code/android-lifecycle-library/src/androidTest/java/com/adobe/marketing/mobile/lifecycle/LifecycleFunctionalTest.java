@@ -511,7 +511,7 @@ public class LifecycleFunctionalTest {
 	@Test
 	public void testLifecycle__When__SecondLaunch_ThreeDaysAfterInstall__Then__DaysSinceFirstUseIs3() {
 		// setup
-		long firstSessionStartTime = currentTimestampMillis;
+		long firstSessionStartTime = 1483864368225L; // start: Sunday, January 8, 2017 8:32:48.225 AM GMT
 		long firstSessionPauseTime = firstSessionStartTime + TimeUnit.DAYS.toMillis(3);
 		long secondSessionStartTime = firstSessionPauseTime + TimeUnit.SECONDS.toMillis(30);
 
@@ -536,7 +536,7 @@ public class LifecycleFunctionalTest {
 	@Test
 	public void testLifecycle__When__SecondLaunch_ThreeDaysAfterLastUse__Then__DaysSinceLastUseIs3() {
 		// setup
-		long firstSessionStartTime = currentTimestampMillis;
+		long firstSessionStartTime = 1483864368225L; // start: Sunday, January 8, 2017 8:32:48.225 AM GMT
 		long firstSessionPauseTime = firstSessionStartTime + TimeUnit.SECONDS.toMillis(20);
 		long secondSessionStartTime = firstSessionPauseTime + TimeUnit.DAYS.toMillis(3);
 
@@ -556,7 +556,7 @@ public class LifecycleFunctionalTest {
 	@Test
 	public void testLifecycle__When__ThreeDaysAfterUpgrade__Then__DaysSinceLastUpgradeIs3() {
 		// setup
-		long firstSessionStartTimeMillis = currentTimestampMillis;
+		long firstSessionStartTimeMillis = 1483864368225L; // start: Sunday, January 8, 2017 8:32:48.225 AM GMT
 		long firstSessionPauseTimeMillis = firstSessionStartTimeMillis + TimeUnit.SECONDS.toMillis(20);
 		long secondSessionStartTimeMillis = firstSessionPauseTimeMillis + TimeUnit.SECONDS.toMillis(30);
 		long secondSessionPauseTimeMillis = secondSessionStartTimeMillis + TimeUnit.SECONDS.toMillis(20);
@@ -584,7 +584,7 @@ public class LifecycleFunctionalTest {
 	@Test
 	public void testLifecycle__When__SecondLaunch_OneMonthAfterInstall__Then__MonthlyEngUserEvent() {
 		// setup
-		long firstSessionStartTime = currentTimestampMillis;
+		long firstSessionStartTime = 1483864368225L; // start: Sunday, January 8, 2017 8:32:48.225 AM GMT
 		long firstSessionPauseTime = firstSessionStartTime + TimeUnit.SECONDS.toMillis(30);
 		long secondSessionStartTime = firstSessionPauseTime + TimeUnit.DAYS.toMillis(30);
 

@@ -173,9 +173,17 @@ public class LifecycleExtensionTest {
 		Event lifecycleRequestEvent = createLifecycleEvent(eventData, currentTimestampInMilliSeconds);
 		lifecycle.handleLifecycleRequestEvent(lifecycleRequestEvent);
 
-		verify(lifecycleDataStore, never()).setBoolean(eq(DATASTORE_KEY_SUCCESSFUL_CLOSE), anyBoolean());
-		verify(lifecycleDataStore, never()).setLong(eq(DATASTORE_KEY_PAUSE_DATE), anyLong());
+		verifyNoInteractions(mockLifecycleV1Extension);
 	}
+
+	@Test
+	public void handleLifecycleRequestEvent_EmptyEventData() {
+		Event lifecycleRequestEvent = createLifecycleEvent(null, currentTimestampInMilliSeconds);
+		lifecycle.handleLifecycleRequestEvent(lifecycleRequestEvent);
+
+		verifyNoInteractions(mockLifecycleV1Extension);
+	}
+
 
 	@Test
 	public void handleUpdateLastKnownTimestamp() {

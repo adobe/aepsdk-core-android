@@ -11,8 +11,6 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
-import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.UNEXPECTED_NULL_VALUE;
-
 import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.lifecycle.LifecycleConstants.DataStoreKeys;
 import com.adobe.marketing.mobile.services.NamedCollection;
@@ -53,8 +51,10 @@ class LifecycleSession {
 		}
 
 		if (dataStore == null) {
-			Log.debug(LifecycleConstants.LOG_TAG, "%s - Failed to start session, %s (persisted data)", SELF_LOG_TAG,
-					UNEXPECTED_NULL_VALUE);
+			Log.debug(LifecycleConstants.LOG_TAG,
+					SELF_LOG_TAG,
+					"Failed to start session, %s (persisted data)",
+					Log.UNEXPECTED_NULL_VALUE);
 			return null;
 		}
 
@@ -91,7 +91,7 @@ class LifecycleSession {
 							coreData.get(LifecycleConstants.EventDataKeys.Lifecycle.OPERATING_SYSTEM));
 		dataStore.setString(DataStoreKeys.APP_ID, coreData.get(LifecycleConstants.EventDataKeys.Lifecycle.APP_ID));
 
-		Log.trace(LifecycleConstants.LOG_TAG, "%s - New lifecycle session started", SELF_LOG_TAG);
+		Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "New lifecycle session started");
 		return new SessionInfo(previousSessionStartTimeInSeconds, previousSessionPauseTimeInSeconds, previousSessionCrashed);
 	}
 
@@ -102,15 +102,15 @@ class LifecycleSession {
 	 */
 	void pause(final long pauseTimestampInSeconds) {
 		if (dataStore == null) {
-			Log.debug(LifecycleConstants.LOG_TAG, "%s - Failed to pause session, %s (persisted data)", SELF_LOG_TAG,
-					UNEXPECTED_NULL_VALUE);
+			Log.debug(LifecycleConstants.LOG_TAG, SELF_LOG_TAG, "Failed to pause session, %s (persisted data)",
+					Log.UNEXPECTED_NULL_VALUE);
 			return;
 		}
 
 		dataStore.setBoolean(DataStoreKeys.SUCCESSFUL_CLOSE, true);
 		dataStore.setLong(DataStoreKeys.PAUSE_DATE, pauseTimestampInSeconds);
 
-		Log.trace(LifecycleConstants.LOG_TAG, "%s - Lifecycle session paused", SELF_LOG_TAG);
+		Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Lifecycle session paused");
 		// reset lifecycle flag
 		lifecycleHasRun = false;
 	}
@@ -130,14 +130,12 @@ class LifecycleSession {
 		Map<String, String> sessionContextData = new HashMap<>();
 
 		if (dataStore == null) {
-			Log.debug(LifecycleConstants.LOG_TAG, "%s - %s (data store), Failed to get session length data",
-					SELF_LOG_TAG, UNEXPECTED_NULL_VALUE);
+			Log.debug(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"%s (data store), Failed to get session length data", Log.UNEXPECTED_NULL_VALUE);
 			return sessionContextData;
 		}
 
 		if (previousSessionInfo == null) {
-			Log.debug(LifecycleConstants.LOG_TAG, "%s - %s (previous session info), Failed to get session length data",
-					SELF_LOG_TAG, UNEXPECTED_NULL_VALUE);
+			Log.debug(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"%s (previous session info), Failed to get session length data", Log.UNEXPECTED_NULL_VALUE);
 			return sessionContextData;
 		}
 

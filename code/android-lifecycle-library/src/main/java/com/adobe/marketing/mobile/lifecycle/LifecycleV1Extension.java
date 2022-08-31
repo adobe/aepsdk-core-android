@@ -10,8 +10,6 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
-import static com.adobe.marketing.mobile.lifecycle.LifecycleConstants.INVALID_FORMAT;
-
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
@@ -85,8 +83,10 @@ public class LifecycleV1Extension {
                          LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA,
                          null);
              } catch (Exception e) {
-                 Log.trace(LifecycleConstants.LOG_TAG, "%s - '%s for additional context data'", SELF_LOG_TAG,
-                         INVALID_FORMAT);
+                 Log.trace(LifecycleConstants.LOG_TAG,
+                         SELF_LOG_TAG,
+                         "%s for additional context data",
+                         Log.INVALID_FORMAT);
              }
          }
 

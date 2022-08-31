@@ -11,9 +11,9 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.internal.utility.toMap
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.utils.remotedownload.RemoteDownloader
 import org.json.JSONException
 import org.json.JSONObject

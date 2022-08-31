@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
-import com.adobe.marketing.mobile.Log;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.lifecycle.LifecycleConstants.DataStoreKeys;
 import com.adobe.marketing.mobile.services.NamedCollection;
 

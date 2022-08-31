@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile.lifecycle;
 
 import com.adobe.marketing.mobile.AdobeCallback;
-import com.adobe.marketing.mobile.Log;
+import com.adobe.marketing.mobile.services.Log;
 
 /**
  * Manager for current app session state updates for the XDM scenario based on the start/pause Lifecycle events.

@@ -12,13 +12,13 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.internal.utility.FileUtils
 import com.adobe.marketing.mobile.internal.utility.StringUtils
 import com.adobe.marketing.mobile.internal.utility.toMap
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.utils.remotedownload.RemoteDownloader

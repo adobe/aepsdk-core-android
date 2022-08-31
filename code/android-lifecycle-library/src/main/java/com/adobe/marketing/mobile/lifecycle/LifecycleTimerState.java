@@ -11,7 +11,7 @@
 package com.adobe.marketing.mobile.lifecycle;
 
 import com.adobe.marketing.mobile.AdobeCallback;
-import com.adobe.marketing.mobile.Log;
+import com.adobe.marketing.mobile.services.Log;
 
 import java.util.Timer;
 import java.util.TimerTask;

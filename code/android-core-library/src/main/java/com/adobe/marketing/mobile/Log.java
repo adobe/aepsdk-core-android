@@ -10,11 +10,8 @@
  */
 package com.adobe.marketing.mobile;
 
-import androidx.annotation.NonNull;
-
 import com.adobe.marketing.mobile.services.Logging;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-
 
 /**
  * Logging class to handle log levels and platform-specific log output
@@ -27,9 +24,9 @@ public class Log {
     private static final Logging loggingService = ServiceProvider.getInstance().getLoggingService();
     private static LoggingMode loggingMode = LoggingMode.ERROR;
 
-    public static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
-    public static final String UNEXPECTED_EMPTY_VALUE = "Unexpected Empty Value";
-    public static final String INVALID_FORMAT = "Invalid Format";
+    static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
+    static final String UNEXPECTED_EMPTY_VALUE = "Unexpected Empty Value";
+    static final String INVALID_FORMAT = "Invalid Format";
 
     /**
      * private constructor to prevent accidental instantiation
@@ -60,51 +57,38 @@ public class Log {
      * Used to print more verbose information. Info logging is expected to follow end-to-end every method an event hits.
      * Prints information to the console only when the SDK is in LoggingMode: VERBOSE
      *
-     * @param extension the extension name
-     * @param source    the source of the information to be logged
-     * @param format    the string format to be logged
-     * @param params    values to be inserted into the format
+     * @param source the source of the information to be logged
+     * @param format the string format to be logged
+     * @param params values to be inserted into the format
      * @see LoggingMode
      */
-    public static void trace(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
+    public static void trace(final String source, final String format, final Object... params) {
         if (loggingService != null && loggingMode.id >= LoggingMode.VERBOSE.id) {
             try {
-                loggingService.trace(extension + "-" + source, String.format(format, params));
+                loggingService.trace(source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.trace(source, format);
             }
         }
     }
 
-    @Deprecated
-    public static void trace(final String source, final String format, final Object... params) {
-        trace("", source, format, params);
-    }
-
-
     /**
      * Information provided to the debug method should contain high-level details about the data being processed.
      * Prints information to the console only when the SDK is in LoggingMode: VERBOSE, DEBUG
      *
-     * @param extension the extension name
-     * @param source    the source of the information to be logged
-     * @param format    the string format to be logged
-     * @param params    values to be inserted into the format
+     * @param source the source of the information to be logged
+     * @param format the string format to be logged
+     * @param params values to be inserted into the format
      * @see LoggingMode
      */
-    public static void debug(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
+    public static void debug(final String source, final String format, final Object... params) {
         if (loggingService != null && loggingMode.id >= LoggingMode.DEBUG.id) {
             try {
-                loggingService.debug(extension + "-" + source, String.format(format, params));
+                loggingService.debug(source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.debug(source, format);
             }
         }
-    }
-
-    @Deprecated
-    public static void debug(final String source, final String format, final Object... params) {
-        debug("", source, format, params);
     }
 
     /**
@@ -113,49 +97,37 @@ public class Log {
      * recoverable exception.
      * Prints information to the console only when the SDK is in LoggingMode: VERBOSE, DEBUG, WARNING
      *
-     * @param extension the extension name
-     * @param source    the source of the information to be logged
-     * @param format    the string format to be logged
-     * @param params    values to be inserted into the format
+     * @param source the source of the information to be logged
+     * @param format the string format to be logged
+     * @param params values to be inserted into the format
      * @see LoggingMode
      */
-    public static void warning(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
+    public static void warning(final String source, final String format, final Object... params) {
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.WARNING.id) {
             try {
-                loggingService.warning(extension + "-" + source, String.format(format, params));
+                loggingService.warning(source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.warning(source, format);
             }
         }
     }
 
-    @Deprecated
-    public static void warning(final String source, final String format, final Object... params) {
-        warning("", source, format, params);
-    }
-
     /**
      * Information provided to the error method indicates that there has been an unrecoverable error.
      * Prints information to the console regardless of current LoggingMode of the SDK.
      *
-     * @param extension the extension name
-     * @param source    the source of the information to be logged
-     * @param format    the string format to be logged
-     * @param params    values to be inserted into the format
+     * @param source the source of the information to be logged
+     * @param format the string format to be logged
+     * @param params values to be inserted into the format
      * @see LoggingMode
      */
-    public static void error(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
+    public static void error(final String source, final String format, final Object... params) {
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.ERROR.id) {
             try {
-                loggingService.error(extension + "-" + source, String.format(format, params));
+                loggingService.error(source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.error(source, format);
             }
         }
-    }
-
-    @Deprecated
-    public static void error(final String source, final String format, final Object... params) {
-        error("", source, format, params);
     }
 }

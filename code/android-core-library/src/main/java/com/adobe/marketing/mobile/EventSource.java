@@ -22,7 +22,6 @@ import java.util.Map;
  * @see EventType
  */
 public final class EventSource {
-
 	public static final String BOOTED = "com.adobe.eventSource.booted";
 	public static final String NONE = "com.adobe.eventSource.none";
 	public static final String OS = "com.adobe.eventSource.os";

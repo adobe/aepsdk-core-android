@@ -19,7 +19,6 @@ package com.adobe.marketing.mobile;
  * @see EventSource
  */
 public final class EventType {
-
 	public static final String ACQUISITION = "com.adobe.eventType.acquisition";
 	public static final String ANALYTICS = "com.adobe.eventType.analytics";
 	public static final String ASSURANCE = "com.adobe.eventType.assurance";
@@ -45,5 +44,4 @@ public final class EventType {
 	public static final String GENERIC_PII = "com.adobe.eventType.generic.pii";
 	public static final String GENERIC_DATA = "com.adobe.eventType.generic.data";
 	public static final String WILDCARD = "com.adobe.eventType._wildcard_";
-
 }

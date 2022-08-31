@@ -177,6 +177,7 @@ final public class MobileCore {
      * @param tag     used to identify the source of the log message
      * @param message the message to log
      */
+    @Deprecated
     public static void log(@NonNull final LoggingMode mode, final String tag, final String message) {
         if (mode == null) {
             return;
@@ -184,25 +185,25 @@ final public class MobileCore {
 
         switch (mode) {
             case ERROR:
-                Log.error(tag, message);
+                com.adobe.marketing.mobile.services.Log.error("", tag, message);
                 break;
 
             case WARNING:
-                Log.warning(tag, message);
+                com.adobe.marketing.mobile.services.Log.warning("", tag, message);
                 break;
 
             case DEBUG:
-                Log.debug(tag, message);
+                com.adobe.marketing.mobile.services.Log.debug("", tag, message);
                 break;
 
             case VERBOSE:
-                Log.trace(tag, message);
+                com.adobe.marketing.mobile.services.Log.trace("", tag, message);
                 break;
         }
     }
 
     public static void registerExtensions(@NonNull final List<Class<? extends Extension>> extensions, final AdobeCallback<?> completionCallback) {
-        if(!sdkInitializedWithContext.get()) {
+        if (!sdkInitializedWithContext.get()) {
             Log.error(LOG_TAG, "Failed to registerExtensions - setApplication not called");
             return;
         }
@@ -210,7 +211,7 @@ final public class MobileCore {
         final List<Class<? extends Extension>> allExtensions = new ArrayList<>();
         // Todo - Register configuration extension once it is refactored to use Extension APIs. 
         if (extensions != null) {
-            for(final Class<? extends Extension> extension: extensions) {
+            for (final Class<? extends Extension> extension : extensions) {
                 if (extension != null) {
                     allExtensions.add(extension);
                 }
@@ -218,9 +219,9 @@ final public class MobileCore {
         }
 
         final AtomicInteger registeredExtensions = new AtomicInteger(0);
-        for (final Class<? extends Extension> extension: allExtensions) {
+        for (final Class<? extends Extension> extension : allExtensions) {
             EventHub.Companion.getShared().registerExtension(extension, eventHubError -> {
-                Log.debug(LOG_TAG, "Registered extension " + extension + "with status "+ eventHubError);
+                Log.debug(LOG_TAG, "Registered extension " + extension + "with status " + eventHubError);
 
                 if (registeredExtensions.incrementAndGet() == allExtensions.size()) {
                     Log.debug(LOG_TAG, "Registered all extensions. Starting event processing.");
@@ -249,7 +250,7 @@ final public class MobileCore {
     public static boolean registerExtension(@NonNull final Class<? extends Extension> extensionClass,
                                             @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
 
-        if(!sdkInitializedWithContext.get()) {
+        if (!sdkInitializedWithContext.get()) {
             Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
             return false;
         }
@@ -292,7 +293,7 @@ final public class MobileCore {
      * @param completionCallback an optional {@link AdobeCallback} invoked after registrations are completed
      */
     public static void start(@Nullable final AdobeCallback<?> completionCallback) {
-        if(!sdkInitializedWithContext.get()) {
+        if (!sdkInitializedWithContext.get()) {
             Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
             return;
         }
@@ -351,10 +352,9 @@ final public class MobileCore {
      * Passes an {@link AdobeError#UNEXPECTED_ERROR} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} is null.
      * Passes an {@link AdobeError#CALLBACK_TIMEOUT} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} processing timeout occurs.
      *
-     * @param event the {@link Event} to be dispatched, used as a trigger. It should not be null.
-     * @param timeoutMS the timeout specified in milliseconds.
+     * @param event            the {@link Event} to be dispatched, used as a trigger. It should not be null.
+     * @param timeoutMS        the timeout specified in milliseconds.
      * @param responseCallback the callback whose {@link AdobeCallbackWithError#call(Object)} will be called when the response event is heard. It should not be null.
-     *
      * @see MobileCore#dispatchResponseEvent(Event, Event, ExtensionErrorCallback)
      */
     public static void dispatchEventWithResponseCallback(@NonNull final Event event,
@@ -531,6 +531,7 @@ final public class MobileCore {
      * The configuration file is cached once downloaded and used in subsequent calls to this
      * API. If the remote file is updated after the first download, the updated file is downloaded
      * and replaces the cached file.
+     *
      * @param appId A unique identifier assigned to the app instance by Adobe Launch. It should not be null.
      */
     public static void configureWithAppID(@NonNull final String appId) {
@@ -693,9 +694,9 @@ final public class MobileCore {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG, true);
         Event event = new Event.Builder("PrivacyStatusRequest",
-                                        EventType.CONFIGURATION,
-                                        EventSource.REQUEST_CONTENT
-                                        )
+                EventType.CONFIGURATION,
+                EventSource.REQUEST_CONTENT
+        )
                 .setEventData(eventData).build();
 
 
@@ -712,7 +713,7 @@ final public class MobileCore {
 
             @Override
             public void call(Event event) {
-                String status = DataReader.optString(event.getEventData() ,
+                String status = DataReader.optString(event.getEventData(),
                         ConfigurationConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, null);
                 callback.call(MobilePrivacyStatus.fromString(status));
             }
@@ -745,14 +746,14 @@ final public class MobileCore {
 
             @Override
             public void call(Event event) {
-                String value = DataReader.optString(event.getEventData() ,
+                String value = DataReader.optString(event.getEventData(),
                         ConfigurationConstants.EventDataKeys.Configuration.CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS, "{}");
                 callback.call(value);
             }
         };
 
         Event event = new Event.Builder("getSdkIdentities", EventType.CONFIGURATION, EventSource.REQUEST_IDENTITY).build();
-        dispatchEventWithResponseCallback(event ,API_TIMEOUT_MS, callbackWithError);
+        dispatchEventWithResponseCallback(event, API_TIMEOUT_MS, callbackWithError);
     }
 
     /**
@@ -874,7 +875,7 @@ final public class MobileCore {
      * Passes an {@link AdobeError#UNEXPECTED_ERROR} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} is null.
      * Passes an {@link AdobeError#CALLBACK_TIMEOUT} to {@link AdobeCallbackWithError#fail(AdobeError)} if {@code event} processing timeout occurs after {@link MobileCore#API_TIMEOUT_MS} milliseconds.
      *
-     * @param event the {@link Event} to be dispatched, used as a trigger. It should not be null.
+     * @param event            the {@link Event} to be dispatched, used as a trigger. It should not be null.
      * @param responseCallback the callback whose {@link AdobeCallbackWithError#call(Object)} will be called when the response event is heard. It should not be null.
      * @deprecated Use {@link MobileCore#dispatchEventWithResponseCallback(Event, long, AdobeCallbackWithError)} instead by explicitly specifing timeout.
      */

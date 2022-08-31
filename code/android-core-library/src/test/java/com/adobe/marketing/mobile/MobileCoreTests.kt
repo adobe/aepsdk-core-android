@@ -466,7 +466,7 @@ class MobileCoreTests {
     @Test
     fun testSetLogLevelVerbose() {
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        assertEquals(LoggingMode.VERBOSE, Log.getLogLevel())
+        assertEquals(LoggingMode.VERBOSE, com.adobe.marketing.mobile.services.Log.getLogLevel())
     }
 
     // MARK: setLogLevel(...) tests
@@ -474,21 +474,21 @@ class MobileCoreTests {
     @Test
     fun testSetLogLevelDebug() {
         MobileCore.setLogLevel(LoggingMode.DEBUG)
-        assertEquals(LoggingMode.DEBUG, Log.getLogLevel())
+        assertEquals(LoggingMode.DEBUG, com.adobe.marketing.mobile.services.Log.getLogLevel())
     }
 
     // / Tests that the log level in the Log class is updated to warning
     @Test
     fun testSetLogLevelWarning() {
         MobileCore.setLogLevel(LoggingMode.WARNING)
-        assertEquals(LoggingMode.WARNING, Log.getLogLevel())
+        assertEquals(LoggingMode.WARNING, com.adobe.marketing.mobile.services.Log.getLogLevel())
     }
 
     // / Tests that the log level in the Log class is updated to error
     @Test
     fun testSetLogLevelError() {
         MobileCore.setLogLevel(LoggingMode.ERROR)
-        assertEquals(LoggingMode.ERROR, Log.getLogLevel())
+        assertEquals(LoggingMode.ERROR, com.adobe.marketing.mobile.services.Log.getLogLevel())
     }
 
     // MARK: collectMessageInfo(...) tests

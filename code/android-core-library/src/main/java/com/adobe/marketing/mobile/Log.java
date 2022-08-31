@@ -10,20 +10,14 @@
  */
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.services.Logging;
-import com.adobe.marketing.mobile.services.ServiceProvider;
-
 /**
  * Logging class to handle log levels and platform-specific log output
  *
  * @author Adobe Systems Incorporated
  * @version 5.0
  */
-public class Log {
-    //TODO: we should consider changing not to update loggingService variable after we allow logging service overriding.
-    private static final Logging loggingService = ServiceProvider.getInstance().getLoggingService();
-    private static LoggingMode loggingMode = LoggingMode.ERROR;
-
+@Deprecated
+class Log {
     static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
     static final String UNEXPECTED_EMPTY_VALUE = "Unexpected Empty Value";
     static final String INVALID_FORMAT = "Invalid Format";
@@ -35,25 +29,6 @@ public class Log {
     }
 
     /**
-     * Sets the log level to operate at
-     *
-     * @param loggingMode LoggingMode to use for log output
-     * @see LoggingMode
-     */
-    static void setLogLevel(final LoggingMode loggingMode) {
-        Log.loggingMode = loggingMode;
-    }
-
-    /**
-     * Gets the log level that the SDK is currently operating at
-     *
-     * @return LoggingMode describing the current level of logging.
-     */
-    static LoggingMode getLogLevel() {
-        return Log.loggingMode;
-    }
-
-    /**
      * Used to print more verbose information. Info logging is expected to follow end-to-end every method an event hits.
      * Prints information to the console only when the SDK is in LoggingMode: VERBOSE
      *
@@ -62,14 +37,9 @@ public class Log {
      * @param params values to be inserted into the format
      * @see LoggingMode
      */
-    public static void trace(final String source, final String format, final Object... params) {
-        if (loggingService != null && loggingMode.id >= LoggingMode.VERBOSE.id) {
-            try {
-                loggingService.trace(source, String.format(format, params));
-            } catch (Exception e) {
-                loggingService.trace(source, format);
-            }
-        }
+    @Deprecated
+    static void trace(final String source, final String format, final Object... params) {
+        com.adobe.marketing.mobile.services.Log.trace("", source, format, params);
     }
 
     /**
@@ -81,14 +51,9 @@ public class Log {
      * @param params values to be inserted into the format
      * @see LoggingMode
      */
-    public static void debug(final String source, final String format, final Object... params) {
-        if (loggingService != null && loggingMode.id >= LoggingMode.DEBUG.id) {
-            try {
-                loggingService.debug(source, String.format(format, params));
-            } catch (Exception e) {
-                loggingService.debug(source, format);
-            }
-        }
+    @Deprecated
+    static void debug(final String source, final String format, final Object... params) {
+        com.adobe.marketing.mobile.services.Log.debug("", source, format, params);
     }
 
     /**
@@ -102,14 +67,9 @@ public class Log {
      * @param params values to be inserted into the format
      * @see LoggingMode
      */
-    public static void warning(final String source, final String format, final Object... params) {
-        if (loggingService != null && loggingMode.ordinal() >= LoggingMode.WARNING.id) {
-            try {
-                loggingService.warning(source, String.format(format, params));
-            } catch (Exception e) {
-                loggingService.warning(source, format);
-            }
-        }
+    @Deprecated
+    static void warning(final String source, final String format, final Object... params) {
+        com.adobe.marketing.mobile.services.Log.warning("", source, format, params);
     }
 
     /**
@@ -121,13 +81,8 @@ public class Log {
      * @param params values to be inserted into the format
      * @see LoggingMode
      */
-    public static void error(final String source, final String format, final Object... params) {
-        if (loggingService != null && loggingMode.ordinal() >= LoggingMode.ERROR.id) {
-            try {
-                loggingService.error(source, String.format(format, params));
-            } catch (Exception e) {
-                loggingService.error(source, format);
-            }
-        }
+    @Deprecated
+    static void error(final String source, final String format, final Object... params) {
+        com.adobe.marketing.mobile.services.Log.error("", source, format, params);
     }
 }

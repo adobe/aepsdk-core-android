@@ -155,7 +155,7 @@ final public class MobileCore {
             return;
         }
 
-        Log.setLogLevel(mode);
+        com.adobe.marketing.mobile.services.Log.setLogLevel(mode);
     }
 
     /**
@@ -165,7 +165,7 @@ final public class MobileCore {
      */
     @NonNull
     public static LoggingMode getLogLevel() {
-        return Log.getLogLevel();
+        return com.adobe.marketing.mobile.services.Log.getLogLevel();
     }
 
     /**

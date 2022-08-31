@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.MobilePrivacyStatus
@@ -106,6 +107,11 @@ fun CoreView(navController: NavHostController) {
                 showAlert("Log Level: ${MobileCore.getLogLevel()}")
             }) {
                 Text(text = "getLogLevel")
+            }
+            Button(onClick = {
+                Log.debug("source", "%s loginggggg", "x")
+            }) {
+                Text(text = "Log.debug")
             }
             Button(onClick = {
                 MobileCore.setPushIdentifier("ABC")

@@ -11,7 +11,9 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.utility.MapUtilsKt;
+import androidx.annotation.NonNull;
+
+import com.adobe.marketing.mobile.internal.utility.MapExtensionsKt;
 import com.adobe.marketing.mobile.utils.EventDataUtils;
 
 import java.util.*;
@@ -24,65 +26,29 @@ import java.util.concurrent.TimeUnit;
  * @version 5.0
  */
 public final class Event {
-	private String      name;
-	private String      uniqueIdentifier;
-	private EventSource source;
-	private EventType   type;
-	private String      pairID;
-	private String      responsePairID;
+	// Name of the event
+	private String name;
+	// Unique identifier for the event
+	private String uniqueIdentifier;
+	// The `EventSource` for the event
+	private String source;
+	// The `EventType` for the event
+	private String type;
+	// Optional data associated with this event
 	private Map<String, Object> data;
-	private long        timestamp;
-	private int         eventNumber;
+	// Time this event was created
+	private long timestamp;
+	// If `responseID` is not nil, then this event is a response event and `responseID` is the `event.id` of the `triggerEvent`
+	private String responseID;
 	// Specifies the properties in the Event and its data that should be used in the hash for EventHistory storage.
-	private String[]	mask;
-
-	/**
-	 * Convenience event for retrieving the oldest shared state
-	 **/
-	static final Event SHARED_STATE_OLDEST = new Event(0);
-
-	/**
-	 * Convenience event for retrieving the newest shared state
-	 **/
-	static final Event SHARED_STATE_NEWEST = new Event(Integer.MAX_VALUE);
+	private String[] mask;
 
 	/**
 	 * Event Builder
 	 */
 	public static class Builder {
-		private Event event;
+		private final Event event;
 		private boolean didBuild;
-
-		/**
-		 * Builder constructor with required {@link Event} attributes as parameters.
-		 *
-		 * @param name   {@code String} event name
-		 * @param type   {@link EventType} event type
-		 * @param source {@link EventSource} event source
-		 */
-		Builder(final String name, final EventType type, final EventSource source) {
-			this(name, type, source, null);
-		}
-
-		/**
-		 * Builder constructor with required {@link Event} attributes as parameters and a {@code String[]} mask.
-		 *
-		 * @param name   {@code String} event name
-		 * @param type   {@link EventType} event type
-		 * @param source {@link EventSource} event source
-		 * @param mask	 {@code String[]} event mask
-		 */
-		Builder(final String name, final EventType type, final EventSource source, final String[] mask) {
-			event = new Event();
-			event.name = name;
-			event.uniqueIdentifier = UUID.randomUUID().toString();
-			event.type = type;
-			event.source = source;
-			event.responsePairID = UUID.randomUUID().toString();
-			event.eventNumber = 0;
-			event.mask = mask;
-			didBuild = false;
-		}
 
 		/**
 		 * Builder constructor with required {@code Event} attributes as parameters
@@ -92,7 +58,7 @@ public final class Event {
 		 * @param source required {@code String} to be set as event source; should not be null or empty string
 		 */
 		public Builder(final String name, final String type, final String source) {
-			this(name, EventType.get(type), EventSource.get(source), null);
+			this(name, type, source, null);
 		}
 
 		/**
@@ -104,7 +70,14 @@ public final class Event {
 		 * @param mask	 {@code String[]} event mask
 		 */
 		public Builder(final String name, final String type, final String source, final String[] mask) {
-			this(name, EventType.get(type), EventSource.get(source), mask);
+			event = new Event();
+			event.name = name;
+			event.uniqueIdentifier = UUID.randomUUID().toString();
+			event.type = type;
+			event.source = source;
+			event.responseID = null;
+			event.mask = mask;
+			didBuild = false;
 		}
 
 		/**
@@ -148,7 +121,7 @@ public final class Event {
 		 * Builds and returns the {@code Event} object. It returns null if the event's type or source are null
 		 *
 		 * @return the constructed {@link Event} or null if the type or source are null
-		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
+		 * @throws UnsupportedOperationException if this method is called again
 		 */
 		public Event build() {
 			throwIfAlreadyBuilt();
@@ -156,10 +129,6 @@ public final class Event {
 
 			if (event.type == null || event.source == null) {
 				return null;
-			}
-
-			if (event.data == null) {
-				event.data = new HashMap<>();
 			}
 
 			if (event.timestamp == 0) {
@@ -207,28 +176,30 @@ public final class Event {
 		}
 
 		/**
-		 * Sets the pairId for this {@code Event}
-		 *
-		 * @param pairId {@code String} event pairId
+		 * Sets this as response for request {@code Event}		 *
+		 * @param requestEvent {@code Event} event
 		 * @return this Event {@link Builder}
 		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
 		 */
-		Builder setPairID(final String pairId) {
+		public Builder inResponseToEvent(final Event requestEvent) {
 			throwIfAlreadyBuilt();
-			event.pairID = pairId;
+
+			if (requestEvent == null) {
+				throw new NullPointerException("requestEvent is null");
+			}
+			event.responseID = requestEvent.uniqueIdentifier;
 			return this;
 		}
 
 		/**
-		 * Sets the responsePairId for this {@code Event}
-		 *
-		 * @param responsePairId {@code String} event responsePairId
+		 * Sets responseId for this {@code Event}		 *
+		 * @param responseId {@code String} event uniqueIdentifier
 		 * @return this Event {@link Builder}
 		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
 		 */
-		Builder setResponsePairID(final String responsePairId) {
+		Builder setResponseId(final String responseId) {
 			throwIfAlreadyBuilt();
-			event.responsePairID = responsePairId;
+			event.responseID = responseId;
 			return this;
 		}
 
@@ -245,19 +216,6 @@ public final class Event {
 			return this;
 		}
 
-		/**
-		 * Sets the event number for this {@code Event}
-		 *
-		 * @param number {@code int} containing event number for this {@link Event}
-		 * @return this Event {@link Builder}
-		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
-		 */
-		Builder setEventNumber(final int number) {
-			throwIfAlreadyBuilt();
-			event.eventNumber = number;
-			return this;
-		}
-
 		private void throwIfAlreadyBuilt() {
 			if (didBuild) {
 				throw new UnsupportedOperationException("Event - attempted to call methods on Event.Builder after build() was called");
@@ -271,15 +229,6 @@ public final class Event {
 	@SuppressWarnings("unused")
 	private Event() {}
 
-	/**
-	 * Private constructor used by the static SHARED_STATE_NEWEST and SHARED_STATE_OLDEST
-	 * constants.
-	 *
-	 * @param number event number
-	 **/
-	private Event(final int number) {
-		this.eventNumber = number;
-	}
 
 	/**
 	 * Copies an {@code Event}.
@@ -304,9 +253,7 @@ public final class Event {
 				.build();
 		newEvent.uniqueIdentifier = this.uniqueIdentifier;
 		newEvent.timestamp = this.timestamp;
-		newEvent.pairID = this.pairID;
-		newEvent.responsePairID = this.responsePairID;
-		newEvent.eventNumber = this.eventNumber;
+		newEvent.responseID = this.responseID;
 		return  newEvent;
 	}
 
@@ -331,7 +278,7 @@ public final class Event {
 	 * @return {@code String} representing the {@link Event} source
 	 */
 	public String getSource() {
-		return source.getName();
+		return source;
 	}
 
 	/**
@@ -339,7 +286,7 @@ public final class Event {
 	 * @return {@code String} representing the {@link Event} type
 	 */
 	public String getType() {
-		return type.getName();
+		return type;
 	}
 
 	/**
@@ -359,81 +306,28 @@ public final class Event {
 	}
 
 	/**
-	 * @return event source as {@link EventSource}
-	 */
-	EventSource getEventSource() {
-		return source;
-	}
-
-	/**
-	 * @return event type as {@link EventType}
-	 */
-	EventType getEventType() {
-		return type;
-	}
-
-	/**
-	 * @return event parameters
-	 */
-	@Deprecated
-	EventData getData() {
-		// Todo - Remove this method once all EventData usage is removed from Core.
-		try {
-			return EventData.fromObjectMap(data);
-		} catch (Exception ex) {
-			Log.warning("Event", "Error creating EventData instance %s", ex);
-			return new EventData();
-		}
-	}
-
-	/**
-	 * Event number relative to the internal event hub (will be zero if not sent to event hub)
+	 * Pair ID for events dispatched by the receiver(s) in response to this event
 	 *
-	 * @return {@code int} representation of the current event number
+	 * @return String response pair ID
 	 */
-	int getEventNumber() {
-		return eventNumber;
-	}
-
-	/**
-	 * Pair ID for this event. Should be set if this event is intended to be delivered to a specific listener
-	 *
-	 * @return String event pair ID
-	 */
-	String getPairID() {
-		return pairID;
+	public String getResponseID() {
+		return responseID;
 	}
 
 	/**
 	 * Pair ID for events dispatched by the receiver(s) in response to this event
 	 *
-	 * @return String response pair ID
 	 */
-	String getResponsePairID() {
-		return responsePairID;
+	@Deprecated
+	void setResponseID(String responseID) {
+		this.responseID = responseID;
 	}
 
 	/**
 	 * @return event timestamp in seconds
 	 */
-	long getTimestampInSeconds() {
+	public long getTimestampInSeconds() {
 		return TimeUnit.MILLISECONDS.toSeconds(timestamp);
-	}
-
-	/**
-	 * @return {@code int} representation of event mask that would match this {@code Event}
-	 */
-	int getEventMask() {
-		return Event.generateEventMask(this.type, this.source, this.pairID);
-	}
-
-	/**
-	 * Sets event number, should only be used by eventHub ingesting this event
-	 *
-	 * @param number int event number that this event is on the event hub.
-	 */
-	void setEventNumber(final int number) {
-		this.eventNumber = number;
 	}
 
 	/**
@@ -443,33 +337,7 @@ public final class Event {
 		return mask;
 	}
 
-	/**
-	 * Sets the pairId for this {@code Event}, should only be used by extensions which receive a built event
-	 *
-	 * @param pairId {@code String} event pairId
-	 */
-	void setPairId(final String pairId) {
-		this.pairID = pairId;
-	}
-
-	/**
-	 * Generates event hash for the given type and source or the pairing id
-	 *
-	 * @param pairId unique identifier use for {@link OneTimeListener} (can be null)
-	 * @param type   the {@link EventType} associated with a {@link ModuleEventListener}
-	 * @param source the {@link EventSource} associated with a {@link ModuleEventListener}
-	 *
-	 * @return integer hash created from input params
-	 */
-	static int generateEventMask(final EventType type, final EventSource source, final String pairId) {
-		if (!StringUtils.isNullOrEmpty(pairId)) {
-			return pairId.hashCode();
-
-		}
-
-		return ("" + type.getName() + source.getName()).hashCode();
-	}
-
+	@NonNull
 	@Override
 	public String toString() {
 		final String NEWLINE = "\n";
@@ -479,21 +347,14 @@ public final class Event {
 		sb.append("{").append(NEWLINE);
 		sb.append("    class: Event").append(COMMA).append(NEWLINE);
 		sb.append("    name: ").append(name).append(COMMA).append(NEWLINE);
-		sb.append("    eventNumber: ").append(eventNumber).append(COMMA).append(NEWLINE);
 		sb.append("    uniqueIdentifier: ").append(uniqueIdentifier).append(COMMA).append(NEWLINE);
-		sb.append("    source: ").append(source.getName()).append(COMMA).append(NEWLINE);
-		sb.append("    type: ").append(type.getName()).append(COMMA).append(NEWLINE);
-		sb.append("    pairId: ").append(pairID).append(COMMA).append(NEWLINE);
-		sb.append("    responsePairId: ").append(responsePairID).append(COMMA).append(NEWLINE);
+		sb.append("    source: ").append(source).append(COMMA).append(NEWLINE);
+		sb.append("    type: ").append(type).append(COMMA).append(NEWLINE);
+		sb.append("    responseId: ").append(responseID).append(COMMA).append(NEWLINE);
 		sb.append("    timestamp: ").append(timestamp).append(COMMA).append(NEWLINE);
-
-		// Todo - Remove this once we completely remove EventData from core.
-		try {
-			EventData data = EventData.fromObjectMap(this.data);
-			sb.append("    data: ").append(data.prettyString(2)).append(NEWLINE);
-			sb.append("    mask: ").append(Arrays.toString(mask)).append(COMMA).append(NEWLINE);
-			sb.append("    fnv1aHash: ").append(MapUtilsKt.convertMapToFnv1aHash(data.toObjectMap(),mask)).append(NEWLINE);
-		} catch (VariantException ex) {}
+		String dataAsStr = data == null ? "" : MapExtensionsKt.prettify(data);
+		sb.append("    data: ").append(dataAsStr).append(COMMA).append(NEWLINE);
+		sb.append("    mask: ").append(Arrays.toString(mask)).append(COMMA).append(NEWLINE);
 		sb.append("}");
 
 		return sb.toString();

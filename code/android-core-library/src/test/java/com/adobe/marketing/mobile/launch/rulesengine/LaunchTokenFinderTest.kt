@@ -8,33 +8,33 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
-import kotlin.test.assertNotNull
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import com.adobe.marketing.mobile.utils.TimeUtils
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers
-import org.mockito.Mock
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchTokenFinderTest {
 
-    @Mock
     private lateinit var extensionApi: ExtensionApi
 
     @Before
     fun setup() {
-//        extensionApi = PowerMockito.mock(ExtensionApi::class.java)
+        extensionApi = Mockito.mock(ExtensionApi::class.java)
     }
 
     @Test
@@ -56,7 +56,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~type")
         // verify
-        assertEquals("com.adobe.eventtype.analytics", result)
+        assertEquals("com.adobe.eventType.analytics", result)
     }
 
     @Test
@@ -67,7 +67,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~source")
         // verify
-        assertEquals("com.adobe.eventsource.requestcontent", result)
+        assertEquals("com.adobe.eventSource.requestContent", result)
     }
 
     @Test
@@ -78,33 +78,36 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~timestampu")
         // verify
-        assertNotNull(result)
+        assertEquals(TimeUtils.getUnixTimeInSeconds().toString(), result)
     }
 
     @Test
-    fun `get should return current ISO8601 timestamp when key is timestampz on valid event`() {
+    fun `get should return current ISO8601 timestamp on valid event`() {
         // setup
         val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("~timestampz")
         // verify
-        assertNotNull(result)
+        assertEquals(TimeUtils.getIso8601Date(), result)
     }
 
     @Test
-    fun `get should return current ISO8601 in UTC with fractional seconds when key is timestampp on valid event`() {
+    fun `get should return current ISO8601 date timezone on valid event`() {
         // setup
         val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
-        val result: String = launchTokenFinder.get("~timestampp") as String
+        val result = launchTokenFinder.get("~timestampp")
         // verify
-        assertTrue(result.matches(Regex("[0-9]{4}-[0-9]{2}-[0-9]{2}T([0-9]{2}:){2}[0-9]{2}.[0-9]{3}Z")))
+        assertNotNull(result)
     }
 
     @Test
     fun `get should return current sdk version on valid event`() {
+        // reset eventhub
+        EventHub.shared = EventHub()
+
         // setup
         val testEvent = getDefaultEvent()
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
@@ -251,7 +254,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~all_json")
         // verify
-        assertEquals("{}", result)
+        assertEquals("", result)
     }
 
     @Test
@@ -259,14 +262,18 @@ class LaunchTokenFinderTest {
         // setup
         val testEvent = getDefaultEvent(null)
         val lcData = mapOf("analytics.contextData" to mutableMapOf("akey" to "avalue"))
-        `when`(
-            extensionApi.getSharedEventState(
-                ArgumentMatchers.eq("com.adobe.marketing.mobile.Analytics"),
-                ArgumentMatchers.any(),
-                ArgumentMatchers.any()
+        Mockito.`when`(
+            extensionApi.getSharedState(
+                Mockito.eq("com.adobe.marketing.mobile.Analytics"),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.any()
             )
         ).thenReturn(
-            lcData
+            SharedStateResult(
+                SharedStateStatus.SET,
+                lcData
+            )
         )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
@@ -281,14 +288,18 @@ class LaunchTokenFinderTest {
         // setup
         val testEvent = getDefaultEvent(null)
         val lcData = mapOf("analytics.contextData" to mapOf("akey" to "avalue"))
-        `when`(
-            extensionApi.getSharedEventState(
-                ArgumentMatchers.eq("com.adobe.marketing.mobile.Analytics"),
-                ArgumentMatchers.any(),
-                ArgumentMatchers.any()
+        Mockito.`when`(
+            extensionApi.getSharedState(
+                Mockito.eq("com.adobe.marketing.mobile.Analytics"),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.any()
             )
         ).thenReturn(
-            lcData
+            SharedStateResult(
+                SharedStateStatus.SET,
+                lcData
+            )
         )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
@@ -301,15 +312,19 @@ class LaunchTokenFinderTest {
     fun `get should return shared state list of the module on valid event`() {
         // setup
         val testEvent = getDefaultEvent(null)
-        val lcdata = mapOf("visitoridslist" to listOf("vid1", "vid2"))
-        `when`(
-            extensionApi.getSharedEventState(
-                ArgumentMatchers.eq("com.adobe.marketing.mobile.identity"),
-                ArgumentMatchers.any(),
-                ArgumentMatchers.any()
+        val lcData = mapOf("visitoridslist" to listOf("vid1", "vid2"))
+        Mockito.`when`(
+            extensionApi.getSharedState(
+                Mockito.eq("com.adobe.marketing.mobile.identity"),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.any()
             )
         ).thenReturn(
-            lcdata
+            SharedStateResult(
+                SharedStateStatus.SET,
+                lcData
+            )
         )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
@@ -378,14 +393,14 @@ class LaunchTokenFinderTest {
 
     // TODO change if we decide to keep event data as null instead of empty map by default
     @Test
-    fun `get should return null when event data is null on valid event`() {
+    fun `get should return empty string when event data is null on valid event`() {
         // setup
         val testEvent = getDefaultEvent(null)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
         val result = launchTokenFinder.get("key1")
         // verify
-        assertEquals(null, result)
+        assertEquals("", result)
     }
 
     @Test

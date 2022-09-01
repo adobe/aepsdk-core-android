@@ -31,11 +31,15 @@ assemble-phone-release:
 
 unit-test:
 		(./code/gradlew -p code/android-core-library testPhoneDebugUnitTest)
-		(./code/gradlew -p code/android-signal-library testPhoneDebugUnitTest)
+		# (./code/gradlew -p code/android-signal-library testPhoneDebugUnitTest)
+		(./code/gradlew -p code/android-lifecycle-library testPhoneDebugUnitTest)
 
 functional-test:
 		(./code/gradlew -p code/android-core-library uninstallPhoneDebugAndroidTest)
 		(./code/gradlew -p code/android-core-library connectedPhoneDebugAndroidTest)
+		(./code/gradlew -p code/android-lifecycle-library uninstallPhoneDebugAndroidTest)
+		(./code/gradlew -p code/android-lifecycle-library connectedPhoneDebugAndroidTest)
+
 
 javadoc:
 		(./code/gradlew -p code/android-core-library dokkaJavadoc)
@@ -43,6 +47,9 @@ javadoc:
 
 build-third-party-extension:
 		(./code/gradlew test-third-party-extension:build)
+
+publishCoreToMavenLocal:
+		(./code/gradlew -p code/android-core-library publishReleasePublicationToMavenLocal)
 
 
 

@@ -34,6 +34,7 @@ import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -158,8 +159,8 @@ class MessageWebViewRunner implements Runnable {
                 webviewSettings.setDatabaseEnabled(true);
             }
 
-            webviewSettings.setDefaultTextEncodingName(StringUtils.CHARSET_UTF_8);
-            webView.loadDataWithBaseURL(BASE_URL, message.getMessageHtml(), MIME_TYPE, StringUtils.CHARSET_UTF_8, null);
+            webviewSettings.setDefaultTextEncodingName(StandardCharsets.UTF_8.name());
+            webView.loadDataWithBaseURL(BASE_URL, message.getMessageHtml(), MIME_TYPE, StandardCharsets.UTF_8.name(), null);
 
             // if we are re-showing after an orientation change, no need to animate
             final MessageSettings messageSettings = message.getSettings();

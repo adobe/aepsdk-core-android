@@ -66,4 +66,4 @@ workflows:
     # Inside the workflow, you define the jobs you want to run.
     jobs:
       - build-and-unit-test
-      - functional-test
+      # - functional-test

@@ -16,7 +16,7 @@
 //import static com.adobe.marketing.mobile.DatabaseService.Database.ColumnDataType.INTEGER;
 //
 //import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory;
-//import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryResultHandler;
+//import com.adobe.marketing.mobile.EventHistoryResultHandler;
 //import com.adobe.marketing.mobile.internal.utility.StringEncoder;
 //
 //public class FakeEventHistory implements EventHistory {

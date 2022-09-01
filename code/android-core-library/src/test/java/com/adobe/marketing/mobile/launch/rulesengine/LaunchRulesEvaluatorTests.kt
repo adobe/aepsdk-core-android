@@ -11,36 +11,35 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.MobileCore
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.BDDMockito
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchRulesEvaluatorTests {
-    // TODO: LaunchRulesEvaluator is updated to dispatch event using ExtensionApi on eventhub branch https://github.com/adobe/aepsdk-core-android/blob/634269129949bed8feff85bbaf9490925071db66/code/android-core-library/src/main/java/com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEvaluator.kt#L78
+
     @Mock
     private lateinit var launchRulesEngine: LaunchRulesEngine
 
-    @Mock
     private lateinit var extensionApi: ExtensionApi
     private lateinit var launchRulesEvaluator: LaunchRulesEvaluator
 
     @Before
     fun setup() {
+        extensionApi = Mockito.mock(ExtensionApi::class.java)
         launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine, extensionApi)
     }
 
@@ -61,8 +60,6 @@ class LaunchRulesEvaluatorTests {
         assertEquals(100, launchRulesEvaluator.getCachedEventCount())
     }
 
-    // TODO: update this test after the eventhub branch changes are merged
-    @Ignore
     @Test
     fun `Reprocess cached events when rules are ready`() {
         repeat(10) {
@@ -72,17 +69,15 @@ class LaunchRulesEvaluatorTests {
         }
         assertEquals(10, launchRulesEvaluator.getCachedEventCount())
         val eventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        BDDMockito.given(MobileCore.dispatchEvent(eventCaptor.capture(), any())).willReturn(true)
         launchRulesEvaluator.replaceRules(listOf())
+        verify(extensionApi, Mockito.times(1)).dispatch(eventCaptor.capture())
         assertNotNull(eventCaptor.value)
-        assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestreset", eventCaptor.value.source)
+        assertEquals(EventType.RULES_ENGINE, eventCaptor.value.type)
+        assertEquals(EventSource.REQUEST_RESET, eventCaptor.value.source)
         launchRulesEvaluator.process(eventCaptor.value)
         assertEquals(0, launchRulesEvaluator.getCachedEventCount())
     }
 
-    // TODO: update this test after the eventhub branch changes are merged
-    @Ignore
     @Test
     fun `Reprocess cached events in the right order`() {
         repeat(10) {
@@ -92,11 +87,11 @@ class LaunchRulesEvaluatorTests {
         }
         assertEquals(10, launchRulesEvaluator.getCachedEventCount())
         val eventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        BDDMockito.given(MobileCore.dispatchEvent(eventCaptor.capture(), any())).willReturn(true)
         launchRulesEvaluator.replaceRules(listOf())
+        verify(extensionApi, Mockito.times(1)).dispatch(eventCaptor.capture())
         assertNotNull(eventCaptor.value)
-        assertEquals("com.adobe.eventtype.rulesengine", eventCaptor.value.type)
-        assertEquals("com.adobe.eventsource.requestreset", eventCaptor.value.source)
+        assertEquals(EventType.RULES_ENGINE, eventCaptor.value.type)
+        assertEquals(EventSource.REQUEST_RESET, eventCaptor.value.source)
         Mockito.reset(launchRulesEngine)
         launchRulesEvaluator.process(eventCaptor.value)
         val cachedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
@@ -109,7 +104,6 @@ class LaunchRulesEvaluatorTests {
         assertEquals(0, launchRulesEvaluator.getCachedEventCount())
     }
 
-    @Ignore
     @Test
     fun `Do nothing if set null rule`() {
         repeat(10) {
@@ -119,8 +113,7 @@ class LaunchRulesEvaluatorTests {
         }
         assertEquals(10, launchRulesEvaluator.getCachedEventCount())
         launchRulesEvaluator.replaceRules(null)
-        // TODO: update this test after the eventhub branch changes are merged
-//        verify(extensionApi, never()).dispatchEvent
+        Mockito.verifyNoInteractions(extensionApi)
         assertEquals(10, launchRulesEvaluator.getCachedEventCount())
     }
 }

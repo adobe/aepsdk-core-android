@@ -10,34 +10,33 @@
  */
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.signal.SignalExtension;
+
 public class Signal {
-	//Suppressing the Unused warning for now, since Signals now does not have any public APIs of its own -
-	//making the SingalCore instance not being used.
-	@SuppressWarnings("unused")
-	private static SignalCore signalCore;
-	private final static String EXTENSION_VERSION = "1.0.4";
+    private final static String EXTENSION_VERSION = "1.0.4";
+    private static final String CLASS_NAME = "Signal";
 
-	private Signal() {
+    private Signal() {
+    }
 
-	}
+    /**
+     * Returns the version of the Signal extension.
+     *
+     * @return the version of the Signal extension.
+     */
+    public static String extensionVersion() {
+        return EXTENSION_VERSION;
+    }
 
-	public static String extensionVersion() {
-		return EXTENSION_VERSION;
-	}
-
-	public  static void registerExtension() throws InvalidInitException {
-		Core core = MobileCore.getCore();
-
-		if (core == null) {
-			throw  new InvalidInitException();
-		}
-
-		try {
-			//MobileCore may not be loaded or present (because may be Core extension was not
-			//available). In that case, the Signal extension will not initialize itself
-			signalCore = new SignalCore(core.eventHub, new SignalModuleDetails());
-		} catch (Exception e) {
-			throw new InvalidInitException();
-		}
-	}
+    /**
+     * Registers the Signal extension with the Mobile Core.
+     * This method should be called before calling {@link MobileCore#start(AdobeCallback)}.
+     */
+    @Deprecated
+    public static void registerExtension() {
+        MobileCore.registerExtension(SignalExtension.class, extensionError -> {
+            Log.error(CLASS_NAME, "%s - There was an error when registering the UserProfile extension: %s", CLASS_NAME,
+                    extensionError.getErrorName());
+        });
+    }
 }

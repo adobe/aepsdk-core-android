@@ -11,16 +11,30 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.test.utility.buildJSONObject
+import org.json.JSONException
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mockito
+import org.mockito.junit.MockitoJUnitRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import org.json.JSONException
-import org.junit.Test
 
+@RunWith(MockitoJUnitRunner.Silent::class)
 class JSONRuleTests {
+
+    private lateinit var extensionApi: ExtensionApi
+
+    @Before
+    fun setup() {
+        extensionApi = Mockito.mock(ExtensionApi::class.java)
+    }
+
     @Test
     fun testNormal() {
         val jsonString = """
@@ -49,7 +63,7 @@ class JSONRuleTests {
         """.trimIndent()
         val jsonRule = JSONRule(buildJSONObject(jsonString))
         assertTrue(jsonRule is JSONRule)
-        val launchRule = jsonRule.toLaunchRule()
+        val launchRule = jsonRule.toLaunchRule(extensionApi)
         assertTrue(launchRule is LaunchRule)
         assertEquals(1, launchRule.consequenceList.size)
         assertEquals("pb", launchRule.consequenceList[0].type)

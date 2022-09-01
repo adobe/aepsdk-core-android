@@ -118,6 +118,7 @@ class DeviceInfoService implements DeviceInforming {
 	 *
 	 * @return Operating system name {@link String}.
 	 */
+	@Override
 	public String getOperatingSystemName() {
 		return ANDROID_OS_STRING;
 	}

@@ -107,10 +107,8 @@ public class DataReader {
                 } else if (Float.class.equals(tClass)) {
                     return (T) Float.valueOf(objAsNumber.floatValue());
                 }
-            } else if (String.class.equals(tClass)) {
-                // Todo :- Check if we should match the behavior with Variant. It has custom logic to
-                //  convert types to string.
-                return (T) obj.toString();
+            } else if (String.class.equals(tClass) && obj instanceof String) {
+                return (T) obj;
             } else {
                 return tClass.cast(obj);
             }
@@ -129,12 +127,11 @@ public class DataReader {
      * @param map    {@code Map} map to fetch data
      * @param key    {@code String} key to fetch
      * @return {@code T} value associated with {@code key} or null if {@code key} is not present in {@code map}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as a {@code T}
      */
     private static <T> T getTypedObject(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
         if (map == null || key == null) {
-            throw new IllegalArgumentException("Map or key is null");
+            throw new DataReaderException("Map or key is null");
         }
 
         Object value = map.get(key);
@@ -151,7 +148,6 @@ public class DataReader {
      * @param fallback {@code T} value to return in case of failure. Can be null.
      * @return {@code T} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code T}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     private static <T> T optTypedObject(Class<T> tClass, Map<String, ?> map, String key, T fallback) {
         T ret = null;
@@ -170,12 +166,15 @@ public class DataReader {
      * @param map    {@code Map} map to fetch data
      * @param key    {@code String} key to fetch
      * @return {@code Map<String, T>} Map associated with {@code key} or null if {@code key} is not present in {@code map}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as a {@code Map<String,T>}
      */
     public static <T> Map<String, T> getTypedMap(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
+        if (tClass == null) {
+            throw new DataReaderException("Class type is null");
+        }
+
         if (map == null || key == null) {
-            throw new IllegalArgumentException("Map or key is null");
+            throw new DataReaderException("Map or key is null");
         }
 
         Object value = map.get(key);
@@ -209,7 +208,6 @@ public class DataReader {
      * @param fallback {@code Map<String, T>} value to return in case of failure. Can be null.
      * @return {@code Map<String, T>} Map associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code Map<String, T>}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static <T> Map<String, T> optTypedMap(Class<T> tClass, Map<String, ?> map, String key, Map<String, T> fallback) {
         Map<String, T> ret = null;
@@ -228,12 +226,15 @@ public class DataReader {
      * @param map    {@code Map} map to fetch data
      * @param key    {@code String} key to fetch
      * @return {@code List<T>} List associated with {@code key} or null if {@code key} is not present in {@code map}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as a {@code List<T>}
      */
     public static <T> List<T> getTypedList(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
+        if (tClass == null) {
+            throw new DataReaderException("Class type is null");
+        }
+
         if (map == null || key == null) {
-            throw new IllegalArgumentException("Map or key is null");
+            throw new DataReaderException("Map or key is null");
         }
 
         Object value = map.get(key);
@@ -265,7 +266,6 @@ public class DataReader {
      * @param fallback {@code List<T>} value to return in case of failure. Can be null.
      * @return {@code List<T>} List associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code List<T>}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static <T> List<T> optTypedList(Class<T> tClass, Map<String, ?> map, String key, List<T> fallback) {
         List<T> ret = null;
@@ -282,7 +282,6 @@ public class DataReader {
      * @param map {@code Map} map to fetch data
      * @param key {@code String} key to fetch
      * @return {@code boolean} value associated with {@code key}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as a {@code boolean} or if {@code key} is not present in {@code map}
      */
     public static boolean getBoolean(Map<String, ?> map, String key) throws DataReaderException {
@@ -301,7 +300,6 @@ public class DataReader {
      * @param fallback {@code boolean} value to return in case of failure. Can be null.
      * @return {@code boolean} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code boolean}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static boolean optBoolean(Map<String, ?> map, String key, boolean fallback) {
         return optTypedObject(Boolean.class, map, key, fallback);
@@ -313,7 +311,6 @@ public class DataReader {
      * @param map {@code Map} map to fetch data
      * @param key {@code String} key to fetch
      * @return {@code int} value associated with {@code key}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as an {@code int} or if {@code key} is not present in {@code map}
      */
     public static int getInt(Map<String, ?> map, String key) throws DataReaderException {
@@ -332,7 +329,6 @@ public class DataReader {
      * @param fallback {@code int} value to return in case of failure. Can be null.
      * @return {@code int} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code int}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static int optInt(Map<String, ?> map, String key, int fallback) {
         return optTypedObject(Integer.class, map, key, fallback);
@@ -344,7 +340,6 @@ public class DataReader {
      * @param map {@code Map} map to fetch data
      * @param key {@code String} key to fetch
      * @return {@code long} value associated with {@code key}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as an {@code long} or if {@code key} is not present in {@code map}
      */
     public static long getLong(Map<String, ?> map, String key) throws DataReaderException {
@@ -363,7 +358,6 @@ public class DataReader {
      * @param fallback {@code long} value to return in case of failure. Can be null.
      * @return {@code long} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code long}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static long optLong(Map<String, ?> map, String key, long fallback) {
         return optTypedObject(Long.class, map, key, fallback);
@@ -375,7 +369,6 @@ public class DataReader {
      * @param map {@code Map} map to fetch data
      * @param key {@code String} key to fetch
      * @return {@code float} value associated with {@code key}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as an {@code float} or if {@code key} is not present in {@code map}
      */
     public static float getFloat(Map<String, ?> map, String key) throws DataReaderException {
@@ -394,7 +387,6 @@ public class DataReader {
      * @param fallback {@code float} value to return in case of failure. Can be null.
      * @return {@code float} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code float}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static float optFloat(Map<String, ?> map, String key, float fallback) {
         return optTypedObject(Float.class, map, key, fallback);
@@ -406,7 +398,6 @@ public class DataReader {
      * @param map {@code Map} map to fetch data
      * @param key {@code String} key to fetch
      * @return {@code double} value associated with {@code key}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as an {@code double} or if {@code key} is not present in {@code map}
      */
     public static double getDouble(Map<String, ?> map, String key) throws DataReaderException {
@@ -425,7 +416,6 @@ public class DataReader {
      * @param fallback {@code double} value to return in case of failure. Can be null.
      * @return {@code double} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code double}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static double optDouble(Map<String, ?> map, String key, double fallback) {
         return optTypedObject(Double.class, map, key, fallback);
@@ -437,7 +427,6 @@ public class DataReader {
      * @param map {@code Map} map to fetch data
      * @param key {@code String} key to fetch
      * @return {@code String} value associated with {@code key}  or null if {@code key} is not present in {@code map}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as an {@code String}
      */
     public static String getString(Map<String, ?> map, String key) throws DataReaderException {
@@ -452,7 +441,6 @@ public class DataReader {
      * @param fallback {@code String} value to return in case of failure. Can be null.
      * @return {@code String} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code String}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static String optString(Map<String, ?> map, String key, String fallback) {
         return optTypedObject(String.class, map, key, fallback);
@@ -464,7 +452,6 @@ public class DataReader {
      * @param map {@code Map} map to fetch data
      * @param key {@code String} key to fetch
      * @return {@code Map<String, String>} Map associated with {@code key} or null if {@code key} is not present in {@code map}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as a {@code Map<String, String>}
      */
     public static Map<String, String> getStringMap(Map<String, ?> map, String key) throws DataReaderException {
@@ -479,7 +466,6 @@ public class DataReader {
      * @param fallback {@code Map<String, String>} value to return in case of failure. Can be null.
      * @return {@code Map<String, String>} value associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code Map<String, String>}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static Map<String, String> optStringMap(Map<String, ?> map, String key, Map<String, String> fallback) {
         return optTypedMap(String.class, map, key, fallback);
@@ -491,7 +477,6 @@ public class DataReader {
      * @param map {@code Map} map to fetch data
      * @param key {@code String} key to fetch
      * @return {@code List<String>} List associated with {@code key} or null if {@code key} is not present in {@code map}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      * @throws DataReaderException      if value is not gettable as a {@code List<String>}
      */
     public static List<String> getStringList(Map<String, ?> map, String key) throws DataReaderException {
@@ -506,7 +491,6 @@ public class DataReader {
      * @param fallback {@code List<String>} value to return in case of failure. Can be null.
      * @return {@code List<String>} List associated with {@code key}, or {@code fallback} if value is
      * not gettable as a {@code List<String>}
-     * @throws IllegalArgumentException if {@code map} or {@code key} is null
      */
     public static List<String> optStringList(Map<String, ?> map, String key, List<String> fallback) {
         return optTypedList(String.class, map, key, fallback);

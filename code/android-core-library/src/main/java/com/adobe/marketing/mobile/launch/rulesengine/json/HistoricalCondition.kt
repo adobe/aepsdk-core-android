@@ -10,16 +10,20 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.EventHistoryRequest
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
 import com.adobe.marketing.mobile.launch.rulesengine.historicalEventsQuerying
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.OperandFunction
 import com.adobe.marketing.mobile.rulesengine.OperandLiteral
 
-internal class HistoricalCondition(private val definition: JSONDefinition) : JSONCondition() {
+internal class HistoricalCondition(
+    private val definition: JSONDefinition,
+    private val extensionApi: ExtensionApi
+) : JSONCondition() {
 
     companion object {
         private const val LOG_TAG = "HistoricalCondition"
@@ -46,14 +50,21 @@ internal class HistoricalCondition(private val definition: JSONDefinition) : JSO
             EventHistoryRequest(it, fromDate, toDate)
         }
         return ComparisonExpression(
-            OperandFunction<Int>({
-                try {
-                    @Suppress("UNCHECKED_CAST")
-                    historicalEventsQuerying(it[0] as List<EventHistoryRequest>, it[1] as String)
-                } catch (e: Exception) {
-                    0
-                }
-            }, requestEvents, searchType),
+            OperandFunction<Int>(
+                {
+                    try {
+                        @Suppress("UNCHECKED_CAST")
+                        historicalEventsQuerying(
+                            it[0] as List<EventHistoryRequest>,
+                            it[1] as String,
+                            extensionApi
+                        )
+                    } catch (e: Exception) {
+                        0
+                    }
+                },
+                requestEvents, searchType
+            ),
             operationName,
             OperandLiteral(valueAsInt)
         )

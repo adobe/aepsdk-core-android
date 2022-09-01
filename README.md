@@ -1,5 +1,8 @@
 # Adobe Experience Platform - Core extension for Android
 
+[![](https://jitpack.io/v/adobe/aepsdk-core-android.svg)](https://jitpack.io/#adobe/aepsdk-core-android)
+
+
 ## About this project
 
 The AEPCore extensions represent the foundation of the Adobe Experience Platform SDK - every app using the SDK must include them. These modules contain a common set of functionality and services which are required by all SDK extensions.

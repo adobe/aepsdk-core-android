@@ -83,7 +83,7 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
                 operationName
             )
         }
-        val (javaClass: Any?, token: String) = when (value) {
+        val (javaClass: Any, token: String) = when (value) {
             is String -> Pair(
                 String::class.java,
                 "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_STRING}($key)}}"
@@ -107,14 +107,10 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
             )
             else -> Pair(Any::class.java, "{{$key}}")
         }
-        return if (javaClass != null) {
-            ComparisonExpression(
-                OperandMustacheToken(token, javaClass as Class<*>),
-                operationName,
-                OperandLiteral(value)
-            )
-        } else {
-            null
-        }
+        return ComparisonExpression(
+            OperandMustacheToken(token, javaClass as Class<*>),
+            operationName,
+            OperandLiteral(value)
+        )
     }
 }

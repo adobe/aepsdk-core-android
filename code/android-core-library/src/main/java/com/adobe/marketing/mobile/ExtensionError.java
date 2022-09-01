@@ -23,37 +23,37 @@ public class ExtensionError extends AdobeError {
 	/**
 	 * Unexpected error is returned when something happened internally while processing an extension.
 	 */
-	static final ExtensionError UNEXPECTED_ERROR = new ExtensionError("extension.unexpected",
+	public static final ExtensionError UNEXPECTED_ERROR = new ExtensionError("extension.unexpected",
 			0);
 
 	/**
 	 * Extension bad name error is returned when the extension name is invalid (null, empty).
 	 */
-	static final ExtensionError BAD_NAME = new
+	public static final ExtensionError BAD_NAME = new
 	ExtensionError("extension.bad_extension_name", 1);
 
 	/**
 	 * Extension duplicated name error is returned when an extension with the same name is already registered.
 	 */
-	static final ExtensionError DUPLICATE_NAME = new
+	public static final ExtensionError DUPLICATE_NAME = new
 	ExtensionError("extension.dup_extension_name", 2);
 
 	/**
 	 * Event type not supported is returned when a new listener is registered for an invalid event type (null/empty).
 	 */
-	static final ExtensionError EVENT_TYPE_NOT_SUPPORTED = new
+	public static final ExtensionError EVENT_TYPE_NOT_SUPPORTED = new
 	ExtensionError("extension.event_type_not_supported", 3);
 
 	/**
 	 * Event source not supported is returned when a new listener is registered for an invalid event source (null/empty).
 	 */
-	static final ExtensionError EVENT_SOURCE_NOT_SUPPORTED = new
+	public static final ExtensionError EVENT_SOURCE_NOT_SUPPORTED = new
 	ExtensionError("extension.event_source_not_supported", 4);
 
 	/**
 	 * Event data not supported is returned when the event data cannot be converted to the supported JSON format.
 	 */
-	static final ExtensionError EVENT_DATA_NOT_SUPPORTED = new
+	public static final ExtensionError EVENT_DATA_NOT_SUPPORTED = new
 	ExtensionError("extension.event_data_not_supported", 5);
 
 	/**
@@ -65,13 +65,13 @@ public class ExtensionError extends AdobeError {
 	/**
 	 * Listener timeout error is returned when the registered extension listener takes more than the accepted timeout (~100ms).
 	 */
-	static final ExtensionError LISTENER_TIMEOUT = new
+	public static final ExtensionError LISTENER_TIMEOUT = new
 	ExtensionError("extension.listener_timeout_exception", 8);
 
 	/**
 	 * This error is returned when a null callback is provided for a required parameter.
 	 */
-	static final ExtensionError CALLBACK_NULL = new
+	public static final ExtensionError CALLBACK_NULL = new
 	ExtensionError("extension.callback_null", 9);
 
 	private ExtensionError(final String errorName, final int errorCode) {

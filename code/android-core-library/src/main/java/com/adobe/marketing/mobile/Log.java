@@ -16,129 +16,73 @@ package com.adobe.marketing.mobile;
  * @author Adobe Systems Incorporated
  * @version 5.0
  */
+@Deprecated
 class Log {
-	private static LoggingService loggingService = null;
-	private static LoggingMode loggingMode = LoggingMode.ERROR;
+    static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
+    static final String UNEXPECTED_EMPTY_VALUE = "Unexpected Empty Value";
+    static final String INVALID_FORMAT = "Invalid Format";
 
-	static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
-	static final String UNEXPECTED_EMPTY_VALUE = "Unexpected Empty Value";
-	static final String INVALID_FORMAT = "Invalid Format";
+    /**
+     * private constructor to prevent accidental instantiation
+     */
+    private Log() {
+    }
 
-	/**
-	 * private constructor to prevent accidental instantiation
-	 */
-	private Log() {}
+    /**
+     * Used to print more verbose information. Info logging is expected to follow end-to-end every method an event hits.
+     * Prints information to the console only when the SDK is in LoggingMode: VERBOSE
+     *
+     * @param source the source of the information to be logged
+     * @param format the string format to be logged
+     * @param params values to be inserted into the format
+     * @see LoggingMode
+     */
+    @Deprecated
+    static void trace(final String source, final String format, final Object... params) {
+        com.adobe.marketing.mobile.services.Log.trace("", source, format, params);
+    }
 
-	/**
-	 * Sets the platform specific logging service to use for log output
-	 *
-	 * @param 	loggingService 	LoggingService to use for log output
-	 *
-	 * @see LoggingService
-	 */
-	static void setLoggingService(final LoggingService loggingService) {
-		Log.loggingService = loggingService;
-	}
+    /**
+     * Information provided to the debug method should contain high-level details about the data being processed.
+     * Prints information to the console only when the SDK is in LoggingMode: VERBOSE, DEBUG
+     *
+     * @param source the source of the information to be logged
+     * @param format the string format to be logged
+     * @param params values to be inserted into the format
+     * @see LoggingMode
+     */
+    @Deprecated
+    static void debug(final String source, final String format, final Object... params) {
+        com.adobe.marketing.mobile.services.Log.debug("", source, format, params);
+    }
 
-	/**
-	 * Sets the log level to operate at
-	 *
-	 * @param 	loggingMode 	LoggingMode to use for log output
-	 *
-	 * @see LoggingMode
-	 */
-	static void setLogLevel(final LoggingMode loggingMode) {
-		Log.loggingMode = loggingMode;
-	}
+    /**
+     * Information provided to the warning method indicates that a request has been made to the SDK, but the SDK
+     * will be unable to perform the requested task.  An example is catching an expected or unexpected but
+     * recoverable exception.
+     * Prints information to the console only when the SDK is in LoggingMode: VERBOSE, DEBUG, WARNING
+     *
+     * @param source the source of the information to be logged
+     * @param format the string format to be logged
+     * @param params values to be inserted into the format
+     * @see LoggingMode
+     */
+    @Deprecated
+    static void warning(final String source, final String format, final Object... params) {
+        com.adobe.marketing.mobile.services.Log.warning("", source, format, params);
+    }
 
-	/**
-	 * Gets the log level that the SDK is currently operating at
-	 *
-	 * @return LoggingMode describing the current level of logging.
-	 */
-	static LoggingMode getLogLevel() {
-		return Log.loggingMode;
-	}
-
-	/**
-	 * Used to print more verbose information. Info logging is expected to follow end-to-end every method an event hits.
-	 * Prints information to the console only when the SDK is in LoggingMode: VERBOSE
-	 *
-	 * @param	source	the source of the information to be logged
-	 * @param	format	the string format to be logged
-	 * @param	params	values to be inserted into the format
-	 *
-	 * @see LoggingMode
-	 */
-	static void trace(final String source, final String format, final Object... params) {
-		if (loggingService != null && loggingMode.id >= LoggingMode.VERBOSE.id) {
-			try {
-				loggingService.trace(source, String.format(format, params));
-			} catch (Exception e) {
-				loggingService.trace(source, format);
-			}
-		}
-	}
-
-	/**
-	 * Information provided to the debug method should contain high-level details about the data being processed.
-	 * Prints information to the console only when the SDK is in LoggingMode: VERBOSE, DEBUG
-	 *
-	 * @param	source	the source of the information to be logged
-	 * @param	format	the string format to be logged
-	 * @param	params	values to be inserted into the format
-	 *
-	 * @see LoggingMode
-	 */
-	static void debug(final String source, final String format, final Object... params) {
-		if (loggingService != null && loggingMode.id >= LoggingMode.DEBUG.id) {
-			try {
-				loggingService.debug(source, String.format(format, params));
-			} catch (Exception e) {
-				loggingService.debug(source, format);
-			}
-		}
-	}
-
-	/**
-	 * Information provided to the warning method indicates that a request has been made to the SDK, but the SDK
-	 * will be unable to perform the requested task.  An example is catching an expected or unexpected but
-	 * recoverable exception.
-	 * Prints information to the console only when the SDK is in LoggingMode: VERBOSE, DEBUG, WARNING
-	 *
-	 * @param	source	the source of the information to be logged
-	 * @param	format	the string format to be logged
-	 * @param	params	values to be inserted into the format
-	 *
-	 * @see LoggingMode
-	 */
-	static void warning(final String source, final String format, final Object... params) {
-		if (loggingService != null && loggingMode.ordinal() >= LoggingMode.WARNING.id) {
-			try {
-				loggingService.warning(source, String.format(format, params));
-			} catch (Exception e) {
-				loggingService.warning(source, format);
-			}
-		}
-	}
-
-	/**
-	 * Information provided to the error method indicates that there has been an unrecoverable error.
-	 * Prints information to the console regardless of current LoggingMode of the SDK.
-	 *
-	 * @param	source	the source of the information to be logged
-	 * @param	format	the string format to be logged
-	 * @param	params	values to be inserted into the format
-	 *
-	 * @see LoggingMode
-	 */
-	static void error(final String source, final String format, final Object... params) {
-		if (loggingService != null && loggingMode.ordinal() >= LoggingMode.ERROR.id) {
-			try {
-				loggingService.error(source, String.format(format, params));
-			} catch (Exception e) {
-				loggingService.error(source, format);
-			}
-		}
-	}
+    /**
+     * Information provided to the error method indicates that there has been an unrecoverable error.
+     * Prints information to the console regardless of current LoggingMode of the SDK.
+     *
+     * @param source the source of the information to be logged
+     * @param format the string format to be logged
+     * @param params values to be inserted into the format
+     * @see LoggingMode
+     */
+    @Deprecated
+    static void error(final String source, final String format, final Object... params) {
+        com.adobe.marketing.mobile.services.Log.error("", source, format, params);
+    }
 }

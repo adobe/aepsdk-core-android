@@ -213,7 +213,7 @@ object FileUtils {
      */
     @JvmStatic
     fun removeRelativePath(filePath: String): String {
-        return if (filePath.isEmpty()) {
+        return if (filePath.isBlank()) {
             filePath
         } else {
             var result = filePath.replace("\\.[/\\\\]".toRegex(), "\\.")

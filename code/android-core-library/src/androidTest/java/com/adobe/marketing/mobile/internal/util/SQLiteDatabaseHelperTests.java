@@ -37,18 +37,20 @@ public class SQLiteDatabaseHelperTests {
     private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
     private static final String TB_KEY_TIMESTAMP = "timestamp";
     private static final String TB_KEY_DATA = "data";
+    private File dbFile;
     private String dbPath;
 
     @Before
     public void setUp() {
-        dbPath = new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite").getPath();
+        dbFile =  new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite");
+        dbPath = dbFile.getPath();
         createTable();
     }
 
     @After
     public void dispose() {
         SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
-        new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite").delete();
+        dbFile.delete();
     }
 
     private void createTable() {

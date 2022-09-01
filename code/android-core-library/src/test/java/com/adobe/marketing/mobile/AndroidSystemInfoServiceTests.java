@@ -101,6 +101,7 @@ public class AndroidSystemInfoServiceTests {
 	public void beforeEach() {
 		when(mockContext.getApplicationContext()).thenReturn(mockContext);
 		App.setAppContext(mockContext);
+		com.adobe.marketing.mobile.services.ServiceProvider.getInstance().setContext(mockContext);
 	}
 
 	@Test
@@ -467,6 +468,7 @@ public class AndroidSystemInfoServiceTests {
 	@Test
 	public void testGetAssets_when_nullContext_should_returnNull() throws Exception {
 		App.setAppContext(null);
+		com.adobe.marketing.mobile.services.ServiceProvider.getInstance().setContext(null);
 		AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
 		when(mockContext.getResources()).thenReturn(mockResources);
 		when(mockResources.getAssets()).thenReturn(mockAssetManager);

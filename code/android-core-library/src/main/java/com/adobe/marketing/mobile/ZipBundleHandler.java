@@ -10,6 +10,8 @@
  */
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.util.FileUtils;
+
 import java.io.*;
 
 class ZipBundleHandler implements RulesRemoteDownloader.RulesBundleNetworkProtocolHandler {
@@ -141,7 +143,7 @@ class ZipBundleHandler implements RulesRemoteDownloader.RulesBundleNetworkProtoc
 	@Override
 	public RulesRemoteDownloader.Metadata getMetadata(final File cachedBundlePath) {
 		File metaFile = new File(cachedBundlePath, META_FILE_NAME);
-		return ZipMetadata.getMetadataFromString(FileUtil.readStringFromFile(metaFile));
+		return ZipMetadata.getMetadataFromString(FileUtils.readStringFromFile(metaFile));
 
 	}
 }

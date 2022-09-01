@@ -10,8 +10,9 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import com.adobe.marketing.mobile.internal.utility.map
-import com.adobe.marketing.mobile.internal.utility.toMap
+import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.internal.util.map
+import com.adobe.marketing.mobile.internal.util.toMap
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -62,10 +63,13 @@ internal data class JSONDefinition(
          * @return a new [JSONDefinition]
          */
         @JvmSynthetic
-        internal fun buildDefinitionFromJSON(jsonObject: JSONObject): JSONDefinition {
+        internal fun buildDefinitionFromJSON(
+            jsonObject: JSONObject,
+            extensionApi: ExtensionApi
+        ): JSONDefinition {
             val logic = jsonObject.opt(DEFINITION_KEY_LOGIC) as? String
             val conditions =
-                buildConditionList(jsonObject.optJSONArray(DEFINITION_KEY_CONDITIONS))
+                buildConditionList(jsonObject.optJSONArray(DEFINITION_KEY_CONDITIONS), extensionApi)
             val key = jsonObject.opt(DEFINITION_KEY_KEY) as? String
             val matcher = jsonObject.opt(DEFINITION_KEY_MATCHER) as? String
             val values =
@@ -90,9 +94,12 @@ internal data class JSONDefinition(
             )
         }
 
-        private fun buildConditionList(jsonArray: JSONArray?): List<JSONCondition>? {
+        private fun buildConditionList(
+            jsonArray: JSONArray?,
+            extensionApi: ExtensionApi
+        ): List<JSONCondition>? {
             return jsonArray?.map {
-                JSONCondition.build(it as? JSONObject)
+                JSONCondition.build(it as? JSONObject, extensionApi)
                     ?: throw JSONException("Unsupported [rule.condition] JSON format: $it ")
             }
         }

@@ -17,35 +17,25 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings("all")
 @RunWith(AndroidJUnit4.class)
 public class EventCoderTests {
 
-	/**
-	 * Dummy Activity for holding Intent for testing.
-	 */
-	public static class TestActivity extends Activity {
-
-	}
-
 	void verfiyEventEquals(final Event a, final Event b) {
-
 		assertEquals(a.getName(), b.getName());
 		assertEquals(a.getTimestamp(), b.getTimestamp());
 		assertEquals(a.getType(), b.getType());
 		assertEquals(a.getSource(), b.getSource());
-		assertEquals(a.getPairID(), b.getPairID());
-		assertEquals(a.getResponsePairID(), b.getResponsePairID());
 		assertEquals(a.getUniqueIdentifier(), b.getUniqueIdentifier());
-		assertEquals(a.getEventNumber(), b.getEventNumber());
+		assertEquals(a.getResponseID(), b.getResponseID());
 		assertEquals(a.getEventData(), b.getEventData());
 	}
 
@@ -70,8 +60,7 @@ public class EventCoderTests {
 	public void testEncodeDecode_When_AllTheFieldsAreNull() {
 		Event event = new Event.Builder(null, "type", "source")
 		.setEventData(null)
-		.setResponsePairID(null)
-		.setPairID(null)
+		.setResponseId(null)
 		.setUniqueIdentifier(null)
 		.build();
 
@@ -89,8 +78,7 @@ public class EventCoderTests {
 
 		Event event = new Event.Builder("name", "type", "source")
 		.setEventData(data)
-		.setResponsePairID("response pair id")
-		.setPairID("pair id")
+		.setResponseId("response id")
 		.setUniqueIdentifier("uuid")
 		.build();
 		String a = EventCoder.encode(event);
@@ -147,8 +135,7 @@ public class EventCoderTests {
 
 		Event event = new Event.Builder("name", "type", "source")
 		.setEventData(data)
-		.setResponsePairID("response pair id")
-		.setPairID("pair id")
+		.setResponseId("response id")
 		.setUniqueIdentifier("uuid")
 		.build();
 		String a = EventCoder.encode(event);
@@ -166,8 +153,7 @@ public class EventCoderTests {
 
 		Event event = new Event.Builder("name", "type", "source")
 		.setEventData(data)
-		.setResponsePairID("response pair id")
-		.setPairID("pair id")
+		.setResponseId("response id")
 		.setUniqueIdentifier("uuid")
 		.build();
 		String a = EventCoder.encode(event);
@@ -186,14 +172,13 @@ public class EventCoderTests {
 
 		Event event = new Event.Builder("name", "type", "source")
 		.setEventData(data)
-		.setResponsePairID("response pair id")
-		.setPairID("pair id")
+		.setResponseId("response id")
 		.setUniqueIdentifier("uuid")
 		.build();
-		String a = EventCoder.encode(event);
-		Event decodedEvent = EventCoder.decode(EventCoder.encode(event));
 
-		assertNull(decodedEvent.getEventData().get("object"));
+		Event decodedEvent = EventCoder.decode(EventCoder.encode(event));
+		assertNull(event.getEventData());
+		assertNull(decodedEvent.getEventData());
 	}
 
 	@Test
@@ -206,8 +191,7 @@ public class EventCoderTests {
 
 		Event event = new Event.Builder("name", "type", "source")
 		.setEventData(data)
-		.setResponsePairID("response pair id")
-		.setPairID("pair id")
+		.setResponseId("response id")
 		.setUniqueIdentifier("uuid")
 		.build();
 		String a = EventCoder.encode(event);

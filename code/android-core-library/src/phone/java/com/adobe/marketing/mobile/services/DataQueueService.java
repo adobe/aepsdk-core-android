@@ -11,10 +11,12 @@
 
 package com.adobe.marketing.mobile.services;
 
+import android.content.Context;
+
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.utility.StringUtils;
-import com.adobe.marketing.mobile.services.utility.FileUtil;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.internal.util.FileUtils;
 
 import java.io.File;
 import java.util.HashMap;
@@ -49,16 +51,11 @@ class DataQueueService implements DataQueuing {
 				dataQueue = dataQueueCache.get(databaseName);
 
 				if (dataQueue == null) {
-					final File databaseDirDataQueue = FileUtil.openOrCreateDatabase(
-							databaseName,
-							ServiceProvider.getInstance().getApplicationContext()
-					);
+					final File databaseDirDataQueue = openOrMigrateExistingDataQueue(databaseName);
 
 					if(databaseDirDataQueue == null){
 						return null;
 					}
-
-					FileUtil.migrateAndDeleteOldDatabase(databaseDirDataQueue);
 					dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath());
 					dataQueueCache.put(databaseName, dataQueue);
 				}
@@ -66,5 +63,64 @@ class DataQueueService implements DataQueuing {
 		}
 
 		return dataQueue;
+	}
+
+	/**
+	 * Returns the database if it exists in the path returned by {@link Context#getDatabasePath(String)}
+	 * Else copies the existing database from {@link Context#getCacheDir()} to {@code Context#getDatabasePath(String)}
+	 * Database is migrated from cache directory because of Android 12 app hibernation changes
+	 * which can clear app's cache folder when user doesn't interact with app for few months.
+	 *
+	 * @param databaseName name of the database to be migrated or opened
+	 * @return {@code File} representing the database in {@code Context#getDatabasePath(String)}
+	 */
+	private File openOrMigrateExistingDataQueue(String databaseName) {
+		final String cleanedDatabaseName = FileUtils.removeRelativePath(databaseName);
+
+		if(StringUtils.isNullOrEmpty(databaseName)) {
+			MobileCore.log(LoggingMode.WARNING,
+					LOG_TAG,
+					"Failed to create DataQueue, database name is null");
+			return null;
+		}
+
+		Context appContext = ServiceProvider.getInstance().getApplicationContext();
+
+		if(appContext == null) {
+			MobileCore.log(LoggingMode.WARNING,
+					LOG_TAG,
+					String.format("Failed to create DataQueue for database (%s), the ApplicationContext is null", databaseName));
+			return null;
+		}
+
+		final File databaseDirDataQueue = appContext.getDatabasePath(cleanedDatabaseName);
+
+		if (!databaseDirDataQueue.exists()) {
+				try {
+					if(databaseDirDataQueue.createNewFile()) {
+						final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+						if(cacheDir != null) {
+							final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
+							if (cacheDirDataQueue.exists()) {
+								FileUtils.copyFile(cacheDirDataQueue, databaseDirDataQueue);
+								MobileCore.log(LoggingMode.DEBUG,
+										LOG_TAG,
+										String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
+								if (cacheDirDataQueue.delete()) {
+									MobileCore.log(LoggingMode.DEBUG,
+											LOG_TAG,
+											String.format("Successfully delete DataQueue for database (%s) from cache directory", databaseName));
+								}
+							}
+						}
+					}
+				} catch (Exception e) {
+					MobileCore.log(LoggingMode.WARNING,
+							LOG_TAG,
+							String.format("Failed to move DataQueue for database (%s), could not create new file in database directory", databaseName));
+					return null;
+				}
+		}
+		return databaseDirDataQueue;
 	}
 }

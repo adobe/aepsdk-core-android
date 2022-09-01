@@ -15,12 +15,13 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.utility.TimeUtil
-import com.adobe.marketing.mobile.internal.utility.flattening
-import com.adobe.marketing.mobile.internal.utility.serializeToQueryString
+import com.adobe.marketing.mobile.SharedStateResolution
+import com.adobe.marketing.mobile.internal.util.flattening
+import com.adobe.marketing.mobile.internal.util.serializeToQueryString
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
-import java.security.SecureRandom
+import com.adobe.marketing.mobile.util.TimeUtils
 import org.json.JSONObject
+import java.security.SecureRandom
 
 internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionApi) : TokenFinder {
 
@@ -62,9 +63,9 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             EMPTY_STRING -> null
             KEY_EVENT_TYPE -> event.type
             KEY_EVENT_SOURCE -> event.source
-            KEY_TIMESTAMP_UNIX -> TimeUtil.getUnixTimeInSeconds().toString()
-            KEY_TIMESTAMP_ISO8601 -> TimeUtil.getIso8601Date()
-            KEY_TIMESTAMP_PLATFORM -> TimeUtil.getIso8601DateTimeZoneISO8601()
+            KEY_TIMESTAMP_UNIX -> TimeUtils.getUnixTimeInSeconds().toString()
+            KEY_TIMESTAMP_ISO8601 -> TimeUtils.getIso8601Date()
+            KEY_TIMESTAMP_PLATFORM -> TimeUtils.getIso8601DateTimeZoneISO8601()
             KEY_SDK_VERSION -> MobileCore.extensionVersion()
             KEY_CACHEBUST -> SecureRandom().nextInt(RANDOM_INT_BOUNDARY).toString()
             KEY_ALL_URL -> {
@@ -81,8 +82,9 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             }
             KEY_ALL_JSON -> {
                 if (event.eventData == null) {
-                    MobileCore.log(LoggingMode.DEBUG,
-                            LOG_TAG,
+                    MobileCore.log(
+                        LoggingMode.DEBUG,
+                        LOG_TAG,
                         "Triggering event data is null, can not use it to generate a json string"
                     )
                     return EMPTY_STRING
@@ -90,7 +92,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
                 try {
                     JSONObject(event.eventData).toString()
                 } catch (e: Exception) {
-                    MobileCore.log(LoggingMode.DEBUG,
+                    MobileCore.log(
+                        LoggingMode.DEBUG,
                         LOG_TAG,
                         "Failed to generate a json string ${e.message}"
                     )
@@ -118,13 +121,12 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             return null
         }
         val (sharedStateName, dataKeyName) = sharedStateKeyString.split(SHARED_STATE_KEY_DELIMITER)
-        // TODO change once map flattening logic is finalized
-        val sharedStateMap = extensionApi.getSharedEventState(sharedStateName, event) {
-            MobileCore.log(LoggingMode.DEBUG,
-                LOG_TAG,
-                String.format("Unable to replace the token %s, token not found in shared state for the event", key)
-            )
-        }?.flattening()
+        val sharedStateMap = extensionApi.getSharedState(
+            sharedStateName,
+            event,
+            false,
+            SharedStateResolution.ANY
+        )?.value?.flattening()
         if (sharedStateMap.isNullOrEmpty() || dataKeyName.isBlank() || !sharedStateMap.containsKey(dataKeyName)) {
             return null
         }
@@ -147,7 +149,6 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             )
             return EMPTY_STRING
         }
-        // TODO uncomment once map flattening logic is finalized
         val eventDataMap = event.eventData.flattening()
         return eventDataMap[key]
     }

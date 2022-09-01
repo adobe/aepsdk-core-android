@@ -11,6 +11,11 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.util.FileUtils;
+import com.adobe.marketing.mobile.internal.util.StringEncoder;
+import com.adobe.marketing.mobile.services.DeviceInforming;
+
+import com.adobe.marketing.mobile.internal.util.StringUtils;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -20,6 +25,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Use {@link com.adobe.marketing.mobile.internal.compatibility.CacheManager} instead for compatibility.
+ * TODO: Remove this class when Java version of ConfigurationExtension is deleted
+ */
+@Deprecated
 class CacheManager {
 
 	private static final String LOG_TAG = CacheManager.class.getSimpleName();
@@ -27,20 +37,20 @@ class CacheManager {
 	private static final String DEFAULT_CACHE_DIR = "adbdownloadcache";
 	private static final String PARTIAL_FILE_SUFFIX = "_partial";
 
-	private SystemInfoService systemInfoService;
+	private DeviceInforming deviceInforming;
 
 	/**
 	 * A valid {@link SystemInfoService} instance is required for instantiating the CacheManager.
 	 *
-	 * @param systemInfoService A  valid SystemInfoService instance.
+	 * @param deviceInforming A  valid {@link DeviceInforming} instance.
 	 * @throws MissingPlatformServicesException Thrown if the {@link SystemInfoService} instance is null.
 	 */
-	CacheManager(final SystemInfoService systemInfoService) throws MissingPlatformServicesException {
-		if (systemInfoService == null) {
-			throw new MissingPlatformServicesException("SystemInfoService implementation missing");
+	CacheManager(final DeviceInforming deviceInforming) throws MissingPlatformServicesException {
+		if (deviceInforming == null) {
+			throw new MissingPlatformServicesException("DeviceInforming implementation missing");
 		}
 
-		this.systemInfoService = systemInfoService;
+		this.deviceInforming = deviceInforming;
 	}
 
 	/**
@@ -146,7 +156,7 @@ class CacheManager {
 
 		if (baseFilePath != null) {
 			if (etag != null) {
-				return new File(baseFilePath + "." + HexStringUtil.getHexString(etag) + "." + lastModified.getTime() +
+				return new File(baseFilePath + "." + StringEncoder.getHexString(etag) + "." + lastModified.getTime() +
 								PARTIAL_FILE_SUFFIX);
 			} else {
 				Log.debug(LOG_TAG,
@@ -393,11 +403,11 @@ class CacheManager {
 	File getDownloadCacheDirectory(final String cacheDirectoryOverride) {
 		final String cacheSubDirectory = !StringUtils.isNullOrEmpty(cacheDirectoryOverride)
 										 ? cacheDirectoryOverride : DEFAULT_CACHE_DIR ;
-		final File baseCacheDirectory = systemInfoService.getApplicationCacheDir();
+		final File baseCacheDirectory = deviceInforming.getApplicationCacheDir();
 
 		File downloadCacheDirectory = null;
 
-		if (FileUtil.isValidDirectory(baseCacheDirectory)) {
+		if (FileUtils.isValidDirectory(baseCacheDirectory)) {
 			downloadCacheDirectory = new File(baseCacheDirectory, cacheSubDirectory);
 
 			if (!downloadCacheDirectory.exists() && !downloadCacheDirectory.mkdir()) {
@@ -482,6 +492,7 @@ class CacheManager {
 	 * @return A sha2hash value computed for the {@code String} input. null, the input is invalid,
 	 * or the platform does not support calculating sha2hash.
 	 */
+	// Can be moved to utility
 	String sha2hash(final String input) {
 		// quick out
 		if (input == null || input.isEmpty()) {

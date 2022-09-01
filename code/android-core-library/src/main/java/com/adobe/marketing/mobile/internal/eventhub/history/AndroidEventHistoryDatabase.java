@@ -16,11 +16,11 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
-import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
-import com.adobe.marketing.mobile.services.utility.FileUtil;
+import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,23 +47,24 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
      */
     AndroidEventHistoryDatabase() throws EventHistoryDatabaseCreationException {
         try {
-            //TODO: add functional tests for testing DB migration
-            databaseFile = FileUtil.openOrCreateDatabase(DATABASE_NAME, App.getInstance().getAppContext());
-            if (databaseFile != null) {
-                FileUtil.migrateAndDeleteOldDatabase(databaseFile);
-                final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
-                        " (eventHash INTEGER, timestamp INTEGER);";
+            //TODO: we will create a utility method: Context.getDatabasePath(), we need to  refactor the following code after that.
+            final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+            if (applicationCacheDir != null) {
+                final String cacheDirCanonicalPath = applicationCacheDir.getCanonicalPath();
+                databaseFile = new File(cacheDirCanonicalPath + "/" + DATABASE_NAME);
+            }
+            final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
+                    " (eventHash INTEGER, timestamp INTEGER);";
 
-                synchronized (dbMutex) {
-                    if (SQLiteDatabaseHelper.createTableIfNotExist(databaseFile.getCanonicalPath(), tableCreationQuery)) {
-                        MobileCore.log(LoggingMode.VERBOSE, LOG_TAG,
-                                String.format("createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME));
-                    } else {
-                        throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table in the Android Event History database.");
-                    }
+            synchronized (dbMutex) {
+                if (SQLiteDatabaseHelper.createTableIfNotExist(databaseFile.getCanonicalPath(), tableCreationQuery)) {
+                    MobileCore.log(LoggingMode.VERBOSE, LOG_TAG,
+                            String.format("createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME));
+                } else {
+                    throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table in the Android Event History database.");
                 }
             }
-        } catch (final IOException e) {
+        } catch (final Exception e) {
             throw new EventHistoryDatabaseCreationException(String.format("An error occurred while creating the \"Events\" table in the Android Event History database, error message: %s",
                     (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
         }

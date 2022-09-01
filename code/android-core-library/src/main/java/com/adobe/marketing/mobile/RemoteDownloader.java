@@ -11,8 +11,14 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.NetworkService.Callback;
-import com.adobe.marketing.mobile.NetworkService.HttpCommand;
 import com.adobe.marketing.mobile.NetworkService.HttpConnection;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.services.HttpConnecting;
+import com.adobe.marketing.mobile.services.HttpMethod;
+import com.adobe.marketing.mobile.services.NetworkCallback;
+import com.adobe.marketing.mobile.services.NetworkRequest;
+import com.adobe.marketing.mobile.services.Networking;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,8 +27,9 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
-
+// TODO: Remove this class when Java version of ConfigurationExtension is deleted
 class RemoteDownloader {
 
 	private static final String LOG_TAG = RemoteDownloader.class.getSimpleName();
@@ -36,30 +43,25 @@ class RemoteDownloader {
 	private static final String ETAG = "ETag";
 
 	final CacheManager cacheManager;
-	private final NetworkService networkService;
+	private final Networking networkService;
 	protected final String url;
 	protected final String directory;
 	private final Map<String, String> requestProperties;
 
 	/**
 	 * @param networkService   {@code NetworkService} instance
-	 * @param systemInfoService {@code SystemInfoService} instance
 	 * @param url url from which the content has to be downloaded
 	 * @param directoryOverride optional directory for the download
 	 * @throws MissingPlatformServicesException  if the downloader is initiated with null network or systemInfo service.
 	 */
-	public RemoteDownloader(final NetworkService networkService, final SystemInfoService systemInfoService,
+	public RemoteDownloader(final Networking networkService,
 							final String url, final String directoryOverride) throws MissingPlatformServicesException {
 		if (networkService == null) {
 			throw new MissingPlatformServicesException("Remote Downloader - NetworkService not found!");
 		}
 
-		if (systemInfoService == null) {
-			throw new MissingPlatformServicesException("Remote Downloader - SystemInfoService not found!");
-		}
-
 		this.networkService = networkService;
-		this.cacheManager = new CacheManager(systemInfoService);
+		this.cacheManager = new CacheManager(ServiceProvider.getInstance().getDeviceInfoService());
 		this.url = url;
 		this.directory = directoryOverride;
 		this.requestProperties = null;
@@ -67,26 +69,21 @@ class RemoteDownloader {
 
 	/**
 	 * @param networkService   {@code NetworkService} instance
-	 * @param systemInfoService {@code SystemInfoService} instance
 	 * @param url url from which the content has to be downloaded
 	 * @param directoryOverride optional directory for the download
 	 * @param requestProperties {@code Map<String, String>} containing any additional key value pairs to be used while requesting a
 	 *                        connection to the url
 	 * @throws MissingPlatformServicesException  if the downloader is initiated with null network or systemInfo service.
 	 */
-	public RemoteDownloader(final NetworkService networkService, final SystemInfoService systemInfoService,
+	public RemoteDownloader(final Networking networkService,
 							final String url, final String directoryOverride,
 							final Map<String, String> requestProperties) throws MissingPlatformServicesException {
 		if (networkService == null) {
 			throw new MissingPlatformServicesException("Remote Downloader - NetworkService not found!");
 		}
 
-		if (systemInfoService == null) {
-			throw new MissingPlatformServicesException("Remote Downloader - SystemInfoService not found!");
-		}
-
 		this.networkService = networkService;
-		this.cacheManager = new CacheManager(systemInfoService);
+		this.cacheManager = new CacheManager(ServiceProvider.getInstance().getDeviceInfoService());
 		this.url = url;
 		this.directory = directoryOverride;
 		this.requestProperties = new HashMap<String, String>(requestProperties);
@@ -98,14 +95,13 @@ class RemoteDownloader {
 	 * Testing constructor - Solely used for unit testing purposes.
 	 *
 	 * @param networkService   {@code NetworkService} instance
-	 * @param systemInfoService {@code SystemInfoService} instance
 	 * @param url url from which the content has to be downloaded
 	 * @param cacheManager cacheManager instance used by the downloader
 	 * @throws MissingPlatformServicesException  if the downloader is initiated with null network or systemInfo service.
 	 */
-	public RemoteDownloader(final NetworkService networkService, final SystemInfoService systemInfoService,
+	public RemoteDownloader(final Networking networkService,
 							final String url, final CacheManager cacheManager) throws MissingPlatformServicesException {
-		this(networkService, systemInfoService, url, null, cacheManager);
+		this(networkService, url, null, cacheManager);
 	}
 
 	/**
@@ -113,21 +109,16 @@ class RemoteDownloader {
 	 * Testing constructor - Solely used for unit testing purposes.
 	 *
 	 * @param networkService   {@code NetworkService} instance
-	 * @param systemInfoService {@code SystemInfoService} instance
 	 * @param url url from which the content has to be downloaded
 	 * @param directoryOverride optional directory for the download
 	 * @param cacheManager cacheManager instance used by the downloader
 	 * @throws MissingPlatformServicesException  if the downloader is initiated with null network or systemInfo service.
 	 */
-	public RemoteDownloader(final NetworkService networkService, final SystemInfoService systemInfoService,
+	public RemoteDownloader(final Networking networkService,
 							final String url, final String directoryOverride,
 							final CacheManager cacheManager) throws MissingPlatformServicesException {
 		if (networkService == null) {
 			throw new MissingPlatformServicesException("Remote Downloader - NetworkService not found!");
-		}
-
-		if (systemInfoService == null) {
-			throw new MissingPlatformServicesException("Remote Downloader - SystemInfoService not found!");
 		}
 
 		this.networkService = networkService;
@@ -144,22 +135,17 @@ class RemoteDownloader {
 	 * Testing constructor - Solely used for unit testing purposes.
 	 *
 	 * @param networkService   {@code NetworkService} instance
-	 * @param systemInfoService {@code SystemInfoService} instance
 	 * @param url url from which the content has to be downloaded
 	 * @param cacheManager cacheManager instance used by the downloader
 	 * @param requestProperties {@code Map<String, String>} containing any additional key value pairs to be used while requesting a
 	 *                        connection to the url
 	 * @throws MissingPlatformServicesException  if the downloader is initiated with null network or systemInfo service.
 	 */
-	public RemoteDownloader(final NetworkService networkService, final SystemInfoService systemInfoService,
+	public RemoteDownloader(final Networking networkService,
 							final String url, final CacheManager cacheManager,
 							final Map<String, String> requestProperties) throws MissingPlatformServicesException {
 		if (networkService == null) {
 			throw new MissingPlatformServicesException("Remote Downloader - NetworkService not found!");
-		}
-
-		if (systemInfoService == null) {
-			throw new MissingPlatformServicesException("Remote Downloader - SystemInfoService not found!");
 		}
 
 		this.networkService = networkService;
@@ -216,18 +202,17 @@ class RemoteDownloader {
 			}
 		}
 
-		// look into using a common Network utility in the future.
-		Callback callback = new Callback() {
+		final NetworkRequest networkRequest = new NetworkRequest(url,
+				HttpMethod.GET, null, requestParameters, DEFAULT_CONNECTION_TIMEOUT, DEFAULT_READ_TIMEOUT);
+		final NetworkCallback networkCallback = new NetworkCallback() {
 			@Override
-			public void call(final HttpConnection connection) {
+			public void call(HttpConnecting connection) {
 				File remoteFile = processNetworkConnectionObject(connection, cachedFile);
 				onDownloadComplete(remoteFile);
-
 			}
 		};
-		networkService.connectUrlAsync(url, HttpCommand.GET, null, requestParameters, DEFAULT_CONNECTION_TIMEOUT,
-									   DEFAULT_READ_TIMEOUT,
-									   callback);
+
+		networkService.connectAsync(networkRequest, networkCallback);
 		return true;
 	}
 
@@ -255,13 +240,31 @@ class RemoteDownloader {
 			}
 		}
 
+		final File[] result = new File[1];
+		final CountDownLatch latch = new CountDownLatch(1);
+		final NetworkRequest networkRequest = new NetworkRequest(url,
+				HttpMethod.GET, null, requestParameters, DEFAULT_CONNECTION_TIMEOUT, DEFAULT_READ_TIMEOUT);
+		final NetworkCallback networkCallback = new NetworkCallback() {
+			@Override
+			public void call(final HttpConnecting connection) {
+				File remoteFile = processNetworkConnectionObject(connection, cachedFile);
+				result[0] = remoteFile;
+				latch.countDown();
+				onDownloadComplete(remoteFile);
+			}
+		};
 
-		HttpConnection connection = networkService.connectUrl(url, HttpCommand.GET, null, requestParameters,
-									DEFAULT_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT);
-		return processNetworkConnectionObject(connection, cachedFile);
+
+		try {
+			networkService.connectAsync(networkRequest, networkCallback);
+			latch.await();
+			return result[0];
+		} catch (InterruptedException e) {
+			return null;
+		}
 	}
 
-	private File processNetworkConnectionObject(final HttpConnection connection, final File cachedFile) {
+	private File processNetworkConnectionObject(final HttpConnecting connection, final File cachedFile) {
 		File newCachedFile = cachedFile;
 
 		if (connection != null) {
@@ -288,7 +291,7 @@ class RemoteDownloader {
 	 *                  content available, then append the remaining content from the server to this cache file
 	 * @return A {@link File} containing the downloaded json content. Can be null due to error, or no new content available
 	 */
-	private File processConnection(final HttpConnection connection, final File cacheFile) {
+	private File processConnection(final HttpConnecting connection, final File cacheFile) {
 		//If no file found, then bail
 		if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
 			Log.debug(LOG_TAG, "File not found. (%s)", url);
@@ -368,7 +371,7 @@ class RemoteDownloader {
 	 * @param connection An active network connection
 	 * @return A cache file with the downloaded content. If there was an error while creating cache file, then null
 	 */
-	private File handleNewContent(final HttpConnection connection) {
+	private File handleNewContent(final HttpConnecting connection) {
 		cacheManager.deleteCachedDataForURL(url, directory);
 		final Date lastModifiedDate = getResponseLastModifiedDate(connection);
 		final String etag = connection.getResponsePropertyValue(ETAG);
@@ -404,7 +407,7 @@ class RemoteDownloader {
 	 *
 	 * @return The {@link File} containing the appended data, and renamed to remove the "partial" marker. Null, if the rename was not successful
 	 */
-	private File handlePartialContent(final HttpConnection connection, final File cacheFile) {
+	private File handlePartialContent(final HttpConnecting connection, final File cacheFile) {
 		File newCacheFile = null;
 
 		if (cacheFile != null) {
@@ -485,7 +488,7 @@ class RemoteDownloader {
 	 * @param connection An active connection from which to get the request headers
 	 * @return A value for the "Last-Modified" key if found. Null otherwise
 	 */
-	private Date getResponseLastModifiedDate(final HttpConnection connection) {
+	private Date getResponseLastModifiedDate(final HttpConnecting connection) {
 		Date lastModifiedDate = null;
 		final SimpleDateFormat rfc2822Formatter = createRFC2822Formatter();
 		String lastModifiedString = connection.getResponsePropertyValue("Last-Modified");
@@ -511,8 +514,6 @@ class RemoteDownloader {
 		rfc2822formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 		return rfc2822formatter;
 	}
-
-
 }
 
 

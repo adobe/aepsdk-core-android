@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import com.adobe.marketing.mobile.internal.utility.toMap
+import com.adobe.marketing.mobile.internal.util.toMap
 import com.adobe.marketing.mobile.launch.rulesengine.RuleConsequence
 import org.json.JSONObject
 

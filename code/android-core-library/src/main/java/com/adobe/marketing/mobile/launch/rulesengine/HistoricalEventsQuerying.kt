@@ -10,9 +10,10 @@
  */
 package com.adobe.marketing.mobile.launch.rulesengine
 
+import com.adobe.marketing.mobile.EventHistoryRequest
+import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryRequest
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -23,21 +24,16 @@ private const val ASYNC_TIMEOUT = 1000L
 @JvmSynthetic
 internal fun historicalEventsQuerying(
     requests: List<EventHistoryRequest>,
-    searchType: String
+    searchType: String,
+    extensionApi: ExtensionApi
 ): Int {
-    val eventHistory = MobileCore.getEventHistory()
-    if (eventHistory == null) {
-        MobileCore.log(
-            LoggingMode.ERROR,
-            LOG_TAG,
-            "Unable to retrieve historical events, the event history is not available."
-        )
-        return 0
-    }
     return try {
         val latch = CountDownLatch(1)
         var eventCounts = 0
-        eventHistory.getEvents(requests.toTypedArray(), searchType == SEARCH_TYPE_ANY) {
+        extensionApi.getHistoricalEvents(
+            requests.toTypedArray(),
+            searchType == SEARCH_TYPE_ANY
+        ) {
             latch.countDown()
             eventCounts = it
         }

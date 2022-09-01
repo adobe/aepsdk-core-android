@@ -25,161 +25,185 @@ import java.lang.ref.WeakReference;
  */
 public class ServiceProvider {
 
-	private static class ServiceProviderSingleton {
-		private static final ServiceProvider INSTANCE = new ServiceProvider();
-	}
+    private static class ServiceProviderSingleton {
+        private static final ServiceProvider INSTANCE = new ServiceProvider();
+    }
 
-	/**
-	 * Singleton method to get the instance of ServiceProvider
-	 * @return the {@link ServiceProvider} singleton
-	 */
-	public static ServiceProvider getInstance() {
-		return ServiceProviderSingleton.INSTANCE;
-	}
-	private volatile WeakReference<Activity> currentActivity;
-	private volatile WeakReference<Context> applicationContext;
+    /**
+     * Singleton method to get the instance of ServiceProvider
+     *
+     * @return the {@link ServiceProvider} singleton
+     */
+    public static ServiceProvider getInstance() {
+        return ServiceProviderSingleton.INSTANCE;
+    }
 
-	private DeviceInfoService defaultDeviceInfoService;
-	private DeviceInforming overrideDeviceInfoService;
-	private NetworkService defaultNetworkService;
-	private Networking overrideNetworkService;
-	private DataQueueService dataQueueService;
-	private DataStoring defaultDataStoreService;
-	private UIService defaultUIService;
-	private FullscreenMessageDelegate messageDelegate;
+    private volatile WeakReference<Activity> currentActivity;
+    private volatile WeakReference<Context> applicationContext;
 
+    private DeviceInfoService defaultDeviceInfoService;
+    private DeviceInforming overrideDeviceInfoService;
+    private NetworkService defaultNetworkService;
+    private Networking overrideNetworkService;
+    private DataQueueService dataQueueService;
+    private DataStoring defaultDataStoreService;
+    private UIService defaultUIService;
+    private FullscreenMessageDelegate messageDelegate;
+    private Logging defaultLoggingService;
 
-	private ServiceProvider() {
-		defaultNetworkService = new NetworkService();
-		defaultDeviceInfoService = new DeviceInfoService();
-		dataQueueService = new DataQueueService();
-		defaultDataStoreService = new LocalDataStoreService();
-		defaultUIService = new AndroidUIService();
-		messageDelegate = null;
-	}
+    private ServiceProvider() {
+        defaultNetworkService = new NetworkService();
+        defaultDeviceInfoService = new DeviceInfoService();
+        dataQueueService = new DataQueueService();
+        defaultDataStoreService = new LocalDataStoreService();
+        defaultUIService = new AndroidUIService();
+        messageDelegate = null;
+        defaultLoggingService = new AndroidLoggingService();
+    }
 
-	/**
-	 * Sets the {@link Context} of the application
-	 * @param applicationContext android application {@link Context}
-	 */
-	public void setContext(final Context applicationContext) {
-		this.applicationContext = new WeakReference<>(applicationContext);
-	}
+    /**
+     * Sets the {@link Context} of the application
+     *
+     * @param applicationContext android application {@link Context}
+     */
+    public void setContext(final Context applicationContext) {
+        this.applicationContext = new WeakReference<>(applicationContext);
+    }
 
-	/**
-	 * Sets the current {@link Activity}
-	 * @param activity the current {@link Activity}
-	 */
-	public void setCurrentActivity(final Activity activity) {
-		this.currentActivity = new WeakReference<>(activity);
-	}
+    /**
+     * Sets the current {@link Activity}
+     *
+     * @param activity the current {@link Activity}
+     */
+    public void setCurrentActivity(final Activity activity) {
+        this.currentActivity = new WeakReference<>(activity);
+    }
 
-	/**
-	 * Returns the {@code Context} of the application
-	 *
-	 * @return the {@code Context} of the application
-	 */
-	Context getApplicationContext() {
-		return this.applicationContext != null ? this.applicationContext.get() : null;
-	}
+    /**
+     * Returns the {@code Context} of the application
+     *
+     * @return the {@code Context} of the application
+     */
+    Context getApplicationContext() {
+        return this.applicationContext != null ? this.applicationContext.get() : null;
+    }
 
-	/**
-	 * Returns the current {@code Activity}
-	 *
-	 * @return the current {@code Activity}
-	 */
-	Activity getCurrentActivity() {
-		return this.currentActivity != null ? this.currentActivity.get() : null;
-	}
+    /**
+     * Returns the current {@code Activity}
+     *
+     * @return the current {@code Activity}
+     */
+    Activity getCurrentActivity() {
+        return this.currentActivity != null ? this.currentActivity.get() : null;
+    }
 
-	/**
-	 * Gets the {@link DataStoring} service
-	 * @return the {@link DataStoring} service
-	 */
-	public DataStoring getDataStoreService() {
-		return defaultDataStoreService;
-	}
+    /**
+     * Returns the current {@link Logging}
+     *
+     * @return the current {@link Logging}
+     */
+    public Logging getLoggingService() {
+        return this.defaultLoggingService;
+    }
 
-	/**
-	 * Gets the {@link DeviceInforming} service
-	 * @return the {@link DeviceInforming} service
-	 */
-	public DeviceInforming getDeviceInfoService() {
-		return overrideDeviceInfoService != null ? overrideDeviceInfoService : defaultDeviceInfoService;
-	}
+    /**
+     * Gets the {@link DataStoring} service
+     *
+     * @return the {@link DataStoring} service
+     */
+    public DataStoring getDataStoreService() {
+        return defaultDataStoreService;
+    }
 
-	/**
-	 * For testing purpose. Overrides the default {@link DeviceInforming} service
-	 * @param deviceInfoService new {@link DeviceInforming} service
-	 */
-	protected void setDeviceInfoService(DeviceInforming deviceInfoService) {
-		overrideDeviceInfoService = deviceInfoService;
-	}
+    /**
+     * Gets the {@link DeviceInforming} service
+     *
+     * @return the {@link DeviceInforming} service
+     */
+    public DeviceInforming getDeviceInfoService() {
+        return overrideDeviceInfoService != null ? overrideDeviceInfoService : defaultDeviceInfoService;
+    }
 
-	/**
-	 * Gets the current {@link Networking} service.
-	 * @return the override {@link Networking} service if it has been provided, otherwise the default
-	 * {@link Networking} service is returned
-	 */
-	public Networking getNetworkService() {
-		return overrideNetworkService != null ? overrideNetworkService : defaultNetworkService;
-	}
+    /**
+     * For testing purpose. Overrides the default {@link DeviceInforming} service
+     *
+     * @param deviceInfoService new {@link DeviceInforming} service
+     */
+    protected void setDeviceInfoService(DeviceInforming deviceInfoService) {
+        overrideDeviceInfoService = deviceInfoService;
+    }
 
-	/**
-	 * Overrides the {@link Networking} service.
-	 * @param networkService the new {@link Networking} service which will override the default  {@link Networking} service
-	 */
-	public void setNetworkService(Networking networkService) {
-		overrideNetworkService = networkService;
-	}
-	/**
-	 * Gets the {@link DataQueuing} service
-	 * @return the {@link DataQueuing} service
-	 */
-	public DataQueuing getDataQueueService() {
-		return dataQueueService;
-	}
+    /**
+     * Gets the current {@link Networking} service.
+     *
+     * @return the override {@link Networking} service if it has been provided, otherwise the default
+     * {@link Networking} service is returned
+     */
+    public Networking getNetworkService() {
+        return overrideNetworkService != null ? overrideNetworkService : defaultNetworkService;
+    }
 
-	public UIService getUIService() {
-		return defaultUIService;
-	}
+    /**
+     * Overrides the {@link Networking} service.
+     *
+     * @param networkService the new {@link Networking} service which will override the default  {@link Networking} service
+     */
+    public void setNetworkService(Networking networkService) {
+        overrideNetworkService = networkService;
+    }
 
-	/**
-	 * Gets the custom {@link FullscreenMessageDelegate}.
-	 * @return the custom {@code FullscreenMessageDelegate} if set, null otherwise
-	 */
-	public FullscreenMessageDelegate getMessageDelegate() {
-		return this.messageDelegate;
-	}
+    /**
+     * Gets the {@link DataQueuing} service
+     *
+     * @return the {@link DataQueuing} service
+     */
+    public DataQueuing getDataQueueService() {
+        return dataQueueService;
+    }
 
-	/**
-	 * Sets a custom {@link FullscreenMessageDelegate}.
-	 * @param messageDelegate the custom {@code FullscreenMessageDelegate} to use for handling the display of Messaging extension in-app messages
-	 */
-	public void setMessageDelegate(final FullscreenMessageDelegate messageDelegate) {
-		this.messageDelegate = messageDelegate;
-	}
+    public UIService getUIService() {
+        return defaultUIService;
+    }
 
-	/**
-	 * Provides an {@link URIHandler} to decide the destination of the given URI
-	 * @param uriHandler An {@link URIHandler} instance used to decide the Android link's destination
-	 */
-	public void setURIHandler(URIHandler uriHandler){
-		this.getUIService().setURIHandler(uriHandler);
-	}
+    /**
+     * Gets the custom {@link FullscreenMessageDelegate}.
+     *
+     * @return the custom {@code FullscreenMessageDelegate} if set, null otherwise
+     */
+    public FullscreenMessageDelegate getMessageDelegate() {
+        return this.messageDelegate;
+    }
 
-	/**
-	 * Reset the {@code ServiceProvider} to its default state.
-	 * Any previously set services are reset to their default state.
-	 */
-	protected void reset() {
-		defaultDeviceInfoService = new DeviceInfoService();
-		defaultNetworkService = new NetworkService();
-		dataQueueService = new DataQueueService();
-		defaultDataStoreService = new LocalDataStoreService();
+    /**
+     * Sets a custom {@link FullscreenMessageDelegate}.
+     *
+     * @param messageDelegate the custom {@code FullscreenMessageDelegate} to use for handling the display of Messaging extension in-app messages
+     */
+    public void setMessageDelegate(final FullscreenMessageDelegate messageDelegate) {
+        this.messageDelegate = messageDelegate;
+    }
 
-		overrideDeviceInfoService = null;
-		overrideNetworkService = null;
-		messageDelegate = null;
-	}
+    /**
+     * Provides an {@link URIHandler} to decide the destination of the given URI
+     *
+     * @param uriHandler An {@link URIHandler} instance used to decide the Android link's destination
+     */
+    public void setURIHandler(URIHandler uriHandler) {
+        this.getUIService().setURIHandler(uriHandler);
+    }
+
+    /**
+     * Reset the {@code ServiceProvider} to its default state.
+     * Any previously set services are reset to their default state.
+     */
+    protected void reset() {
+        defaultDeviceInfoService = new DeviceInfoService();
+        defaultNetworkService = new NetworkService();
+        dataQueueService = new DataQueueService();
+        defaultDataStoreService = new LocalDataStoreService();
+
+        overrideDeviceInfoService = null;
+        overrideNetworkService = null;
+        messageDelegate = null;
+    }
 }

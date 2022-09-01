@@ -1,10 +1,13 @@
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.services.Networking;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 
+// TODO: Remove this class when Java version of ConfigurationExtension is deleted
 class RulesRemoteDownloader extends RemoteDownloader {
 
 	private static final String LOG_TAG = RulesBundleNetworkProtocolHandler.class.getSimpleName();
@@ -78,7 +81,6 @@ class RulesRemoteDownloader extends RemoteDownloader {
 	 * this downloader will discard the downloaded files.
 	 *
 	 * @param networkService The platform {@link NetworkService} implementation
-	 * @param systemInfoService The platform {@link SystemInfoService} implementation
 	 * @param compressedFileService The platform {@link CompressedFileService} implementation
 	 * @param url The URL to download from
 	 * @param directoryOverride The cache directory override.
@@ -87,10 +89,10 @@ class RulesRemoteDownloader extends RemoteDownloader {
 	 *
 	 * @see #setRulesBundleProtocolHandler(RulesBundleNetworkProtocolHandler)
 	 */
-	RulesRemoteDownloader(final NetworkService networkService, final SystemInfoService systemInfoService,
+	RulesRemoteDownloader(final Networking networkService,
 						  final CompressedFileService compressedFileService,
 						  final String url, final String directoryOverride) throws MissingPlatformServicesException {
-		super(networkService, systemInfoService, url, directoryOverride);
+		super(networkService, url, directoryOverride);
 
 		try {
 			//The default file type is Zip.
@@ -100,9 +102,9 @@ class RulesRemoteDownloader extends RemoteDownloader {
 		}
 	}
 
-	RulesRemoteDownloader(final NetworkService networkService, final SystemInfoService systemInfoService, final String url,
+	RulesRemoteDownloader(final Networking networkService, final String url,
 						  final CacheManager cacheManager) throws MissingPlatformServicesException {
-		super(networkService, systemInfoService, url, cacheManager);
+		super(networkService, url, cacheManager);
 	}
 
 	@Override
@@ -152,7 +154,7 @@ class RulesRemoteDownloader extends RemoteDownloader {
 	 * @return The destination path where the processed file contents were stored. Will be null if the processing failed.
 	 */
 	protected File processBundle(final File downloadedFile) {
-		Log.trace(ConfigurationExtension.LOG_SOURCE, "Processing downloaded rules bundle");
+		Log.trace(LOG_TAG, "Processing downloaded rules bundle");
 		File processedFile = null;
 
 		if (downloadedFile == null) {
@@ -192,7 +194,7 @@ class RulesRemoteDownloader extends RemoteDownloader {
 	 */
 	@Override
 	public File startDownloadSync() {
-		Log.trace(ConfigurationExtension.LOG_SOURCE, "Start download of rules bundle file");
+		Log.trace(LOG_TAG, "Start download of rules bundle file");
 		File downloadedBundle =  super.startDownloadSync();
 		//The downloaded file will be a zip / or something else.
 		//We will need to convert that into a folder.

@@ -24,7 +24,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import com.adobe.marketing.mobile.TestUtils;
 import com.adobe.marketing.mobile.internal.context.App;
-import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import org.junit.After;

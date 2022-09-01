@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Provides functionality for asynchronous processing of hits in a synchronous manner
  * while providing the ability to retry hits.
  */
-public class PersistentHitQueue implements HitQueuing {
+public class PersistentHitQueue extends HitQueuing {
 
 	private final DataQueue queue;
 	private final HitProcessing processor;

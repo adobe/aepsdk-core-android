@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
+
 public enum WrapperType {
 	NONE(EventHubConstants.Wrapper.Type.NONE),
 	REACT_NATIVE(EventHubConstants.Wrapper.Type.REACT_NATIVE),

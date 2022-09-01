@@ -28,9 +28,9 @@ import static com.adobe.marketing.mobile.FileTestHelper.CACHE_DIRECTORY;
 import static com.adobe.marketing.mobile.FileTestHelper.MOCK_FILE_NAME;
 import static org.junit.Assert.*;
 
-import com.adobe.marketing.mobile.internal.utility.StringEncoder;
+import com.adobe.marketing.mobile.internal.util.StringEncoder;
 import com.adobe.marketing.mobile.services.DeviceInforming;
-import com.adobe.marketing.mobile.services.ServiceProvider;
+
 @Ignore
 public class CacheManagerTest {
 

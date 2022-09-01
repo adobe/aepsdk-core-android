@@ -11,12 +11,15 @@
 
 package com.adobe.marketing.mobile;
 
-import static com.adobe.marketing.mobile.internal.utility.UrlUtilities.urlEncode;
+import static com.adobe.marketing.mobile.internal.util.UrlUtils.urlEncode;
+
+import com.adobe.marketing.mobile.internal.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+// TODO need to move to compatibility layer
 final class UrlUtilities {
 
 	// lookup tables used by urlEncode

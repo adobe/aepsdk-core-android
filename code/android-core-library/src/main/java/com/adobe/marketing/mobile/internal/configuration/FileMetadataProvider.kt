@@ -12,11 +12,11 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.services.CacheFileService
-import com.adobe.marketing.mobile.utils.TimeUtils
-import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider
-import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE
-import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_IF_RANGE
-import com.adobe.marketing.mobile.utils.remotedownload.MetadataProvider.HTTP_HEADER_RANGE
+import com.adobe.marketing.mobile.util.TimeUtils
+import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider
+import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider.HTTP_HEADER_IF_MODIFIED_SINCE
+import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider.HTTP_HEADER_IF_RANGE
+import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider.HTTP_HEADER_RANGE
 import java.io.File
 import java.lang.NumberFormatException
 import java.util.Locale

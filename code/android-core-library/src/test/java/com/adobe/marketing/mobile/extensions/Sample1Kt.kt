@@ -16,7 +16,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.utils.DataReader
+import com.adobe.marketing.mobile.util.DataReader
 
 class Sample1Kt(extensionApi: ExtensionApi) : Extension(extensionApi) {
     override fun getName(): String {

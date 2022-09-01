@@ -8,7 +8,7 @@ import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
-import com.adobe.marketing.mobile.test.utility.readTestResources
+import com.adobe.marketing.mobile.test.util.readTestResources
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test

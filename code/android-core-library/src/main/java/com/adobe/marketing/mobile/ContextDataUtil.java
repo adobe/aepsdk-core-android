@@ -11,7 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.utility.UrlUtilities;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.internal.util.UrlUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.*;
@@ -196,7 +197,7 @@ class ContextDataUtil {
 		}
 
 		for (Map.Entry<String, Object> entry : parameters.entrySet()) {
-			String key = UrlUtilities.urlEncode(entry.getKey());
+			String key = UrlUtils.urlEncode(entry.getKey());
 
 			if (key == null) {
 				continue;
@@ -359,9 +360,9 @@ class ContextDataUtil {
 		builder.append("=");
 
 		if (value instanceof List) {
-			builder.append(UrlUtilities.urlEncode(join((List) value, ",")));
+			builder.append(UrlUtils.urlEncode(join((List) value, ",")));
 		} else {
-			builder.append(UrlUtilities.urlEncode(value.toString()));
+			builder.append(UrlUtils.urlEncode(value.toString()));
 		}
 	}
 

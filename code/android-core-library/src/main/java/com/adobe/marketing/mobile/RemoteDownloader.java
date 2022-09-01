@@ -12,6 +12,7 @@ package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.NetworkService.Callback;
 import com.adobe.marketing.mobile.NetworkService.HttpConnection;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.services.HttpConnecting;
 import com.adobe.marketing.mobile.services.HttpMethod;
 import com.adobe.marketing.mobile.services.NetworkCallback;

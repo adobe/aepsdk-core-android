@@ -13,8 +13,8 @@ package com.adobe.marketing.mobile;
 
 import androidx.annotation.NonNull;
 
-import com.adobe.marketing.mobile.internal.utility.MapExtensionsKt;
-import com.adobe.marketing.mobile.utils.EventDataUtils;
+import com.adobe.marketing.mobile.internal.util.MapExtensionsKt;
+import com.adobe.marketing.mobile.util.EventDataUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;

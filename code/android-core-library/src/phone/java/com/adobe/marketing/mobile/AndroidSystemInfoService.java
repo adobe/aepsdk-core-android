@@ -29,6 +29,8 @@ import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

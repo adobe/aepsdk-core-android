@@ -21,7 +21,7 @@ import androidx.annotation.Nullable;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
-import com.adobe.marketing.mobile.utils.DataReader;
+import com.adobe.marketing.mobile.util.DataReader;
 
 import java.util.ArrayList;
 import java.util.Date;

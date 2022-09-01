@@ -14,7 +14,8 @@ package com.adobe.marketing.mobile;
 import java.net.URL;
 import java.util.Map;
 
-import com.adobe.marketing.mobile.internal.utility.UrlUtilities;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.internal.util.UrlUtils;
 
 /**
  * A class providing a better way to construct a url.
@@ -76,7 +77,7 @@ class URLBuilder {
 			return this;
 		}
 
-		this.path = this.path + "/" + UrlUtilities.urlEncode(newPath);
+		this.path = this.path + "/" + UrlUtils.urlEncode(newPath);
 		return this;
 	}
 
@@ -108,7 +109,7 @@ class URLBuilder {
 			return this;
 		}
 
-		return this.addQuery(UrlUtilities.urlEncode(key) + "=" + UrlUtilities.urlEncode(value), EncodeType.NONE);
+		return this.addQuery(UrlUtils.urlEncode(key) + "=" + UrlUtils.urlEncode(value), EncodeType.NONE);
 	}
 
 	/**
@@ -131,7 +132,7 @@ class URLBuilder {
 			return this;
 		}
 
-		String encodedQuery = encodeType == EncodeType.ENCODE ? UrlUtilities.urlEncode(newQuery) : newQuery;
+		String encodedQuery = encodeType == EncodeType.ENCODE ? UrlUtils.urlEncode(newQuery) : newQuery;
 
 		if (this.query == null || this.query.length() == 0) {
 			this.query = encodedQuery;

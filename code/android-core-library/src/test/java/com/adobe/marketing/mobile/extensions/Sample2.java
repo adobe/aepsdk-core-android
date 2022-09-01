@@ -17,7 +17,7 @@ import com.adobe.marketing.mobile.AdobeCallbackWithError;
 import com.adobe.marketing.mobile.AdobeError;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.utils.DataReader;
+import com.adobe.marketing.mobile.util.DataReader;
 
 public class Sample2 {
     // Public APIs

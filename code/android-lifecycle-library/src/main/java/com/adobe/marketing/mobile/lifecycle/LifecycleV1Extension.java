@@ -19,7 +19,7 @@ import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
-import com.adobe.marketing.mobile.utils.DataReader;
+import com.adobe.marketing.mobile.util.DataReader;
 
 import java.util.HashMap;
 import java.util.Map;

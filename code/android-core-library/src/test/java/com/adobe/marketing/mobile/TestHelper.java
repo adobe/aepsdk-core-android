@@ -11,14 +11,15 @@
 
 package com.adobe.marketing.mobile;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import static org.junit.Assert.*;
-
-//TODO Delete this class once all utils and tests are moved to internal package
 public class TestHelper {
 
 	/**

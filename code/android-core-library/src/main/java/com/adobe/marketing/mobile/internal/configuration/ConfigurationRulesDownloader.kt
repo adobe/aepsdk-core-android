@@ -12,11 +12,11 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.internal.utility.FileUtils
+import com.adobe.marketing.mobile.internal.util.FileUtils
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.utils.remotedownload.RemoteDownloader
+import com.adobe.marketing.mobile.util.remotedownload.RemoteDownloader
 import java.io.File
 
 /**

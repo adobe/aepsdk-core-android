@@ -11,10 +11,10 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.internal.utility.FileUtils
-import com.adobe.marketing.mobile.utils.remotedownload.DownloadResult
-import com.adobe.marketing.mobile.utils.remotedownload.DownloadResult.Reason
-import com.adobe.marketing.mobile.utils.remotedownload.RemoteDownloader
+import com.adobe.marketing.mobile.internal.util.FileUtils
+import com.adobe.marketing.mobile.util.remotedownload.DownloadResult
+import com.adobe.marketing.mobile.util.remotedownload.DownloadResult.Reason
+import com.adobe.marketing.mobile.util.remotedownload.RemoteDownloader
 import org.junit.After
 import org.junit.Before
 import org.junit.Test

@@ -108,6 +108,16 @@ fun CoreView(navController: NavHostController) {
                 Text(text = "getLogLevel")
             }
             Button(onClick = {
+                com.adobe.marketing.mobile.services.Log.debug(
+                    "extension-name",
+                    "kotlin-app",
+                    "This is a %s log",
+                    "debug"
+                )
+            }) {
+                Text(text = "Log.debug")
+            }
+            Button(onClick = {
                 MobileCore.setPushIdentifier("ABC")
             }) {
                 Text(text = "setPushIdentifier")

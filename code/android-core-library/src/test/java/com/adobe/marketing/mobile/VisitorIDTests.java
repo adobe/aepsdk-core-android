@@ -23,7 +23,7 @@ public class VisitorIDTests {
 	@Before
 	public void setup() {
 		services = new FakePlatformServices();
-		Log.setLogLevel(LoggingMode.VERBOSE);
+		com.adobe.marketing.mobile.services.Log.setLogLevel(LoggingMode.VERBOSE);
 	}
 
 	@Test

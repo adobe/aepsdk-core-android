@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.lifecycle;
 import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.Event;
-import com.adobe.marketing.mobile.Log;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;

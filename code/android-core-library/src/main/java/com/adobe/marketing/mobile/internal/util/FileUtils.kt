@@ -11,9 +11,9 @@
 
 package com.adobe.marketing.mobile.internal.util
 
-import com.adobe.marketing.mobile.Log
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.services.Log
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -248,14 +248,14 @@ object FileUtils {
         try {
             if (file == null || !file.exists() || !file.canRead() || !file.isFile) {
                 Log.warning(
+                    "MobileCore",
                     TAG,
-                    "Write to file - File does not exist or don't have read permission (%s)",
-                    file
+                    "Write to file - File does not exist or don't have read permission"
                 )
                 return null
             }
         } catch (e: SecurityException) {
-            Log.debug(TAG, "Failed to read file (%s)", e)
+            Log.debug("MobileCore", TAG, "Failed to read file (%s)", e)
             return null
         }
         var bufferedReader: BufferedReader? = null
@@ -272,14 +272,14 @@ object FileUtils {
             }
             builder.toString()
         } catch (e: IOException) {
-            Log.debug(TAG, "Failed to close file (%s)", e)
+            Log.debug("MobileCore", TAG, "Failed to close file (%s)", e)
             null
         } finally {
             try {
                 inStream?.close()
                 bufferedReader?.close()
             } catch (e: IOException) {
-                Log.debug(TAG, "Failed to close file (%s)", e)
+                Log.debug("MobileCore", TAG, "Failed to close file (%s)", e)
             }
         }
     }

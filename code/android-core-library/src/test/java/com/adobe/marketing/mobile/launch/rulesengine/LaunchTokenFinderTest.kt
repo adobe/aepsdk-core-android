@@ -16,7 +16,6 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
-import com.adobe.marketing.mobile.util.TimeUtils
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull

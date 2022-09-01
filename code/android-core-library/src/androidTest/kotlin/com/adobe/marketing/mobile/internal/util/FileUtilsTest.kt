@@ -293,6 +293,11 @@ class FileUtilsTest {
     }
 
     @Test
+    fun testRemoveRelativePath_RelativePathBackslashClearnedUp() {
+        assertEquals(FileUtils.removeRelativePath("/mydatabase\\..\\..\\database1"), "mydatabase_database1")
+    }
+
+    @Test
     fun testRemoveRelativePath_RelativePathForwardslashCleanedUp() {
         assertEquals(
             FileUtils.removeRelativePath("/mydatabase/../../database1"),

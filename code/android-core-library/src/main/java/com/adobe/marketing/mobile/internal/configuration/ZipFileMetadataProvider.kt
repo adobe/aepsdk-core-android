@@ -11,8 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.internal.util.FileUtils.readAsString
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.TimeUtils
 import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider
 import java.io.File

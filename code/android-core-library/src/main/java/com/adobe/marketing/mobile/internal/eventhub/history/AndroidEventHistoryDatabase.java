@@ -49,46 +49,54 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
      *                or database table.
      */
     AndroidEventHistoryDatabase() throws EventHistoryDatabaseCreationException {
+        //TODO: add functional tests for testing DB migration
         try {
-            //TODO: we will create a utility method: Context.getDatabasePath(), we need to  refactor the following code after that.
+            openOrMigrateEventHistoryDatabaseFile();
+            final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
+                    " (eventHash INTEGER, timestamp INTEGER);";
 
-            final Context appContext = App.getInstance().getAppContext();
-            databaseFile = appContext.getDatabasePath(DATABASE_NAME);
-            if (!databaseFile.exists()) {
-                if (databaseFile.createNewFile()) {
-                    final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-                    if (applicationCacheDir != null) {
-                        final String cacheDirCanonicalPath = applicationCacheDir.getCanonicalPath();
-                        File cacheDirDatabaseFile = new File(cacheDirCanonicalPath + "/" + DATABASE_NAME);
-                        if (cacheDirDatabaseFile.exists()) {
-                            FileUtils.copyFile(cacheDirDatabaseFile, databaseFile);
-                            MobileCore.log(LoggingMode.DEBUG,
-                                    LOG_TAG,
-                                    String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", DATABASE_NAME));
-                            if (cacheDirDatabaseFile.delete()) {
-                                MobileCore.log(LoggingMode.DEBUG,
-                                        LOG_TAG,
-                                        String.format("Successfully delete DataQueue for database (%s) from cache directory", DATABASE_NAME));
-                            }
-                        }
-                    }
-                }
-
-                final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
-                        " (eventHash INTEGER, timestamp INTEGER);";
-
-                synchronized (dbMutex) {
-                    if (SQLiteDatabaseHelper.createTableIfNotExist(databaseFile.getCanonicalPath(), tableCreationQuery)) {
-                        MobileCore.log(LoggingMode.VERBOSE, LOG_TAG,
-                                String.format("createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME));
-                    } else {
-                        throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table in the Android Event History database.");
-                    }
+            synchronized (dbMutex) {
+                if (SQLiteDatabaseHelper.createTableIfNotExist(databaseFile.getCanonicalPath(), tableCreationQuery)) {
+                    MobileCore.log(LoggingMode.VERBOSE, LOG_TAG,
+                            String.format("createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME));
+                } else {
+                    throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table in the Android Event History database.");
                 }
             }
         } catch (final Exception e) {
             throw new EventHistoryDatabaseCreationException(String.format("An error occurred while creating the \"Events\" table in the Android Event History database, error message: %s",
                     (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
+        }
+    }
+
+    private void openOrMigrateEventHistoryDatabaseFile() throws Exception {
+        final Context appContext = App.getInstance().getAppContext();
+        if(appContext == null) {
+            MobileCore.log(LoggingMode.WARNING,
+                    LOG_TAG,
+                    String.format("Failed to create database (%s), the ApplicationContext is null", DATABASE_NAME));
+            throw new EventHistoryDatabaseCreationException("ApplicationContext is null");
+        }
+        databaseFile = appContext.getDatabasePath(DATABASE_NAME);
+        if (!databaseFile.exists()) {
+            if (databaseFile.createNewFile()) {
+                final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+                if (applicationCacheDir != null) {
+                    final String cacheDirCanonicalPath = applicationCacheDir.getCanonicalPath();
+                    File cacheDirDatabaseFile = new File(cacheDirCanonicalPath + "/" + DATABASE_NAME);
+                    if (cacheDirDatabaseFile.exists()) {
+                        FileUtils.copyFile(cacheDirDatabaseFile, databaseFile);
+                        MobileCore.log(LoggingMode.DEBUG,
+                                LOG_TAG,
+                                String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", DATABASE_NAME));
+                        if (cacheDirDatabaseFile.delete()) {
+                            MobileCore.log(LoggingMode.DEBUG,
+                                    LOG_TAG,
+                                    String.format("Successfully delete DataQueue for database (%s) from cache directory", DATABASE_NAME));
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -363,7 +363,8 @@ class DeviceInfoService implements DeviceInforming {
 			}
 
 			propertyValue = bundle.getString(propertyKey);
-		} catch (PackageManager.NameNotFoundException e) {
+		} catch (Exception e) {
+			// In rare cases, package manager throws run time exception.
 			MobileCore.log(LoggingMode.WARNING, LOG_TAG, String.format("Unable to read property for key (%s). Exception - (%s)",
 						   propertyKey, e));
 		}
@@ -393,7 +394,8 @@ class DeviceInfoService implements DeviceInforming {
 			if (applicationInfo != null) {
 				appName = (String) packageManager.getApplicationLabel(applicationInfo);
 			}
-		} catch (PackageManager.NameNotFoundException e) {
+		} catch (Exception e) {
+			// In rare cases, package manager throws run time exception.
 			MobileCore.log(LoggingMode.WARNING, LOG_TAG, String.format("PackageManager couldn't find application name (%s)", e));
 		}
 
@@ -520,7 +522,8 @@ class DeviceInfoService implements DeviceInforming {
 			}
 
 			return packageManager.getPackageInfo(context.getPackageName(), 0);
-		} catch (PackageManager.NameNotFoundException e) {
+		} catch (Exception e) {
+			// In rare cases, package manager throws run time exception.
 			MobileCore.log(LoggingMode.WARNING, LOG_TAG, String.format("PackageManager couldn't find application version (%s)",
 						   e.getLocalizedMessage()));
 			return null;

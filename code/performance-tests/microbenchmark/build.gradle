@@ -5,11 +5,11 @@ apply plugin: 'androidx.benchmark'
 // [END benchmark_apply_plugin]
 
 android {
-    compileSdk rootProject.compileSdkVersion
+    compileSdk 33
 
     defaultConfig {
-        minSdk rootProject.minSdkVersion
-        targetSdk rootProject.targetSdkVersion
+        minSdk 21
+        targetSdk 33
 
         // Set this argument to capture profiling information, instead of measuring performance.
         // Can be one of:
@@ -47,11 +47,11 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib:1.7.10"
-    androidTestImplementation "junit:junit:$jUnitVersion"
+    androidTestImplementation "junit:junit:4.13.2"
 
-    androidTestImplementation "androidx.test:runner:$androidxTestVersion"
-    androidTestImplementation "androidx.test:rules:$androidxTestVersion"
-    androidTestImplementation "androidx.test.ext:junit:$testExtVersion"
+    androidTestImplementation "androidx.test:runner:1.4.0"
+    androidTestImplementation "androidx.test:rules:1.4.0"
+    androidTestImplementation "androidx.test.ext:junit:1.1.3"
 
     // duplicate the dependencies of ui module here, to ensure we have the same versions
 //    androidTestImplementation "androidx.appcompat:appcompat:$appcompatVersion"

@@ -7,5 +7,7 @@ install:
    - ./code/gradlew -p code/android-core-library publishToMavenLocal -Pjitpack
    - ./code/gradlew -p code/android-signal-library assemblePhone
    - ./code/gradlew -p code/android-signal-library publishToMavenLocal -Pjitpack
+   - ./code/gradlew -p code/android-core-compatiblity assemblePhone
+   - ./code/gradlew -p code/android-core-compatiblity publishToMavenLocal -Pjitpack
 # env:
 #    MYVAR: "custom environment variable"

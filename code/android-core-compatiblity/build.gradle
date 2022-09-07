@@ -58,6 +58,54 @@ android {
     }
 }
 
+def isJitPackBuild() {
+    return hasProperty('jitpack')
+}
+def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = groupIdForPublish
+            artifactId = rootProject.compatibilityName
+            version = rootProject.compatibilityVersion
+            artifact("$buildDir/outputs/aar/${rootProject.compatibilityAARName}")
+
+            pom {
+                name = rootProject.mavenRepoName
+                description = rootProject.mavenRepoDescription
+                url = 'https://aep-sdks.gitbook.io'
+                licenses {
+                    license {
+                        name = 'Adobe Proprietary'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'adobe'
+                        name = 'adobe'
+                        email = 'adobe-mobile-testing@adobe.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:github.com//Adobe-Marketing-Cloud/acp-sdks.git'
+                    developerConnection = 'scm:git:ssh://github.com//Adobe-Marketing-Cloud/acp-sdks.git'
+                    url = 'https://github.com/Adobe-Marketing-Cloud/acp-sdks'
+                }
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+
+                    def coreDependencyNode = dependenciesNode.appendNode('dependency')
+                    coreDependencyNode.appendNode('groupId', 'com.adobe.marketing.mobile')
+                    coreDependencyNode.appendNode('artifactId', 'core')
+                    coreDependencyNode.appendNode('version', rootProject.coreExtensionVersion)
+                }
+            }
+        }
+    }
+}
+tasks.withType(Javadoc).all { enabled = false }
+publishToMavenLocal.dependsOn('assemblePhone')
+
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation project(path: ':android-core-library')

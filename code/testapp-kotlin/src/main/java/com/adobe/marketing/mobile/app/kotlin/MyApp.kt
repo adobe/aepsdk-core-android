@@ -11,13 +11,9 @@
 package com.adobe.marketing.mobile.app.kotlin
 
 import android.app.Application
-import com.adobe.marketing.mobile.AdobeCallbackWithError
-import com.adobe.marketing.mobile.AdobeError
-import com.adobe.marketing.mobile.Event
-import com.adobe.marketing.mobile.EventSource
-import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.app.kotlin.extension.PerfExtension
 
 class MyApp : Application() {
 
@@ -25,9 +21,10 @@ class MyApp : Application() {
         super.onCreate()
         MobileCore.setApplication(this)
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
+        MobileCore.configureWithAppID("94f571f308d5/fec7505defe0/launch-eaa54c95a6b5-development")
 
-        //TODO: call MobileCore.registerExtensions() to register core extensions
-        MobileCore.start {
+        MobileCore.registerExtensions(listOf(PerfExtension::class.java)) {
+
         }
     }
 

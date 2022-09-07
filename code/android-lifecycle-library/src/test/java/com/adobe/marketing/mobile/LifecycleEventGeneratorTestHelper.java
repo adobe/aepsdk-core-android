@@ -10,10 +10,10 @@
  */
 package com.adobe.marketing.mobile;
 
-import static com.adobe.marketing.mobile.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA;
-import static com.adobe.marketing.mobile.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY;
-import static com.adobe.marketing.mobile.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE;
-import static com.adobe.marketing.mobile.EventDataKeys.Lifecycle.LIFECYCLE_START;
+import static com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA;
+import static com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY;
+import static com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE;
+import static com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -31,12 +31,15 @@ assemble-phone-release:
 
 unit-test:
 		(./code/gradlew -p code/android-core-library testPhoneDebugUnitTest)
-		# (./code/gradlew -p code/android-signal-library testPhoneDebugUnitTest)
+		(./code/gradlew -p code/android-core-compatiblity testPhoneDebugUnitTest)
+		(./code/gradlew -p code/android-signal-library testPhoneDebugUnitTest)
 		(./code/gradlew -p code/android-lifecycle-library testPhoneDebugUnitTest)
 
 functional-test:
 		(./code/gradlew -p code/android-core-library uninstallPhoneDebugAndroidTest)
 		(./code/gradlew -p code/android-core-library connectedPhoneDebugAndroidTest)
+		(./code/gradlew -p code/android-core-compatiblity  uninstallPhoneDebugAndroidTest)
+		(./code/gradlew -p code/android-core-compatiblity  connectedPhoneDebugAndroidTest)
 		(./code/gradlew -p code/android-lifecycle-library uninstallPhoneDebugAndroidTest)
 		(./code/gradlew -p code/android-lifecycle-library connectedPhoneDebugAndroidTest)
 

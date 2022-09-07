@@ -21,8 +21,11 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-public class TLSSocketFactory extends SSLSocketFactory {
-
+/**
+ * The SDK only supports SSL connection.
+ * If the SDK is running on 4.x Android system, use the TLSSocketFactory, which will force the SDK to use TLSV1.1/1.2.
+ */
+class TLSSocketFactory extends SSLSocketFactory {
 
 	private volatile static SSLSocketFactory singleton;
 	private volatile static boolean failed = false;
@@ -34,8 +37,10 @@ public class TLSSocketFactory extends SSLSocketFactory {
 		delegate = context.getSocketFactory();
 	}
 
+	/**
+	 * @return an instance of SSLSocketFactory
+	 */
 	public static SSLSocketFactory getInstance() {
-
 		if (singleton == null && !failed) {
 			synchronized (TLSSocketFactory.class) {
 				if (singleton == null) {

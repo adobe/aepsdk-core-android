@@ -12,8 +12,10 @@ include ':android-core-library',
         ':android-lifecycle-library',
         // ':android-identity-library',
         ':android-signal-library',
-        ':android-core-library-maven-root',
-        ':test-third-party-extension',
-        ':testapp'
+        ':android-core-library-maven-root'
+include ':android-core-compatiblity'
 include ':integration-tests'
+include ':test-third-party-extension'
+include ':testapp'
 include ':testapp-kotlin'
+

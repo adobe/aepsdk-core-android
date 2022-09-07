@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.services;
 
 import android.os.Build;
 
-import com.adobe.marketing.mobile.TLSSocketFactory;
+import com.adobe.marketing.mobile.services.TLSSocketFactory;
 import junit.framework.Assert;
 
 import org.junit.Before;

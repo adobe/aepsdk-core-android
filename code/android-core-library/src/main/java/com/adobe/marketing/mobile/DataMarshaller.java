@@ -15,6 +15,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 
 import java.util.ArrayList;
 import java.util.HashMap;

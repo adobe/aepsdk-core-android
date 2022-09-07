@@ -43,6 +43,7 @@ final class CoreConstants {
 			static final String CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG			= "config.update";
 			static final String CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG = "config.clearUpdates";
 			static final String CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG 		= "config.getData";
+			static final String CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS 	= "config.allIdentifiers";
 
 			private Configuration() {}
 		}

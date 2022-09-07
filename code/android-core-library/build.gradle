@@ -18,21 +18,8 @@ android {
     sourceSets {
         test{
             java{
-                srcDirs += "src/legacy/test-common/java"
-                srcDirs += "src/legacy/test-module/java"
                 srcDirs += "src/test/kotlin"
             }
-            resources{
-                srcDirs += "src/legacy/test-module/resources"
-            }
-        }
-        main{
-            java{
-                srcDirs += "src/legacy/main/java"
-            }
-        }
-        androidTest{
-            java.srcDirs += "src/legacy/androidTest-common/java"
         }
     }
 

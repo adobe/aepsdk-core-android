@@ -15,7 +15,6 @@ import android.os.Build;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.TLSSocketFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;

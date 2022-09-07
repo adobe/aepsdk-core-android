@@ -139,25 +139,6 @@ public final class Event {
 		}
 
 		/**
-		 * Sets the data associated with this {@code Event}
-		 *
-		 * @param data {@link EventData} for this event
-		 * @return this Event {@link Builder}
-		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
-		 */
-		@Deprecated
-		Builder setData(final EventData data) {
-			throwIfAlreadyBuilt();
-			// Todo - Remove this method once all EventData usage is removed from Core.
-			try {
-				event.data = EventDataUtils.immutableClone(data.toObjectMap());
-			} catch (Exception ex) {
-				Log.error("Error", ex.toString());
-			}
-			return this;
-		}
-
-		/**
 		 * Sets the uniqueIdentifier for this {@code Event}.
 		 * If no unique identifier is set, one is generated when the {@code Event} is created.
 		 *

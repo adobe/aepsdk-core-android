@@ -14,6 +14,9 @@ package com.adobe.marketing.mobile;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.adobe.marketing.mobile.services.NamedCollection;
+import com.adobe.marketing.mobile.services.ServiceProvider;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -235,11 +238,9 @@ class V4ToV5Migration {
 		}
 
 		SharedPreferences.Editor v4DataStoreEditor = v4DataStore.edit();
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
 
 		// mobile services
-		LocalStorageService.DataStore mobileServicesV5DataStore = localStorageService.getDataStore(
-					V5.MobileServices.DATASTORE_NAME);
+		NamedCollection mobileServicesV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.MobileServices.DATASTORE_NAME);
 		long installDateMillis = v4DataStore.getLong(V4.Lifecycle.INSTALL_DATE, 0L);
 
 		if (installDateMillis > 0) {
@@ -289,7 +290,7 @@ class V4ToV5Migration {
 		Log.debug(LOG_TAG, "Migration complete for Mobile Services data.");
 
 		// acquisition
-		LocalStorageService.DataStore acquisitionV5DataStore = localStorageService.getDataStore(V5.Acquisition.DATASTORE_NAME);
+		NamedCollection acquisitionV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Acquisition.DATASTORE_NAME);
 		acquisitionV5DataStore.setString(V5.Acquisition.REFERRER_DATA, v4DataStore.getString(V4.Acquisition.REFERRER_DATA,
 										 null));
 		v4DataStoreEditor.remove(V4.Acquisition.REFERRER_DATA);
@@ -297,7 +298,7 @@ class V4ToV5Migration {
 		Log.debug(LOG_TAG, "Migration complete for Acquisition data.");
 
 		// analytics
-		LocalStorageService.DataStore analyticsV5DataStore = localStorageService.getDataStore(V5.Analytics.DATASTORE_NAME);
+		NamedCollection analyticsV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Analytics.DATASTORE_NAME);
 		analyticsV5DataStore.setString(V5.Analytics.AID, getV4SharedPreferences().getString(V4.Analytics.AID, null));
 		analyticsV5DataStore.setBoolean(V5.Analytics.IGNORE_AID, getV4SharedPreferences().getBoolean(V4.Analytics.IGNORE_AID,
 										false));
@@ -310,7 +311,7 @@ class V4ToV5Migration {
 		Log.debug(LOG_TAG, "Migration complete for Analytics data.");
 
 		// audience manager
-		LocalStorageService.DataStore audienceV5DataStore = localStorageService.getDataStore(V5.AudienceManager.DATASTORE_NAME);
+		NamedCollection audienceV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.AudienceManager.DATASTORE_NAME);
 		audienceV5DataStore.setString(V5.AudienceManager.USER_ID, v4DataStore.getString(V4.AudienceManager.USER_ID, null));
 		v4DataStoreEditor.remove(V4.AudienceManager.USER_ID);
 		v4DataStoreEditor.remove(V4.AudienceManager.USER_PROFILE);
@@ -318,7 +319,7 @@ class V4ToV5Migration {
 		Log.debug(LOG_TAG, "Migration complete for Audience Manager data.");
 
 		// identity
-		LocalStorageService.DataStore identityV5DataStore = localStorageService.getDataStore(V5.Identity.DATASTORE_NAME);
+		NamedCollection identityV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Identity.DATASTORE_NAME);
 		identityV5DataStore.setString(V5.Identity.MID, v4DataStore.getString(V4.Identity.MID, null));
 		identityV5DataStore.setString(V5.Identity.BLOB, v4DataStore.getString(V4.Identity.BLOB, null));
 		identityV5DataStore.setString(V5.Identity.HINT, v4DataStore.getString(V4.Identity.HINT, null));
@@ -339,7 +340,7 @@ class V4ToV5Migration {
 		Log.debug(LOG_TAG, "Migration complete for Identity (Visitor ID Service) data.");
 
 		// lifecycle
-		LocalStorageService.DataStore lifecycleV5DataStore = localStorageService.getDataStore(V5.Lifecycle.DATASTORE_NAME);
+		NamedCollection lifecycleV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Lifecycle.DATASTORE_NAME);
 
 		if (installDateMillis > 0) {
 			// convert milliseconds to seconds as it is handled in v5
@@ -372,7 +373,7 @@ class V4ToV5Migration {
 		Log.debug(LOG_TAG, "Migration complete for Lifecycle data.");
 
 		// target
-		LocalStorageService.DataStore targetV5DataStore = localStorageService.getDataStore(V5.Target.DATASTORE_NAME);
+		NamedCollection targetV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Target.DATASTORE_NAME);
 		targetV5DataStore.setString(V5.Target.TNT_ID, v4DataStore.getString(V4.Target.TNT_ID, null));
 		targetV5DataStore.setString(V5.Target.THIRD_PARTY_ID, v4DataStore.getString(V4.Target.THIRD_PARTY_ID, null));
 		v4DataStoreEditor.remove(V4.Target.TNT_ID);
@@ -393,11 +394,9 @@ class V4ToV5Migration {
 		}
 
 		SharedPreferences.Editor v4DataStoreEditor = v4DataStore.edit();
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
 
 		// Configuration
-		LocalStorageService.DataStore configurationV5DataStore = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
+		NamedCollection configurationV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
 		int v4PrivacyStatus = v4DataStore.getInt(V4.Configuration.GLOBAL_PRIVACY_KEY, -1);
 
 		if (v4PrivacyStatus >= 0 && v4PrivacyStatus <= 2) {
@@ -453,9 +452,9 @@ class V4ToV5Migration {
 	}
 
 	private void migrateVisitorId() {
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-		LocalStorageService.DataStore identityV5DataStore = localStorageService.getDataStore(V5.Identity.DATASTORE_NAME);
-		LocalStorageService.DataStore analyticsV5DataStore = localStorageService.getDataStore(V5.Analytics.DATASTORE_NAME);
+
+		NamedCollection identityV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Identity.DATASTORE_NAME);
+		NamedCollection analyticsV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Analytics.DATASTORE_NAME);
 
 		if (identityV5DataStore == null || analyticsV5DataStore == null) {
 			Log.debug(LOG_TAG, "%s (Identity or Analytics data store), failed to migrate visitor id.", Log.UNEXPECTED_NULL_VALUE);
@@ -477,14 +476,11 @@ class V4ToV5Migration {
 		databaseNames.add("ADBMobileDataCache.sqlite"); // analytics db
 		databaseNames.add("ADBMobileTimedActionsCache.sqlite"); // analytics timed actions
 
-		Context appContext = App.getAppContext();
-
-		if (appContext == null) {
-			Log.debug(LOG_TAG, "%s (app context), failed to delete V4 databases", Log.UNEXPECTED_NULL_VALUE);
+		File cacheDirectory = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+		if (cacheDirectory == null) {
+			Log.debug(LOG_TAG, "%s (cache directory), failed to delete V4 databases", Log.UNEXPECTED_NULL_VALUE);
 			return;
 		}
-
-		File cacheDirectory = appContext.getCacheDir();
 
 		for (String databaseName : databaseNames) {
 			try {
@@ -523,8 +519,7 @@ class V4ToV5Migration {
 	}
 
 	private boolean isVisitorIdMigrationRequired() {
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-		LocalStorageService.DataStore identityV5DataStore = localStorageService.getDataStore(V5.Identity.DATASTORE_NAME);
+		NamedCollection identityV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Identity.DATASTORE_NAME);
 
 		if (identityV5DataStore == null) {
 			Log.debug(LOG_TAG, "%s (application context), failed to migrate v5 visitor identifier", Log.UNEXPECTED_NULL_VALUE);

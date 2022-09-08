@@ -13,15 +13,12 @@ package com.adobe.marketing.mobile.internal.util
 
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.services.Log
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.io.Reader
 import java.util.zip.ZipInputStream
 
 object FileUtils {
@@ -234,64 +231,5 @@ object FileUtils {
     @Throws(Exception::class)
     fun copyFile(src: File, dest: File) {
         src.copyTo(dest, true)
-    }
-
-    /**
-     * Reads the JSONString from the provided file. Returns null if there is no file or it does not have read permissions.
-     *
-     * @param file [File] from which the contents are to be read
-     * @return The contents of the file in JSONString format. Returns null if file does not exist, when encounters IOException
-     * or if the file do not have read permission
-     */
-    @JvmStatic
-    fun readStringFromFile(file: File?): String? {
-        try {
-            if (file == null || !file.exists() || !file.canRead() || !file.isFile) {
-                Log.warning(
-                    "MobileCore",
-                    TAG,
-                    "Write to file - File does not exist or don't have read permission"
-                )
-                return null
-            }
-        } catch (e: SecurityException) {
-            Log.debug("MobileCore", TAG, "Failed to read file (%s)", e)
-            return null
-        }
-        var bufferedReader: BufferedReader? = null
-        var inStream: InputStream? = null
-        return try {
-            inStream = FileInputStream(file)
-            val reader: Reader = InputStreamReader(inStream, "UTF-8")
-            bufferedReader = BufferedReader(reader)
-            val builder = StringBuilder()
-            var line = bufferedReader.readLine()
-            while (line != null) {
-                builder.append(line)
-                line = bufferedReader.readLine()
-            }
-            builder.toString()
-        } catch (e: IOException) {
-            Log.debug("MobileCore", TAG, "Failed to close file (%s)", e)
-            null
-        } finally {
-            try {
-                inStream?.close()
-                bufferedReader?.close()
-            } catch (e: IOException) {
-                Log.debug("MobileCore", TAG, "Failed to close file (%s)", e)
-            }
-        }
-    }
-
-    /**
-     * Verifies if the `File` object represents a directory and the directory is writable.
-     *
-     * @param directory [File] the directory to check for
-     * @return {code boolean} representing the directory validation result
-     */
-    @JvmStatic
-    fun isValidDirectory(directory: File?): Boolean {
-        return directory != null && directory.isDirectory && directory.canWrite()
     }
 }

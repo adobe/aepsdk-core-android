@@ -143,7 +143,7 @@ class ZipBundleHandler implements RulesRemoteDownloader.RulesBundleNetworkProtoc
 	@Override
 	public RulesRemoteDownloader.Metadata getMetadata(final File cachedBundlePath) {
 		File metaFile = new File(cachedBundlePath, META_FILE_NAME);
-		return ZipMetadata.getMetadataFromString(FileUtils.readStringFromFile(metaFile));
+		return ZipMetadata.getMetadataFromString(FileUtils.readAsString(metaFile));
 
 	}
 }

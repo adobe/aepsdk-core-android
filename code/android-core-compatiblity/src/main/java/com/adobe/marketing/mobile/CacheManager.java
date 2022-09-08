@@ -407,7 +407,7 @@ class CacheManager {
 
 		File downloadCacheDirectory = null;
 
-		if (FileUtils.isValidDirectory(baseCacheDirectory)) {
+		if (FileUtils.isWritableDirectory(baseCacheDirectory)) {
 			downloadCacheDirectory = new File(baseCacheDirectory, cacheSubDirectory);
 
 			if (!downloadCacheDirectory.exists() && !downloadCacheDirectory.mkdir()) {

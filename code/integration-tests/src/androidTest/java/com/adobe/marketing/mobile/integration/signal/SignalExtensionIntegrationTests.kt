@@ -171,7 +171,7 @@ class SignalExtensionIntegrationTests {
         assertFalse(signalRequestCaught)
     }
 
-    @Test
+    @Test(timeout = 100)
     fun testPii() {
         val countDownLatch = CountDownLatch(1)
         networkMonitor = { url ->
@@ -188,7 +188,6 @@ class SignalExtensionIntegrationTests {
         Thread.sleep(100)
         MobileCore.collectPii(mapOf("name" to "aep"))
         countDownLatch.await()
-
     }
 
 }

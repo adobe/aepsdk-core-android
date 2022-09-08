@@ -82,7 +82,7 @@ class SignalExtensionIntegrationTests {
 
     }
 
-    @Test(timeout = 100)
+    @Test(timeout = 200)
     fun testGetRequest() {
         val countDownLatch = CountDownLatch(1)
         networkMonitor = { url ->
@@ -108,7 +108,7 @@ class SignalExtensionIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test(timeout = 100)
+    @Test(timeout = 200)
     fun testPostRequest() {
         val countDownLatch = CountDownLatch(1)
         networkMonitor = { url ->
@@ -171,7 +171,7 @@ class SignalExtensionIntegrationTests {
         assertFalse(signalRequestCaught)
     }
 
-    @Test(timeout = 100)
+    @Test(timeout = 200)
     fun testPii() {
         val countDownLatch = CountDownLatch(1)
         networkMonitor = { url ->

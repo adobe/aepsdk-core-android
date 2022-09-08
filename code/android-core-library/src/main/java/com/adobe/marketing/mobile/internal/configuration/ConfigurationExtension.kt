@@ -489,16 +489,10 @@ internal class ConfigurationExtension : Extension {
      * @param triggerEvent the [Event] to which the response is being dispatched
      */
     private fun dispatchConfigurationResponse(eventData: Map<String, Any?>, triggerEvent: Event?) {
-        val builder = Event.Builder(
+        val event = Event.Builder(
             "Configuration Response Event",
             EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT
-        ).setEventData(eventData)
-
-        val event: Event = if (triggerEvent == null) {
-            builder.build()
-        } else {
-            builder.inResponseToEvent(triggerEvent).build()
-        }
+        ).setEventData(eventData).build()
 
         api.dispatch(event)
     }

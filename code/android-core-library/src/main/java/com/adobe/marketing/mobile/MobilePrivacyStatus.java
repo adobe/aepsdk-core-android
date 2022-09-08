@@ -62,7 +62,7 @@ public enum MobilePrivacyStatus {
 	 * @param text {@link String} to be converted to a {@code MobilePrivacyStatus} object
 	 * @return {@code MobilePrivacyStatus} object equivalent to the provided text
 	 */
-	static MobilePrivacyStatus fromString(final String text) {
+	public static MobilePrivacyStatus fromString(final String text) {
 		for (MobilePrivacyStatus b : MobilePrivacyStatus.values()) {
 			if (b.value.equalsIgnoreCase(text)) {
 				return b;

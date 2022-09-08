@@ -57,6 +57,24 @@ jobs:
             post-emulator-launch-assemble-command: make assemble-phone
           #   The test command
             test-command: make functional-test
+  integration-test:
+      executor:
+        name: android/android-machine
+        resource-class: large
+        tag: 2022.01.1
+
+      steps:
+      # Checkout the code as the first step.
+        - checkout
+        
+        - android/start-emulator-and-run-tests:
+          #   It should match the name seen in the "sdkmanager --list" output
+            system-image: system-images;android-29;default;x86
+          #   The command to be run, while waiting for emulator startup
+            post-emulator-launch-assemble-command: make assemble-phone
+          #   The test command
+            test-command: make integration-test
+
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -66,4 +84,5 @@ workflows:
     # Inside the workflow, you define the jobs you want to run.
     jobs:
       - build-and-unit-test
+      - integration-test
       # - functional-test

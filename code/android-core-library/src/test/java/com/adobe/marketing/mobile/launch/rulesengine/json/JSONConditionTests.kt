@@ -14,7 +14,7 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.LogicalExpression
-import com.adobe.marketing.mobile.test.utility.buildJSONObject
+import com.adobe.marketing.mobile.test.util.buildJSONObject
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

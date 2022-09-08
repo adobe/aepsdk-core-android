@@ -10,12 +10,21 @@
  */
 package com.adobe.marketing.mobile.signal
 
-import com.adobe.marketing.mobile.*
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
+import com.adobe.marketing.mobile.Extension
+import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.MobilePrivacyStatus
+import com.adobe.marketing.mobile.SharedStateResolution
+import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.services.HitQueuing
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.signal.SignalConstants.LOG_TAG
-import com.adobe.marketing.mobile.utils.DataReader
+import com.adobe.marketing.mobile.util.DataReader
 
 class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
     private val hitQueue: HitQueuing
@@ -65,7 +74,7 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         }
         hitQueue.handlePrivacyChange(privacyStatus)
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            Log.debug(LOG_TAG, "Device has opted-out of tracking. Clearing the Signal queue.")
+            Log.debug(LOG_TAG, CLASS_NAME, "Device has opted-out of tracking. Clearing the Signal queue.")
         }
     }
 
@@ -93,22 +102,24 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         val url = event.urlToOpen() ?: run {
             Log.warning(
                 LOG_TAG,
+                CLASS_NAME,
                 "Unable to process OpenURL consequence - no URL was found in EventData."
             )
             return
         }
-        Log.debug(LOG_TAG, "Opening URL $url.")
+        Log.debug(LOG_TAG, CLASS_NAME, "Opening URL $url.")
         ServiceProvider.getInstance().uiService.showUrl(url)
     }
 
     private fun handlePostback(event: Event) {
         val url = event.templateUrl() ?: run {
-            Log.warning(LOG_TAG, "Rule consequence Event for Signal doesn't contain url.")
+            Log.warning(LOG_TAG, CLASS_NAME, "Rule consequence Event for Signal doesn't contain url.")
             return
         }
         if (event.isCollectPii() && !url.startsWith("https")) {
             Log.warning(
                 LOG_TAG,
+                CLASS_NAME,
                 "Rule consequence Event for Signal will not be processed, url must be https."
             )
             return
@@ -116,6 +127,7 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         val body = event.templateBody() ?: run {
             Log.warning(
                 LOG_TAG,
+                CLASS_NAME,
                 "Rule consequence Event for Signal will not be processed, url must be https."
             )
             return

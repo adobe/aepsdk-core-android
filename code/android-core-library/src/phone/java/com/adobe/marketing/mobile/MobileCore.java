@@ -21,7 +21,7 @@ import androidx.annotation.Nullable;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
-import com.adobe.marketing.mobile.utils.DataReader;
+import com.adobe.marketing.mobile.util.DataReader;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -109,9 +109,6 @@ final public class MobileCore {
         }
 
         App.setApplication(application);
-        if (App.getPlatformServices() == null) {
-            App.setPlatformServices(new AndroidPlatformServices());
-        }
 
         com.adobe.marketing.mobile.internal.context.App.getInstance().initializeApp(
                 new com.adobe.marketing.mobile.internal.context.App.AppContextProvider() {
@@ -714,7 +711,7 @@ final public class MobileCore {
             @Override
             public void call(Event event) {
                 String status = DataReader.optString(event.getEventData(),
-                        ConfigurationConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, null);
+                        CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, null);
                 callback.call(MobilePrivacyStatus.fromString(status));
             }
         };
@@ -747,7 +744,7 @@ final public class MobileCore {
             @Override
             public void call(Event event) {
                 String value = DataReader.optString(event.getEventData(),
-                        ConfigurationConstants.EventDataKeys.Configuration.CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS, "{}");
+                        CoreConstants.EventDataKeys.Configuration.CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS, "{}");
                 callback.call(value);
             }
         };

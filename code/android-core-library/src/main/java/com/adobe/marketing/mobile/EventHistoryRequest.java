@@ -11,8 +11,8 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.utility.MapUtilsKt;
-import com.adobe.marketing.mobile.internal.utility.StringEncoder;
+import com.adobe.marketing.mobile.internal.util.MapUtilsKt;
+import com.adobe.marketing.mobile.internal.util.StringEncoder;
 
 import java.util.Map;
 

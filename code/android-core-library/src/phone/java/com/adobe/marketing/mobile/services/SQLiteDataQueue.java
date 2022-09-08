@@ -19,10 +19,8 @@ import android.database.sqlite.SQLiteStatement;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.utility.SQLiteDatabaseHelper;
-import com.adobe.marketing.mobile.services.utility.FileUtil;
+import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

@@ -14,7 +14,7 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.internal.utility.map
+import com.adobe.marketing.mobile.internal.util.map
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
 import org.json.JSONArray
 import org.json.JSONObject

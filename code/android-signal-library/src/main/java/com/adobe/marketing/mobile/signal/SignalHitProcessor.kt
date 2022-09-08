@@ -11,8 +11,13 @@
 package com.adobe.marketing.mobile.signal
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.Log
-import com.adobe.marketing.mobile.services.*
+import com.adobe.marketing.mobile.services.DataEntity
+import com.adobe.marketing.mobile.services.HitProcessing
+import com.adobe.marketing.mobile.services.HttpMethod
+import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.NetworkRequest
+import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -39,13 +44,14 @@ internal class SignalHitProcessor : HitProcessing {
 
     override fun processHit(entity: DataEntity?): Boolean {
         if (entity == null) {
-            Log.warning(SignalConstants.LOG_TAG, "$CLASS_NAME - Drop this data entity as it is null.")
+            Log.warning(SignalConstants.LOG_TAG, CLASS_NAME,"Drop this data entity as it is null.")
             return true
         }
         val request = buildNetworkRequest(entity) ?: run {
             Log.warning(
                 SignalConstants.LOG_TAG,
-                "$CLASS_NAME - Drop this data entity as it's not able to convert it to a valid Signal request: ${entity.data}"
+                CLASS_NAME,
+                "Drop this data entity as it's not able to convert it to a valid Signal request: ${entity.data}"
             )
             return true
         }
@@ -61,21 +67,24 @@ internal class SignalHitProcessor : HitProcessing {
                 in SignalConstants.HTTP_SUCCESS_CODES -> {
                     Log.debug(
                         SignalConstants.LOG_TAG,
-                        "$CLASS_NAME - Signal request (${request.url}) successfully sent."
+                        CLASS_NAME,
+                        "Signal request (${request.url}) successfully sent."
                     )
                     true
                 }
                 in SignalConstants.RECOVERABLE_ERROR_CODES -> {
                     Log.debug(
                         SignalConstants.LOG_TAG,
-                        "$CLASS_NAME - Signal request failed with recoverable error ($result).Will retry sending the request (${request.url}) later."
+                        CLASS_NAME,
+                        "Signal request failed with recoverable error ($result).Will retry sending the request (${request.url}) later."
                     )
                     false
                 }
                 else -> {
                     Log.warning(
                         SignalConstants.LOG_TAG,
-                        "$CLASS_NAME - Signal request (${request.url}) failed with unrecoverable error ($result)."
+                        CLASS_NAME,
+                        "Signal request (${request.url}) failed with unrecoverable error ($result)."
                     )
                     true
                 }
@@ -91,7 +100,8 @@ internal class SignalHitProcessor : HitProcessing {
         if (signalDataEntity.url.isEmpty()) {
             Log.warning(
                 SignalConstants.LOG_TAG,
-                "$CLASS_NAME - Failed to build Signal request (URL is null)."
+                CLASS_NAME,
+                "Failed to build Signal request (URL is null)."
             )
             return null
         }

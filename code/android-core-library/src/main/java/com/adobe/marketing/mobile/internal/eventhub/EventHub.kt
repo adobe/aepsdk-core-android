@@ -29,9 +29,9 @@ import com.adobe.marketing.mobile.WrapperType
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
-import com.adobe.marketing.mobile.internal.utility.prettify
+import com.adobe.marketing.mobile.internal.util.prettify
+import com.adobe.marketing.mobile.util.EventDataUtils
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
-import com.adobe.marketing.mobile.utils.EventDataUtils
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue

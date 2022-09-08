@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.internal.utility.FileUtils
+import com.adobe.marketing.mobile.internal.util.FileUtils
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.DataStoring

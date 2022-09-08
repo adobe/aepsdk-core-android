@@ -14,7 +14,7 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
-import com.adobe.marketing.mobile.test.utility.buildJSONObject
+import com.adobe.marketing.mobile.test.util.buildJSONObject
 import org.json.JSONException
 import org.junit.Before
 import org.junit.Test

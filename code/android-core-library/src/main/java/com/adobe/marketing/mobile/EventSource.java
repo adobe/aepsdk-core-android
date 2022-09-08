@@ -10,9 +10,6 @@
  */
 package com.adobe.marketing.mobile;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Class to define the source of an {@code Event}
  *

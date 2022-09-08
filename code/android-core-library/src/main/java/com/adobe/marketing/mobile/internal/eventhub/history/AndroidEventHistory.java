@@ -17,7 +17,8 @@ import com.adobe.marketing.mobile.EventHistoryRequest;
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.utility.MapUtilsKt;
+import com.adobe.marketing.mobile.internal.util.MapUtilsKt;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

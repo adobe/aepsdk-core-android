@@ -1,0 +1,17 @@
+[
+  {
+    "condition":{
+      "type":"matcher",
+      "definition":{
+        "key":"key1",
+        "matcher":"eq",
+        "values":[
+          "values1"
+        ]
+      }
+    },
+    "consequences":[
+
+    ]
+  }
+]

@@ -13,8 +13,8 @@ package com.adobe.marketing.mobile;
 
 import androidx.annotation.NonNull;
 
-import com.adobe.marketing.mobile.internal.utility.MapExtensionsKt;
-import com.adobe.marketing.mobile.utils.EventDataUtils;
+import com.adobe.marketing.mobile.internal.util.MapExtensionsKt;
+import com.adobe.marketing.mobile.util.EventDataUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -136,25 +136,6 @@ public final class Event {
 			}
 
 			return event;
-		}
-
-		/**
-		 * Sets the data associated with this {@code Event}
-		 *
-		 * @param data {@link EventData} for this event
-		 * @return this Event {@link Builder}
-		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
-		 */
-		@Deprecated
-		Builder setData(final EventData data) {
-			throwIfAlreadyBuilt();
-			// Todo - Remove this method once all EventData usage is removed from Core.
-			try {
-				event.data = EventDataUtils.immutableClone(data.toObjectMap());
-			} catch (Exception ex) {
-				Log.error("Error", ex.toString());
-			}
-			return this;
 		}
 
 		/**

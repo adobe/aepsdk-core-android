@@ -15,7 +15,7 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
-import com.adobe.marketing.mobile.test.utility.readTestResources
+import com.adobe.marketing.mobile.test.util.readTestResources
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

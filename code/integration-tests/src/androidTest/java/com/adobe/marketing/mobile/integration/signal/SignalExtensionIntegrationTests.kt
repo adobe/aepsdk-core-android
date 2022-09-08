@@ -82,7 +82,7 @@ class SignalExtensionIntegrationTests {
 
     }
 
-    @Test(timeout = 200)
+    @Test
     fun testGetRequest() {
         val countDownLatch = CountDownLatch(1)
         networkMonitor = { url ->
@@ -105,10 +105,10 @@ class SignalExtensionIntegrationTests {
                     )
                 ).build()
         )
-        countDownLatch.await()
+        assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
     }
 
-    @Test(timeout = 200)
+    @Test
     fun testPostRequest() {
         val countDownLatch = CountDownLatch(1)
         networkMonitor = { url ->
@@ -131,8 +131,7 @@ class SignalExtensionIntegrationTests {
                     )
                 ).build()
         )
-        countDownLatch.await()
-
+        assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
     }
 
     @Test
@@ -171,7 +170,7 @@ class SignalExtensionIntegrationTests {
         assertFalse(signalRequestCaught)
     }
 
-    @Test(timeout = 200)
+    @Test
     fun testPii() {
         val countDownLatch = CountDownLatch(1)
         networkMonitor = { url ->
@@ -187,7 +186,7 @@ class SignalExtensionIntegrationTests {
         )
         Thread.sleep(100)
         MobileCore.collectPii(mapOf("name" to "aep"))
-        countDownLatch.await()
+        assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
     }
 
 }

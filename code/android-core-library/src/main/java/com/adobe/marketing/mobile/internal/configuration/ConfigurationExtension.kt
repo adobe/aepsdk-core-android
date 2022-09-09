@@ -195,7 +195,7 @@ internal class ConfigurationExtension : Extension {
         // registration completes.
         val initialConfigState = configurationStateManager.environmentAwareConfiguration
         if (initialConfigState.isNotEmpty()) {
-            publishConfigurationState(initialConfigState, null)
+            api.createSharedState(initialConfigState, null)
         }
 
         api.registerEventListener(
@@ -510,23 +510,6 @@ internal class ConfigurationExtension : Extension {
         )
             .setEventData(eventData).build()
         api.dispatch(event)
-    }
-
-    /**
-     * Publishes the state of [ConfigurationExtension] to [EventHub]
-     *
-     * @param state the configuration state that is to be published
-     * @param event the event (if any) to which the state is to be published as a response.
-     */
-    private fun publishConfigurationState(state: Map<String, Any?>, event: Event?) {
-        val successful = api.createSharedState(state, event)
-        if (!successful) {
-            Log.warning(
-                TAG,
-                TAG,
-                "Failed to update configuration state."
-            )
-        }
     }
 
     /**

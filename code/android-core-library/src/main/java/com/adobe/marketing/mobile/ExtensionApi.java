@@ -63,7 +63,7 @@ public abstract class ExtensionApi {
      *              state version
      * @return {@code boolean} indicating if the shared state was successfully set
      */
-    public abstract boolean createSharedState(@NonNull final Map<String, Object> state,
+    public abstract void createSharedState(@NonNull final Map<String, Object> state,
                                               @Nullable final Event event);
 
     /**
@@ -108,7 +108,7 @@ public abstract class ExtensionApi {
      *              state version
      * @return {@code boolean} indicating if the shared state was successfully set
      */
-    public abstract boolean createXDMSharedState(@NonNull final Map<String, Object> state,
+    public abstract void createXDMSharedState(@NonNull final Map<String, Object> state,
                                                  @Nullable final Event event);
 
     /**

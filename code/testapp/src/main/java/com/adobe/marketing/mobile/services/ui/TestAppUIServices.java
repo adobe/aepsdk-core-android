@@ -9,7 +9,14 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.services.ui;
+
+import com.adobe.marketing.mobile.services.ui.AlertSetting;
+import com.adobe.marketing.mobile.services.ui.AndroidUIService;
+import com.adobe.marketing.mobile.services.ui.FloatingButton;
+import com.adobe.marketing.mobile.services.ui.FloatingButtonView;
+import com.adobe.marketing.mobile.services.ui.FullscreenMessage;
+import com.adobe.marketing.mobile.services.ui.NotificationSetting;
 
 import java.util.Map;
 
@@ -23,23 +30,26 @@ public class TestAppUIServices {
 
 	public void showAlert(final String title, final String message, final String positiveButtonText,
 						  final String negativeButtonText) {
-		uiService.showAlert(title, message, positiveButtonText, negativeButtonText, null);
+		AlertSetting settings =  AlertSetting.build(title, message, positiveButtonText, negativeButtonText);
+		uiService.showAlert(settings, null);
 	}
 
 	public void showLocalNotification(final String identifier, final String content, final long fireDate,
 									  final int delaySeconds, final String deeplink, final Map<String, Object> userInfo,
 									  final String sound) {
-		uiService.showLocalNotification(identifier, content, fireDate, delaySeconds, deeplink, userInfo, sound);
+		NotificationSetting notificationSetting = NotificationSetting.build(identifier, content, fireDate, delaySeconds, deeplink, userInfo, sound, null);
+		uiService.showLocalNotification(notificationSetting);
 	}
 
 	public void showLocalNotification(final String identifier, final String content, final long fireDate,
 									  final int delaySeconds, final String deeplink, final Map<String, Object> userInfo,
 									  final String sound, final String title) {
-		uiService.showLocalNotification(identifier, content, fireDate, delaySeconds, deeplink, userInfo, sound, title);
+		NotificationSetting notificationSetting = NotificationSetting.build(identifier, content, fireDate, delaySeconds, deeplink, userInfo, sound, title);
+		uiService.showLocalNotification(notificationSetting);
 	}
 
 	public void showFullscreenMessage(final String html) {
-		UIService.UIFullScreenMessage fullScreenMessage = uiService.createFullscreenMessage(html, null);
+		FullscreenMessage fullScreenMessage = uiService.createFullscreenMessage(html, null, false, null);
 		fullScreenMessage.show();
 	}
 
@@ -48,12 +58,12 @@ public class TestAppUIServices {
 	}
 
 	public void showFloatingButton() {
-		UIService.FloatingButton floatingButtonManager = uiService.createFloatingButton(null);
+		FloatingButton floatingButtonManager = uiService.createFloatingButton(null);
 		floatingButtonManager.display();
 	}
 
 	public void hideFloatingButton() {
-		UIService.FloatingButton floatingButtonManager = uiService.createFloatingButton(null);
+		FloatingButton floatingButtonManager = uiService.createFloatingButton(null);
 		floatingButtonManager.remove();
 	}
 

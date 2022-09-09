@@ -176,17 +176,17 @@ internal class ExtensionContainer constructor(
     override fun createSharedState(
         state: MutableMap<String, Any?>,
         event: Event?
-    ): Boolean {
+    ) {
         val sharedStateName = this.sharedStateName ?: run {
             MobileCore.log(
                 LoggingMode.WARNING,
                 getTag(),
                 "ExtensionContainer is not fully initialized. createSharedState should not be called from Extension constructor"
             )
-            return false
+            return
         }
 
-        return EventHub.shared.createSharedState(
+        EventHub.shared.createSharedState(
             SharedStateType.STANDARD,
             sharedStateName,
             state,
@@ -231,17 +231,17 @@ internal class ExtensionContainer constructor(
     override fun createXDMSharedState(
         state: MutableMap<String, Any?>,
         event: Event?
-    ): Boolean {
+    ) {
         val sharedStateName = this.sharedStateName ?: run {
             MobileCore.log(
                 LoggingMode.WARNING,
                 getTag(),
                 "ExtensionContainer is not fully initialized. createXDMSharedState should not be called from Extension constructor"
             )
-            return false
+            return
         }
 
-        return EventHub.shared.createSharedState(SharedStateType.XDM, sharedStateName, state, event)
+        EventHub.shared.createSharedState(SharedStateType.XDM, sharedStateName, state, event)
     }
 
     override fun createPendingXDMSharedState(

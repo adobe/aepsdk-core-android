@@ -134,7 +134,7 @@ class DeviceInfoService implements DeviceInforming {
 
 	@Override
 	public String getDeviceManufacturer() {
-		return null;
+		return Build.MANUFACTURER;
 	}
 
 	/**

@@ -73,9 +73,8 @@ public class TestableExtensionApi extends ExtensionApi {
 	}
 
 	@Override
-	public boolean createSharedState(@NonNull Map<String, Object> state, Event event) {
+	public void createSharedState(@NonNull Map<String, Object> state, Event event) {
 		createdSharedState.add(state);
-		return true;
 	}
 
 	@Override
@@ -93,9 +92,8 @@ public class TestableExtensionApi extends ExtensionApi {
 	}
 
 	@Override
-	public boolean createXDMSharedState(@NonNull Map<String, Object> state, Event event) {
+	public void createXDMSharedState(@NonNull Map<String, Object> state, Event event) {
 		createdXDMSharedState.add(state);
-		return true;
 	}
 
 	@Override

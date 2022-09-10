@@ -133,8 +133,8 @@ public class LifecycleV1Extension {
     private String getAdvertisingIdentifier(final Event event) {
         SharedStateResult identitySharedState = extensionApi.getSharedState(LifecycleConstants.EventDataKeys.Identity.MODULE_NAME, event, false, SharedStateResolution.ANY);
 
-        if (identitySharedState != null && identitySharedState.status == SharedStateStatus.SET) {
-            return DataReader.optString(identitySharedState.value, LifecycleConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER, null);
+        if (identitySharedState != null && identitySharedState.getStatus() == SharedStateStatus.SET) {
+            return DataReader.optString(identitySharedState.getValue(), LifecycleConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER, null);
         }
         return null;
     }

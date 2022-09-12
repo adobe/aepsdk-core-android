@@ -474,12 +474,26 @@ internal class ConfigurationExtension : Extension {
 
         sharedStateResolver?.resolve(config)
 
-        dispatchConfigurationResponse(config, triggerEvent)
+        dispatchConfigurationResponse(config)
 
         val rulesReplaced = replaceRules(config, rulesSource)
         if (rulesSource == RulesSource.CACHE && !rulesReplaced) {
             configurationRulesManager.applyBundledRules(api)
         }
+    }
+
+    /**
+     * Dispatches a configuration response event
+     *
+     * @param eventData the content of the event data for the response event
+     */
+    private fun dispatchConfigurationResponse(eventData: Map<String, Any?>) {
+        val event = Event.Builder(
+            "Configuration Response Event",
+            EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT
+        ).setEventData(eventData).build()
+
+        api.dispatch(event)
     }
 
     /**
@@ -489,10 +503,16 @@ internal class ConfigurationExtension : Extension {
      * @param triggerEvent the [Event] to which the response is being dispatched
      */
     private fun dispatchConfigurationResponse(eventData: Map<String, Any?>, triggerEvent: Event?) {
-        val event = Event.Builder(
+        val builder = Event.Builder(
             "Configuration Response Event",
             EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT
-        ).setEventData(eventData).build()
+        ).setEventData(eventData)
+
+        val event: Event = if (triggerEvent == null) {
+            builder.build()
+        } else {
+            builder.inResponseToEvent(triggerEvent).build()
+        }
 
         api.dispatch(event)
     }

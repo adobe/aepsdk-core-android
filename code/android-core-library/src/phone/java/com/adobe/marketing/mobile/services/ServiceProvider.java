@@ -50,6 +50,8 @@ public class ServiceProvider {
     private UIService defaultUIService;
     private FullscreenMessageDelegate messageDelegate;
     private Logging defaultLoggingService;
+    private Logging overrideLoggingService;
+
 
     private ServiceProvider() {
         defaultNetworkService = new NetworkService();
@@ -103,8 +105,18 @@ public class ServiceProvider {
      * @return the current {@link Logging}
      */
     public Logging getLoggingService() {
-        return this.defaultLoggingService;
+        return overrideLoggingService != null ? overrideLoggingService : defaultLoggingService;
     }
+
+    /**
+     * Overrides the {@link Logging} service.
+     *
+     * @param loggingService the new {@link Logging} service which will override the default  {@link Logging} service
+     */
+    public void setLoggingService(Logging loggingService) {
+        overrideLoggingService = loggingService;
+    }
+
 
     /**
      * Gets the {@link DataStoring} service
@@ -201,6 +213,8 @@ public class ServiceProvider {
         defaultNetworkService = new NetworkService();
         dataQueueService = new DataQueueService();
         defaultDataStoreService = new LocalDataStoreService();
+        defaultLoggingService = new AndroidLoggingService();
+        defaultUIService = new AndroidUIService();
 
         overrideDeviceInfoService = null;
         overrideNetworkService = null;

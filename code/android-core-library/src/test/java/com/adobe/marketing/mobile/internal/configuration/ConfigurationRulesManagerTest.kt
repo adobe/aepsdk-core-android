@@ -503,7 +503,14 @@ class ConfigurationRulesManagerTest {
         mockFileUtils.verify {
             FileUtils.extractFromZip(
                 any(),
-                eq(mockCacheDirPath + "adbdownloadcache")
+                eq(
+                    mockCacheDirPath +
+                        ConfigurationRulesManager.ADOBE_CACHE_DIR +
+                        File.separator +
+                        ConfigurationRulesManager.RULES_CACHE_FOLDER +
+                        File.separator +
+                        ConfigurationRulesManager.BUNDLED_RULES_DIR
+                )
             )
         }
         verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
@@ -512,14 +519,24 @@ class ConfigurationRulesManagerTest {
     @Test
     fun `Apply Bundled Rules - Bundled Asset is valid`() {
         val mockCacheDirPath = this::class.java.classLoader?.getResource("")?.path
-        val bundledRulesPath = File(mockCacheDirPath, "adbdownloadcache/${ConfigurationRulesManager.BUNDLED_RULES_DIR}")
-        bundledRulesPath.mkdirs()
+        val bundledRulesDir = File(
+            mockCacheDirPath,
+            ConfigurationRulesManager.ADOBE_CACHE_DIR +
+                File.separator +
+                ConfigurationRulesManager.RULES_CACHE_FOLDER +
+                File.separator +
+                ConfigurationRulesManager.BUNDLED_RULES_DIR
+        )
+        bundledRulesDir.mkdirs()
         val mockApplicationCacheDir = mock(File::class.java)
         `when`(mockApplicationCacheDir.absolutePath).thenReturn(mockCacheDirPath)
         `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(mockApplicationCacheDir)
         val mockBundledRulesStream = mock(InputStream::class.java)
         `when`(mockDeviceInfoService.getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME))
             .thenReturn(mockBundledRulesStream)
+
+        val bundledRulesDestinationPathCaptor: KArgumentCaptor<File> = argumentCaptor()
+
         mockFileUtils.`when`<Any> {
             FileUtils.readInputStreamIntoFile(
                 any(),
@@ -531,10 +548,21 @@ class ConfigurationRulesManagerTest {
 
         assertTrue(configurationRulesManager.applyBundledRules(mockExtensionApi))
 
+        mockFileUtils.verify {
+            FileUtils.readInputStreamIntoFile(
+                bundledRulesDestinationPathCaptor.capture(),
+                eq(mockBundledRulesStream),
+                eq(false)
+            )
+        }
+        assertEquals(
+            bundledRulesDir.path + File.separator + ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME,
+            bundledRulesDestinationPathCaptor.firstValue.path
+        )
         verify(mockDeviceInfoService).getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)
         verify(mockLaunchRulesEvaluator).replaceRules(any())
 
-        bundledRulesPath.deleteRecursively()
+        bundledRulesDir.deleteRecursively()
     }
 
     @After

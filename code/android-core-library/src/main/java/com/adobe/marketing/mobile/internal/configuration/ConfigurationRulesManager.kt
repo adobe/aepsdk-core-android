@@ -44,8 +44,8 @@ internal class ConfigurationRulesManager(
         internal const val RULES_CACHE_FOLDER = "configRules"
         internal const val RULES_JSON_FILE_NAME = "rules.json"
         internal const val BUNDLED_RULES_FILE_NAME = "ADBMobileConfig-rules.zip"
-        internal const val BUNDLED_RULES_DIR = "ADBMobileConfig-rules"
-        private const val ADOBE_CACHE_DIR = "adbdownloadcache"
+        internal const val BUNDLED_RULES_DIR = "bundledRules"
+        internal const val ADOBE_CACHE_DIR = "adbdownloadcache"
     }
 
     private val configDataStore: NamedCollection? =
@@ -151,7 +151,11 @@ internal class ConfigurationRulesManager(
             return false
         }
 
-        val cacheDir = File(applicationCacheDir, ADOBE_CACHE_DIR)
+        // Represents the directory where bundled rules will be cached for reading and extracting.
+        val cacheDir = File(
+            applicationCacheDir,
+            ADOBE_CACHE_DIR + File.separator + RULES_CACHE_FOLDER + File.separator + BUNDLED_RULES_DIR
+        )
 
         MobileCore.log(LoggingMode.VERBOSE, LOG_TAG, "Cache dir is: $cacheDir")
         if (!cacheDir.exists() && !cacheDir.mkdirs()) {
@@ -202,7 +206,7 @@ internal class ConfigurationRulesManager(
             "$LOG_TAG - Applying bundled rules."
         )
 
-        return replaceRules(File(cacheDir.path + File.separator + BUNDLED_RULES_DIR), api)
+        return replaceRules(cacheDir, api)
     }
 
     /**
@@ -218,7 +222,7 @@ internal class ConfigurationRulesManager(
             MobileCore.log(
                 LoggingMode.VERBOSE,
                 ConfigurationExtension.TAG,
-                "$LOG_TAG - Invalid rules directory: $rulesDirectory. Cannot apply cached rules"
+                "$LOG_TAG - Invalid rules directory: $rulesDirectory. Cannot apply rules"
             )
             return false
         }

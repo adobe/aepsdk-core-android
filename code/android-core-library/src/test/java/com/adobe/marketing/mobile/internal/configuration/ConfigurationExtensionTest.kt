@@ -973,7 +973,6 @@ class ConfigurationExtensionTest {
         assertEquals(expectedEventData, capturedEvent.eventData)
         if (triggerEvent != null) {
             assertNotNull(triggerEvent)
-            assertEquals(triggerEvent.uniqueIdentifier, capturedEvent.responseID)
         }
     }
 

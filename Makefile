@@ -43,6 +43,10 @@ functional-test:
 		(./code/gradlew -p code/android-lifecycle-library uninstallPhoneDebugAndroidTest)
 		(./code/gradlew -p code/android-lifecycle-library connectedPhoneDebugAndroidTest)
 
+integration-test:
+		(./code/gradlew -p code/integration-tests uninstallDebugAndroidTest)
+		(./code/gradlew -p code/integration-tests connectedDebugAndroidTest)
+
 
 javadoc:
 		(./code/gradlew -p code/android-core-library dokkaJavadoc)

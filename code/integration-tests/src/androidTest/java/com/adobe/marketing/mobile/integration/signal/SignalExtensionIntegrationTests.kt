@@ -166,7 +166,7 @@ class SignalExtensionIntegrationTests {
                     )
                 ).build()
         )
-        countDownLatch.await(10, TimeUnit.MILLISECONDS)
+        assertFalse(countDownLatch.await(10, TimeUnit.MILLISECONDS))
         assertFalse(signalRequestCaught)
     }
 

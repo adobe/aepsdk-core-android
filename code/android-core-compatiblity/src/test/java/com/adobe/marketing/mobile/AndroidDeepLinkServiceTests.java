@@ -26,6 +26,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.adobe.marketing.mobile.internal.context.App;
+
 
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)

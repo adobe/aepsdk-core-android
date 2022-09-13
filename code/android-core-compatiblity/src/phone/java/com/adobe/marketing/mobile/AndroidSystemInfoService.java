@@ -21,7 +21,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.util.DisplayMetrics;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+
+import com.adobe.marketing.mobile.internal.context.App;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;

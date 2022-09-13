@@ -46,6 +46,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import com.adobe.marketing.mobile.internal.context.App;
 import com.adobe.marketing.mobile.internal.util.StringUtils;
 
 @SuppressWarnings("all")

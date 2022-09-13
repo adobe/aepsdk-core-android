@@ -18,6 +18,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.adobe.marketing.mobile.internal.context.App;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
@@ -108,21 +109,7 @@ final public class MobileCore {
             // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
         }
 
-        App.setApplication(application);
-
-        com.adobe.marketing.mobile.internal.context.App.getInstance().initializeApp(
-                new com.adobe.marketing.mobile.internal.context.App.AppContextProvider() {
-                    @Override
-                    public Context getAppContext() {
-                        return App.getAppContext();
-                    }
-
-                    @Override
-                    public Activity getCurrentActivity() {
-                        return App.getCurrentActivity();
-                    }
-                }
-        );
+        App.setApplication(application, MobileCore::collectLaunchInfo);
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
@@ -501,8 +488,7 @@ final public class MobileCore {
      *
      * @param activity current {@link Activity} reference.
      */
-    static void collectLaunchInfo(final Activity activity) {
-        // Todo: This is not currently public. Check if this has to be made public.
+    private static void collectLaunchInfo(final Activity activity) {
         DataMarshaller marshaller = new DataMarshaller();
         marshaller.marshal(activity);
         final Map<String, Object> marshalledData = marshaller.getData();

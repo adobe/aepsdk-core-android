@@ -16,6 +16,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.adobe.marketing.mobile.internal.context.App;
+
 import java.util.Map;
 
 @SuppressLint("CommitPrefEdits")

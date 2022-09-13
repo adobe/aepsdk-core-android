@@ -9,12 +9,15 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.context;
 
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
+import androidx.annotation.Nullable;
+
+import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
@@ -25,7 +28,7 @@ import java.lang.ref.WeakReference;
  * the current {@link Activity}. Also provides the method to get the orientation of the device, and the
  * methods to get and set icons for notifications.
  */
-class App {
+public class App {
 
     private static final String DATASTORE_NAME = "ADOBE_MOBILE_APP_STATE";
     private static final String SMALL_ICON_RESOURCE_ID_KEY = "SMALL_ICON_RESOURCE_ID";
@@ -43,20 +46,21 @@ class App {
      * Registers {@code Application.ActivityLifecycleCallbacks} to the {@code Application} instance,
      * and the context variable.
      *
-     * @param app the current {@code Application}
+     * @param app               the current {@code Application}
+     * @param onActivityResumed invoked when ActivityLifecycleCallbacks.onActivityResumed() is called
      */
-    static void setApplication(Application app) {
+    public static void setApplication(Application app, @Nullable SimpleCallback<Activity> onActivityResumed) {
         if (application != null && application.get() != null) {
             return;
         }
 
-        application = new WeakReference<Application>(app);
-        AppLifecycleListener.getInstance().registerActivityLifecycleCallbacks(app);
+        application = new WeakReference<>(app);
+        AppLifecycleListener.getInstance().registerActivityLifecycleCallbacks(app, onActivityResumed);
         setAppContext(app);
         ServiceProvider.getInstance().setContext(app);
     }
 
-    static Application getApplication() {
+    public static Application getApplication() {
         return application != null ? application.get() : null;
     }
 
@@ -65,7 +69,7 @@ class App {
      *
      * @param context the current {@code Context}
      */
-    static void setAppContext(Context context) {
+    public static void setAppContext(Context context) {
         appContext = context != null ? context.getApplicationContext() : null;
     }
 
@@ -74,7 +78,7 @@ class App {
      *
      * @return the current {@code Context}
      */
-    static Context getAppContext() {
+    public static Context getAppContext() {
         return appContext;
     }
 
@@ -98,7 +102,7 @@ class App {
      *
      * @return the current {@code Activity}
      */
-    static Activity getCurrentActivity() {
+    public static Activity getCurrentActivity() {
         if (currentActivity == null) {
             return null;
         }
@@ -111,7 +115,7 @@ class App {
      *
      * @return a {@code int} value indicates the orientation. 0 for unknown, 1 for portrait and 2 for landscape
      */
-    static int getCurrentOrientation() {
+    public static int getCurrentOrientation() {
         if (currentActivity == null || currentActivity.get() == null) {
             return 0; //neither landscape nor portrait
         }
@@ -124,7 +128,7 @@ class App {
      *
      * @return a {@code int} value if it has been set, otherwise -1
      */
-    static int getSmallIconResourceID() {
+    public static int getSmallIconResourceID() {
         if (smallIconResourceID == -1) {
             NamedCollection dataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(DATASTORE_NAME);
 
@@ -141,7 +145,7 @@ class App {
      *
      * @param resourceID the resource Id of the icon
      */
-    static void setSmallIconResourceID(int resourceID) {
+    public static void setSmallIconResourceID(int resourceID) {
         smallIconResourceID = resourceID;
         NamedCollection dataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(DATASTORE_NAME);
 
@@ -155,7 +159,7 @@ class App {
      *
      * @return a {@code int} value if it has been set, otherwise -1
      */
-    static int getLargeIconResourceID() {
+    public static int getLargeIconResourceID() {
         if (largeIconResourceID == -1) {
             NamedCollection dataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(DATASTORE_NAME);
             if (dataStore != null) {
@@ -171,7 +175,7 @@ class App {
      *
      * @param resourceID the resource Id of the icon
      */
-    static void setLargeIconResourceID(int resourceID) {
+    public static void setLargeIconResourceID(int resourceID) {
         largeIconResourceID = resourceID;
         NamedCollection dataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(DATASTORE_NAME);
         if (dataStore != null) {
@@ -185,7 +189,7 @@ class App {
      * Method clears the {@link Application}, {@link Context}, {@link Activity},
      * notification icon resources and clears the icons in local persistent storage.
      */
-    static void clearAppResources() {
+    public static void clearAppResources() {
         if (appContext != null) {
             appContext = null;
         }

@@ -28,6 +28,8 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.internal.context.App;
+
 @SuppressWarnings("all")
 @RunWith(AndroidJUnit4.class)
 public class AndroidLocalStorageServiceTests {

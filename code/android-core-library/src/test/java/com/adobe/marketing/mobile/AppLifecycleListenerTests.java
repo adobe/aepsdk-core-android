@@ -22,6 +22,8 @@ import android.content.ComponentCallbacks2;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.internal.context.AppLifecycleListener;
+
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class AppLifecycleListenerTests {

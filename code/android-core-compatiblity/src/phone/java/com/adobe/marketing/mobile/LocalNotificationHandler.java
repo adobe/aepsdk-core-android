@@ -48,6 +48,7 @@ import static com.adobe.marketing.mobile.AndroidUIService.NOTIFICATION_SOUND_KEY
 import static com.adobe.marketing.mobile.AndroidUIService.NOTIFICATION_TITLE;
 import static com.adobe.marketing.mobile.AndroidUIService.NOTIFICATION_USER_INFO_KEY;
 
+import com.adobe.marketing.mobile.internal.context.App;
 import com.adobe.marketing.mobile.internal.util.StringUtils;
 
 @SuppressWarnings("unchecked")

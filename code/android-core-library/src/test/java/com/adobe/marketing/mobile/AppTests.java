@@ -31,6 +31,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.adobe.marketing.mobile.internal.context.App;
+
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class AppTests {

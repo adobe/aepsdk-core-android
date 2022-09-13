@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile;
 
 import android.content.Context;
 
+import com.adobe.marketing.mobile.internal.context.App;
+
 import junit.framework.Assert;
 
 import org.json.JSONException;

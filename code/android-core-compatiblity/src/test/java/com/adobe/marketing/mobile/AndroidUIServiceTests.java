@@ -21,8 +21,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;

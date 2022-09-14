@@ -63,42 +63,6 @@ public class ServiceProvider {
         defaultLoggingService = new AndroidLoggingService();
     }
 
-//    /**
-//     * Sets the {@link Context} of the application
-//     *
-//     * @param applicationContext android application {@link Context}
-//     */
-//    public void setContext(final Context applicationContext) {
-//        this.applicationContext = new WeakReference<>(applicationContext);
-//    }
-//
-//    /**
-//     * Sets the current {@link Activity}
-//     *
-//     * @param activity the current {@link Activity}
-//     */
-//    public void setCurrentActivity(final Activity activity) {
-//        this.currentActivity = new WeakReference<>(activity);
-//    }
-//
-//    /**
-//     * Returns the {@code Context} of the application
-//     *
-//     * @return the {@code Context} of the application
-//     */
-//    Context getApplicationContext() {
-//        return this.applicationContext != null ? this.applicationContext.get() : null;
-//    }
-//
-//    /**
-//     * Returns the current {@code Activity}
-//     *
-//     * @return the current {@code Activity}
-//     */
-//    Activity getCurrentActivity() {
-//        return this.currentActivity != null ? this.currentActivity.get() : null;
-//    }
-
     /**
      * Returns the current {@link Logging}
      *

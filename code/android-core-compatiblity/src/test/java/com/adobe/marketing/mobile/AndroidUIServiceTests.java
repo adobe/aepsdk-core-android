@@ -43,31 +43,6 @@ public class AndroidUIServiceTests {
 
     private AndroidUIService androidUIService;
 
-//    private static AppContextProvider appContextProvider = new AppContextProvider();
-
-//	private static class AppContextProvider implements App.AppContextProvider {
-//
-//		private Context context;
-//
-//		private Activity currentActivity;
-//		public void setCurrentActivity(Activity currentActivity) {
-//			this.currentActivity = currentActivity;
-//		}
-//		public void setContext(Context context) {
-//			this.context = context;
-//		}
-//
-//		@Override
-//		public Context getAppContext() {
-//			return this.context;
-//		}
-//
-//		@Override
-//		public Activity getCurrentActivity() {
-//			return this.currentActivity;
-//		}
-//	}
-
     @Before
     public void setup() {
         androidUIService = new AndroidUIService();

@@ -17,6 +17,7 @@ import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.internal.util.FileUtils;
+import com.adobe.marketing.mobile.services.internal.context.App;
 
 import java.io.File;
 import java.util.HashMap;
@@ -84,7 +85,7 @@ class DataQueueService implements DataQueuing {
 			return null;
 		}
 
-		Context appContext = ServiceProvider.getInstance().getApplicationContext();
+		Context appContext = App.getAppContext();
 
 		if(appContext == null) {
 			MobileCore.log(LoggingMode.WARNING,

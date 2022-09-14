@@ -13,8 +13,7 @@ package com.adobe.marketing.mobile;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.adobe.marketing.mobile.internal.context.AppLifecycleListener;
-import com.adobe.marketing.mobile.internal.context.AppStateListener;
+import com.adobe.marketing.mobile.services.internal.context.AppLifecycleListener;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.AlertSetting;
 import com.adobe.marketing.mobile.services.ui.NotificationSetting;
@@ -46,7 +45,7 @@ class AndroidUIService implements UIService {
 
     MessagesMonitor messagesMonitor = MessagesMonitor.getInstance();
 
-    private final Map<AppStateListener, com.adobe.marketing.mobile.internal.context.AppStateListener> listenerMap = new HashMap<>();
+    private final Map<AppStateListener, com.adobe.marketing.mobile.services.internal.context.AppStateListener> listenerMap = new HashMap<>();
 
     @Override
     public void showAlert(String title, String message, String positiveButtonText, String negativeButtonText,
@@ -123,7 +122,7 @@ class AndroidUIService implements UIService {
         if (listener == null) {
             return;
         }
-        listenerMap.put(listener, new com.adobe.marketing.mobile.internal.context.AppStateListener() {
+        listenerMap.put(listener, new com.adobe.marketing.mobile.services.internal.context.AppStateListener() {
             @Override
             public void onForeground() {
                 listener.onForeground();

@@ -1,4 +1,4 @@
-package com.adobe.marketing.mobile.internal.context;
+package com.adobe.marketing.mobile.services.internal.context;
 
 /**
  * Listener for app state transition events.

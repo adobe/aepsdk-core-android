@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile;
 
 import android.content.Context;
 
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.App;
 
 import junit.framework.Assert;
 

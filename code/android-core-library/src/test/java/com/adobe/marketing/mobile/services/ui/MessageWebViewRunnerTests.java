@@ -22,6 +22,8 @@ import android.webkit.WebSettings;
 import android.widget.FrameLayout;
 
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
@@ -31,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -52,8 +55,6 @@ public class MessageWebViewRunnerTests {
     private Context mockContext;
     @Mock
     private Application mockApp;
-    @Mock
-    private App.AppContextProvider mockAppContextProvider;
 
     private MessageWebViewRunner messageFragmentRunner;
     private MessageSettings aepMessageSettings;
@@ -64,35 +65,38 @@ public class MessageWebViewRunnerTests {
     @Before
     public void setup() throws Exception {
         MobileCore.setApplication(mockApp);
-        when(mockAppContextProvider.getAppContext()).thenReturn(mockContext);
-        App.getInstance().initializeApp(mockAppContextProvider);
-        gestureMap.put(MessageGesture.BACKGROUND_TAP, "adbinapp://dismiss");
-        gestureMap.put(MessageGesture.SWIPE_LEFT, "adbinapp://dismiss?interaction=negative");
-        gestureMap.put(MessageGesture.SWIPE_RIGHT, "adbinapp://dismiss?interaction=positive");
-        gestureMap.put(MessageGesture.SWIPE_UP, "adbinapp://dismiss");
-        gestureMap.put(MessageGesture.SWIPE_DOWN, "adbinapp://dismiss");
-        aepMessageSettings = new MessageSettings();
-        aepMessageSettings.setWidth(100);
-        aepMessageSettings.setHeight(100);
-        aepMessageSettings.setBackdropColor("808080");
-        aepMessageSettings.setBackdropOpacity(0.5f);
-        aepMessageSettings.setCornerRadius(70.0f);
-        aepMessageSettings.setDismissAnimation(MessageAnimation.FADE);
-        aepMessageSettings.setDisplayAnimation(MessageAnimation.CENTER);
-        aepMessageSettings.setGestures(gestureMap);
-        aepMessageSettings.setHorizontalAlign(MessageAlignment.CENTER);
-        aepMessageSettings.setHorizontalInset(5);
-        aepMessageSettings.setVerticalAlign(MessageAlignment.TOP);
-        aepMessageSettings.setVerticalInset(10);
-        when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
-        when(mockAEPMessage.getMessageFragment()).thenReturn(mockMessageFragment);
-        when(mockAEPMessage.getMessageHtml()).thenReturn("some html");
+        try (MockedStatic<App> appMock = Mockito.mockStatic(App.class)) {
+            appMock.when(() -> App.getAppContext())
+                    .thenReturn(mockContext);
+            gestureMap.put(MessageGesture.BACKGROUND_TAP, "adbinapp://dismiss");
+            gestureMap.put(MessageGesture.SWIPE_LEFT, "adbinapp://dismiss?interaction=negative");
+            gestureMap.put(MessageGesture.SWIPE_RIGHT, "adbinapp://dismiss?interaction=positive");
+            gestureMap.put(MessageGesture.SWIPE_UP, "adbinapp://dismiss");
+            gestureMap.put(MessageGesture.SWIPE_DOWN, "adbinapp://dismiss");
+            aepMessageSettings = new MessageSettings();
+            aepMessageSettings.setWidth(100);
+            aepMessageSettings.setHeight(100);
+            aepMessageSettings.setBackdropColor("808080");
+            aepMessageSettings.setBackdropOpacity(0.5f);
+            aepMessageSettings.setCornerRadius(70.0f);
+            aepMessageSettings.setDismissAnimation(MessageAnimation.FADE);
+            aepMessageSettings.setDisplayAnimation(MessageAnimation.CENTER);
+            aepMessageSettings.setGestures(gestureMap);
+            aepMessageSettings.setHorizontalAlign(MessageAlignment.CENTER);
+            aepMessageSettings.setHorizontalInset(5);
+            aepMessageSettings.setVerticalAlign(MessageAlignment.TOP);
+            aepMessageSettings.setVerticalInset(10);
+            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageFragment()).thenReturn(mockMessageFragment);
+            when(mockAEPMessage.getMessageHtml()).thenReturn("some html");
 
-        when(mockViewGroup.getWidth()).thenReturn(200);
-        when(mockViewGroup.getHeight()).thenReturn(400);
-        mockAEPMessage.rootViewGroup = mockViewGroup;
-        mockAEPMessage.fragmentFrameLayout = mockFrameLayout;
-        mockMessageWebview = null;
+            when(mockViewGroup.getWidth()).thenReturn(200);
+            when(mockViewGroup.getHeight()).thenReturn(400);
+            mockAEPMessage.rootViewGroup = mockViewGroup;
+            mockAEPMessage.fragmentFrameLayout = mockFrameLayout;
+            mockMessageWebview = null;
+        }
+
     }
 
     @Test

@@ -28,7 +28,7 @@ import android.widget.FrameLayout;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;

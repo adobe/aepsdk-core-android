@@ -29,147 +29,148 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.URIHandler;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class AndroidUIServiceTests {
-	@Mock
-	private MessagesMonitor mockMessagesMonitor;
-	@Mock
-	private Activity mockActivity;
+    @Mock
+    private MessagesMonitor mockMessagesMonitor;
+    @Mock
+    private Activity mockActivity;
 
-	private AndroidUIService androidUIService;
+    private AndroidUIService androidUIService;
 
-	private static AppContextProvider appContextProvider = new AppContextProvider();
+//    private static AppContextProvider appContextProvider = new AppContextProvider();
 
-	private static class AppContextProvider implements App.AppContextProvider {
+//	private static class AppContextProvider implements App.AppContextProvider {
+//
+//		private Context context;
+//
+//		private Activity currentActivity;
+//		public void setCurrentActivity(Activity currentActivity) {
+//			this.currentActivity = currentActivity;
+//		}
+//		public void setContext(Context context) {
+//			this.context = context;
+//		}
+//
+//		@Override
+//		public Context getAppContext() {
+//			return this.context;
+//		}
+//
+//		@Override
+//		public Activity getCurrentActivity() {
+//			return this.currentActivity;
+//		}
+//	}
 
-		private Context context;
+    @Before
+    public void setup() {
+        androidUIService = new AndroidUIService();
+    }
 
-		private Activity currentActivity;
-		public void setCurrentActivity(Activity currentActivity) {
-			this.currentActivity = currentActivity;
-		}
-		public void setContext(Context context) {
-			this.context = context;
-		}
+    @After
+    public void cleanup() {
+        FullscreenMessageActivity.message = null;
+    }
 
-		@Override
-		public Context getAppContext() {
-			return this.context;
-		}
-
-		@Override
-		public Activity getCurrentActivity() {
-			return this.currentActivity;
-		}
-	}
-
-	@Before
-	public void setup() {
-		androidUIService = new AndroidUIService();
-		App.getInstance().initializeApp(appContextProvider);
-	}
-
-	@After
-	public void cleanup() {
-		FullscreenMessageActivity.message = null;
-	}
-	@Test
-	public void fullscreenMessageIsShown_When_NoOtherMessagesAreDisplayed() {
-		//setup
-		when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
-		androidUIService.messagesMonitor = mockMessagesMonitor;
+    @Test
+    public void fullscreenMessageIsShown_When_NoOtherMessagesAreDisplayed() {
+        //setup
+        when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
+        androidUIService.messagesMonitor = mockMessagesMonitor;
 
 
-		appContextProvider.setCurrentActivity(mockActivity);
-		//test
-		UIService.UIFullScreenMessage fullScreenMessage =  androidUIService.createFullscreenMessage("", null);
-		fullScreenMessage.show();
-		//verify
-		verify(mockActivity).startActivity(any(Intent.class));
-		assertEquals(FullscreenMessageActivity.message, fullScreenMessage);
+        App.setCurrentActivity(mockActivity);
+        //test
+        UIService.UIFullScreenMessage fullScreenMessage = androidUIService.createFullscreenMessage("", null);
+        fullScreenMessage.show();
+        //verify
+        verify(mockActivity).startActivity(any(Intent.class));
+        assertEquals(FullscreenMessageActivity.message, fullScreenMessage);
 
-	}
+    }
 
-	@Test
-	public void fullscreenMessageIsNotShown_When_OtherMessagesAreDisplayed() {
-		//setup
-		when(mockMessagesMonitor.isDisplayed()).thenReturn(true);
-		androidUIService.messagesMonitor = mockMessagesMonitor;
+    @Test
+    public void fullscreenMessageIsNotShown_When_OtherMessagesAreDisplayed() {
+        //setup
+        when(mockMessagesMonitor.isDisplayed()).thenReturn(true);
+        androidUIService.messagesMonitor = mockMessagesMonitor;
 
-		appContextProvider.setCurrentActivity(mockActivity);
-		//test
-		UIService.UIFullScreenMessage fullScreenMessage =  androidUIService.createFullscreenMessage("", null);
-		fullScreenMessage.show();
-		//verify
-		verify(mockActivity, times(0)).startActivity(any(Intent.class));
-		assertNull(FullscreenMessageActivity.message);
+        App.setCurrentActivity(mockActivity);
+        //test
+        UIService.UIFullScreenMessage fullScreenMessage = androidUIService.createFullscreenMessage("", null);
+        fullScreenMessage.show();
+        //verify
+        verify(mockActivity, times(0)).startActivity(any(Intent.class));
+        assertNull(FullscreenMessageActivity.message);
 
-	}
+    }
 
-	@Test
-	public void messageMonitorDismissedCalled_When_FullscreenMessageRemovedCalled() {
-		//Setup
-		androidUIService.messagesMonitor = mockMessagesMonitor;
-		UIService.UIFullScreenMessage uiFullScreenMessage =
-			androidUIService.createFullscreenMessage("", null);
-		//test
-		uiFullScreenMessage.remove();
-		//verify
-		verify(mockMessagesMonitor).dismissed();
+    @Test
+    public void messageMonitorDismissedCalled_When_FullscreenMessageRemovedCalled() {
+        //Setup
+        androidUIService.messagesMonitor = mockMessagesMonitor;
+        UIService.UIFullScreenMessage uiFullScreenMessage =
+                androidUIService.createFullscreenMessage("", null);
+        //test
+        uiFullScreenMessage.remove();
+        //verify
+        verify(mockMessagesMonitor).dismissed();
 
-	}
+    }
 
-	@Test
-	public void messageMonitorDismissedCalled_When_FullscreenMessageDismissCalled() {
-		//Setup
-		androidUIService.messagesMonitor = mockMessagesMonitor;
-		UIService.UIFullScreenMessage uiFullScreenMessage =
-			androidUIService.createFullscreenMessage("", null);
-		//test
-		((AndroidFullscreenMessage)uiFullScreenMessage).dismissed();
-		//verify
-		verify(mockMessagesMonitor).dismissed();
+    @Test
+    public void messageMonitorDismissedCalled_When_FullscreenMessageDismissCalled() {
+        //Setup
+        androidUIService.messagesMonitor = mockMessagesMonitor;
+        UIService.UIFullScreenMessage uiFullScreenMessage =
+                androidUIService.createFullscreenMessage("", null);
+        //test
+        ((AndroidFullscreenMessage) uiFullScreenMessage).dismissed();
+        //verify
+        verify(mockMessagesMonitor).dismissed();
 
-	}
+    }
 
-	@Test
-	public void messageMonitorDisplayedCalled_When_FullscreenMessageShown() {
-		//Setup
-		when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
-		androidUIService.messagesMonitor = mockMessagesMonitor;
+    @Test
+    public void messageMonitorDisplayedCalled_When_FullscreenMessageShown() {
+        //Setup
+        when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
+        androidUIService.messagesMonitor = mockMessagesMonitor;
 
-		appContextProvider.setCurrentActivity(mockActivity);
+        App.setCurrentActivity(mockActivity);
 
-		UIService.UIFullScreenMessage uiFullScreenMessage =
-			androidUIService.createFullscreenMessage("", null);
-		//test
-		uiFullScreenMessage.show();
-		//verify
-		verify(mockMessagesMonitor).displayed();
+        UIService.UIFullScreenMessage uiFullScreenMessage =
+                androidUIService.createFullscreenMessage("", null);
+        //test
+        uiFullScreenMessage.show();
+        //verify
+        verify(mockMessagesMonitor).displayed();
 
-	}
+    }
 
-	public void setURIHandlerUsage(){
-		ServiceProvider.getInstance().setURIHandler(new URIHandler() {
-			@Override
-			public Intent getURIDestination(String uri) {
-				if (uri !=null && uri.startsWith("my_company_links_prefix")){
-					Context applicationContext = null;
-					Intent intent = new Intent(applicationContext, MyCompanyLinkHandlerClass.class);
-					return intent;
-				}
-				return null;
-			}
-		});
-	}
+    public void setURIHandlerUsage() {
+        ServiceProvider.getInstance().setURIHandler(new URIHandler() {
+            @Override
+            public Intent getURIDestination(String uri) {
+                if (uri != null && uri.startsWith("my_company_links_prefix")) {
+                    Context applicationContext = null;
+                    Intent intent = new Intent(applicationContext, MyCompanyLinkHandlerClass.class);
+                    return intent;
+                }
+                return null;
+            }
+        });
+    }
 
 
 }
-class MyCompanyLinkHandlerClass{
+
+class MyCompanyLinkHandlerClass {
 
 }

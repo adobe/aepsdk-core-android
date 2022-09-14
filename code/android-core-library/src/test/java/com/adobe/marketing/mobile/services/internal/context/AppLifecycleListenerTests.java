@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.services.internal.context;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,7 +22,7 @@ import android.content.ComponentCallbacks2;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
-import com.adobe.marketing.mobile.internal.context.AppLifecycleListener;
+import com.adobe.marketing.mobile.services.internal.context.AppLifecycleListener;
 
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -33,11 +33,11 @@ public class AppLifecycleListenerTests {
 	AppLifecycleListener appLifecycleListener;
 
 	boolean isOnForeground = false;
-	UIService.AppStateListener listener;
+	AppStateListener listener;
 	@Before
 	public void beforeEach() {
 		appLifecycleListener = AppLifecycleListener.getInstance();
-		listener = new UIService.AppStateListener() {
+		listener = new AppStateListener() {
 
 			@Override
 			public void onForeground() {

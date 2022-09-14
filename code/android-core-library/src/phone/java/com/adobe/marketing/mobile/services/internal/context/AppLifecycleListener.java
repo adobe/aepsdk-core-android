@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.internal.context;
+package com.adobe.marketing.mobile.services.internal.context;
 
 import android.app.Activity;
 import android.app.Application;
@@ -25,7 +25,6 @@ import android.content.res.Configuration;
 import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.CoreConstants;
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.Log;
 
 /**

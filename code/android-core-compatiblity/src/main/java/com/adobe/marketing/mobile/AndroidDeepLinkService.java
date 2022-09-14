@@ -15,7 +15,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.App;
 
 /**
  * The Android implementation for for {@link DeepLinkService}.

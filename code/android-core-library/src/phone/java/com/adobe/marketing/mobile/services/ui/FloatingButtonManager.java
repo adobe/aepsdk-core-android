@@ -27,7 +27,7 @@ import static android.view.View.GONE;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.App;
 
 class FloatingButtonManager implements FloatingButton {
     private static final String LOG_TAG = FloatingButtonManager.class.getSimpleName();

@@ -9,15 +9,15 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.internal.context;
+package com.adobe.marketing.mobile.services.internal.context;
 
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
@@ -49,7 +49,7 @@ public class App {
      * @param app               the current {@code Application}
      * @param onActivityResumed invoked when ActivityLifecycleCallbacks.onActivityResumed() is called
      */
-    public static void setApplication(Application app, @Nullable SimpleCallback<Activity> onActivityResumed) {
+    public static void initializeApp(Application app, @Nullable SimpleCallback<Activity> onActivityResumed) {
         if (application != null && application.get() != null) {
             return;
         }
@@ -57,7 +57,6 @@ public class App {
         application = new WeakReference<>(app);
         AppLifecycleListener.getInstance().registerActivityLifecycleCallbacks(app, onActivityResumed);
         setAppContext(app);
-        ServiceProvider.getInstance().setContext(app);
     }
 
     public static Application getApplication() {
@@ -69,6 +68,7 @@ public class App {
      *
      * @param context the current {@code Context}
      */
+    //TODO: this method is also called in LocalNotificationHandler class, we can make it package private when cleaning up the LocalNotificationHandler class.
     public static void setAppContext(Context context) {
         appContext = context != null ? context.getApplicationContext() : null;
     }
@@ -87,14 +87,14 @@ public class App {
      *
      * @param activity the current {@code Activity}
      */
-    static void setCurrentActivity(Activity activity) {
+    @VisibleForTesting
+    public static void setCurrentActivity(Activity activity) {
         if (activity == null) {
             return;
         }
 
-        currentActivity = new WeakReference<Activity>(activity);
+        currentActivity = new WeakReference<>(activity);
         setAppContext(activity);
-        ServiceProvider.getInstance().setCurrentActivity(currentActivity.get());
     }
 
     /**

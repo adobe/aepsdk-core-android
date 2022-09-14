@@ -22,6 +22,7 @@ import android.widget.FrameLayout;
 
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 
 import org.junit.Assert;
@@ -30,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -46,8 +48,6 @@ public class MessageFragmentTests {
     private MessageSettings mockAEPMessageSettings;
     @Mock
     private Application mockApplication;
-    @Mock
-    private App mockApp;
     @Mock
     private Activity mockActivity;
     @Mock
@@ -83,17 +83,6 @@ public class MessageFragmentTests {
         messageFragment = new MessageFragment();
         mockAEPMessage.fullScreenMessageDelegate = mockFullscreenMessageDelegate;
         messageFragment.setAEPMessage(mockAEPMessage);
-        App.getInstance().initializeApp(new App.AppContextProvider() {
-            @Override
-            public Context getAppContext() {
-                return mockApplication;
-            }
-
-            @Override
-            public Activity getCurrentActivity() {
-                return mockActivity;
-            }
-        });
     }
 
     @Test
@@ -127,14 +116,16 @@ public class MessageFragmentTests {
         mockAEPMessage.frameLayoutResourceId = new Random().nextInt();
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
         messageFragment.gestureDetector = mockGestureDetector;
-//        MobileCore.setApplication(mockApplication);
-        ServiceProvider.getInstance().setCurrentActivity(mockActivity);
-        Mockito.when(mockApp.getCurrentActivity()).thenReturn(mockActivity);
-        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt())).thenReturn(mockFrameLayout);
-        // test
-        messageFragment.onResume();
-        // verify
-        Mockito.verify(mockAEPMessage, Mockito.times(1)).showInRootViewGroup();
+        try (MockedStatic<App> appMock = Mockito.mockStatic(App.class)) {
+            appMock.when(() -> App.getCurrentActivity())
+                    .thenReturn(mockActivity);
+            Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt())).thenReturn(mockFrameLayout);
+            // test
+            messageFragment.onResume();
+            // verify
+            Mockito.verify(mockAEPMessage, Mockito.times(1)).showInRootViewGroup();
+        }
+
     }
 
     @Test
@@ -160,11 +151,15 @@ public class MessageFragmentTests {
         messageFragment.gestureDetector = mockGestureDetector;
         MobileCore.setApplication(mockApplication);
         // set the current activity to null
-        Mockito.when(mockApp.getCurrentActivity()).thenReturn(mockActivity);
-        // test
-        messageFragment.onResume();
-        // verify
-        Mockito.verify(mockAEPMessage, Mockito.times(0)).showInRootViewGroup();
+        try (MockedStatic<App> appMock = Mockito.mockStatic(App.class)) {
+            appMock.when(() -> App.getCurrentActivity())
+                    .thenReturn(mockActivity);
+            // test
+            messageFragment.onResume();
+            // verify
+            Mockito.verify(mockAEPMessage, Mockito.times(0)).showInRootViewGroup();
+        }
+
     }
 
     @Test

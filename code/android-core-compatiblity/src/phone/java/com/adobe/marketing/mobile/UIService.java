@@ -10,8 +10,6 @@
  */
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.context.AppState;
-
 import java.util.Map;
 
 /**
@@ -166,7 +164,7 @@ interface UIService {
         BACKGROUND,
         UNKNOWN;
 
-        static AppState from(com.adobe.marketing.mobile.internal.context.AppState appState) {
+        static AppState from(com.adobe.marketing.mobile.services.internal.context.AppState appState) {
             switch (appState) {
                 case FOREGROUND:
                     return AppState.FOREGROUND;

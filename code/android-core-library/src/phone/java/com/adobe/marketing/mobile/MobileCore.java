@@ -13,12 +13,12 @@ package com.adobe.marketing.mobile;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
@@ -109,7 +109,7 @@ final public class MobileCore {
             // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
         }
 
-        App.setApplication(application, MobileCore::collectLaunchInfo);
+        App.initializeApp(application, MobileCore::collectLaunchInfo);
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
@@ -488,7 +488,8 @@ final public class MobileCore {
      *
      * @param activity current {@link Activity} reference.
      */
-    private static void collectLaunchInfo(final Activity activity) {
+    @VisibleForTesting
+    static void collectLaunchInfo(final Activity activity) {
         DataMarshaller marshaller = new DataMarshaller();
         marshaller.marshal(activity);
         final Map<String, Object> marshalledData = marshaller.getData();

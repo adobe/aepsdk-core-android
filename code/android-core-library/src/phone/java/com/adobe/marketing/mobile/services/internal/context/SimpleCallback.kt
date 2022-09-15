@@ -8,10 +8,9 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.services.internal.context;
+package com.adobe.marketing.mobile.services.internal.context
 
-//TODO: move it to the utility package if used in other places.
-@FunctionalInterface
-public interface SimpleCallback<T> {
-    void call(T t);
+// TODO: move it to the utility package if used in other places.
+fun interface SimpleCallback<T> {
+    fun call(t: T)
 }

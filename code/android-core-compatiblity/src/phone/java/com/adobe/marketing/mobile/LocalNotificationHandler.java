@@ -104,7 +104,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 			return;
 		}
 
-		Activity currentActivity = App.getCurrentActivity();
+		Activity currentActivity = App.INSTANCE.getCurrentActivity();
 		Intent resumeIntent;
 
 		// if we have a deep link, we need to create a new Intent because the old intents are using setClass (overrides opening a deeplink)
@@ -155,7 +155,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 				return;
 			}
 
-			App.setAppContext(context.getApplicationContext());
+			App.INSTANCE.setAppContext(context.getApplicationContext());
 			AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
 			String appName = systemInfoService.getApplicationName();
 			Object notification;
@@ -318,7 +318,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 	}
 
 	private int getSmallIcon() {
-		return App.getSmallIconResourceID() != -1 ? App.getSmallIconResourceID() :
+		return App.INSTANCE.getSmallIconResourceID() != -1 ? App.INSTANCE.getSmallIconResourceID() :
 			   android.R.drawable.sym_def_app_icon;
 	}
 
@@ -330,7 +330,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 
 		Drawable iconDrawable = null;
 		// first see if we have a user defined one
-		int largeIconResourceId = App.getLargeIconResourceID();
+		int largeIconResourceId = App.INSTANCE.getLargeIconResourceID();
 
 		if (largeIconResourceId != -1) {
 			if (Build.VERSION.SDK_INT > 20) {

@@ -59,7 +59,7 @@ public class AppTests {
         when(mockSharedPreferences.edit()).thenReturn(mockPreferenceEditor);
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
         when(mockContext.getSharedPreferences(anyString(), anyInt())).thenReturn(mockSharedPreferences);
-        App.setAppContext(mockContext);
+        App.INSTANCE.setAppContext(mockContext);
     }
 
     @Test
@@ -77,7 +77,7 @@ public class AppTests {
         });
 
         //Test
-        App.setLargeIconResourceID(expectedValueStored);
+        App.INSTANCE.setLargeIconResourceID(expectedValueStored);
 
     }
 
@@ -96,7 +96,7 @@ public class AppTests {
         });
 
         //Test
-        App.setSmallIconResourceID(expectedValueStored);
+        App.INSTANCE.setSmallIconResourceID(expectedValueStored);
 
     }
 
@@ -104,7 +104,7 @@ public class AppTests {
     public void testSetLargeIconResourceId_ValidIdSetTwice() {
         //Setup
         final int expectedValueStored = 123456;
-        App.setLargeIconResourceID(111111);
+        App.INSTANCE.setLargeIconResourceID(111111);
 
         when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_LARGE_ICON),
                 anyInt())).thenAnswer(new Answer<SharedPreferences.Editor>() {
@@ -117,7 +117,7 @@ public class AppTests {
         });
 
         //Test
-        App.setLargeIconResourceID(expectedValueStored);
+        App.INSTANCE.setLargeIconResourceID(expectedValueStored);
 
     }
 
@@ -125,7 +125,7 @@ public class AppTests {
     public void testSetSmallIconResourceId_ValidIdSetTwice() {
         //Setup
         final int expectedValueStored = 123456;
-        App.setSmallIconResourceID(11111);
+        App.INSTANCE.setSmallIconResourceID(11111);
 
         when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_SMALL_ICON),
                 anyInt())).thenAnswer(new Answer<SharedPreferences.Editor>() {
@@ -138,18 +138,8 @@ public class AppTests {
         });
 
         //Test
-        App.setSmallIconResourceID(expectedValueStored);
+        App.INSTANCE.setSmallIconResourceID(expectedValueStored);
 
     }
 
-    @Test
-    public void testClearAppResourcesClearsApplicationReference() {
-        App.initializeApp(mockApplication, null);
-        assertNotNull(App.getApplication());
-        String mockAppClass = mockApplication.getClass().toString();
-        String retrievedAppClass = App.getApplication().getClass().toString();
-        assertEquals(mockAppClass, retrievedAppClass);
-        App.clearAppResources();
-        assertNull(App.getApplication());
-    }
 }

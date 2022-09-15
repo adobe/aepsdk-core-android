@@ -116,15 +116,12 @@ public class MessageFragmentTests {
         mockAEPMessage.frameLayoutResourceId = new Random().nextInt();
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
         messageFragment.gestureDetector = mockGestureDetector;
-        try (MockedStatic<App> appMock = Mockito.mockStatic(App.class)) {
-            appMock.when(() -> App.getCurrentActivity())
-                    .thenReturn(mockActivity);
-            Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt())).thenReturn(mockFrameLayout);
-            // test
-            messageFragment.onResume();
-            // verify
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).showInRootViewGroup();
-        }
+        App.INSTANCE.setCurrentActivity(mockActivity);
+        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt())).thenReturn(mockFrameLayout);
+        // test
+        messageFragment.onResume();
+        // verify
+        Mockito.verify(mockAEPMessage, Mockito.times(1)).showInRootViewGroup();
 
     }
 
@@ -150,15 +147,11 @@ public class MessageFragmentTests {
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
         messageFragment.gestureDetector = mockGestureDetector;
         MobileCore.setApplication(mockApplication);
-        // set the current activity to null
-        try (MockedStatic<App> appMock = Mockito.mockStatic(App.class)) {
-            appMock.when(() -> App.getCurrentActivity())
-                    .thenReturn(mockActivity);
-            // test
-            messageFragment.onResume();
-            // verify
-            Mockito.verify(mockAEPMessage, Mockito.times(0)).showInRootViewGroup();
-        }
+        App.INSTANCE.setCurrentActivity(mockActivity);
+        // test
+        messageFragment.onResume();
+        // verify
+        Mockito.verify(mockAEPMessage, Mockito.times(0)).showInRootViewGroup();
 
     }
 

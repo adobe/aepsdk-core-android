@@ -48,7 +48,7 @@ class FloatingButtonManager implements FloatingButton {
 
     @Override
     public void display() {
-        final Activity currentActivity = App.getCurrentActivity();
+        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
             MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Current activity), will not display button.",
@@ -266,7 +266,7 @@ class FloatingButtonManager implements FloatingButton {
 
     @Override
     public void remove() {
-        Activity activity = App.getCurrentActivity();
+        Activity activity = App.INSTANCE.getCurrentActivity();
         removeFloatingButtonFromActivity(activity);
         displayFloatingButtonAcrossActivities = false;
     }
@@ -281,7 +281,7 @@ class FloatingButtonManager implements FloatingButton {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Activity activity = App.getCurrentActivity();
+                Activity activity = App.INSTANCE.getCurrentActivity();
 
                 if (activity == null) {
                     MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Activity), cannot remove button!",

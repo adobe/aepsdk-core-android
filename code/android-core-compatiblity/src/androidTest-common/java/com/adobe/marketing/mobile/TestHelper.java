@@ -228,7 +228,7 @@ public class TestHelper {
 		InputStream zipFile = null;
 
 		try {
-			zipFile = App.getAppContext().getAssets().open(path);
+			zipFile = App.INSTANCE.getAppContext().getAssets().open(path);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

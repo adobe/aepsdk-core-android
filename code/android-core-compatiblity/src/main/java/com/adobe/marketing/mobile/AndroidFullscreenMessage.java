@@ -101,7 +101,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
             return;
         }
 
-        final Activity currentActivity = App.getCurrentActivity();
+        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
             Log.debug(TAG, "%s (current activity), failed to show the fullscreen message.", Log.UNEXPECTED_NULL_VALUE);
@@ -167,7 +167,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
      * Creates and adds the {@link #webView} to the root view group of {@link #messageFullScreenActivity}.
      */
     void showInRootViewGroup() {
-        final int currentOrientation = App.getCurrentOrientation();
+        final int currentOrientation = ServiceProvider.getInstance().getDeviceInfoService().getCurrentOrientation();
 
         if (isVisible && orientationWhenShown == currentOrientation) {
             return;
@@ -270,7 +270,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
                     method.invoke(settings, false);
                 }
 
-                Context appContext = App.getAppContext();
+                Context appContext = App.INSTANCE.getAppContext();
                 File cacheDirectory = null;
 
                 if (appContext != null) {

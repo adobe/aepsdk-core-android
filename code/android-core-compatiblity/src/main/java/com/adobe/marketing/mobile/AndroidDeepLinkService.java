@@ -30,7 +30,7 @@ class AndroidDeepLinkService implements DeepLinkService {
 			return;
 		}
 
-		final Activity currentActivity = App.getCurrentActivity();
+		final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
 		if (currentActivity == null) {
 			Log.debug(LOG_TAG, "%s (current activity), unable to trigger deep link", Log.UNEXPECTED_NULL_VALUE);

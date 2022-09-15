@@ -102,7 +102,7 @@ class MessageWebViewRunner implements Runnable {
                 return;
             }
 
-            final Context context = App.getAppContext();
+            final Context context = App.INSTANCE.getAppContext();
 
             if (context == null) {
                 MobileCore.log(LoggingMode.WARNING, TAG, "Failed to show the message, the app context is null.");
@@ -147,7 +147,7 @@ class MessageWebViewRunner implements Runnable {
                 method.invoke(webviewSettings, false);
             }
 
-            final Context appContext = App.getAppContext();
+            final Context appContext = App.INSTANCE.getAppContext();
             File cacheDirectory = null;
 
             if (appContext != null) {
@@ -258,7 +258,7 @@ class MessageWebViewRunner implements Runnable {
         }
 
         // create a new view to apply a background dimming effect behind a displayed message
-        backdrop = new View(App.getAppContext());
+        backdrop = new View(App.INSTANCE.getAppContext());
         backdrop.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         backdrop.setBackgroundColor(Color.parseColor(settings.getBackdropColor()));
         backdrop.setAlpha(settings.getBackdropOpacity());

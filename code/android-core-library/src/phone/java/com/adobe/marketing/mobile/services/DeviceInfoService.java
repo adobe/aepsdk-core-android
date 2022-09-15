@@ -501,11 +501,11 @@ class DeviceInfoService implements DeviceInforming {
     }
 
     private Context getApplicationContext() {
-        return App.getAppContext();
+        return App.INSTANCE.getAppContext();
     }
 
     private Activity getCurrentActivity() {
-        return App.getCurrentActivity();
+        return App.INSTANCE.getCurrentActivity();
     }
 
 

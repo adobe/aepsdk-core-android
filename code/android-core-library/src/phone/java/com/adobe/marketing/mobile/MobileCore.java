@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
@@ -109,7 +110,7 @@ final public class MobileCore {
             // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
         }
 
-        App.initializeApp(application, MobileCore::collectLaunchInfo);
+        ServiceProvider.getInstance().initializeApp(application, MobileCore::collectLaunchInfo);
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
@@ -124,8 +125,9 @@ final public class MobileCore {
      * the {@code Application} process was destroyed.
      */
     @Nullable
+    @Deprecated
     public static Application getApplication() {
-        return App.getApplication();
+        return App.INSTANCE.getApplication();
     }
 
     /**
@@ -365,7 +367,7 @@ final public class MobileCore {
      * @param resourceID the resource Id of the icon
      */
     public static void setSmallIconResourceID(final int resourceID) {
-        App.setSmallIconResourceID(resourceID);
+        App.INSTANCE.setSmallIconResourceID(resourceID);
     }
 
     /**
@@ -374,7 +376,7 @@ final public class MobileCore {
      * @param resourceID the resource Id of the icon
      */
     public static void setLargeIconResourceID(final int resourceID) {
-        App.setLargeIconResourceID(resourceID);
+        App.INSTANCE.setLargeIconResourceID(resourceID);
     }
 
     // ========================================================

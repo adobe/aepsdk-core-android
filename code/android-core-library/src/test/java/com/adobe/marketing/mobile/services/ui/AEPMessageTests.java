@@ -88,8 +88,8 @@ public class AEPMessageTests {
         Mockito.when(mockAEPMessageSettings.getGestures()).thenReturn(gestureMap);
         Mockito.when(mockMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_DOWN);
         MobileCore.setApplication(mockApplication);
-        App.setAppContext(mockApplication);
-        App.setCurrentActivity(mockActivity);
+        App.INSTANCE.setAppContext(mockApplication);
+        App.INSTANCE.setCurrentActivity(mockActivity);
     }
 
     // AEPMessage creation tests
@@ -269,27 +269,23 @@ public class AEPMessageTests {
         Mockito.when(mockFullscreenMessageDelegate.shouldShowMessage(ArgumentMatchers.any(AEPMessage.class))).thenReturn(true);
         // set the current activity to null
 
-        App.setAppContext(mockApplication);
-        try (MockedStatic<App> appMock = Mockito.mockStatic(App.class)) {
-            appMock.when(() -> App.getCurrentActivity())
-                    .thenReturn(null);
-            try {
-                message = new AEPMessage("html",
-                        mockFullscreenMessageDelegate, false, mockMessageMonitor, mockAEPMessageSettings);
-            } catch (MessageCreationException ex) {
-                Assert.fail(ex.getMessage());
-            }
-            message.rootViewGroup = mockViewGroup;
-            message.webView = mockWebView;
-            message.messageFragment = mockMessageFragment;
-
-            // test
-            message.show();
-            // verify
-            Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
-            Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
+        App.INSTANCE.setAppContext(mockApplication);
+        App.INSTANCE.setCurrentActivity(null);
+        try {
+            message = new AEPMessage("html",
+                    mockFullscreenMessageDelegate, false, mockMessageMonitor, mockAEPMessageSettings);
+        } catch (MessageCreationException ex) {
+            Assert.fail(ex.getMessage());
         }
+        message.rootViewGroup = mockViewGroup;
+        message.webView = mockWebView;
+        message.messageFragment = mockMessageFragment;
 
+        // test
+        message.show();
+        // verify
+        Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
     }
 
     // openUrl tests
@@ -317,28 +313,25 @@ public class AEPMessageTests {
     @Test
     public void urlNotOpened_When_ActivityIsNull() {
         // setup
-        App.setAppContext(mockApplication);
-        try (MockedStatic<App> appMock = Mockito.mockStatic(App.class)) {
-            appMock.when(() -> App.getCurrentActivity())
-                    .thenReturn(null);
-            String url = "https://www.adobe.com";
+        App.INSTANCE.setAppContext(mockApplication);
+        App.INSTANCE.setCurrentActivity(null);
+        String url = "https://www.adobe.com";
 
-            try {
-                message = new AEPMessage("html",
-                        mockFullscreenMessageDelegate, false, mockMessageMonitor, mockAEPMessageSettings);
-            } catch (MessageCreationException ex) {
-                Assert.fail(ex.getMessage());
-            }
-
-            message.rootViewGroup = mockViewGroup;
-            message.webView = mockWebView;
-            message.messageFragment = mockMessageFragment;
-
-            // test
-            message.openUrl(url);
-            // verify
-            Mockito.verify(mockActivity, Mockito.times(0)).startActivity(ArgumentMatchers.any(Intent.class));
+        try {
+            message = new AEPMessage("html",
+                    mockFullscreenMessageDelegate, false, mockMessageMonitor, mockAEPMessageSettings);
+        } catch (MessageCreationException ex) {
+            Assert.fail(ex.getMessage());
         }
+
+        message.rootViewGroup = mockViewGroup;
+        message.webView = mockWebView;
+        message.messageFragment = mockMessageFragment;
+
+        // test
+        message.openUrl(url);
+        // verify
+        Mockito.verify(mockActivity, Mockito.times(0)).startActivity(ArgumentMatchers.any(Intent.class));
 
     }
 

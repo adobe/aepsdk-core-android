@@ -39,7 +39,7 @@ public class AndroidLocalStorageServiceTests {
 	@Before
 	public void beforeEach() {
 		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		App.setAppContext(context.getApplicationContext());
+		App.INSTANCE.setAppContext(context.getApplicationContext());
 		androidLocalStorageService = new AndroidLocalStorageService();
 		androidSharedPreferences = androidLocalStorageService.getDataStore("AndroidLocalStorageServiceTests");
 		androidSharedPreferences.removeAll();

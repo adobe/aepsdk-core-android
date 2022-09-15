@@ -38,7 +38,7 @@ class AndroidDataStore implements LocalStorageService.DataStore {
 	 * @return  AndroidDataStore created DataStore object
 	 */
 	static AndroidDataStore createDataStore(String dataStoreName) {
-		Context appContext = App.getAppContext();
+		Context appContext = App.INSTANCE.getAppContext();
 
 		if (appContext == null || dataStoreName == null || dataStoreName.isEmpty()) {
 			return null;
@@ -59,7 +59,7 @@ class AndroidDataStore implements LocalStorageService.DataStore {
 	 * @param dataStoreName the name of the DataStore
 	 */
 	private AndroidDataStore(String dataStoreName) {
-		sharedPreferences = App.getAppContext().getSharedPreferences(dataStoreName, 0);
+		sharedPreferences = App.INSTANCE.getAppContext().getSharedPreferences(dataStoreName, 0);
 
 		if (sharedPreferences != null) {
 			sharedPreferencesEditor = sharedPreferences.edit();

@@ -57,7 +57,7 @@ public class AndroidDeepLinkServiceTests {
 
 	@Test
 	public void startActivity_When_UrlIsValid() throws Exception {
-		App.setCurrentActivity(mockActivity);
+		App.INSTANCE.setCurrentActivity(mockActivity);
 		final ArgumentCaptor<Intent> captor = ArgumentCaptor.forClass(Intent.class);
 
 		deepLinkService.triggerDeepLink("test");

@@ -60,7 +60,7 @@ public class AndroidUIServiceTests {
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
 
-        App.setCurrentActivity(mockActivity);
+        App.INSTANCE.setCurrentActivity(mockActivity);
         //test
         UIService.UIFullScreenMessage fullScreenMessage = androidUIService.createFullscreenMessage("", null);
         fullScreenMessage.show();
@@ -76,7 +76,7 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(true);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
-        App.setCurrentActivity(mockActivity);
+        App.INSTANCE.setCurrentActivity(mockActivity);
         //test
         UIService.UIFullScreenMessage fullScreenMessage = androidUIService.createFullscreenMessage("", null);
         fullScreenMessage.show();
@@ -118,7 +118,7 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
-        App.setCurrentActivity(mockActivity);
+        App.INSTANCE.setCurrentActivity(mockActivity);
 
         UIService.UIFullScreenMessage uiFullScreenMessage =
                 androidUIService.createFullscreenMessage("", null);

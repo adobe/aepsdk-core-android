@@ -108,14 +108,14 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
 
         // initialize the gesture detector and listener
         webViewGestureListener = new WebViewGestureListener(this);
-        gestureDetector = new GestureDetector(App.getAppContext(), webViewGestureListener);
+        gestureDetector = new GestureDetector(App.INSTANCE.getAppContext(), webViewGestureListener);
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        final Activity currentActivity = App.getCurrentActivity();
+        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null || currentActivity.findViewById(message.frameLayoutResourceId) == null) {
             MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (frame layout), failed to show the message.");

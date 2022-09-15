@@ -63,7 +63,7 @@ public class AndroidUIService implements UIService {
             return;
         }
 
-        final Activity currentActivity = App.getCurrentActivity();
+        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
             MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (current activity), unable to show alert",
@@ -168,7 +168,7 @@ public class AndroidUIService implements UIService {
     @SuppressLint("TrulyRandom")
     @Override
     public void showLocalNotification(final NotificationSetting notificationSetting) {
-        final Context appContext = App.getAppContext();
+        final Context appContext = App.INSTANCE.getAppContext();
 
         if (appContext == null) {
             MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (application context), unable to show local notification",
@@ -232,7 +232,7 @@ public class AndroidUIService implements UIService {
 
     @Override
     public boolean showUrl(final String url) {
-        final Activity currentActivity = App.getCurrentActivity();
+        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
             MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (current activity), could not open URL %s",
@@ -280,7 +280,7 @@ public class AndroidUIService implements UIService {
 
     @Override
     public FloatingButton createFloatingButton(FloatingButtonListener buttonListener) {
-        Activity currentActivity = App.getCurrentActivity();
+        Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
             MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (current activity), no button created.",

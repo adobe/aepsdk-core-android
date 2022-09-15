@@ -32,7 +32,7 @@ class LocalDataStoreService implements DataStoring {
             return null;
         }
 
-        Context appContext = App.getAppContext();
+        Context appContext = App.INSTANCE.getAppContext();
 
         if (appContext == null) {
             MobileCore.log(LoggingMode.ERROR, TAG,

@@ -8,20 +8,8 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.services.internal.context;
+package com.adobe.marketing.mobile.services.internal.context
 
-/**
- * Listener for app state transition events.
- */
-public interface AppStateListener {
-    /**
-     * invoked when the application transitions into the AppState.FOREGROUND state.
-     */
-    void onForeground();
-
-    /**
-     * invoked when the application transitions into the AppState.BACKGROUND state.
-     */
-    void onBackground();
-
+internal enum class AppState {
+    FOREGROUND, BACKGROUND, UNKNOWN
 }

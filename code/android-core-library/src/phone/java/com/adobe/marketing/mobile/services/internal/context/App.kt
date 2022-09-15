@@ -51,6 +51,7 @@ internal object App {
      * @param application               the current `Application`
      * @param onActivityResumed invoked when ActivityLifecycleCallbacks.onActivityResumed() is called
      */
+    // TODO: we can refactor the "onActivityResumed" parameter to a LifecycleListener interface later when we want to listen to other app actions.
     @JvmName("initializeApp")
     internal fun initializeApp(
         application: Application,

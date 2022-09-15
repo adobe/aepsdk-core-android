@@ -67,6 +67,7 @@ public class ServiceProvider {
         App.INSTANCE.initializeApp(app, onActivityResumed);
     }
 
+    //TODO: expose a new service [AppInfoService] when we need to expose more methods in App.
     public Context getApplicationContext() {
         return App.INSTANCE.getAppContext();
     }

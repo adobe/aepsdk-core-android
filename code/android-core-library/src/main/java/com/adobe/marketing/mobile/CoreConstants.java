@@ -11,94 +11,104 @@
 
 package com.adobe.marketing.mobile;
 
-final class CoreConstants {
+public final class CoreConstants {
 
-	private CoreConstants() {}
+    public final static String CORE_EXTENSION_NAME = "mobile-core";
 
-	static class EventDataKeys {
+    private CoreConstants() {
+    }
 
-		private EventDataKeys() {}
+    static class EventDataKeys {
 
-		/**
-		 * Holds {@code EventData} keys for the {@code Analytics} module.
-		 */
-		static final class Analytics {
-			static final String TRACK_ACTION     = "action";
-			static final String TRACK_STATE      = "state";
-			static final String CONTEXT_DATA     = "contextdata";
+        private EventDataKeys() {
+        }
 
-			private Analytics() {}
-		}
+        /**
+         * Holds {@code EventData} keys for the {@code Analytics} module.
+         */
+        static final class Analytics {
+            static final String TRACK_ACTION = "action";
+            static final String TRACK_STATE = "state";
+            static final String CONTEXT_DATA = "contextdata";
 
-		/**
-		 * Holds {@code EventData} keys for the {@code Configuration} module.
-		 */
-		public static final class Configuration {
-			static final String GLOBAL_CONFIG_PRIVACY            = "global.privacy";
+            private Analytics() {
+            }
+        }
 
-			// Configuration EventData Keys
-			static final String CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID			= "config.appId";
-			static final String CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH		= "config.filePath";
-			static final String CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE		= "config.assetFile";
-			static final String CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG			= "config.update";
-			static final String CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG = "config.clearUpdates";
-			static final String CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG 		= "config.getData";
-			static final String CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS 	= "config.allIdentifiers";
+        /**
+         * Holds {@code EventData} keys for the {@code Configuration} module.
+         */
+        public static final class Configuration {
+            static final String GLOBAL_CONFIG_PRIVACY = "global.privacy";
 
-			private Configuration() {}
-		}
+            // Configuration EventData Keys
+            static final String CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID = "config.appId";
+            static final String CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH = "config.filePath";
+            static final String CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE = "config.assetFile";
+            static final String CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG = "config.update";
+            static final String CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG = "config.clearUpdates";
+            static final String CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG = "config.getData";
+            static final String CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS = "config.allIdentifiers";
 
-		/**
-		 * Holds {@code EventData} keys for the {@code Identity} module.
-		 */
-		public static final class Identity {
-			/*
-			 * Event Data key for setting advertising identifier when creating Request Identity event.
-			 * Also, Event Data key for reading advertising identifier from Response Identity event dispatched by the module.
-			 * */
-			static final String ADVERTISING_IDENTIFIER = "advertisingidentifier";
+            private Configuration() {
+            }
+        }
 
-			/*
-			 * Event Data key for setting push identifier when creating Request Identity event.
-			 * Also, Event Data key for reading push identifier from Response Identity event dispatched by the module.
-			 * */
-			static final String PUSH_IDENTIFIER = "pushidentifier";
+        /**
+         * Holds {@code EventData} keys for the {@code Identity} module.
+         */
+        public static final class Identity {
+            /*
+             * Event Data key for setting advertising identifier when creating Request Identity event.
+             * Also, Event Data key for reading advertising identifier from Response Identity event dispatched by the module.
+             * */
+            static final String ADVERTISING_IDENTIFIER = "advertisingidentifier";
 
-			private Identity() {}
-		}
+            /*
+             * Event Data key for setting push identifier when creating Request Identity event.
+             * Also, Event Data key for reading push identifier from Response Identity event dispatched by the module.
+             * */
+            static final String PUSH_IDENTIFIER = "pushidentifier";
 
-		/**
-		 * Holds {@code EventData} keys for the {@code Lifecycle} module.
-		 */
-		public static final class Lifecycle {
-			static final String ADDITIONAL_CONTEXT_DATA = "additionalcontextdata";
-			static final String LIFECYCLE_ACTION_KEY = "action";
-			static final String LIFECYCLE_START = "start";
-			static final String LIFECYCLE_PAUSE = "pause";
+            private Identity() {
+            }
+        }
 
-			private Lifecycle() {}
-		}
+        /**
+         * Holds {@code EventData} keys for the {@code Lifecycle} module.
+         */
+        public static final class Lifecycle {
+            static final String ADDITIONAL_CONTEXT_DATA = "additionalcontextdata";
+            static final String LIFECYCLE_ACTION_KEY = "action";
+            static final String LIFECYCLE_START = "start";
+            static final String LIFECYCLE_PAUSE = "pause";
 
-		/**
-		 * Holds {@code EventData} keys for the {@code RulesEngine} module.
-		 */
-		static final class RuleEngine {
-			/**
-			 * Event Data key for marking an event to force download rules.
-			 */
-			static final String RULES_REQUEST_CONTENT_DOWNLOAD_RULES = "download_rules";
+            private Lifecycle() {
+            }
+        }
 
-			private RuleEngine() {}
-		}
+        /**
+         * Holds {@code EventData} keys for the {@code RulesEngine} module.
+         */
+        static final class RuleEngine {
+            /**
+             * Event Data key for marking an event to force download rules.
+             */
+            static final String RULES_REQUEST_CONTENT_DOWNLOAD_RULES = "download_rules";
 
-		/**
-		 * Holds {@code EventData} keys for the {@code Signal} module.
-		 */
-		static final class Signal {
-			static final String SIGNAL_CONTEXT_DATA = "contextdata";
+            private RuleEngine() {
+            }
+        }
 
-			private Signal() {}
-		}
-	}
+        /**
+         * Holds {@code EventData} keys for the {@code Signal} module.
+         */
+        static final class Signal {
+            static final String SIGNAL_CONTEXT_DATA = "contextdata";
+
+            private Signal() {
+            }
+        }
+    }
 
 }

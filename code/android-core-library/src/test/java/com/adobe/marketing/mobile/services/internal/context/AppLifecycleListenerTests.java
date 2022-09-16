@@ -9,18 +9,23 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.services.internal.context;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import android.app.Activity;
 import android.content.ComponentCallbacks2;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+
+import com.adobe.marketing.mobile.services.internal.context.AppLifecycleListener;
 
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -30,12 +35,15 @@ public class AppLifecycleListenerTests {
 	public TestName name = new TestName();
 	AppLifecycleListener appLifecycleListener;
 
+	@Mock
+    private Activity mockedActivity;
+
 	boolean isOnForeground = false;
-	UIService.AppStateListener listener;
+	AppStateListener listener;
 	@Before
 	public void beforeEach() {
 		appLifecycleListener = AppLifecycleListener.getInstance();
-		listener = new UIService.AppStateListener() {
+		listener = new AppStateListener() {
 
 			@Override
 			public void onForeground() {
@@ -59,38 +67,38 @@ public class AppLifecycleListenerTests {
 
 	@Test
 	public void isOnForeground_When_onActivityResumedIsCalled() {
-		appLifecycleListener.onActivityResumed(null);
+		appLifecycleListener.onActivityResumed(mockedActivity);
 		assertTrue(isOnForeground);
 	}
 
 	@Test
 	public void isOnBackground_When_onActivityResumeAndTrimMemoryIsCalled() {
-		appLifecycleListener.onActivityResumed(null);
+		appLifecycleListener.onActivityResumed(mockedActivity);
 		appLifecycleListener.onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN);
 		assertFalse(isOnForeground);
 	}
 
 	@Test
 	public void isOnForeground_When_onActivityResumeAndTrimMemoryIsCalledWithWrongValue() {
-		appLifecycleListener.onActivityResumed(null);
+		appLifecycleListener.onActivityResumed(mockedActivity);
 		appLifecycleListener.onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN - 1);
 		assertTrue(isOnForeground);
 	}
 
 	@Test
 	public void isOnForeground_When_onActivityResumeAndTrimMemoryIsCalledThenStartedAndResumed() {
-		appLifecycleListener.onActivityResumed(null);
+		appLifecycleListener.onActivityResumed(mockedActivity);
 		appLifecycleListener.onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN);
 		assertFalse(isOnForeground);
-		appLifecycleListener.onActivityResumed(null);
+		appLifecycleListener.onActivityResumed(mockedActivity);
 		assertTrue(isOnForeground);
 	}
 
 	@Test
 	public void isOnForeground_When_onActivityResumedIsCalledRightAfterOnActivityPaused() {
-		appLifecycleListener.onActivityResumed(null);
+		appLifecycleListener.onActivityResumed(mockedActivity);
 		assertTrue(isOnForeground);
-		appLifecycleListener.onActivityResumed(null);
+		appLifecycleListener.onActivityResumed(mockedActivity);
 		assertTrue(isOnForeground);
 	}
 

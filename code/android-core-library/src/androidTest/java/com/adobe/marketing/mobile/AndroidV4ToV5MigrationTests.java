@@ -32,6 +32,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
@@ -228,7 +229,6 @@ public class AndroidV4ToV5MigrationTests {
 	@Before
 	public void setup() {
 		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		ServiceProvider.getInstance().setContext(context);
 		App.setAppContext(context);
 		migrationTool = new V4ToV5Migration();
 		v4DataStore = App.getAppContext().getSharedPreferences(V4.DATASTORE_NAME, 0);

@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile;
 
 import android.content.Context;
 
+import com.adobe.marketing.mobile.services.internal.context.App;
+
 import junit.framework.Assert;
 
 import org.json.JSONException;
@@ -226,7 +228,7 @@ public class TestHelper {
 		InputStream zipFile = null;
 
 		try {
-			zipFile = App.getAppContext().getAssets().open(path);
+			zipFile = App.INSTANCE.getAppContext().getAssets().open(path);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

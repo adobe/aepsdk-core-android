@@ -25,6 +25,7 @@ import com.adobe.marketing.mobile.EventHistoryRequest;
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.TestUtils;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.internal.context.App;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class AndroidEventHistoryTests {
     @Before
     public void beforeEach() {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        ServiceProvider.getInstance().setContext(context);
+        App.setAppContext(context);
         TestUtils.deleteAllFilesInCacheDir(context);
 
         try {

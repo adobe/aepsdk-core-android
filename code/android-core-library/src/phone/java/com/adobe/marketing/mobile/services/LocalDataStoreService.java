@@ -15,44 +15,45 @@ import android.content.SharedPreferences;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.services.internal.context.App;
 
 /**
  * Implementation of {@link DataStoring} service
  */
 class LocalDataStoreService implements DataStoring {
-	private static final String TAG = LocalDataStoreService.class.getSimpleName();
+    private static final String TAG = LocalDataStoreService.class.getSimpleName();
 
-	@Override
-	public NamedCollection getNamedCollection(String collectionName) {
-		if (collectionName == null || collectionName.isEmpty()) {
-			MobileCore.log(LoggingMode.ERROR, TAG,
-						   String.format("Failed to create an instance of NamedCollection with name - %s: the collection name is null or empty.",
-										 collectionName));
-			return null;
-		}
+    @Override
+    public NamedCollection getNamedCollection(String collectionName) {
+        if (collectionName == null || collectionName.isEmpty()) {
+            MobileCore.log(LoggingMode.ERROR, TAG,
+                    String.format("Failed to create an instance of NamedCollection with name - %s: the collection name is null or empty.",
+                            collectionName));
+            return null;
+        }
 
-		Context appContext = ServiceProvider.getInstance().getApplicationContext();
+        Context appContext = App.INSTANCE.getAppContext();
 
-		if (appContext == null) {
-			MobileCore.log(LoggingMode.ERROR, TAG,
-						   String.format("Failed to create an instance of NamedCollection with name - %s: the ApplicationContext is null",
-										 collectionName));
-			return null;
-		}
+        if (appContext == null) {
+            MobileCore.log(LoggingMode.ERROR, TAG,
+                    String.format("Failed to create an instance of NamedCollection with name - %s: the ApplicationContext is null",
+                            collectionName));
+            return null;
+        }
 
-		SharedPreferences sharedPreferences = appContext.getSharedPreferences(collectionName, 0);
-		SharedPreferences.Editor sharedPreferencesEditor = null;
+        SharedPreferences sharedPreferences = appContext.getSharedPreferences(collectionName, 0);
+        SharedPreferences.Editor sharedPreferencesEditor = null;
 
-		if (sharedPreferences != null) {
-			sharedPreferencesEditor = sharedPreferences.edit();
-		}
+        if (sharedPreferences != null) {
+            sharedPreferencesEditor = sharedPreferences.edit();
+        }
 
-		if (sharedPreferences == null || sharedPreferencesEditor == null) {
-			MobileCore.log(LoggingMode.ERROR, TAG,
-						   "Failed to create a valid SharedPreferences object or SharedPreferences.Editor object");
-			return null;
-		}
+        if (sharedPreferences == null || sharedPreferencesEditor == null) {
+            MobileCore.log(LoggingMode.ERROR, TAG,
+                    "Failed to create a valid SharedPreferences object or SharedPreferences.Editor object");
+            return null;
+        }
 
-		return new SharedPreferencesNamedCollection(sharedPreferences, sharedPreferencesEditor);
-	}
+        return new SharedPreferencesNamedCollection(sharedPreferences, sharedPreferencesEditor);
+    }
 }

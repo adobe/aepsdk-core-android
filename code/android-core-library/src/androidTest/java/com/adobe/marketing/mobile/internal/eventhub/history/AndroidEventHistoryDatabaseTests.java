@@ -23,6 +23,8 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.adobe.marketing.mobile.TestUtils;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.internal.context.App;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +36,7 @@ public class AndroidEventHistoryDatabaseTests {
 	@Before
 	public void beforeEach() {
 		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		ServiceProvider.getInstance().setContext(context);
+		App.setAppContext(context);
 		TestUtils.deleteAllFilesInCacheDir(context);
 
 		try {

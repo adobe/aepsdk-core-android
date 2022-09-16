@@ -13,11 +13,13 @@ package com.adobe.marketing.mobile;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
@@ -108,21 +110,7 @@ final public class MobileCore {
             // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
         }
 
-        App.setApplication(application);
-
-        com.adobe.marketing.mobile.internal.context.App.getInstance().initializeApp(
-                new com.adobe.marketing.mobile.internal.context.App.AppContextProvider() {
-                    @Override
-                    public Context getAppContext() {
-                        return App.getAppContext();
-                    }
-
-                    @Override
-                    public Activity getCurrentActivity() {
-                        return App.getCurrentActivity();
-                    }
-                }
-        );
+        ServiceProvider.getInstance().initializeApp(application, MobileCore::collectLaunchInfo);
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
@@ -137,8 +125,9 @@ final public class MobileCore {
      * the {@code Application} process was destroyed.
      */
     @Nullable
+    @Deprecated
     public static Application getApplication() {
-        return App.getApplication();
+        return App.INSTANCE.getApplication();
     }
 
     /**
@@ -378,7 +367,7 @@ final public class MobileCore {
      * @param resourceID the resource Id of the icon
      */
     public static void setSmallIconResourceID(final int resourceID) {
-        App.setSmallIconResourceID(resourceID);
+        App.INSTANCE.setSmallIconResourceID(resourceID);
     }
 
     /**
@@ -387,7 +376,7 @@ final public class MobileCore {
      * @param resourceID the resource Id of the icon
      */
     public static void setLargeIconResourceID(final int resourceID) {
-        App.setLargeIconResourceID(resourceID);
+        App.INSTANCE.setLargeIconResourceID(resourceID);
     }
 
     // ========================================================
@@ -501,8 +490,8 @@ final public class MobileCore {
      *
      * @param activity current {@link Activity} reference.
      */
+    @VisibleForTesting
     static void collectLaunchInfo(final Activity activity) {
-        // Todo: This is not currently public. Check if this has to be made public.
         DataMarshaller marshaller = new DataMarshaller();
         marshaller.marshal(activity);
         final Map<String, Object> marshalledData = marshaller.getData();

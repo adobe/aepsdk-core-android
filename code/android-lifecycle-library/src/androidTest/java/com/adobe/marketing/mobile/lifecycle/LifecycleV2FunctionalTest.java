@@ -17,12 +17,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import android.app.Application;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.TestableExtensionApi;
 import com.adobe.marketing.mobile.services.DeviceInforming;
@@ -47,22 +50,22 @@ public class LifecycleV2FunctionalTest {
     private MockDeviceInfoService mockDeviceInfoService;
     private NamedCollection lifecycleDataStore;
 
-    private static final String DATA                    = "data";
-    private static final String XDM                     = "xdm";
-    private static final String DATA_STORE_NAME           = "AdobeMobile_Lifecycle";
+    private static final String DATA = "data";
+    private static final String XDM = "xdm";
+    private static final String DATA_STORE_NAME = "AdobeMobile_Lifecycle";
     private static final String LIFECYCLE_CONFIG_SESSION_TIMEOUT = "lifecycle.sessionTimeout";
 
     private long currentTimestampMillis;
 
     private final Map<String, Object> expectedEnvironmentInfo = new HashMap<>();
-    private final Map<String, Object> expectedDeviceInfo= new HashMap<>();
+    private final Map<String, Object> expectedDeviceInfo = new HashMap<>();
 
     static final int WAIT_EVENT_TIMEOUT_MS = 2000;
 
     @Before
     public void beforeEach() {
         setupMockDeviceInfoService();
-        ServiceProvider.getInstance().setContext(InstrumentationRegistry.getInstrumentation().getContext());
+        MobileCore.setApplication((Application) InstrumentationRegistry.getInstrumentation().getContext().getApplicationContext());
         lifecycleDataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(DATA_STORE_NAME);
 
         mockExtensionApi = new TestableExtensionApi();
@@ -147,7 +150,7 @@ public class LifecycleV2FunctionalTest {
 
         Map<String, Object> expectedApplicationInfo = new HashMap<>();
         expectedApplicationInfo.put("name", "TEST_APPLICATION_NAME");
-        expectedApplicationInfo.put( "version", "1.1 (12345)");
+        expectedApplicationInfo.put("version", "1.1 (12345)");
         expectedApplicationInfo.put("isInstall", true);
         expectedApplicationInfo.put("isLaunch", true);
         expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
@@ -190,7 +193,7 @@ public class LifecycleV2FunctionalTest {
 
         Map<String, Object> expectedApplicationInfo = new HashMap<>();
         expectedApplicationInfo.put("closeType", "close");
-        expectedApplicationInfo.put( "isClose", true);
+        expectedApplicationInfo.put("isClose", true);
         expectedApplicationInfo.put("sessionLength", 1);
 
         Map<String, Object> expectedXDMData = new HashMap<String, Object>() {
@@ -222,12 +225,12 @@ public class LifecycleV2FunctionalTest {
 
         // test
         mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
-        mockExtensionApi.simulateComingEvent(createPauseEvent(currentTimestampMillis +  TimeUnit.SECONDS.toMillis(10)));
+        mockExtensionApi.simulateComingEvent(createPauseEvent(currentTimestampMillis + TimeUnit.SECONDS.toMillis(10)));
 
         sleep(1000);
         mockDeviceInfoService.applicationVersion = "1.2";
 
-        long secondSessionStartTimeInMillis = currentTimestampMillis +  TimeUnit.DAYS.toMillis(1);
+        long secondSessionStartTimeInMillis = currentTimestampMillis + TimeUnit.DAYS.toMillis(1);
         mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTimeInMillis));
 
         //verify
@@ -235,7 +238,7 @@ public class LifecycleV2FunctionalTest {
 
         Map<String, Object> expectedApplicationInfo = new HashMap<>();
         expectedApplicationInfo.put("name", "TEST_APPLICATION_NAME");
-        expectedApplicationInfo.put( "version", "1.2 (12345)");
+        expectedApplicationInfo.put("version", "1.2 (12345)");
         expectedApplicationInfo.put("isUpgrade", true);
         expectedApplicationInfo.put("isLaunch", true);
         expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
@@ -272,11 +275,11 @@ public class LifecycleV2FunctionalTest {
 
         // test
         mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
-        mockExtensionApi.simulateComingEvent(createPauseEvent(currentTimestampMillis +  TimeUnit.SECONDS.toMillis(10)));
+        mockExtensionApi.simulateComingEvent(createPauseEvent(currentTimestampMillis + TimeUnit.SECONDS.toMillis(10)));
 
         sleep(1000);
 
-        long secondSessionStartTimeInMillis = currentTimestampMillis +  TimeUnit.DAYS.toMillis(1);
+        long secondSessionStartTimeInMillis = currentTimestampMillis + TimeUnit.DAYS.toMillis(1);
         mockExtensionApi.simulateComingEvent(createStartEvent(null, secondSessionStartTimeInMillis));
 
         //verify
@@ -284,7 +287,7 @@ public class LifecycleV2FunctionalTest {
 
         Map<String, Object> expectedApplicationInfo = new HashMap<>();
         expectedApplicationInfo.put("name", "TEST_APPLICATION_NAME");
-        expectedApplicationInfo.put( "version", "1.1 (12345)");
+        expectedApplicationInfo.put("version", "1.1 (12345)");
         expectedApplicationInfo.put("isLaunch", true);
         expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
 
@@ -338,7 +341,7 @@ public class LifecycleV2FunctionalTest {
 
         Map<String, Object> expectedApplicationInfo = new HashMap<>();
         expectedApplicationInfo.put("closeType", "unknown");
-        expectedApplicationInfo.put( "isClose", true);
+        expectedApplicationInfo.put("isClose", true);
         expectedApplicationInfo.put("sessionLength", 2);
 
         Map<String, Object> expectedXDMData = new HashMap<String, Object>() {
@@ -391,7 +394,7 @@ public class LifecycleV2FunctionalTest {
 
         Map<String, Object> expectedApplicationInfo = new HashMap<>();
         expectedApplicationInfo.put("closeType", "unknown");
-        expectedApplicationInfo.put( "isClose", true);
+        expectedApplicationInfo.put("isClose", true);
 
         // if no close timestamp was persisted, backdate this event to start timestamp - 1 second
         Map<String, Object> expectedXDMData = new HashMap<String, Object>() {
@@ -416,6 +419,7 @@ public class LifecycleV2FunctionalTest {
 
     /**
      * Asserts if all the expected events were received and fails if an unexpected event was seen.
+     *
      * @throws InterruptedException
      */
     private void assertExpectedEvents(final TestableExtensionApi mockExtensionApi) throws InterruptedException {
@@ -436,9 +440,10 @@ public class LifecycleV2FunctionalTest {
 
     /**
      * Sets an expectation for a specific event type and source and how many times the event should be dispatched.
-     * @param type the event type
+     *
+     * @param type   the event type
      * @param source the event source
-     * @param count the expected number of times the event is dispatched
+     * @param count  the expected number of times the event is dispatched
      * @throws IllegalArgumentException if {@code count} is less than 1
      */
     private void setExpectationEvent(final String type, final String source, final int count, final TestableExtensionApi mockExtensionApi) {
@@ -451,6 +456,7 @@ public class LifecycleV2FunctionalTest {
 
     /**
      * Pause test execution for the given {@code milliseconds}
+     *
      * @param milliseconds the time to sleep the current thread.
      */
     public static void sleep(int milliseconds) {

@@ -19,7 +19,7 @@ import android.view.View;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 
 import java.util.Map;
@@ -28,118 +28,118 @@ import java.util.Map;
  * An extension of {@link android.app.Fragment} used to display in-app messages with custom locations and dimensions.
  */
 public class MessageFragment extends android.app.Fragment implements View.OnTouchListener {
-	private static final String TAG = "MessageFragment";
-	private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
+    private static final String TAG = "MessageFragment";
+    private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
 
-	protected boolean dismissedWithGesture = false;
-	protected AEPMessage message;
-	protected GestureDetector gestureDetector;
+    protected boolean dismissedWithGesture = false;
+    protected AEPMessage message;
+    protected GestureDetector gestureDetector;
 
-	protected WebViewGestureListener webViewGestureListener;
-	protected Map<MessageGesture, String> gestures;
+    protected WebViewGestureListener webViewGestureListener;
+    protected Map<MessageGesture, String> gestures;
 
-	/**
-	 * Sets the in-app message to be displayed in the {@link MessageFragment}
-	 *
-	 * @param message the {@link AEPMessage} object which created this fragment
-	 */
-	public void setAEPMessage(AEPMessage message) {
-		this.message = message;
-	}
+    /**
+     * Sets the in-app message to be displayed in the {@link MessageFragment}
+     *
+     * @param message the {@link AEPMessage} object which created this fragment
+     */
+    public void setAEPMessage(AEPMessage message) {
+        this.message = message;
+    }
 
-	@Override
-	public boolean onTouch(final View view, final MotionEvent motionEvent) {
-		if (message == null) {
-			MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (message), unable to handle the touch event on " +
-						   view.getClass().getSimpleName());
-			return true;
-		}
+    @Override
+    public boolean onTouch(final View view, final MotionEvent motionEvent) {
+        if (message == null) {
+            MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (message), unable to handle the touch event on " +
+                    view.getClass().getSimpleName());
+            return true;
+        }
 
-		final int motionEventAction = motionEvent.getAction();
+        final int motionEventAction = motionEvent.getAction();
 
-		// determine if the tap occurred outside the webview
-		if ((motionEventAction == MotionEvent.ACTION_DOWN
-				|| motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
-				&& view.getId() != message.webView.getId()) {
-			MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected tap on " + view.getClass().getSimpleName());
+        // determine if the tap occurred outside the webview
+        if ((motionEventAction == MotionEvent.ACTION_DOWN
+                || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
+                && view.getId() != message.webView.getId()) {
+            MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected tap on " + view.getClass().getSimpleName());
 
-			final boolean uiTakeoverEnabled = message.getSettings().getUITakeover();
+            final boolean uiTakeoverEnabled = message.getSettings().getUITakeover();
 
-			// if ui takeover is false, dismiss the message
-			if (!uiTakeoverEnabled) {
-				MobileCore.log(LoggingMode.VERBOSE, TAG, "UI takeover is false, dismissing the message.");
-				webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
-				// perform the tap to allow interaction with ui elements outside the webview
-				return view.onTouchEvent(motionEvent);
-			}
+            // if ui takeover is false, dismiss the message
+            if (!uiTakeoverEnabled) {
+                MobileCore.log(LoggingMode.VERBOSE, TAG, "UI takeover is false, dismissing the message.");
+                webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
+                // perform the tap to allow interaction with ui elements outside the webview
+                return view.onTouchEvent(motionEvent);
+            }
 
-			// ui takeover is true, consume the tap and ignore it
-			MobileCore.log(LoggingMode.VERBOSE, TAG, "UI takeover is true, ignoring the tap.");
-			return true;
-		}
+            // ui takeover is true, consume the tap and ignore it
+            MobileCore.log(LoggingMode.VERBOSE, TAG, "UI takeover is true, ignoring the tap.");
+            return true;
+        }
 
-		// determine if the tapped view is the webview
-		if (view.getId() == message.webView.getId()) {
-			// pass the event to the gesture detector to determine if a motion event occurred on the webview.
-			gestureDetector.onTouchEvent(motionEvent);
-			// perform the tap to allow interaction with buttons within the webview
-			return view.onTouchEvent(motionEvent);
-		}
+        // determine if the tapped view is the webview
+        if (view.getId() == message.webView.getId()) {
+            // pass the event to the gesture detector to determine if a motion event occurred on the webview.
+            gestureDetector.onTouchEvent(motionEvent);
+            // perform the tap to allow interaction with buttons within the webview
+            return view.onTouchEvent(motionEvent);
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	@Override
-	public void onCreate(final Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override
+    public void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-		// make sure we have a valid message before trying to proceed
-		if (message == null) {
-			MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (message), failed to show the message.");
-			return;
-		}
+        // make sure we have a valid message before trying to proceed
+        if (message == null) {
+            MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (message), failed to show the message.");
+            return;
+        }
 
-		// store message gestures if available
-		final Map<MessageGesture, String> retrievedGestures = message.getSettings().getGestures();
+        // store message gestures if available
+        final Map<MessageGesture, String> retrievedGestures = message.getSettings().getGestures();
 
-		if (retrievedGestures != null && !retrievedGestures.isEmpty()) {
-			gestures = retrievedGestures;
-		}
+        if (retrievedGestures != null && !retrievedGestures.isEmpty()) {
+            gestures = retrievedGestures;
+        }
 
-		// initialize the gesture detector and listener
-		webViewGestureListener = new WebViewGestureListener(this);
-		gestureDetector = new GestureDetector(App.getInstance().getAppContext(), webViewGestureListener);
-	}
+        // initialize the gesture detector and listener
+        webViewGestureListener = new WebViewGestureListener(this);
+        gestureDetector = new GestureDetector(App.INSTANCE.getAppContext(), webViewGestureListener);
+    }
 
-	@Override
-	public void onResume() {
-		super.onResume();
+    @Override
+    public void onResume() {
+        super.onResume();
 
-		final Activity currentActivity = App.getInstance().getCurrentActivity();
+        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
-		if (currentActivity == null || currentActivity.findViewById(message.frameLayoutResourceId) == null) {
-			MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (frame layout), failed to show the message.");
-			return;
-		}
+        if (currentActivity == null || currentActivity.findViewById(message.frameLayoutResourceId) == null) {
+            MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (frame layout), failed to show the message.");
+            return;
+        }
 
-		// show the message
-		message.showInRootViewGroup();
-	}
+        // show the message
+        message.showInRootViewGroup();
+    }
 
-	// for unit tests
-	public WebViewGestureListener getWebViewGestureListener() {
-		return webViewGestureListener;
-	}
+    // for unit tests
+    public WebViewGestureListener getWebViewGestureListener() {
+        return webViewGestureListener;
+    }
 
-	public Map<MessageGesture, String> getGestures() {
-		return gestures;
-	}
+    public Map<MessageGesture, String> getGestures() {
+        return gestures;
+    }
 
-	public GestureDetector getGestureDetector() {
-		return gestureDetector;
-	}
+    public GestureDetector getGestureDetector() {
+        return gestureDetector;
+    }
 
-	public boolean isDismissedWithGesture() {
-		return this.dismissedWithGesture;
-	}
+    public boolean isDismissedWithGesture() {
+        return this.dismissedWithGesture;
+    }
 }

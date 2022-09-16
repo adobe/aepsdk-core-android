@@ -27,357 +27,355 @@ import static android.view.View.GONE;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.App;
 
 class FloatingButtonManager implements FloatingButton {
-	private static final String LOG_TAG = FloatingButtonManager.class.getSimpleName();
-	private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
-	private AndroidUIService androidUIService;
-	private FloatingButtonListener buttonListener = null;
-	private float lastKnownXPos;
-	private float lastKnownYPos;
-	private Application.ActivityLifecycleCallbacks activityLifecycleCallbacks;
-	private boolean displayFloatingButtonAcrossActivities = false;
+    private static final String LOG_TAG = FloatingButtonManager.class.getSimpleName();
+    private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
+    private AndroidUIService androidUIService;
+    private FloatingButtonListener buttonListener = null;
+    private float lastKnownXPos;
+    private float lastKnownYPos;
+    private Application.ActivityLifecycleCallbacks activityLifecycleCallbacks;
+    private boolean displayFloatingButtonAcrossActivities = false;
 
-	Map<String, FloatingButtonView> managedButtons = new HashMap<String, FloatingButtonView>();
+    Map<String, FloatingButtonView> managedButtons = new HashMap<String, FloatingButtonView>();
 
-	FloatingButtonManager(AndroidUIService androidUIService, FloatingButtonListener listener) {
-		this.androidUIService = androidUIService;
-		this.buttonListener = listener;
-	}
+    FloatingButtonManager(AndroidUIService androidUIService, FloatingButtonListener listener) {
+        this.androidUIService = androidUIService;
+        this.buttonListener = listener;
+    }
 
-	@Override
-	public void display() {
-		final Activity currentActivity = App.getInstance().getCurrentActivity();
+    @Override
+    public void display() {
+        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
-		if (currentActivity == null) {
-			MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Current activity), will not display button.",
-						   UNEXPECTED_NULL_VALUE));
-			return;
-		}
+        if (currentActivity == null) {
+            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Current activity), will not display button.",
+                    UNEXPECTED_NULL_VALUE));
+            return;
+        }
 
-		if (activityLifecycleCallbacks != null) {
-			MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Display cannot be called twice!");
-			return;
-		}
+        if (activityLifecycleCallbacks != null) {
+            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Display cannot be called twice!");
+            return;
+        }
 
-		//We need to register for app states
-		Application application = MobileCore.getApplication();
+        //We need to register for app states
+        Application application = MobileCore.getApplication();
 
-		if (application != null) {
-			activityLifecycleCallbacks = getActivityLifecycleCallbacks();
-			application.registerActivityLifecycleCallbacks(activityLifecycleCallbacks);
+        if (application != null) {
+            activityLifecycleCallbacks = getActivityLifecycleCallbacks();
+            application.registerActivityLifecycleCallbacks(activityLifecycleCallbacks);
 
-		}
+        }
 
-		display(0, 0, currentActivity);
+        display(0, 0, currentActivity);
 
-		displayFloatingButtonAcrossActivities = true;
-	}
+        displayFloatingButtonAcrossActivities = true;
+    }
 
-	/**
-	 * Returns a new instance of a {@code Application.ActivityLifecycleCallbacks}.
-	 * <p>
-	 *
-	 * Currently only onResume and onDestroy of an activity are being responded to in this listener.
-	 *
-	 * @return An {@link Application.ActivityLifecycleCallbacks} instance
-	 */
-	Application.ActivityLifecycleCallbacks getActivityLifecycleCallbacks() {
-		return new Application.ActivityLifecycleCallbacks() {
-			@Override
-			public void onActivityCreated(Activity activity, Bundle bundle) {
-			}
+    /**
+     * Returns a new instance of a {@code Application.ActivityLifecycleCallbacks}.
+     * <p>
+     * <p>
+     * Currently only onResume and onDestroy of an activity are being responded to in this listener.
+     *
+     * @return An {@link Application.ActivityLifecycleCallbacks} instance
+     */
+    Application.ActivityLifecycleCallbacks getActivityLifecycleCallbacks() {
+        return new Application.ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(Activity activity, Bundle bundle) {
+            }
 
-			@Override
-			public void onActivityStarted(Activity activity) {
-			}
+            @Override
+            public void onActivityStarted(Activity activity) {
+            }
 
-			@Override
-			public void onActivityResumed(Activity activity) {
-				//if a floating button should no longer be displayed,
-				//and this activity has a button showing, then remove it
-				if (!displayFloatingButtonAcrossActivities) {
-					if (managedButtons.containsKey(activity.getLocalClassName())) {
-						//This activity has a managedButton that needs to be now removed
-						removeFloatingButtonFromActivity(activity);
-					}
+            @Override
+            public void onActivityResumed(Activity activity) {
+                //if a floating button should no longer be displayed,
+                //and this activity has a button showing, then remove it
+                if (!displayFloatingButtonAcrossActivities) {
+                    if (managedButtons.containsKey(activity.getLocalClassName())) {
+                        //This activity has a managedButton that needs to be now removed
+                        removeFloatingButtonFromActivity(activity);
+                    }
 
-					if (managedButtons.isEmpty()) {
-						//All of the managed buttons have been hidden
-						deregisterLifecycleCallbacks();
-					}
+                    if (managedButtons.isEmpty()) {
+                        //All of the managed buttons have been hidden
+                        deregisterLifecycleCallbacks();
+                    }
 
-					return;
-				}
+                    return;
+                }
 
-				// Show the button (create new if does not exist for this activity)
-				FloatingButtonView existingButton = managedButtons.get(activity.getLocalClassName());
+                // Show the button (create new if does not exist for this activity)
+                FloatingButtonView existingButton = managedButtons.get(activity.getLocalClassName());
 
-				if (existingButton == null) {
-					//We do not have an existing button showing, create one
-					FloatingButtonView newFloatingButtonView = androidUIService.createFloatingButtonView(activity);
-					addManagedButton(activity.getLocalClassName(), newFloatingButtonView);
-				}
+                if (existingButton == null) {
+                    //We do not have an existing button showing, create one
+                    FloatingButtonView newFloatingButtonView = androidUIService.createFloatingButtonView(activity);
+                    addManagedButton(activity.getLocalClassName(), newFloatingButtonView);
+                }
 
-				display(lastKnownXPos, lastKnownYPos, activity);
+                display(lastKnownXPos, lastKnownYPos, activity);
 
-			}
+            }
 
-			@Override
-			public void onActivityPaused(Activity activity) {
-			}
+            @Override
+            public void onActivityPaused(Activity activity) {
+            }
 
-			@Override
-			public void onActivityStopped(Activity activity) {
-			}
+            @Override
+            public void onActivityStopped(Activity activity) {
+            }
 
-			@Override
-			public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+            @Override
+            public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
 
-			}
+            }
 
-			@Override
-			public void onActivityDestroyed(Activity activity) {
-				managedButtons.remove(activity.getLocalClassName());
-			}
-		};
-	}
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+                managedButtons.remove(activity.getLocalClassName());
+            }
+        };
+    }
 
-	void deregisterLifecycleCallbacks() {
-		//deregister lifecycle listener
-		Application application = MobileCore.getApplication();
+    void deregisterLifecycleCallbacks() {
+        //deregister lifecycle listener
+        Application application = MobileCore.getApplication();
 
-		if (application != null) {
-			application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks);
-			activityLifecycleCallbacks = null;
-		}
-	}
+        if (application != null) {
+            application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks);
+            activityLifecycleCallbacks = null;
+        }
+    }
 
-	/**
-	 * Adds an instance of {@code FloatingButtonView} to be managed by this.
-	 *
-	 * @param activityClassName The Class name of the {@link Activity} that this button should be placed on
-	 * @param uiButton The {@link FloatingButtonView} instance to be placed and managed
-	 *
-	 * @see AndroidUIService#createFloatingButtonView(Activity)
-	 * @see Activity#getLocalClassName()
-	 */
-	void addManagedButton(String activityClassName, FloatingButtonView uiButton) {
-		uiButton.setFloatingButtonListener(buttonListener);
-		managedButtons.put(activityClassName, uiButton);
-	}
+    /**
+     * Adds an instance of {@code FloatingButtonView} to be managed by this.
+     *
+     * @param activityClassName The Class name of the {@link Activity} that this button should be placed on
+     * @param uiButton          The {@link FloatingButtonView} instance to be placed and managed
+     * @see AndroidUIService#createFloatingButtonView(Activity)
+     * @see Activity#getLocalClassName()
+     */
+    void addManagedButton(String activityClassName, FloatingButtonView uiButton) {
+        uiButton.setFloatingButtonListener(buttonListener);
+        managedButtons.put(activityClassName, uiButton);
+    }
 
-	/**
-	 * Display an instance of the {@code FloatingButtonView} on the {@code currentActivity} supplied.
-	 * <p>
-	 * An instance of {@link FloatingButtonView} needs to be already instantiated and managed by this manager before this method can be used to display
-	 * the button on the activity. This method also checks to see if there is already a button displaying on the activity, and if so, will adjust the
-	 * position as per the co-ordinates supplied. if the button does not exist, then it will be created and displayed.
-	 *
-	 *
-	 * @param x The x co-ordinate where the button will be displayed
-	 * @param y The y co-ordinate where the button will be displayed
-	 * @param currentActivity The {@link Activity} where the button will be displayed. If this activity does not have a window associated with it, then
-	 *                        the button will not be shown.
-	 */
-	void display(final float x, final float y, final Activity currentActivity) {
-		try {
-			//We will use the absolute width and height later if the rootview has not been measured by then.
-			DisplayMetrics displayMetrics = new DisplayMetrics();
-			currentActivity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-			final int absHeightPx = displayMetrics.heightPixels;
-			final int absWidthPx = displayMetrics.widthPixels;
-			final ViewGroup rootViewGroup = (ViewGroup) currentActivity.getWindow().getDecorView().getRootView();
-			currentActivity.runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					final int width = rootViewGroup.getMeasuredWidth() == 0 ? absWidthPx : rootViewGroup.getMeasuredWidth();
-					final int height = rootViewGroup.getMeasuredHeight() == 0 ? absHeightPx : rootViewGroup.getMeasuredHeight();
+    /**
+     * Display an instance of the {@code FloatingButtonView} on the {@code currentActivity} supplied.
+     * <p>
+     * An instance of {@link FloatingButtonView} needs to be already instantiated and managed by this manager before this method can be used to display
+     * the button on the activity. This method also checks to see if there is already a button displaying on the activity, and if so, will adjust the
+     * position as per the co-ordinates supplied. if the button does not exist, then it will be created and displayed.
+     *
+     * @param x               The x co-ordinate where the button will be displayed
+     * @param y               The y co-ordinate where the button will be displayed
+     * @param currentActivity The {@link Activity} where the button will be displayed. If this activity does not have a window associated with it, then
+     *                        the button will not be shown.
+     */
+    void display(final float x, final float y, final Activity currentActivity) {
+        try {
+            //We will use the absolute width and height later if the rootview has not been measured by then.
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            currentActivity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            final int absHeightPx = displayMetrics.heightPixels;
+            final int absWidthPx = displayMetrics.widthPixels;
+            final ViewGroup rootViewGroup = (ViewGroup) currentActivity.getWindow().getDecorView().getRootView();
+            currentActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    final int width = rootViewGroup.getMeasuredWidth() == 0 ? absWidthPx : rootViewGroup.getMeasuredWidth();
+                    final int height = rootViewGroup.getMeasuredHeight() == 0 ? absHeightPx : rootViewGroup.getMeasuredHeight();
 
-					FloatingButtonView floatingButton = (FloatingButtonView) rootViewGroup.findViewWithTag(FloatingButtonView.VIEW_TAG);
+                    FloatingButtonView floatingButton = (FloatingButtonView) rootViewGroup.findViewWithTag(FloatingButtonView.VIEW_TAG);
 
-					if (floatingButton != null) {
-						//The button already exists as a child of the root
-						//Adjust x and y to account for orientation change.
-						lastKnownXPos = adjustXBounds(floatingButton, width, x);
-						lastKnownYPos = adjustYBounds(floatingButton, height, y);
-						floatingButton.setXYCompat(lastKnownXPos, lastKnownYPos);
-						return;
-					}
+                    if (floatingButton != null) {
+                        //The button already exists as a child of the root
+                        //Adjust x and y to account for orientation change.
+                        lastKnownXPos = adjustXBounds(floatingButton, width, x);
+                        lastKnownYPos = adjustYBounds(floatingButton, height, y);
+                        floatingButton.setXYCompat(lastKnownXPos, lastKnownYPos);
+                        return;
+                    }
 
-					final String activityClassName = currentActivity.getLocalClassName();
+                    final String activityClassName = currentActivity.getLocalClassName();
 
-					final FloatingButtonView floatingButtonView = managedButtons.get(activityClassName);
+                    final FloatingButtonView floatingButtonView = managedButtons.get(activityClassName);
 
-					if (floatingButtonView == null) {
-						MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Floating button view), for activity: %s",
-									   UNEXPECTED_NULL_VALUE, activityClassName));
-						return;
-					}
+                    if (floatingButtonView == null) {
+                        MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Floating button view), for activity: %s",
+                                UNEXPECTED_NULL_VALUE, activityClassName));
+                        return;
+                    }
 
-					floatingButtonView.setOnPositionChangedListener(new FloatingButtonView.OnPositionChangedListener() {
-						@Override
-						public void onPositionChanged(float newX, float newY) {
-							lastKnownXPos = newX;
-							lastKnownYPos = newY;
+                    floatingButtonView.setOnPositionChangedListener(new FloatingButtonView.OnPositionChangedListener() {
+                        @Override
+                        public void onPositionChanged(float newX, float newY) {
+                            lastKnownXPos = newX;
+                            lastKnownYPos = newY;
 
-						}
-					});
+                        }
+                    });
 
-					final ViewTreeObserver viewTreeObserver = floatingButtonView.getViewTreeObserver();
-					ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
-						@Override
-						public void onGlobalLayout() {
-							removeOnGlobalLayoutListenerCompat(floatingButtonView, this);
+                    final ViewTreeObserver viewTreeObserver = floatingButtonView.getViewTreeObserver();
+                    ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
+                        @Override
+                        public void onGlobalLayout() {
+                            removeOnGlobalLayoutListenerCompat(floatingButtonView, this);
 
-							if (x >= 0 && y >= 0) {
-								//Adjust x and y to account for orientation change.
-								lastKnownXPos = adjustXBounds(floatingButtonView, width, x);
-								lastKnownYPos = adjustYBounds(floatingButtonView, height, y);
-								floatingButtonView.setXYCompat(lastKnownXPos, lastKnownYPos);
-							} else {
-								lastKnownXPos = ((width / 2) - (floatingButtonView.getWidth() / 2));
-								lastKnownYPos = ((height / 2) - (floatingButtonView.getHeight() / 2));
-								floatingButtonView.setXYCompat(lastKnownXPos, lastKnownYPos);
+                            if (x >= 0 && y >= 0) {
+                                //Adjust x and y to account for orientation change.
+                                lastKnownXPos = adjustXBounds(floatingButtonView, width, x);
+                                lastKnownYPos = adjustYBounds(floatingButtonView, height, y);
+                                floatingButtonView.setXYCompat(lastKnownXPos, lastKnownYPos);
+                            } else {
+                                lastKnownXPos = ((width / 2) - (floatingButtonView.getWidth() / 2));
+                                lastKnownYPos = ((height / 2) - (floatingButtonView.getHeight() / 2));
+                                floatingButtonView.setXYCompat(lastKnownXPos, lastKnownYPos);
 
-							}
-						}
-					};
+                            }
+                        }
+                    };
 
-					viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener);
-					rootViewGroup.addView(floatingButtonView);
+                    viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener);
+                    rootViewGroup.addView(floatingButtonView);
 
-					ViewGroup.LayoutParams layoutParams = floatingButtonView.getLayoutParams();
+                    ViewGroup.LayoutParams layoutParams = floatingButtonView.getLayoutParams();
 
-					if (layoutParams != null) {
-						layoutParams.width = getPxForDp(floatingButtonView.getContext(), 80);
-						layoutParams.height = getPxForDp(floatingButtonView.getContext(), 80);
+                    if (layoutParams != null) {
+                        layoutParams.width = getPxForDp(floatingButtonView.getContext(), 80);
+                        layoutParams.height = getPxForDp(floatingButtonView.getContext(), 80);
 
-						floatingButtonView.setLayoutParams(layoutParams);
+                        floatingButtonView.setLayoutParams(layoutParams);
 
-					}
+                    }
 
-				}
-			});
+                }
+            });
 
-		} catch (Exception ex) {
-			MobileCore.log(LoggingMode.ERROR, LOG_TAG, String.format("Could not display the button (%s)", ex));
-		}
-	}
+        } catch (Exception ex) {
+            MobileCore.log(LoggingMode.ERROR, LOG_TAG, String.format("Could not display the button (%s)", ex));
+        }
+    }
 
-	@Override
-	public void remove() {
-		Activity activity = App.getInstance().getCurrentActivity();
-		removeFloatingButtonFromActivity(activity);
-		displayFloatingButtonAcrossActivities = false;
-	}
+    @Override
+    public void remove() {
+        Activity activity = App.INSTANCE.getCurrentActivity();
+        removeFloatingButtonFromActivity(activity);
+        displayFloatingButtonAcrossActivities = false;
+    }
 
-	void removeFloatingButtonFromActivity(Activity activity) {
-		if (activity == null) {
-			MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Activity), cannot remove button!",
-						   UNEXPECTED_NULL_VALUE));
-			return;
-		}
+    void removeFloatingButtonFromActivity(Activity activity) {
+        if (activity == null) {
+            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Activity), cannot remove button!",
+                    UNEXPECTED_NULL_VALUE));
+            return;
+        }
 
-		activity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				Activity activity = App.getInstance().getCurrentActivity();
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Activity activity = App.INSTANCE.getCurrentActivity();
 
-				if (activity == null) {
-					MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Activity), cannot remove button!",
-								   UNEXPECTED_NULL_VALUE));
-					return;
-				}
+                if (activity == null) {
+                    MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Activity), cannot remove button!",
+                            UNEXPECTED_NULL_VALUE));
+                    return;
+                }
 
-				final ViewGroup rootViewGroup = (ViewGroup) activity.getWindow().getDecorView().getRootView();
-				FloatingButtonView floatingButton = (FloatingButtonView) rootViewGroup.findViewWithTag(FloatingButtonView.VIEW_TAG);
+                final ViewGroup rootViewGroup = (ViewGroup) activity.getWindow().getDecorView().getRootView();
+                FloatingButtonView floatingButton = (FloatingButtonView) rootViewGroup.findViewWithTag(FloatingButtonView.VIEW_TAG);
 
-				if (floatingButton != null) {
-					floatingButton.setVisibility(GONE);
-				} else {
-					MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("No button found to remove for %s",
-								   activity.getLocalClassName()));
-				}
-			}
-		});
+                if (floatingButton != null) {
+                    floatingButton.setVisibility(GONE);
+                } else {
+                    MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("No button found to remove for %s",
+                            activity.getLocalClassName()));
+                }
+            }
+        });
 
-		managedButtons.remove(activity.getLocalClassName());
-	}
+        managedButtons.remove(activity.getLocalClassName());
+    }
 
-	/**
-	 * Adjust the x co-ordinate so that it remains within the screen width.
-	 *
-	 * @param floatingButtonView The button for which the position needs to be adjusted
-	 * @param screenWidth The screen width in pixels
-	 * @param oldXvalue The x co-ordinate which needs to be adjusted
-	 * @return The adjusted x co-ordinate
-	 */
-	private float adjustXBounds(final FloatingButtonView floatingButtonView, float screenWidth, float oldXvalue) {
-		if (floatingButtonView != null && oldXvalue > (screenWidth - floatingButtonView.getWidth())) {
-			return (screenWidth - floatingButtonView.getWidth());
-		}
+    /**
+     * Adjust the x co-ordinate so that it remains within the screen width.
+     *
+     * @param floatingButtonView The button for which the position needs to be adjusted
+     * @param screenWidth        The screen width in pixels
+     * @param oldXvalue          The x co-ordinate which needs to be adjusted
+     * @return The adjusted x co-ordinate
+     */
+    private float adjustXBounds(final FloatingButtonView floatingButtonView, float screenWidth, float oldXvalue) {
+        if (floatingButtonView != null && oldXvalue > (screenWidth - floatingButtonView.getWidth())) {
+            return (screenWidth - floatingButtonView.getWidth());
+        }
 
-		return oldXvalue;
-	}
+        return oldXvalue;
+    }
 
-	/**
-	 * Adjust the y co-ordinate so that it remains within the screen height.
-	 *
-	 * @param floatingButtonView The button for which the position needs to be adjusted
-	 * @param screenHeight The screen height in pixels
-	 * @param oldYvalue The y co-ordinate which needs to be adjusted
-	 * @return The adjusted y co-ordinate
-	 */
-	private float adjustYBounds(final FloatingButtonView floatingButtonView, float screenHeight, float oldYvalue) {
-		if (floatingButtonView != null && oldYvalue > (screenHeight - floatingButtonView.getHeight())) {
-			return (screenHeight - floatingButtonView.getHeight());
-		}
+    /**
+     * Adjust the y co-ordinate so that it remains within the screen height.
+     *
+     * @param floatingButtonView The button for which the position needs to be adjusted
+     * @param screenHeight       The screen height in pixels
+     * @param oldYvalue          The y co-ordinate which needs to be adjusted
+     * @return The adjusted y co-ordinate
+     */
+    private float adjustYBounds(final FloatingButtonView floatingButtonView, float screenHeight, float oldYvalue) {
+        if (floatingButtonView != null && oldYvalue > (screenHeight - floatingButtonView.getHeight())) {
+            return (screenHeight - floatingButtonView.getHeight());
+        }
 
-		return oldYvalue;
-	}
+        return oldYvalue;
+    }
 
-	/**
-	 * Convert {@code dp} inot {@code px} scale.
-	 *
-	 * @param context The {@link Context} instance
-	 * @param dp The dp value to be converted
-	 * @return The converted px value
-	 */
-	private int getPxForDp(Context context, int dp) {
-		try {
-			float density = context.getResources().getDisplayMetrics().density;
-			return Math.round((float) dp * density);
-		} catch (Exception e) {
-			return 210; //80dp for density 2.65 - fallback default
-		}
-	}
+    /**
+     * Convert {@code dp} inot {@code px} scale.
+     *
+     * @param context The {@link Context} instance
+     * @param dp      The dp value to be converted
+     * @return The converted px value
+     */
+    private int getPxForDp(Context context, int dp) {
+        try {
+            float density = context.getResources().getDisplayMetrics().density;
+            return Math.round((float) dp * density);
+        } catch (Exception e) {
+            return 210; //80dp for density 2.65 - fallback default
+        }
+    }
 
-	/**
-	 * Removes the {@code OnGlobalLayoutListener} registered earlier.
-	 * <p>
-	 * The {@code onGlobalLayoutListener} instance should be something that was registered earlier. For example, {@link #display(float, float, Activity)} method
-	 * registers a listener to position the button on the view tree, and then once done, uses this method to de-register the listener.
-	 *
-	 * @param floatingButtonView The {@link FloatingButtonView} instance which is used to retrieve the {@link ViewTreeObserver}
-	 * @param onGlobalLayoutListener The {@link ViewTreeObserver.OnGlobalLayoutListener} instance
-	 */
-	void removeOnGlobalLayoutListenerCompat(FloatingButtonView floatingButtonView,
-											ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener) {
-		ViewTreeObserver viewTreeObserver = floatingButtonView.getViewTreeObserver();
+    /**
+     * Removes the {@code OnGlobalLayoutListener} registered earlier.
+     * <p>
+     * The {@code onGlobalLayoutListener} instance should be something that was registered earlier. For example, {@link #display(float, float, Activity)} method
+     * registers a listener to position the button on the view tree, and then once done, uses this method to de-register the listener.
+     *
+     * @param floatingButtonView     The {@link FloatingButtonView} instance which is used to retrieve the {@link ViewTreeObserver}
+     * @param onGlobalLayoutListener The {@link ViewTreeObserver.OnGlobalLayoutListener} instance
+     */
+    void removeOnGlobalLayoutListenerCompat(FloatingButtonView floatingButtonView,
+                                            ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener) {
+        ViewTreeObserver viewTreeObserver = floatingButtonView.getViewTreeObserver();
 
-		if (Build.VERSION.SDK_INT >= 16) {
-			try {
-				Class<?> viewTreeObserverClass = viewTreeObserver.getClass();
-				Method removeOnGlobalLayoutListenerMethod = viewTreeObserverClass.getDeclaredMethod("removeOnGlobalLayoutListener",
-						ViewTreeObserver.OnGlobalLayoutListener.class);
-				removeOnGlobalLayoutListenerMethod.invoke(viewTreeObserver, onGlobalLayoutListener);
-			} catch (Exception e) {
-				MobileCore.log(LoggingMode.ERROR, LOG_TAG, String.format("Error while cleaning up (%s)", e));
-			}
-		} else {
-			viewTreeObserver.removeGlobalOnLayoutListener(onGlobalLayoutListener);
-		}
-	}
+        if (Build.VERSION.SDK_INT >= 16) {
+            try {
+                Class<?> viewTreeObserverClass = viewTreeObserver.getClass();
+                Method removeOnGlobalLayoutListenerMethod = viewTreeObserverClass.getDeclaredMethod("removeOnGlobalLayoutListener",
+                        ViewTreeObserver.OnGlobalLayoutListener.class);
+                removeOnGlobalLayoutListenerMethod.invoke(viewTreeObserver, onGlobalLayoutListener);
+            } catch (Exception e) {
+                MobileCore.log(LoggingMode.ERROR, LOG_TAG, String.format("Error while cleaning up (%s)", e));
+            }
+        } else {
+            viewTreeObserver.removeGlobalOnLayoutListener(onGlobalLayoutListener);
+        }
+    }
 }

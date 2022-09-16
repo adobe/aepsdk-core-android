@@ -43,7 +43,7 @@ public class AndroidEventHistoryTests {
     @Before
     public void beforeEach() {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        App.setAppContext(context);
+        App.INSTANCE.setAppContext(context);
         TestUtils.deleteAllFilesInCacheDir(context);
 
         try {

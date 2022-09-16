@@ -40,7 +40,7 @@ public class DataQueueServiceTests {
     @Before
     public void beforeEach() {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        App.setAppContext(context);
+        App.INSTANCE.setAppContext(context);
     }
 
     @After
@@ -59,7 +59,7 @@ public class DataQueueServiceTests {
 
     @Test
     public void testGetDataQueue_ApplicationContextIsNotSet() {
-        App.setAppContext(null);
+        App.INSTANCE.setAppContext(null);
         DataQueue dataQueue = new DataQueueService().getDataQueue(null);
         assertNull(dataQueue);
     }

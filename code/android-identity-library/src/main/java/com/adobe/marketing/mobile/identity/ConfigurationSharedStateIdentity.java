@@ -15,9 +15,12 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
-import com.adobe.marketing.mobile.IdentityConstants.Defaults;
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.Log;
+import com.adobe.marketing.mobile.MobilePrivacyStatus;
+import com.adobe.marketing.mobile.identity.IdentityConstants.Defaults;
 
 /**
  * ConfigurationSharedStateIdentity

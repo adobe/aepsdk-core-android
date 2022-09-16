@@ -23,6 +23,8 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.identity.ListenerHubBootedIdentity;
+
 public class ListenerHubBootedIdentityTest extends BaseTest {
 	private ListenerHubBootedIdentity listener;
 	private MockIdentityExtension identityModule;

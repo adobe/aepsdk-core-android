@@ -17,6 +17,12 @@
  ******************************************************************************/
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.identity.ConfigurationSharedStateIdentity;
+import com.adobe.marketing.mobile.identity.DispatcherAnalyticsRequestContentIdentity;
+import com.adobe.marketing.mobile.identity.DispatcherIdentityResponseIdentityIdentity;
+import com.adobe.marketing.mobile.identity.IdentityExtension;
+import com.adobe.marketing.mobile.identity.IdentityResponseObject;
+
 import java.util.List;
 import java.util.Map;
 

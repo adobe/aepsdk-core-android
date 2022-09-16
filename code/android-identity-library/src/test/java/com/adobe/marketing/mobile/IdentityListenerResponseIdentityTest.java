@@ -21,6 +21,8 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.identity.IdentityListenerResponseIdentity;
+
 public class IdentityListenerResponseIdentityTest extends BaseTest {
 	private IdentityListenerResponseIdentity listener;
 	private MockIdentityExtension identityModule;

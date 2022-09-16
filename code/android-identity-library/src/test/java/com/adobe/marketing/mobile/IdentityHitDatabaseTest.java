@@ -26,6 +26,12 @@ import java.nio.charset.Charset;
 
 import static org.junit.Assert.*;
 
+import com.adobe.marketing.mobile.identity.ConfigurationSharedStateIdentity;
+import com.adobe.marketing.mobile.identity.IdentityHit;
+import com.adobe.marketing.mobile.identity.IdentityHitSchema;
+import com.adobe.marketing.mobile.identity.IdentityHitsDatabase;
+import com.adobe.marketing.mobile.identity.IdentityResponseObject;
+
 public class IdentityHitDatabaseTest extends BaseTest {
 
 	private IdentityHitsDatabase identityHitsDatabase;

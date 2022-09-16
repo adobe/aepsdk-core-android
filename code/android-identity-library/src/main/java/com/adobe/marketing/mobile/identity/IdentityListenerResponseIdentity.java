@@ -2,7 +2,7 @@
  * ADOBE CONFIDENTIAL
  * ___________________
  *
- * Copyright 2018 Adobe
+ * Copyright 2020 Adobe
  * All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
@@ -15,13 +15,17 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
+
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
 
 /**
- * Listens for {@link EventType#HUB}, {@link EventSource#BOOTED} events and kicks processing for parent {@link IdentityExtension}
- * module
+ * Listens for {@link EventType#IDENTITY}, {@link EventSource#RESPONSE_IDENTITY} events and passes them to
+ * the parent {@link IdentityExtension} for processing
  */
-class ListenerHubBootedIdentity extends ModuleEventListener<IdentityExtension> {
+public class IdentityListenerResponseIdentity extends ModuleEventListener<IdentityExtension> {
 
 	/**
 	 * Constructor
@@ -30,21 +34,23 @@ class ListenerHubBootedIdentity extends ModuleEventListener<IdentityExtension> {
 	 * @param type {@link EventType} that this listener will hear
 	 * @param source {@link EventSource} that this listener will hear
 	 */
-	ListenerHubBootedIdentity(final IdentityExtension extension, final EventType type, final EventSource source) {
+	protected IdentityListenerResponseIdentity(final IdentityExtension extension, final EventType type,
+			final EventSource source) {
 		super(extension, type, source);
 	}
 
 	/**
-	 * Kicks off the parent {@link IdentityExtension} module after the {@link EventHub} finishes booting
+	 * This method is invoked when and event with {@link EventType#IDENTITY}, {@link EventSource#RESPONSE_IDENTITY} is received
+	 * by the Event Hub. The parent extension processes the event if a shared state update is indicated.
 	 *
-	 * @param event {@link Event} that was received
+	 * @param event {@link Event} containing identity response data and the shared state update flag (optional)
 	 */
 	@Override
 	public void hear(final Event event) {
 		parentModule.getExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
-				parentModule.bootup(event);
+				parentModule.handleIdentityResponseIdentityForSharedState(event);
 			}
 		});
 	}

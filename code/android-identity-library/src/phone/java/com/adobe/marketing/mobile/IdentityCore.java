@@ -17,6 +17,15 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.AdobeCallback;
+import com.adobe.marketing.mobile.AdobeCallbackWithError;
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.Log;
+import com.adobe.marketing.mobile.identity.IdentityConstants;
+import com.adobe.marketing.mobile.identity.IdentityExtension;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -17,6 +17,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.identity.IdentityCore;
+
 import java.util.List;
 import java.util.Map;
 

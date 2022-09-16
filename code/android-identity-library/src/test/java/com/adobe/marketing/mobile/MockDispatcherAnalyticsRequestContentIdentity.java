@@ -17,6 +17,9 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.identity.DispatcherAnalyticsRequestContentIdentity;
+import com.adobe.marketing.mobile.identity.IdentityExtension;
+
 public class MockDispatcherAnalyticsRequestContentIdentity extends DispatcherAnalyticsRequestContentIdentity {
 
 	boolean dispatchAnalyticseWasCalled;

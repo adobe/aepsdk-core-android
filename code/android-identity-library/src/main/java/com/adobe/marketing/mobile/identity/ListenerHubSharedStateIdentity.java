@@ -15,7 +15,11 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
+
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
 
 /**
  * Listens for {@link EventType#HUB}, {@link EventSource#SHARED_STATE} events and kicks event queue processing

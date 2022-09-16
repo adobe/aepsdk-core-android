@@ -24,6 +24,9 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import com.adobe.marketing.mobile.identity.IdentityHit;
+import com.adobe.marketing.mobile.identity.IdentityHitSchema;
+
 public class IdentityHitSchemaTest {
 	private static final String   COL_REQUESTS_ID					= "ID";
 	private static final String   COL_REQUESTS_URL					= "URL";

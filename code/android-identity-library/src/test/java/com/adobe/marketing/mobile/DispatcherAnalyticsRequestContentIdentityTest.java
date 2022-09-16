@@ -25,6 +25,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import com.adobe.marketing.mobile.identity.DispatcherAnalyticsRequestContentIdentity;
+
 public class DispatcherAnalyticsRequestContentIdentityTest {
 
 	private FakePlatformServices platformService;

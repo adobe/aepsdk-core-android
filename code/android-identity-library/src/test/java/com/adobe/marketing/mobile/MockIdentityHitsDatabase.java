@@ -17,6 +17,10 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.identity.ConfigurationSharedStateIdentity;
+import com.adobe.marketing.mobile.identity.IdentityExtension;
+import com.adobe.marketing.mobile.identity.IdentityHitsDatabase;
+
 public class MockIdentityHitsDatabase extends IdentityHitsDatabase {
 	public MockIdentityHitsDatabase(final IdentityExtension parent, final PlatformServices services) {
 		super(parent, services);

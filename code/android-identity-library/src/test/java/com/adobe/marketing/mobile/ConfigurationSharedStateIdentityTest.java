@@ -21,6 +21,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import com.adobe.marketing.mobile.identity.ConfigurationSharedStateIdentity;
+
 public class ConfigurationSharedStateIdentityTest {
 
 	private ConfigurationSharedStateIdentity configurationSharedStateIdentity;

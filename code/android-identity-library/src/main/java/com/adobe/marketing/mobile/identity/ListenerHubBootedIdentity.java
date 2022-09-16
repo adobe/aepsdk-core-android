@@ -15,9 +15,18 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
-public class ListenerAnalyticsResponseIdentity extends ModuleEventListener<IdentityExtension> {
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
+
+/**
+ * Listens for {@link EventType#HUB}, {@link EventSource#BOOTED} events and kicks processing for parent {@link IdentityExtension}
+ * module
+ */
+class ListenerHubBootedIdentity extends ModuleEventListener<IdentityExtension> {
+
 	/**
 	 * Constructor
 	 *
@@ -25,22 +34,21 @@ public class ListenerAnalyticsResponseIdentity extends ModuleEventListener<Ident
 	 * @param type {@link EventType} that this listener will hear
 	 * @param source {@link EventSource} that this listener will hear
 	 */
-	ListenerAnalyticsResponseIdentity(final IdentityExtension extension, final EventType type, final EventSource source) {
+	ListenerHubBootedIdentity(final IdentityExtension extension, final EventType type, final EventSource source) {
 		super(extension, type, source);
 	}
 
 	/**
-	 * Handles {@link EventType#ANALYTICS} {@link EventSource#RESPONSE_IDENTITY} events which report changes to
-	 * the Analytics ID.
+	 * Kicks off the parent {@link IdentityExtension} module after the {@link EventHub} finishes booting
 	 *
-	 * @param event {@link Event} containing the {@link IdentityConstants.EventDataKeys.Analytics#ANALYTICS_ID}
+	 * @param event {@link Event} that was received
 	 */
 	@Override
 	public void hear(final Event event) {
 		parentModule.getExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
-				parentModule.handleAnalyticsResponseIdentity(event);
+				parentModule.bootup(event);
 			}
 		});
 	}

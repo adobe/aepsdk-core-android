@@ -15,13 +15,17 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
+
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
 
 /**
- * Listens for {@link EventType#IDENTITY}, {@link EventSource#REQUEST_IDENTITY} events and passes them to
+ * Listens for {@link EventType#GENERIC_IDENTITY}, {@link EventSource#REQUEST_CONTENT} events and passes them to
  * the parent {@link IdentityExtension} for processing
  */
-class ListenerIdentityRequestIdentity extends ModuleEventListener<IdentityExtension> {
+class ListenerIdentityGenericIdentityRequestIdentity extends ModuleEventListener<IdentityExtension> {
 
 	/**
 	 * Constructor
@@ -30,12 +34,13 @@ class ListenerIdentityRequestIdentity extends ModuleEventListener<IdentityExtens
 	 * @param type {@link EventType} that this listener will hear
 	 * @param source {@link EventSource} that this listener will hear
 	 */
-	ListenerIdentityRequestIdentity(final IdentityExtension extension, final EventType type, final EventSource source) {
+	ListenerIdentityGenericIdentityRequestIdentity(final IdentityExtension extension, final EventType type,
+			final EventSource source) {
 		super(extension, type, source);
 	}
 
 	/**
-	 * All {@link IdentityExtension} public APIs are of {@link EventType#IDENTITY}, {@link EventSource#REQUEST_IDENTITY}
+	 * All {@link IdentityExtension} public APIs are of {@link EventType#GENERIC_IDENTITY}, {@link EventSource#REQUEST_CONTENT}
 	 * combination.
 	 * <ul>
 	 *     <li>If {@link Event#getData()} contains an identifier and identifier type OR map of identifiers,

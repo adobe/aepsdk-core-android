@@ -16,6 +16,9 @@
  ******************************************************************************/
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.identity.DispatcherIdentityResponseIdentityIdentity;
+import com.adobe.marketing.mobile.identity.IdentityExtension;
+
 public class MockDispatcherIdentityResponseIdentityIdentity extends DispatcherIdentityResponseIdentityIdentity {
 
 	boolean dispatchResponseWasCalled;

@@ -15,7 +15,10 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
+
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;

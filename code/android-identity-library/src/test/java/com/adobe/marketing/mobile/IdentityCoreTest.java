@@ -16,18 +16,15 @@
  ******************************************************************************/
 package com.adobe.marketing.mobile;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 
 
-import java.io.*;
-import java.net.URL;
 import java.util.*;
 
 import static org.junit.Assert.*;
+
+import com.adobe.marketing.mobile.identity.IdentityCore;
 
 public class IdentityCoreTest extends BaseTest {
 

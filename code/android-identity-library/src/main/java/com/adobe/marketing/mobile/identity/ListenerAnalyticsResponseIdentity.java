@@ -2,7 +2,7 @@
  * ADOBE CONFIDENTIAL
  * ___________________
  *
- * Copyright 2020 Adobe
+ * Copyright 2018 Adobe
  * All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
@@ -15,14 +15,13 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
-/**
- * Listens for {@link EventType#IDENTITY}, {@link EventSource#RESPONSE_IDENTITY} events and passes them to
- * the parent {@link IdentityExtension} for processing
- */
-public class IdentityListenerResponseIdentity extends ModuleEventListener<IdentityExtension> {
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
 
+public class ListenerAnalyticsResponseIdentity extends ModuleEventListener<IdentityExtension> {
 	/**
 	 * Constructor
 	 *
@@ -30,23 +29,22 @@ public class IdentityListenerResponseIdentity extends ModuleEventListener<Identi
 	 * @param type {@link EventType} that this listener will hear
 	 * @param source {@link EventSource} that this listener will hear
 	 */
-	protected IdentityListenerResponseIdentity(final IdentityExtension extension, final EventType type,
-			final EventSource source) {
+	ListenerAnalyticsResponseIdentity(final IdentityExtension extension, final EventType type, final EventSource source) {
 		super(extension, type, source);
 	}
 
 	/**
-	 * This method is invoked when and event with {@link EventType#IDENTITY}, {@link EventSource#RESPONSE_IDENTITY} is received
-	 * by the Event Hub. The parent extension processes the event if a shared state update is indicated.
+	 * Handles {@link EventType#ANALYTICS} {@link EventSource#RESPONSE_IDENTITY} events which report changes to
+	 * the Analytics ID.
 	 *
-	 * @param event {@link Event} containing identity response data and the shared state update flag (optional)
+	 * @param event {@link Event} containing the {@link IdentityConstants.EventDataKeys.Analytics#ANALYTICS_ID}
 	 */
 	@Override
 	public void hear(final Event event) {
 		parentModule.getExecutor().execute(new Runnable() {
 			@Override
 			public void run() {
-				parentModule.handleIdentityResponseIdentityForSharedState(event);
+				parentModule.handleAnalyticsResponseIdentity(event);
 			}
 		});
 	}

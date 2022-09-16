@@ -2,7 +2,7 @@
  * ADOBE CONFIDENTIAL
  * ___________________
  *
- * Copyright 2021 Adobe
+ * Copyright 2018 Adobe
  * All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
@@ -15,13 +15,17 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
+
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
 
 /**
- * Listens for {@link EventType#GENERIC_IDENTITY}, {@link EventSource#REQUEST_RESET} events and passes them to
+ * Listens for {@link EventType#IDENTITY}, {@link EventSource#REQUEST_IDENTITY} events and passes them to
  * the parent {@link IdentityExtension} for processing
  */
-class ListenerIdentityGenericIdentityRequestReset extends ModuleEventListener<IdentityExtension> {
+class ListenerIdentityRequestIdentity extends ModuleEventListener<IdentityExtension> {
 
 	/**
 	 * Constructor
@@ -30,15 +34,21 @@ class ListenerIdentityGenericIdentityRequestReset extends ModuleEventListener<Id
 	 * @param type {@link EventType} that this listener will hear
 	 * @param source {@link EventSource} that this listener will hear
 	 */
-	ListenerIdentityGenericIdentityRequestReset(final IdentityExtension extension, final EventType type,
-			final EventSource source) {
+	ListenerIdentityRequestIdentity(final IdentityExtension extension, final EventType type, final EventSource source) {
 		super(extension, type, source);
 	}
 
 	/**
-	 * Listens for the request reset {@link Event}
+	 * All {@link IdentityExtension} public APIs are of {@link EventType#IDENTITY}, {@link EventSource#REQUEST_IDENTITY}
+	 * combination.
+	 * <ul>
+	 *     <li>If {@link Event#getData()} contains an identifier and identifier type OR map of identifiers,
+	 *     the result will be a call to {@link IdentityExtension#handleSyncIdentifiers(Event, ConfigurationSharedStateIdentity)}</li>
+	 *     <li>If {@code Event.getData()} contains a base URL, the result will append visitor information to the URL</li>
+	 *     <li>If neither of the above are true, this {@link Event} represents a request to {@code getIdentifiers()}</li>
+	 * </ul>
 	 *
-	 * @param event {@link Event} of the reset {@link Event}
+	 * @param event {@link Event} containing data to represent a corresponding public API request
 	 */
 	@Override
 	public void hear(final Event event) {

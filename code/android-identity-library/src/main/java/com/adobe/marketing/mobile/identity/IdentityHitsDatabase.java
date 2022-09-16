@@ -15,7 +15,11 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
+
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.Log;
+import com.adobe.marketing.mobile.MobilePrivacyStatus;
 
 import java.io.File;
 import java.io.IOException;

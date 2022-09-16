@@ -17,6 +17,8 @@
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.identity.IdentityExtension;
+
 /**
  * Holds all the constant values to be used by various classes in the {@link IdentityExtension} module
  */

@@ -15,7 +15,9 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
+
+import com.adobe.marketing.mobile.Event;
 
 /**
  * Extends {@link AbstractHit} and represents a record in the database that holds IdentityExtension requests

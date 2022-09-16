@@ -23,6 +23,8 @@ import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 
+import com.adobe.marketing.mobile.identity.IdentityResponseObject;
+
 public class IdentityObjectTest extends BaseTest {
 
 	IdentityResponseObject identityResponseObject;

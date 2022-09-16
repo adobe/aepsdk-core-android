@@ -22,6 +22,8 @@ import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.identity.ListenerHubSharedStateIdentity;
+
 public class ListenerHubSharedStateIdentityTest extends BaseTest {
 
 	private ListenerHubSharedStateIdentity listener;

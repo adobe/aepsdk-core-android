@@ -22,6 +22,8 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.identity.ListenerIdentityGenericIdentityRequestIdentity;
+
 public class ListenerGenericIdentityRequestIdentityTest extends BaseTest {
 
 	private ListenerIdentityGenericIdentityRequestIdentity listener;

@@ -23,6 +23,8 @@ import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.identity.IdentityListenerConfigurationResponseContent;
+
 public class IdentityListenerConfigurationResponseContentTests extends BaseTest {
 
 	private IdentityListenerConfigurationResponseContent listener;

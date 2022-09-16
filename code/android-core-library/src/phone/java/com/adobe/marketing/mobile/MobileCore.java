@@ -212,9 +212,11 @@ final public class MobileCore {
                 if (registeredExtensions.incrementAndGet() == allExtensions.size()) {
                     Log.debug(LOG_TAG, "Registered all extensions. Starting event processing.");
                     EventHub.Companion.getShared().start();
-                    if (completionCallback != null) {
-                        completionCallback.call(null);
-                    }
+                    try {
+                        if (completionCallback != null) {
+                            completionCallback.call(null);
+                        }
+                    } catch (Exception ex) {}
                 }
                 return null;
             });

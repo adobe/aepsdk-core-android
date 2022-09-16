@@ -18,6 +18,7 @@ import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.internal.util.MapUtilsKt;
+import com.adobe.marketing.mobile.services.Log;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -60,7 +61,7 @@ public class AndroidEventHistory implements EventHistory {
         executorService.submit(new Runnable() {
             @Override
             public void run() {
-                handler.call(androidEventHistoryDatabase.insert(fnv1aHash));
+                notifyHandler(handler, androidEventHistoryDatabase.insert(fnv1aHash));
             }
         });
     }
@@ -120,7 +121,7 @@ public class AndroidEventHistory implements EventHistory {
                         handler.call(0);
                     }
                 } else { // for "any" search, return total number of matching events
-                    handler.call(foundEventCount);
+                    notifyHandler(handler, foundEventCount);
                 }
             }
         });
@@ -151,8 +152,18 @@ public class AndroidEventHistory implements EventHistory {
                     deletedRows += androidEventHistoryDatabase.delete(eventHash, from, to);
                 }
 
-                handler.call(deletedRows);
+                notifyHandler(handler, deletedRows);
             }
         });
+    }
+
+    private <T> void notifyHandler(EventHistoryResultHandler<T> handler, T value) {
+        if (handler != null) {
+            try {
+                handler.call(value);
+            } catch (Exception ex) {
+                Log.debug("MobileCore", LOG_TAG, String.format("Exception executing event history result handler %s", ex));
+            }
+        }
     }
 }

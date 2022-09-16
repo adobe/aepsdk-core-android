@@ -432,11 +432,9 @@ public class AndroidV4ToV5MigrationTests {
 		assertEquals(789, v4DataStore.getInt(V4.LIFETIME_VALUE, 0));
 	}
 
-	// todo need to fix based on App changes
-	@Ignore
 	@Test
 	public void testDataMigration_DoesNotThrow_WhenNullContext() {
-		App.INSTANCE.setAppContext(null);
+		App.INSTANCE.resetInstance();
 
 		try {
 			migrationTool.migrate();

@@ -58,11 +58,9 @@ public class DataQueueServiceTests {
         assertNull(dataQueue);
     }
 
-    // todo need to fix based on App changes
     @Test
-    @Ignore
     public void testGetDataQueue_ApplicationContextIsNotSet() {
-        App.INSTANCE.setAppContext(null);
+        ServiceProvider.getInstance().resetAppInstance();
         DataQueue dataQueue = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
         assertNull(dataQueue);
     }

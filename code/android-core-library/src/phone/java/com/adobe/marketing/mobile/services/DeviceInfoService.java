@@ -24,6 +24,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Implementation of {@link DeviceInforming} service
@@ -132,6 +134,16 @@ class DeviceInfoService implements DeviceInforming {
      */
     public String getOperatingSystemVersion() {
         return Build.VERSION.RELEASE;
+    }
+
+    /**
+     * Returns the device brand.
+     *
+     * @return {@code String} containing the consumer-visible brand name
+     */
+    @Override
+    public String getDeviceBrand() {
+        return Build.BRAND;
     }
 
     @Override
@@ -254,6 +266,22 @@ class DeviceInfoService implements DeviceInforming {
     @Override
     public String getRunMode() {
         return "Application";
+    }
+
+    @Override
+    public String getDeviceUniqueId() {
+        Context context = getApplicationContext();
+
+        if (context == null) {
+            return null;
+        }
+
+
+        final String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        final String deviceUuid = (androidId != null) ?
+                new UUID(androidId.hashCode(), androidId.hashCode()).toString() : "";
+
+        return deviceUuid;
     }
 
     /**

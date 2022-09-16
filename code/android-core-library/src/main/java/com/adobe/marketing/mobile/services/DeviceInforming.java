@@ -197,6 +197,14 @@ public interface DeviceInforming {
 	 */
 	String getOperatingSystemVersion();
 
+
+	/**
+	 * Returns the device brand.
+	 *
+	 * @return {@code String} containing the consumer-visible brand name
+	 */
+	String getDeviceBrand();
+
 	/**
 	 * The device manufacturer's name.
 	 *
@@ -272,5 +280,12 @@ public interface DeviceInforming {
 	 * @return {@link String} containing running mode
 	 */
 	String getRunMode();
+
+	/**
+	 * Get unique identifier for device.
+	 *
+	 * @return {@code String} containing the device UUID or null if application {@code Context} is null
+	 */
+	String getDeviceUniqueId();
 
 }

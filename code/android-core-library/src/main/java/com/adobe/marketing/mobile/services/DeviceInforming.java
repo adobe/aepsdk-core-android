@@ -12,6 +12,8 @@
 package com.adobe.marketing.mobile.services;
 
 
+import android.os.Build;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.Locale;
@@ -218,6 +220,13 @@ public interface DeviceInforming {
 	 * @return {@link String} Device name if available, null otherwise
 	 */
 	String getDeviceName();
+
+	/**
+	 * Returns name of the industrial design for the device
+	 *
+	 * @return {@code String} containing the name of the industrial design
+	 */
+	String getDevice();
 
 	/**
 	 * Returns the device type.

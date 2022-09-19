@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Locale;
-import java.util.UUID;
 
 /**
  * Implementation of {@link DeviceInforming} service
@@ -158,6 +157,16 @@ class DeviceInfoService implements DeviceInforming {
      */
     public String getDeviceName() {
         return Build.MODEL;
+    }
+
+    /**
+     * Returns name of the industrial design for the device
+     *
+     * @return {@code String} containing the name of the industrial design
+     */
+    @Override
+    public String getDevice() {
+        return Build.DEVICE;
     }
 
     @Override

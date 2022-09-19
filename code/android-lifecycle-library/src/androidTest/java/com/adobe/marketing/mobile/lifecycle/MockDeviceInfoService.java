@@ -128,6 +128,12 @@ public class MockDeviceInfoService implements DeviceInforming {
         return deviceName;
     }
 
+    public String device = "mockDevice";
+    @Override
+    public String getDevice() {
+        return device;
+    }
+
     public DeviceType deviceType = DeviceType.UNKNOWN;
     @Override
     public DeviceType getDeviceType() {

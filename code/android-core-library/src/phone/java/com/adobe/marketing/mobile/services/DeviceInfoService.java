@@ -277,11 +277,7 @@ class DeviceInfoService implements DeviceInforming {
         }
 
 
-        final String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        final String deviceUuid = (androidId != null) ?
-                new UUID(androidId.hashCode(), androidId.hashCode()).toString() : "";
-
-        return deviceUuid;
+        return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 
     /**

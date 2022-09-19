@@ -17,8 +17,8 @@ public class LifecycleEventGeneratorTestHelper {
 
     static final String ADDITIONAL_CONTEXT_DATA = "additionalcontextdata";
     static final String LIFECYCLE_ACTION_KEY = "action";
-    static final String LIFECYCLE_PAUSE = "start";
-    static final String LIFECYCLE_START = "pause";
+    static final String LIFECYCLE_PAUSE = "pause";
+    static final String LIFECYCLE_START = "start";
 
 
     public static Event createStartEvent(final Map<String, String> additionalData, final long timestamp) {

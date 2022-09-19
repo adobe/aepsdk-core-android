@@ -98,7 +98,8 @@ public abstract class Extension {
 		ExtensionError error = extensionUnexpectedError != null ? extensionUnexpectedError.getErrorCode() : null;
 
 		if (error != null) {
-			Log.error(CoreConstants.LOG_TAG, getLogTag(), "Extension processing failed with error code: %s (%s), error message: %s", error.getErrorCode(), error.getErrorName(), extensionUnexpectedError.getMessage());
+			Log.error(CoreConstants.LOG_TAG, getLogTag(), "Extension processing failed with error code: %s (%s), error message: %s",
+					  error.getErrorCode(), error.getErrorName(), extensionUnexpectedError.getMessage());
 		}
 	}
 

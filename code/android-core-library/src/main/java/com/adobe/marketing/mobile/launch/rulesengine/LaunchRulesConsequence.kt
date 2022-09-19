@@ -15,13 +15,13 @@ import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.util.EventDataMerger
 import com.adobe.marketing.mobile.internal.util.prettify
 import com.adobe.marketing.mobile.rulesengine.DelimiterPair
 import com.adobe.marketing.mobile.rulesengine.Template
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.EventDataUtils
 
 class LaunchRulesConsequence(
@@ -72,8 +72,8 @@ class LaunchRulesConsequence(
                     }
                     CONSEQUENCE_TYPE_DISPATCH -> {
                         if (dispatchChainCount >= MAX_CHAINED_CONSEQUENCE_COUNT) {
-                            MobileCore.log(
-                                LoggingMode.VERBOSE,
+                            Log.warning(
+                                LaunchRulesEngineConstants.LOG_TAG,
                                 logTag,
                                 "Unable to process dispatch consequence, max chained " +
                                     "dispatch consequences limit of $MAX_CHAINED_CONSEQUENCE_COUNT" +
@@ -86,8 +86,8 @@ class LaunchRulesConsequence(
                             processedEvent.eventData
                         ) ?: continue
 
-                        MobileCore.log(
-                            LoggingMode.VERBOSE,
+                        Log.trace(
+                            LaunchRulesEngineConstants.LOG_TAG,
                             logTag,
                             "processDispatchConsequence - Dispatching event - ${dispatchEvent.uniqueIdentifier}"
                         )
@@ -96,8 +96,8 @@ class LaunchRulesConsequence(
                     }
                     else -> {
                         val consequenceEvent = generateConsequenceEvent(consequenceWithConcreteValue)
-                        MobileCore.log(
-                            LoggingMode.VERBOSE,
+                        Log.trace(
+                            LaunchRulesEngineConstants.LOG_TAG,
                             logTag,
                             "evaluateRulesConsequence - Dispatching consequence event ${consequenceEvent.uniqueIdentifier}"
                         )
@@ -155,26 +155,29 @@ class LaunchRulesConsequence(
      */
     private fun processAttachDataConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Map<String, Any?>? {
         val from = EventDataUtils.castFromGenericType(consequence.eventData) ?: run {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
                 "Unable to process an AttachDataConsequence Event, 'eventData' is missing from 'details'"
             )
             return null
         }
         val to = eventData ?: run {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
                 "Unable to process an AttachDataConsequence Event, 'eventData' is missing from original event"
             )
             return null
         }
-        MobileCore.log(
-            LoggingMode.VERBOSE,
-            logTag,
-            "Attaching event data with ${from.prettify()}"
-        )
+
+        if (Log.getLogLevel() == LoggingMode.VERBOSE) {
+            Log.trace(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Attaching event data with ${from.prettify()}"
+            )
+        }
         return EventDataMerger.merge(from, to, false)
     }
 
@@ -190,26 +193,29 @@ class LaunchRulesConsequence(
      */
     private fun processModifyDataConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Map<String, Any?>? {
         val from = EventDataUtils.castFromGenericType(consequence.eventData) ?: run {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
                 "Unable to process a ModifyDataConsequence Event, 'eventData' is missing from 'details'"
             )
             return null
         }
         val to = eventData ?: run {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
                 "Unable to process a ModifyDataConsequence Event, 'eventData' is missing from original event"
             )
             return null
         }
-        MobileCore.log(
-            LoggingMode.VERBOSE,
-            logTag,
-            "Modifying event data with ${from.prettify()}"
-        )
+
+        if (Log.getLogLevel() == LoggingMode.VERBOSE) {
+            Log.trace(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Modifying event data with ${from.prettify()}"
+            )
+        }
         return EventDataMerger.merge(from, to, true)
     }
 
@@ -222,24 +228,24 @@ class LaunchRulesConsequence(
      */
     private fun processDispatchConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Event? {
         val type = consequence.eventType ?: run {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
                 "Unable to process a DispatchConsequence Event, 'type' is missing from 'details'"
             )
             return null
         }
         val source = consequence.eventSource ?: run {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
                 "Unable to process a DispatchConsequence Event, 'source' is missing from 'details'"
             )
             return null
         }
         val action = consequence.eventDataAction ?: run {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
                 "Unable to process a DispatchConsequence Event, 'eventdataaction' is missing from 'details'"
             )
@@ -255,8 +261,8 @@ class LaunchRulesConsequence(
                 dispatchEventData = data?.filterValues { it != null }
             }
             else -> {
-                MobileCore.log(
-                    LoggingMode.ERROR,
+                Log.error(
+                    LaunchRulesEngineConstants.LOG_TAG,
                     logTag,
                     "Unable to process a DispatchConsequence Event, unsupported 'eventdataaction', expected values copy/new"
                 )

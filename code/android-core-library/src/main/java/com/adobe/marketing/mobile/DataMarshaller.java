@@ -15,6 +15,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 
 import java.util.ArrayList;
@@ -69,7 +72,7 @@ class DataMarshaller {
 
 				if (data != null && !data.toString().isEmpty()) {
 
-					Log.trace(TAG, "Receiving the Activity Uri (%s)", data.toString());
+					Log.trace(CoreConstants.LOG_TAG, TAG, "Receiving the Activity Uri (%s)", data.toString());
 					launchData.put(DEEPLINK_KEY, data.toString());
 
 					// This will remove the adobe specific keys from the intent data

@@ -229,9 +229,9 @@ public class AndroidV4ToV5MigrationTests {
 	@Before
 	public void setup() {
 		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		App.setAppContext(context);
+		App.INSTANCE.setAppContext(context);
 		migrationTool = new V4ToV5Migration();
-		v4DataStore = App.getAppContext().getSharedPreferences(V4.DATASTORE_NAME, 0);
+		v4DataStore = App.INSTANCE.getAppContext().getSharedPreferences(V4.DATASTORE_NAME, 0);
 		v4DataStoreEditor = v4DataStore.edit();
 		v4DataStoreEditor.clear();
 		v4DataStoreEditor.commit();
@@ -433,7 +433,7 @@ public class AndroidV4ToV5MigrationTests {
 
 	@Test
 	public void testDataMigration_DoesNotThrow_WhenNullContext() {
-		App.setAppContext(null);
+		App.INSTANCE.setAppContext(null);
 
 		try {
 			migrationTool.migrate();

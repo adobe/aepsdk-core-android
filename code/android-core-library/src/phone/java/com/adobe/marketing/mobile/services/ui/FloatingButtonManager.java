@@ -27,6 +27,8 @@ import static android.view.View.GONE;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.internal.context.App;
 
 class FloatingButtonManager implements FloatingButton {
@@ -51,13 +53,13 @@ class FloatingButtonManager implements FloatingButton {
         final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Current activity), will not display button.",
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Current activity), will not display button.",
                     UNEXPECTED_NULL_VALUE));
             return;
         }
 
         if (activityLifecycleCallbacks != null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Display cannot be called twice!");
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Display cannot be called twice!");
             return;
         }
 
@@ -209,7 +211,7 @@ class FloatingButtonManager implements FloatingButton {
                     final FloatingButtonView floatingButtonView = managedButtons.get(activityClassName);
 
                     if (floatingButtonView == null) {
-                        MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Floating button view), for activity: %s",
+                        Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Floating button view), for activity: %s",
                                 UNEXPECTED_NULL_VALUE, activityClassName));
                         return;
                     }
@@ -260,7 +262,7 @@ class FloatingButtonManager implements FloatingButton {
             });
 
         } catch (Exception ex) {
-            MobileCore.log(LoggingMode.ERROR, LOG_TAG, String.format("Could not display the button (%s)", ex));
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Could not display the button (%s)", ex));
         }
     }
 
@@ -273,7 +275,7 @@ class FloatingButtonManager implements FloatingButton {
 
     void removeFloatingButtonFromActivity(Activity activity) {
         if (activity == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Activity), cannot remove button!",
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Activity), cannot remove button!",
                     UNEXPECTED_NULL_VALUE));
             return;
         }
@@ -284,7 +286,7 @@ class FloatingButtonManager implements FloatingButton {
                 Activity activity = App.INSTANCE.getCurrentActivity();
 
                 if (activity == null) {
-                    MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Activity), cannot remove button!",
+                    Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Activity), cannot remove button!",
                             UNEXPECTED_NULL_VALUE));
                     return;
                 }
@@ -295,7 +297,7 @@ class FloatingButtonManager implements FloatingButton {
                 if (floatingButton != null) {
                     floatingButton.setVisibility(GONE);
                 } else {
-                    MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("No button found to remove for %s",
+                    Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("No button found to remove for %s",
                             activity.getLocalClassName()));
                 }
             }
@@ -372,7 +374,7 @@ class FloatingButtonManager implements FloatingButton {
                         ViewTreeObserver.OnGlobalLayoutListener.class);
                 removeOnGlobalLayoutListenerMethod.invoke(viewTreeObserver, onGlobalLayoutListener);
             } catch (Exception e) {
-                MobileCore.log(LoggingMode.ERROR, LOG_TAG, String.format("Error while cleaning up (%s)", e));
+                Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Error while cleaning up (%s)", e));
             }
         } else {
             viewTreeObserver.removeGlobalOnLayoutListener(onGlobalLayoutListener);

@@ -12,10 +12,10 @@
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.util.map
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
+import com.adobe.marketing.mobile.services.Log
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -31,8 +31,8 @@ internal class JSONRuleRoot private constructor(val version: String, val jsonArr
             val version = jsonObject.optString(KEY_VERSION, "0")
             val rules = jsonObject.optJSONArray(KEY_RULES)
             if (rules !is JSONArray) {
-                MobileCore.log(
-                    LoggingMode.ERROR,
+                Log.error(
+                    LaunchRulesEngineConstants.LOG_TAG,
                     LOG_TAG,
                     "Failed to extract [launch_json.rules]"
                 )

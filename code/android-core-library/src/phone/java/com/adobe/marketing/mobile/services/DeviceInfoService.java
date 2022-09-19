@@ -225,21 +225,19 @@ class DeviceInfoService implements DeviceInforming {
                 } else {
                     // Per Android documentation getActiveNetworkInfo() will return null if no default network is currently active.
                     // If no default network is currently active we can assume that we don't have connectivity.
-                    MobileCore.log(LoggingMode.DEBUG, LOG_TAG,
-                            String.format("Unable to determine connectivity status due to there being no default network currently active"));
+                    Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Unable to determine connectivity status due to there being no default network currently active");
                 }
             } else {
-                MobileCore.log(LoggingMode.WARNING, LOG_TAG,
-                        String.format("Unable to determine connectivity status due to the system service requested being unrecognized"));
+                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Unable to determine connectivity status due to the system service requested being unrecognized");
             }
         } catch (NullPointerException e) {
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG,
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
                     String.format("Unable to determine connectivity status due to an unexpected error (%s)", e.getLocalizedMessage()));
         } catch (SecurityException e) {
-            MobileCore.log(LoggingMode.ERROR, LOG_TAG,
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
                     String.format("Unable to access connectivity status due to a security error (%s)", e.getLocalizedMessage()));
         } catch (Exception e) {
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG,
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
                     String.format("Unable to access connectivity status due to an unexpected error (%s)", e.getLocalizedMessage()));
         }
 
@@ -301,7 +299,7 @@ class DeviceInfoService implements DeviceInforming {
         Resources resources = context.getResources();
 
         if (resources == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG,
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
                     String.format("%s (Resources), unable to read (%s) from the the assets folder.", UNEXPECTED_NULL_VALUE,
                             fileName));
             return null;
@@ -310,7 +308,7 @@ class DeviceInfoService implements DeviceInforming {
         AssetManager assetManager = resources.getAssets();
 
         if (assetManager == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG,
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
                     String.format("%s (AssetManager), unable to read (%s) from the the assets folder.", UNEXPECTED_NULL_VALUE,
                             fileName));
             return null;
@@ -319,7 +317,7 @@ class DeviceInfoService implements DeviceInforming {
         try {
             inputStream = assetManager.open(fileName);
         } catch (IOException e) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("Unable to read (%s) from the the assets folder. (%s)",
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Unable to read (%s) from the the assets folder. (%s)",
                     fileName, e));
         }
 
@@ -339,7 +337,7 @@ class DeviceInfoService implements DeviceInforming {
         PackageManager packageManager = context.getPackageManager();
 
         if (packageManager == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Package Manager), unable to read property for key (%s).",
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Package Manager), unable to read property for key (%s).",
                     UNEXPECTED_NULL_VALUE, propertyKey));
             return null;
         }
@@ -349,7 +347,7 @@ class DeviceInfoService implements DeviceInforming {
                     PackageManager.GET_META_DATA);
 
             if (ai == null) {
-                MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (Application info), unable to read property for key (%s).",
+                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Application info), unable to read property for key (%s).",
                         UNEXPECTED_NULL_VALUE,
                         propertyKey));
                 return null;
@@ -358,7 +356,7 @@ class DeviceInfoService implements DeviceInforming {
             Bundle bundle = ai.metaData;
 
             if (bundle == null) {
-                MobileCore.log(LoggingMode.DEBUG, LOG_TAG,
+                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
                         String.format("%s (ApplicationInfo's metaData), unable to read property for key (%s).", UNEXPECTED_NULL_VALUE,
                                 propertyKey));
                 return null;
@@ -367,7 +365,7 @@ class DeviceInfoService implements DeviceInforming {
             propertyValue = bundle.getString(propertyKey);
         } catch (Exception e) {
             // In rare cases, package manager throws run time exception.
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG, String.format("Unable to read property for key (%s). Exception - (%s)",
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Unable to read property for key (%s). Exception - (%s)",
                     propertyKey, e));
         }
 
@@ -398,7 +396,7 @@ class DeviceInfoService implements DeviceInforming {
             }
         } catch (Exception e) {
             // In rare cases, package manager throws run time exception.
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG, String.format("PackageManager couldn't find application name (%s)", e));
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("PackageManager couldn't find application name (%s)", e));
         }
 
         return appName;
@@ -442,7 +440,7 @@ class DeviceInfoService implements DeviceInforming {
                 // in the higher 32 bits. Casting to int will give us the lower 32 bits.
                 versionCode = (int) longVersion;
             } catch (Exception e) {
-                MobileCore.log(LoggingMode.WARNING, LOG_TAG, String.format("Failed to get app version code, (%s)", e));
+                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Failed to get app version code, (%s)", e));
             }
         } else {
             versionCode = packageInfo.versionCode;
@@ -526,7 +524,7 @@ class DeviceInfoService implements DeviceInforming {
             return packageManager.getPackageInfo(context.getPackageName(), 0);
         } catch (Exception e) {
             // In rare cases, package manager throws run time exception.
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG, String.format("PackageManager couldn't find application version (%s)",
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("PackageManager couldn't find application version (%s)",
                     e.getLocalizedMessage()));
             return null;
         }

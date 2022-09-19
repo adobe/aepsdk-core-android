@@ -10,6 +10,8 @@
  */
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.signal.SignalConstants;
 import com.adobe.marketing.mobile.signal.SignalExtension;
 
 public class Signal {
@@ -35,7 +37,7 @@ public class Signal {
     @Deprecated
     public static void registerExtension() {
         MobileCore.registerExtension(SignalExtension.class, extensionError -> {
-            Log.error(CLASS_NAME, "%s - There was an error when registering the UserProfile extension: %s", CLASS_NAME,
+            Log.error(SignalConstants.LOG_TAG, CLASS_NAME, "%s - There was an error when registering the UserProfile extension: %s", CLASS_NAME,
                     extensionError.getErrorName());
         });
     }

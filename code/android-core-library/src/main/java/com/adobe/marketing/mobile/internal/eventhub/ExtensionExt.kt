@@ -17,8 +17,8 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
 import com.adobe.marketing.mobile.ExtensionListener
 import com.adobe.marketing.mobile.ExtensionUnexpectedError
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.services.Log
 import java.lang.Exception
 
 // Type extensions for [Extension] to allow for easier usage
@@ -32,7 +32,7 @@ internal fun Class<out Extension>.initWith(extensionApi: ExtensionApi): Extensio
         extensionConstructor.isAccessible = true
         return extensionConstructor.newInstance(extensionApi)
     } catch (ex: Exception) {
-        MobileCore.log(LoggingMode.DEBUG, "Extension", "Initializing Extension $this failed with $ex")
+        Log.debug(CoreConstants.LOG_TAG, "ExtensionExt", "Initializing Extension $this failed with $ex")
     }
 
     return null
@@ -106,7 +106,9 @@ internal fun Class<out ExtensionListener>.initWith(extensionApi: ExtensionApi, t
             return extensionListenerConstructor.newInstance(extensionApi, type, source)
         }
     } catch (ex: Exception) {
-        MobileCore.log(LoggingMode.DEBUG, "Extension", "Initializing Extension $this failed with $ex")
+        Log.debug(
+            CoreConstants.LOG_TAG, "ExtensionExt", "Initializing Extension $this failed with $ex"
+        )
     }
 
     return null

@@ -38,7 +38,7 @@ public class LocalDataStoreServiceTests {
 	@Before
 	public void beforeEach() {
 		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		App.setAppContext(context);
+		App.INSTANCE.setAppContext(context);
 		this.sharedPreferencesNamedCollection = new
 		LocalDataStoreService().getNamedCollection("AndroidLocalStorageServiceTests");
 		this.sharedPreferencesNamedCollection.removeAll();
@@ -59,7 +59,7 @@ public class LocalDataStoreServiceTests {
 
 	@Test
 	public void testApplicationContextIsNotSet() {
-		App.setAppContext(null);
+		App.INSTANCE.resetInstance();
 		NamedCollection namedCollection = new LocalDataStoreService().getNamedCollection("AndroidLocalStorageServiceTests");
 		assertNull(namedCollection);
 	}

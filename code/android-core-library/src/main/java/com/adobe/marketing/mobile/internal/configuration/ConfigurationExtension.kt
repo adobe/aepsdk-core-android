@@ -18,6 +18,7 @@ import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResolver
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.compatibility.CacheManager
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
@@ -39,10 +40,10 @@ import java.util.concurrent.TimeUnit
 internal class ConfigurationExtension : Extension {
 
     companion object {
-        internal const val TAG = "ConfigurationExtension"
+        internal const val TAG = "Configuration"
         private const val EXTENSION_NAME = "com.adobe.module.configuration"
         private const val EXTENSION_FRIENDLY_NAME = "Configuration"
-        private const val EXTENSION_VERSION = "2.0.0"
+        private const val EXTENSION_VERSION = CoreConstants.VERSION
 
         internal const val CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID = "config.appId"
         internal const val CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH = "config.filePath"
@@ -547,10 +548,10 @@ internal class ConfigurationExtension : Extension {
                 return if (!rulesURL.isNullOrBlank()) {
                     configurationRulesManager.applyDownloadedRules(rulesURL, api)
                 } else {
-                    Log.warning(
+                    Log.debug(
                         TAG,
                         TAG,
-                        "Cannot load rules form rules URL: $rulesURL}"
+                        "Rules URL is empty or null"
                     )
                     false
                 }

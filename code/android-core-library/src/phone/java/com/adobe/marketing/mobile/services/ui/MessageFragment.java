@@ -19,6 +19,9 @@ import android.view.View;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 
@@ -50,7 +53,7 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
     @Override
     public boolean onTouch(final View view, final MotionEvent motionEvent) {
         if (message == null) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (message), unable to handle the touch event on " +
+            Log.debug(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (message), unable to handle the touch event on " +
                     view.getClass().getSimpleName());
             return true;
         }
@@ -61,20 +64,20 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
         if ((motionEventAction == MotionEvent.ACTION_DOWN
                 || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
                 && view.getId() != message.webView.getId()) {
-            MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected tap on " + view.getClass().getSimpleName());
+            Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected tap on " + view.getClass().getSimpleName());
 
             final boolean uiTakeoverEnabled = message.getSettings().getUITakeover();
 
             // if ui takeover is false, dismiss the message
             if (!uiTakeoverEnabled) {
-                MobileCore.log(LoggingMode.VERBOSE, TAG, "UI takeover is false, dismissing the message.");
+                Log.trace(ServiceConstants.LOG_TAG, TAG, "UI takeover is false, dismissing the message.");
                 webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
                 // perform the tap to allow interaction with ui elements outside the webview
                 return view.onTouchEvent(motionEvent);
             }
 
             // ui takeover is true, consume the tap and ignore it
-            MobileCore.log(LoggingMode.VERBOSE, TAG, "UI takeover is true, ignoring the tap.");
+            Log.trace(ServiceConstants.LOG_TAG, TAG, "UI takeover is true, ignoring the tap.");
             return true;
         }
 
@@ -95,7 +98,7 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
 
         // make sure we have a valid message before trying to proceed
         if (message == null) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (message), failed to show the message.");
+            Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (message), failed to show the message.");
             return;
         }
 
@@ -118,7 +121,7 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
         final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null || currentActivity.findViewById(message.frameLayoutResourceId) == null) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (frame layout), failed to show the message.");
+            Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (frame layout), failed to show the message.");
             return;
         }
 

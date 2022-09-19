@@ -68,7 +68,7 @@ internal class ConfigurationDownloader(
                         val downloadedConfig = JSONObject(JSONTokener(content))
                         downloadedConfig.toMap()
                     } catch (exception: JSONException) {
-                        Log.error(
+                        Log.warning(
                             ConfigurationExtension.TAG,
                             LOG_TAG,
                             "Exception processing downloaded configuration $exception"

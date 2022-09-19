@@ -11,15 +11,15 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
+import com.adobe.marketing.mobile.internal.CoreConstants;
 
 public enum WrapperType {
-	NONE(EventHubConstants.Wrapper.Type.NONE),
-	REACT_NATIVE(EventHubConstants.Wrapper.Type.REACT_NATIVE),
-	FLUTTER(EventHubConstants.Wrapper.Type.FLUTTER),
-	CORDOVA(EventHubConstants.Wrapper.Type.CORDOVA),
-	UNITY(EventHubConstants.Wrapper.Type.UNITY),
-	XAMARIN(EventHubConstants.Wrapper.Type.XAMARIN);
+	NONE(CoreConstants.Wrapper.Type.NONE),
+	REACT_NATIVE(CoreConstants.Wrapper.Type.REACT_NATIVE),
+	FLUTTER(CoreConstants.Wrapper.Type.FLUTTER),
+	CORDOVA(CoreConstants.Wrapper.Type.CORDOVA),
+	UNITY(CoreConstants.Wrapper.Type.UNITY),
+	XAMARIN(CoreConstants.Wrapper.Type.XAMARIN);
 
 	private String wrapperTag;
 
@@ -32,15 +32,15 @@ public enum WrapperType {
 	}
 
 	public static WrapperType fromString(final String wrapperTag) {
-		if (EventHubConstants.Wrapper.Type.REACT_NATIVE.equals(wrapperTag)) {
+		if (CoreConstants.Wrapper.Type.REACT_NATIVE.equals(wrapperTag)) {
 			return REACT_NATIVE;
-		} else if (EventHubConstants.Wrapper.Type.FLUTTER.equals(wrapperTag)) {
+		} else if (CoreConstants.Wrapper.Type.FLUTTER.equals(wrapperTag)) {
 			return FLUTTER;
-		} else if (EventHubConstants.Wrapper.Type.CORDOVA.equals(wrapperTag)) {
+		} else if (CoreConstants.Wrapper.Type.CORDOVA.equals(wrapperTag)) {
 			return CORDOVA;
-		} else if (EventHubConstants.Wrapper.Type.UNITY.equals(wrapperTag)) {
+		} else if (CoreConstants.Wrapper.Type.UNITY.equals(wrapperTag)) {
 			return UNITY;
-		} else if (EventHubConstants.Wrapper.Type.XAMARIN.equals(wrapperTag)) {
+		} else if (CoreConstants.Wrapper.Type.XAMARIN.equals(wrapperTag)) {
 			return XAMARIN;
 		}
 
@@ -50,23 +50,23 @@ public enum WrapperType {
 	public String getFriendlyName() {
 		switch (this) {
 			case REACT_NATIVE:
-				return EventHubConstants.Wrapper.Name.REACT_NATIVE;
+				return CoreConstants.Wrapper.Name.REACT_NATIVE;
 
 			case FLUTTER:
-				return EventHubConstants.Wrapper.Name.FLUTTER;
+				return CoreConstants.Wrapper.Name.FLUTTER;
 
 			case CORDOVA:
-				return EventHubConstants.Wrapper.Name.CORDOVA;
+				return CoreConstants.Wrapper.Name.CORDOVA;
 
 			case UNITY:
-				return EventHubConstants.Wrapper.Name.UNITY;
+				return CoreConstants.Wrapper.Name.UNITY;
 
 			case XAMARIN:
-				return EventHubConstants.Wrapper.Name.XAMARIN;
+				return CoreConstants.Wrapper.Name.XAMARIN;
 
 			case NONE:
 			default:
-				return EventHubConstants.Wrapper.Name.NONE;
+				return CoreConstants.Wrapper.Name.NONE;
 		}
 	}
 }

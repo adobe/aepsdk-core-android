@@ -10,13 +10,13 @@
  */
 package com.adobe.marketing.mobile.util.remotedownload
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.util.FileUtils
 import com.adobe.marketing.mobile.internal.util.StringUtils
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.HttpMethod
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NetworkCallback
 import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.Networking
@@ -55,8 +55,8 @@ internal class RemoteDownloadJob(
      */
     internal fun download(completionCallback: (DownloadResult) -> Unit) {
         if (!StringUtils.stringIsUrl(url)) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.debug(
+                LaunchRulesEngineConstants.LOG_TAG,
                 TAG,
                 "Invalid URL: ($url). Contents cannot be downloaded."
             )
@@ -167,8 +167,8 @@ internal class RemoteDownloadJob(
         }
 
         if (workFile == null) {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                LaunchRulesEngineConstants.LOG_TAG,
                 TAG,
                 "Cannot find/create cache file on disk. Will not download from url ($url)"
             )
@@ -181,15 +181,15 @@ internal class RemoteDownloadJob(
         return if (result) {
             val completedFile = cacheFileService.markComplete(workFile)
             if (completedFile == null) {
-                MobileCore.log(
-                    LoggingMode.DEBUG,
+                Log.debug(
+                    LaunchRulesEngineConstants.LOG_TAG,
                     TAG,
                     "Cached Files - Could not save cached file ($url)"
                 )
                 DownloadResult(null, Reason.CANNOT_WRITE_TO_CACHE_DIR)
             } else {
-                MobileCore.log(
-                    LoggingMode.DEBUG,
+                Log.debug(
+                    LaunchRulesEngineConstants.LOG_TAG,
                     TAG,
                     "Cached Files -Successfully downloaded content from ($url) into ${completedFile.absolutePath}"
                 )

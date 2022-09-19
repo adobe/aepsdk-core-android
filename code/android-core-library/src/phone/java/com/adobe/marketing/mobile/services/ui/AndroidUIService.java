@@ -26,6 +26,8 @@ import android.os.Build;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 
@@ -59,20 +61,20 @@ public class AndroidUIService implements UIService {
                 alertListener.onError(UIError.ANOTHER_MESSAGE_IS_DISPLAYED);
             }
 
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Failed to show alert, another message is displayed at this time");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, "Failed to show alert, another message is displayed at this time");
             return;
         }
 
         final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (current activity), unable to show alert",
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (current activity), unable to show alert",
                     UNEXPECTED_NULL_VALUE));
             return;
         }
 
         if (isNullOrEmpty(alertSetting.getNegativeButtonText()) && isNullOrEmpty(alertSetting.getPositiveButtonText())) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Unable to show alert, button texts are invalid.");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, "Unable to show alert, button texts are invalid.");
             return;
         }
 
@@ -171,7 +173,7 @@ public class AndroidUIService implements UIService {
         final Context appContext = App.INSTANCE.getAppContext();
 
         if (appContext == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (application context), unable to show local notification",
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (application context), unable to show local notification",
                     UNEXPECTED_NULL_VALUE));
             return;
         }
@@ -225,7 +227,7 @@ public class AndroidUIService implements UIService {
                 alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), sender);
             }
         } catch (Exception e) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("Unable to create PendingIntent object, error: %s",
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Unable to create PendingIntent object, error: %s",
                     e.getLocalizedMessage()));
         }
     }
@@ -235,13 +237,13 @@ public class AndroidUIService implements UIService {
         final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (current activity), could not open URL %s",
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (current activity), could not open URL %s",
                     UNEXPECTED_NULL_VALUE, url));
             return false;
         }
 
         if (isNullOrEmpty(url)) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Could not open URL - URL was not provided");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, "Could not open URL - URL was not provided");
             return false;
         }
 
@@ -250,7 +252,7 @@ public class AndroidUIService implements UIService {
             currentActivity.startActivity(intent);
             return true;
         } catch (Exception ex) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Could not open an Intent with URL");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, "Could not open an Intent with URL");
         }
 
         return false;
@@ -268,7 +270,7 @@ public class AndroidUIService implements UIService {
         if (handler != null) {
             intent = handler.getURIDestination(uri);
             if (intent == null) {
-                MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s is not handled with a custom Intent, use SDK's default Intent instead.", uri));
+                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s is not handled with a custom Intent, use SDK's default Intent instead.", uri));
             }
         }
         if (intent == null) {
@@ -283,7 +285,7 @@ public class AndroidUIService implements UIService {
         Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("%s (current activity), no button created.",
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (current activity), no button created.",
                     UNEXPECTED_NULL_VALUE));
             return null;
         }
@@ -303,7 +305,7 @@ public class AndroidUIService implements UIService {
         try {
             message = new AEPMessage(html, listener, isLocalImageUsed, messagesMonitor, settings);
         } catch (MessageCreationException exception) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("Error when creating the message: %s.",
+            Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Error when creating the message: %s.",
                     exception.getLocalizedMessage()));
         }
 

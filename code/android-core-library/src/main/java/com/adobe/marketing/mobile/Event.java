@@ -13,7 +13,9 @@ package com.adobe.marketing.mobile;
 
 import androidx.annotation.NonNull;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.util.MapExtensionsKt;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.EventDataUtils;
 
 import java.util.*;
@@ -111,7 +113,7 @@ public final class Event {
 			try {
 				event.data = EventDataUtils.immutableClone(data);
 			} catch (final Exception e) {
-				Log.warning("EventBuilder", "Event data couldn't be serialized, empty data was set instead %s", e);
+				Log.warning(CoreConstants.LOG_TAG, "EventBuilder", "Event data couldn't be serialized, empty data was set instead %s", e);
 			}
 
 			return this;

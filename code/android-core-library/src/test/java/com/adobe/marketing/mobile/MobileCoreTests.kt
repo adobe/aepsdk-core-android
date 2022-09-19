@@ -11,6 +11,7 @@
 package com.adobe.marketing.mobile
 
 import android.app.Application
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError

@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.internal.eventhub.ExtensionContainer;
+import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 /**
  * Abstract class that defines the {@code Event} listener for an {@code Extension}.
  *
@@ -39,9 +40,7 @@ public abstract class ExtensionListener {
 		this.source = source;
 	}
 
-	public void onUnregistered() {
-		Log.debug(LOG_TAG, "Extension listener was unregistered successfully");
-	}
+	public void onUnregistered() {}
 
 	public abstract void hear(Event event);
 

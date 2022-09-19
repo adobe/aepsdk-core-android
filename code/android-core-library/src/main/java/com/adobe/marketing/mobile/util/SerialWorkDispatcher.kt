@@ -12,8 +12,8 @@
 package com.adobe.marketing.mobile.util
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.services.Log
 import java.lang.Exception
 import java.lang.IllegalStateException
 import java.util.Queue
@@ -163,7 +163,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
             }
 
             if (state != State.NOT_STARTED) {
-                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) has already started.")
+                Log.debug(
+                    CoreConstants.LOG_TAG, getTag(), "SerialWorkDispatcher ($name) has already started."
+                )
                 return false
             }
 
@@ -188,7 +190,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
             }
 
             if (state != State.ACTIVE) {
-                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) is not active.")
+                Log.debug(
+                    CoreConstants.LOG_TAG, getTag(), "SerialWorkDispatcher ($name) is not active."
+                )
                 return false
             }
 
@@ -210,7 +214,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
             }
 
             if (state == State.NOT_STARTED) {
-                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) has not started.")
+                Log.debug(
+                    CoreConstants.LOG_TAG, getTag(), "SerialWorkDispatcher ($name) has not started."
+                )
                 return false
             }
 
@@ -317,8 +323,8 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
                     workHandler.doWork(workItem)
                 } catch (exception: Exception) {
                     Thread.currentThread().interrupt()
-                    MobileCore.log(
-                        LoggingMode.ERROR,
+                    Log.warning(
+                        CoreConstants.LOG_TAG,
                         getTag(),
                         "Exception encountered while processing item. $exception"
                     )

@@ -26,7 +26,7 @@ class LocalDataStoreService implements DataStoring {
     @Override
     public NamedCollection getNamedCollection(String collectionName) {
         if (collectionName == null || collectionName.isEmpty()) {
-            MobileCore.log(LoggingMode.ERROR, TAG,
+            Log.error(ServiceConstants.LOG_TAG, TAG,
                     String.format("Failed to create an instance of NamedCollection with name - %s: the collection name is null or empty.",
                             collectionName));
             return null;
@@ -35,7 +35,7 @@ class LocalDataStoreService implements DataStoring {
         Context appContext = App.INSTANCE.getAppContext();
 
         if (appContext == null) {
-            MobileCore.log(LoggingMode.ERROR, TAG,
+            Log.error(ServiceConstants.LOG_TAG, TAG,
                     String.format("Failed to create an instance of NamedCollection with name - %s: the ApplicationContext is null",
                             collectionName));
             return null;
@@ -49,7 +49,7 @@ class LocalDataStoreService implements DataStoring {
         }
 
         if (sharedPreferences == null || sharedPreferencesEditor == null) {
-            MobileCore.log(LoggingMode.ERROR, TAG,
+            Log.error(ServiceConstants.LOG_TAG, TAG,
                     "Failed to create a valid SharedPreferences object or SharedPreferences.Editor object");
             return null;
         }

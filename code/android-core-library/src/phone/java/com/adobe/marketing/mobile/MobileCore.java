@@ -18,6 +18,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
@@ -70,7 +73,7 @@ final public class MobileCore {
      */
     public static void setWrapperType(@NonNull final WrapperType wrapperType) {
         if (wrapperType == null) {
-            Log.error(LOG_TAG, "setWrapperType failed - wrapperType is null.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "setWrapperType failed - wrapperType is null.");
             return;
         }
 
@@ -89,12 +92,12 @@ final public class MobileCore {
      */
     public static void setApplication(@NonNull final Application application) {
         if (application == null) {
-            Log.error(LOG_TAG, "setApplication failed - application is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "setApplication failed - application is null");
             return;
         }
 
         if (sdkInitializedWithContext.getAndSet(true)) {
-            Log.error(LOG_TAG, "setApplication already called.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "setApplication already called.");
             return;
         }
 
@@ -137,7 +140,7 @@ final public class MobileCore {
      */
     public static void setLogLevel(@NonNull LoggingMode mode) {
         if (mode == null) {
-            Log.error(LOG_TAG, "setLogLevel failed - mode is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "setLogLevel failed - mode is null");
             return;
         }
 
@@ -190,12 +193,12 @@ final public class MobileCore {
 
     public static void registerExtensions(@NonNull final List<Class<? extends Extension>> extensions, final AdobeCallback<?> completionCallback) {
         if (!sdkInitializedWithContext.get()) {
-            Log.error(LOG_TAG, "Failed to registerExtensions - setApplication not called");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtensions - setApplication not called");
             return;
         }
 
         final List<Class<? extends Extension>> allExtensions = new ArrayList<>();
-        // Todo - Register configuration extension once it is refactored to use Extension APIs. 
+        allExtensions.add(ConfigurationExtension.class);
         if (extensions != null) {
             for (final Class<? extends Extension> extension : extensions) {
                 if (extension != null) {
@@ -207,10 +210,10 @@ final public class MobileCore {
         final AtomicInteger registeredExtensions = new AtomicInteger(0);
         for (final Class<? extends Extension> extension : allExtensions) {
             EventHub.Companion.getShared().registerExtension(extension, eventHubError -> {
-                Log.debug(LOG_TAG, "Registered extension " + extension + "with status " + eventHubError);
+                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Registered extension " + extension + "with status " + eventHubError);
 
                 if (registeredExtensions.incrementAndGet() == allExtensions.size()) {
-                    Log.debug(LOG_TAG, "Registered all extensions. Starting event processing.");
+                    Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Registered all extensions. Starting event processing.");
                     EventHub.Companion.getShared().start();
                     try {
                         if (completionCallback != null) {
@@ -239,12 +242,12 @@ final public class MobileCore {
                                             @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
 
         if (!sdkInitializedWithContext.get()) {
-            Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - setApplication not called");
             return false;
         }
 
         if (extensionClass == null) {
-            Log.error(LOG_TAG, "Failed to registerExtension - extensionClass is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - extensionClass is null");
             return false;
         }
 
@@ -282,7 +285,7 @@ final public class MobileCore {
      */
     public static void start(@Nullable final AdobeCallback<?> completionCallback) {
         if (!sdkInitializedWithContext.get()) {
-            Log.error(LOG_TAG, "Failed to registerExtension - setApplication not called");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - setApplication not called");
             return;
         }
 
@@ -305,13 +308,13 @@ final public class MobileCore {
                                              @NonNull final String eventSource,
                                              @NonNull final AdobeCallbackWithError<Event> callback) {
         if (callback == null) {
-            Log.error(LOG_TAG, "Failed to registerEventListener - callback is null",
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerEventListener - callback is null",
                     Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
         if (eventType == null || eventSource == null) {
-            Log.error(LOG_TAG, "Failed to registerEventListener - event type/source is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerEventListener - event type/source is null");
             callback.fail(AdobeError.UNEXPECTED_ERROR);
             return;
         }
@@ -326,7 +329,7 @@ final public class MobileCore {
      */
     public static void dispatchEvent(@NonNull final Event event) {
         if (event == null) {
-            Log.error(LOG_TAG, "Failed to dispatchEvent - event is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEvent - event is null");
             return;
         }
 
@@ -349,12 +352,12 @@ final public class MobileCore {
                                                          long timeoutMS,
                                                          @NonNull final AdobeCallbackWithError<Event> responseCallback) {
         if (responseCallback == null) {
-            Log.error(LOG_TAG, "Failed to dispatchEventWithResponseCallback - callback is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEventWithResponseCallback - callback is null");
             return;
         }
 
         if (event == null) {
-            Log.error(LOG_TAG, "Failed to dispatchEventWithResponseCallback - event is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEventWithResponseCallback - event is null");
             responseCallback.fail(AdobeError.UNEXPECTED_ERROR);
             return;
         }
@@ -423,7 +426,7 @@ final public class MobileCore {
      */
     public static void collectPii(@NonNull final Map<String, String> data) {
         if (data == null || data.isEmpty()) {
-            Log.error(LOG_TAG, "Could not trigger PII, the data is null or empty.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Could not trigger PII, the data is null or empty.");
             return;
         }
 
@@ -451,7 +454,7 @@ final public class MobileCore {
      */
     public static void collectMessageInfo(@NonNull final Map<String, Object> messageInfo) {
         if (messageInfo == null || messageInfo.isEmpty()) {
-            Log.error(LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
             return;
         }
 
@@ -498,7 +501,7 @@ final public class MobileCore {
         marshaller.marshal(activity);
         final Map<String, Object> marshalledData = marshaller.getData();
         if (marshalledData == null || marshalledData.isEmpty()) {
-            Log.error(LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
             return;
         }
 
@@ -524,7 +527,7 @@ final public class MobileCore {
      */
     public static void configureWithAppID(@NonNull final String appId) {
         if (appId == null) {
-            Log.error(LOG_TAG, "configureWithAppID failed - appId is null.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "configureWithAppID failed - appId is null.");
             return;
         }
 
@@ -557,7 +560,7 @@ final public class MobileCore {
      */
     public static void configureWithFileInAssets(@NonNull final String fileName) {
         if (fileName == null) {
-            Log.error(LOG_TAG, "configureWithFileInAssets failed - fileName is null.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "configureWithFileInAssets failed - fileName is null.");
             return;
         }
 
@@ -587,7 +590,7 @@ final public class MobileCore {
      */
     public static void configureWithFileInPath(@NonNull final String filePath) {
         if (filePath == null) {
-            Log.error(LOG_TAG, "configureWithFileInPath failed - filePath is null.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "configureWithFileInPath failed - filePath is null.");
             return;
         }
 
@@ -614,7 +617,7 @@ final public class MobileCore {
      */
     public static void updateConfiguration(@NonNull final Map<String, Object> configMap) {
         if (configMap == null) {
-            Log.error(LOG_TAG, "updateConfiguration failed - configMap is null.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "updateConfiguration failed - configMap is null.");
             return;
         }
 
@@ -654,7 +657,7 @@ final public class MobileCore {
      */
     public static void setPrivacyStatus(@NonNull final MobilePrivacyStatus privacyStatus) {
         if (privacyStatus == null) {
-            Log.error(LOG_TAG, "setPrivacyStatus failed - privacyStatus is null.");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "setPrivacyStatus failed - privacyStatus is null.");
             return;
         }
 
@@ -675,7 +678,7 @@ final public class MobileCore {
      */
     public static void getPrivacyStatus(final AdobeCallback<MobilePrivacyStatus> callback) {
         if (callback == null) {
-            Log.error(LOG_TAG, "Failed to retrieve the privacy status - callback is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve the privacy status - callback is null");
             return;
         }
 
@@ -718,7 +721,7 @@ final public class MobileCore {
      */
     public static void getSdkIdentities(@NonNull final AdobeCallback<String> callback) {
         if (callback == null) {
-            Log.error(LOG_TAG, "Failed to get SDK identities - callback is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to get SDK identities - callback is null");
             return;
         }
 
@@ -885,7 +888,7 @@ final public class MobileCore {
     public static boolean dispatchEvent(@NonNull final Event event,
                                         @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
         if (event == null) {
-            Log.debug(LOG_TAG, "dispatchEvent failed - event is null");
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "dispatchEvent failed - event is null");
 
             if (errorCallback != null) {
                 errorCallback.error(ExtensionError.EVENT_NULL);
@@ -918,7 +921,7 @@ final public class MobileCore {
                                                             @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
         // the core will validate and copy this event
         if (responseCallback == null) {
-            Log.error(LOG_TAG, "Failed to dispatchEventWithResponseCallback - responseCallback is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEventWithResponseCallback - responseCallback is null");
 
             if (errorCallback != null) {
                 errorCallback.error(ExtensionError.CALLBACK_NULL);
@@ -927,7 +930,7 @@ final public class MobileCore {
         }
 
         if (event == null) {
-            Log.error(LOG_TAG, "Failed to dispatchEventWithResponseCallback - event is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEventWithResponseCallback - event is null");
 
             if (errorCallback != null) {
                 errorCallback.error(ExtensionError.EVENT_NULL);
@@ -975,7 +978,7 @@ final public class MobileCore {
                                                 @NonNull final Event requestEvent,
                                                 @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
         if (requestEvent == null || responseEvent == null) {
-            Log.error(LOG_TAG, "Failed to dispatchResponseEvent - requestEvent/responseEvent is null");
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchResponseEvent - requestEvent/responseEvent is null");
 
             if (errorCallback != null) {
                 errorCallback.error(ExtensionError.EVENT_NULL);

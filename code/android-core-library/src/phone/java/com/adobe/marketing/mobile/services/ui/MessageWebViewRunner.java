@@ -27,6 +27,8 @@ import android.widget.LinearLayout;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
@@ -81,13 +83,13 @@ class MessageWebViewRunner implements Runnable {
     public void run() {
         try {
             if (StringUtils.isNullOrEmpty(message.getMessageHtml())) {
-                MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (message html), failed to show the message.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (message html), failed to show the message.");
                 message.cleanup();
                 return;
             }
 
             if (message.rootViewGroup == null) {
-                MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (root view group), failed to show the message.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (root view group), failed to show the message.");
                 message.cleanup();
                 return;
             }
@@ -97,7 +99,7 @@ class MessageWebViewRunner implements Runnable {
 
             // ensure the rootview has been measured before trying to display the message
             if (width == 0 || height == 0) {
-                MobileCore.log(LoggingMode.WARNING, TAG, "Failed to show the message, root view group has not been measured.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, root view group has not been measured.");
                 message.cleanup();
                 return;
             }
@@ -105,7 +107,7 @@ class MessageWebViewRunner implements Runnable {
             final Context context = App.INSTANCE.getAppContext();
 
             if (context == null) {
-                MobileCore.log(LoggingMode.WARNING, TAG, "Failed to show the message, the app context is null.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, the app context is null.");
                 message.cleanup();
                 return;
             }
@@ -131,7 +133,7 @@ class MessageWebViewRunner implements Runnable {
             final MessageFragment messageFragment = message.getMessageFragment();
 
             if (messageFragment == null) {
-                MobileCore.log(LoggingMode.WARNING, TAG, "Failed to show the message, the message fragment is null.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, the message fragment is null.");
                 message.cleanup();
                 return;
             }
@@ -169,7 +171,7 @@ class MessageWebViewRunner implements Runnable {
                 final Animation animation = setupDisplayAnimation();
 
                 if (animation == null) {
-                    MobileCore.log(LoggingMode.DEBUG, TAG,
+                    Log.debug(ServiceConstants.LOG_TAG, TAG,
                             UNEXPECTED_NULL_VALUE + " (MessageAnimation), failed to setup a display animation.");
                     return;
                 }
@@ -180,7 +182,7 @@ class MessageWebViewRunner implements Runnable {
             createMessageFrameAndAddMessageToRootView(messageSettings);
             message.viewed();
         } catch (Exception ex) {
-            MobileCore.log(LoggingMode.ERROR, TAG, "Failed to show the message " + ex.getMessage());
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message " + ex.getMessage());
         }
     }
 
@@ -196,7 +198,7 @@ class MessageWebViewRunner implements Runnable {
             return null;
         }
 
-        MobileCore.log(LoggingMode.VERBOSE, TAG, "Creating display animation for " + animation.name());
+        Log.trace(ServiceConstants.LOG_TAG, TAG, "Creating display animation for " + animation.name());
         final Animation displayAnimation;
 
         switch (animation) {

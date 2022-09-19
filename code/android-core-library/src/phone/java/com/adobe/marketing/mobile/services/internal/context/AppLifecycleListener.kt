@@ -15,7 +15,7 @@ import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.res.Configuration
 import android.os.Bundle
-import com.adobe.marketing.mobile.CoreConstants
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.internal.context.App.setCurrentActivity
 import java.util.ArrayList
@@ -69,7 +69,7 @@ internal class AppLifecycleListener private constructor() :
             this.onActivityResumed = onActivityResumed
         } else {
             Log.error(
-                CoreConstants.CORE_EXTENSION_NAME,
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "The given Application instance is null."
             )

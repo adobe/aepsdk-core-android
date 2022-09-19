@@ -40,7 +40,7 @@ class DataQueueService implements DataQueuing {
 	@Override
 	public DataQueue getDataQueue(final String databaseName) {
 		if(StringUtils.isNullOrEmpty(databaseName)) {
-			MobileCore.log(LoggingMode.WARNING,
+			Log.warning(ServiceConstants.LOG_TAG,
 					LOG_TAG,
 					"Failed to create DataQueue, database name is null");
 			return null;
@@ -79,7 +79,7 @@ class DataQueueService implements DataQueuing {
 		final String cleanedDatabaseName = FileUtils.removeRelativePath(databaseName);
 
 		if(StringUtils.isNullOrEmpty(databaseName)) {
-			MobileCore.log(LoggingMode.WARNING,
+			Log.warning(ServiceConstants.LOG_TAG,
 					LOG_TAG,
 					"Failed to create DataQueue, database name is null");
 			return null;
@@ -88,7 +88,7 @@ class DataQueueService implements DataQueuing {
 		Context appContext = App.INSTANCE.getAppContext();
 
 		if(appContext == null) {
-			MobileCore.log(LoggingMode.WARNING,
+			Log.warning(ServiceConstants.LOG_TAG,
 					LOG_TAG,
 					String.format("Failed to create DataQueue for database (%s), the ApplicationContext is null", databaseName));
 			return null;
@@ -104,11 +104,11 @@ class DataQueueService implements DataQueuing {
 							final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
 							if (cacheDirDataQueue.exists()) {
 								FileUtils.copyFile(cacheDirDataQueue, databaseDirDataQueue);
-								MobileCore.log(LoggingMode.DEBUG,
+								Log.debug(ServiceConstants.LOG_TAG,
 										LOG_TAG,
 										String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
 								if (cacheDirDataQueue.delete()) {
-									MobileCore.log(LoggingMode.DEBUG,
+									Log.debug(ServiceConstants.LOG_TAG,
 											LOG_TAG,
 											String.format("Successfully delete DataQueue for database (%s) from cache directory", databaseName));
 								}
@@ -116,7 +116,7 @@ class DataQueueService implements DataQueuing {
 						}
 					}
 				} catch (Exception e) {
-					MobileCore.log(LoggingMode.WARNING,
+					Log.warning(ServiceConstants.LOG_TAG,
 							LOG_TAG,
 							String.format("Failed to move DataQueue for database (%s), could not create new file in database directory", databaseName));
 					return null;

@@ -10,15 +10,17 @@
  */
 package com.adobe.marketing.mobile;
 
-import static com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA;
-import static com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY;
-import static com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE;
-import static com.adobe.marketing.mobile.CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class LifecycleEventGeneratorTestHelper {
+
+    static final String ADDITIONAL_CONTEXT_DATA = "additionalcontextdata";
+    static final String LIFECYCLE_ACTION_KEY = "action";
+    static final String LIFECYCLE_PAUSE = "start";
+    static final String LIFECYCLE_START = "pause";
+
+
     public static Event createStartEvent(final Map<String, String> additionalData, final long timestamp) {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(LIFECYCLE_ACTION_KEY,

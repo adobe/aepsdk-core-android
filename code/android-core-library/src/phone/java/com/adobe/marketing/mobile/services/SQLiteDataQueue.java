@@ -47,12 +47,12 @@ final class SQLiteDataQueue implements DataQueue {
     @Override
     public boolean add(final DataEntity dataEntity) {
         if (isClose) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "add - Returning false, DataQueue is closed.");
+            Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "add - Returning false, DataQueue is closed.");
             return false;
         }
 
         if (dataEntity == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "add - Returning false, DataEntity is null.");
+            Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "add - Returning false, DataEntity is null.");
             return false;
         }
 
@@ -70,7 +70,7 @@ final class SQLiteDataQueue implements DataQueue {
                             long rowId = insertStatement.executeInsert();
                             return rowId >= 0;
                         } catch (Exception e) {
-                            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "add - Returning false: " + e.getLocalizedMessage());
+                            Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "add - Returning false: " + e.getLocalizedMessage());
                             return false;
                         }
                     });
@@ -80,12 +80,12 @@ final class SQLiteDataQueue implements DataQueue {
     @Override
     public List<DataEntity> peek(final int n) {
         if (isClose) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "peek n - Returning null, DataQueue is closed.");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "peek n - Returning null, DataQueue is closed.");
             return null;
         }
 
         if (n <= 0) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "peek n - Returning null, n <= 0.");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "peek n - Returning null, n <= 0.");
             return null;
         }
 
@@ -109,11 +109,11 @@ final class SQLiteDataQueue implements DataQueue {
                                 } while (cursor.moveToNext());
                             }
 
-                            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, String.format("query - Successfully read %d rows from table(%s)",
+                            Log.trace(ServiceConstants.LOG_TAG, LOG_PREFIX, String.format("query - Successfully read %d rows from table(%s)",
                                     rows.size(), TABLE_NAME));
                             return true;
                         } catch (final SQLiteException e) {
-                            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX,
+                            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX,
                                     String.format("query - Error in querying database table (%s). Error: (%s)", TABLE_NAME, e.getLocalizedMessage()));
                             return false;
                         }
@@ -134,7 +134,7 @@ final class SQLiteDataQueue implements DataQueue {
             ));
         }
 
-        MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, String.format("peek n - Successfully returned %d DataEntities",
+        Log.trace(ServiceConstants.LOG_TAG, LOG_PREFIX, String.format("peek n - Successfully returned %d DataEntities",
                 dataEntitiesList.size()));
         return dataEntitiesList;
     }
@@ -142,23 +142,23 @@ final class SQLiteDataQueue implements DataQueue {
     @Override
     public DataEntity peek() {
         if (isClose) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "peek - Returning null, DataQueue is closed");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "peek - Returning null, DataQueue is closed");
             return null;
         }
 
         final List<DataEntity> dataEntities = peek(1);
 
         if (dataEntities == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "peek - Unable to fetch DataEntity, returning null");
+            Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "peek - Unable to fetch DataEntity, returning null");
             return null;
         }
 
         if (dataEntities.isEmpty()) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "peek - 0 DataEntities fetch, returning null");
+            Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "peek - 0 DataEntities fetch, returning null");
             return null;
         }
 
-        MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, String.format("peek - Successfully returned DataEntity (%s)",
+        Log.trace(ServiceConstants.LOG_TAG, LOG_PREFIX, String.format("peek - Successfully returned DataEntity (%s)",
                 dataEntities.get(0).toString()));
         return dataEntities.get(0);
     }
@@ -166,12 +166,12 @@ final class SQLiteDataQueue implements DataQueue {
     @Override
     public boolean remove(final int n) {
         if (isClose) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "remove n - Returning false, DataQueue is closed");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "remove n - Returning false, DataQueue is closed");
             return false;
         }
 
         if (n <= 0) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "remove n - Returning false, n <= 0");
+            Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "remove n - Returning false, n <= 0");
             return false;
         }
 
@@ -186,11 +186,11 @@ final class SQLiteDataQueue implements DataQueue {
                                 TABLE_NAME + " WHERE id in (" + "SELECT id from " + TABLE_NAME + " order by id ASC" + " limit " + n + ')';
                         try (SQLiteStatement statement = database.compileStatement(builder)) {
                             deletedRowsCount = statement.executeUpdateDelete();
-                            MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, String.format("remove n - Removed %d DataEntities",
+                            Log.trace(ServiceConstants.LOG_TAG, LOG_PREFIX, String.format("remove n - Removed %d DataEntities",
                                     deletedRowsCount));
                             return deletedRowsCount > -1;
                         } catch (final SQLiteException e) {
-                            MobileCore.log(LoggingMode.WARNING, LOG_PREFIX,
+                            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX,
                                     String.format("removeRows - Error in deleting rows from table(%s). Returning 0. Error: (%s)", TABLE_NAME,
                                             e.getMessage()));
                             return false;
@@ -202,7 +202,7 @@ final class SQLiteDataQueue implements DataQueue {
     @Override
     public boolean remove() {
         if (isClose) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "remove - Returning false, DataQueue is closed");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "remove - Returning false, DataQueue is closed");
             return false;
         }
 
@@ -212,13 +212,13 @@ final class SQLiteDataQueue implements DataQueue {
     @Override
     public boolean clear() {
         if (isClose) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "clear - Returning false, DataQueue is closed");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "clear - Returning false, DataQueue is closed");
             return false;
         }
 
         synchronized (dbMutex) {
             boolean result = SQLiteDatabaseHelper.clearTable(databasePath, TABLE_NAME);
-            MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, String.format("clear - %s in clearing Table %s",
+            Log.trace(ServiceConstants.LOG_TAG, LOG_PREFIX, String.format("clear - %s in clearing Table %s",
                     (result ? "Successful" : "Failed"), TABLE_NAME));
             return result;
         }
@@ -227,7 +227,7 @@ final class SQLiteDataQueue implements DataQueue {
     @Override
     public int count() {
         if (isClose) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "count - Returning 0, DataQueue is closed");
+            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "count - Returning 0, DataQueue is closed");
             return 0;
         }
 
@@ -253,13 +253,13 @@ final class SQLiteDataQueue implements DataQueue {
 
         synchronized (dbMutex) {
             if (SQLiteDatabaseHelper.createTableIfNotExist(databasePath, tableCreationQuery)) {
-                MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX,
+                Log.trace(ServiceConstants.LOG_TAG, LOG_PREFIX,
                         String.format("createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME));
                 return;
             }
         }
 
-        MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX,
+        Log.warning(ServiceConstants.LOG_TAG,LOG_PREFIX,
                 String.format("createTableIfNotExists - Error creating/accessing table (%s)  ", TABLE_NAME));
     }
 }

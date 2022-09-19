@@ -59,7 +59,7 @@ public class LocalDataStoreServiceTests {
 
 	@Test
 	public void testApplicationContextIsNotSet() {
-		App.INSTANCE.setAppContext(null);
+		App.INSTANCE.resetInstance();
 		NamedCollection namedCollection = new LocalDataStoreService().getNamedCollection("AndroidLocalStorageServiceTests");
 		assertNull(namedCollection);
 	}

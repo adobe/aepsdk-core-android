@@ -11,8 +11,6 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.Log
@@ -40,11 +38,7 @@ internal class AppIdManager(
      */
     internal fun saveAppIdToPersistence(appId: String) {
         if (appId.isBlank()) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
-                ConfigurationExtension.TAG,
-                "$LOG_TAG - Attempting to set empty App Id into persistence."
-            )
+            Log.trace(ConfigurationExtension.TAG, LOG_TAG, "Attempting to set empty App Id into persistence.")
             return
         }
 
@@ -55,11 +49,7 @@ internal class AppIdManager(
      * Removes the existing appId stored in shared preferences.
      */
     internal fun removeAppIdFromPersistence() {
-        Log.trace(
-            ConfigurationExtension.TAG,
-            LOG_TAG,
-            "Attempting to set empty App Id into persistence."
-        )
+        Log.trace(ConfigurationExtension.TAG, LOG_TAG, "Attempting to set empty App Id into persistence.")
         configStateStoreCollection?.remove(ConfigurationStateManager.PERSISTED_APPID)
     }
 

@@ -17,9 +17,9 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;
@@ -58,7 +58,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
 
             synchronized (dbMutex) {
                 if (SQLiteDatabaseHelper.createTableIfNotExist(databaseFile.getCanonicalPath(), tableCreationQuery)) {
-                    MobileCore.log(LoggingMode.VERBOSE, LOG_TAG,
+                    Log.trace(CoreConstants.LOG_TAG, LOG_TAG,
                             String.format("createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME));
                 } else {
                     throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table in the Android Event History database.");
@@ -87,7 +87,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                 contentValues.put(COLUMN_TIMESTAMP, System.currentTimeMillis());
                 result = database.insert(TABLE_NAME, null, contentValues) != -1;
             } catch (final SQLException | IOException e) {
-                MobileCore.log(LoggingMode.WARNING, LOG_TAG,
+                Log.warning(CoreConstants.LOG_TAG, LOG_TAG,
                         String.format("Failed to insert rows into the table (%s)",
                                 (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
                 return false;
@@ -140,7 +140,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
 
                 return cursor;
             } catch (final SQLException | IOException e) {
-                MobileCore.log(LoggingMode.WARNING, LOG_TAG,
+                Log.warning(CoreConstants.LOG_TAG, LOG_TAG,
                         String.format("Failed to execute query (%s)",
                                 (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
             } finally {
@@ -173,12 +173,12 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                                 + " AND " + COLUMN_TIMESTAMP + " >= ?"
                                 + " AND " + COLUMN_TIMESTAMP + " <= ?",
                         whereArgs);
-                MobileCore.log(LoggingMode.VERBOSE, LOG_TAG,
+                Log.trace(CoreConstants.LOG_TAG, LOG_TAG,
                         String.format("Count of rows deleted in table %s are %d", TABLE_NAME, affectedRowsCount));
 
                 return affectedRowsCount;
             } catch (final SQLException | IOException e) {
-                MobileCore.log(LoggingMode.DEBUG, LOG_TAG,
+                Log.debug(CoreConstants.LOG_TAG, LOG_TAG,
                         String.format("Failed to delete table rows (%s)",
                                 (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
             } finally {

@@ -11,7 +11,9 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
-internal object LaunchRulesConstants {
+internal object LaunchRulesEngineConstants {
+    const val LOG_TAG = "LaunchRulesEngine"
+
     internal object Transform {
         const val URL_ENCODING_FUNCTION = "urlenc"
         const val TRANSFORM_TO_INT = "int"

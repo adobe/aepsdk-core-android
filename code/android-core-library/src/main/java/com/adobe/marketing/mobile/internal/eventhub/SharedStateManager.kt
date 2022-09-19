@@ -11,10 +11,10 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.services.Log
 import java.util.TreeMap
 
 /**
@@ -88,8 +88,9 @@ internal class SharedStateManager(private val name: String) {
     fun updatePendingState(version: Int, data: Map<String, Any?>?): Boolean {
         val stateAtVersion = states[version] ?: return false
         if (stateAtVersion.status != SharedStateStatus.PENDING) {
-            MobileCore.log(
-                LoggingMode.WARNING, LOG_TAG,
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
                 "Cannot update a non pending $name shared state " +
                     "at version $version."
             )
@@ -176,8 +177,9 @@ internal class SharedStateManager(private val name: String) {
     private fun set(version: Int, state: SharedState): Boolean {
         // Check if there exists a state at a version equal to, or higher than the one provided.
         if (states.ceilingEntry(version) != null) {
-            MobileCore.log(
-                LoggingMode.VERBOSE, LOG_TAG,
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
                 "Cannot create $name shared state at version $version. " +
                     "More recent state exists."
             )

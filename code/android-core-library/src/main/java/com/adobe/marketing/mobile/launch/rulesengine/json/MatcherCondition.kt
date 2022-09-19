@@ -11,15 +11,14 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesConstants
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.LogicalExpression
 import com.adobe.marketing.mobile.rulesengine.OperandLiteral
 import com.adobe.marketing.mobile.rulesengine.OperandMustacheToken
 import com.adobe.marketing.mobile.rulesengine.UnaryExpression
+import com.adobe.marketing.mobile.services.Log
 
 /**
  * The class representing a matcher condition
@@ -48,8 +47,8 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
     @JvmSynthetic
     override fun toEvaluable(): Evaluable? {
         if (definition.matcher !is String || definition.key !is String) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 LOG_TAG,
                 "[key] or [matcher] is not String, failed to build Evaluable from definition JSON: \n $definition"
             )
@@ -70,8 +69,8 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
     private fun convert(key: String, matcher: String, value: Any?): Evaluable? {
         val operationName = MATCHER_MAPPING[matcher]
         if (operationName == null) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 LOG_TAG,
                 "Failed to build Evaluable from [type:matcher] json, [definition.matcher = $matcher] is not supported."
             )
@@ -86,24 +85,24 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
         val (javaClass: Any, token: String) = when (value) {
             is String -> Pair(
                 String::class.java,
-                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_STRING}($key)}}"
+                "{{${LaunchRulesEngineConstants.Transform.TRANSFORM_TO_STRING}($key)}}"
             )
             is Int -> Pair(
                 Number::class.java,
-                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_INT}($key)}}"
+                "{{${LaunchRulesEngineConstants.Transform.TRANSFORM_TO_INT}($key)}}"
             )
             is Double -> Pair(
                 Number::class.java,
-                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_DOUBLE}($key)}}"
+                "{{${LaunchRulesEngineConstants.Transform.TRANSFORM_TO_DOUBLE}($key)}}"
             )
             // note: Kotlin.Boolean is not mapped to java.lang.Boolean correctly
             is Boolean -> Pair(
                 java.lang.Boolean::class.java,
-                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_BOOL}($key)}}"
+                "{{${LaunchRulesEngineConstants.Transform.TRANSFORM_TO_BOOL}($key)}}"
             )
             is Float -> Pair(
                 Number::class.java,
-                "{{${LaunchRulesConstants.Transform.TRANSFORM_TO_DOUBLE}($key)}}"
+                "{{${LaunchRulesEngineConstants.Transform.TRANSFORM_TO_DOUBLE}($key)}}"
             )
             else -> Pair(Any::class.java, "{{$key}}")
         }

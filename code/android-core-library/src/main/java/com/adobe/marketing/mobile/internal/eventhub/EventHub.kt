@@ -20,16 +20,16 @@ import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.WrapperType
-import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import com.adobe.marketing.mobile.internal.util.prettify
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.EventDataUtils
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import java.util.concurrent.Callable
@@ -114,11 +114,13 @@ internal class EventHub {
 
             processedEvent.mask?.let {
                 eventHistory?.recordEvent(processedEvent) { result ->
-                    MobileCore.log(
-                        LoggingMode.VERBOSE,
-                        LOG_TAG,
-                        if (result) "Successfully inserted an Event into EventHistory database" else "Failed to insert an Event into EventHistory database"
-                    )
+                    if (Log.getLogLevel() == LoggingMode.VERBOSE) {
+                        Log.trace(
+                            CoreConstants.LOG_TAG,
+                            LOG_TAG,
+                            if (result) "Successfully inserted an Event into EventHistory database" else "Failed to insert an Event into EventHistory database"
+                        )
+                    }
                 }
             }
         }
@@ -136,14 +138,6 @@ internal class EventHub {
 
     init {
         registerExtension(EventHubPlaceholderExtension::class.java) {}
-        registerExtension(ConfigurationExtension::class.java) {
-            if (it == EventHubError.None) return@registerExtension
-
-            MobileCore.log(
-                LoggingMode.ERROR, LOG_TAG,
-                "Failed to register Configuration extension: ${it.name}"
-            )
-        }
     }
 
     private var _wrapperType = WrapperType.NONE
@@ -159,8 +153,8 @@ internal class EventHub {
             eventHubExecutor.submit(
                 Callable {
                     if (hubStarted) {
-                        MobileCore.log(
-                            LoggingMode.WARNING,
+                        Log.warning(
+                            CoreConstants.LOG_TAG,
                             LOG_TAG,
                             "Wrapper type can not be set after EventHub starts processing events"
                         )
@@ -180,7 +174,7 @@ internal class EventHub {
             this.hubStarted = true
             this.eventDispatcher.start()
             this.shareEventHubSharedState()
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "Event Hub successfully started")
+            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Event Hub successfully started")
         }
     }
 
@@ -206,16 +200,16 @@ internal class EventHub {
 
         // Offer event to the serial dispatcher to perform operations on the event.
         if (!eventDispatcher.offer(event)) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Failed to dispatch event #$eventNumber - ($event)"
             )
         }
 
-        if (MobileCore.getLogLevel() == LoggingMode.VERBOSE) {
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+        if (Log.getLogLevel() == LoggingMode.VERBOSE) {
+            Log.trace(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Dispatched Event #$eventNumber - ($event)"
             )
@@ -290,8 +284,8 @@ internal class EventHub {
                 try {
                     listener.fail(AdobeError.CALLBACK_TIMEOUT)
                 } catch (ex: Exception) {
-                    MobileCore.log(
-                        LoggingMode.DEBUG,
+                    Log.debug(
+                        CoreConstants.LOG_TAG,
                         LOG_TAG,
                         "Exception thrown from ResponseListener - $ex"
                     )
@@ -357,8 +351,8 @@ internal class EventHub {
         val immutableState = try {
             EventDataUtils.immutableClone(state)
         } catch (ex: Exception) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Creating $sharedStateType shared state for extension $extensionName at event ${event?.uniqueIdentifier} with null - Cloning state failed with exception $ex"
             )
@@ -387,8 +381,8 @@ internal class EventHub {
     ): Boolean {
         val sharedStateManager = getSharedStateManager(sharedStateType, extensionName)
         sharedStateManager ?: run {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
             )
@@ -398,15 +392,15 @@ internal class EventHub {
         val version = resolveSharedStateVersion(sharedStateManager, event)
         val didSet = sharedStateManager.setState(version, state)
         if (!didSet) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
             )
         } else {
             dispatchSharedStateEvent(sharedStateType, extensionName)
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Created $sharedStateType shared state for extension $extensionName with version $version and data ${state?.prettify()}"
             )
@@ -433,8 +427,8 @@ internal class EventHub {
         val callable = Callable<SharedStateResolver?> {
             val sharedStateManager = getSharedStateManager(sharedStateType, extensionName)
             sharedStateManager ?: run {
-                MobileCore.log(
-                    LoggingMode.WARNING,
+                Log.warning(
+                    CoreConstants.LOG_TAG,
                     LOG_TAG,
                     "Create pending $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
                 )
@@ -444,16 +438,16 @@ internal class EventHub {
             val pendingVersion = resolveSharedStateVersion(sharedStateManager, event)
             val didSetPending = sharedStateManager.setPendingState(pendingVersion)
             if (!didSetPending) {
-                MobileCore.log(
-                    LoggingMode.WARNING,
+                Log.warning(
+                    CoreConstants.LOG_TAG,
                     LOG_TAG,
                     "Create pending $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
                 )
                 return@Callable null
             }
 
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Created pending $sharedStateType shared state for extension $extensionName with version $pendingVersion"
             )
@@ -482,8 +476,8 @@ internal class EventHub {
         val immutableState = try {
             EventDataUtils.immutableClone(state)
         } catch (ex: Exception) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Resolving pending $sharedStateType shared state for extension $extensionName and version $version with null - Clone failed with exception $ex"
             )
@@ -492,8 +486,8 @@ internal class EventHub {
 
         val callable = Callable {
             val sharedStateManager = getSharedStateManager(sharedStateType, extensionName) ?: run {
-                MobileCore.log(
-                    LoggingMode.WARNING,
+                Log.warning(
+                    CoreConstants.LOG_TAG,
                     LOG_TAG,
                     "Resolve pending $sharedStateType shared state for extension $extensionName and version $version failed - SharedStateManager is null"
                 )
@@ -502,8 +496,8 @@ internal class EventHub {
 
             val didUpdate = sharedStateManager.updatePendingState(version, immutableState)
             if (!didUpdate) {
-                MobileCore.log(
-                    LoggingMode.WARNING,
+                Log.warning(
+                    CoreConstants.LOG_TAG,
                     LOG_TAG,
                     "Resolve pending $sharedStateType shared state for extension $extensionName and version $version failed - SharedStateManager failed"
                 )
@@ -511,8 +505,8 @@ internal class EventHub {
             }
 
             dispatchSharedStateEvent(sharedStateType, extensionName)
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Resolved pending $sharedStateType shared state for $extensionName and version $version with data ${immutableState?.prettify()}"
             )
@@ -538,8 +532,8 @@ internal class EventHub {
     ): SharedStateResult? {
         val callable = Callable<SharedStateResult?> {
             val container = getExtensionContainer(extensionName) ?: run {
-                MobileCore.log(
-                    LoggingMode.WARNING,
+                Log.debug(
+                    CoreConstants.LOG_TAG,
                     LOG_TAG,
                     "Get $sharedStateType shared state for extension $extensionName and event ${event?.uniqueIdentifier} failed - ExtensionContainer is null"
                 )
@@ -547,8 +541,8 @@ internal class EventHub {
             }
 
             val sharedStateManager = getSharedStateManager(sharedStateType, extensionName) ?: run {
-                MobileCore.log(
-                    LoggingMode.WARNING,
+                Log.warning(
+                    CoreConstants.LOG_TAG,
                     LOG_TAG,
                     "Get $sharedStateType shared state for extension $extensionName and event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
                 )
@@ -589,8 +583,8 @@ internal class EventHub {
     ): Boolean {
         val callable = Callable {
             val sharedStateManager = getSharedStateManager(sharedStateType, extensionName) ?: run {
-                MobileCore.log(
-                    LoggingMode.WARNING,
+                Log.warning(
+                    CoreConstants.LOG_TAG,
                     LOG_TAG,
                     "Clear $sharedStateType shared state for extension $extensionName failed - SharedStateManager is null"
                 )
@@ -598,8 +592,8 @@ internal class EventHub {
             }
 
             sharedStateManager.clear()
-            MobileCore.log(
-                LoggingMode.VERBOSE,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Cleared $sharedStateType shared state for extension $extensionName"
             )

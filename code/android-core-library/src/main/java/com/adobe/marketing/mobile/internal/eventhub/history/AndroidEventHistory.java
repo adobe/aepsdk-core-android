@@ -15,8 +15,7 @@ import android.database.Cursor;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventHistoryRequest;
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.util.MapUtilsKt;
 import com.adobe.marketing.mobile.services.Log;
 
@@ -54,7 +53,7 @@ public class AndroidEventHistory implements EventHistory {
         final long fnv1aHash = MapUtilsKt.convertMapToFnv1aHash(event.getEventData(), event.getMask());
 
         if (fnv1aHash == 0) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("The event with name \"%s\" has a fnv1a hash equal to 0. The event will not be recorded.", event.getName()));
+            Log.trace(CoreConstants.LOG_TAG,  LOG_TAG, String.format("The event with name \"%s\" has a fnv1a hash equal to 0. The event will not be recorded.", event.getName()));
             return;
         }
 
@@ -108,7 +107,7 @@ public class AndroidEventHistory implements EventHistory {
                             }
                         }
                     } catch (final Exception exception) {
-                        MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("Exception occurred when attempting to retrieve events with eventHash %s from the EventHistoryDatabase: %s",
+                        Log.debug(CoreConstants.LOG_TAG,  LOG_TAG, String.format("Exception occurred when attempting to retrieve events with eventHash %s from the EventHistoryDatabase: %s",
                                 eventHash, exception.getMessage()));
                     }
                 }
@@ -162,7 +161,7 @@ public class AndroidEventHistory implements EventHistory {
             try {
                 handler.call(value);
             } catch (Exception ex) {
-                Log.debug("MobileCore", LOG_TAG, String.format("Exception executing event history result handler %s", ex));
+                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, String.format("Exception executing event history result handler %s", ex));
             }
         }
     }

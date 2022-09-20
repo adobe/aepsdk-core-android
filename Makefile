@@ -61,7 +61,7 @@ publishCoreToMavenLocal:
 ci-publish:
 	(./code/gradlew -p code/android-core-library  publishReleasePublicationToSonatypeRepository)
 
-ci-javaodc:
+ci-javadoc:
 	(./code/gradlew -p code/android-core-library  dokkaJavadoc)
 
 

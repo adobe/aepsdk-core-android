@@ -58,6 +58,7 @@ build-third-party-extension:
 publishCoreToMavenLocal:
 		(./code/gradlew -p code/android-core-library publishReleasePublicationToMavenLocal)
 
-
+ci-publish:
+	(./code/gradlew -p code/android-core-library  publishReleasePublicationToSonatypeRepository)
 
 

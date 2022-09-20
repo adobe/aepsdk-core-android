@@ -74,73 +74,16 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['testPhoneDebugUnitTest','
     }
 }
 
-android.libraryVariants.all { variant ->
-    tasks.withType(Javadoc) {
-        source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-
-        doFirst{classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)}
-
-        exclude "**/BuildConfig.java"
-        exclude "**/R.java"
-        options {
-            links "https://developer.android.com/reference"
-        }
+tasks.withType(Test) {
+    testLogging {
+        showStandardStreams = true
     }
 }
 
 
 apply from: 'checkStyle.gradle'
-//apply from: 'release.gradle'
+apply from: 'release.gradle'
 
-def isJitPackBuild() {
-    return hasProperty('jitpack')
-}
-def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
-publishing {
-    publications {
-        release(MavenPublication) {
-            groupId = groupIdForPublish
-            artifactId = rootProject.coreExtensionName
-            version = rootProject.coreExtensionVersion
-            artifact("$buildDir/outputs/aar/${rootProject.coreExtensionAARName}")
-
-            pom {
-                name = rootProject.mavenRepoName
-                description = rootProject.mavenRepoDescription
-                url = 'https://aep-sdks.gitbook.io'
-                licenses {
-                    license {
-                        name = 'Adobe Proprietary'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'adobe'
-                        name = 'adobe'
-                        email = 'adobe-mobile-testing@adobe.com'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:github.com//Adobe-Marketing-Cloud/acp-sdks.git'
-                    developerConnection = 'scm:git:ssh://github.com//Adobe-Marketing-Cloud/acp-sdks.git'
-                    url = 'https://github.com/Adobe-Marketing-Cloud/acp-sdks'
-                }
-                withXml {
-                    def dependenciesNode = asNode().appendNode('dependencies')
-
-                    def coreDependencyNode = dependenciesNode.appendNode('dependency')
-                    coreDependencyNode.appendNode('groupId', 'org.jetbrains.kotlin')
-                    coreDependencyNode.appendNode('artifactId', 'kotlin-stdlib-jdk8')
-                    coreDependencyNode.appendNode('version', rootProject.kotlin_version)
-                }
-            }
-        }
-    }
-}
-tasks.withType(Javadoc).all { enabled = false }
-publishToMavenLocal.dependsOn('assemblePhone')
-publishReleasePublicationToMavenLocal.dependsOn('assemblePhone')
 dependencies {
     //noinspection GradleDependency,GradleCompatible
     implementation 'androidx.appcompat:appcompat:1.0.0'

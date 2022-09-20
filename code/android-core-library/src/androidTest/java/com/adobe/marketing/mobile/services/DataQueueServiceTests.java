@@ -20,6 +20,8 @@ import android.content.Context;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.adobe.marketing.mobile.services.internal.context.App;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,7 +40,7 @@ public class DataQueueServiceTests {
     @Before
     public void beforeEach() {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        ServiceProvider.getInstance().setContext(context);
+        App.INSTANCE.setAppContext(context);
     }
 
     @After
@@ -57,7 +59,7 @@ public class DataQueueServiceTests {
 
     @Test
     public void testGetDataQueue_ApplicationContextIsNotSet() {
-        ServiceProvider.getInstance().setContext(null);
+        App.INSTANCE.setAppContext(null);
         DataQueue dataQueue = new DataQueueService().getDataQueue(null);
         assertNull(dataQueue);
     }

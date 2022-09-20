@@ -36,8 +36,6 @@ public class RulesEngine<T extends Rule> {
                 RulesResult result = rule.getEvaluable().evaluate(context);
                 if (result.isSuccess()) {
                     triggerRules.add(rule);
-                } else {
-                    Log.debug(LOG_TAG, result.getFailureMessage());
                 }
             }
             return triggerRules;

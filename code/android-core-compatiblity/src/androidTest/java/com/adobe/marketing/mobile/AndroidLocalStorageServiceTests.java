@@ -28,6 +28,8 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.services.internal.context.App;
+
 @SuppressWarnings("all")
 @RunWith(AndroidJUnit4.class)
 public class AndroidLocalStorageServiceTests {
@@ -37,7 +39,7 @@ public class AndroidLocalStorageServiceTests {
 	@Before
 	public void beforeEach() {
 		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		App.setAppContext(context.getApplicationContext());
+		App.INSTANCE.setAppContext(context.getApplicationContext());
 		androidLocalStorageService = new AndroidLocalStorageService();
 		androidSharedPreferences = androidLocalStorageService.getDataStore("AndroidLocalStorageServiceTests");
 		androidSharedPreferences.removeAll();

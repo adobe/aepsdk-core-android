@@ -74,7 +74,7 @@ class NetworkService implements Networking {
 			});
 		} catch (final Exception e) {
 			// to catch RejectedExecutionException when the thread pool is saturated
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Failed to send request for (%s) [%s]", request.getUrl(),
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Failed to send request for (%s) [%s]", request.getUrl(),
 						   (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
 
 			if (callback != null) {
@@ -98,7 +98,7 @@ class NetworkService implements Networking {
 		HttpConnecting connection = null;
 
 		if (request.getUrl() == null || !request.getUrl().contains("https")) {
-			MobileCore.log(LoggingMode.DEBUG, TAG, String.format("Invalid URL (%s), only HTTPS protocol is supported",
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Invalid URL (%s), only HTTPS protocol is supported",
 						   request.getUrl()));
 			return null;
 		}
@@ -130,15 +130,15 @@ class NetworkService implements Networking {
 						connection = httpConnectionHandler.connect(request.getBody());
 					}
 				} catch (final IOException e) {
-					MobileCore.log(LoggingMode.DEBUG, TAG, String.format("Could not create a connection to URL (%s) [%s]", request.getUrl(),
+					Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not create a connection to URL (%s) [%s]", request.getUrl(),
 								   (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
 				} catch (final SecurityException e) {
-					MobileCore.log(LoggingMode.DEBUG, TAG, String.format("Could not create a connection to URL (%s) [%s]", request.getUrl(),
+					Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not create a connection to URL (%s) [%s]", request.getUrl(),
 								   (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
 				}
 			}
 		} catch (final MalformedURLException e) {
-			MobileCore.log(LoggingMode.DEBUG, TAG, String.format("Could not connect, invalid URL (%s) [%s]!!", request.getUrl(),
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not connect, invalid URL (%s) [%s]!!", request.getUrl(),
 						   e));
 		}
 

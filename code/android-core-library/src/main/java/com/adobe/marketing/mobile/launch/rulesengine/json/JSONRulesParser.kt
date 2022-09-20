@@ -12,9 +12,9 @@
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
+import com.adobe.marketing.mobile.services.Log
 import org.json.JSONObject
 import org.json.JSONTokener
 
@@ -38,8 +38,8 @@ object JSONRulesParser {
                 return JSONRuleRoot(jsonObject)?.toLaunchRules(extensionApi)
             }
         } catch (e: Exception) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 LOG_TAG,
                 "Failed to parse launch rules JSON: \n $jsonString"
             )

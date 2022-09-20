@@ -26,6 +26,8 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.adobe.marketing.mobile.services.internal.context.App;
+
 
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -55,7 +57,7 @@ public class AndroidDeepLinkServiceTests {
 
 	@Test
 	public void startActivity_When_UrlIsValid() throws Exception {
-		App.setCurrentActivity(mockActivity);
+		App.INSTANCE.setCurrentActivity(mockActivity);
 		final ArgumentCaptor<Intent> captor = ArgumentCaptor.forClass(Intent.class);
 
 		deepLinkService.triggerDeepLink("test");

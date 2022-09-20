@@ -11,8 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.util;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -63,7 +63,7 @@ public final class StringUtils {
             final byte[] byteArray = buffer.toByteArray();
             return new String(byteArray, StandardCharsets.UTF_8);
         } catch (final IOException ex) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, "Unable to convert InputStream to String," + ex.getLocalizedMessage());
+            Log.trace(CoreConstants.LOG_TAG, TAG, "Unable to convert InputStream to String," + ex.getLocalizedMessage());
             return null;
         }
     }

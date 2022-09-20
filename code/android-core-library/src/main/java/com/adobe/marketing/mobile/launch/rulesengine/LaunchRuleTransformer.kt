@@ -31,13 +31,13 @@ internal object LaunchRuleTransformer {
     }
 
     /**
-     * Registers a [TransformerBlock] for [LaunchRulesConstants.Transform.URL_ENCODING_FUNCTION]
+     * Registers a [TransformerBlock] for [LaunchRulesEngineConstants.Transform.URL_ENCODING_FUNCTION]
      * to encode a `String` value to url format.
      *
      * @param[transformer] [Transformer] instance used to register the [TransformerBlock]
      */
     private fun addConsequenceTransform(transformer: Transformer) {
-        transformer.register(LaunchRulesConstants.Transform.URL_ENCODING_FUNCTION) { value ->
+        transformer.register(LaunchRulesEngineConstants.Transform.URL_ENCODING_FUNCTION) { value ->
             if (value is String) {
                 UrlUtils.urlEncode(value)
             } else value
@@ -46,12 +46,12 @@ internal object LaunchRuleTransformer {
 
     /**
      * Registers multiple [TransformerBlock] to transform a value into one of
-     * [LaunchRulesConstants.Transform] types.
+     * [LaunchRulesEngineConstants.Transform] types.
      *
      * @param[transformer] [Transformer] instance used to register the [TransformerBlock]
      */
     private fun addTypeTransform(transformer: Transformer) {
-        transformer.register(LaunchRulesConstants.Transform.TRANSFORM_TO_INT) { value ->
+        transformer.register(LaunchRulesEngineConstants.Transform.TRANSFORM_TO_INT) { value ->
             when (value) {
                 is String -> {
                     try {
@@ -65,10 +65,10 @@ internal object LaunchRuleTransformer {
                 else -> value
             }
         }
-        transformer.register(LaunchRulesConstants.Transform.TRANSFORM_TO_STRING) { value ->
+        transformer.register(LaunchRulesEngineConstants.Transform.TRANSFORM_TO_STRING) { value ->
             value?.toString()
         }
-        transformer.register(LaunchRulesConstants.Transform.TRANSFORM_TO_DOUBLE) { value ->
+        transformer.register(LaunchRulesEngineConstants.Transform.TRANSFORM_TO_DOUBLE) { value ->
             when (value) {
                 is String -> {
                     try {
@@ -82,7 +82,7 @@ internal object LaunchRuleTransformer {
                 else -> value
             }
         }
-        transformer.register(LaunchRulesConstants.Transform.TRANSFORM_TO_BOOL) { value ->
+        transformer.register(LaunchRulesEngineConstants.Transform.TRANSFORM_TO_BOOL) { value ->
             when (value) {
                 is String -> java.lang.Boolean.parseBoolean(value)
                 is Number -> (value.toLong() == 1L && value.toDouble() == 1.0)

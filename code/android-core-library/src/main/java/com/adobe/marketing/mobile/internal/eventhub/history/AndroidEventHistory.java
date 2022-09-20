@@ -15,9 +15,9 @@ import android.database.Cursor;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventHistoryRequest;
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.util.MapUtilsKt;
+import com.adobe.marketing.mobile.services.Log;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,14 +53,14 @@ public class AndroidEventHistory implements EventHistory {
         final long fnv1aHash = MapUtilsKt.convertMapToFnv1aHash(event.getEventData(), event.getMask());
 
         if (fnv1aHash == 0) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("The event with name \"%s\" has a fnv1a hash equal to 0. The event will not be recorded.", event.getName()));
+            Log.trace(CoreConstants.LOG_TAG,  LOG_TAG, String.format("The event with name \"%s\" has a fnv1a hash equal to 0. The event will not be recorded.", event.getName()));
             return;
         }
 
         executorService.submit(new Runnable() {
             @Override
             public void run() {
-                handler.call(androidEventHistoryDatabase.insert(fnv1aHash));
+                notifyHandler(handler, androidEventHistoryDatabase.insert(fnv1aHash));
             }
         });
     }
@@ -107,7 +107,7 @@ public class AndroidEventHistory implements EventHistory {
                             }
                         }
                     } catch (final Exception exception) {
-                        MobileCore.log(LoggingMode.DEBUG, LOG_TAG, String.format("Exception occurred when attempting to retrieve events with eventHash %s from the EventHistoryDatabase: %s",
+                        Log.debug(CoreConstants.LOG_TAG,  LOG_TAG, String.format("Exception occurred when attempting to retrieve events with eventHash %s from the EventHistoryDatabase: %s",
                                 eventHash, exception.getMessage()));
                     }
                 }
@@ -120,7 +120,7 @@ public class AndroidEventHistory implements EventHistory {
                         handler.call(0);
                     }
                 } else { // for "any" search, return total number of matching events
-                    handler.call(foundEventCount);
+                    notifyHandler(handler, foundEventCount);
                 }
             }
         });
@@ -151,8 +151,18 @@ public class AndroidEventHistory implements EventHistory {
                     deletedRows += androidEventHistoryDatabase.delete(eventHash, from, to);
                 }
 
-                handler.call(deletedRows);
+                notifyHandler(handler, deletedRows);
             }
         });
+    }
+
+    private <T> void notifyHandler(EventHistoryResultHandler<T> handler, T value) {
+        if (handler != null) {
+            try {
+                handler.call(value);
+            } catch (Exception ex) {
+                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, String.format("Exception executing event history result handler %s", ex));
+            }
+        }
     }
 }

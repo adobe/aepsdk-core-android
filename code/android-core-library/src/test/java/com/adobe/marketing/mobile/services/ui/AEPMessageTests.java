@@ -24,7 +24,7 @@ import android.view.animation.Animation;
 import android.widget.FrameLayout;
 
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -87,18 +88,8 @@ public class AEPMessageTests {
         Mockito.when(mockAEPMessageSettings.getGestures()).thenReturn(gestureMap);
         Mockito.when(mockMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_DOWN);
         MobileCore.setApplication(mockApplication);
-
-        App.getInstance().initializeApp(new App.AppContextProvider() {
-            @Override
-            public Context getAppContext() {
-                return mockApplication;
-            }
-
-            @Override
-            public Activity getCurrentActivity() {
-                return mockActivity;
-            }
-        });
+        App.INSTANCE.setAppContext(mockApplication);
+        App.INSTANCE.setCurrentActivity(mockActivity);
     }
 
     // AEPMessage creation tests
@@ -277,18 +268,9 @@ public class AEPMessageTests {
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(mockFullscreenMessageDelegate.shouldShowMessage(ArgumentMatchers.any(AEPMessage.class))).thenReturn(true);
         // set the current activity to null
-        App.getInstance().initializeApp(new App.AppContextProvider() {
-            @Override
-            public Context getAppContext() {
-                return mockApplication;
-            }
 
-            @Override
-            public Activity getCurrentActivity() {
-                return null;
-            }
-        });
-
+        App.INSTANCE.setAppContext(mockApplication);
+        App.INSTANCE.setCurrentActivity(null);
         try {
             message = new AEPMessage("html",
                     mockFullscreenMessageDelegate, false, mockMessageMonitor, mockAEPMessageSettings);
@@ -331,17 +313,8 @@ public class AEPMessageTests {
     @Test
     public void urlNotOpened_When_ActivityIsNull() {
         // setup
-        App.getInstance().initializeApp(new App.AppContextProvider() {
-            @Override
-            public Context getAppContext() {
-                return mockApplication;
-            }
-
-            @Override
-            public Activity getCurrentActivity() {
-                return null;
-            }
-        });
+        App.INSTANCE.setAppContext(mockApplication);
+        App.INSTANCE.setCurrentActivity(null);
         String url = "https://www.adobe.com";
 
         try {
@@ -359,6 +332,7 @@ public class AEPMessageTests {
         message.openUrl(url);
         // verify
         Mockito.verify(mockActivity, Mockito.times(0)).startActivity(ArgumentMatchers.any(Intent.class));
+
     }
 
     @Test

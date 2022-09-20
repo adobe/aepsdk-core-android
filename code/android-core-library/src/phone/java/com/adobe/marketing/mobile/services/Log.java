@@ -63,7 +63,7 @@ public class Log {
         Logging loggingService = ServiceProvider.getInstance().getLoggingService();
         if (loggingService != null && loggingMode.id >= LoggingMode.VERBOSE.id) {
             try {
-                loggingService.trace(extension + "-" + source, String.format(format, params));
+                loggingService.trace(extension + "/" + source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.trace(source, format);
             }
@@ -84,7 +84,7 @@ public class Log {
         Logging loggingService = ServiceProvider.getInstance().getLoggingService();
         if (loggingService != null && loggingMode.id >= LoggingMode.DEBUG.id) {
             try {
-                loggingService.debug(extension + "-" + source, String.format(format, params));
+                loggingService.debug(extension + "/" + source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.debug(source, format);
             }
@@ -107,7 +107,7 @@ public class Log {
         Logging loggingService = ServiceProvider.getInstance().getLoggingService();
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.WARNING.id) {
             try {
-                loggingService.warning(extension + "-" + source, String.format(format, params));
+                loggingService.warning(extension + "/" + source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.warning(source, format);
             }
@@ -128,7 +128,7 @@ public class Log {
         Logging loggingService = ServiceProvider.getInstance().getLoggingService();
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.ERROR.id) {
             try {
-                loggingService.error(extension + "-" + source, String.format(format, params));
+                loggingService.error(extension + "/" + source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.error(source, format);
             }

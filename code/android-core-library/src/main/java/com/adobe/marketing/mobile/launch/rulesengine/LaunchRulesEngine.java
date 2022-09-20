@@ -12,8 +12,6 @@ package com.adobe.marketing.mobile.launch.rulesengine;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.ExtensionApi;
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator;
 import com.adobe.marketing.mobile.rulesengine.Log;
 import com.adobe.marketing.mobile.rulesengine.LogLevel;
@@ -32,21 +30,35 @@ public class LaunchRulesEngine {
         Log.setLogging(new Logging() {
             @Override
             public void log(LogLevel level, String tag, String message) {
-                LoggingMode loggingMode;
                 switch (level) {
-                    case DEBUG:
-                        loggingMode = LoggingMode.DEBUG;
-                        break;
                     case ERROR:
-                        loggingMode = LoggingMode.ERROR;
-                        break;
+                        com.adobe.marketing.mobile.services.Log.error(
+                                LaunchRulesEngineConstants.LOG_TAG,
+                                tag,
+                                message
+                        );
                     case WARNING:
-                        loggingMode = LoggingMode.WARNING;
+                        com.adobe.marketing.mobile.services.Log.warning(
+                                LaunchRulesEngineConstants.LOG_TAG,
+                                tag,
+                                message
+                        );
+                    case DEBUG:
+                        com.adobe.marketing.mobile.services.Log.debug(
+                                LaunchRulesEngineConstants.LOG_TAG,
+                                tag,
+                                message
+                        );
+                    case VERBOSE:
+                        com.adobe.marketing.mobile.services.Log.trace(
+                                LaunchRulesEngineConstants.LOG_TAG,
+                                tag,
+                                message
+                        );
                         break;
                     default:
-                        loggingMode = LoggingMode.VERBOSE;
+                        break;
                 }
-                MobileCore.log(loggingMode, tag, message);
             }
         });
         this.extensionApi = extensionApi;

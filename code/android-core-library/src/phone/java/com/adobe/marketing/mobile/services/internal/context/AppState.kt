@@ -8,15 +8,8 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
+package com.adobe.marketing.mobile.services.internal.context
 
-package com.adobe.marketing.mobile.launch.rulesengine
-
-internal object LaunchRulesConstants {
-    internal object Transform {
-        const val URL_ENCODING_FUNCTION = "urlenc"
-        const val TRANSFORM_TO_INT = "int"
-        const val TRANSFORM_TO_DOUBLE = "double"
-        const val TRANSFORM_TO_STRING = "string"
-        const val TRANSFORM_TO_BOOL = "bool"
-    }
+internal enum class AppState {
+    FOREGROUND, BACKGROUND, UNKNOWN
 }

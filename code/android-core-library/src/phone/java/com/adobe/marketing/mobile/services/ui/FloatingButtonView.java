@@ -24,6 +24,8 @@ import android.widget.Button;
 
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -181,7 +183,7 @@ public class FloatingButtonView extends Button implements View.OnTouchListener {
 				buttonListener.onPanDetected();
 			}
 		} catch (Exception e) {
-			MobileCore.log(LoggingMode.ERROR, TAG, String.format("Error while setting the position (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Error while setting the position (%s)", e));
 		}
 
 	}

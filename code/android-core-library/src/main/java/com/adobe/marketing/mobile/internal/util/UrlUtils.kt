@@ -11,8 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.util
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.services.Log
 import java.io.UnsupportedEncodingException
 import java.nio.charset.StandardCharsets
 
@@ -104,8 +104,8 @@ internal object UrlUtils {
             // return the completed string
             encodedString.toString()
         } catch (e: UnsupportedEncodingException) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Failed to url encode string $unencodedString $e"
             )

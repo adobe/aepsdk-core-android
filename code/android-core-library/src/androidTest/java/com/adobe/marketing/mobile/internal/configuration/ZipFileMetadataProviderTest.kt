@@ -14,6 +14,8 @@ package com.adobe.marketing.mobile.internal.configuration
 import com.adobe.marketing.mobile.util.TimeUtils
 import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -24,8 +26,6 @@ import java.io.FileOutputStream
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import junit.framework.TestCase.assertNotNull
-import junit.framework.TestCase.assertNull
 
 class ZipFileMetadataProviderTest {
     companion object {

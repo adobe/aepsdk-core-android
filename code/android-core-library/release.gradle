@@ -1,19 +1,5 @@
 apply plugin: 'signing'
 
-android.libraryVariants.all { variant ->
-    tasks.withType(Javadoc) {
-        source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-
-        doFirst{classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)}
-
-        exclude "**/BuildConfig.java"
-        exclude "**/R.java"
-        options {
-            links "https://developer.android.com/reference"
-        }
-    }
-}
 def isJitPackBuild() {
     return hasProperty('jitpack')
 }
@@ -26,7 +12,6 @@ publishing {
             artifactId = rootProject.coreExtensionName
             version = rootProject.coreExtensionVersion
             artifact("$buildDir/outputs/aar/${rootProject.coreExtensionAARName}")
-//            artifact javadocPublish
             pom {
                 name = rootProject.mavenRepoName
                 description = rootProject.mavenRepoDescription

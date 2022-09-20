@@ -12,13 +12,13 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.launch.rulesengine.historicalEventsQuerying
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.OperandFunction
 import com.adobe.marketing.mobile.rulesengine.OperandLiteral
+import com.adobe.marketing.mobile.services.Log
 
 internal class HistoricalCondition(
     private val definition: JSONDefinition,
@@ -36,8 +36,8 @@ internal class HistoricalCondition(
             operationName !is String ||
             valueAsInt !is Int
         ) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 LOG_TAG,
                 "Failed to build Evaluable from definition JSON: \n $definition"
             )

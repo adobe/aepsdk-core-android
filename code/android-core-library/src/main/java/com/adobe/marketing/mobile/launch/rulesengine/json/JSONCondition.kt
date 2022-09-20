@@ -12,9 +12,9 @@
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.rulesengine.Evaluable
+import com.adobe.marketing.mobile.services.Log
 import org.json.JSONObject
 
 /**
@@ -69,8 +69,8 @@ internal abstract class JSONCondition {
                         extensionApi
                     )
                     else -> {
-                        MobileCore.log(
-                            LoggingMode.ERROR,
+                        Log.error(
+                            LaunchRulesEngineConstants.LOG_TAG,
                             LOG_TAG,
                             "Unsupported condition type - $type"
                         )
@@ -78,8 +78,8 @@ internal abstract class JSONCondition {
                     }
                 }
             } catch (e: Exception) {
-                MobileCore.log(
-                    LoggingMode.ERROR,
+                Log.error(
+                    LaunchRulesEngineConstants.LOG_TAG,
                     LOG_TAG,
                     "Failed to parse [rule.condition] JSON, the error is: ${e.message}"
                 )

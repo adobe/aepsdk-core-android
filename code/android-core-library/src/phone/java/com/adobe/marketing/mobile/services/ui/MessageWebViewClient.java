@@ -25,6 +25,8 @@ import android.webkit.WebViewClient;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -113,7 +115,7 @@ class MessageWebViewClient extends WebViewClient {
 											url));
 				return new WebResourceResponse(mimeType, null, new FileInputStream(cachedPath));
 			} catch (IOException e) {
-				MobileCore.log(LoggingMode.DEBUG, TAG,
+				Log.debug(ServiceConstants.LOG_TAG, TAG,
 							   "Unable to create WebResourceResponse for remote asset " + url + "and local asset " + assetMap.get(url));
 			}
 		}
@@ -129,7 +131,7 @@ class MessageWebViewClient extends WebViewClient {
 	 */
 	private boolean handleUrl(final String url) {
 		if (StringUtils.isNullOrEmpty(url)) {
-			MobileCore.log(LoggingMode.DEBUG, TAG, "Unable to handle a null or empty url.");
+			Log.debug(ServiceConstants.LOG_TAG, TAG, "Unable to handle a null or empty url.");
 			return true;
 		}
 

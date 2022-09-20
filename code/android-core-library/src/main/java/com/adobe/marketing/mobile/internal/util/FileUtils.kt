@@ -11,8 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.util
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.services.Log
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -47,7 +47,10 @@ object FileUtils {
     @JvmStatic
     fun readAsString(file: File?): String? {
         if (!isReadable(file)) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, "Failed to read file: ($file)")
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                TAG, "Failed to read file: ($file)"
+            )
             return null
         }
 
@@ -60,8 +63,8 @@ object FileUtils {
                 }
             }
         } catch (e: Exception) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 TAG,
                 "Failed to read $file contents. $e"
             )
@@ -82,8 +85,8 @@ object FileUtils {
     fun isReadable(file: File?): Boolean {
         try {
             if (file == null || !file.exists() || !file.canRead() || !file.isFile) {
-                MobileCore.log(
-                    LoggingMode.WARNING,
+                Log.debug(
+                    CoreConstants.LOG_TAG,
                     TAG,
                     "File does not exist or does't have read permission $file"
                 )
@@ -91,7 +94,9 @@ object FileUtils {
             }
             return true
         } catch (e: SecurityException) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, "Failed to read file ($e)")
+            Log.debug(
+                CoreConstants.LOG_TAG, TAG, "Failed to read file ($e)"
+            )
             return false
         }
     }
@@ -114,8 +119,8 @@ object FileUtils {
 
             true
         } catch (e: Exception) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 TAG,
                 "Unexpected exception while attempting to write to file: ${file?.path} ($e)"
             )
@@ -137,8 +142,8 @@ object FileUtils {
 
         val folder = File(outputDirectoryPath)
         if (!folder.exists() && !folder.mkdir()) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 TAG,
                 "Could not create the output directory $outputDirectoryPath"
             )
@@ -153,7 +158,9 @@ object FileUtils {
                 val outputFolderCanonicalPath = folder.canonicalPath
                 if (ze == null) {
                     // Invalid zip file!
-                    MobileCore.log(LoggingMode.WARNING, TAG, "Zip file was invalid")
+                    Log.debug(
+                        CoreConstants.LOG_TAG, TAG, "Zip file was invalid"
+                    )
                     return false
                 }
                 var entryProcessedSuccessfully = true
@@ -161,8 +168,8 @@ object FileUtils {
                     val fileName = ze.name
                     val newZipEntryFile = File(outputDirectoryPath + File.separator + fileName)
                     if (!newZipEntryFile.canonicalPath.startsWith(outputFolderCanonicalPath)) {
-                        MobileCore.log(
-                            LoggingMode.ERROR,
+                        Log.debug(
+                            CoreConstants.LOG_TAG,
                             TAG,
                             "The zip file contained an invalid path. Verify that your zip file is formatted correctly and has not been tampered with."
                         )
@@ -177,8 +184,8 @@ object FileUtils {
                         if (parentFolder != null && (parentFolder.exists() || parentFolder.mkdirs())) {
                             readInputStreamIntoFile(newZipEntryFile, zipInputStream, false)
                         } else {
-                            MobileCore.log(
-                                LoggingMode.WARNING,
+                            Log.debug(
+                                CoreConstants.LOG_TAG,
                                 TAG,
                                 "Could not extract the file ${newZipEntryFile.absolutePath}"
                             )
@@ -193,7 +200,9 @@ object FileUtils {
                 zipInputStream.closeEntry()
             }
         } catch (ex: Exception) {
-            MobileCore.log(LoggingMode.ERROR, TAG, "Extraction failed - $ex")
+            Log.debug(
+                CoreConstants.LOG_TAG, TAG, "Extraction failed - $ex"
+            )
             extractedSuccessfully = false
         }
 

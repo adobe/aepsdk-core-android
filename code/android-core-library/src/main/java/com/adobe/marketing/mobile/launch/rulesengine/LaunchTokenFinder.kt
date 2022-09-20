@@ -13,12 +13,12 @@ package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.internal.util.flattening
 import com.adobe.marketing.mobile.internal.util.serializeToQueryString
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.TimeUtils
 import org.json.JSONObject
 import java.security.SecureRandom
@@ -70,8 +70,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             KEY_CACHEBUST -> SecureRandom().nextInt(RANDOM_INT_BOUNDARY).toString()
             KEY_ALL_URL -> {
                 if (event.eventData == null) {
-                    MobileCore.log(
-                        LoggingMode.DEBUG,
+                    Log.debug(
+                        LaunchRulesEngineConstants.LOG_TAG,
                         LOG_TAG,
                         "Triggering event data is null, can not use it to generate an url query string"
                     )
@@ -82,8 +82,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             }
             KEY_ALL_JSON -> {
                 if (event.eventData == null) {
-                    MobileCore.log(
-                        LoggingMode.DEBUG,
+                    Log.debug(
+                        LaunchRulesEngineConstants.LOG_TAG,
                         LOG_TAG,
                         "Triggering event data is null, can not use it to generate a json string"
                     )
@@ -92,8 +92,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
                 try {
                     JSONObject(event.eventData).toString()
                 } catch (e: Exception) {
-                    MobileCore.log(
-                        LoggingMode.DEBUG,
+                    Log.debug(
+                        LaunchRulesEngineConstants.LOG_TAG,
                         LOG_TAG,
                         "Failed to generate a json string ${e.message}"
                     )
@@ -142,8 +142,8 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
      */
     private fun getValueFromEvent(key: String): Any? {
         if (event.eventData == null) {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                LaunchRulesEngineConstants.LOG_TAG,
                 LOG_TAG,
                 String.format("Unable to replace the token %s, triggering event data is null", key)
             )

@@ -13,13 +13,13 @@ package com.adobe.marketing.mobile.services.internal.context
 import android.app.Activity
 import android.app.Application
 import android.content.ComponentCallbacks2
+import android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
 import android.content.res.Configuration
 import android.os.Bundle
-import com.adobe.marketing.mobile.CoreConstants
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.internal.context.App.setCurrentActivity
 import java.util.ArrayList
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Implement [Application.ActivityLifecycleCallbacks] to detect whether the app is in foreground.
@@ -49,7 +49,6 @@ internal class AppLifecycleListener private constructor() :
     var appState = AppState.UNKNOWN
         private set
     private val appStateListeners: MutableList<AppStateListener>
-    private val isInBackground = AtomicBoolean(true)
     private var onActivityResumed: SimpleCallback<Activity>? = null
 
     /**
@@ -69,7 +68,7 @@ internal class AppLifecycleListener private constructor() :
             this.onActivityResumed = onActivityResumed
         } else {
             Log.error(
-                CoreConstants.CORE_EXTENSION_NAME,
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "The given Application instance is null."
             )
@@ -117,11 +116,12 @@ internal class AppLifecycleListener private constructor() :
     }
 
     private fun setForegroundIfNeeded() {
-        val isBackground = isInBackground.compareAndSet(true, false)
-        if (isBackground) {
-            appState = AppState.FOREGROUND
-            notifyListeners()
+        if (appState == AppState.FOREGROUND) {
+            return
         }
+
+        appState = AppState.FOREGROUND
+        notifyListeners()
     }
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
@@ -154,12 +154,13 @@ internal class AppLifecycleListener private constructor() :
 
     override fun onTrimMemory(level: Int) {
         // https://developer.android.com/reference/android/content/ComponentCallbacks2.html#TRIM_MEMORY_UI_HIDDEN
-        if (level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
-            val isForeground = isInBackground.compareAndSet(false, true)
-            if (isForeground) {
-                appState = AppState.BACKGROUND
-                notifyListeners()
+        if (level >= TRIM_MEMORY_UI_HIDDEN) {
+            if (appState == AppState.BACKGROUND) {
+                return
             }
+
+            appState = AppState.BACKGROUND
+            notifyListeners()
         }
     }
 

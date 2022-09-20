@@ -11,10 +11,10 @@
 
 package com.adobe.marketing.mobile.util.remotedownload
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.util.StringUtils
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.services.CacheFileService
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.Networking
 
 /**
@@ -73,8 +73,8 @@ class RemoteDownloader(
         completionCallback: (DownloadResult) -> Unit
     ) {
         if (!StringUtils.stringIsUrl(url)) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.debug(
+                LaunchRulesEngineConstants.LOG_TAG,
                 TAG,
                 "Invalid URL: ($url). Contents cannot be downloaded."
             )

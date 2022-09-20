@@ -14,6 +14,8 @@ package com.adobe.marketing.mobile;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.services.ServiceProvider;
@@ -232,22 +234,22 @@ class V4ToV5Migration {
     protected void migrate() {
         if (isMigrationRequired()) {
 
-            Log.debug(LOG_TAG, "Migrating Adobe SDK v4 SharedPreferences for use with Adobe SDK v5.");
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migrating Adobe SDK v4 SharedPreferences for use with Adobe SDK v5.");
             migrateLocalStorage();
             migrateConfigurationLocalStorage();
             removeV4Databases();
-            Log.debug(LOG_TAG, "Full migrating of SharedPreferences successful.");
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Full migrating of SharedPreferences successful.");
         } else if (isConfigurationMigrationRequired()) {
 
-            Log.debug(LOG_TAG, "Migrating Adobe SDK v4 Configuration SharedPreferences for use with Adobe SDK v5.");
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migrating Adobe SDK v4 Configuration SharedPreferences for use with Adobe SDK v5.");
             migrateConfigurationLocalStorage();
-            Log.debug(LOG_TAG, "Full migrating of v4 Configuration SharedPreferences successful.");
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Full migrating of v4 Configuration SharedPreferences successful.");
         }
 
         if (isVisitorIdMigrationRequired()) {
-            Log.debug(LOG_TAG, "Migrating visitor identifier from Identity to Analytics.");
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migrating visitor identifier from Identity to Analytics.");
             migrateVisitorId();
-            Log.debug(LOG_TAG, "Full migration of visitor identifier from Identity to Analytics successful.");
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Full migration of visitor identifier from Identity to Analytics successful.");
         }
 
     }
@@ -256,7 +258,7 @@ class V4ToV5Migration {
         SharedPreferences v4DataStore = getV4SharedPreferences();
 
         if (v4DataStore == null) {
-            Log.debug(LOG_TAG, "%s (application context), failed to migrate v4 storage", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "%s (application context), failed to migrate v4 storage", Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
@@ -310,7 +312,7 @@ class V4ToV5Migration {
         v4DataStoreEditor.remove(V4.Messages.SHARED_PREFERENCES_BLACK_LIST);
         v4DataStoreEditor.apply();
 
-        Log.debug(LOG_TAG, "Migration complete for Mobile Services data.");
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migration complete for Mobile Services data.");
 
         // acquisition
         NamedCollection acquisitionV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Acquisition.DATASTORE_NAME);
@@ -318,7 +320,7 @@ class V4ToV5Migration {
                 null));
         v4DataStoreEditor.remove(V4.Acquisition.REFERRER_DATA);
         v4DataStoreEditor.apply();
-        Log.debug(LOG_TAG, "Migration complete for Acquisition data.");
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migration complete for Acquisition data.");
 
         // analytics
         NamedCollection analyticsV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Analytics.DATASTORE_NAME);
@@ -331,7 +333,7 @@ class V4ToV5Migration {
         v4DataStoreEditor.remove(V4.Analytics.IGNORE_AID);
         v4DataStoreEditor.remove(V4.Analytics.LAST_KNOWN_TIMESTAMP);
         v4DataStoreEditor.apply();
-        Log.debug(LOG_TAG, "Migration complete for Analytics data.");
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migration complete for Analytics data.");
 
         // audience manager
         NamedCollection audienceV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.AudienceManager.DATASTORE_NAME);
@@ -339,7 +341,7 @@ class V4ToV5Migration {
         v4DataStoreEditor.remove(V4.AudienceManager.USER_ID);
         v4DataStoreEditor.remove(V4.AudienceManager.USER_PROFILE);
         v4DataStoreEditor.apply();
-        Log.debug(LOG_TAG, "Migration complete for Audience Manager data.");
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migration complete for Audience Manager data.");
 
         // identity
         NamedCollection identityV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Identity.DATASTORE_NAME);
@@ -360,7 +362,7 @@ class V4ToV5Migration {
         v4DataStoreEditor.remove(V4.Identity.PUSH_ENABLED);
         v4DataStoreEditor.remove(V4.Identity.AID_SYNCED);
         v4DataStoreEditor.apply();
-        Log.debug(LOG_TAG, "Migration complete for Identity (Visitor ID Service) data.");
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migration complete for Identity (Visitor ID Service) data.");
 
         // lifecycle
         NamedCollection lifecycleV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Lifecycle.DATASTORE_NAME);
@@ -393,7 +395,7 @@ class V4ToV5Migration {
         v4DataStoreEditor.remove(V4.Lifecycle.OS);
         v4DataStoreEditor.remove(V4.Lifecycle.APPLICATION_ID);
         v4DataStoreEditor.apply();
-        Log.debug(LOG_TAG, "Migration complete for Lifecycle data.");
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migration complete for Lifecycle data.");
 
         // target
         NamedCollection targetV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Target.DATASTORE_NAME);
@@ -405,14 +407,14 @@ class V4ToV5Migration {
         v4DataStoreEditor.remove(V4.Target.COOKIE_EXPIRES);
         v4DataStoreEditor.remove(V4.Target.COOKIE_VALUE);
         v4DataStoreEditor.apply();
-        Log.debug(LOG_TAG, "Migrating complete for Target data.");
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migrating complete for Target data.");
     }
 
     private void migrateConfigurationLocalStorage() {
         SharedPreferences v4DataStore = getV4SharedPreferences();
 
         if (v4DataStore == null) {
-            Log.debug(LOG_TAG, "%s (application context), failed to migrate v4 storage", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "%s (application context), failed to migrate v4 storage", Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
@@ -451,11 +453,11 @@ class V4ToV5Migration {
                         v5JsonObj.put(V5.Configuration.GLOBAL_PRIVACY_KEY, v5PrivacyStatus.getValue());
                         configurationV5DataStore.setString(V5.Configuration.PERSISTED_OVERRIDDEN_CONFIG, v5JsonObj.toString());
                     } else {
-                        Log.debug(LOG_TAG,
+                        Log.debug(CoreConstants.LOG_TAG, LOG_TAG,
                                 "V5 configuration data already contains setting for global privacy. V4 global privacy not migrated.");
                     }
                 } catch (JSONException e) {
-                    Log.error(LOG_TAG, "Failed to serialize v5 configuration data. Unable to migrate v4 configuration data to v5. %s",
+                    Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to serialize v5 configuration data. Unable to migrate v4 configuration data to v5. %s",
                             e.getLocalizedMessage());
                 }
 
@@ -471,7 +473,7 @@ class V4ToV5Migration {
 
         v4DataStoreEditor.remove(V4.Configuration.GLOBAL_PRIVACY_KEY);
         v4DataStoreEditor.apply();
-        Log.debug(LOG_TAG, "Migration complete for Configuration data.");
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migration complete for Configuration data.");
     }
 
     private void migrateVisitorId() {
@@ -480,7 +482,7 @@ class V4ToV5Migration {
         NamedCollection analyticsV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Analytics.DATASTORE_NAME);
 
         if (identityV5DataStore == null || analyticsV5DataStore == null) {
-            Log.debug(LOG_TAG, "%s (Identity or Analytics data store), failed to migrate visitor id.", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "%s (Identity or Analytics data store), failed to migrate visitor id.", Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
@@ -501,7 +503,7 @@ class V4ToV5Migration {
 
         File cacheDirectory = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
         if (cacheDirectory == null) {
-            Log.debug(LOG_TAG, "%s (cache directory), failed to delete V4 databases", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "%s (cache directory), failed to delete V4 databases", Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
@@ -510,10 +512,10 @@ class V4ToV5Migration {
                 File databaseFile = new File(cacheDirectory, databaseName);
 
                 if (databaseFile.exists() && databaseFile.delete()) {
-                    Log.debug(LOG_TAG, "Removed V4 database %s successfully", databaseName);
+                    Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Removed V4 database %s successfully", databaseName);
                 }
             } catch (SecurityException e) {
-                Log.debug(LOG_TAG, "Failed to delete V4 database with name %s (%s)", databaseName, e);
+                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Failed to delete V4 database with name %s (%s)", databaseName, e);
                 continue;
             }
         }
@@ -523,7 +525,7 @@ class V4ToV5Migration {
         SharedPreferences sharedPrefs = getV4SharedPreferences();
 
         if (sharedPrefs == null) {
-            Log.debug(LOG_TAG, "%s (application context), failed to migrate v4 data", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "%s (application context), failed to migrate v4 data", Log.UNEXPECTED_NULL_VALUE);
             return false;
         }
 
@@ -534,7 +536,7 @@ class V4ToV5Migration {
         SharedPreferences sharedPrefs = getV4SharedPreferences();
 
         if (sharedPrefs == null) {
-            Log.debug(LOG_TAG, "%s (application context), failed to migrate v4 configuration data", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "%s (application context), failed to migrate v4 configuration data", Log.UNEXPECTED_NULL_VALUE);
             return false;
         }
 
@@ -545,7 +547,7 @@ class V4ToV5Migration {
         NamedCollection identityV5DataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Identity.DATASTORE_NAME);
 
         if (identityV5DataStore == null) {
-            Log.debug(LOG_TAG, "%s (application context), failed to migrate v5 visitor identifier", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(CoreConstants.LOG_TAG,LOG_TAG, "%s (application context), failed to migrate v5 visitor identifier", Log.UNEXPECTED_NULL_VALUE);
             return false;
         }
 

@@ -435,7 +435,6 @@ public class AndroidV4ToV5MigrationTests {
 	@Test
 	public void testDataMigration_DoesNotThrow_WhenNullContext() {
 		App.INSTANCE.resetInstance();
-
 		try {
 			migrationTool.migrate();
 		} catch (Throwable e) {

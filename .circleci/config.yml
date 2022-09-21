@@ -70,7 +70,7 @@ jobs:
           name: Upload Lifecycle coverage report
           command: |            
             bash ./codecov -v -X s3 -c -D "./code/android-lifecycle-library/build/reports/coverage/test/phone/debug" -F unit-tests
-          
+
   functional-test:
       executor:
         name: android/android-machine
@@ -84,18 +84,32 @@ jobs:
             system-image: system-images;android-29;default;x86
             post-emulator-launch-assemble-command: make assemble-phone
             test-command: make functional-test-coverage
+
         - run:
-          name: Upload Core coverage report
-          command: |                        
-            bash ./codecov -v -X s3 -c -D "./code/android-core-library/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+            name: Download Codecov Uploader
+            command: |
+              curl -s https://codecov.io/bash > codecov;
+              VERSION=$(grep 'VERSION=\"[0-9\.]*\"' codecov | cut -d'"' -f2);
+              for i in 1 256 512
+              do
+                shasum -a $i -c --ignore-missing <(curl -s "https://raw.githubusercontent.com/codecov/codecov-bash/${VERSION}/SHA${i}SUM") ||
+                shasum -a $i -c <(curl -s "https://raw.githubusercontent.com/codecov/codecov-bash/${VERSION}/SHA${i}SUM" | grep -w "codecov")
+              done
+
         - run:
-          name: Upload Signal coverage report
-          command: |            
-            bash ./codecov -v -X s3 -c -D "./code/android-signal-library/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+            name: Upload Core coverage report
+            command: |                        
+              bash ./codecov -v -X s3 -c -D "./code/android-core-library/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+
         - run:
-          name: Upload Lifecycle coverage report
-          command: |            
-            bash ./codecov -v -X s3 -c -D "./code/android-lifecycle-library/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+            name: Upload Signal coverage report
+            command: |            
+              bash ./codecov -v -X s3 -c -D "./code/android-signal-library/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+
+        - run:
+            name: Upload Lifecycle coverage report
+            command: |            
+              bash ./codecov -v -X s3 -c -D "./code/android-lifecycle-library/build/reports/coverage/androidTest/phone/debug" -F functional-tests
 
   integration-test:
       executor:

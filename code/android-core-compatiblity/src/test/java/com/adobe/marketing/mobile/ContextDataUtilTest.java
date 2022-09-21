@@ -19,8 +19,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.adobe.marketing.mobile.ContextDataUtil.cleanContextDataKey;
+import static com.adobe.marketing.mobile.internal.util.ContextDataUtil.cleanContextDataKey;
 import static org.junit.Assert.*;
+
+import com.adobe.marketing.mobile.internal.util.ContextData;
+import com.adobe.marketing.mobile.internal.util.ContextDataUtil;
 
 public class ContextDataUtilTest {
 	private Map<String, String> testData = new HashMap<String, String>();

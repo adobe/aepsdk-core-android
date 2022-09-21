@@ -18,7 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+//TODO: move this class to Analytics extension: https://github.com/adobe/aepsdk-core-android/issues/217
 class ContextDataUtil {
 	private static final String LOG_TAG = ContextDataUtil.class.getSimpleName();
 	private static final boolean[] contextDataMask = new boolean[] {

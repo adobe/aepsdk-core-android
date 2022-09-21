@@ -23,23 +23,66 @@ jobs:
     # Add steps to the job
     # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
-      # Checkout the code as the first step.
       - checkout
       - run:
-          name: check-format
+          name: Check format
           command: make check-format
+
       - run:
-          name: assemble-phone-release
+          name: Assemble phone release
           command: make assemble-phone-release
-      # - run:
-      #     name: JavaDoc
-      #     command: make javadoc
+
       - run:
-          name: unit-test
-          command: make unit-test
+          name: JavaDoc
+          command: make javadoc
+
+      - run:
+          name: Download Codecov Uploader
+          command: |
+            curl -s https://codecov.io/bash > codecov;
+            VERSION=$(grep 'VERSION=\"[0-9\.]*\"' codecov | cut -d'"' -f2);
+            for i in 1 256 512
+            do
+              shasum -a $i -c --ignore-missing <(curl -s "https://raw.githubusercontent.com/codecov/codecov-bash/${VERSION}/SHA${i}SUM") ||
+              shasum -a $i -c <(curl -s "https://raw.githubusercontent.com/codecov/codecov-bash/${VERSION}/SHA${i}SUM" | grep -w "codecov")
+            done
+
+      - run:
+          name: Run Core unit tests
+          command: make core-unit-test-coverage
+
       - store_test_results:
           path: code/android-core-library/build/test-results/testPhoneDebugUnitTest
-  
+
+      - run:
+          name: Upload Core unit test coverage
+          command: |            
+            bash ./codecov -v -X s3 -c -D "./code/android-core-library/build/reports/coverage/test/phone/debug" -F unit-tests
+
+      - run:
+          name: Run Signal unit tests
+          command: make signal-unit-test-coverage
+
+      - store_test_results:
+          path: code/android-signal-library/build/test-results/testPhoneDebugUnitTest
+
+      - run:
+          name: Upload Signal coverage report
+          command: |            
+            bash ./codecov -v -X s3 -c -D "./code/android-signal-library/build/reports/coverage/test/phone/debug" -F unit-tests
+
+      - run:
+          name: Run Lifecycle unit tests
+          command: make lifecycle-unit-test-coverage
+
+      - store_test_results:
+          path: code/android-lifecycle-library/build/test-results/testPhoneDebugUnitTest
+
+      - run:
+          name: Upload Lifecycle coverage report
+          command: |            
+            bash ./codecov -v -X s3 -c -D "./code/android-lifecycle-library/build/reports/coverage/test/phone/debug" -F unit-tests
+          
   functional-test:
       executor:
         name: android/android-machine
@@ -84,5 +127,5 @@ workflows:
     # Inside the workflow, you define the jobs you want to run.
     jobs:
       - build-and-unit-test
-      - integration-test
-      # - functional-test
+      #- functional-test
+      #- integration-test      

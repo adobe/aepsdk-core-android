@@ -24,6 +24,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 
@@ -134,6 +135,16 @@ class DeviceInfoService implements DeviceInforming {
         return Build.VERSION.RELEASE;
     }
 
+    /**
+     * Returns the device brand.
+     *
+     * @return {@code String} containing the consumer-visible brand name
+     */
+    @Override
+    public String getDeviceBrand() {
+        return Build.BRAND;
+    }
+
     @Override
     public String getDeviceManufacturer() {
         return Build.MANUFACTURER;
@@ -146,6 +157,16 @@ class DeviceInfoService implements DeviceInforming {
      */
     public String getDeviceName() {
         return Build.MODEL;
+    }
+
+    /**
+     * Returns name of the industrial design for the device
+     *
+     * @return {@code String} containing the name of the industrial design
+     */
+    @Override
+    public String getDevice() {
+        return Build.DEVICE;
     }
 
     @Override
@@ -252,6 +273,18 @@ class DeviceInfoService implements DeviceInforming {
     @Override
     public String getRunMode() {
         return "Application";
+    }
+
+    @Override
+    public String getDeviceUniqueId() {
+        Context context = getApplicationContext();
+
+        if (context == null) {
+            return null;
+        }
+
+
+        return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 
     /**

@@ -25,6 +25,7 @@ import com.adobe.marketing.mobile.services.internal.context.App;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -59,8 +60,8 @@ public class DataQueueServiceTests {
 
     @Test
     public void testGetDataQueue_ApplicationContextIsNotSet() {
-        App.INSTANCE.setAppContext(null);
-        DataQueue dataQueue = new DataQueueService().getDataQueue(null);
+        ServiceProvider.getInstance().resetAppInstance();
+        DataQueue dataQueue = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
         assertNull(dataQueue);
     }
 

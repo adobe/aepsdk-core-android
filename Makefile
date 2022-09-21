@@ -125,7 +125,7 @@ lifecycle-assemble-phone-release:
 lifecycle-unit-test:
 		(./code/gradlew -p code/android-lifecycle-library testPhoneDebugUnitTest)
 		
-lifecycleunit-test-coverage:
+lifecycle-unit-test-coverage:
 		(./code/gradlew -p code/android-lifecycle-library createPhoneDebugUnitTestCoverageReport)
 
 lifecycle-functional-test:

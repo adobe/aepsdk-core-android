@@ -31,8 +31,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.ByteArrayInputStream;
@@ -48,10 +46,9 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.internal.context.App;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StreamUtils;
 
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -446,7 +443,7 @@ public class AndroidSystemInfoServiceTests {
         when(mockResources.getAssets()).thenReturn(mockAssetManager);
         when(mockAssetManager.open("fileName")).thenReturn(new ByteArrayInputStream(
                 "fileContents".getBytes(CHARSET_UTF_8)));
-        assertNull(StringUtils.streamToString(systemInfoService.getAsset(null)));
+        assertNull(StreamUtils.readAsString(systemInfoService.getAsset(null)));
     }
 
     @Test
@@ -456,7 +453,7 @@ public class AndroidSystemInfoServiceTests {
         when(mockResources.getAssets()).thenReturn(mockAssetManager);
         when(mockAssetManager.open("fileName")).thenReturn(new ByteArrayInputStream(
                 "fileContents".getBytes(CHARSET_UTF_8)));
-        assertNull(StringUtils.streamToString(systemInfoService.getAsset("")));
+        assertNull(StreamUtils.readAsString(systemInfoService.getAsset("")));
     }
 
     @Test
@@ -466,7 +463,7 @@ public class AndroidSystemInfoServiceTests {
         when(mockResources.getAssets()).thenReturn(mockAssetManager);
         when(mockAssetManager.open("fileName")).thenReturn(new ByteArrayInputStream(
                 "fileContents".getBytes(CHARSET_UTF_8)));
-        assertNull(StringUtils.streamToString(systemInfoService.getAsset("WrongfileName")));
+        assertNull(StreamUtils.readAsString(systemInfoService.getAsset("WrongfileName")));
     }
 
     @Test
@@ -478,7 +475,7 @@ public class AndroidSystemInfoServiceTests {
         when(mockResources.getAssets()).thenReturn(mockAssetManager);
         when(mockAssetManager.open("fileName")).thenReturn(new ByteArrayInputStream(
                 "fileContents".getBytes(CHARSET_UTF_8)));
-        assertNull(StringUtils.streamToString(systemInfoService.getAsset("fileName")));
+        assertNull(StreamUtils.readAsString(systemInfoService.getAsset("fileName")));
     }
 
     @Test
@@ -488,7 +485,7 @@ public class AndroidSystemInfoServiceTests {
         when(mockResources.getAssets()).thenReturn(mockAssetManager);
         when(mockAssetManager.open("fileName")).thenReturn(new ByteArrayInputStream(
                 "fileContents".getBytes(CHARSET_UTF_8)));
-        assertNull(StringUtils.streamToString(systemInfoService.getAsset("fileName")));
+        assertNull(StreamUtils.readAsString(systemInfoService.getAsset("fileName")));
     }
 
 
@@ -499,7 +496,7 @@ public class AndroidSystemInfoServiceTests {
         when(mockResources.getAssets()).thenReturn(null);
         when(mockAssetManager.open("fileName")).thenReturn(new ByteArrayInputStream(
                 "fileContents".getBytes(CHARSET_UTF_8)));
-        assertNull(StringUtils.streamToString(systemInfoService.getAsset("fileName")));
+        assertNull(StreamUtils.readAsString(systemInfoService.getAsset("fileName")));
     }
 
     @Test
@@ -509,7 +506,7 @@ public class AndroidSystemInfoServiceTests {
         when(mockResources.getAssets()).thenReturn(mockAssetManager);
         when(mockAssetManager.open("fileName")).thenReturn(new ByteArrayInputStream(
                 "fileContents".getBytes(CHARSET_UTF_8)));
-        assertEquals("fileContents", StringUtils.streamToString(systemInfoService.getAsset("fileName")));
+        assertEquals("fileContents", StreamUtils.readAsString(systemInfoService.getAsset("fileName")));
     }
 
     @Test

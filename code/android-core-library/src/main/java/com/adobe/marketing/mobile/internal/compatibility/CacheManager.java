@@ -19,7 +19,7 @@ import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.CacheFileService;
 import com.adobe.marketing.mobile.internal.util.FileUtils;
 import com.adobe.marketing.mobile.internal.util.StringEncoder;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 
 import java.io.File;

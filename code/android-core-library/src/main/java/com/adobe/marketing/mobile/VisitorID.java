@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.internal.CoreConstants;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.Log;
 
 /**

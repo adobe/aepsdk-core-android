@@ -558,9 +558,4 @@ internal class ConfigurationExtension : Extension {
             }
         }
     }
-
-    private fun Set<*>.isAllString(): Boolean {
-        this.forEach { if (it !is String) return false }
-        return true
-    }
 }

@@ -37,6 +37,8 @@ import java.util.Map;
  */
 public class DataReader {
 
+    private DataReader() {}
+
     private static boolean checkOverflow(Class clazz, Number n) {
         if (Double.class.equals(clazz)) {
             return false;

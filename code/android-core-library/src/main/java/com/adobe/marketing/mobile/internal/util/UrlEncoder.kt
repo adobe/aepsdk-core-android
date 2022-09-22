@@ -16,7 +16,7 @@ import com.adobe.marketing.mobile.services.Log
 import java.io.UnsupportedEncodingException
 import java.nio.charset.StandardCharsets
 
-internal object UrlUtils {
+internal object UrlEncoder {
 
     private const val LOG_TAG = "UrlUtilities"
 

@@ -13,9 +13,7 @@ package com.adobe.marketing.mobile.services;
 
 import android.content.Context;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.internal.util.FileUtils;
 import com.adobe.marketing.mobile.services.internal.context.App;
 

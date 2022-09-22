@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 @RunWith(MockitoJUnitRunner.class)
-public class SerialWorkDispatcherJavaCompatTest {
+public class SerialWorkDispatcherJavaCompatTests {
 
     /**
      * A test implementation of [SerialWorkDispatcher] that enables testing compatibility with Kotlin.

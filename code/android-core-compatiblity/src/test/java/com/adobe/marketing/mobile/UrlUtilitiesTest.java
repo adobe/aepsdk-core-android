@@ -22,20 +22,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class UrlUtilitiesTest {
-	// TODO: should move performance testing to a new set of tests
-	// public void urlEncodePerformance() throws Exception {
-	//     long startTime = System.currentTimeMillis();
-
-	//     for(int i = 0; i < 100000; i++) {
-	//         URLUtils.urlEncode("test");
-	//     }
-
-	//     long totalTime = System.currentTimeMillis() - startTime;
-	//     System.out.println("Total time = " + totalTime);
-	//     System.out.println();
-
-	//     assertNull(null);
-	// }
 
 	@Test
 	public void testClassIsWellDefined() {

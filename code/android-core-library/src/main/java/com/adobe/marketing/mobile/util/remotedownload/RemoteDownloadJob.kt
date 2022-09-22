@@ -11,7 +11,6 @@
 package com.adobe.marketing.mobile.util.remotedownload
 
 import com.adobe.marketing.mobile.internal.util.FileUtils
-import com.adobe.marketing.mobile.internal.util.StringUtils
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.HttpConnecting
@@ -21,6 +20,7 @@ import com.adobe.marketing.mobile.services.NetworkCallback
 import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.util.TimeUtils
+import com.adobe.marketing.mobile.util.UrlUtils
 import com.adobe.marketing.mobile.util.remotedownload.DownloadResult.Reason
 import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider.ETAG
 import com.adobe.marketing.mobile.util.remotedownload.MetadataProvider.HTTP_HEADER_LAST_MODIFIED
@@ -54,7 +54,7 @@ internal class RemoteDownloadJob(
      * @param completionCallback the callback that should be notified with the download result
      */
     internal fun download(completionCallback: (DownloadResult) -> Unit) {
-        if (!StringUtils.stringIsUrl(url)) {
+        if (!UrlUtils.isValidUrl(url)) {
             Log.debug(
                 LaunchRulesEngineConstants.LOG_TAG,
                 TAG,

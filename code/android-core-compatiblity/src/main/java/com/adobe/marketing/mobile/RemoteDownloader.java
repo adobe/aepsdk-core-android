@@ -178,7 +178,7 @@ class RemoteDownloader {
 	 */
 	public boolean startDownload() {
 		// url validation
-		if (!UrlUtils.stringIsUrl(url)) {
+		if (!UrlUtils.isValidUrl(url)) {
 			Log.warning(LOG_TAG, "Given url is not valid and contents cannot be cached : (%s)", url);
 			return false;
 		}
@@ -218,7 +218,7 @@ class RemoteDownloader {
 
 	public File startDownloadSync() {
 		// URL Validation
-		if (!UrlUtils.stringIsUrl(url)) {
+		if (!UrlUtils.isValidUrl(url)) {
 			Log.warning(LOG_TAG, "Given url is not valid and contents cannot be cached : (%s)", url);
 			return null;
 		}

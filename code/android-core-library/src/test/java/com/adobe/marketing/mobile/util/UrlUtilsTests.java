@@ -12,16 +12,9 @@ package com.adobe.marketing.mobile.util;
 
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 import static org.junit.Assert.*;
 
 import com.adobe.marketing.mobile.TestHelper;
-import com.adobe.marketing.mobile.internal.util.StringEncoder;
-import com.adobe.marketing.mobile.util.StreamUtils;
-import com.adobe.marketing.mobile.util.StringUtils;
-import com.adobe.marketing.mobile.util.UrlUtils;
 
 public class UrlUtilsTests {
 
@@ -35,23 +28,23 @@ public class UrlUtilsTests {
     }
 
     @Test
-    public void testStringIsUrl_when_validUrl() {
-        assertTrue(UrlUtils.stringIsUrl("http://is.valid.url/path?key=value&abc=def"));
+    public void testIsValidUrl_when_validUrl() {
+        assertTrue(UrlUtils.isValidUrl("http://is.valid.url/path?key=value&abc=def"));
     }
 
     @Test
-    public void testStringIsUrl_when_invalidUrl() {
-        assertFalse(UrlUtils.stringIsUrl("wrong.url"));
+    public void testIsValidUrl_when_invalidUrl() {
+        assertFalse(UrlUtils.isValidUrl("wrong.url"));
     }
 
     @Test
-    public void testStringIsUrl_when_emptyUrl() {
-        assertFalse(UrlUtils.stringIsUrl(""));
+    public void testIsValidUrl_when_emptyUrl() {
+        assertFalse(UrlUtils.isValidUrl(""));
     }
 
     @Test
-    public void testStringIsUrl_when_nullUrl() {
-        assertFalse(UrlUtils.stringIsUrl(null));
+    public void testIsValidUrl_when_nullUrl() {
+        assertFalse(UrlUtils.isValidUrl(null));
     }
 }
 

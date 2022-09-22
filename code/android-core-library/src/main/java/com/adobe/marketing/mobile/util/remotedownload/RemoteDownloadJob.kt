@@ -54,7 +54,7 @@ internal class RemoteDownloadJob(
      * @param completionCallback the callback that should be notified with the download result
      */
     internal fun download(completionCallback: (DownloadResult) -> Unit) {
-        if (!UrlUtils.stringIsUrl(url)) {
+        if (!UrlUtils.isValidUrl(url)) {
             Log.debug(
                 LaunchRulesEngineConstants.LOG_TAG,
                 TAG,

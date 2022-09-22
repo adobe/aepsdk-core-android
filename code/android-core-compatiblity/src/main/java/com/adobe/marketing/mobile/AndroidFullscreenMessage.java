@@ -386,7 +386,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
          */
         private WebResourceResponse handleWebResourceRequest(final String url) {
 
-            if (UrlUtils.stringIsUrl(url) && message.assetMap.get(url) != null) {
+            if (UrlUtils.isValidUrl(url) && message.assetMap.get(url) != null) {
                 try {
                     final String cachedPath = message.assetMap.get(url);
                     final String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(

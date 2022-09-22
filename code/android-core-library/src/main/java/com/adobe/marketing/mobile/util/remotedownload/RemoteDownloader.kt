@@ -72,7 +72,7 @@ class RemoteDownloader(
         metadataProvider: MetadataProvider,
         completionCallback: (DownloadResult) -> Unit
     ) {
-        if (!UrlUtils.stringIsUrl(url)) {
+        if (!UrlUtils.isValidUrl(url)) {
             Log.debug(
                 LaunchRulesEngineConstants.LOG_TAG,
                 TAG,

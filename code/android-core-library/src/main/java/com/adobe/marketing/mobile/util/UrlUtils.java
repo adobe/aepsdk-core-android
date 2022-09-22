@@ -16,7 +16,7 @@ public final class UrlUtils {
      * @param stringUrl URL that needs to be tested
      * @return return a {@code boolean} indicating if the given parameter is a valid URL
      */
-    public static boolean stringIsUrl(final String stringUrl) {
+    public static boolean isValidUrl(final String stringUrl) {
         if (StringUtils.isNullOrEmpty(stringUrl)) {
             return false;
         }

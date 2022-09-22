@@ -235,7 +235,7 @@ class CacheManager {
 		if (files != null) {
 			for (final String file : files) {
 				// in case of recursion, make sure we only hash once
-				if (UrlUtils.stringIsUrl(file)) {
+				if (UrlUtils.isValidUrl(file)) {
 					hashedUrls.add(sha2hash(file));
 				} else {
 					hashedUrls.add(file);

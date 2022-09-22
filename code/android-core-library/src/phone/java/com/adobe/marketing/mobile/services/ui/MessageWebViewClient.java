@@ -107,7 +107,7 @@ class MessageWebViewClient extends WebViewClient {
 	 * @return an instance of {@code WebResourceResponse}.
 	 */
 	private WebResourceResponse handleWebResourceRequest(final String url) {
-		if (UrlUtils.stringIsUrl(url) && assetMap.get(url) != null) {
+		if (UrlUtils.isValidUrl(url) && assetMap.get(url) != null) {
 			try {
 				final String cachedPath = assetMap.get(url);
 				final String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(

@@ -22,7 +22,8 @@ import com.adobe.marketing.mobile.MobilePrivacyStatus;
 /**
  * Holds all the constant values to be used by various classes in the {@link IdentityExtension}
  */
-final class IdentityConstants {
+public final class IdentityConstants {
+    public static final String LOG_TAG = "Identity";
     static final String FRIENDLY_NAME = "Identity";
     static final String MODULE_NAME = "com.adobe.module.identity";
 
@@ -93,7 +94,7 @@ final class IdentityConstants {
     private IdentityConstants() {
     }
 
-    static final class EventDataKeys {
+    public static final class EventDataKeys {
         static final String STATE_OWNER = "stateowner";
 
         private EventDataKeys() {
@@ -138,13 +139,13 @@ final class IdentityConstants {
             }
         }
 
-        static final class Identity {
+        public static final class Identity {
             static final String MODULE_NAME = "com.adobe.module.identity";
             static final String MCPNS_DPID = "20919";
             static final String ADID_DSID = "DSID_20914";
 
             //Event Data key for fetching marketing cloud id from the IdentityExtension Response Event.
-            static final String VISITOR_ID_MID = "mid";
+            public static final String VISITOR_ID_MID = "mid";
 
             //Event Data key for fetching blob from the IdentityExtension Response Event.
             static final String VISITOR_ID_BLOB = "blob";
@@ -156,22 +157,22 @@ final class IdentityConstants {
             static final String VISITOR_IDS_LAST_SYNC = "lastsync";
 
             //Event Data key for reading a list of maps, with each map representing a visitor id,from Response IdentityExtension event dispatched by the module.
-            static final String VISITOR_IDS_LIST = "visitoridslist";
+            public static final String VISITOR_IDS_LIST = "visitoridslist";
 
             //Event Data key for reading the updated url in the event received by the one time event listener as a response to setting BASE_URL in Requent IdentityExtension event.
-            static final String UPDATED_URL = "updatedurl";
+            public static final String UPDATED_URL = "updatedurl";
 
             //Event Data key for url variable string when creating a Request or receiving a Response for getUrlVariables()
-            static final String URL_VARIABLES = "urlvariables";
+            public static final String URL_VARIABLES = "urlvariables";
 
             //Event Data key for base URL for appending visitor data to, when creating Request IdentityExtension event for appendToURL()
-            static final String BASE_URL = "baseurl";
+            public static final String BASE_URL = "baseurl";
 
             //Event Data key for forcing syncing of identifiers, when creating Request IdentityExtension event for syncIdenfiers()
-            static final String FORCE_SYNC = "forcesync";
+            public static final String FORCE_SYNC = "forcesync";
 
             //Event Data key for setting <String,String> map of identifiers, when creating Request IdentityExtension event for syncIdenfiers()
-            static final String IDENTIFIERS = "visitoridentifiers";
+            public static final String IDENTIFIERS = "visitoridentifiers";
 
             //Event Data key for setting "dpids" when creating Request IdentityExtension event for syncIdenfiers()
             static final String DPIDS = "dpids";
@@ -180,7 +181,7 @@ final class IdentityConstants {
              * Event Data key for marking an event of sync type when creating Request IdentityExtension event .
              * Setting this value to true will result in a sync identifiers network call.
              * */
-            static final String IS_SYNC_EVENT = "issyncevent";
+            public static final String IS_SYNC_EVENT = "issyncevent";
 
             /*
              * Event Data key for setting advertising identifier when creating Request IdentityExtension event.
@@ -198,7 +199,7 @@ final class IdentityConstants {
              * Event Data key for setting visitor id authentication value in Request Identity event for syncIdentifiers.
              * Also, Event Data key for reading visitor id authentication value from Response IdentityExtension event dispatched by the module.
              * */
-            static final String AUTHENTICATION_STATE = "authenticationstate";
+            public static final String AUTHENTICATION_STATE = "authenticationstate";
 
             // Event Data Key for setting Analytics ID in 'visitoridentifiers' map when sending to Identity Service
             static final String ANALYTICS_ID = "AVID";

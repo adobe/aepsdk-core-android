@@ -1,311 +1,342 @@
-/* ******************************************************************************
- * ADOBE CONFIDENTIAL
- * ___________________
- *
- * Copyright 2018 Adobe
- * All Rights Reserved.
- *
- * NOTICE: All information contained herein is, and remains
- * the property of Adobe and its suppliers, if any. The intellectual
- * and technical concepts contained herein are proprietary to Adobe
- * and its suppliers and are protected by all applicable intellectual
- * property laws, including trade secret and copyright laws.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from Adobe.
- ******************************************************************************/
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.identity.IdentityCore;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.adobe.marketing.mobile.identity.IdentityConstants;
+import com.adobe.marketing.mobile.identity.IdentityExtension;
+import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.services.Log;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Identity {
-	private final static String TAG = "Identity";
-	private static IdentityCore identityCore;
-	private final static String EXTENSION_VERSION = "1.3.2";
-	private static final String NULL_CONTEXT_MESSAGE = "Context must be set before calling SDK methods";
+    private final static String CLASS_NAME = "Identity";
+    private final static String EXTENSION_VERSION = "2.0.0";
+    private static final String NULL_CONTEXT_MESSAGE = "Context must be set before calling SDK methods";
+    private static final String REQUEST_IDENTITY_EVENT_NAME = "IdentityRequestIdentity";
+    private static final int PUBLIC_API_TIME_OUT_MILLISECOND = 500; //ms
 
-	private Identity() {
+    private Identity() {
 
-	}
+    }
 
-	public static String extensionVersion() {
-		return EXTENSION_VERSION;
-	}
+    public static String extensionVersion() {
+        return EXTENSION_VERSION;
+    }
 
-	/**
-	 * Registers the Identity extension with the {@code MobileCore}
-	 *
-	 * <p>
-	 *
-	 * This will allow the extension to send and receive events to and from the SDK.
-	 *
-	 * @throws InvalidInitException If the registration was not successful.
-	 */
-	public static void registerExtension() throws InvalidInitException {
-		final Core core = MobileCore.getCore();
+    /**
+     * Registers the Identity extension with the {@code MobileCore}
+     *
+     * <p>
+     * <p>
+     * This will allow the extension to send and receive events to and from the SDK.
+     */
+    @Deprecated
+    public static void registerExtension() {
+        MobileCore.registerExtension(IdentityExtension.class, errorCode -> {
+            if (errorCode == null) {
+                return;
+            }
+            Log.error(IdentityConstants.LOG_TAG, CLASS_NAME, "There was an error when registering the UserProfile extension: %s",
+                    errorCode.getErrorName());
+        });
+    }
 
-		if (core == null) {
-			throw  new InvalidInitException();
-		}
+    // =======================================================================
+    // Identity Methods
+    // =======================================================================
 
-		try {
-			//MobileCore may not be loaded or present (because may be Core extension was not
-			//available). In that case, the Identity extension will not initialize itself
-			identityCore = new IdentityCore(core.eventHub, new IdentityModuleDetails());
-		} catch (Exception e) {
-			throw new InvalidInitException();
-		}
-	}
+    /**
+     * Updates the given customer IDs with the Adobe Experience Cloud ID Service.
+     * <p>
+     * Synchronizes the provided customer identifiers to the Adobe Experience Cloud ID Service.
+     * If a customer ID type matches an existing ID type and identifier, then it is updated with the new ID
+     * authentication state. New customer IDs are added. All given customer IDs are given the default
+     * authentication state of {@link com.adobe.marketing.mobile.VisitorID.AuthenticationState#UNKNOWN}.
+     * <p>
+     * These IDs are preserved between app upgrades, are saved and restored during the standard application backup process,
+     * and are removed at uninstall.
+     * <p>
+     * If the current SDK privacy status is {@link MobilePrivacyStatus#OPT_OUT}, then calling this method results
+     * with no operations being performed.
+     *
+     * @param identifiers {@code Map<String, String>} containing identifier type as the key and identifier as the value.
+     *                    Both identifier type and identifier should be non empty and non null values,
+     *                    otherwise they will be ignored
+     */
+    public static void syncIdentifiers(@NonNull final Map<String, String> identifiers) {
+        syncIdentifiers(identifiers, VisitorID.AuthenticationState.UNKNOWN);
+    }
 
-	// =======================================================================
-	// Identity Methods
-	// =======================================================================
-	/**
-	 * Updates the given customer IDs with the Adobe Experience Cloud ID Service.
-	 *
-	 * Synchronizes the provided customer identifiers to the Adobe Experience Cloud ID Service.
-	 * If a customer ID type matches an existing ID type and identifier, then it is updated with the new ID
-	 * authentication state. New customer IDs are added. All given customer IDs are given the default
-	 * authentication state of {@link com.adobe.marketing.mobile.VisitorID.AuthenticationState#UNKNOWN}.
-	 * <p>
-	 * These IDs are preserved between app upgrades, are saved and restored during the standard application backup process,
-	 * and are removed at uninstall.
-	 * <p>
-	 * If the current SDK privacy status is {@link MobilePrivacyStatus#OPT_OUT}, then calling this method results
-	 * with no operations being performed.
-	 *
-	 * @param identifiers {@code Map<String, String>} containing identifier type as the key and identifier as the value.
-	 *                    Both identifier type and identifier should be non empty and non null values,
-	 *                    otherwise they will be ignored
-	 */
-	public static void syncIdentifiers(final Map<String, String> identifiers) {
-		if (identityCore == null) {
-			Log.error(TAG, "syncIdentifiers(ids) : Unable to sync Visitor identifiers because (%s).", NULL_CONTEXT_MESSAGE);
-			return;
-		}
+    /**
+     * Updates the given customer IDs with the Adobe Experience Cloud ID Service.
+     * <p>
+     * Synchronizes the provided customer identifiers to the Adobe Experience Cloud ID Service.
+     * If a customer ID type matches an existing ID type and identifiers, then it is updated with the new ID
+     * authentication state. New customer IDs are added.
+     * <p>
+     * These IDs are preserved between app upgrades, are saved and restored during the standard application backup process,
+     * and are removed at uninstall.
+     * <p>
+     * If the current SDK privacy status is {@link MobilePrivacyStatus#OPT_OUT}, then calling this method results
+     * with no operations being performed.
+     *
+     * @param identifiers         {@code Map<String, String>} containing identifier type as the key and identifier as the value.
+     *                            Both identifier type and identifier should be non empty and non null values,
+     *                            otherwise they will be ignored
+     * @param authenticationState {@code VisitorIDAuthenticationState} value indicating authentication state for the user
+     */
+    public static void syncIdentifiers(@NonNull final Map<String, String> identifiers,
+                                       @NonNull final VisitorID.AuthenticationState authenticationState) {
 
-		if (identifiers == null || identifiers.isEmpty()) {
-			Log.warning(TAG, "syncIdentifiers(ids) : Unable to sync Visitor identifiers, provided map was null or empty.");
-			return;
-		}
+        if (identifiers.isEmpty()) {
+            Log.warning(IdentityConstants.LOG_TAG, CLASS_NAME, "syncIdentifiers(ids, state) : Unable to sync Visitor identifiers, provided map was null or empty");
+            return;
+        }
 
-		Log.trace(TAG, "syncIdentifiers(ids) : Processing a request to sync Visitor identifiers.");
-		identityCore.syncIdentifiers(identifiers);
-	}
+        Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "syncIdentifiers(ids, state) : Processing a request to sync Visitor identifiers.");
+        Map<String, Object> syncMap = new HashMap<>();
+        syncMap.put(IdentityConstants.EventDataKeys.Identity.IDENTIFIERS, identifiers);
+        syncMap.put(IdentityConstants.EventDataKeys.Identity.AUTHENTICATION_STATE, authenticationState.getValue());
+        syncMap.put(IdentityConstants.EventDataKeys.Identity.FORCE_SYNC, false);
+        syncMap.put(IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT, true);
 
-	/**
-	 * Updates the given customer IDs with the Adobe Experience Cloud ID Service.
-	 *
-	 * Synchronizes the provided customer identifiers to the Adobe Experience Cloud ID Service.
-	 * If a customer ID type matches an existing ID type and identifiers, then it is updated with the new ID
-	 * authentication state. New customer IDs are added.
-	 * <p>
-	 * These IDs are preserved between app upgrades, are saved and restored during the standard application backup process,
-	 * and are removed at uninstall.
-	 * <p>
-	 * If the current SDK privacy status is {@link MobilePrivacyStatus#OPT_OUT}, then calling this method results
-	 * with no operations being performed.
-	 *
-	 * @param identifiers {@code Map<String, String>} containing identifier type as the key and identifier as the value.
-	 *                    Both identifier type and identifier should be non empty and non null values,
-	 *                    otherwise they will be ignored
-	 * @param authenticationState {@code VisitorIDAuthenticationState} value indicating authentication state for the user
-	 */
-	public static void syncIdentifiers(final Map<String, String> identifiers,
-									   final VisitorID.AuthenticationState authenticationState) {
-		if (identityCore == null) {
-			Log.error(TAG, "syncIdentifiers(ids, state) : Unable to sync Visitor identifiers because (%s)", NULL_CONTEXT_MESSAGE);
-			return;
-		}
+        Event event = new Event.Builder(REQUEST_IDENTITY_EVENT_NAME,
+                EventType.IDENTITY,
+                EventSource.REQUEST_IDENTITY)
+                .setEventData(syncMap)
+                .build();
+        MobileCore.dispatchEvent(event);
+        Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "dispatchIDSyncEvent : Identity Sync event has been added to event hub : %s", event);
+    }
 
-		if (identifiers == null || identifiers.isEmpty()) {
-			Log.warning(TAG, "syncIdentifiers(ids, state) : Unable to sync Visitor identifiers, provided map was null or empty");
-			return;
-		}
+    /**
+     * Updates the given customer ID with the Adobe Experience Cloud ID Service.
+     * <p>
+     * Synchronizes the provided customer identifier type key and value with the given
+     * authentication state to the Adobe Experience Cloud ID Service.
+     * If the given customer ID type already exists in the service, then
+     * it is updated with the new ID and authentication state. Otherwise a new customer ID is added.
+     * <p>
+     * This ID is preserved between app upgrades, is saved and restored during the standard application backup process,
+     * and is removed at uninstall.
+     * <p>
+     * If the current SDK privacy status is {@link MobilePrivacyStatus#OPT_OUT}, then calling this method results
+     * with no operations being performed.
+     *
+     * @param identifierType      {@code String} containing identifier type; should not be null or empty
+     * @param identifier          {@code String} containing identifier value; should not be null or empty
+     * @param authenticationState {@code VisitorIDAuthenticationState} value indicating authentication state for the user
+     */
+    public static void syncIdentifier(@NonNull final String identifierType,
+                                      @Nullable final String identifier,
+                                      @NonNull final VisitorID.AuthenticationState authenticationState) {
 
-		Log.trace(TAG, "syncIdentifiers(ids, state) : Processing a request to sync Visitor identifiers.");
-		identityCore.syncIdentifiers(identifiers, authenticationState);
-	}
+        if (StringUtils.isNullOrEmpty(identifierType)) {
+            Log.warning(IdentityConstants.LOG_TAG, CLASS_NAME, "syncIdentifier : Unable to sync Visitor identifier due to null or empty identifierType");
+            return;
+        }
 
-	/**
-	 * Updates the given customer ID with the Adobe Experience Cloud ID Service.
-	 * <p>
-	 * Synchronizes the provided customer identifier type key and value with the given
-	 * authentication state to the Adobe Experience Cloud ID Service.
-	 * If the given customer ID type already exists in the service, then
-	 * it is updated with the new ID and authentication state. Otherwise a new customer ID is added.
-	 * <p>
-	 * This ID is preserved between app upgrades, is saved and restored during the standard application backup process,
-	 * and is removed at uninstall.
-	 * <p>
-	 * If the current SDK privacy status is {@link MobilePrivacyStatus#OPT_OUT}, then calling this method results
-	 * with no operations being performed.
-	 *
-	 * @param identifierType {@code String} containing identifier type; should not be null or empty
-	 * @param identifier {@code String} containing identifier value; should not be null or empty
-	 * @param authenticationState {@code VisitorIDAuthenticationState} value indicating authentication state for the user
-	 */
-	public static void syncIdentifier(final String identifierType,
-									  final String identifier,
-									  final VisitorID.AuthenticationState authenticationState) {
-		if (identityCore == null) {
-			Log.error(TAG, "syncIdentifier : Unable to sync Visitor identifiers because (%s)", NULL_CONTEXT_MESSAGE);
-			return;
-		}
+        Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "syncIdentifier : Processing a request to sync Visitor identifier.");
 
-		if (StringUtils.isNullOrEmpty(identifierType)) {
-			Log.warning(TAG, "syncIdentifier : Unable to sync Visitor identifier due to null or empty identifierType");
-			return;
-		}
+        HashMap<String, String> identifiers = new HashMap<>();
+        identifiers.put(identifierType, identifier);
+        syncIdentifiers(identifiers, authenticationState);
+    }
 
-		Log.trace(TAG, "syncIdentifier : Processing a request to sync Visitor identifier.");
-		identityCore.syncIdentifier(identifierType, identifier, authenticationState);
-	}
+    /**
+     * Appends Adobe visitor data to a URL string.
+     * <p>
+     * If the provided URL is null or empty, it is returned as is. Otherwise, the following information is added to the
+     * {@link String} returned in the {@link AdobeCallback}:
+     * <ul>
+     *     <li>The {@code adobe_mc} attribute is an URL encoded list containing:
+     *         <ul>
+     *             <li>Experience Cloud ID (ECID)</li>
+     *             <li>Experience Cloud Org ID</li>
+     *             <li>Analytics Tracking ID, if available from Analytics</li>
+     *             <li>A timestamp taken when this request was made</li>
+     *         </ul>
+     *     </li>
+     *     <li>The optional {@code adobe_aa_vid} attribute is the URL encoded Analytics Custom Visitor ID, if available from Analytics.</li>
+     * </ul>
+     *
+     * @param baseURL  {@code String} URL to which the visitor info needs to be appended
+     * @param callback {@code AdobeCallback} invoked with the updated URL {@code String};
+     *                 when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
+     *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the Identity URL variables are retrieved
+     */
+    public static void appendVisitorInfoForURL(final String baseURL, final AdobeCallback<String> callback) {
+        Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "appendVisitorInfoForURL : Processing a request to append Adobe visitor data to a URL string.");
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(IdentityConstants.EventDataKeys.Identity.BASE_URL, baseURL);
+        createIdentityRequestWithOneTimeCallbackWithCallbackParam(IdentityConstants.EventDataKeys.Identity.UPDATED_URL,
+                eventData,
+                callback);
+    }
 
-	/**
-	 * Appends Adobe visitor data to a URL string.
-	 * <p>
-	 * If the provided URL is null or empty, it is returned as is. Otherwise, the following information is added to the
-	 * {@link String} returned in the {@link AdobeCallback}:
-	 * <ul>
-	 *     <li>The {@code adobe_mc} attribute is an URL encoded list containing:
-	 *         <ul>
-	 *             <li>Experience Cloud ID (ECID)</li>
-	 *             <li>Experience Cloud Org ID</li>
-	 *             <li>Analytics Tracking ID, if available from Analytics</li>
-	 *             <li>A timestamp taken when this request was made</li>
-	 *         </ul>
-	 *     </li>
-	 *     <li>The optional {@code adobe_aa_vid} attribute is the URL encoded Analytics Custom Visitor ID, if available from Analytics.</li>
-	 * </ul>
-	 *
-	 * @param baseURL {@code String} URL to which the visitor info needs to be appended
-	 * @param callback {@code AdobeCallback} invoked with the updated URL {@code String};
-	 *        when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
-	 *        eventuality of an unexpected error or if the default timeout (500ms) is met before the Identity URL variables are retrieved
-	 */
-	public static void appendVisitorInfoForURL(final String baseURL, final AdobeCallback<String> callback) {
-		if (identityCore == null) {
-			Log.error(TAG, "appendVisitorInfoForURL : Unable to append Visitor information to URL because (%s)",
-					  NULL_CONTEXT_MESSAGE);
 
-			returnExtensionNotInitializedError(callback);
-			return;
-		}
+    /**
+     * Gets Visitor ID Service variables in URL query parameter form for consumption in hybrid app.
+     * <p>
+     * This method will return an appropriately formed {@link String} containing Visitor ID Service URL variables.
+     * There will be no leading {@literal &} or {@literal ?} punctuation, as the caller is responsible for placing it in their resulting
+     * {@link java.net.URI} in the correct location.
+     * <p>
+     * If an error occurs while retrieving the URL string, {@code callback} will be called with null.
+     * Otherwise, the following information is added to the
+     * {@link String} returned in the {@link AdobeCallback}:
+     * <ul>
+     *     <li>The {@code adobe_mc} attribute is an URL encoded list containing:
+     *         <ul>
+     *             <li>Experience Cloud ID (ECID)</li>
+     *             <li>Experience Cloud Org ID</li>
+     *             <li>Analytics Tracking ID, if available from Analytics</li>
+     *             <li>A timestamp taken when this request was made</li>
+     *         </ul>
+     *     </li>
+     *     <li>The optional {@code adobe_aa_vid} attribute is the URL encoded Analytics Custom Visitor ID, if available from Analytics.</li>
+     * </ul>
+     *
+     * @param callback {@link AdobeCallback} which will be called containing Visitor ID Service URL parameters;
+     *                 when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
+     *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the Identity URL variables are retrieved
+     */
+    public static void getUrlVariables(final AdobeCallback<String> callback) {
+//        if (identityCore == null) {
+//            Log.error(IdentityConstants.LOG_TAG, CLASS_NAME, "getUrlVariables : Unable to retrieve Visitor information as URL query parameter string because (%s)",
+//                    NULL_CONTEXT_MESSAGE);
+//
+//            returnExtensionNotInitializedError(callback);
+//            return;
+//        }
 
-		Log.trace(TAG, "appendVisitorInfoForURL : Processing a request to append Adobe visitor data to a URL string.");
-		identityCore.appendToURL(baseURL, callback);
-	}
+        Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getUrlVariables : Processing the request to get Visitor information as URL query parameters.");
+//        identityCore.getUrlVariables(callback);
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(IdentityConstants.EventDataKeys.Identity.URL_VARIABLES, true);
+        createIdentityRequestWithOneTimeCallbackWithCallbackParam(IdentityConstants.EventDataKeys.Identity.URL_VARIABLES,
+                eventData,
+                callback);
+    }
 
-	/**
-	 * Gets Visitor ID Service variables in URL query parameter form for consumption in hybrid app.
-	 * <p>
-	 * This method will return an appropriately formed {@link String} containing Visitor ID Service URL variables.
-	 * There will be no leading {@literal &} or {@literal ?} punctuation, as the caller is responsible for placing it in their resulting
-	 * {@link java.net.URI} in the correct location.
-	 * <p>
-	 * If an error occurs while retrieving the URL string, {@code callback} will be called with null.
-	 * Otherwise, the following information is added to the
-	 * {@link String} returned in the {@link AdobeCallback}:
-	 *  <ul>
-	 *      <li>The {@code adobe_mc} attribute is an URL encoded list containing:
-	 *          <ul>
-	 *              <li>Experience Cloud ID (ECID)</li>
-	 *              <li>Experience Cloud Org ID</li>
-	 *              <li>Analytics Tracking ID, if available from Analytics</li>
-	 *              <li>A timestamp taken when this request was made</li>
-	 *          </ul>
-	 *      </li>
-	 *      <li>The optional {@code adobe_aa_vid} attribute is the URL encoded Analytics Custom Visitor ID, if available from Analytics.</li>
-	 *  </ul>
-	 *
-	 * @param callback {@link AdobeCallback} which will be called containing Visitor ID Service URL parameters;
-	 *        when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
-	 *        eventuality of an unexpected error or if the default timeout (500ms) is met before the Identity URL variables are retrieved
-	 */
-	public static void getUrlVariables(final AdobeCallback<String> callback) {
-		if (identityCore == null) {
-			Log.error(TAG, "getUrlVariables : Unable to retrieve Visitor information as URL query parameter string because (%s)",
-					  NULL_CONTEXT_MESSAGE);
+    /**
+     * Returns all customer identifiers which were previously synced with the Adobe Experience Cloud.
+     *
+     * @param callback {@link AdobeCallback} invoked with the list of {@link VisitorID} objects;
+     *                 when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
+     *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the customer identifiers are retrieved
+     */
+    public static void getIdentifiers(final AdobeCallback<List<VisitorID>> callback) {
+//        if (identityCore == null) {
+//            Log.error(IdentityConstants.LOG_TAG, CLASS_NAME, "getIdentifiers : Unable to get Visitor identifiers because (%s)", NULL_CONTEXT_MESSAGE);
+//
+//            returnExtensionNotInitializedError(callback);
+//            return;
+//        }
 
-			returnExtensionNotInitializedError(callback);
-			return;
-		}
+        Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getIdentifiers : Processing a request to get all customer identifiers.");
+//        identityCore.getIdentifiers(callback);
+        createIdentityRequestWithOneTimeCallbackWithCallbackParam(IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LIST,
+                null,
+                callback);
+    }
 
-		Log.trace(TAG, "getUrlVariables : Processing the request to get Visitor information as URL query parameters.");
-		identityCore.getUrlVariables(callback);
-	}
+    /**
+     * Retrieves the Adobe Experience Cloud Visitor ID from the Adobe Experience Cloud ID Service.
+     * <p>
+     * The Adobe Experience Cloud ID (ECID) is generated at initial launch and is stored and used from that point forward.
+     * This ID is preserved between app upgrades, is saved and restored during the standard application backup process,
+     * and is removed at uninstall.
+     *
+     * @param callback {@link AdobeCallback} invoked with the ECID {@code String};
+     *                 when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
+     *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the ECID is retrieved
+     */
+    public static void getExperienceCloudId(final AdobeCallback<String> callback) {
+//        if (identityCore == null) {
+//            Log.error(IdentityConstants.LOG_TAG, CLASS_NAME, "getExperienceCloudId : Unable to get ECID because (%s)", NULL_CONTEXT_MESSAGE);
+//
+//            returnExtensionNotInitializedError(callback);
+//            return;
+//        }
 
-	/**
-	 * Returns all customer identifiers which were previously synced with the Adobe Experience Cloud.
-	 *
-	 * @param callback {@link AdobeCallback} invoked with the list of {@link VisitorID} objects;
-	 *         when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
-	 *         eventuality of an unexpected error or if the default timeout (500ms) is met before the customer identifiers are retrieved
-	 */
-	public static void getIdentifiers(final AdobeCallback<List<VisitorID>> callback) {
-		if (identityCore == null) {
-			Log.error(TAG, "getIdentifiers : Unable to get Visitor identifiers because (%s)", NULL_CONTEXT_MESSAGE);
+        Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getExperienceCloudId : Processing the request to get ECID.");
+//        identityCore.getExperienceCloudId(callback);
+        createIdentityRequestWithOneTimeCallbackWithCallbackParam(IdentityConstants.EventDataKeys.Identity.VISITOR_ID_MID, null,
+                callback);
+    }
 
-			returnExtensionNotInitializedError(callback);
-			return;
-		}
+    private static <T> void createIdentityRequestWithOneTimeCallbackWithCallbackParam(final String identifierKey,
+                                                                                      final Map<String, Object> eventData,
+                                                                                      final AdobeCallback<T> callback) {
+        if (callback == null) {
+            return;
+        }
 
-		Log.trace(TAG, "getIdentifiers : Processing a request to get all customer identifiers.");
-		identityCore.getIdentifiers(callback);
-	}
+        Event event;
 
-	/**
-	 * Retrieves the Adobe Experience Cloud Visitor ID from the Adobe Experience Cloud ID Service.
-	 * <p>
-	 * The Adobe Experience Cloud ID (ECID) is generated at initial launch and is stored and used from that point forward.
-	 * This ID is preserved between app upgrades, is saved and restored during the standard application backup process,
-	 * and is removed at uninstall.
-	 *
-	 * @param callback {@link AdobeCallback} invoked with the ECID {@code String};
-	 *        when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
-	 *        eventuality of an unexpected error or if the default timeout (500ms) is met before the ECID is retrieved
-	 */
-	public static void getExperienceCloudId(final AdobeCallback<String> callback) {
-		if (identityCore == null) {
-			Log.error(TAG, "getExperienceCloudId : Unable to get ECID because (%s)", NULL_CONTEXT_MESSAGE);
+        // do not want to set event data to null.
+        if (eventData == null) {
+            event = new Event.Builder(REQUEST_IDENTITY_EVENT_NAME, EventType.IDENTITY,
+                    EventSource.REQUEST_IDENTITY).build();
+        } else {
+            event = new Event.Builder(REQUEST_IDENTITY_EVENT_NAME, EventType.IDENTITY,
+                    EventSource.REQUEST_IDENTITY).setEventData(eventData).build();
+        }
 
-			returnExtensionNotInitializedError(callback);
-			return;
-		}
+        final AdobeCallbackWithError adobeCallbackWithError = callback instanceof AdobeCallbackWithError ?
+                (AdobeCallbackWithError) callback : null;
+        MobileCore.dispatchEventWithResponseCallback(event, PUBLIC_API_TIME_OUT_MILLISECOND, new AdobeCallbackWithError<Event>() {
+            @Override
+            public void fail(AdobeError error) {
+                adobeCallbackWithError.fail(error);
+            }
 
-		Log.trace(TAG, "getExperienceCloudId : Processing the request to get ECID.");
-		identityCore.getExperienceCloudId(callback);
-	}
+            @Override
+            public void call(Event e) {
+                EventData eventData = e.getData();
+                callback.call(eventData.optTypedObject(identifierKey, null, valueSerializer));
+            }
+        });
+        Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME,
+                "createIdentityRequestWithOneTimeCallbackWithCallbackParam : Identity request event has been added to the event hub : %s",
+                event);
 
-	// end Identity Methods
+    }
 
-	/**
-	 * For testing
-	 */
-	static void resetIdentityCore() {
-		identityCore = null;
-	}
 
-	/**
-	 * When an {@link AdobeCallbackWithError} is provided, the fail method will be called with {@link AdobeError#EXTENSION_NOT_INITIALIZED}.
-	 * @param callback should not be null, should be instance of {@code AdobeCallbackWithError}
-	 */
-	private static void returnExtensionNotInitializedError(final AdobeCallback callback) {
-		if (callback == null) {
-			return;
-		}
+    /**
+     * When an {@link AdobeCallbackWithError} is provided, the fail method will be called with {@link AdobeError#EXTENSION_NOT_INITIALIZED}.
+     *
+     * @param callback should not be null, should be instance of {@code AdobeCallbackWithError}
+     */
+    private static void returnExtensionNotInitializedError(final AdobeCallback callback) {
+        if (callback == null) {
+            return;
+        }
 
-		final AdobeCallbackWithError adobeCallbackWithError = callback instanceof AdobeCallbackWithError ?
-				(AdobeCallbackWithError) callback : null;
+        final AdobeCallbackWithError adobeCallbackWithError = callback instanceof AdobeCallbackWithError ?
+                (AdobeCallbackWithError) callback : null;
 
-		if (adobeCallbackWithError != null) {
-			adobeCallbackWithError.fail(AdobeError.EXTENSION_NOT_INITIALIZED);
-		}
-	}
+        if (adobeCallbackWithError != null) {
+            adobeCallbackWithError.fail(AdobeError.EXTENSION_NOT_INITIALIZED);
+        }
+    }
+
 
 }

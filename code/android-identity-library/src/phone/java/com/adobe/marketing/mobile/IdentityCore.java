@@ -25,6 +25,7 @@ import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.Log;
 import com.adobe.marketing.mobile.identity.IdentityConstants;
 import com.adobe.marketing.mobile.identity.IdentityExtension;
+import com.adobe.marketing.mobile.services.Log;
 
 import java.util.HashMap;
 import java.util.List;
@@ -60,6 +61,7 @@ class IdentityCore {
 
 		Log.trace(LOG_TAG, "IdentityCore : Identity Core has been initialized and registered successfully.");
 	}
+
 
 	/**
 	 * Initiates an Identity Request event for fetching experience cloud id
@@ -169,14 +171,14 @@ class IdentityCore {
 	 */
 	void getAdvertisingIdentifier(final AdobeCallback<String> callback) {
 		createIdentityRequestWithOneTimeCallbackWithCallbackParam(
-			IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER,
-			null, callback, new StringVariantSerializer());
+				IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER,
+				null, callback, new StringVariantSerializer());
 	}
 
 	private <T> void createIdentityRequestWithOneTimeCallbackWithCallbackParam(final String identifierKey,
-			final EventData eventData,
-			final AdobeCallback<T> callback,
-			final VariantSerializer<T> valueSerializer) {
+																			   final EventData eventData,
+																			   final AdobeCallback<T> callback,
+																			   final VariantSerializer<T> valueSerializer) {
 		if (callback == null) {
 			return;
 		}
@@ -186,14 +188,14 @@ class IdentityCore {
 		// do not want to set event data to null.
 		if (eventData == null) {
 			event = new Event.Builder(REQUEST_IDENTITY_EVENT_NAME, EventType.IDENTITY,
-									  EventSource.REQUEST_IDENTITY).build();
+					EventSource.REQUEST_IDENTITY).build();
 		} else {
 			event = new Event.Builder(REQUEST_IDENTITY_EVENT_NAME, EventType.IDENTITY,
-									  EventSource.REQUEST_IDENTITY).setData(eventData).build();
+					EventSource.REQUEST_IDENTITY).setData(eventData).build();
 		}
 
 		final AdobeCallbackWithError adobeCallbackWithError = callback instanceof AdobeCallbackWithError ?
-				(AdobeCallbackWithError)callback : null;
+				(AdobeCallbackWithError) callback : null;
 
 		eventHub.registerOneTimeListener(event.getResponsePairID(), new Module.OneTimeListenerBlock() {
 			@Override
@@ -204,33 +206,11 @@ class IdentityCore {
 		}, adobeCallbackWithError, PUBLIC_API_TIME_OUT_MILLISECOND);
 
 		eventHub.dispatch(event);
-		Log.trace(LOG_TAG,
-				  "createIdentityRequestWithOneTimeCallbackWithCallbackParam : Identity request event has been added to the event hub : %s",
-				  event);
+		Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME,
+				"createIdentityRequestWithOneTimeCallbackWithCallbackParam : Identity request event has been added to the event hub : %s",
+				event);
 
 	}
 
-	/**
-	 * Marshalling the eventData for the sync identifiers event.
-	 * Creates a request identity event with the syncIdentifier eventData and dispatches to the eventhub.
-	 *
-	 * @param identifiers that need to be synced where the key represents the idType and the value represents the id.
-	 * @param authState   a valid AuthenticationState value.
-	 */
-	private void dispatchIDSyncEvent(final Map<String, String> identifiers,
-									 final VisitorID.AuthenticationState authState) {
-		EventData syncData = new EventData();
-		syncData.putStringMap(IdentityConstants.EventDataKeys.Identity.IDENTIFIERS, identifiers);
-		syncData.putInteger(IdentityConstants.EventDataKeys.Identity.AUTHENTICATION_STATE, authState.getValue());
-		syncData.putBoolean(IdentityConstants.EventDataKeys.Identity.FORCE_SYNC, false);
-		syncData.putBoolean(IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT, true);
 
-		Event event = new Event.Builder(REQUEST_IDENTITY_EVENT_NAME,
-										EventType.IDENTITY,
-										EventSource.REQUEST_IDENTITY)
-		.setData(syncData)
-		.build();
-		eventHub.dispatch(event);
-		Log.trace(LOG_TAG, "dispatchIDSyncEvent : Identity Sync event has been added to event hub : %s", event);
-	}
 }

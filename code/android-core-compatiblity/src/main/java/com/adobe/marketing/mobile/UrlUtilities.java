@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile;
 
-import static com.adobe.marketing.mobile.internal.util.UrlUtils.urlEncode;
+import static com.adobe.marketing.mobile.internal.util.UrlEncoder.urlEncode;
 
 import com.adobe.marketing.mobile.util.StringUtils;
 

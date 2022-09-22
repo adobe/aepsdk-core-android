@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
-import com.adobe.marketing.mobile.internal.util.UrlUtils
+import com.adobe.marketing.mobile.internal.util.UrlEncoder
 import com.adobe.marketing.mobile.rulesengine.Transformer
 import com.adobe.marketing.mobile.rulesengine.TransformerBlock
 import com.adobe.marketing.mobile.rulesengine.Transforming
@@ -39,7 +39,7 @@ internal object LaunchRuleTransformer {
     private fun addConsequenceTransform(transformer: Transformer) {
         transformer.register(LaunchRulesEngineConstants.Transform.URL_ENCODING_FUNCTION) { value ->
             if (value is String) {
-                UrlUtils.urlEncode(value)
+                UrlEncoder.urlEncode(value)
             } else value
         }
     }

@@ -11,11 +11,11 @@
 
 package com.adobe.marketing.mobile.internal.util
 
-import com.adobe.marketing.mobile.internal.util.UrlUtils.urlEncode
+import com.adobe.marketing.mobile.internal.util.UrlEncoder.urlEncode
 import org.junit.Assert
 import org.junit.Test
 
-class UrlUtilsTests {
+class UrlEncoderTests {
     @Test
     fun urlEncodeWithNoEncodedNeeded() {
         Assert.assertEquals(urlEncode("thisisateststring"), "thisisateststring")

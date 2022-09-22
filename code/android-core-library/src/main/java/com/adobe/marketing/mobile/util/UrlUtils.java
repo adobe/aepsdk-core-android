@@ -2,6 +2,7 @@ package com.adobe.marketing.mobile.util;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import com.adobe.marketing.mobile.internal.util.UrlEncoder;
 
 public final class UrlUtils {
 
@@ -35,6 +36,6 @@ public final class UrlUtils {
      * @return the encoded {@code String}
      */
     public static String urlEncode(String unencodedString) {
-        return com.adobe.marketing.mobile.internal.util.UrlUtils.urlEncode(unencodedString);
+        return UrlEncoder.urlEncode(unencodedString);
     }
 }

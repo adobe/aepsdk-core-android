@@ -4,6 +4,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public final class UrlUtils {
+
+    private UrlUtils() {}
+
     /**
      * Check if the given {@code String} is a valid URL.
      * <p>

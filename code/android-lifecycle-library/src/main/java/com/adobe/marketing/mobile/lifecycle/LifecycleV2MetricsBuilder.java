@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile.lifecycle;
 
 import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 
 import java.util.Date;

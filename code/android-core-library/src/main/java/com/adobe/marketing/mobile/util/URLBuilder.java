@@ -9,13 +9,13 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.util;
+
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
 
 import java.net.URL;
 import java.util.Map;
-
-import com.adobe.marketing.mobile.internal.util.StringUtils;
-import com.adobe.marketing.mobile.internal.util.UrlUtils;
 
 /**
  * A class providing a better way to construct a url.
@@ -165,7 +165,7 @@ class URLBuilder {
 		try {
 			new URL(urlString).toURI();
 		} catch (Exception e) {
-			Log.error("URLBuilder", "Failed to generate the URL for (server:%s,  path:%s, query:%s) (%s)",
+			Log.error(CoreConstants.LOG_TAG, "URLBuilder", "Failed to generate the URL for (server:%s,  path:%s, query:%s) (%s)",
 					  this.server, this.path, this.query, e);
 			return null;
 		}

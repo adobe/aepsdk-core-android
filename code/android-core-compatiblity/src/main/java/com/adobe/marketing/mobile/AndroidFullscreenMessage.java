@@ -39,7 +39,8 @@ import android.webkit.WebViewClient;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
+import com.adobe.marketing.mobile.util.UrlUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -385,7 +386,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
          */
         private WebResourceResponse handleWebResourceRequest(final String url) {
 
-            if (StringUtils.stringIsUrl(url) && message.assetMap.get(url) != null) {
+            if (UrlUtils.stringIsUrl(url) && message.assetMap.get(url) != null) {
                 try {
                     final String cachedPath = message.assetMap.get(url);
                     final String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(

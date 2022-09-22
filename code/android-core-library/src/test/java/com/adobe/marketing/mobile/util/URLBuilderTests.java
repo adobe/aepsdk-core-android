@@ -9,15 +9,18 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.util;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 
-public class URLBuilderTest extends BaseTest {
+public class URLBuilderTests {
 
 	private String ascii;
 	@Before
@@ -248,5 +251,43 @@ public class URLBuilderTest extends BaseTest {
 				put("utf8", "%E5%93%88%E5%93%88");
 			}
 		});
+	}
+
+	private Map<String, String> getURLQueryParameters(final String urlString) {
+		final Map<String, String> parameters = new HashMap<String, String>();
+		URL url;
+
+		try {
+			url = new URL(urlString);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			return parameters;
+		}
+
+		String queryString = url.getQuery();
+		final String[] paramArray = queryString.split("&");
+
+		for (String currentParam : paramArray) {
+			// quick out in case this entry is null or empty string
+			if (currentParam == null || currentParam.length() <= 0) {
+				continue;
+			}
+
+			final String[] currentParamArray = currentParam.split("=", 2);
+
+			// don't need to check the key, because if the param is not null or empty, we will have
+			// at least one entry in the array with a length > 0
+			// we do need to check for a second value, as there will only be a second entry in this
+			// array if there is at least one '=' character in currentParam
+			if (currentParamArray.length == 1 || (currentParamArray.length == 2 && currentParamArray[1].isEmpty())) {
+				continue;
+			}
+
+			final String key = currentParamArray[0];
+			final String value = currentParamArray[1];
+			parameters.put(key, value);
+		}
+
+		return parameters;
 	}
 }

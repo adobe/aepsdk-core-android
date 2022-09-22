@@ -11,11 +11,11 @@
 
 package com.adobe.marketing.mobile.util.remotedownload
 
-import com.adobe.marketing.mobile.internal.util.StringUtils
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.util.UrlUtils
 
 /**
  * Facilitates downloading content from a URL into a local cache directory.
@@ -72,7 +72,7 @@ class RemoteDownloader(
         metadataProvider: MetadataProvider,
         completionCallback: (DownloadResult) -> Unit
     ) {
-        if (!StringUtils.stringIsUrl(url)) {
+        if (!UrlUtils.stringIsUrl(url)) {
             Log.debug(
                 LaunchRulesEngineConstants.LOG_TAG,
                 TAG,

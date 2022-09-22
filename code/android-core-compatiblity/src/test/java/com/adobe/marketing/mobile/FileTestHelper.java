@@ -21,7 +21,7 @@ import java.util.List;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 
 public class FileTestHelper {
 	static final String CACHE_DIRECTORY 	= "adbdownloadcache";

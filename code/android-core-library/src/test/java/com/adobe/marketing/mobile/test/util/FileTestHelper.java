@@ -9,10 +9,12 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.internal.util;
+package com.adobe.marketing.mobile.test.util;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.io.File;
 import java.io.FileWriter;

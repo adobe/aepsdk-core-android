@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.internal.util.UrlUtils;
 
 import java.io.UnsupportedEncodingException;

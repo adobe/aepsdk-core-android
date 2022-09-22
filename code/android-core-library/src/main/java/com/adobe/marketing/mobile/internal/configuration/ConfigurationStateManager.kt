@@ -13,7 +13,6 @@ package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.internal.util.FileUtils
-import com.adobe.marketing.mobile.internal.util.StringUtils
 import com.adobe.marketing.mobile.internal.util.toMap
 import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.DataStoring
@@ -21,6 +20,7 @@ import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.util.StreamUtils
 import com.adobe.marketing.mobile.util.remotedownload.RemoteDownloader
 import org.json.JSONException
 import org.json.JSONObject
@@ -169,7 +169,10 @@ internal class ConfigurationStateManager {
             "Attempting to load bundled config."
         )
         val contentStream: InputStream? = deviceInfoService.getAsset(bundledConfigFileName)
-        val contentString = StringUtils.streamToString(contentStream)
+        val contentString =
+            StreamUtils.readAsString(
+                contentStream
+            )
 
         if (contentString.isNullOrEmpty()) {
             Log.debug(

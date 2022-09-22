@@ -18,7 +18,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Use {@link com.adobe.marketing.mobile.internal.util.StringUtils} instead.
+ * Use {@link com.adobe.marketing.mobile.util.StringUtils} instead.
  */
 @Deprecated
 final class StringUtils {

@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile;
 
 import static com.adobe.marketing.mobile.internal.util.UrlUtils.urlEncode;
 
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Iterator;

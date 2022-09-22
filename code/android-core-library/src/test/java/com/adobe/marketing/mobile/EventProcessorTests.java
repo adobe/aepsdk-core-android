@@ -9,18 +9,8 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.internal.eventhub;
+package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.Extension;
-import com.adobe.marketing.mobile.ExtensionApi;
-
-public class MockExtension extends Extension {
-    MockExtension(ExtensionApi extensionApi) {
-        super(extensionApi);
-    }
-
-    @Override
-    protected String getName() {
-        return "com.adobe.mockextension";
-    }
+@SuppressWarnings("unused")
+public class EventProcessorTests {
 }

@@ -20,7 +20,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-public class EventTest {
+public class EventTests {
 
 	private String mockEventName;
 	private String mockEventSource;

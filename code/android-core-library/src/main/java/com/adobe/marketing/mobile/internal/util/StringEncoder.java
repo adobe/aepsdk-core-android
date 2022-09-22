@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.internal.util;
 
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

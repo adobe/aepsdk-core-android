@@ -9,18 +9,20 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.internal.eventhub;
+package com.adobe.marketing.mobile.util;
 
-import com.adobe.marketing.mobile.Extension;
-import com.adobe.marketing.mobile.ExtensionApi;
+public final class StringUtils {
 
-public class MockExtension extends Extension {
-    MockExtension(ExtensionApi extensionApi) {
-        super(extensionApi);
+    private StringUtils() {}
+
+    /**
+     * Checks if a {@code String} is null, empty or it only contains whitespaces.
+     *
+     * @param str the {@link String} that we want to check
+     * @return {@code boolean} with the evaluation result
+     */
+    public static boolean isNullOrEmpty(final String str) {
+        return str == null || str.trim().isEmpty();
     }
 
-    @Override
-    protected String getName() {
-        return "com.adobe.mockextension";
-    }
 }

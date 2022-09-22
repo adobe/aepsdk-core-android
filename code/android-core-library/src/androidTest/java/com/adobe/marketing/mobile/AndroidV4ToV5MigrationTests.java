@@ -20,6 +20,7 @@ import junit.framework.Assert;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -433,8 +434,7 @@ public class AndroidV4ToV5MigrationTests {
 
 	@Test
 	public void testDataMigration_DoesNotThrow_WhenNullContext() {
-		App.INSTANCE.setAppContext(null);
-
+		App.INSTANCE.resetInstance();
 		try {
 			migrationTool.migrate();
 		} catch (Throwable e) {

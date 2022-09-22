@@ -50,6 +50,8 @@ public class VisitorIDTests {
 		assertEquals(VisitorID.AuthenticationState.AUTHENTICATED, visitorID.getAuthenticationState());
 	}
 
+	//TODO: cleanContextDataKey logic will be moved to Analytics extension https://github.com/adobe/aepsdk-core-android/issues/217
+	@Ignore
 	@Test
 	public void testVisitorIdConstructor_When_IdTypeContainsNotAllowedCharacters() {
 		VisitorID visitorID = new VisitorID("testOrigin", "test+_Type().is*#Awesome$@&^", "testId",

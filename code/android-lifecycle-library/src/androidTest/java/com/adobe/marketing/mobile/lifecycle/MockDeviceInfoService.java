@@ -104,6 +104,12 @@ public class MockDeviceInfoService implements DeviceInforming {
         return operatingSystemVersion;
     }
 
+    public String deviceBrand = "mockDeviceBrand";
+    @Override
+    public String getDeviceBrand() {
+        return deviceBrand;
+    }
+
     public String deviceManufacturer = "mockDeviceManufacturer";
     @Override
     public String getDeviceManufacturer() {
@@ -120,6 +126,12 @@ public class MockDeviceInfoService implements DeviceInforming {
     @Override
     public String getDeviceName() {
         return deviceName;
+    }
+
+    public String device = "mockDevice";
+    @Override
+    public String getDevice() {
+        return device;
     }
 
     public DeviceType deviceType = DeviceType.UNKNOWN;
@@ -150,6 +162,12 @@ public class MockDeviceInfoService implements DeviceInforming {
     @Override
     public String getRunMode() {
         return runMode;
+    }
+
+    public String deviceId = "mockDeviceId";
+    @Override
+    public String getDeviceUniqueId() {
+        return deviceId;
     }
 
     public String defaultUserAgent = "mockUserAgent";

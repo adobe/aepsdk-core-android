@@ -51,5 +51,6 @@ class DeviceInfoServiceTests {
         TestCase.assertNull(deviceInfoService!!.applicationVersionCode)
         TestCase.assertNull(deviceInfoService!!.applicationBaseDir)
         TestCase.assertEquals("en-US", deviceInfoService!!.localeString)
+        TestCase.assertNull(deviceInfoService!!.deviceUniqueId)
     }
 }

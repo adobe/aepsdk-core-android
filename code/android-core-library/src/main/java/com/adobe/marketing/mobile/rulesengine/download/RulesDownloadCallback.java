@@ -8,21 +8,15 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.app.kotlin
 
-import android.app.Application
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+package com.adobe.marketing.mobile.rulesengine.download;
 
-class MyApp : Application() {
+import androidx.annotation.NonNull;
 
-    override fun onCreate() {
-        super.onCreate()
-        MobileCore.setApplication(this)
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        //TODO: call MobileCore.registerExtensions() to register core extensions
-        MobileCore.start {
-        }
-    }
-
+/**
+ * A callback for {@link RulesDownloader} to propagate {@code RulesDownloadResult}
+ */
+@FunctionalInterface
+public interface RulesDownloadCallback {
+    void call(@NonNull final RulesDownloadResult result);
 }

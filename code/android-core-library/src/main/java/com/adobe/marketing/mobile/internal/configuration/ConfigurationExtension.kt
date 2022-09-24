@@ -19,13 +19,12 @@ import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.CoreConstants
-import com.adobe.marketing.mobile.internal.compatibility.CacheManager
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
-import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.util.DataReader
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -73,7 +72,7 @@ internal class ConfigurationExtension : Extension {
 
     private val serviceProvider: ServiceProvider
     private val appIdManager: AppIdManager
-    private val cacheFileService: CacheFileService
+    private val cacheFileService: CacheService
     private val launchRulesEvaluator: LaunchRulesEvaluator
     private val configurationStateManager: ConfigurationStateManager
     private val configurationRulesManager: ConfigurationRulesManager
@@ -92,7 +91,7 @@ internal class ConfigurationExtension : Extension {
     ) : this(
         extensionApi, serviceProvider,
         AppIdManager(serviceProvider.dataStoreService, serviceProvider.deviceInfoService),
-        CacheManager(serviceProvider.deviceInfoService),
+        serviceProvider.cacheService,
         LaunchRulesEvaluator("Configuration", LaunchRulesEngine(extensionApi), extensionApi),
         Executors.newSingleThreadScheduledExecutor()
     )
@@ -104,7 +103,7 @@ internal class ConfigurationExtension : Extension {
         extensionApi: ExtensionApi,
         serviceProvider: ServiceProvider,
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
+        cacheFileService: CacheService,
         launchRulesEvaluator: LaunchRulesEvaluator,
         retryWorker: ScheduledExecutorService
     ) : this(
@@ -135,7 +134,7 @@ internal class ConfigurationExtension : Extension {
         extensionApi: ExtensionApi,
         serviceProvider: ServiceProvider,
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
+        cacheFileService: CacheService,
         launchRulesEvaluator: LaunchRulesEvaluator,
         retryWorker: ScheduledExecutorService,
         configurationStateManager: ConfigurationStateManager,

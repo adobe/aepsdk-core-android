@@ -25,8 +25,8 @@ import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
-import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.caching.CacheService
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.eq
@@ -59,7 +59,7 @@ class ConfigurationExtensionTest {
     private lateinit var mockAppIdManager: AppIdManager
 
     @Mock
-    private lateinit var mockCacheFileService: CacheFileService
+    private lateinit var mockCacheService: CacheService
 
     /**
      * Note that any values returned for [ConfigurationStateManager.environmentAwareConfiguration] in these tests
@@ -107,7 +107,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -164,7 +164,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -196,7 +196,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -227,7 +227,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -249,7 +249,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -292,7 +292,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -335,7 +335,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi, mockServiceProvider,
-            mockAppIdManager, mockCacheFileService, mockLaunchRulesEvaluator, mockExecutorService,
+            mockAppIdManager, mockCacheService, mockLaunchRulesEvaluator, mockExecutorService,
             mockConfigStateManager, mockConfigurationRulesManager
         )
 
@@ -377,7 +377,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi, mockServiceProvider,
-            mockAppIdManager, mockCacheFileService, mockLaunchRulesEvaluator, mockExecutorService,
+            mockAppIdManager, mockCacheService, mockLaunchRulesEvaluator, mockExecutorService,
             mockConfigStateManager, mockConfigurationRulesManager
         )
 
@@ -475,7 +475,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -562,7 +562,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -603,7 +603,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -639,7 +639,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -675,7 +675,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -710,7 +710,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -746,7 +746,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -791,7 +791,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -842,7 +842,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -886,7 +886,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -925,7 +925,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,

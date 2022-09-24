@@ -14,14 +14,14 @@ package com.adobe.marketing.mobile.internal.configuration
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.internal.util.FileUtils
 import com.adobe.marketing.mobile.internal.util.toMap
-import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.caching.CacheResult
+import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.util.StreamUtils
-import com.adobe.marketing.mobile.util.remotedownload.RemoteDownloader
 import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -49,7 +49,7 @@ internal class ConfigurationStateManager {
     }
 
     private val appIdManager: AppIdManager
-    private val cacheFileService: CacheFileService
+    private val cacheService: CacheService
     val networkService: Networking
     private val deviceInfoService: DeviceInforming
     private val dataStoreService: DataStoring
@@ -90,29 +90,29 @@ internal class ConfigurationStateManager {
 
     constructor(
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
+        cacheFileService: CacheService,
         networkService: Networking,
         deviceInfoService: DeviceInforming,
         dataStoreService: DataStoring
     ) : this(
         appIdManager, cacheFileService, networkService, deviceInfoService, dataStoreService,
         ConfigurationDownloader(
-            RemoteDownloader(networkService, cacheFileService),
-            FileMetadataProvider(cacheFileService)
+            networkService,
+            cacheFileService
         )
     )
 
     @VisibleForTesting
     internal constructor (
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
+        cacheFileService: CacheService,
         networkService: Networking,
         deviceInfoService: DeviceInforming,
         dataStoreService: DataStoring,
         configDownloader: ConfigurationDownloader
     ) {
         this.appIdManager = appIdManager
-        this.cacheFileService = cacheFileService
+        this.cacheService = cacheFileService
         this.networkService = networkService
         this.deviceInfoService = deviceInfoService
         this.dataStoreService = dataStoreService
@@ -330,9 +330,11 @@ internal class ConfigurationStateManager {
             LOG_TAG,
             "Attempting to load cached config."
         )
+
         val url = String.format(CONFIGURATION_URL_BASE, appId)
-        val cacheFile: File? = cacheFileService.getCacheFile(url, null, false)
-        val contentString = FileUtils.readAsString(cacheFile)
+        val cacheResult: CacheResult? = cacheService.get(ConfigurationDownloader.CONFIG_CACHE_NAME, url)
+
+        val contentString = StreamUtils.readAsString(cacheResult?.data)
         if (contentString.isNullOrEmpty()) {
             Log.trace(
                 ConfigurationExtension.TAG,
@@ -374,7 +376,7 @@ internal class ConfigurationStateManager {
         appIdManager.saveAppIdToPersistence(appId)
         val url = String.format(CONFIGURATION_URL_BASE, appId)
 
-        configDownloader.download(url, null) { config ->
+        configDownloader.download(url) { config ->
             if (config != null) {
                 // replace the configuration with downloaded content first
                 replaceConfiguration(config)

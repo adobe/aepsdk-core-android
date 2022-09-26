@@ -81,7 +81,7 @@ internal fun Map<String, Any?>.serializeToQueryString(): String {
         val encodedKey = urlEncode(key) ?: continue
 
         // TODO add serializing for custom objects
-        var encodedValue: String? = if (value is List<*>) {
+        val encodedValue: String? = if (value is List<*>) {
             urlEncode(join(value, ","))
         } else {
             urlEncode(value?.toString())

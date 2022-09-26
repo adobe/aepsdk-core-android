@@ -19,6 +19,9 @@ package com.adobe.marketing.mobile;
  * @see EventSource
  */
 public final class EventType {
+
+	private EventType() {}
+
 	public static final String ACQUISITION = "com.adobe.eventType.acquisition";
 	public static final String ANALYTICS = "com.adobe.eventType.analytics";
 	public static final String ASSURANCE = "com.adobe.eventType.assurance";

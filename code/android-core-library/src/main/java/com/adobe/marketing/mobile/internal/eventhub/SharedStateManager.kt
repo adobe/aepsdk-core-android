@@ -44,13 +44,13 @@ internal enum class SharedStateType {
  */
 internal class SharedStateManager(private val name: String) {
 
+    private val LOG_TAG = "SharedStateManager($name)"
     /**
      * A mapping between the version of the state to the state.
      */
     private val states: TreeMap<Int, SharedState> = TreeMap<Int, SharedState>()
 
     companion object {
-        private const val LOG_TAG = "SharedStateManager"
         const val VERSION_LATEST: Int = Int.MAX_VALUE
     }
 
@@ -88,12 +88,6 @@ internal class SharedStateManager(private val name: String) {
     fun updatePendingState(version: Int, data: Map<String, Any?>?): Boolean {
         val stateAtVersion = states[version] ?: return false
         if (stateAtVersion.status != SharedStateStatus.PENDING) {
-            Log.debug(
-                CoreConstants.LOG_TAG,
-                LOG_TAG,
-                "Cannot update a non pending $name shared state " +
-                    "at version $version."
-            )
             return false
         }
 
@@ -117,6 +111,11 @@ internal class SharedStateManager(private val name: String) {
         // Return first state equal to or less than version
         val resolvedState = states.floorEntry(version)?.value
         if (resolvedState != null) {
+            Log.trace(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Resolving state at version $version with version ${resolvedState.version} and data ${resolvedState.data}"
+            )
             return resolvedState.getResult()
         }
 
@@ -137,8 +136,14 @@ internal class SharedStateManager(private val name: String) {
     fun resolveLastSet(version: Int): SharedStateResult {
         // Return the first non pending state equal to or less than version
         states.descendingMap().tailMap(version).forEach {
-            if (it.value.status != SharedStateStatus.PENDING) {
-                return it.value.getResult()
+            val state = it.value
+            if (state.status != SharedStateStatus.PENDING) {
+                Log.trace(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Resolving last set state at version $version with version ${state.version} and data ${state.data}"
+                )
+                return state.getResult()
             }
         }
 

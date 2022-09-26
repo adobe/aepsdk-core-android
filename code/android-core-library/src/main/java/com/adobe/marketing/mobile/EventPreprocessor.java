@@ -10,7 +10,9 @@
  */
 package com.adobe.marketing.mobile;
 
+import androidx.annotation.NonNull;
+
 @FunctionalInterface
 public interface EventPreprocessor {
-    Event process(final Event event);
+    @NonNull Event process(@NonNull final Event event);
 }

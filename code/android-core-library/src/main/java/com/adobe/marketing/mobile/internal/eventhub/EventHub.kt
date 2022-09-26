@@ -44,12 +44,20 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * EventHub class is responsible for delivering events to listeners and maintaining registered extension's lifecycle.
  */
-internal class EventHub {
+internal class EventHub(val eventHistory: EventHistory?) {
 
     companion object {
         const val LOG_TAG = "EventHub"
         var shared = EventHub()
     }
+
+    constructor() : this(
+        try {
+            AndroidEventHistory()
+        } catch (ex: Exception) {
+            null
+        }
+    )
 
     /**
      * Executor to initialize and shutdown extensions
@@ -73,11 +81,6 @@ internal class EventHub {
     private val eventPreprocessors: ConcurrentLinkedQueue<EventPreprocessor> = ConcurrentLinkedQueue()
     private val lastEventNumber: AtomicInteger = AtomicInteger(0)
     private var hubStarted = false
-    internal val eventHistory: EventHistory? = try {
-        AndroidEventHistory()
-    } catch (e: Exception) {
-        null
-    }
 
     /**
      * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching

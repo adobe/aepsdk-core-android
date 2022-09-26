@@ -285,6 +285,7 @@ internal class ExtensionContainer constructor(
     }
 
     // Deprecated ExtensionApi methods
+    @Deprecated("Deprecated in Java")
     override fun setSharedEventState(
         state: MutableMap<String, Any?>?,
         event: Event?,
@@ -299,6 +300,7 @@ internal class ExtensionContainer constructor(
         )
     }
 
+    @Deprecated("Deprecated in Java")
     override fun setXDMSharedEventState(
         state: MutableMap<String, Any?>?,
         event: Event?,
@@ -373,6 +375,7 @@ internal class ExtensionContainer constructor(
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun getSharedEventState(
         stateName: String?,
         event: Event?,
@@ -386,6 +389,7 @@ internal class ExtensionContainer constructor(
         return null
     }
 
+    @Deprecated("Deprecated in Java")
     override fun getXDMSharedEventState(
         stateName: String?,
         event: Event?,
@@ -399,6 +403,7 @@ internal class ExtensionContainer constructor(
         return null
     }
 
+    @Deprecated("Deprecated in Java")
     override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
             Log.warning(
@@ -411,6 +416,7 @@ internal class ExtensionContainer constructor(
         return EventHub.shared.clearSharedState(SharedStateType.STANDARD, sharedStateName)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun clearXDMSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
             Log.warning(
@@ -423,6 +429,7 @@ internal class ExtensionContainer constructor(
         return EventHub.shared.clearSharedState(SharedStateType.XDM, sharedStateName)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun <T : ExtensionListener> registerEventListener(
         eventType: String?,
         eventSource: String?,
@@ -439,6 +446,7 @@ internal class ExtensionContainer constructor(
         return true
     }
 
+    @Deprecated("Deprecated in Java")
     override fun <T : ExtensionListener> registerWildcardListener(
         extensionListenerClass: Class<T>?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,

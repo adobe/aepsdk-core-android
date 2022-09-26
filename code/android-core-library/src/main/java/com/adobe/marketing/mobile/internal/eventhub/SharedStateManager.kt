@@ -114,7 +114,7 @@ internal class SharedStateManager(private val name: String) {
             Log.trace(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Resolving state at version $version with version ${resolvedState.version} and data ${resolvedState.data}"
+                "Resolving state($version) with version ${resolvedState.version} and data ${resolvedState.data}"
             )
             return resolvedState.getResult()
         }
@@ -141,7 +141,7 @@ internal class SharedStateManager(private val name: String) {
                 Log.trace(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Resolving last set state at version $version with version ${state.version} and data ${state.data}"
+                    "Resolving lastSet state($version) with version ${state.version} and data ${state.data}"
                 )
                 return state.getResult()
             }

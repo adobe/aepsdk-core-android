@@ -14,14 +14,15 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
  ******************************************************************************/
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import com.adobe.marketing.mobile.identity.ConfigurationSharedStateIdentity;
+import com.adobe.marketing.mobile.MobilePrivacyStatus;
 
 public class ConfigurationSharedStateIdentityTest {
 
@@ -69,7 +70,7 @@ public class ConfigurationSharedStateIdentityTest {
 		testSharedData.putString(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "optedin");
 
 		configurationSharedStateIdentity.getConfigurationProperties(testSharedData);
-		assertEquals(configurationSharedStateIdentity.privacyStatus, MobilePrivacyStatus.OPT_IN);
+		Assert.assertEquals(configurationSharedStateIdentity.privacyStatus, MobilePrivacyStatus.OPT_IN);
 	}
 
 	@Test
@@ -180,7 +181,7 @@ public class ConfigurationSharedStateIdentityTest {
 
 	private void verifyDefaultValues() {
 		assertNull(configurationSharedStateIdentity.orgID);
-		assertEquals(configurationSharedStateIdentity.privacyStatus, IdentityTestConstants.Defaults.DEFAULT_MOBILE_PRIVACY);
+		Assert.assertEquals(configurationSharedStateIdentity.privacyStatus, IdentityTestConstants.Defaults.DEFAULT_MOBILE_PRIVACY);
 		assertEquals(configurationSharedStateIdentity.marketingCloudServer, IdentityTestConstants.Defaults.SERVER);
 	}
 

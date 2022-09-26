@@ -14,7 +14,7 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
  ******************************************************************************/
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -28,11 +28,11 @@ import java.util.*;
 
 import static org.junit.Assert.*;
 
-import com.adobe.marketing.mobile.identity.ConfigurationSharedStateIdentity;
-import com.adobe.marketing.mobile.identity.IdentityConstants;
-import com.adobe.marketing.mobile.identity.IdentityExtension;
-import com.adobe.marketing.mobile.identity.IdentityGenericPair;
-import com.adobe.marketing.mobile.identity.IdentityResponseObject;
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.MobilePrivacyStatus;
+import com.adobe.marketing.mobile.VisitorID;
 
 public class IdentityTest extends BaseTest {
 	private static final String LIST_BEGIN                          = "{ ";

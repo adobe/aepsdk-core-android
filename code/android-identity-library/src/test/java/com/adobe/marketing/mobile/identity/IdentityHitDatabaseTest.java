@@ -15,7 +15,7 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,11 +26,10 @@ import java.nio.charset.Charset;
 
 import static org.junit.Assert.*;
 
-import com.adobe.marketing.mobile.identity.ConfigurationSharedStateIdentity;
-import com.adobe.marketing.mobile.identity.IdentityHit;
-import com.adobe.marketing.mobile.identity.IdentityHitSchema;
-import com.adobe.marketing.mobile.identity.IdentityHitsDatabase;
-import com.adobe.marketing.mobile.identity.IdentityResponseObject;
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.MobilePrivacyStatus;
 
 public class IdentityHitDatabaseTest extends BaseTest {
 

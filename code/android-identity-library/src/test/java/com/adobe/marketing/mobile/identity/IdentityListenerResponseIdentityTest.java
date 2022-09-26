@@ -15,12 +15,15 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.identity.IdentityListenerResponseIdentity;
 
 public class IdentityListenerResponseIdentityTest extends BaseTest {

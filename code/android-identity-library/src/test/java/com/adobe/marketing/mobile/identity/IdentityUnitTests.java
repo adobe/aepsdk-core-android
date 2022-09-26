@@ -15,7 +15,7 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
 import org.junit.Test;
 
@@ -25,6 +25,8 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import static org.junit.Assert.*;
+
+import com.adobe.marketing.mobile.Identity;
 
 public class IdentityUnitTests {
 

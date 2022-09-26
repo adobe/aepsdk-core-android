@@ -14,7 +14,7 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
  ******************************************************************************/
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
 import org.junit.Before;
 import org.junit.Test;

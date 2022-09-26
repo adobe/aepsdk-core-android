@@ -15,7 +15,7 @@
  * from Adobe.
  ******************************************************************************/
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -15,13 +15,12 @@
  * is strictly forbidden unless prior written permission is obtained
  * from Adobe.
  ******************************************************************************/
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.identity;
 
-import com.adobe.marketing.mobile.identity.ConfigurationSharedStateIdentity;
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.VisitorID;
 import com.adobe.marketing.mobile.identity.DispatcherAnalyticsRequestContentIdentity;
 import com.adobe.marketing.mobile.identity.DispatcherIdentityResponseIdentityIdentity;
-import com.adobe.marketing.mobile.identity.IdentityExtension;
-import com.adobe.marketing.mobile.identity.IdentityResponseObject;
 
 import java.util.List;
 import java.util.Map;

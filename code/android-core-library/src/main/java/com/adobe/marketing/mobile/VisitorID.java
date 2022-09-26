@@ -77,11 +77,11 @@ public class VisitorID {
             this.value = value;
         }
 
-        protected int getValue() {
+        public int getValue() {
             return value;
         }
 
-        static AuthenticationState fromInteger(final int authStateInteger) {
+        public static AuthenticationState fromInteger(final int authStateInteger) {
             for (AuthenticationState b : AuthenticationState.values()) {
                 if (b.getValue() == authStateInteger) {
                     return b;

@@ -18,7 +18,10 @@ import com.adobe.marketing.mobile.identity.IdentityConstants;
 import com.adobe.marketing.mobile.identity.IdentityExtension;
 import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.DataReaderException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,9 +187,14 @@ public class Identity {
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "appendVisitorInfoForURL : Processing a request to append Adobe visitor data to a URL string.");
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(IdentityConstants.EventDataKeys.Identity.BASE_URL, baseURL);
-        createIdentityRequestWithOneTimeCallbackWithCallbackParam(IdentityConstants.EventDataKeys.Identity.UPDATED_URL,
+        createIdentityRequestWithOneTimeCallbackWithCallbackParam(
                 eventData,
-                callback);
+                callback,
+                event -> {
+                    String url = DataReader.optString(event.getEventData(), IdentityConstants.EventDataKeys.Identity.UPDATED_URL, "");
+                    callback.call(url);
+
+                });
     }
 
 
@@ -217,21 +225,16 @@ public class Identity {
      *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the Identity URL variables are retrieved
      */
     public static void getUrlVariables(final AdobeCallback<String> callback) {
-//        if (identityCore == null) {
-//            Log.error(IdentityConstants.LOG_TAG, CLASS_NAME, "getUrlVariables : Unable to retrieve Visitor information as URL query parameter string because (%s)",
-//                    NULL_CONTEXT_MESSAGE);
-//
-//            returnExtensionNotInitializedError(callback);
-//            return;
-//        }
-
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getUrlVariables : Processing the request to get Visitor information as URL query parameters.");
-//        identityCore.getUrlVariables(callback);
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(IdentityConstants.EventDataKeys.Identity.URL_VARIABLES, true);
-        createIdentityRequestWithOneTimeCallbackWithCallbackParam(IdentityConstants.EventDataKeys.Identity.URL_VARIABLES,
+        createIdentityRequestWithOneTimeCallbackWithCallbackParam(
                 eventData,
-                callback);
+                callback,
+                event -> {
+                    String url = DataReader.optString(event.getEventData(), IdentityConstants.EventDataKeys.Identity.URL_VARIABLES, "");
+                    callback.call(url);
+                });
     }
 
     /**
@@ -242,18 +245,18 @@ public class Identity {
      *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the customer identifiers are retrieved
      */
     public static void getIdentifiers(final AdobeCallback<List<VisitorID>> callback) {
-//        if (identityCore == null) {
-//            Log.error(IdentityConstants.LOG_TAG, CLASS_NAME, "getIdentifiers : Unable to get Visitor identifiers because (%s)", NULL_CONTEXT_MESSAGE);
-//
-//            returnExtensionNotInitializedError(callback);
-//            return;
-//        }
-
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getIdentifiers : Processing a request to get all customer identifiers.");
-//        identityCore.getIdentifiers(callback);
-        createIdentityRequestWithOneTimeCallbackWithCallbackParam(IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LIST,
+        createIdentityRequestWithOneTimeCallbackWithCallbackParam(
                 null,
-                callback);
+                callback,
+                event -> {
+                    List<VisitorID> list = DataReader.optTypedList(
+                            VisitorID.class,
+                            event.getEventData(),
+                            IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LIST,
+                            new ArrayList<>());
+                    callback.call(list);
+                });
     }
 
     /**
@@ -268,22 +271,21 @@ public class Identity {
      *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the ECID is retrieved
      */
     public static void getExperienceCloudId(final AdobeCallback<String> callback) {
-//        if (identityCore == null) {
-//            Log.error(IdentityConstants.LOG_TAG, CLASS_NAME, "getExperienceCloudId : Unable to get ECID because (%s)", NULL_CONTEXT_MESSAGE);
-//
-//            returnExtensionNotInitializedError(callback);
-//            return;
-//        }
 
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getExperienceCloudId : Processing the request to get ECID.");
-//        identityCore.getExperienceCloudId(callback);
-        createIdentityRequestWithOneTimeCallbackWithCallbackParam(IdentityConstants.EventDataKeys.Identity.VISITOR_ID_MID, null,
-                callback);
+        createIdentityRequestWithOneTimeCallbackWithCallbackParam(
+                null,
+                callback,
+                event -> {
+                    String mid = DataReader.optString(event.getEventData(), IdentityConstants.EventDataKeys.Identity.VISITOR_ID_MID, "");
+                    callback.call(mid);
+                });
     }
 
-    private static <T> void createIdentityRequestWithOneTimeCallbackWithCallbackParam(final String identifierKey,
-                                                                                      final Map<String, Object> eventData,
-                                                                                      final AdobeCallback<T> callback) {
+    private static <T> void createIdentityRequestWithOneTimeCallbackWithCallbackParam(
+            final Map<String, Object> eventData,
+            final AdobeCallback<T> errorCallback,
+            final AdobeCallback<Event> callback) {
         if (callback == null) {
             return;
         }
@@ -299,18 +301,19 @@ public class Identity {
                     EventSource.REQUEST_IDENTITY).setEventData(eventData).build();
         }
 
-        final AdobeCallbackWithError adobeCallbackWithError = callback instanceof AdobeCallbackWithError ?
-                (AdobeCallbackWithError) callback : null;
         MobileCore.dispatchEventWithResponseCallback(event, PUBLIC_API_TIME_OUT_MILLISECOND, new AdobeCallbackWithError<Event>() {
             @Override
             public void fail(AdobeError error) {
-                adobeCallbackWithError.fail(error);
+                if (errorCallback instanceof AdobeCallbackWithError) {
+                    AdobeCallbackWithError adobeCallbackWithError = (AdobeCallbackWithError) errorCallback;
+                    adobeCallbackWithError.fail(error);
+                }
+
             }
 
             @Override
             public void call(Event e) {
-                EventData eventData = e.getData();
-                callback.call(eventData.optTypedObject(identifierKey, null, valueSerializer));
+                callback.call(e);
             }
         });
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME,

@@ -123,7 +123,7 @@ class ContextDataUtil {
 
 		try {
 			// get our current key buffer and an output buffer of equal length
-			final byte[] utf8Key = key.getBytes(StringUtils.CHARSET_UTF_8);
+			final byte[] utf8Key = key.getBytes(com.adobe.marketing.mobile.StringUtils.CHARSET_UTF_8);
 			final byte[] outPut = new byte[utf8Key.length];
 			final byte periodChar = (byte) 0x2E;
 			final int mask = 0xFF;
@@ -161,7 +161,7 @@ class ContextDataUtil {
 			}
 
 			// create cleaned string
-			cleanKey = new String(outPut, startIndex, totalLength, StringUtils.CHARSET_UTF_8);
+			cleanKey = new String(outPut, startIndex, totalLength, com.adobe.marketing.mobile.StringUtils.CHARSET_UTF_8);
 		} catch (UnsupportedEncodingException exeption) {
 			Log.error(LOG_TAG, "Unable to clean context data key (%s)", exeption);
 			return null;
@@ -394,7 +394,7 @@ class ContextDataUtil {
 				String contextDataKey = contextDataStringPath(keyPath, kvpair[0]);
 
 				try {
-					contextData.put(contextDataKey, java.net.URLDecoder.decode(kvpair[1], StringUtils.CHARSET_UTF_8));
+					contextData.put(contextDataKey, java.net.URLDecoder.decode(kvpair[1], com.adobe.marketing.mobile.StringUtils.CHARSET_UTF_8));
 				} catch (UnsupportedEncodingException e) {
 					Log.warning(LOG_TAG, "Appending the context data information failed with %s", e);
 				}

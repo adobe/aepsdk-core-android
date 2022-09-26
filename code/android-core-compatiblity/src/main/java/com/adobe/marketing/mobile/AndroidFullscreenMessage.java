@@ -39,7 +39,6 @@ import android.webkit.WebViewClient;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
-import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.UrlUtils;
 
 import java.io.File;
@@ -283,7 +282,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
                     settings.setDatabaseEnabled(true);
                 }
 
-                settings.setDefaultTextEncodingName(StringUtils.CHARSET_UTF_8);
+                settings.setDefaultTextEncodingName(com.adobe.marketing.mobile.StringUtils.CHARSET_UTF_8);
                 message.webView.loadDataWithBaseURL(BASE_URL, message.html, MIME_TYPE, StringUtils.CHARSET_UTF_8, null);
 
                 if (message.rootViewGroup == null) {

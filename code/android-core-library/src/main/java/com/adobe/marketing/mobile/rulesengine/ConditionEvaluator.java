@@ -13,7 +13,7 @@
 package com.adobe.marketing.mobile.rulesengine;
 import java.util.regex.Pattern;
 
-public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
+public class ConditionEvaluator implements Evaluating {
 	private final Option option;
 	private  static final String OPERATOR_EQUALS                 = "equals";
 	private  static final String OPERATOR_NOT_EQUALS             = "notEquals";
@@ -53,7 +53,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 	 * @param rhs A resolved {@code Operand}
 	 */
 	@Override
-	public RulesResult evaluate(final  A lhs, final String operation, final B rhs) {
+	public <A, B> RulesResult evaluate(final A lhs, final String operation, final B rhs) {
 		boolean evaluationResult;
 
 		switch (operation) {
@@ -108,7 +108,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 	}
 
 	@Override
-	public RulesResult evaluate(final String operation, final A lhs) {
+	public <A> RulesResult evaluate(final String operation, final A lhs) {
 		boolean evaluationResult;
 
 		switch (operation) {
@@ -135,7 +135,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 	// Private - Operator definitions
 	//--------------------------------------------------------------------------
 
-	private boolean checkEqual(final A lhs, final B rhs) {
+	private boolean checkEqual(final Object lhs, final Object rhs) {
 		if (lhs instanceof String && rhs instanceof String && option == Option.CASE_INSENSITIVE) {
 			String lhsValue = lhs.toString();
 			String rhsValue = rhs.toString();
@@ -145,11 +145,11 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 		return lhs.equals(rhs);
 	}
 
-	private boolean notEqual(final A lhs, final B rhs) {
+	private boolean notEqual(final Object lhs, final Object rhs) {
 		return !checkEqual(lhs, rhs);
 	}
 
-	private boolean startsWith(final A lhs, final B rhs) {
+	private boolean startsWith(final Object lhs, final Object rhs) {
 		if (lhs instanceof String && rhs instanceof String) {
 			String lhsValue = lhs.toString();
 			String rhsValue = rhs.toString();
@@ -160,7 +160,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 		return false;
 	}
 
-	private boolean endsWith(final A lhs, final  B rhs) {
+	private boolean endsWith(final Object lhs, final  Object rhs) {
 		if (lhs instanceof String && rhs instanceof String) {
 			String lhsValue = lhs.toString();
 			String rhsValue = rhs.toString();
@@ -171,11 +171,11 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 		return false;
 	}
 
-	private boolean exists(final A lhs) {
+	private boolean exists(final Object lhs) {
 		return lhs != null;
 	}
 
-	private boolean notExists(final A lhs) {
+	private boolean notExists(final Object lhs) {
 		return lhs == null;
 	}
 
@@ -184,7 +184,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 	// Private - Operator definitions coming soon
 	//--------------------------------------------------------------------------
 
-	private boolean greaterThan(final A lhs, final  B rhs) {
+	private boolean greaterThan(final Object lhs, final  Object rhs) {
 		Double resolvedLhs = tryParseDouble(lhs);
 		Double resolvedRhs = tryParseDouble(rhs);
 
@@ -195,7 +195,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 		return resolvedLhs > resolvedRhs;
 	}
 
-	private boolean greaterThanEquals(final A lhs, final  B rhs) {
+	private boolean greaterThanEquals(final Object lhs, final  Object rhs) {
 		Double resolvedLhs = tryParseDouble(lhs);
 		Double resolvedRhs = tryParseDouble(rhs);
 
@@ -205,7 +205,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 		return resolvedLhs >= resolvedRhs;
 	}
 
-	private boolean lesserThan(final A lhs, final  B rhs) {
+	private boolean lesserThan(final Object lhs, final  Object rhs) {
 		Double resolvedLhs = tryParseDouble(lhs);
 		Double resolvedRhs = tryParseDouble(rhs);
 
@@ -215,7 +215,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 		return resolvedLhs < resolvedRhs;
 	}
 
-	private boolean lesserThanOrEqual(final A lhs, final  B rhs) {
+	private boolean lesserThanOrEqual(final Object lhs, final  Object rhs) {
 		Double resolvedLhs = tryParseDouble(lhs);
 		Double resolvedRhs = tryParseDouble(rhs);
 
@@ -225,7 +225,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 		return resolvedLhs <= resolvedRhs;
 	}
 
-	private boolean contains(final A lhs, final  B rhs) {
+	private boolean contains(final Object lhs, final  Object rhs) {
 		if (lhs instanceof String && rhs instanceof String) {
 
 			String lhsValue = lhs.toString();
@@ -242,7 +242,7 @@ public class ConditionEvaluator<A, B> implements Evaluating<A, B> {
 		return false;
 	}
 
-	private boolean notContains(final A lhs, final  B rhs) {
+	private boolean notContains(final Object lhs, final  Object rhs) {
 		return !contains(lhs, rhs);
 	}
 

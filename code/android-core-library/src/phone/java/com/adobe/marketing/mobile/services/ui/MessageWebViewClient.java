@@ -22,11 +22,10 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
+import com.adobe.marketing.mobile.util.UrlUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -108,7 +107,7 @@ class MessageWebViewClient extends WebViewClient {
 	 * @return an instance of {@code WebResourceResponse}.
 	 */
 	private WebResourceResponse handleWebResourceRequest(final String url) {
-		if (StringUtils.stringIsUrl(url) && assetMap.get(url) != null) {
+		if (UrlUtils.isValidUrl(url) && assetMap.get(url) != null) {
 			try {
 				final String cachedPath = assetMap.get(url);
 				final String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(

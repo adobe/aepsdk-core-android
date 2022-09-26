@@ -16,9 +16,7 @@ import android.animation.ObjectAnimator;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;

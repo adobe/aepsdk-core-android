@@ -9,8 +9,13 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.util
 
-@SuppressWarnings("unused")
-public class EventProcessorTest {
+internal fun Set<*>.isAllString(): Boolean {
+    if (this.isEmpty())
+        return false
+    this.forEach {
+        if (it !is String) return false
+    }
+    return true
 }

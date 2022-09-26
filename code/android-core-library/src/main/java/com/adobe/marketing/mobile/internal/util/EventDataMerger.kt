@@ -69,11 +69,6 @@ internal object EventDataMerger {
         }
     }
 
-    private fun Set<*>.isAllString(): Boolean {
-        this.forEach { if (it !is String) return false }
-        return true
-    }
-
     private fun innerMerge(
         from: Map<String, Any?>?,
         to: Map<String, Any?>?,

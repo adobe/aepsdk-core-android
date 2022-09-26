@@ -21,7 +21,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.zip.ZipInputStream
 
-object FileUtils {
+internal object FileUtils {
     const val TAG = "FileUtils"
     private const val MAX_BUFFER_SIZE = 4096
 

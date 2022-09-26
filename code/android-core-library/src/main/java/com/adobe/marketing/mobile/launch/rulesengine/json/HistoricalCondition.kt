@@ -50,7 +50,7 @@ internal class HistoricalCondition(
             EventHistoryRequest(it, fromDate, toDate)
         }
         return ComparisonExpression(
-            OperandFunction<Int>(
+            OperandFunction(
                 {
                     try {
                         @Suppress("UNCHECKED_CAST")

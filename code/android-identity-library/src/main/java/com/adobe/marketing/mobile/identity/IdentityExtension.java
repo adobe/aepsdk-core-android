@@ -26,7 +26,7 @@ import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.VisitorID;
 import com.adobe.marketing.mobile.identity.IdentityConstants.DataStoreKeys;
 import com.adobe.marketing.mobile.identity.IdentityConstants.Defaults;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.services.DataEntity;
 import com.adobe.marketing.mobile.services.DataQueue;
 import com.adobe.marketing.mobile.services.HitQueuing;
 import com.adobe.marketing.mobile.services.HttpMethod;
@@ -37,7 +37,10 @@ import com.adobe.marketing.mobile.services.Networking;
 import com.adobe.marketing.mobile.services.PersistentHitQueue;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.TimeUtils;
+import com.adobe.marketing.mobile.util.URLBuilder;
+import com.adobe.marketing.mobile.util.UrlUtils;
 
 import java.net.HttpURLConnection;
 import java.util.*;
@@ -71,6 +74,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class IdentityExtension extends Extension {
     private static final String LOG_SOURCE = "IdentityExtension";
     private static final String ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME = "AnalyticsForIdentityRequest";
+    private final ConcurrentLinkedQueue<Event> eventsQueue = new ConcurrentLinkedQueue<>();
+    private HitQueuing hitQueue;
+    private static boolean pushEnabled = false;
+    private static final Object _pushEnabledMutex = new Object();
+    private ConfigurationSharedStateIdentity latestValidConfig;
+    private final NamedCollection namedCollection;
+
     private String mid;
     private String advertisingIdentifier;
     private String pushIdentifier;
@@ -79,16 +89,7 @@ public class IdentityExtension extends Extension {
     private long lastSync;
     private long ttl;
     private List<VisitorID> customerIds;
-    private MobilePrivacyStatus privacyStatus = Defaults.DEFAULT_MOBILE_PRIVACY;
-    private final ConcurrentLinkedQueue<Event> eventsQueue = new ConcurrentLinkedQueue<>();
-    private HitQueuing hitQueue;
-    //    private DispatcherIdentityResponseIdentityIdentity idResponseEventDispatcher;
-//    private DispatcherAnalyticsRequestContentIdentity idAnalyticsEventDispatcher;
-//    private DispatcherConfigurationRequestContentIdentity idConfigurationEventDispatcher;
-    private static boolean pushEnabled = false;
-    private static final Object _pushEnabledMutex = new Object();
-    private ConfigurationSharedStateIdentity latestValidConfig;
-    private final NamedCollection namedCollection;
+    private MobilePrivacyStatus privacyStatus = IdentityConstants.Defaults.DEFAULT_MOBILE_PRIVACY;
 
     /**
      * Construct the extension and initialize with the {@code ExtensionApi}.
@@ -174,6 +175,8 @@ public class IdentityExtension extends Extension {
                     processEventQueue();
                 });
         loadVariablesFromPersistentData();
+        initializeDatabaseWithCurrentPrivacyStatus();
+        getApi().createSharedState(packageEventData(), null);
     }
 
     @Override
@@ -183,7 +186,27 @@ public class IdentityExtension extends Extension {
 
     @Override
     public boolean readyForEvent(@NonNull Event event) {
-        return super.readyForEvent(event);
+
+        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Processing BOOTED event.");
+
+        // The database is created when the privacy status changes or on the first sync event
+        // which is why it is not created in bootup.
+        loadPrivacyStatus(event); // attempt to load privacy status from Configuration state
+
+        final Event forcedSyncEvent = createForcedSyncEvent(event);
+        enqueueEvent(forcedSyncEvent);
+        processEventQueue();
+        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Added an Identity force sync event on boot.");
+
+        // Identity should always share its state
+        // However, don't create a shared state twice, which will log an error
+        // The force sync event processed above will create a shared state if the privacy is not opt-out
+        if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
+            Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
+                    "bootup : Privacy status was opted out on boot, so created Identity shared state.");
+            getApi().createSharedState(packageEventData(), null);
+        }
+        return true;
     }
 
     //**************************************************************
@@ -246,7 +269,7 @@ public class IdentityExtension extends Extension {
     private void initializeDatabaseWithCurrentPrivacyStatus() {
         if (hitQueue == null) {
             DataQueue dataQueue = ServiceProvider.getInstance().getDataQueueService().getDataQueue(IdentityConstants.EXTENSION_NAME);
-            hitQueue = new PersistentHitQueue(dataQueue, new IdentityHitsProcessing());
+            hitQueue = new PersistentHitQueue(dataQueue, new IdentityHitsProcessing(this));
         }
         hitQueue.handlePrivacyChange(privacyStatus);
     }
@@ -391,15 +414,14 @@ public class IdentityExtension extends Extension {
      */
     void handleIdentityRequestReset(final Event event) {
         if (event == null) {
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "handleIdentityRequestReset: Ignoring null event");
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, LOG_SOURCE, "handleIdentityRequestReset: Ignoring null event");
             return;
         }
 
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "handleIdentityRequestReset: Privacy is opt-out, ignoring event.");
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "handleIdentityRequestReset: Privacy is opt-out, ignoring event.");
             return;
         }
-
         mid = null;
         advertisingIdentifier = null;
         blob = null;
@@ -421,7 +443,7 @@ public class IdentityExtension extends Extension {
         final Event forcedSyncEvent = createForcedSyncEvent(event);
         eventsQueue.add(forcedSyncEvent);
         processEventQueue();
-        Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "handleIdentityRequestReset: Did reset identifiers and queued force sync event.");
+        Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "handleIdentityRequestReset: Did reset identifiers and queued force sync event.");
     }
 
     /**
@@ -469,7 +491,7 @@ public class IdentityExtension extends Extension {
                     sendOptOutHit(configSharedState);
                 }
             }
-            Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "processAudienceResponse : Unable to process the Identity events in the event queue because the configuration shared state is pending.");
         }
     }
@@ -484,18 +506,18 @@ public class IdentityExtension extends Extension {
         String optOutUrl = buildOptOutURLString(configSharedState);
 
         if (StringUtils.isNullOrEmpty(optOutUrl)) {
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "sendOptOutHit : Unable to send network hit because the opt-out URL was null.");
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "sendOptOutHit : Unable to send network hit because the opt-out URL was null.");
             return;
         }
         Networking networkService = ServiceProvider.getInstance().getNetworkService();
         if (networkService == null) {
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "sendOptOutHit : Unable to send network request to the opt-out URL (%s) because NetworkService is unavailable.",
                     optOutUrl);
             return;
         }
 
-        Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "sendOptOutHit : Sending network request to the opt-out URL: (%s).", optOutUrl);
+        Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "sendOptOutHit : Sending network request to the opt-out URL: (%s).", optOutUrl);
 
         NetworkRequest networkRequest = new NetworkRequest(
                 optOutUrl,
@@ -510,9 +532,9 @@ public class IdentityExtension extends Extension {
             }
 
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "sendOptOutHit - Successfully sent the opt-out hit.");
+                Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "sendOptOutHit - Successfully sent the opt-out hit.");
             } else {
-                Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "sendOptOutHit - Failed to send the opt-out hit with connection status (%s).",
+                Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "sendOptOutHit - Failed to send the opt-out hit with connection status (%s).",
                         connection.getResponseCode());
             }
 
@@ -528,25 +550,24 @@ public class IdentityExtension extends Extension {
     void loadVariablesFromPersistentData() {
 
         if (namedCollection == null) {
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "loadVariablesFromPersistentData : Unable to load the Identity data from persistence because the LocalStorageService was null.");
             return;
         }
-
-        mid = namedCollection.getString(DataStoreKeys.MARKETING_CLOUD_ID, null);
+        mid = namedCollection.getString(IdentityConstants.DataStoreKeys.MARKETING_CLOUD_ID, null);
 
         // reload the customer ids.
         final List<VisitorID> newCustomerIDs = convertVisitorIdsStringToVisitorIDObjects(namedCollection.getString(
-                DataStoreKeys.VISITOR_IDS_STRING, null));
+                IdentityConstants.DataStoreKeys.VISITOR_IDS_STRING, null));
 
         customerIds = newCustomerIDs == null || newCustomerIDs.isEmpty() ? null : newCustomerIDs;
-        locationHint = namedCollection.getString(DataStoreKeys.LOCATION_HINT, null);
-        blob = namedCollection.getString(DataStoreKeys.BLOB, null);
-        ttl = namedCollection.getLong(DataStoreKeys.TTL, Defaults.DEFAULT_TTL_VALUE);
-        lastSync = namedCollection.getLong(DataStoreKeys.LAST_SYNC, 0);
-        advertisingIdentifier = namedCollection.getString(DataStoreKeys.ADVERTISING_IDENTIFIER, null);
-        pushIdentifier = namedCollection.getString(DataStoreKeys.PUSH_IDENTIFIER, null);
-        Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "loadVariablesFromPersistentData : Successfully loaded the Identity data from persistence.");
+        locationHint = namedCollection.getString(IdentityConstants.DataStoreKeys.LOCATION_HINT, null);
+        blob = namedCollection.getString(IdentityConstants.DataStoreKeys.BLOB, null);
+        ttl = namedCollection.getLong(IdentityConstants.DataStoreKeys.TTL, IdentityConstants.Defaults.DEFAULT_TTL_VALUE);
+        lastSync = namedCollection.getLong(IdentityConstants.DataStoreKeys.LAST_SYNC, 0);
+        advertisingIdentifier = namedCollection.getString(IdentityConstants.DataStoreKeys.ADVERTISING_IDENTIFIER, null);
+        pushIdentifier = namedCollection.getString(IdentityConstants.DataStoreKeys.PUSH_IDENTIFIER, null);
+        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "loadVariablesFromPersistentData : Successfully loaded the Identity data from persistence.");
 
     }
 
@@ -561,13 +582,13 @@ public class IdentityExtension extends Extension {
     boolean processEvent(final Event event, final ConfigurationSharedStateIdentity configSharedState) {
         if (configSharedState == null) {
             // sanity check, should never get here
-            Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "processEvent : Unable to process the Identity event in the event queue because the configuration was not available yet.");
             return true;
         }
 
         if (event == null) {
-            Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "processEvent : Unable to process the Identity event in the event queue because the event was null.");
             return true; // event can never be processed, throw it out of the queue
         }
@@ -576,12 +597,12 @@ public class IdentityExtension extends Extension {
         final Map<String, Object> eventData = event.getEventData();
 
         if (eventData == null) {
-            Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "processEvent : Unable to process the Identity event in the event queue because the event data was null.");
             return true; // event can never be processed, throw it out of the queue
         }
 
-        Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "processEvent : Processing the Identity event: %s", event);
+        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "processEvent : Processing the Identity event: %s", event);
 
         if (event.getType().equals(EventType.GENERIC_IDENTITY)
                 && event.getSource().equals(EventSource.REQUEST_RESET)) {
@@ -589,7 +610,7 @@ public class IdentityExtension extends Extension {
         } else if (DataReader.optBoolean(eventData, IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT, false)
                 || event.getType().equals(EventType.GENERIC_IDENTITY)) {
             if (!handleSyncIdentifiers(event, configSharedState)) {
-                Log.warning(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+                Log.warning(IdentityConstants.LOG_TAG, LOG_SOURCE,
                         "ProcessEvent : Configuration is missing a valid experienceCloud.org which is needed to process Identity events. Processing will resume once a valid configuration is obtained.");
                 return false;
             }
@@ -598,14 +619,14 @@ public class IdentityExtension extends Extension {
             final Map<String, Object> analyticsSharedState = getApi().getSharedState(IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
                     event, false, SharedStateResolution.LAST_SET).getValue();
             if (analyticsSharedState == null) {
-                Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+                Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
                         "ProcessEvent : no valid shared Analytics state");
                 return false;
             }
             //TODO: add check to readyForEvent
 //            if (shouldWaitForPendingSharedState(event, IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
 //                    analyticsSharedState)) {
-//                Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+//                Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
 //                        "ProcessEvent : Analytics is registered but has pending shared state. Waiting for Analytics state before processing appendToUrl event.");
 //                return false;
 //            }
@@ -616,14 +637,14 @@ public class IdentityExtension extends Extension {
             final Map<String, Object> analyticsSharedState = getApi().getSharedState(IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
                     event, false, SharedStateResolution.LAST_SET).getValue();
             if (analyticsSharedState == null) {
-                Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+                Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
                         "ProcessEvent : no valid shared Analytics state");
                 return false;
             }
             //TODO: add check to readyForEvent
 //            if (shouldWaitForPendingSharedState(event, IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
 //                    analyticsSharedState)) {
-//                Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+//                Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
 //                        "ProcessEvent : Analytics is registered but has pending shared state. Waiting for Analytics state before processing getUrlVariables event.");
 //                return false;
 //            }
@@ -648,7 +669,7 @@ public class IdentityExtension extends Extension {
 //        EventData hubSharedState = getSharedEventState(IdentityConstants.EventDataKeys.EventHub.MODULE_NAME, event);
 //
 //        if (hubSharedState == EventHub.SHARED_STATE_PENDING) {
-//            Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+//            Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
 //                    "shouldWaitForPendingSharedState : Event Hub shared state is pending.");
 //            // Both Event Hub and extension states are pending/null, need to wait for either Event Hub or extensions state update
 //            return true;
@@ -658,7 +679,7 @@ public class IdentityExtension extends Extension {
 //                IdentityConstants.EventDataKeys.EventHub.EXTENSIONS_KEY, null);
 //
 //        if (extensionDetailsMap == null) {
-//            Log.warning(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+//            Log.warning(IdentityConstants.LOG_TAG, LOG_SOURCE,
 //                    "shouldWaitForPendingSharedState : Event Hub shared state did not have registered extensions info.");
 //            // Event Hub shared its state, but it's malformed. We have no information on registered extensions. Continue without waiting.
 //            return false;
@@ -672,7 +693,7 @@ public class IdentityExtension extends Extension {
         final Map<String, Object> configuration = getApi().getSharedState(IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
                 event, false, SharedStateResolution.LAST_SET).getValue();
         if (configuration == null) {
-            Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "ProcessEvent : no valid shared Configuration state");
             return;
         }
@@ -702,20 +723,20 @@ public class IdentityExtension extends Extension {
     boolean handleSyncIdentifiers(final Event event, final ConfigurationSharedStateIdentity configSharedState) {
         if (configSharedState == null) {
             // sanity check, should never get here
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the configuration was null.");
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the configuration was null.");
             return true;
         }
 
         // do not even extract any data if the config is opt_out.
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the privacy status was opt-out.");
             // did process this event but can't sync the call. Hence return true.
             return true;
         }
 
         if (event == null) {
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the event sent was null.");
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the event sent was null.");
             return true;
         }
 
@@ -732,7 +753,7 @@ public class IdentityExtension extends Extension {
                 currentEventValidConfig = latestValidConfig;
             } else {
                 // can't process this event. return false to break execution loop
-                Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+                Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                         "handleSyncIdentifiers : Unable to process sync identifiers request as the configuration did not contain a valid Experience Cloud organization ID. Will attempt to process event when a valid configuration is received.");
                 return false;
             }
@@ -740,7 +761,7 @@ public class IdentityExtension extends Extension {
 
         // check privacy again from the configuration object
         if (currentEventValidConfig.privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "handleSyncIdentifiers : Ignored the Sync Identifiers call because the privacy status was opt-out.");
             return true; // cannot process event due to privacy setting, remove from queue
         }
@@ -748,7 +769,7 @@ public class IdentityExtension extends Extension {
         // if the marketingCloudServer is null or empty use the default server
         if (StringUtils.isNullOrEmpty(currentEventValidConfig.marketingCloudServer)) {
             currentEventValidConfig.marketingCloudServer = IdentityConstants.Defaults.SERVER;
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "handleSyncIdentifiers : The experienceCloud.server was empty is the configuration, hence used the default server: (%s).",
                     currentEventValidConfig.marketingCloudServer);
         }
@@ -798,10 +819,11 @@ public class IdentityExtension extends Extension {
         if (shouldSync(currentCustomerIds, dpids, forceSync || didAdidConsentChange, currentEventValidConfig)) {
             final String urlString = buildURLString(currentCustomerIds, dpids, currentEventValidConfig, didAdidConsentChange);
             initializeDatabaseWithCurrentPrivacyStatus();
-            database.queue(urlString, event, currentEventValidConfig);
+            IdentityHit hit = new IdentityHit(urlString, event);
+            hitQueue.queue(hit.toDataEntity());
         } else {
             // nothing to sync
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "handleSyncIdentifiers : Ignoring ID sync because nothing new to sync after the last sync.");
         }
 
@@ -884,10 +906,10 @@ public class IdentityExtension extends Extension {
                         VisitorID.AuthenticationState.AUTHENTICATED);
 
                 updateAdvertisingIdentifier(newAdid);
-                Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "extractAndUpdateAdid : The advertising identifier was set to: (%s).", newAdid);
+                Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "extractAndUpdateAdid : The advertising identifier was set to: (%s).", newAdid);
             }
         } catch (Exception e) {
-            Log.error(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "extractAndUpdateAdid : Unable to update the advertising identifier due to: (%s)", e);
+            Log.error(IdentityConstants.LOG_TAG, LOG_SOURCE, "extractAndUpdateAdid : Unable to update the advertising identifier due to: (%s)", e);
         }
 
         return new IdentityGenericPair<>(adidAsVisitorId, didConsentChange);
@@ -929,7 +951,7 @@ public class IdentityExtension extends Extension {
         pushIdentifier = pushId;
 
         if (!processNewPushToken(pushId)) {
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "updatePushIdentifier : Ignored a push token (%s) as it matches with an existing token, and the push notification status will not be re-sent to Analytics.",
                     pushId);
             return;
@@ -937,7 +959,7 @@ public class IdentityExtension extends Extension {
 
         if (pushId == null && !isPushEnabled()) {
             changePushStatusAndHitAnalytics(false);
-            Log.debug(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "updatePushIdentifier : First time sending a.push.optin false");
+            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "updatePushIdentifier : First time sending a.push.optin false");
         } else if (pushId == null) { // push is enabled
             changePushStatusAndHitAnalytics(false);
         } else if (!isPushEnabled()) { // push ID is not null
@@ -1069,10 +1091,10 @@ public class IdentityExtension extends Extension {
             customerIdString.append("&");
             customerIdString.append(IdentityConstants.UrlKeys.VISITOR_ID);
             customerIdString.append("=");
-            customerIdString.append(UrlUtilities.urlEncode(newVisitorID.getIdType()));
+            customerIdString.append(UrlUtils.urlEncode(newVisitorID.getIdType()));
             customerIdString.append(Defaults.CID_DELIMITER);
 
-            final String urlEncodedID = UrlUtilities.urlEncode(newVisitorID.getId());
+            final String urlEncodedID = UrlUtils.urlEncode(newVisitorID.getId());
 
             if (urlEncodedID != null) {
                 customerIdString.append(urlEncodedID);
@@ -1167,10 +1189,10 @@ public class IdentityExtension extends Extension {
      */
     List<VisitorID> convertVisitorIdsStringToVisitorIDObjects(final String idString) {
         if (StringUtils.isNullOrEmpty(idString)) {
-            return new ArrayList<VisitorID>();
+            return new ArrayList<>();
         }
 
-        final List<VisitorID> visitorIDs = new ArrayList<VisitorID>();
+        final List<VisitorID> visitorIDs = new ArrayList<>();
         String[] customerIdComponentsArray = idString.split("&");
 
         for (final String customerIdString : customerIdComponentsArray) {
@@ -1255,14 +1277,14 @@ public class IdentityExtension extends Extension {
         // after the adobe_mc string is created, we need to encode it again before adding it to the url
         urlFragment.append(IdentityConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY);
         urlFragment.append("=");
-        urlFragment.append(UrlUtilities.urlEncode(theIdString));
+        urlFragment.append(UrlUtils.urlEncode(theIdString));
 
         // add 'adobe_aa_vid' if exists
         if (!StringUtils.isNullOrEmpty(vid)) {
             urlFragment.append("&");
             urlFragment.append(IdentityConstants.UrlKeys.ADB_ANALYTICS_PAYLOAD_KEY);
             urlFragment.append("=");
-            urlFragment.append(UrlUtilities.urlEncode(vid));
+            urlFragment.append(UrlUtils.urlEncode(vid));
         }
 
         return urlFragment;
@@ -1344,8 +1366,8 @@ public class IdentityExtension extends Extension {
      * dispatches resulting {@link Event}, including a updateSharedState flag indicating if a shared state update should be executed.
      * If this network response was triggered by a paired event, a paired event is also dispatched.
      *
-     * @param result       {@code HashMap<String, String>} containing the network response result
-     * @param event       the trigger event
+     * @param result {@code HashMap<String, String>} containing the network response result
+     * @param event  the trigger event
      */
     void networkResponseLoaded(final IdentityResponseObject result, final Event event) {
         boolean requiresSharedStateUpdate = false;
@@ -1400,7 +1422,7 @@ public class IdentityExtension extends Extension {
     /**
      * Extracts all the DPIDs from the EventData parameter
      * <p>
-     * If the {@code eventData} contains a push identifier, it saves it to the IdentityExtension {@link DataStore}
+     * If the {@code eventData} contains a push identifier, it saves it to the IdentityExtension DataStore
      * <p>
      * This method returns null if {@code eventData} does not contain a DPIDs map or if it contains an empty map
      *
@@ -1429,7 +1451,7 @@ public class IdentityExtension extends Extension {
     }
 
     /**
-     * Updates {@link #advertisingIdentifier} and writes it to the IdentityExtension {@link DataStore}
+     * Updates {@link #advertisingIdentifier} and writes it to the IdentityExtension DataStore
      *
      * @param adid advertising identifier string
      */
@@ -1446,7 +1468,7 @@ public class IdentityExtension extends Extension {
     private void changePushStatusAndHitAnalytics(final boolean isEnabled) {
         setPushStatus(isEnabled);
 
-        final HashMap<String, String> contextData = new HashMap<String, String>();
+        final HashMap<String, String> contextData = new HashMap<>();
         contextData.put(IdentityConstants.EventDataKeys.Identity.EVENT_PUSH_STATUS, String.valueOf(isEnabled));
 
         final Map<String, Object> analyticsData = new HashMap<>();
@@ -1486,7 +1508,7 @@ public class IdentityExtension extends Extension {
     }
 
     /**
-     * Updates the {@link #pushEnabled} flag in {@link DataStore} with the provided value.
+     * Updates the {@link #pushEnabled} flag in DataStore with the provided value.
      *
      * @param enabled new push status value to be updated
      */
@@ -1505,28 +1527,37 @@ public class IdentityExtension extends Extension {
     }
 
     /**
-     * If {@link #idResponseEventDispatcher} is not null, dispatches an {@link Event} for the provided data
-     *
      * @param eventName to be used to create the event object to be dispatched
      * @param eventData to be used to create the event object to be dispatched
      * @param event     for one time callback listener
      */
     private void handleIdentityResponseEvent(final String eventName, final Map<String, Object> eventData, final Event event) {
+//
+//        if (idResponseEventDispatcher != null) {
+//            idResponseEventDispatcher.dispatchResponse(eventName, eventData, pairID);
+//        }
 
-        if (idResponseEventDispatcher != null) {
-            idResponseEventDispatcher.dispatchResponse(eventName, eventData, pairID);
-        }
+        Event newEvent = new Event.Builder(eventName, EventType.IDENTITY,
+                EventSource.RESPONSE_IDENTITY).setEventData(eventData).inResponseToEvent(event).build();
+        getApi().dispatch(newEvent);
+//        Log.trace(IdentityExtension.LOG_SOURCE, "dispatchResponse : Identity Response event has been added to event hub : %s",
+//                newEvent);
     }
 
     /**
-     * If {@link #idConfigurationEventDispatcher} is not null, dispatches an {@link Event} for the provided data.
-     *
      * @param eventData to be used to create the event object to be dispatched.
      */
     private void handleIdentityConfigurationUpdateEvent(final Map<String, Object> eventData) {
-        if (idConfigurationEventDispatcher != null) {
-            idConfigurationEventDispatcher.dispatchConfigUpdateRequest(eventData);
-        }
+//        if (idConfigurationEventDispatcher != null) {
+//            idConfigurationEventDispatcher.dispatchConfigUpdateRequest(eventData);
+//        }
+
+        final Event event = new Event.Builder("Configuration Update From IdentityExtension",
+                EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
+
+        getApi().dispatch(event);
+//        Log.trace(IdentityExtension.LOG_SOURCE,
+//                "dispatchConfigUpdateRequest : Configuration Update event has been added to event hub : %s", event);
     }
 
     /**
@@ -1609,7 +1640,7 @@ public class IdentityExtension extends Extension {
     }
 
     /**
-     * If the {@link IdentityExtension} {@link DataStore} is available, writes {@code IdentityExtension} fields to persistence
+     * If the {@link IdentityExtension} DataStore is available, writes {@code IdentityExtension} fields to persistence
      */
     private void savePersistently() {
 
@@ -1795,9 +1826,9 @@ public class IdentityExtension extends Extension {
 
         for (final Map.Entry<String, String> entry : dpidsCopy.entrySet()) {
             internalIdString.append("&d_cid=");
-            internalIdString.append(UrlUtilities.urlEncode(entry.getKey()));
+            internalIdString.append(UrlUtils.urlEncode(entry.getKey()));
             internalIdString.append(Defaults.CID_DELIMITER);
-            internalIdString.append(UrlUtilities.urlEncode(entry.getValue()));
+            internalIdString.append(UrlUtils.urlEncode(entry.getValue()));
         }
 
         if (internalIdString.charAt(0) == '&') {
@@ -1924,7 +1955,7 @@ public class IdentityExtension extends Extension {
     /**
      * Takes a {@code List<VisitorID>} and returns a {@link String} representation
      * <p>
-     * This method is used so the {@link VisitorID}s can be stored in the IdentityExtension {@link DataStore}
+     * This method is used so the {@link VisitorID}s can be stored in the IdentityExtension DataStore
      * <p>
      * Returns empty string if the provided list is null or empty
      *
@@ -2075,34 +2106,6 @@ public class IdentityExtension extends Extension {
                 == null;
     }
 
-
-    /**
-     * Forces an initial sync upon {@link EventHub} boot completion
-     *
-     * @param bootEvent {@link Event} of boot completion event
-     */
-    void bootup(final Event bootEvent) {
-        Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Processing BOOTED event.");
-
-        // The database is created when the privacy status changes or on the first sync event
-        // which is why it is not created in bootup.
-        loadPrivacyStatus(bootEvent); // attempt to load privacy status from Configuration state
-
-        final Event forcedSyncEvent = createForcedSyncEvent(bootEvent.getEventNumber());
-        enqueueEvent(forcedSyncEvent);
-        processEventQueue();
-        Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Added an Identity force sync event on boot.");
-
-        // Identity should always share its state
-        // However, don't create a shared state twice, which will log an error
-        // The force sync event processed above will create a shared state if the privacy is not opt-out
-        if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE,
-                    "bootup : Privacy status was opted out on boot, so created Identity shared state.");
-            createSharedState(bootEvent.getEventNumber(), packageEventData());
-        }
-    }
-
     /**
      * Attempts to set this IdentityExtension's {@code MobilePrivacyStatus} reference by retrieving the {@code Configuration} shared state
      * for the given {@code event}.
@@ -2111,19 +2114,19 @@ public class IdentityExtension extends Extension {
      * @param event the {@link Event} used to retrieve the {@code Configuration} state
      */
     private void loadPrivacyStatus(final Event event) {
-        EventData configState = getSharedEventState(IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event);
-
-        if (configState == EventHub.SHARED_STATE_PENDING) {
+        SharedStateResult sharedStateResult = getApi().getSharedState(IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event, false, SharedStateResolution.LAST_SET);
+//        EventData configState = getSharedEventState();
+        Map<String, Object> configState = sharedStateResult.getValue();
+        if (SharedStateStatus.PENDING == sharedStateResult.getStatus() || configState == null) {
             return;
         }
 
-        String privacyString = configState.optString(IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
+        String privacyString = DataReader.optString(configState, IdentityConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
                 Defaults.DEFAULT_MOBILE_PRIVACY.getValue());
 
         privacyStatus = MobilePrivacyStatus.fromString(privacyString);
-        Log.trace(IdentityConstants.LOG_TAG, IdentityConstants.LOG_TAG, LOG_SOURCE, "loadPrivacyStatus : Updated the database with the current privacy status: %s.", privacyString);
+        Log.trace(LOG_SOURCE, "loadPrivacyStatus : Updated the database with the current privacy status: %s.", privacyString);
         initializeDatabaseWithCurrentPrivacyStatus();
     }
-
 
 }

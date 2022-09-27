@@ -11,40 +11,61 @@
 
 package com.adobe.marketing.mobile.identity;
 
-import com.adobe.marketing.mobile.Event;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-/**
- * Extends {@link AbstractHit} and represents a record in the database that holds IdentityExtension requests
- */
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventCoder;
+import com.adobe.marketing.mobile.services.DataEntity;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 final class IdentityHit {
-//    /**
-//     * {@link String} containing optional pair ID of a potential one-time listener
-//     */
-//    String pairId;
-//
-//    /**
-//     * {@code int} containing the corresponding {@link Event#eventNumber} represented by this instance
-//     */
-//    int eventNumber;
-//
-//    /**
-//     * {@code boolean} whether the identity request should use HTTPS or HTTP
-//     */
-//    boolean configSSL;
-//
-//    /**
-//     * {@link String} containing the URL to be sent to the ECID Service
-//     */
-//    String url;
-//
-//    /**
-//     * Constructor initializes {@link #pairId} and {@link #url} to null, {@link #eventNumber} to -1,
-//     * and {@link #configSSL} to true
-//     */
-//    IdentityHit() {
-//        pairId = null;
-//        url = null;
-//        eventNumber = -1;
-//        configSSL = true;
-//    }
+    private static final String URL = "URL";
+    private static final String EVENT = "EVENT";
+    private String url;
+    private Event event;
+
+    IdentityHit(@NonNull String url, @NonNull Event event) {
+        this.url = url;
+        this.event = event;
+    }
+
+    String getUrl() {
+        return url;
+    }
+
+    Event getEvent() {
+        return event;
+    }
+
+    @Nullable
+    DataEntity toDataEntity() {
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put(URL, this.url);
+            jsonObject.put(EVENT, EventCoder.encode(this.event));
+            return new DataEntity(jsonObject.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Nullable
+    static IdentityHit fromDataEntity(DataEntity dataEntity) {
+
+        try {
+            String json = dataEntity.getData();
+            JSONObject jsonObject = new JSONObject(json);
+            String url = jsonObject.getString(URL);
+            Event event = EventCoder.decode(jsonObject.getString(EVENT));
+            return new IdentityHit(url, event);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }

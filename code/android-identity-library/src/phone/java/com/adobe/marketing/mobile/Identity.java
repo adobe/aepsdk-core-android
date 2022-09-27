@@ -16,10 +16,9 @@ import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.identity.IdentityConstants;
 import com.adobe.marketing.mobile.identity.IdentityExtension;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.DataReader;
-import com.adobe.marketing.mobile.util.DataReaderException;
+import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +28,6 @@ import java.util.Map;
 public class Identity {
     private final static String CLASS_NAME = "Identity";
     private final static String EXTENSION_VERSION = "2.0.0";
-    private static final String NULL_CONTEXT_MESSAGE = "Context must be set before calling SDK methods";
     private static final String REQUEST_IDENTITY_EVENT_NAME = "IdentityRequestIdentity";
     private static final int PUBLIC_API_TIME_OUT_MILLISECOND = 500; //ms
 
@@ -187,7 +185,7 @@ public class Identity {
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "appendVisitorInfoForURL : Processing a request to append Adobe visitor data to a URL string.");
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(IdentityConstants.EventDataKeys.Identity.BASE_URL, baseURL);
-        createIdentityRequestWithOneTimeCallbackWithCallbackParam(
+        createIdentityRequestWithCallbacks(
                 eventData,
                 callback,
                 event -> {
@@ -228,7 +226,7 @@ public class Identity {
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getUrlVariables : Processing the request to get Visitor information as URL query parameters.");
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(IdentityConstants.EventDataKeys.Identity.URL_VARIABLES, true);
-        createIdentityRequestWithOneTimeCallbackWithCallbackParam(
+        createIdentityRequestWithCallbacks(
                 eventData,
                 callback,
                 event -> {
@@ -246,7 +244,7 @@ public class Identity {
      */
     public static void getIdentifiers(final AdobeCallback<List<VisitorID>> callback) {
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getIdentifiers : Processing a request to get all customer identifiers.");
-        createIdentityRequestWithOneTimeCallbackWithCallbackParam(
+        createIdentityRequestWithCallbacks(
                 null,
                 callback,
                 event -> {
@@ -273,7 +271,7 @@ public class Identity {
     public static void getExperienceCloudId(final AdobeCallback<String> callback) {
 
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getExperienceCloudId : Processing the request to get ECID.");
-        createIdentityRequestWithOneTimeCallbackWithCallbackParam(
+        createIdentityRequestWithCallbacks(
                 null,
                 callback,
                 event -> {
@@ -282,7 +280,7 @@ public class Identity {
                 });
     }
 
-    private static <T> void createIdentityRequestWithOneTimeCallbackWithCallbackParam(
+    private static <T> void createIdentityRequestWithCallbacks(
             final Map<String, Object> eventData,
             final AdobeCallback<T> errorCallback,
             final AdobeCallback<Event> callback) {
@@ -320,25 +318,6 @@ public class Identity {
                 "createIdentityRequestWithOneTimeCallbackWithCallbackParam : Identity request event has been added to the event hub : %s",
                 event);
 
-    }
-
-
-    /**
-     * When an {@link AdobeCallbackWithError} is provided, the fail method will be called with {@link AdobeError#EXTENSION_NOT_INITIALIZED}.
-     *
-     * @param callback should not be null, should be instance of {@code AdobeCallbackWithError}
-     */
-    private static void returnExtensionNotInitializedError(final AdobeCallback callback) {
-        if (callback == null) {
-            return;
-        }
-
-        final AdobeCallbackWithError adobeCallbackWithError = callback instanceof AdobeCallbackWithError ?
-                (AdobeCallbackWithError) callback : null;
-
-        if (adobeCallbackWithError != null) {
-            adobeCallbackWithError.fail(AdobeError.EXTENSION_NOT_INITIALIZED);
-        }
     }
 
 

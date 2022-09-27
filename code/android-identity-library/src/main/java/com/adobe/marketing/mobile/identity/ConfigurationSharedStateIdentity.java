@@ -13,9 +13,9 @@ package com.adobe.marketing.mobile.identity;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
 import com.adobe.marketing.mobile.identity.IdentityConstants.Defaults;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.Map;
 

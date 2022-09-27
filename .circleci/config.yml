@@ -19,6 +19,10 @@ jobs:
       - run:
           name: Assemble phone release
           command: make assemble-phone-release
+      
+      - run:
+          name: Verify Core APIs
+          command: make api-check
 
       - run:
           name: JavaDoc

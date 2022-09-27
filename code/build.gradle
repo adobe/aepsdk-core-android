@@ -14,6 +14,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:7.2.1'
         classpath "org.jacoco:org.jacoco.core:0.8.7"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31"
+        classpath 'org.jetbrains.kotlinx:binary-compatibility-validator:0.11.1'
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
 
         // ktlint Functional Interface identification works only from 10.1.0 or later

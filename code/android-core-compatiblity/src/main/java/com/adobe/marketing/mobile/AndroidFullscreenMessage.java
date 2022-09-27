@@ -39,13 +39,13 @@ import android.webkit.WebViewClient;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
-import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.UrlUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -283,8 +283,8 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
                     settings.setDatabaseEnabled(true);
                 }
 
-                settings.setDefaultTextEncodingName(StringUtils.CHARSET_UTF_8);
-                message.webView.loadDataWithBaseURL(BASE_URL, message.html, MIME_TYPE, StringUtils.CHARSET_UTF_8, null);
+                settings.setDefaultTextEncodingName(String.valueOf(StandardCharsets.UTF_8));
+                message.webView.loadDataWithBaseURL(BASE_URL, message.html, MIME_TYPE, String.valueOf(StandardCharsets.UTF_8), null);
 
                 if (message.rootViewGroup == null) {
                     Log.debug(TAG, "%s (root view group), failed to show the fullscreen message.", Log.UNEXPECTED_NULL_VALUE);

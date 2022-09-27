@@ -15,218 +15,152 @@ import android.app.Application;
 import android.content.Intent;
 
 import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.Extension;
 import com.adobe.marketing.mobile.ExtensionApi;
-import com.adobe.marketing.mobile.ExtensionError;
-import com.adobe.marketing.mobile.ExtensionErrorCallback;
-import com.adobe.marketing.mobile.ExtensionUnexpectedError;
 import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.SharedStateResolution;
+import com.adobe.marketing.mobile.SharedStateResult;
+import com.adobe.marketing.mobile.SharedStateStatus;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.DataReader;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 class VictoryExtension extends Extension {
-	private final Object executorMutex = new Object();
-	private ExecutorService executor;
-	private ConcurrentLinkedQueue<Event> unprocessedEvents;
-	private long noProcessedEvents;
-	private boolean onUnexpectedErrorWasCalled;
+    private static final String LOG_TAG = "VictoryExtension";
 
-	protected VictoryExtension(ExtensionApi extensionApi) {
-		super(extensionApi);
-		unprocessedEvents = new ConcurrentLinkedQueue<Event>();
-		noProcessedEvents = 0;
-		registerListeners();
-	}
+    private long noProcessedEvents;
 
-	private void registerListeners() {
-		ExtensionErrorCallback<ExtensionError> errorCallback = new ExtensionErrorCallback<ExtensionError>() {
-			@Override
-			public void error(final ExtensionError extensionError) {
-				MobileCore.log(LoggingMode.ERROR, getName(), String.format("Failed to register listener, error: %s",
-							   extensionError.getErrorName()));
-			}
-		};
-		getApi().registerEventListener(VictoryConstants.EVENT_TYPE_VICTORY,
-									   VictoryConstants.EVENT_SOURCE_VICTORY_REQUEST, VictoryRequestListener.class, errorCallback);
-		getApi().registerEventListener(VictoryConstants.EVENT_TYPE_HUB, VictoryConstants.EVENT_SOURCE_SHARED_STATE,
-									   VictorySharedStateListener.class, errorCallback);
-		getApi().registerEventListener(VictoryConstants.EVENT_TYPE_VICTORY,
-									   VictoryConstants.EVENT_SOURCE_VICTORY_PAIRED_REQUEST,
-									   VictoryOneTimeListener.class, errorCallback);
-		getApi().registerWildcardListener(VictoryWildcardListener.class, errorCallback);
-	}
+    protected VictoryExtension(ExtensionApi extensionApi) {
+        super(extensionApi);
+        noProcessedEvents = 0;
+    }
 
-	@Override
-	protected String getName() {
-		return "VictoryExtension";
-	}
+    @Override
+    protected String getName() {
+        return VictoryConstants.EXTENSION_NAME;
+    }
 
-	@Override
-	protected void onUnregistered() {
-		processEvents();
+    @Override
+    protected String getFriendlyName() {
+        return VictoryConstants.EXTENSION_FRIENDLY_NAME;
+    }
 
-		noProcessedEvents = 0;
-		unprocessedEvents.clear();
+    @Override
+    protected String getVersion() {
+        return VictoryConstants.EXTENSION_VERSION;
+    }
 
-		MobileCore.log(LoggingMode.DEBUG, getName(), "Extension unregistered successfully");
-	}
 
-	@Override
-	protected void onUnexpectedError(final ExtensionUnexpectedError extensionUnexpectedError) {
-		super.onUnexpectedError(extensionUnexpectedError);
-		onUnexpectedErrorWasCalled = true;
-	}
+    @Override
+    protected void onRegistered() {
+        super.onRegistered();
+        registerListeners();
+    }
 
-	void handleEvent(final Event event) {
-		getExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				noProcessedEvents++;
-				Map<String, Object> eventData = event.getEventData();
+    private void registerListeners() {
+        getApi().registerEventListener(VictoryConstants.EVENT_TYPE_VICTORY, VictoryConstants.EVENT_SOURCE_VICTORY_REQUEST, this::handleVictoryRequest);
+        getApi().registerEventListener(VictoryConstants.EVENT_TYPE_VICTORY,
+                VictoryConstants.EVENT_SOURCE_VICTORY_PAIRED_REQUEST,
+                this::handleNoProcessedEventsRequest);
+        getApi().registerEventListener(EventType.WILDCARD, EventSource.WILDCARD, this::handleEvent);
+    }
 
-				if (eventData != null) {
-					MobileCore.log(LoggingMode.DEBUG,
-								   getName(),
-								   String.format("Started processing new event of type %s and source %s with data: %s",
-												 event.getType(),
-												 event.getSource(), eventData.toString()));
-				}
-			}
-		});
-	}
+    @Override
+    public boolean readyForEvent(Event event) {
+        SharedStateResult res = getApi().getSharedState(VictoryConstants.CONFIGURATION_SHARED_STATE, event, true, SharedStateResolution.ANY);
+        return res != null && res.getStatus() == SharedStateStatus.SET;
+    }
 
-	void addEvent(final Event event) {
-		getExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				unprocessedEvents.add(event);
-			}
-		});
-	}
+    @Override
+    protected void onUnregistered() {
+        noProcessedEvents = 0;
+        Log.debug(VictoryConstants.EXTENSION_NAME, LOG_TAG, "Extension unregistered successfully");
+    }
 
-	void processEvents() {
-		getExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				while (!unprocessedEvents.isEmpty()) {
-					Event event = unprocessedEvents.peek();
-					Map<String, Object> configSharedState = getApi().getSharedEventState(VictoryConstants.CONFIGURATION_SHARED_STATE, event,
-															null);
+    void handleEvent(final Event event) {
+        noProcessedEvents++;
+        Map<String, Object> eventData = event.getEventData();
+        if (eventData != null) {
+            Log.debug(VictoryConstants.EXTENSION_NAME, LOG_TAG,
+                    String.format("Started processing new event of type %s and source %s with data: %s",
+                            event.getType(),
+                            event.getSource(), eventData));
+        }
+    }
 
-					if (configSharedState == null) {
-						MobileCore.log(LoggingMode.DEBUG, getName(), "Configuration shared state was null, cannot process event now");
-						break;
-					}
+    private void handleVictoryRequest(Event event) {
+        Map<String, Object> eventData = event.getEventData();
+        if (eventData != null) {
+            Log.debug(VictoryConstants.EXTENSION_NAME, LOG_TAG, String.format("Processing user data %s",
+                    eventData.get(VictoryConstants.CONTEXT_DATA)));
 
-					Map<String, Object> eventData = event.getEventData();
+            if (eventData.containsKey(VictoryConstants.PRINT_LATEST_CONFIG)) {
+                printLatestConfigSharedState();
+            } else if (eventData.containsKey(VictoryConstants.GOTO_ACTIVITY_NAME)) {
+                gotoActivity(event);
+            } else if (eventData.containsKey(VictoryConstants.UNREGISTER_EXTENSION)) {
+                getApi().unregisterExtension();
+            }
+        }
+    }
 
-					if (eventData != null) {
-						MobileCore.log(LoggingMode.DEBUG, getName(), String.format("Processing user data %s",
-									   eventData.get(VictoryConstants.CONTEXT_DATA)));
+    private void handleNoProcessedEventsRequest(final Event event) {
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(VictoryConstants.NO_EVENTS_PROCESSED, noProcessedEvents);
 
-						if (eventData.containsKey(VictoryConstants.PRINT_LATEST_CONFIG)) {
-							printLatestConfigSharedState();
-						}
-					}
+        Event response = new Event.Builder("VictoryResponsePaired", VictoryConstants.EVENT_TYPE_VICTORY,
+                VictoryConstants.EVENT_SOURCE_VICTORY_PAIRED_RESPONSE)
+                .setEventData(eventData)
+                .inResponseToEvent(event)
+                .build();
 
-					unprocessedEvents.poll();
+        getApi().dispatch(response);
+    }
 
-					// call after removing event from queue
-					if (eventData != null && eventData.containsKey(VictoryConstants.GOTO_ACTIVITY_NAME)) {
-						gotoActivity(event);
-					}
-				}
-			}
-		});
-	}
+    private void gotoActivity(final Event event) {
+        Application app = MobileCore.getApplication();
 
-	void processNoProcessedEventsRequest(final Event event) {
-		getExecutor().execute(new Runnable() {
-			@Override
-			public void run() {
-				ExtensionErrorCallback<ExtensionError> errorCallback = new ExtensionErrorCallback<ExtensionError>() {
-					@Override
-					public void error(final ExtensionError errorCode) {
-						MobileCore.log(LoggingMode.WARNING, getName(), String.format("An error occurred when dispatching event, %s",
-									   errorCode.getErrorName()));
-					}
-				};
-				Map<String, Object> eventData = new HashMap<String, Object>();
-				eventData.put(VictoryConstants.NO_EVENTS_PROCESSED, noProcessedEvents);
-				Event response = new Event.Builder("VictoryResponsePaired", VictoryConstants.EVENT_TYPE_VICTORY,
-												   VictoryConstants.EVENT_SOURCE_VICTORY_PAIRED_RESPONSE).setEventData(eventData).build();
-				MobileCore.dispatchResponseEvent(response, event, errorCallback);
-			}
-		});
-	}
+        if (app == null) {
+            Log.warning(VictoryConstants.EXTENSION_NAME, LOG_TAG,  "Application from MobileCore is null!");
+            return;
+        }
 
-	private void gotoActivity(final Event event) {
-		Application app = MobileCore.getApplication();
+        String activityName = DataReader.optString(event.getEventData(), VictoryConstants.GOTO_ACTIVITY_NAME, null);
+        if (activityName == null) {
+            Log.warning(VictoryConstants.EXTENSION_NAME, LOG_TAG, "Cannot goto Activity as event data does not contain activity name.");
+            return;
+        }
 
-		if (app == null) {
-			MobileCore.log(LoggingMode.WARNING, getName(), "Application from MobileCore is null!");
-			return;
-		}
+        try {
+            Class<?> activityClass = Class.forName(activityName);
+            Intent intent = new Intent(app, activityClass);
+            app.startActivity(intent);
 
-		Map<String, Object> data = event.getEventData();
+        } catch (ClassNotFoundException e) {
+            Log.error(VictoryConstants.EXTENSION_NAME, LOG_TAG,  getName(), "Failed to find class with name " + activityName);
+        }
+    }
 
-		if (data == null || !data.containsKey(VictoryConstants.GOTO_ACTIVITY_NAME)) {
-			MobileCore.log(LoggingMode.WARNING, getName(), "Cannot goto Activity as event data does not contain activity name.");
-			return;
-		}
-
-		String name = (String)data.get(VictoryConstants.GOTO_ACTIVITY_NAME);
-
-		try {
-			Class activityClass = Class.forName(name);
-			Intent intent = new Intent(app, activityClass);
-			app.startActivity(intent);
-
-		} catch (ClassNotFoundException e) {
-			MobileCore.log(LoggingMode.ERROR, getName(), "Failed to find class with name " + name);
-			return;
-		}
-	}
-
-	private void printLatestConfigSharedState() {
-		Map<String, Object> configSharedState = getApi().getSharedEventState(VictoryConstants.CONFIGURATION_SHARED_STATE, null,
-		new ExtensionErrorCallback<ExtensionError>() {
-			@Override
-			public void error(ExtensionError extensionError) {
-				MobileCore.log(LoggingMode.WARNING, getName(),
-							   "Failed to read latest config shared state (" + extensionError.getErrorName() + ")");
-			}
-		});
-
-		if (configSharedState == null) {
-			MobileCore.log(LoggingMode.DEBUG, getName(), "Latest config shared state is PENDING");
-		} else {
-			try {
-				JSONObject json = new JSONObject(configSharedState);
-				MobileCore.log(LoggingMode.DEBUG, getName(), "Latest config shared state is: \n" + json.toString(4));
-			} catch (JSONException e) {
-				MobileCore.log(LoggingMode.DEBUG, getName(),
-							   "Failed to read latest config shared state, invalid format " + e.getLocalizedMessage());
-			}
-
-		}
-	}
-
-	private ExecutorService getExecutor() {
-		synchronized (executorMutex) {
-			if (executor == null) {
-				executor = Executors.newSingleThreadExecutor();
-			}
-
-			return executor;
-		}
-	}
+    private void printLatestConfigSharedState() {
+        SharedStateResult result = getApi().getSharedState(VictoryConstants.CONFIGURATION_SHARED_STATE, null, true, SharedStateResolution.ANY);
+        if (result.getStatus() == SharedStateStatus.PENDING) {
+            Log.debug(VictoryConstants.EXTENSION_NAME, LOG_TAG, "Latest config shared state is PENDING");
+        } else {
+            try {
+                JSONObject json = new JSONObject(result.getValue());
+                Log.debug(VictoryConstants.EXTENSION_NAME, LOG_TAG,  "Latest config shared state is: \n" + json.toString(4));
+            } catch (JSONException e) {
+                Log.debug(VictoryConstants.EXTENSION_NAME, LOG_TAG,
+                        "Failed to read latest config shared state, invalid format " + e.getLocalizedMessage());
+            }
+        }
+    }
 }

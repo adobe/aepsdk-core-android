@@ -218,4 +218,19 @@ internal class SharedStateManagerTests {
 
         assertResult(sharedStateManager.resolveLastSet(1), SharedStateResult(SharedStateStatus.NONE, null))
     }
+
+    @Test
+    fun testClear() {
+        sharedStateManager.setState(1, STATE_ONE)
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.SET, STATE_ONE))
+
+        sharedStateManager.clear()
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.NONE, null))
+
+        sharedStateManager.setState(2, STATE_TWO)
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.SET, STATE_TWO))
+
+        sharedStateManager.clear()
+        assertResult(sharedStateManager.resolve(1), SharedStateResult(SharedStateStatus.NONE, null))
+    }
 }

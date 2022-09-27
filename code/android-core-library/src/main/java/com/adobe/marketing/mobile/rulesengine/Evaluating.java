@@ -12,7 +12,7 @@
 
 package com.adobe.marketing.mobile.rulesengine;
 
-public interface Evaluating<A, B> {
-	RulesResult evaluate(final A lhs, final String operation, final B rhs);
-	RulesResult evaluate(final String operation, final A lhs);
+public interface Evaluating {
+	<A, B> RulesResult evaluate(final A lhs, final String operation, final B rhs);
+	<A> RulesResult evaluate(final String operation, final A lhs);
 }

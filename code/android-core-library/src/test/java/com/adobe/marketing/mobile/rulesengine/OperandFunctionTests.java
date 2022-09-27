@@ -19,12 +19,12 @@ import static org.junit.Assert.assertTrue;
 
 public class OperandFunctionTests {
 
-	private ConditionEvaluator defaultEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.DEFAULT);
+	private final ConditionEvaluator defaultEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.DEFAULT);
 
 	@Test
 	public void test_OperandFunction() {
 		// setup
-		final Operand stringOperand = new OperandLiteral("bossbaby");
+		final Operand<String> stringOperand = new OperandLiteral<>("bossbaby");
 		final OperandFunction<String> functionOperator = new OperandFunction<>((Object... args) -> {
 			StringBuilder builder = new StringBuilder();
 			for (Object each : args) {
@@ -34,7 +34,7 @@ public class OperandFunctionTests {
 		}, "boss", "baby");
 
 		// test
-		final RulesResult result = new ComparisonExpression(stringOperand, "equals",
+		final RulesResult result = new ComparisonExpression<>(stringOperand, "equals",
 				functionOperator).evaluate(defaultContext(defaultEvaluator));
 
 		// verify
@@ -45,7 +45,7 @@ public class OperandFunctionTests {
 	 *  Private methods
 	 **************************************************************************/
 	private Context defaultContext(final ConditionEvaluator conditionEvaluator) {
-		HashMap<String, Object> context = new HashMap<String, Object>();
+		HashMap<String, Object> context = new HashMap<>();
 		context.put("Beer", "Corona");
 		context.put("Hero", "Soldier");
 		context.put("Soda", "Pepsi");

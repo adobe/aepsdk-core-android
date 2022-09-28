@@ -174,7 +174,7 @@ internal class ConfigurationExtension : Extension {
         val initialConfig: Map<String, Any?> = this.configurationStateManager.loadInitialConfig()
 
         if (initialConfig.isNotEmpty()) {
-            applyConfigurationChanges(null, RulesSource.CACHE, null)
+            applyConfigurationChanges(RulesSource.CACHE, null)
         } else {
             Log.trace(
                 TAG,
@@ -241,7 +241,7 @@ internal class ConfigurationExtension : Extension {
                 updateConfiguration(event, api.createPendingSharedState(event))
             }
             event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG) -> {
-                clearUpdatedConfiguration(event, api.createPendingSharedState(event))
+                clearUpdatedConfiguration(api.createPendingSharedState(event))
             }
             event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG) -> {
                 retrieveConfiguration(event)
@@ -283,7 +283,7 @@ internal class ConfigurationExtension : Extension {
         configurationStateManager.updateConfigWithAppId(appId) { config ->
             if (config != null) {
                 cancelConfigRetry()
-                applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+                applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
             } else {
                 Log.trace(
                     TAG,
@@ -326,7 +326,7 @@ internal class ConfigurationExtension : Extension {
 
         val result = configurationStateManager.updateConfigWithFilePath(filePath)
         if (result) {
-            applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+            applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
         } else {
             Log.debug(
                 TAG,
@@ -359,7 +359,7 @@ internal class ConfigurationExtension : Extension {
 
         val result = configurationStateManager.updateConfigWithFileAsset(fileAssetName)
         if (result) {
-            applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+            applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
         } else {
             Log.debug(
                 TAG,
@@ -396,18 +396,17 @@ internal class ConfigurationExtension : Extension {
         }
 
         configurationStateManager.updateProgrammaticConfig(programmaticConfig)
-        applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+        applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
     }
 
     /**
      * Clears any updates made to the configuration (more specifically the programmatic config)
      * maintained by the extension.
      *
-     * @param event an event requesting configuration to be cleared.
      */
-    private fun clearUpdatedConfiguration(event: Event, sharedStateResolver: SharedStateResolver) {
+    private fun clearUpdatedConfiguration(sharedStateResolver: SharedStateResolver) {
         configurationStateManager.clearProgrammaticConfig()
-        applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+        applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
     }
 
     /**
@@ -457,17 +456,15 @@ internal class ConfigurationExtension : Extension {
 
     /**
      * Does three things
-     *  - Publishes the current configuration as configuration state at [triggerEvent] per [publishState]
-     *  - Dispatches an event response to the [triggerEvent]
+     *  - Publishes the current configuration as configuration state
+     *  - Dispatches an event response broadly as a configuration response event
      *  - Replaces current rules and applies the new rules based on [rulesSource]
      *
-     *  @param triggerEvent the event that triggered the configuration change
      *  @param rulesSource the source of the rules that need to be applied
      *  @param sharedStateResolver resolver to be notified with current state.
      *         State will not be set if this is null.
      */
     private fun applyConfigurationChanges(
-        triggerEvent: Event?,
         rulesSource: RulesSource,
         sharedStateResolver: SharedStateResolver?
     ) {
@@ -477,24 +474,10 @@ internal class ConfigurationExtension : Extension {
 
         dispatchConfigurationResponse(config)
 
-        val rulesReplaced = replaceRules(config, rulesSource)
+        val rulesReplaced = replaceRules(rulesSource)
         if (rulesSource == RulesSource.CACHE && !rulesReplaced) {
             configurationRulesManager.applyBundledRules(api)
         }
-    }
-
-    /**
-     * Dispatches a configuration response event
-     *
-     * @param eventData the content of the event data for the response event
-     */
-    private fun dispatchConfigurationResponse(eventData: Map<String, Any?>) {
-        val event = Event.Builder(
-            "Configuration Response Event",
-            EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT
-        ).setEventData(eventData).build()
-
-        api.dispatch(event)
     }
 
     /**
@@ -503,7 +486,7 @@ internal class ConfigurationExtension : Extension {
      * @param eventData the content of the event data for the response event
      * @param triggerEvent the [Event] to which the response is being dispatched
      */
-    private fun dispatchConfigurationResponse(eventData: Map<String, Any?>, triggerEvent: Event?) {
+    private fun dispatchConfigurationResponse(eventData: Map<String, Any?>, triggerEvent: Event? = null) {
         val builder = Event.Builder(
             "Configuration Response Event",
             EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT
@@ -530,10 +513,9 @@ internal class ConfigurationExtension : Extension {
     /**
      * Replaces the existing rules in the rules engine.
      *
-     * @param config the configuration from which the rules url is extracted
      * @param rulesSource the source of the rules that need to be applied
      */
-    private fun replaceRules(config: Map<String, Any?>, rulesSource: RulesSource): Boolean {
+    private fun replaceRules(rulesSource: RulesSource): Boolean {
         when (rulesSource) {
             RulesSource.CACHE -> {
                 return configurationRulesManager.applyCachedRules(api)
@@ -544,6 +526,7 @@ internal class ConfigurationExtension : Extension {
             }
 
             RulesSource.REMOTE -> {
+                val config = configurationStateManager.environmentAwareConfiguration
                 val rulesURL: String? = config[RULES_CONFIG_URL] as? String
                 return if (!rulesURL.isNullOrBlank()) {
                     configurationRulesManager.applyDownloadedRules(rulesURL, api)

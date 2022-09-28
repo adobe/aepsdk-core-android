@@ -35,6 +35,7 @@ class SerialWorkDispatcherTests {
         Thread.sleep(lag)
         processedItems.add(it)
         workCompletionLatch.countDown()
+        true
     }
 
     private val serialWorkDispatcher: SerialWorkDispatcher<Int> =

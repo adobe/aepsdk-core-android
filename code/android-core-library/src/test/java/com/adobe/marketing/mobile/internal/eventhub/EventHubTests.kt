@@ -1004,6 +1004,9 @@ internal class EventHubTests {
         eventHub.start()
         eventHub.dispatch(event1)
         eventHub.dispatch(event2)
+        // Wait for events to get processed
+        val latch = CountDownLatch(1)
+        latch.await(500, TimeUnit.MILLISECONDS)
 
         val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
         eventHub.createSharedState(
@@ -1043,6 +1046,9 @@ internal class EventHubTests {
         eventHub.start()
         eventHub.dispatch(event1)
         eventHub.dispatch(event2)
+        // Wait for events to get processed
+        val latch = CountDownLatch(1)
+        latch.await(500, TimeUnit.MILLISECONDS)
 
         val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
         eventHub.createSharedState(
@@ -1083,6 +1089,9 @@ internal class EventHubTests {
         eventHub.dispatch(event1)
         eventHub.dispatch(event2)
         eventHub.dispatch(event3)
+        // Wait for events to get processed
+        val latch = CountDownLatch(1)
+        latch.await(500, TimeUnit.MILLISECONDS)
 
         val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
         eventHub.createSharedState(
@@ -1107,7 +1116,7 @@ internal class EventHubTests {
             TestExtension_Barrier.EXTENSION_NAME
         )
 
-        // event2: Returns pending shared state
+        // event2: Returns state set for event1 as shared state for event2 is pending
         verifySharedState(
             SharedStateType.STANDARD,
             event2,
@@ -1138,6 +1147,10 @@ internal class EventHubTests {
         eventHub.dispatch(event1)
         eventHub.dispatch(event2)
         eventHub.dispatch(event3)
+        // Wait for events to get processed
+        val latch = CountDownLatch(1)
+        latch.await(500, TimeUnit.MILLISECONDS)
+
 
         val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
         eventHub.createSharedState(
@@ -1162,7 +1175,7 @@ internal class EventHubTests {
             TestExtension_Barrier.EXTENSION_NAME
         )
 
-        // event2: Returns pending shared state
+        // event2: Returns state set for event1 as shared state for event2 is pending
         verifySharedState(
             SharedStateType.STANDARD,
             event2,
@@ -1172,7 +1185,7 @@ internal class EventHubTests {
             TestExtension_Barrier.EXTENSION_NAME
         )
 
-        // event3: Returns pending shared state as the extension has not processed the event
+        // event3: Returns state set for event1 as event3 has not been processed
         verifySharedState(
             SharedStateType.STANDARD,
             event3,

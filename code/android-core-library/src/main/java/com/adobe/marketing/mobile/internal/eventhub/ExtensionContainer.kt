@@ -78,7 +78,7 @@ internal class ExtensionContainer constructor(
     private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> =
         SerialWorkDispatcher.WorkHandler { event ->
             if (extension?.readyForEvent(event) != true) {
-                return@WorkHandler
+                return@WorkHandler false
             }
 
             eventListeners.forEach {
@@ -88,6 +88,7 @@ internal class ExtensionContainer constructor(
             }
 
             lastProcessedEvent = event
+            return@WorkHandler true
         }
 
     val eventProcessor: SerialWorkDispatcher<Event> =

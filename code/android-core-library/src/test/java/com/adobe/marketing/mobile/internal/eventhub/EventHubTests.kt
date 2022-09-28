@@ -995,6 +995,194 @@ internal class EventHubTests {
         verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
     }
 
+    @Test
+    fun testGetSharedState_Any_WithBarrier() {
+        registerExtension(TestExtension_Barrier::class.java)
+        //  Stop processing after this event
+        TestExtension_Barrier.BARRIER_EVENT = event2
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.dispatch(event2)
+
+        val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            state1,
+            event1
+        )
+
+        // event1: Returns valid shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.ANY,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event2: With barrier returns pending state as it has not processed the event
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.PENDING, state1),
+            SharedStateResolution.ANY,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME,
+        )
+    }
+
+    @Test
+    fun testGetSharedState_Any_NoBarrier() {
+        registerExtension(TestExtension_Barrier::class.java)
+        //  Stop processing after this event
+        TestExtension_Barrier.BARRIER_EVENT = event2
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.dispatch(event2)
+
+        val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            state1,
+            event1
+        )
+
+        // event1: Returns valid shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.ANY,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event2: Without barrier returns state1
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.ANY,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+    }
+
+    @Test
+    fun testGetSharedState_LastSet_WithBarrier() {
+        registerExtension(TestExtension_Barrier::class.java)
+        //  Stop processing after this event
+        TestExtension_Barrier.BARRIER_EVENT = event3
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.dispatch(event2)
+        eventHub.dispatch(event3)
+
+        val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            state1,
+            event1
+        )
+        eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            event2
+        )
+
+        // event1: Returns valid shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event2: Returns pending shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event3: Returns pending shared state as the extension has not processed the event
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event3,
+            SharedStateResult(SharedStateStatus.PENDING, state1),
+            SharedStateResolution.LAST_SET,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+    }
+
+    @Test
+    fun testGetSharedState_LastSet_NoBarrier() {
+        registerExtension(TestExtension_Barrier::class.java)
+        //  Stop processing after this event
+        TestExtension_Barrier.BARRIER_EVENT = event3
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.dispatch(event2)
+        eventHub.dispatch(event3)
+
+        val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            state1,
+            event1
+        )
+        eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            event2
+        )
+
+        // event1: Returns valid shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event2: Returns pending shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event3: Returns pending shared state as the extension has not processed the event
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event3,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+    }
+
     // / ExtensionInfo shared state tests
     /*
      Expected format:

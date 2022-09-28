@@ -1151,7 +1151,6 @@ internal class EventHubTests {
         val latch = CountDownLatch(1)
         latch.await(500, TimeUnit.MILLISECONDS)
 
-
         val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
         eventHub.createSharedState(
             SharedStateType.STANDARD,

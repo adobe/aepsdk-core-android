@@ -66,9 +66,6 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     /**
      * Represents the functional interface that is responsible for doing the desired work on each item of the [workQueue].
      * [WorkHandler.doWork] is called from the background worker thread that the [SerialWorkDispatcher] maintains.
-     * If [WorkHandler.doWork] returns false after processing an item, the [SerialWorkDispatcher] stops processing the work queue without removing the item. It restarts when
-     * [resume] is called or a new item is enqueued.
-     * If [WorkHandler.doWork] returns true after processing an item, it removes it from work queue and continues processing other queued items.
      */
     fun interface WorkHandler<W> {
         /**
@@ -76,6 +73,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
          *
          * @param item  the work item which is dispatched for processing.
          * @return [Boolean] A boolean variable denoting whether the [item] has completed processing.
+         * If [WorkHandler.doWork] returns false after processing an item, the [SerialWorkDispatcher] stops processing the work queue without removing the item. It restarts when
+         * [resume] is called or a new item is enqueued.
+         * If [WorkHandler.doWork] returns true after processing an item, it removes it from work queue and continues processing other queued items.
          */
         fun doWork(item: W): Boolean
     }

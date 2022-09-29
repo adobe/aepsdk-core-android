@@ -57,10 +57,6 @@ public class Identity {
         });
     }
 
-    // =======================================================================
-    // Identity Methods
-    // =======================================================================
-
     /**
      * Updates the given customer IDs with the Adobe Experience Cloud ID Service.
      * <p>
@@ -191,7 +187,6 @@ public class Identity {
                 event -> {
                     String url = DataReader.optString(event.getEventData(), IdentityConstants.EventDataKeys.Identity.UPDATED_URL, "");
                     callback.call(url);
-
                 });
     }
 
@@ -283,13 +278,9 @@ public class Identity {
     private static <T> void createIdentityRequestWithCallbacks(
             final Map<String, Object> eventData,
             final AdobeCallback<T> errorCallback,
-            final AdobeCallback<Event> callback) {
-        if (callback == null) {
-            return;
-        }
+            @NonNull final AdobeCallback<Event> callback) {
 
         Event event;
-
         // do not want to set event data to null.
         if (eventData == null) {
             event = new Event.Builder(REQUEST_IDENTITY_EVENT_NAME, EventType.IDENTITY,
@@ -306,7 +297,6 @@ public class Identity {
                     AdobeCallbackWithError adobeCallbackWithError = (AdobeCallbackWithError) errorCallback;
                     adobeCallbackWithError.fail(error);
                 }
-
             }
 
             @Override

@@ -1,131 +1,102 @@
-///* *****************************************************************************
-// * ADOBE CONFIDENTIAL
-// * ___________________
-// *
-// * Copyright 2017 Adobe
-// * All Rights Reserved.
-// *
-// * NOTICE: All information contained herein is, and remains
-// * the property of Adobe and its suppliers, if any. The intellectual
-// * and technical concepts contained herein are proprietary to Adobe
-// * and its suppliers and are protected by all applicable intellectual
-// * property laws, including trade secret and copyright laws.
-// * Dissemination of this information or reproduction of this material
-// * is strictly forbidden unless prior written permission is obtained
-// * from Adobe.
-// ******************************************************************************/
-//package com.adobe.marketing.mobile.identity;
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
+package com.adobe.marketing.mobile.identity;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
+
+import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.ExtensionApi;
+
+import java.lang.reflect.Field;
+
+public class IdentityExtensionTest {
+    private static final String LIST_BEGIN = "{ ";
+    private static final String LIST_END = " }";
+    private static final String ITEM_BREAK = ", ";
+
+    private IdentityExtension identityExtension;
+    @Mock
+    private ExtensionApi mockedExtensionApi;
+    final long DEFAULT_TTL_VALUE = 600;
+    final int DEFAULT_LAST_SYNC_VALUE = 0;
+
+
+//    private MockDispatcherIdentityResponseIdentityIdentity mockDispatcherIdentityResponseEvent;
+//    private MockDispatcherAnalyticsRequestContentIdentity mockDispatcherIdentityAnalyticsEvent;
+//    private MockIdentityHitsDatabase mockIdentityHitsDatabase;
+
+    private ConfigurationSharedStateIdentity genericConfigurationSharedState;
+//    private EventData genericAnalyticsSharedState;
+
+    @Before
+    public void setup() {
+        identityExtension = new IdentityExtension(mockedExtensionApi);
+        Mockito.reset(mockedExtensionApi);
+//        mockDispatcherIdentityResponseEvent = new MockDispatcherIdentityResponseIdentityIdentity(eventHub, null);
+//        mockDispatcherIdentityAnalyticsEvent = new MockDispatcherAnalyticsRequestContentIdentity(eventHub, null);
+//        identityExtension = new MockIdentityExtension(eventHub, platformServices, mockDispatcherIdentityResponseEvent,
+//                mockDispatcherIdentityAnalyticsEvent);
+//        mockIdentityHitsDatabase = new MockIdentityHitsDatabase(identityExtension, platformServices);
+//        identityExtension.database = mockIdentityHitsDatabase;
 //
-//import org.hamcrest.BaseMatcher;
-//import org.hamcrest.Description;
-//import org.hamcrest.Matcher;
-//import org.junit.Before;
-//import org.junit.Test;
+//        genericConfigurationSharedState = generateConfigurationSharedState("test-orgid");
+//        genericAnalyticsSharedState = generateAnalyticsSharedState("test-aid", "test-vid");
+    }
+
+//    @Test
+//    public void testConstructor_ShouldCreateEventQueue() {
+//        assertNotNull(identityExtension.getEventsQueue());
+//    }
 //
-//import java.io.*;
-//import java.net.URL;
-//import java.util.*;
+//    @Test
+//    public void testEnqueueEvent_ShouldNotIncreaseEventQueueSizeByOne_When_NullEvent() {
+//        identityExtension.enqueueEvent(null);
+//        assertEquals(0, identityExtension.getEventsQueue().size());
+//    }
+
+    // =================================================================================================================
+    // void processEventQueue()
+    // =================================================================================================================
+//    @Test
+//    public void testProcessingEventQueue_ShouldReferConfigSharedState() {
+//        //put an event
+//        when(mockedExtensionApi.getSharedState()).get
+//        Event fakeEvent = new Event.Builder("fake-event", EventType.IDENTITY, EventSource.BOOTED).build();
+//        identityExtension.enqueueEvent(fakeEvent);
 //
-//import static org.junit.Assert.*;
-//
-//import com.adobe.marketing.mobile.Event;
-//import com.adobe.marketing.mobile.EventSource;
-//import com.adobe.marketing.mobile.EventType;
-//import com.adobe.marketing.mobile.MobilePrivacyStatus;
-//import com.adobe.marketing.mobile.VisitorID;
-//
-//public class IdentityTest extends BaseTest {
-//	private static final String LIST_BEGIN                          = "{ ";
-//	private static final String LIST_END                            = " }";
-//	private static final String ITEM_BREAK                          = ", ";
-//
-//	private MockIdentityExtension identityModule;
-//	final long DEFAULT_TTL_VALUE = 600;
-//	final int DEFAULT_LAST_SYNC_VALUE = 0;
-//
-//
-//	private MockDispatcherIdentityResponseIdentityIdentity mockDispatcherIdentityResponseEvent;
-//	private MockDispatcherAnalyticsRequestContentIdentity mockDispatcherIdentityAnalyticsEvent;
-//	private MockIdentityHitsDatabase mockIdentityHitsDatabase;
-//
-//	private ConfigurationSharedStateIdentity genericConfigurationSharedState;
-//	private EventData genericAnalyticsSharedState;
-//
-//	@Before
-//	public void setup() throws Exception {
-//		super.beforeEach();
-//		mockDispatcherIdentityResponseEvent = new MockDispatcherIdentityResponseIdentityIdentity(eventHub, null);
-//		mockDispatcherIdentityAnalyticsEvent = new MockDispatcherAnalyticsRequestContentIdentity(eventHub, null);
-//		identityModule = new MockIdentityExtension(eventHub, platformServices, mockDispatcherIdentityResponseEvent,
-//				mockDispatcherIdentityAnalyticsEvent);
-//		mockIdentityHitsDatabase = new MockIdentityHitsDatabase(identityModule, platformServices);
-//		identityModule.database =  mockIdentityHitsDatabase;
-//
-//		genericConfigurationSharedState = generateConfigurationSharedState("test-orgid");
-//		genericAnalyticsSharedState = generateAnalyticsSharedState("test-aid", "test-vid");
-//	}
-//
-//	@Test
-//	public void testConstructor_ShouldCreateEventQueue() {
-//		assertNotNull(identityModule.eventsQueue);
-//	}
-//
-//	@Test
-//	public void testConstructor_ShouldLoadDefaultValues() {
-//		assertNull(identityModule.mid);
-//		assertNull(identityModule.customerIds);
-//		assertNull(identityModule.advertisingIdentifier);
-//		assertNull(identityModule.pushIdentifier);
-//		assertNull(identityModule.blob);
-//		assertNull(identityModule.locationHint);
-//		assertEquals(identityModule.ttl, DEFAULT_TTL_VALUE);
-//		assertEquals(identityModule.lastSync, DEFAULT_LAST_SYNC_VALUE);
-//	}
-//
-//	// =================================================================================================================
-//	// void enqueueEvent(final Event event)
-//	// =================================================================================================================
-//	@Test
-//	public void testEnqueueEvent_ShouldIncreaseEventQueueSizeByOne() {
-//		int oldSize = identityModule.eventsQueue.size();
-//
-//		identityModule.enqueueEvent(new Event.Builder("test-event", EventType.ANALYTICS, EventSource.NONE).build());
-//		assertEquals(oldSize + 1, identityModule.eventsQueue.size());
-//	}
-//
-//	@Test
-//	public void testEnqueueEvent_ShouldNotIncreaseEventQueueSizeByOne_When_NullEvent() {
-//		int oldSize = identityModule.eventsQueue.size();
-//		identityModule.enqueueEvent(null);
-//		assertEquals(oldSize, identityModule.eventsQueue.size());
-//	}
-//
-//	// =================================================================================================================
-//	// void processEventQueue()
-//	// =================================================================================================================
-//	@Test
-//	public void testProcessingEventQueue_ShouldReferConfigSharedState() {
-//		//put an event
-//		Event fakeEvent = new Event.Builder("fake-event", EventType.IDENTITY, EventSource.BOOTED).build();
-//		identityModule.enqueueEvent(fakeEvent);
-//
-//		identityModule.processEventQueue();
-//		assertTrue(eventHub.getSharedEventStateCalled);
-//		assertEquals(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME,
-//					 eventHub.getSharedEventStateParameterStateName);
-//	}
-//
+//        identityExtension.processEventQueue();
+//        assertTrue(eventHub.getSharedEventStateCalled);
+//        assertEquals(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME,
+//                eventHub.getSharedEventStateParameterStateName);
+//    }
+
 //	@Test
 //	public void testProcessingEventQueue_ShouldNotProcessEvent_When_ConfigDataIsNull() {
 //		Event mockEvent1 = new Event.Builder("mock-event-1", EventType.IDENTITY, EventSource.NONE).build();
 //		Event mockEvent2 = new Event.Builder("mock-event-2", EventType.IDENTITY, EventSource.NONE).build();
-//		identityModule.enqueueEvent(mockEvent1);
-//		identityModule.enqueueEvent(mockEvent2);
+//		identityExtension.enqueueEvent(mockEvent1);
+//		identityExtension.enqueueEvent(mockEvent2);
 //
-//		int queueSize = identityModule.eventsQueue.size();
+//		int queueSize = identityExtension.eventsQueue.size();
 //
-//		identityModule.processEventQueue();
-//		assertEquals(queueSize, identityModule.eventsQueue.size());
+//		identityExtension.processEventQueue();
+//		assertEquals(queueSize, identityExtension.eventsQueue.size());
 //	}
 //
 //	@Test
@@ -134,13 +105,13 @@
 //
 //		//put an event
 //		Event fakeEvent = new Event.Builder("fake-event", EventType.IDENTITY, EventSource.BOOTED).build();
-//		identityModule.enqueueEvent(fakeEvent);
+//		identityExtension.enqueueEvent(fakeEvent);
 //
 //		eventHub.setSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, fakeConfigSharedState);
-//		int queueSize = identityModule.eventsQueue.size();
+//		int queueSize = identityExtension.eventsQueue.size();
 //
-//		identityModule.processEventQueue();
-//		assertEquals(queueSize - 1, identityModule.eventsQueue.size());
+//		identityExtension.processEventQueue();
+//		assertEquals(queueSize - 1, identityExtension.eventsQueue.size());
 //	}
 //
 //	// =================================================================================================================
@@ -149,37 +120,37 @@
 //	@Test
 //	public void testLoadVariablesFromPersistentData_ShouldHandle_When_LocalStorageServiceIsNull() {
 //		platformServices.fakeLocalStorageService = null;
-//		identityModule.setDataStore(null);
-//		identityModule.loadVariablesFromPersistentData();
-//		assertFalse(identityModule.convertVisitorIdsStringToVisitorIDObjectsWasCalled);
+//		identityExtension.setDataStore(null);
+//		identityExtension.loadVariablesFromPersistentData();
+//		assertFalse(identityExtension.convertVisitorIdsStringToVisitorIDObjectsWasCalled);
 //	}
 //
 //	@Test
 //	public void
 //	testLoadVariablesFromPersistentData_ShouldLoadPersistedValues_When_PersistedDataExists() {
-//		identityModule.loadVariablesFromPersistentData();
-//		assertTrue(identityModule.convertVisitorIdsStringToVisitorIDObjectsWasCalled);
+//		identityExtension.loadVariablesFromPersistentData();
+//		assertTrue(identityExtension.convertVisitorIdsStringToVisitorIDObjectsWasCalled);
 //	}
 //
 //	@Test
 //	public void
 //	testLoadVariablesFromPersistentData_ShouldLoadDefaultValues_When_PersistedDataNotExist() {
-//		identityModule.loadVariablesFromPersistentData();
-//		assertNull(identityModule.mid);
-//		assertNull(identityModule.customerIds);
-//		assertNull(identityModule.advertisingIdentifier);
-//		assertNull(identityModule.pushIdentifier);
-//		assertNull(identityModule.blob);
-//		assertNull(identityModule.locationHint);
-//		assertEquals(DEFAULT_TTL_VALUE, identityModule.ttl);
-//		assertEquals(DEFAULT_LAST_SYNC_VALUE, identityModule.lastSync);
+//		identityExtension.loadVariablesFromPersistentData();
+//		assertNull(identityExtension.mid);
+//		assertNull(identityExtension.customerIds);
+//		assertNull(identityExtension.advertisingIdentifier);
+//		assertNull(identityExtension.pushIdentifier);
+//		assertNull(identityExtension.blob);
+//		assertNull(identityExtension.locationHint);
+//		assertEquals(DEFAULT_TTL_VALUE, identityExtension.ttl);
+//		assertEquals(DEFAULT_LAST_SYNC_VALUE, identityExtension.lastSync);
 //	}
 //
 //	@Test
 //	public void
 //	testLoadVariablesFromPersistentData_ShouldLoadSavedValues_When_PersistedDataExists() {
 //
-//		identityModule.setDataStore(null);
+//		identityExtension.setDataStore(null);
 //		FakeLocalStorageService fakeLocalStorageService = platformServices.fakeLocalStorageService;
 //		FakeDataStore fakeDataStore = new FakeDataStore();
 //		fakeDataStore.setString(IdentityTestConstants.DataStoreKeys.MARKETING_CLOUD_ID, "my-mid");
@@ -194,14 +165,14 @@
 //		fakeLocalStorageService.mapping.put(IdentityTestConstants.DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME,
 //											fakeDataStore);
 //
-//		identityModule.loadVariablesFromPersistentData();
-//		assertEquals("my-mid", identityModule.mid);
-//		assertEquals("my-ad-id", identityModule.advertisingIdentifier);
-//		assertEquals("my-push-id", identityModule.pushIdentifier);
-//		assertEquals("my-blob", identityModule.blob);
-//		assertEquals(10, identityModule.ttl);
-//		assertEquals(06102017, identityModule.lastSync);
-//		assertEquals("my-location-hint", identityModule.locationHint);
+//		identityExtension.loadVariablesFromPersistentData();
+//		assertEquals("my-mid", identityExtension.mid);
+//		assertEquals("my-ad-id", identityExtension.advertisingIdentifier);
+//		assertEquals("my-push-id", identityExtension.pushIdentifier);
+//		assertEquals("my-blob", identityExtension.blob);
+//		assertEquals(10, identityExtension.ttl);
+//		assertEquals(06102017, identityExtension.lastSync);
+//		assertEquals("my-location-hint", identityExtension.locationHint);
 //	}
 //
 //	// =================================================================================================================
@@ -210,13 +181,13 @@
 //	@Test
 //	public void testProcessEvent_When_EventNull() {
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
-//		boolean result = identityModule.processEvent(null, configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(null, configurationSharedStateIdentity);
 //
 //		assertTrue(result);
-//		assertFalse(identityModule.handleSyncIdentifiersWasCalled);
-//		assertFalse(identityModule.handleAppendURLWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
-//		assertNull(eventHub.getSharedEventState(identityModule.getModuleName(), null, null));
+//		assertFalse(identityExtension.handleSyncIdentifiersWasCalled);
+//		assertFalse(identityExtension.handleAppendURLWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
+//		assertNull(eventHub.getSharedEventState(identityExtension.getModuleName(), null, null));
 //	}
 //
 //	@Test
@@ -225,12 +196,12 @@
 //		eventData.putBoolean(IdentityTestConstants.EventDataKeys.Identity.IS_SYNC_EVENT, true);
 //		Event event = new Event.Builder("test-sync-event", EventType.IDENTITY,
 //										EventSource.REQUEST_IDENTITY).setData(eventData).build();
-//		boolean result = identityModule.processEvent(event, null);
+//		boolean result = identityExtension.processEvent(event, null);
 //
 //		assertTrue(result);
-//		assertFalse(identityModule.handleSyncIdentifiersWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
-//		assertNull(eventHub.getSharedEventState(identityModule.getModuleName(), null, null));
+//		assertFalse(identityExtension.handleSyncIdentifiersWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
+//		assertNull(eventHub.getSharedEventState(identityExtension.getModuleName(), null, null));
 //	}
 //
 //	@Test
@@ -238,12 +209,12 @@
 //		Event event = new Event.Builder("test-visitorID-event", EventType.IDENTITY,
 //										EventSource.REQUEST_IDENTITY).build();
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertTrue(result);
-//		assertFalse(identityModule.handleAppendURLWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
-//		assertNull(eventHub.getSharedEventState(identityModule.getModuleName(), null, null));
+//		assertFalse(identityExtension.handleAppendURLWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
+//		assertNull(eventHub.getSharedEventState(identityExtension.getModuleName(), null, null));
 //	}
 //
 //	@Test
@@ -261,11 +232,11 @@
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.orgID = "1234";
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertTrue(result);
-//		assertTrue(identityModule.handleSyncIdentifiersWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertTrue(identityExtension.handleSyncIdentifiersWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -284,11 +255,11 @@
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.orgID = null;
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertFalse(result);
-//		assertTrue(identityModule.handleSyncIdentifiersWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertTrue(identityExtension.handleSyncIdentifiersWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -308,11 +279,11 @@
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.orgID = "1234";
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_OUT;
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertTrue(result);
-//		assertTrue(identityModule.handleSyncIdentifiersWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertTrue(identityExtension.handleSyncIdentifiersWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -329,11 +300,11 @@
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.orgID = "1234";
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertTrue(result);
-//		assertFalse(identityModule.handleSyncIdentifiersWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertFalse(identityExtension.handleSyncIdentifiersWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -341,13 +312,13 @@
 //		// test
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.orgID = "1234"; // handleSyncIdentifiers needs an org id
-//		boolean result = identityModule.processEvent(FakePushIDEvent(), configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(FakePushIDEvent(), configurationSharedStateIdentity);
 //
 //		// verify
 //		assertTrue(result);
-//		assertTrue(identityModule.handleSyncIdentifiersWasCalled);
-//		assertEquals(identityModule.pushIdentifier, "test-push-id");
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertTrue(identityExtension.handleSyncIdentifiersWasCalled);
+//		assertEquals(identityExtension.pushIdentifier, "test-push-id");
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -356,11 +327,11 @@
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.orgID = "1234"; // handleSyncIdentifiers needs an org id
-//		boolean result = identityModule.processEvent(FakeAdIDEvent(), configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(FakeAdIDEvent(), configurationSharedStateIdentity);
 //
 //		assertTrue(result);
-//		assertEquals(identityModule.advertisingIdentifier, "testAdid");
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertEquals(identityExtension.advertisingIdentifier, "testAdid");
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -371,13 +342,13 @@
 //										EventSource.REQUEST_IDENTITY).setData(eventData).build();
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
-//		identityModule.shouldWaitForPendingSharedState = false;
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		identityExtension.shouldWaitForPendingSharedState = false;
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertTrue(result);
-//		assertTrue(identityModule.shouldWaitForPendingSharedStateCalled);
-//		assertTrue(identityModule.handleAppendURLWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertTrue(identityExtension.shouldWaitForPendingSharedStateCalled);
+//		assertTrue(identityExtension.handleAppendURLWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -389,13 +360,13 @@
 //										EventSource.REQUEST_IDENTITY).setData(eventData).build();
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
-//		identityModule.shouldWaitForPendingSharedState = true;
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		identityExtension.shouldWaitForPendingSharedState = true;
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertFalse(result);
-//		assertTrue(identityModule.shouldWaitForPendingSharedStateCalled);
-//		assertFalse(identityModule.handleAppendURLWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertTrue(identityExtension.shouldWaitForPendingSharedStateCalled);
+//		assertFalse(identityExtension.handleAppendURLWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -406,13 +377,13 @@
 //										EventSource.REQUEST_IDENTITY).setData(eventData).build();
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
-//		identityModule.shouldWaitForPendingSharedState = false;
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		identityExtension.shouldWaitForPendingSharedState = false;
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertTrue(result);
-//		assertTrue(identityModule.shouldWaitForPendingSharedStateCalled);
-//		assertFalse(identityModule.handleAppendURLWasCalled);
-//		assertTrue(identityModule.handleGetUrlVariablesWasCalled);
+//		assertTrue(identityExtension.shouldWaitForPendingSharedStateCalled);
+//		assertFalse(identityExtension.handleAppendURLWasCalled);
+//		assertTrue(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -424,13 +395,13 @@
 //										EventSource.REQUEST_IDENTITY).setData(eventData).build();
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
-//		identityModule.shouldWaitForPendingSharedState = true;
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		identityExtension.shouldWaitForPendingSharedState = true;
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertFalse(result);
-//		assertTrue(identityModule.shouldWaitForPendingSharedStateCalled);
-//		assertFalse(identityModule.handleAppendURLWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertTrue(identityExtension.shouldWaitForPendingSharedStateCalled);
+//		assertFalse(identityExtension.handleAppendURLWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -440,11 +411,11 @@
 //										EventSource.REQUEST_IDENTITY).setData(eventData).build();
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertTrue(result);
 //		assertTrue(mockDispatcherIdentityResponseEvent.dispatchResponseWasCalled);
-//		assertFalse(identityModule.handleGetUrlVariablesWasCalled);
+//		assertFalse(identityExtension.handleGetUrlVariablesWasCalled);
 //	}
 //
 //	@Test
@@ -454,10 +425,10 @@
 //										EventSource.REQUEST_RESET).setData(eventData).build();
 //
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
-//		boolean result = identityModule.processEvent(event, configurationSharedStateIdentity);
+//		boolean result = identityExtension.processEvent(event, configurationSharedStateIdentity);
 //
 //		assertTrue(result);
-//		assertTrue(identityModule.handleIdentityRequestResetWasCalled);
+//		assertTrue(identityExtension.handleIdentityRequestResetWasCalled);
 //	}
 //
 //	// ==============================================================================================================
@@ -471,12 +442,12 @@
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(null, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(null, configurationSharedStateIdentity);
 //
 //		// verify
 //		assertTrue(result);
-//		EventData idSharedState = eventHub.getSharedEventState(identityModule.getModuleName(), FakeSycnIDEvent(), null);
-//		assertFalse(identityModule.generateCustomerIdsWasCalled);
+//		EventData idSharedState = eventHub.getSharedEventState(identityExtension.getModuleName(), FakeSycnIDEvent(), null);
+//		assertFalse(identityExtension.generateCustomerIdsWasCalled);
 //		assertFalse(mockIdentityHitsDatabase.queueWasCalled);
 //		assertNull(idSharedState);
 //	}
@@ -490,7 +461,7 @@
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -521,7 +492,7 @@
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(pushEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(pushEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -553,7 +524,7 @@
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -592,12 +563,12 @@
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
-//		identityModule.advertisingIdentifier =  IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
-//		identityModule.mid = "testMid"; // avoid force sync from ECID generation
-//		identityModule.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
+//		identityExtension.advertisingIdentifier =  IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
+//		identityExtension.mid = "testMid"; // avoid force sync from ECID generation
+//		identityExtension.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -636,12 +607,12 @@
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
-//		identityModule.advertisingIdentifier =  "testAdid";
-//		identityModule.mid = "testMid"; // avoid force sync from ECID generation
-//		identityModule.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
+//		identityExtension.advertisingIdentifier =  "testAdid";
+//		identityExtension.mid = "testMid"; // avoid force sync from ECID generation
+//		identityExtension.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -652,7 +623,7 @@
 //		assertFalse(sharedStateData.containsKey(IdentityTestConstants.EventDataKeys.Identity.VISITOR_IDS_LIST));
 //		assertEquals("testAdid", sharedStateData.optString(IdentityTestConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER,
 //					 null));
-//		assertEquals("testAdid", identityModule.advertisingIdentifier);
+//		assertEquals("testAdid", identityExtension.advertisingIdentifier);
 //
 //		// Ad ID did not change
 //		assertFalse(mockIdentityHitsDatabase.queueWasCalled);
@@ -665,12 +636,12 @@
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
-//		identityModule.advertisingIdentifier =  "initialTestAdid";
-//		identityModule.mid = "testMid"; // avoid force sync from ECID generation
-//		identityModule.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
+//		identityExtension.advertisingIdentifier =  "initialTestAdid";
+//		identityExtension.mid = "testMid"; // avoid force sync from ECID generation
+//		identityExtension.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -689,7 +660,7 @@
 //		assertEquals("DSID_20914", actualID.getIdType());
 //		assertEquals("testAdid", sharedStateData.optString(IdentityTestConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER,
 //					 null));
-//		assertEquals("testAdid", identityModule.advertisingIdentifier);
+//		assertEquals("testAdid", identityExtension.advertisingIdentifier);
 //
 //		// verify database queueing
 //		assertTrue(mockIdentityHitsDatabase.queueWasCalled);
@@ -707,12 +678,12 @@
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
-//		identityModule.advertisingIdentifier =  "initialAdid";
-//		identityModule.mid = "testMid"; // avoid force sync from ECID generation
-//		identityModule.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
+//		identityExtension.advertisingIdentifier =  "initialAdid";
+//		identityExtension.mid = "testMid"; // avoid force sync from ECID generation
+//		identityExtension.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -724,7 +695,7 @@
 //		assertNotNull(sharedStateData.optString(IdentityTestConstants.EventDataKeys.Identity.VISITOR_ID_MID, null));
 //		assertFalse(sharedStateData.containsKey(IdentityTestConstants.EventDataKeys.Identity.VISITOR_IDS_LIST));
 //		assertFalse(sharedStateData.containsKey(IdentityTestConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER));
-//		assertEquals("", identityModule.advertisingIdentifier);
+//		assertEquals("", identityExtension.advertisingIdentifier);
 //
 //		// verify database queueing
 //		assertTrue(mockIdentityHitsDatabase.queueWasCalled);
@@ -742,12 +713,12 @@
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
-//		identityModule.advertisingIdentifier =  "initialAdid";
-//		identityModule.mid = "testMid"; // avoid force sync from ECID generation
-//		identityModule.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
+//		identityExtension.advertisingIdentifier =  "initialAdid";
+//		identityExtension.mid = "testMid"; // avoid force sync from ECID generation
+//		identityExtension.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -759,7 +730,7 @@
 //		assertNotNull(sharedStateData.optString(IdentityTestConstants.EventDataKeys.Identity.VISITOR_ID_MID, null));
 //		assertFalse(sharedStateData.containsKey(IdentityTestConstants.EventDataKeys.Identity.VISITOR_IDS_LIST));
 //		assertFalse(sharedStateData.containsKey(IdentityTestConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER));
-//		assertEquals("", identityModule.advertisingIdentifier);
+//		assertEquals("", identityExtension.advertisingIdentifier);
 //
 //		// verify database queueing
 //		assertTrue(mockIdentityHitsDatabase.queueWasCalled);
@@ -777,12 +748,12 @@
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
-//		identityModule.advertisingIdentifier =  "";
-//		identityModule.mid = "testMid"; // avoid force sync from ECID generation
-//		identityModule.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
+//		identityExtension.advertisingIdentifier =  "";
+//		identityExtension.mid = "testMid"; // avoid force sync from ECID generation
+//		identityExtension.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -794,7 +765,7 @@
 //		assertNotNull(sharedStateData.optString(IdentityTestConstants.EventDataKeys.Identity.VISITOR_ID_MID, null));
 //		assertFalse(sharedStateData.containsKey(IdentityTestConstants.EventDataKeys.Identity.VISITOR_IDS_LIST));
 //		assertFalse(sharedStateData.containsKey(IdentityTestConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER));
-//		assertEquals("", identityModule.advertisingIdentifier);
+//		assertEquals("", identityExtension.advertisingIdentifier);
 //
 //		// No hit generated as Ad ID didn't change (all zeros is considered same as empty)
 //		assertFalse(mockIdentityHitsDatabase.queueWasCalled);
@@ -807,12 +778,12 @@
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
-//		identityModule.advertisingIdentifier =  IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
-//		identityModule.mid = "testMid"; // avoid force sync from ECID generation
-//		identityModule.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
+//		identityExtension.advertisingIdentifier =  IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
+//		identityExtension.mid = "testMid"; // avoid force sync from ECID generation
+//		identityExtension.lastSync = TimeUtil.getUnixTimeInSeconds(); // avoid force sync from ttl timeout
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(adidEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -824,7 +795,7 @@
 //		assertNotNull(sharedStateData.optString(IdentityTestConstants.EventDataKeys.Identity.VISITOR_ID_MID, null));
 //		assertFalse(sharedStateData.containsKey(IdentityTestConstants.EventDataKeys.Identity.VISITOR_IDS_LIST));
 //		assertFalse(sharedStateData.containsKey(IdentityTestConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER));
-//		assertEquals("", identityModule.advertisingIdentifier); // Notice Ad ID set as empty, not all zeros, as expected!
+//		assertEquals("", identityExtension.advertisingIdentifier); // Notice Ad ID set as empty, not all zeros, as expected!
 //
 //		// Hit generated as initial Ad ID of all zeros is changed to empty string
 //		// Send hit to update all zeros on server-side to consent NO
@@ -845,11 +816,11 @@
 //		ConfigurationSharedStateIdentity configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
-//		identityModule.locationHint =  "locHinty";
-//		identityModule.blob =  "blobby";
+//		identityExtension.locationHint =  "locHinty";
+//		identityExtension.blob =  "blobby";
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(pushEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(pushEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -883,12 +854,12 @@
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
 //
-//		identityModule.mid = "1234"; // visitor ID is null initially and set for the first time in
+//		identityExtension.mid = "1234"; // visitor ID is null initially and set for the first time in
 //		// shouldSync(). Mimic a second call to shouldSync by setting the mid
-//		identityModule.lastSync = TimeUtil.getUnixTimeInSeconds(); // set last sync to now
+//		identityExtension.lastSync = TimeUtil.getUnixTimeInSeconds(); // set last sync to now
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(event, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(event, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -907,10 +878,10 @@
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		configurationSharedStateIdentity.orgID = "fakeOrg";
 //
-//		identityModule.database = null;
+//		identityExtension.database = null;
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -930,7 +901,7 @@
 //		EventData validConfig = new EventData();
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "fakeOrg");
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "optedin");
-//		identityModule.updateLatestValidConfiguration(validConfig);
+//		identityExtension.updateLatestValidConfiguration(validConfig);
 //
 //		// prepare
 //		Event syncIDEvent = FakeSycnIDEvent();
@@ -938,7 +909,7 @@
 //		configurationSharedStateIdentity.orgID = null;
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify setting of shared state
@@ -972,7 +943,7 @@
 //		configurationSharedStateIdentity.orgID = null;
 //
 //		// test
-//		boolean result = identityModule.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
+//		boolean result = identityExtension.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
 //		assertFalse(result);
 //
 //		// verify shared state not created
@@ -987,7 +958,7 @@
 //		EventData validConfig = new EventData();
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "latestOrg");
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "optedin"); // OPT_IN
-//		identityModule.updateLatestValidConfiguration(validConfig);
+//		identityExtension.updateLatestValidConfiguration(validConfig);
 //
 //		// prepare
 //		Event syncIDEvent = FakeSycnIDEvent();
@@ -996,8 +967,8 @@
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN; // OPT_IN
 //
 //		// test
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_OUT; // OPT-OUT
-//		boolean result = identityModule.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_OUT; // OPT-OUT
+//		boolean result = identityExtension.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify
@@ -1013,7 +984,7 @@
 //		EventData validConfig = new EventData();
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "latestOrg");
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "optedin"); // OPT_IN
-//		identityModule.updateLatestValidConfiguration(validConfig);
+//		identityExtension.updateLatestValidConfiguration(validConfig);
 //
 //		// prepare
 //		Event syncIDEvent = FakeSycnIDEvent();
@@ -1022,8 +993,8 @@
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_OUT; // OPT_OUT
 //
 //		// test
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN; // OPT_IN
-//		boolean result = identityModule.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN; // OPT_IN
+//		boolean result = identityExtension.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify
@@ -1039,7 +1010,7 @@
 //		EventData validConfig = new EventData();
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "latestOrg");
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "optedout"); // OPT_OUT
-//		identityModule.updateLatestValidConfiguration(validConfig);
+//		identityExtension.updateLatestValidConfiguration(validConfig);
 //
 //		// prepare
 //		Event syncIDEvent = FakeSycnIDEvent();
@@ -1048,8 +1019,8 @@
 //		configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN; // OPT_IN
 //
 //		// test
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN; // OPT_IN
-//		boolean result = identityModule.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN; // OPT_IN
+//		boolean result = identityExtension.handleSyncIdentifiers(syncIDEvent, configurationSharedStateIdentity);
 //		assertTrue(result);
 //
 //		// verify
@@ -1064,7 +1035,7 @@
 //	@Test
 //	public void handleIdentityRequestReset_nullEvent_shouldReturn() {
 //		// test
-//		identityModule.handleIdentityRequestReset(null);
+//		identityExtension.handleIdentityRequestReset(null);
 //
 //		// verify
 //		assertFalse(eventHub.createSharedStateCalled);
@@ -1078,12 +1049,12 @@
 //		EventData validConfig = new EventData();
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "latestOrg");
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "optedout"); // OPT_OUT
-//		identityModule.updateLatestValidConfiguration(validConfig);
+//		identityExtension.updateLatestValidConfiguration(validConfig);
 //
 //		Event event = new Event.Builder("test", EventType.GENERIC_IDENTITY, EventSource.REQUEST_RESET).build();
 //
 //		// test
-//		identityModule.handleIdentityRequestReset(event);
+//		identityExtension.handleIdentityRequestReset(event);
 //
 //		// verify
 //		assertFalse(eventHub.createSharedStateCalled);
@@ -1097,10 +1068,10 @@
 //		EventData validConfig = new EventData();
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "latestOrg");
 //		validConfig.putString(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "optedin"); // OPT_IN
-//		identityModule.updateLatestValidConfiguration(validConfig);
+//		identityExtension.updateLatestValidConfiguration(validConfig);
 //
 //		String mockMarketingCloudIdentifier = "83056071767212492011535942034357093219";
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
 //		FakeLocalStorageService fakeLocalStorageService = platformServices.fakeLocalStorageService;
 //		FakeDataStore dataStore = (FakeDataStore) fakeLocalStorageService.getDataStore(
@@ -1113,27 +1084,27 @@
 //
 //		// test
 //		Event event = new Event.Builder("test", EventType.GENERIC_IDENTITY, EventSource.REQUEST_RESET).build();
-//		identityModule.handleIdentityRequestReset(event);
+//		identityExtension.handleIdentityRequestReset(event);
 //
 //		// verify
-//		assertTrue(identityModule.tryProcessingEventQueueWasCalled);
-//		assertEquals(1, identityModule.eventsQueue.size());
+//		assertTrue(identityExtension.tryProcessingEventQueueWasCalled);
+//		assertEquals(1, identityExtension.eventsQueue.size());
 //
 //		// ecid should be cleared
 //		assertNull(dataStore.getString(IdentityConstants.DataStoreKeys.MARKETING_CLOUD_ID, null));
-//		assertNull(identityModule.mid);
-//		assertNull(identityModule.advertisingIdentifier);
-//		assertNull(identityModule.pushIdentifier);
-//		assertNull(identityModule.blob);
-//		assertNull(identityModule.locationHint);
-//		assertNull(identityModule.customerIds);
+//		assertNull(identityExtension.mid);
+//		assertNull(identityExtension.advertisingIdentifier);
+//		assertNull(identityExtension.pushIdentifier);
+//		assertNull(identityExtension.blob);
+//		assertNull(identityExtension.locationHint);
+//		assertNull(identityExtension.customerIds);
 //
 //		// persisted push flags should be removed/false
 //		assertFalse(dataStore.getBoolean(IdentityConstants.DataStoreKeys.PUSH_ENABLED, false));
 //		assertFalse(dataStore.getBoolean(IdentityConstants.DataStoreKeys.AID_SYNCED_KEY, false));
 //
 //		// force sync event should be queued
-//		Event forceSyncEvent = identityModule.eventsQueue.peek();
+//		Event forceSyncEvent = identityExtension.eventsQueue.peek();
 //		assertEquals(EventType.IDENTITY, forceSyncEvent.getEventType());
 //		assertEquals(EventSource.REQUEST_IDENTITY, forceSyncEvent.getEventSource());
 //		assertTrue((boolean) forceSyncEvent.getEventData().get(IdentityConstants.EventDataKeys.Identity.FORCE_SYNC));
@@ -1146,14 +1117,14 @@
 //	public void extractIdentifiers_Should_ReturnEmptyMap_WhenNoSyncIDKeyPresentInEventData() {
 //		EventData eventData = new EventData();
 //		eventData.putString("blah", "blah");
-//		HashMap<String, String> ids = (HashMap<String, String>) identityModule.extractIdentifiers(eventData);
+//		HashMap<String, String> ids = (HashMap<String, String>) identityExtension.extractIdentifiers(eventData);
 //		assertNotNull(ids);
 //		assertTrue(ids.isEmpty());
 //	}
 //
 //	@Test
 //	public void extractIdentifiers_Should_ReturnEmptyMap_WhenNullEventData() {
-//		HashMap<String, String> ids = (HashMap<String, String>) identityModule.extractIdentifiers(null);
+//		HashMap<String, String> ids = (HashMap<String, String>) identityExtension.extractIdentifiers(null);
 //		assertNotNull(ids);
 //		assertTrue(ids.isEmpty());
 //	}
@@ -1165,7 +1136,7 @@
 //		map.put("blah", null);
 //		eventData.putStringMap(IdentityTestConstants.EventDataKeys.Identity.IDENTIFIERS, map);
 //
-//		Map<String, String> ids = identityModule.extractIdentifiers(eventData);
+//		Map<String, String> ids = identityExtension.extractIdentifiers(eventData);
 //		assertNotNull(ids);
 //		assertEquals(1, ids.size());
 //	}
@@ -1177,7 +1148,7 @@
 //		map.put(null, null);
 //		eventData.putStringMap(IdentityTestConstants.EventDataKeys.Identity.IDENTIFIERS, map);
 //
-//		HashMap<String, String> ids = (HashMap<String, String>) identityModule.extractIdentifiers(eventData);
+//		HashMap<String, String> ids = (HashMap<String, String>) identityExtension.extractIdentifiers(eventData);
 //		assertNotNull(ids);
 //		assertTrue(ids.isEmpty());
 //	}
@@ -1188,7 +1159,7 @@
 //		HashMap<String, String> map = new HashMap<String, String>();
 //		map.put("", "");
 //		eventData.putStringMap(IdentityTestConstants.EventDataKeys.Identity.IDENTIFIERS, map);
-//		HashMap<String, String> ids = (HashMap<String, String>) identityModule.extractIdentifiers(eventData);
+//		HashMap<String, String> ids = (HashMap<String, String>) identityExtension.extractIdentifiers(eventData);
 //		assertNotNull(ids);
 //		assertEquals(1, ids.size());
 //	}
@@ -1199,7 +1170,7 @@
 //		HashMap<String, String> map = new HashMap<String, String>();
 //		eventData.putStringMap(IdentityTestConstants.EventDataKeys.Identity.IDENTIFIERS, map);
 //
-//		HashMap<String, String> ids = (HashMap<String, String>) identityModule.extractIdentifiers(eventData);
+//		HashMap<String, String> ids = (HashMap<String, String>) identityExtension.extractIdentifiers(eventData);
 //		assertNotNull(ids);
 //		assertTrue(ids.isEmpty());
 //	}
@@ -1208,7 +1179,7 @@
 //	public void extractIdentifiers_Should_ReturnEmptyMap_WhenIDENTIFIERSKeyPresentInEventData_WithNullValue() {
 //		EventData eventData = new EventData();
 //		eventData.putStringMap(IdentityTestConstants.EventDataKeys.Identity.IDENTIFIERS, null);
-//		HashMap<String, String> ids = (HashMap<String, String>) identityModule.extractIdentifiers(eventData);
+//		HashMap<String, String> ids = (HashMap<String, String>) identityExtension.extractIdentifiers(eventData);
 //
 //		assertNotNull(ids);
 //		assertTrue(ids.isEmpty());
@@ -1220,7 +1191,7 @@
 //		eventData.putString(IdentityTestConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER, "test-aid");
 //
 //		// test
-//		Map<String, String> ids = identityModule.extractIdentifiers(eventData);
+//		Map<String, String> ids = identityExtension.extractIdentifiers(eventData);
 //
 //		// verify
 //		assertNotNull(ids);
@@ -1235,15 +1206,15 @@
 //		Event adidEvent = generateAdidEvent("test_ad_id");
 //
 //		// test
-//		identityModule.advertisingIdentifier = "";
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = "";
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertNotNull(result);
 //		assertEquals("test_ad_id", result.getFirst().getId());
 //		assertEquals("d_cid_ic", result.getFirst().getIdOrigin());
 //		assertEquals("DSID_20914", result.getFirst().getIdType());
-//		assertEquals("test_ad_id", identityModule.advertisingIdentifier);
+//		assertEquals("test_ad_id", identityExtension.advertisingIdentifier);
 //		assertTrue(result.getSecond());
 //	}
 //
@@ -1252,15 +1223,15 @@
 //		Event adidEvent = generateAdidEvent("test_ad_id");
 //
 //		// test
-//		identityModule.advertisingIdentifier = "initial_adid_value";
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = "initial_adid_value";
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertNotNull(result);
 //		assertEquals("test_ad_id", result.getFirst().getId());
 //		assertEquals("d_cid_ic", result.getFirst().getIdOrigin());
 //		assertEquals("DSID_20914", result.getFirst().getIdType());
-//		assertEquals("test_ad_id", identityModule.advertisingIdentifier);
+//		assertEquals("test_ad_id", identityExtension.advertisingIdentifier);
 //		assertFalse(result.getSecond());
 //	}
 //
@@ -1269,13 +1240,13 @@
 //		Event adidEvent = generateAdidEvent("test_ad_id");
 //
 //		// test
-//		identityModule.advertisingIdentifier = "test_ad_id";
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = "test_ad_id";
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertNull(result.getFirst());
 //		assertFalse(result.getSecond());
-//		assertEquals("test_ad_id", identityModule.advertisingIdentifier);
+//		assertEquals("test_ad_id", identityExtension.advertisingIdentifier);
 //	}
 //
 //	@Test
@@ -1283,13 +1254,13 @@
 //		Event adidEvent = generateAdidEvent("");
 //
 //		// test
-//		identityModule.advertisingIdentifier = "";
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = "";
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertNull(result.getFirst());
 //		assertFalse(result.getSecond());
-//		assertEquals("", identityModule.advertisingIdentifier);
+//		assertEquals("", identityExtension.advertisingIdentifier);
 //	}
 //
 //	@Test
@@ -1300,13 +1271,13 @@
 //		nonAdidEventData.putStringMap(IdentityTestConstants.EventDataKeys.Identity.IDENTIFIERS, map);
 //
 //		// test
-//		identityModule.advertisingIdentifier = "test_ad_id";
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(nonAdidEventData);
+//		identityExtension.advertisingIdentifier = "test_ad_id";
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(nonAdidEventData);
 //
 //		// verify
 //		assertNull(result.getFirst());
 //		assertFalse(result.getSecond());
-//		assertEquals("test_ad_id", identityModule.advertisingIdentifier);
+//		assertEquals("test_ad_id", identityExtension.advertisingIdentifier);
 //	}
 //
 //	@Test
@@ -1314,15 +1285,15 @@
 //		Event adidEvent = generateAdidEvent("");
 //
 //		// test
-//		identityModule.advertisingIdentifier = "initial_adid_value";
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = "initial_adid_value";
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertNotNull(result.getFirst());
 //		assertEquals("", result.getFirst().getId());
 //		assertEquals("d_cid_ic", result.getFirst().getIdOrigin());
 //		assertEquals("DSID_20914", result.getFirst().getIdType());
-//		assertEquals("", identityModule.advertisingIdentifier);
+//		assertEquals("", identityExtension.advertisingIdentifier);
 //		assertTrue(result.getSecond());
 //	}
 //
@@ -1331,15 +1302,15 @@
 //		Event adidEvent = generateAdidEvent(IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID);
 //
 //		// test
-//		identityModule.advertisingIdentifier = "initial_adid_value";
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = "initial_adid_value";
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertNotNull(result.getFirst());
 //		assertEquals("", result.getFirst().getId());
 //		assertEquals("d_cid_ic", result.getFirst().getIdOrigin());
 //		assertEquals("DSID_20914", result.getFirst().getIdType());
-//		assertEquals("", identityModule.advertisingIdentifier);
+//		assertEquals("", identityExtension.advertisingIdentifier);
 //		assertTrue(result.getSecond());
 //	}
 //
@@ -1348,15 +1319,15 @@
 //		Event adidEvent = generateAdidEvent("test_ad_id");
 //
 //		// test
-//		identityModule.advertisingIdentifier = IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertNotNull(result);
 //		assertEquals("test_ad_id", result.getFirst().getId());
 //		assertEquals("d_cid_ic", result.getFirst().getIdOrigin());
 //		assertEquals("DSID_20914", result.getFirst().getIdType());
-//		assertEquals("test_ad_id", identityModule.advertisingIdentifier);
+//		assertEquals("test_ad_id", identityExtension.advertisingIdentifier);
 //		assertTrue(result.getSecond());
 //	}
 //
@@ -1365,14 +1336,14 @@
 //		Event adidEvent = generateAdidEvent(IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID);
 //
 //		// test
-//		identityModule.advertisingIdentifier = IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertEquals("", result.getFirst().getId());
 //		assertEquals("d_cid_ic", result.getFirst().getIdOrigin());
 //		assertEquals("DSID_20914", result.getFirst().getIdType());
-//		assertEquals("", identityModule.advertisingIdentifier);
+//		assertEquals("", identityExtension.advertisingIdentifier);
 //		assertTrue(result.getSecond()); // True because zero ad ID changed to empty string, as expected
 //	}
 //
@@ -1381,14 +1352,14 @@
 //		Event adidEvent = generateAdidEvent("");
 //
 //		// test
-//		identityModule.advertisingIdentifier = IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID;
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertEquals("", result.getFirst().getId());
 //		assertEquals("d_cid_ic", result.getFirst().getIdOrigin());
 //		assertEquals("DSID_20914", result.getFirst().getIdType());
-//		assertEquals("", identityModule.advertisingIdentifier);
+//		assertEquals("", identityExtension.advertisingIdentifier);
 //		assertTrue(result.getSecond()); // True because zero ad ID changed to empty string, as expected
 //	}
 //
@@ -1397,13 +1368,13 @@
 //		Event adidEvent = generateAdidEvent(IdentityTestConstants.Defaults.ZERO_ADVERTISING_ID);
 //
 //		// test
-//		identityModule.advertisingIdentifier = "";
-//		IdentityGenericPair<VisitorID, Boolean> result = identityModule.extractAndUpdateAdid(adidEvent.getData());
+//		identityExtension.advertisingIdentifier = "";
+//		IdentityGenericPair<VisitorID, Boolean> result = identityExtension.extractAndUpdateAdid(adidEvent.getData());
 //
 //		// verify
 //		assertNull(result.getFirst());
 //		assertFalse(result.getSecond());
-//		assertEquals("", identityModule.advertisingIdentifier);
+//		assertEquals("", identityExtension.advertisingIdentifier);
 //	}
 //
 //	// ==============================================================================================================
@@ -1420,14 +1391,14 @@
 //		setAnalyticsSharedStateToEventHub(1, genericAnalyticsSharedState);
 //
 //		// test
-//		identityModule.handleAppendURL(event, genericConfigurationSharedState, genericAnalyticsSharedState);
+//		identityExtension.handleAppendURL(event, genericConfigurationSharedState, genericAnalyticsSharedState);
 //
 //		// verify
-//		assertTrue(identityModule.appendVisitorInfoForURLWasCalled);
-//		assertEquals("url", identityModule.appendVisitorInfoForURLParamBaseURL);
-//		assertEquals("pairID", identityModule.appendVisitorInfoForURLParamPairID);
-//		assertEquals(genericConfigurationSharedState, identityModule.appendVisitorInfoForURLParamConfigSharedState);
-//		assertEquals(genericAnalyticsSharedState, identityModule.appendVisitorInfoForURLParamAnalyticsSharedState);
+//		assertTrue(identityExtension.appendVisitorInfoForURLWasCalled);
+//		assertEquals("url", identityExtension.appendVisitorInfoForURLParamBaseURL);
+//		assertEquals("pairID", identityExtension.appendVisitorInfoForURLParamPairID);
+//		assertEquals(genericConfigurationSharedState, identityExtension.appendVisitorInfoForURLParamConfigSharedState);
+//		assertEquals(genericAnalyticsSharedState, identityExtension.appendVisitorInfoForURLParamAnalyticsSharedState);
 //	}
 //
 //	// ==============================================================================================================
@@ -1444,12 +1415,12 @@
 //		setAnalyticsSharedStateToEventHub(1, genericAnalyticsSharedState);
 //
 //		// test
-//		identityModule.handleGetUrlVariables(event, genericConfigurationSharedState, genericAnalyticsSharedState);
+//		identityExtension.handleGetUrlVariables(event, genericConfigurationSharedState, genericAnalyticsSharedState);
 //
 //		// verify
-//		assertTrue(identityModule.generateVisitorIDURLPayloadWasCalled);
-//		assertEquals(genericConfigurationSharedState, identityModule.generateVisitorIDURLPayloadParamConfigSharedState);
-//		assertEquals(genericAnalyticsSharedState, identityModule.generateVisitorIDURLPayloadParamAnalyticsSharedState);
+//		assertTrue(identityExtension.generateVisitorIDURLPayloadWasCalled);
+//		assertEquals(genericConfigurationSharedState, identityExtension.generateVisitorIDURLPayloadParamConfigSharedState);
+//		assertEquals(genericAnalyticsSharedState, identityExtension.generateVisitorIDURLPayloadParamAnalyticsSharedState);
 //
 //		assertTrue(mockDispatcherIdentityResponseEvent.dispatchResponseWasCalled);
 //		assertTrue(mockDispatcherIdentityResponseEvent.dispatchResponseParameterEventData.containsKey(
@@ -1470,7 +1441,7 @@
 //
 //		boolean existingPushEnabledStatus = dataStore.getBoolean(IdentityTestConstants.DataStoreKeys.PUSH_ENABLED, false);
 //
-//		identityModule.updatePushIdentifier(null);
+//		identityExtension.updatePushIdentifier(null);
 //
 //		boolean newPushEnabledStatus = dataStore.getBoolean(IdentityTestConstants.DataStoreKeys.PUSH_ENABLED, false);
 //		assertEquals(existingPushEnabledStatus, newPushEnabledStatus);
@@ -1486,7 +1457,7 @@
 //		dataStore.setString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, "tempToken");
 //		dataStore.setBoolean(IdentityTestConstants.DataStoreKeys.PUSH_ENABLED, true);
 //
-//		identityModule.updatePushIdentifier(null);
+//		identityExtension.updatePushIdentifier(null);
 //
 //		boolean newPushEnabledStatus = dataStore.getBoolean(IdentityTestConstants.DataStoreKeys.PUSH_ENABLED, false);
 //		assertFalse(newPushEnabledStatus);
@@ -1516,7 +1487,7 @@
 //
 //		// Don't set PUSH_ENABLED in DataStore to simulate first time calling
 //
-//		identityModule.updatePushIdentifier(null);
+//		identityExtension.updatePushIdentifier(null);
 //
 //		boolean newPushEnabledStatus = dataStore.getBoolean(IdentityTestConstants.DataStoreKeys.PUSH_ENABLED, false);
 //		assertFalse(newPushEnabledStatus);
@@ -1543,7 +1514,7 @@
 //		FakeDataStore dataStore = (FakeDataStore) fakeLocalStorageService.getDataStore(
 //									  IdentityTestConstants.DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME);
 //
-//		identityModule.updatePushIdentifier("testToken");
+//		identityExtension.updatePushIdentifier("testToken");
 //
 //		boolean newPushEnabledStatus = dataStore.getBoolean(IdentityTestConstants.DataStoreKeys.PUSH_ENABLED, false);
 //		assertTrue(newPushEnabledStatus);
@@ -1568,10 +1539,10 @@
 //	testUpdatePushIdentifier_when_NullDataStore() {
 //		// setup
 //		platformServices.fakeLocalStorageService = null;
-//		identityModule.setDataStore(null);
+//		identityExtension.setDataStore(null);
 //
 //		// test
-//		identityModule.updatePushIdentifier("testToken");
+//		identityExtension.updatePushIdentifier("testToken");
 //
 //		// verify
 //		assertFalse(mockDispatcherIdentityAnalyticsEvent.dispatchAnalyticseWasCalled);
@@ -1582,7 +1553,7 @@
 //	// ==============================================================================================================
 //	@Test
 //	public void testProcessNewPushToken_when_inputIsNullAndExistingIsNull_then_returnTrueAndPreferencesUpdate() {
-//		boolean shouldProcessNullToken = identityModule.processNewPushToken(null);
+//		boolean shouldProcessNullToken = identityExtension.processNewPushToken(null);
 //		assertTrue(shouldProcessNullToken);
 //
 //		FakeLocalStorageService fakeLocalStorageService = platformServices.fakeLocalStorageService;
@@ -1605,7 +1576,7 @@
 //
 //		dataStore.setBoolean(IdentityTestConstants.DataStoreKeys.ANALYTICS_PUSH_SYNC, true);
 //
-//		boolean shouldProcessNullToken = identityModule.processNewPushToken(null);
+//		boolean shouldProcessNullToken = identityExtension.processNewPushToken(null);
 //		assertFalse(shouldProcessNullToken);
 //
 //		String persistedPushID = dataStore.getString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, null);
@@ -1618,7 +1589,7 @@
 //		FakeDataStore dataStore = (FakeDataStore) fakeLocalStorageService.getDataStore(
 //									  IdentityTestConstants.DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME);
 //
-//		boolean shouldProcessEmptyToken = identityModule.processNewPushToken("");
+//		boolean shouldProcessEmptyToken = identityExtension.processNewPushToken("");
 //		assertTrue(shouldProcessEmptyToken);
 //
 //		String persistedPushID = dataStore.getString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, null);
@@ -1637,7 +1608,7 @@
 //
 //		dataStore.setBoolean(IdentityTestConstants.DataStoreKeys.ANALYTICS_PUSH_SYNC, true);
 //
-//		boolean shouldProcessNullToken = identityModule.processNewPushToken("");
+//		boolean shouldProcessNullToken = identityExtension.processNewPushToken("");
 //		assertFalse(shouldProcessNullToken);
 //
 //		String persistedPushID = dataStore.getString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, null);
@@ -1652,7 +1623,7 @@
 //
 //		dataStore.setString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, "tempToken");
 //
-//		boolean shouldProcessExistingToken = identityModule.processNewPushToken("tempToken");
+//		boolean shouldProcessExistingToken = identityExtension.processNewPushToken("tempToken");
 //
 //		assertFalse(shouldProcessExistingToken);
 //		assertEquals(dataStore.getString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, null), "tempToken");
@@ -1666,7 +1637,7 @@
 //
 //		dataStore.setString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, "tempToken");
 //
-//		boolean shouldProcessNonExistingToken = identityModule.processNewPushToken("processNewPushToken");
+//		boolean shouldProcessNonExistingToken = identityExtension.processNewPushToken("processNewPushToken");
 //		assertTrue(shouldProcessNonExistingToken);
 //		assertEquals(dataStore.getString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, null), "processNewPushToken");
 //
@@ -1682,7 +1653,7 @@
 //
 //		dataStore.setString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, "tempToken");
 //
-//		boolean shouldProcessNullToken = identityModule.processNewPushToken(null);
+//		boolean shouldProcessNullToken = identityExtension.processNewPushToken(null);
 //
 //		assertTrue(shouldProcessNullToken);
 //		assertNull(dataStore.getString(IdentityTestConstants.DataStoreKeys.PUSH_IDENTIFIER, null));
@@ -1698,7 +1669,7 @@
 //	// ==============================================================================================================
 //	@Test
 //	public void testAppendVisitorInfoForURL_ShouldDispatchNullUpdatedURL_When_BaseURLIsNull() {
-//		identityModule.appendVisitorInfoForURL(null, null, genericConfigurationSharedState, genericAnalyticsSharedState);
+//		identityExtension.appendVisitorInfoForURL(null, null, genericConfigurationSharedState, genericAnalyticsSharedState);
 //
 //		assertTrue(mockDispatcherIdentityResponseEvent.dispatchResponseWasCalled);
 //		assertNull(eventHub.dispatchedEvent.getData().optString(IdentityTestConstants.EventDataKeys.Identity.UPDATED_URL,
@@ -1707,7 +1678,7 @@
 //
 //	@Test
 //	public void testAppendVisitorInfoForURL_ShouldDispatchEmptyUpdatedURL_When_BaseURLIsEmpty() {
-//		identityModule.appendVisitorInfoForURL("", null, genericConfigurationSharedState, genericAnalyticsSharedState);
+//		identityExtension.appendVisitorInfoForURL("", null, genericConfigurationSharedState, genericAnalyticsSharedState);
 //
 //		assertTrue(mockDispatcherIdentityResponseEvent.dispatchResponseWasCalled);
 //		assertNotNull(eventHub.dispatchedEvent.getData().optString(IdentityTestConstants.EventDataKeys.Identity.UPDATED_URL,
@@ -1718,7 +1689,7 @@
 //
 //	@Test
 //	public void testAppendVisitorInfoForURL_ShouldDispatchUpdatedURL_When_BaseURLIsNonNullNonEmpty() {
-//		identityModule.appendVisitorInfoForURL("test-base-url", null, genericConfigurationSharedState,
+//		identityExtension.appendVisitorInfoForURL("test-base-url", null, genericConfigurationSharedState,
 //											   genericAnalyticsSharedState);
 //
 //		assertTrue(mockDispatcherIdentityResponseEvent.dispatchResponseWasCalled);
@@ -1734,10 +1705,10 @@
 //		StringBuilder(
 //			"adobe_mc=MCMID%3D83056071767212492011535942034357093219%7CMCAID%3DMOCK_ANALYTICS_ID&adobe_aa_vid" +
 //			"=Taz");
-//		identityModule.setGenerateVisitorIDURLPayload(mockVisitorIDURLPayload);
+//		identityExtension.setGenerateVisitorIDURLPayload(mockVisitorIDURLPayload);
 //
 //		String baseURL = "test-base-url";
-//		identityModule.appendVisitorInfoForURL(baseURL, null, genericConfigurationSharedState, genericAnalyticsSharedState);
+//		identityExtension.appendVisitorInfoForURL(baseURL, null, genericConfigurationSharedState, genericAnalyticsSharedState);
 //
 //		EventData eventData = eventHub.dispatchedEvent.getData();
 //		assertTrue(eventData.containsKey(IdentityTestConstants.EventDataKeys.Identity.UPDATED_URL));
@@ -1751,10 +1722,10 @@
 //		StringBuilder(
 //			"adobe_mc=MCMID%3D83056071767212492011535942034357093219%7CMCAID%3DMOCK_ANALYTICS_ID&adobe_aa_vid" +
 //			"=Taz");
-//		identityModule.setGenerateVisitorIDURLPayload(mockVisitorIDURLPayload);
+//		identityExtension.setGenerateVisitorIDURLPayload(mockVisitorIDURLPayload);
 //
 //		String baseURL = "test-base-?url";
-//		identityModule.appendVisitorInfoForURL(baseURL, null, genericConfigurationSharedState, genericAnalyticsSharedState);
+//		identityExtension.appendVisitorInfoForURL(baseURL, null, genericConfigurationSharedState, genericAnalyticsSharedState);
 //
 //		EventData eventData = eventHub.dispatchedEvent.getData();
 //		assertTrue(eventData.containsKey(IdentityTestConstants.EventDataKeys.Identity.UPDATED_URL));
@@ -1799,12 +1770,12 @@
 //			StringBuilder idPayload = new StringBuilder(testComponents[1]);
 //			String expectedResult = testComponents[2];
 //
-//			identityModule.setGenerateVisitorIDURLPayload(idPayload);
+//			identityExtension.setGenerateVisitorIDURLPayload(idPayload);
 //
 //			/*
 //			 * Run
 //			 */
-//			identityModule.appendVisitorInfoForURL(testURL, null, genericConfigurationSharedState, genericAnalyticsSharedState);
+//			identityExtension.appendVisitorInfoForURL(testURL, null, genericConfigurationSharedState, genericAnalyticsSharedState);
 //
 //			/*
 //			 * Test
@@ -1847,8 +1818,8 @@
 //
 //	private void executeIdentityAppendVisitorInfoForURL(final String visitorPayload, final String givenUrl,
 //			final String expectedUrl) {
-//		identityModule.setGenerateVisitorIDURLPayload(new StringBuilder(visitorPayload));
-//		identityModule.appendVisitorInfoForURL(givenUrl, null, genericConfigurationSharedState, genericAnalyticsSharedState);
+//		identityExtension.setGenerateVisitorIDURLPayload(new StringBuilder(visitorPayload));
+//		identityExtension.appendVisitorInfoForURL(givenUrl, null, genericConfigurationSharedState, genericAnalyticsSharedState);
 //
 //		EventData eventData = eventHub.dispatchedEvent.getData();
 //		assertNotNull(eventData);
@@ -1861,9 +1832,9 @@
 //	// ==============================================================================================================
 //	@Test
 //	public void packageEventDataMustHaveRequiredKeys() {
-//		populateIdentifiers(identityModule);
+//		populateIdentifiers(identityExtension);
 //
-//		EventData packagedData = identityModule.packageEventData();
+//		EventData packagedData = identityExtension.packageEventData();
 //		assertTrue(packagedData.containsKey(IdentityTestConstants.EventDataKeys.Identity.VISITOR_ID_MID));
 //		assertTrue(packagedData.containsKey(IdentityTestConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER));
 //		assertTrue(packagedData.containsKey(IdentityTestConstants.EventDataKeys.Identity.PUSH_IDENTIFIER));
@@ -1878,14 +1849,14 @@
 //	// ==============================================================================================================
 //	@Test
 //	public void generateMID_ShouldNeverReturnNull_AlwaysReturnSpecificLength() {
-//		String manualId = identityModule.generateMID();
+//		String manualId = identityExtension.generateMID();
 //		assertNotNull("manual id generation should not be null", manualId);
 //		assertEquals("length should be correct", 38, manualId.length());
 //	}
 //
 //	@Test
 //	public void generateMID_ShouldContainOnlyNumbers() throws Exception {
-//		String manualId = identityModule.generateMID();
+//		String manualId = identityExtension.generateMID();
 //		assertNotNull("manual id generation should not be null", manualId);
 //		assertTrue("id should contains only number", manualId.matches("[0-9]+"));
 //	}
@@ -1896,7 +1867,7 @@
 //		HashMap<String, String> dictionary = new HashMap<String, String>(count);
 //
 //		for (int i = 0; i < count; i++) {
-//			String mid = identityModule.generateMID();
+//			String mid = identityExtension.generateMID();
 //			dictionary.put(mid, mid);
 //		}
 //
@@ -1908,7 +1879,7 @@
 //	// ==============================================================================================================
 //	@Test
 //	public void generateURLEncodedValuesCustomerIdString_WhenNullIDs() throws Exception {
-//		String testStoredIDString = identityModule.generateURLEncodedValuesCustomerIdString(null);
+//		String testStoredIDString = identityExtension.generateURLEncodedValuesCustomerIdString(null);
 //		assertNull(testStoredIDString);
 //	}
 //
@@ -1922,7 +1893,7 @@
 //		visitorIDList.add(new VisitorID("d_cid_ic", "!xboxlivehash", "1629158955",
 //										VisitorID.AuthenticationState.UNKNOWN));
 //
-//		String testStoredIDString = identityModule.generateURLEncodedValuesCustomerIdString(visitorIDList);
+//		String testStoredIDString = identityExtension.generateURLEncodedValuesCustomerIdString(visitorIDList);
 //		String expectedString =
 //			"d_cid_ic=loginidhash%0197717%011&d_cid_ic=psnidhash%01%211144032295%012&d_cid_ic" +
 //			"=xboxlivehash%011629158955%010";
@@ -1940,7 +1911,7 @@
 //		visitorIDList.add(new VisitorID("d_cid_ic", "xboxlivehash", "1629158955",
 //										VisitorID.AuthenticationState.AUTHENTICATED));
 //
-//		String testStoredIDString = identityModule.generateURLEncodedValuesCustomerIdString(visitorIDList);
+//		String testStoredIDString = identityExtension.generateURLEncodedValuesCustomerIdString(visitorIDList);
 //		String expectedString =
 //			"d_cid_ic=loginidhash%0197717%010&d_cid_ic=psnidhash%011144032295%012&d_cid_ic" +
 //			"=xboxlivehash%011629158955%011";
@@ -1967,14 +1938,14 @@
 //		mockVisitorIDList.add(new VisitorID("d_cid_ic", "id3", "h-h-hodor",
 //											VisitorID.AuthenticationState.AUTHENTICATED));
 //
-//		List<VisitorID> visitorIDList = identityModule.generateCustomerIds(testIds,
+//		List<VisitorID> visitorIDList = identityExtension.generateCustomerIds(testIds,
 //										VisitorID.AuthenticationState.AUTHENTICATED);
 //		assertThat(visitorIDList, listEquals(mockVisitorIDList));
 //	}
 //
 //	@Test
 //	public void generateCustomerIds_WhenNullID() throws Exception {
-//		List<VisitorID> visitorIDList = identityModule.generateCustomerIds(null,
+//		List<VisitorID> visitorIDList = identityExtension.generateCustomerIds(null,
 //										VisitorID.AuthenticationState.AUTHENTICATED);
 //		assertTrue(visitorIDList.isEmpty());
 //	}
@@ -1987,10 +1958,10 @@
 //		List<VisitorID> mockVisitorIDList = new ArrayList<VisitorID>();
 //		mockVisitorIDList.add(new VisitorID("d_cid_ic", "id1", "hodor",
 //											VisitorID.AuthenticationState.AUTHENTICATED));
-//		identityModule.customerIds = mockVisitorIDList;
+//		identityExtension.customerIds = mockVisitorIDList;
 //
 //		// test
-//		List<VisitorID> visitorIDList = identityModule.mergeCustomerIds(null);
+//		List<VisitorID> visitorIDList = identityExtension.mergeCustomerIds(null);
 //
 //
 //		// verify
@@ -2008,14 +1979,14 @@
 //		mockVisitorIDList.add(new VisitorID("d_cid_ic", "id3", "id3Value",
 //											VisitorID.AuthenticationState.AUTHENTICATED));
 //
-//		identityModule.customerIds = mockVisitorIDList;
+//		identityExtension.customerIds = mockVisitorIDList;
 //
 //		List<VisitorID> newCustomerIds = new ArrayList<VisitorID>();
 //		newCustomerIds.add(new VisitorID("d_cid_ic", "id4", "id4Value",
 //										 VisitorID.AuthenticationState.LOGGED_OUT));
 //
 //		// test
-//		List<VisitorID> resultVisitorIdsList = identityModule.mergeCustomerIds(newCustomerIds);
+//		List<VisitorID> resultVisitorIdsList = identityExtension.mergeCustomerIds(newCustomerIds);
 //
 //		// verify
 //		List<VisitorID> expectedVisitorIdsList = new ArrayList<VisitorID>();
@@ -2042,7 +2013,7 @@
 //		mockVisitorIDList.add(new VisitorID("d_cid_ic", "id3", "id3Value",
 //											VisitorID.AuthenticationState.AUTHENTICATED));
 //
-//		identityModule.customerIds = mockVisitorIDList;
+//		identityExtension.customerIds = mockVisitorIDList;
 //
 //		List<VisitorID> newCustomerIds = new ArrayList<VisitorID>();
 //		newCustomerIds.add(new VisitorID("d_cid_ic", "id2", "id2ValueUpdated",
@@ -2051,7 +2022,7 @@
 //										 VisitorID.AuthenticationState.LOGGED_OUT));
 //
 //		// test
-//		List<VisitorID> resultVisitorIdsList = identityModule.mergeCustomerIds(newCustomerIds);
+//		List<VisitorID> resultVisitorIdsList = identityExtension.mergeCustomerIds(newCustomerIds);
 //
 //		// verify
 //		List<VisitorID> expectedVisitorIdsList = new ArrayList<VisitorID>();
@@ -2084,7 +2055,7 @@
 //		mockVisitorIDList.add(new VisitorID("d_cid_ic", "id3", "h-h-hodor",
 //											VisitorID.AuthenticationState.AUTHENTICATED));
 //
-//		identityModule.customerIds = mockVisitorIDList;
+//		identityExtension.customerIds = mockVisitorIDList;
 //
 //		List<VisitorID> newCustomerIds = new ArrayList<VisitorID>();
 //		newCustomerIds.add(new VisitorID("d_cid_ic", null, "h-hodor",
@@ -2095,7 +2066,7 @@
 //		/*
 //		------------------ RUN ------------------
 //		 */
-//		List<VisitorID> visitorIDList = identityModule.mergeCustomerIds(newCustomerIds);
+//		List<VisitorID> visitorIDList = identityExtension.mergeCustomerIds(newCustomerIds);
 //
 //		/*
 //		------------------ TEST ------------------
@@ -2127,7 +2098,7 @@
 //		mockVisitorIDList.add(new VisitorID("d_cid_ic", "id3", "h-h-hodor",
 //											VisitorID.AuthenticationState.AUTHENTICATED));
 //
-//		identityModule.customerIds = mockVisitorIDList;
+//		identityExtension.customerIds = mockVisitorIDList;
 //
 //		List<VisitorID> newCustomerIds = new ArrayList<VisitorID>();
 //		newCustomerIds.add(new VisitorID("d_cid_ic", "id4", "h-h-h-hodor",
@@ -2138,7 +2109,7 @@
 //		/*
 //		------------------ RUN ------------------
 //		 */
-//		List<VisitorID> visitorIDList = identityModule.mergeCustomerIds(newCustomerIds);
+//		List<VisitorID> visitorIDList = identityExtension.mergeCustomerIds(newCustomerIds);
 //
 //		/*
 //		------------------ TEST ------------------
@@ -2176,7 +2147,7 @@
 //		mockVisitorIDList.add(new VisitorID("d_cid_ic", "id3", null,
 //											VisitorID.AuthenticationState.AUTHENTICATED));
 //
-//		identityModule.customerIds = mockVisitorIDList;
+//		identityExtension.customerIds = mockVisitorIDList;
 //
 //		List<VisitorID> newCustomerIds = new ArrayList<VisitorID>();
 //		newCustomerIds.add(new VisitorID("d_cid_ic", "id3", null,
@@ -2187,7 +2158,7 @@
 //		/*
 //		------------------ RUN ------------------
 //		 */
-//		List<VisitorID> visitorIDList = identityModule.mergeCustomerIds(newCustomerIds);
+//		List<VisitorID> visitorIDList = identityExtension.mergeCustomerIds(newCustomerIds);
 //
 //		/*
 //		------------------ TEST ------------------
@@ -2216,7 +2187,7 @@
 //		mockVisitorIDList.add(new VisitorID("d_cid_ic", "id3", null,
 //											VisitorID.AuthenticationState.AUTHENTICATED));
 //
-//		identityModule.customerIds = mockVisitorIDList;
+//		identityExtension.customerIds = mockVisitorIDList;
 //
 //		List<VisitorID> newCustomerIds = new ArrayList<VisitorID>();
 //		newCustomerIds.add(new VisitorID("d_cid_ic", "id3", null,
@@ -2227,7 +2198,7 @@
 //										 VisitorID.AuthenticationState.AUTHENTICATED));
 //
 //		// test
-//		List<VisitorID> visitorIDList = identityModule.mergeCustomerIds(newCustomerIds);
+//		List<VisitorID> visitorIDList = identityExtension.mergeCustomerIds(newCustomerIds);
 //
 //		// verify
 //		List<VisitorID> testVisitorIDList = new ArrayList<VisitorID>();
@@ -2254,11 +2225,11 @@
 //		String mockUserIdentifier = "Taz";
 //		String mockMarketingCloudOrgId = "29849020983@adobeOrg";
 //
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
 //		ConfigurationSharedStateIdentity configSharedState = generateConfigurationSharedState(mockMarketingCloudOrgId);
 //		EventData analyticsSharedState = generateAnalyticsSharedState("testaid", mockUserIdentifier);
-//		String generatedVisitorIDURLPayloadString = identityModule.callGenerateVisitorIDURLPayload(configSharedState,
+//		String generatedVisitorIDURLPayloadString = identityExtension.callGenerateVisitorIDURLPayload(configSharedState,
 //				analyticsSharedState).toString();
 //
 //		assertEquals(0, generatedVisitorIDURLPayloadString.indexOf(IdentityTestConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY));
@@ -2284,10 +2255,10 @@
 //		String mockMarketingCloudIdentifier = "83056071767212492011535942034357093219";
 //		String mockUserIdentifier = "Taz";
 //
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
 //		EventData analyticsSharedState = generateAnalyticsSharedState("testaid", mockUserIdentifier);
-//		String generatedVisitorIDURLPayloadString = identityModule.callGenerateVisitorIDURLPayload(null,
+//		String generatedVisitorIDURLPayloadString = identityExtension.callGenerateVisitorIDURLPayload(null,
 //				analyticsSharedState).toString();
 //
 //		assertEquals(0, generatedVisitorIDURLPayloadString.indexOf(IdentityTestConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY));
@@ -2313,11 +2284,11 @@
 //		String mockMarketingCloudIdentifier = "83056071767212492011535942034357093219";
 //		String mockMarketingCloudOrgId = "29849020983@adobeOrg";
 //
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
 //		ConfigurationSharedStateIdentity configSharedState = generateConfigurationSharedState(mockMarketingCloudOrgId);
 //		EventData analyticsSharedState = generateAnalyticsSharedState("testaid", null);
-//		String generatedVisitorIDURLPayloadString = identityModule.callGenerateVisitorIDURLPayload(configSharedState,
+//		String generatedVisitorIDURLPayloadString = identityExtension.callGenerateVisitorIDURLPayload(configSharedState,
 //				analyticsSharedState).toString();
 //
 //		assertEquals(0, generatedVisitorIDURLPayloadString.indexOf(IdentityTestConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY));
@@ -2343,10 +2314,10 @@
 //		String mockMarketingCloudIdentifier = "83056071767212492011535942034357093219";
 //		String mockMarketingCloudOrgId = "29849020983@adobeOrg";
 //
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
 //		ConfigurationSharedStateIdentity configSharedState = generateConfigurationSharedState(mockMarketingCloudOrgId);
-//		String generatedVisitorIDURLPayloadString = identityModule.callGenerateVisitorIDURLPayload(configSharedState,
+//		String generatedVisitorIDURLPayloadString = identityExtension.callGenerateVisitorIDURLPayload(configSharedState,
 //				null).toString();
 //
 //		assertEquals(0, generatedVisitorIDURLPayloadString.indexOf(IdentityTestConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY));
@@ -2371,11 +2342,11 @@
 //			"MCMID%3D83056071767212492011535942034357093219";
 //		String mockMarketingCloudIdentifier = "83056071767212492011535942034357093219";
 //
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
 //		ConfigurationSharedStateIdentity configSharedState = generateConfigurationSharedState("");
 //		EventData analyticsSharedState = generateAnalyticsSharedState("", "");
-//		String generatedVisitorIDURLPayloadString = identityModule.callGenerateVisitorIDURLPayload(configSharedState,
+//		String generatedVisitorIDURLPayloadString = identityExtension.callGenerateVisitorIDURLPayload(configSharedState,
 //				analyticsSharedState).toString();
 //
 //		assertEquals(0, generatedVisitorIDURLPayloadString.indexOf(IdentityTestConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY));
@@ -2401,9 +2372,9 @@
 //			"MCMID%3D83056071767212492011535942034357093219";
 //		String mockMarketingCloudIdentifier = "83056071767212492011535942034357093219";
 //
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
-//		String generatedVisitorIDURLPayloadString = identityModule.callGenerateVisitorIDURLPayload(null, null).toString();
+//		String generatedVisitorIDURLPayloadString = identityExtension.callGenerateVisitorIDURLPayload(null, null).toString();
 //
 //		assertEquals(0, generatedVisitorIDURLPayloadString.indexOf(IdentityTestConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY));
 //
@@ -2428,11 +2399,11 @@
 //		String mockMarketingCloudIdentifier = "83056071767212492011535942034357093219";
 //		String mockMarketingCloudOrgId = "29849020983@adobeOrg";
 //
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
 //		ConfigurationSharedStateIdentity configSharedState = generateConfigurationSharedState(mockMarketingCloudOrgId);
 //		EventData analyticsSharedState = generateAnalyticsSharedState("testaid", "");
-//		String generatedVisitorIDURLPayloadString = identityModule.callGenerateVisitorIDURLPayload(configSharedState,
+//		String generatedVisitorIDURLPayloadString = identityExtension.callGenerateVisitorIDURLPayload(configSharedState,
 //				analyticsSharedState).toString();
 //
 //		assertEquals(0, generatedVisitorIDURLPayloadString.indexOf(IdentityTestConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY));
@@ -2459,11 +2430,11 @@
 //		String mockMarketingCloudOrgId = "29849020983@adobeOrg";
 //		String mockUserIdentifier = "?&#&#&#&#?";
 //
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
 //		ConfigurationSharedStateIdentity configSharedState = generateConfigurationSharedState(mockMarketingCloudOrgId);
 //		EventData analyticsSharedState = generateAnalyticsSharedState("testaid", mockUserIdentifier);
-//		String generatedVisitorIDURLPayloadString = identityModule.callGenerateVisitorIDURLPayload(configSharedState,
+//		String generatedVisitorIDURLPayloadString = identityExtension.callGenerateVisitorIDURLPayload(configSharedState,
 //				analyticsSharedState).toString();
 //
 //		assertEquals(0, generatedVisitorIDURLPayloadString.indexOf(IdentityTestConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY));
@@ -2489,11 +2460,11 @@
 //		String mockMarketingCloudIdentifier = "83056071767212492011535942034357093219";
 //		String mockMarketingCloudOrgId = "29849020983@adobeOrg";
 //
-//		identityModule.mid = mockMarketingCloudIdentifier;
+//		identityExtension.mid = mockMarketingCloudIdentifier;
 //
 //		ConfigurationSharedStateIdentity configSharedState = generateConfigurationSharedState(mockMarketingCloudOrgId);
 //		EventData analyticsSharedState = generateAnalyticsSharedState("testaid", "Taz");
-//		String generatedVisitorIDURLPayloadString = identityModule.callGenerateVisitorIDURLPayload(configSharedState,
+//		String generatedVisitorIDURLPayloadString = identityExtension.callGenerateVisitorIDURLPayload(configSharedState,
 //				analyticsSharedState).toString();
 //
 //		assertEquals(0, generatedVisitorIDURLPayloadString.indexOf(IdentityTestConstants.UrlKeys.ADB_VISITOR_PAYLOAD_KEY));
@@ -2521,7 +2492,7 @@
 //		final String key = "aKey";
 //		final String value = "some&value";
 //
-//		final String result = identityModule.appendKVPToVisitorIdString(original, key, value);
+//		final String result = identityExtension.appendKVPToVisitorIdString(original, key, value);
 //		assertEquals("imhere|aKey=some&value", result);
 //	}
 //
@@ -2531,7 +2502,7 @@
 //		final String key = null;
 //		final String value = "some&value";
 //
-//		final String result = identityModule.appendKVPToVisitorIdString(original, key, value);
+//		final String result = identityExtension.appendKVPToVisitorIdString(original, key, value);
 //
 //		assertEquals(result, "imhere");
 //	}
@@ -2542,7 +2513,7 @@
 //		final String key = "";
 //		final String value = "some&value";
 //
-//		final String result = identityModule.appendKVPToVisitorIdString(original, key, value);
+//		final String result = identityExtension.appendKVPToVisitorIdString(original, key, value);
 //
 //		assertEquals(result, "imhere");
 //	}
@@ -2553,7 +2524,7 @@
 //		final String key = "aKey";
 //		final String value = null;
 //
-//		final String result = identityModule.appendKVPToVisitorIdString(original, key, value);
+//		final String result = identityExtension.appendKVPToVisitorIdString(original, key, value);
 //
 //
 //		assertEquals(result, "imhere");
@@ -2565,7 +2536,7 @@
 //		final String key = "aKey";
 //		final String value = "";
 //
-//		final String result = identityModule.appendKVPToVisitorIdString(original, key, value);
+//		final String result = identityExtension.appendKVPToVisitorIdString(original, key, value);
 //
 //		assertEquals(result, "imhere");
 //	}
@@ -2576,7 +2547,7 @@
 //		final String key = "aKey";
 //		final String value = "some&value";
 //
-//		final String result = identityModule.appendKVPToVisitorIdString(original, key, value);
+//		final String result = identityExtension.appendKVPToVisitorIdString(original, key, value);
 //
 //		assertEquals("aKey=some&value", result);
 //	}
@@ -2587,7 +2558,7 @@
 //		final String key = "aKey";
 //		final String value = "some&value";
 //
-//		final String result = identityModule.appendKVPToVisitorIdString(original, key, value);
+//		final String result = identityExtension.appendKVPToVisitorIdString(original, key, value);
 //
 //		assertEquals("aKey=some&value", result);
 //	}
@@ -2610,7 +2581,7 @@
 //		visitorIDList.add(new VisitorID("d_cid", "pushid", "testPushId",
 //										VisitorID.AuthenticationState.AUTHENTICATED));
 //
-//		List<VisitorID> visitorIds = identityModule.convertVisitorIdsStringToVisitorIDObjects(visitorIdString);
+//		List<VisitorID> visitorIds = identityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdString);
 //
 //		assertThat(visitorIds, listEquals(visitorIDList));
 //	}
@@ -2624,7 +2595,7 @@
 //		final String visitorIdsString = stringFromVisitorIdList(visitorIds);
 //
 //		// test
-//		final List<VisitorID> returnedIds = identityModule.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
+//		final List<VisitorID> returnedIds = identityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
 //
 //		// verify
 //		assertNotNull(returnedIds);
@@ -2643,7 +2614,7 @@
 //		final String visitorIdsString = stringFromVisitorIdList(visitorIds);
 //
 //		// test
-//		final List<VisitorID> returnedIds = identityModule.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
+//		final List<VisitorID> returnedIds = identityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
 //
 //		// verify
 //		assertNotNull(returnedIds);
@@ -2660,7 +2631,7 @@
 //		final String visitorIdsString = stringFromVisitorIdList(visitorIds);
 //
 //		// test
-//		final List<VisitorID> returnedIds = identityModule.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
+//		final List<VisitorID> returnedIds = identityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
 //
 //		// verify
 //		assertNotNull(returnedIds);
@@ -2679,7 +2650,7 @@
 //		final String visitorIdsString = stringFromVisitorIdList(visitorIds);
 //
 //		// test
-//		final List<VisitorID> returnedIds = identityModule.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
+//		final List<VisitorID> returnedIds = identityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
 //
 //		// verify
 //		assertNotNull(returnedIds);
@@ -2702,7 +2673,7 @@
 //		final String visitorIdsString = stringFromVisitorIdList(visitorIds);
 //
 //		// test
-//		final List<VisitorID> returnedIds = identityModule.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
+//		final List<VisitorID> returnedIds = identityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString);
 //
 //		// verify
 //		assertNotNull(returnedIds);
@@ -2727,16 +2698,16 @@
 //		responseObject.ttl = 222222;
 //		responseObject.hint = "region";
 //
-//		identityModule.lastSync = 0;
-//		identityModule.mid = responseObject.mid;
+//		identityExtension.lastSync = 0;
+//		identityExtension.mid = responseObject.mid;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// Note, MID is generated from shouldSync if if sync is necessary. This test bypasses that call
 //		// and therefor the mid is null in all events, persistent storage, and shared states.
 //
-//		assertTrue(identityModule.lastSync > 0);
+//		assertTrue(identityExtension.lastSync > 0);
 //
 //		// verify persistence
 //		FakeLocalStorageService fakeLocalStorageService = platformServices.fakeLocalStorageService;
@@ -2768,16 +2739,16 @@
 //		responseObject.hint = "region";
 //		responseObject.error = "this is an error message";
 //
-//		identityModule.lastSync = 0;
-//		identityModule.mid = responseObject.mid;
+//		identityExtension.lastSync = 0;
+//		identityExtension.mid = responseObject.mid;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// Note, MID is generated from shouldSync but also from handleNetworkResponseMap if the IdentityResponseObject
 //		// contains an error. This is why the mid is populated for this test case.
 //
-//		assertTrue(identityModule.lastSync > 0);
+//		assertTrue(identityExtension.lastSync > 0);
 //
 //		// verify persistence
 //		FakeLocalStorageService fakeLocalStorageService = platformServices.fakeLocalStorageService;
@@ -2809,11 +2780,11 @@
 //		responseObject.ttl = 222222;
 //		responseObject.hint = "region";
 //
-//		identityModule.lastSync = 0;
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_OUT;
+//		identityExtension.lastSync = 0;
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_OUT;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// Note, MID is generated from shouldSync only if sync is necessary. This test bypasses that call
 //		// and therefore the mid is null in all events, persistent storage, and shared states.
@@ -2821,7 +2792,7 @@
 //		// when privacy is Opt-Out, the network response is not processed and nothing new is stored in persistence,
 //		// however the response event is still dispatched
 //
-//		assertTrue(identityModule.lastSync > 0);
+//		assertTrue(identityExtension.lastSync > 0);
 //
 //		// verify persistence
 //		FakeLocalStorageService fakeLocalStorageService = platformServices.fakeLocalStorageService;
@@ -2844,18 +2815,18 @@
 //	// ------ AMSDK-10230 Test shared state updates based on the server response values
 //	@Test
 //	public void testNetworkResponseLoaded_WhenChangedBlob_setUpdateSharedStateTrue() {
-//		String expectedLocationHint = identityModule.locationHint = "9";
-//		String expectedMid = identityModule.mid = "1234567890";
-//		identityModule.blob = "beforeBlob";
+//		String expectedLocationHint = identityExtension.locationHint = "9";
+//		String expectedMid = identityExtension.mid = "1234567890";
+//		identityExtension.blob = "beforeBlob";
 //		String expectedBlob = "afterBlob";
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		IdentityResponseObject responseObject = new IdentityResponseObject();
 //		responseObject.blob = expectedBlob;
 //		responseObject.hint = expectedLocationHint;
 //		responseObject.mid = expectedMid;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// verify persistence
 //		assertPersistedValues(expectedMid, expectedBlob, expectedLocationHint);
@@ -2873,18 +2844,18 @@
 //
 //	@Test
 //	public void testNetworkResponseLoaded_WhenChangedLocationHint_setUpdateSharedStateTrue() {
-//		String expectedBlob = identityModule.blob = "blob";
-//		String expectedMid = identityModule.mid = "1234567890";
-//		identityModule.locationHint = "5";
+//		String expectedBlob = identityExtension.blob = "blob";
+//		String expectedMid = identityExtension.mid = "1234567890";
+//		identityExtension.locationHint = "5";
 //		String expectedLocationHint = "9";
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		IdentityResponseObject responseObject = new IdentityResponseObject();
 //		responseObject.blob = expectedBlob;
 //		responseObject.hint = expectedLocationHint;
 //		responseObject.mid = expectedMid;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// verify persistence
 //		assertPersistedValues(expectedMid, expectedBlob, expectedLocationHint);
@@ -2902,18 +2873,18 @@
 //
 //	@Test
 //	public void testNetworkResponseLoaded_WhenChangedLocationHintFromNull_setUpdateSharedStateTrue() {
-//		String expectedBlob = identityModule.blob = "blob";
-//		String expectedMid = identityModule.mid = "1234567890";
-//		identityModule.locationHint = null;
+//		String expectedBlob = identityExtension.blob = "blob";
+//		String expectedMid = identityExtension.mid = "1234567890";
+//		identityExtension.locationHint = null;
 //		String expectedLocationHint = "9";
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		IdentityResponseObject responseObject = new IdentityResponseObject();
 //		responseObject.blob = expectedBlob;
 //		responseObject.hint = expectedLocationHint;
 //		responseObject.mid = expectedMid;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// verify persistence
 //		assertPersistedValues(expectedMid, expectedBlob, expectedLocationHint);
@@ -2931,18 +2902,18 @@
 //
 //	@Test
 //	public void testNetworkResponseLoaded_WhenChangedBlobFromNull_setUpdateSharedStateTrue() {
-//		String expectedLocationHint = identityModule.locationHint = "9";
-//		String expectedMid = identityModule.mid = "1234567890";
-//		identityModule.blob = null;
+//		String expectedLocationHint = identityExtension.locationHint = "9";
+//		String expectedMid = identityExtension.mid = "1234567890";
+//		identityExtension.blob = null;
 //		String expectedBlob = "afterBlob";
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		IdentityResponseObject responseObject = new IdentityResponseObject();
 //		responseObject.blob = expectedBlob;
 //		responseObject.hint = expectedLocationHint;
 //		responseObject.mid = expectedMid;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// verify persistence
 //		assertPersistedValues(expectedMid, expectedBlob, expectedLocationHint);
@@ -2960,22 +2931,22 @@
 //
 //	@Test
 //	public void testNetworkResponseLoaded_WhenChangedLocationHintToNull_setUpdateSharedStateTrue() {
-//		String expectedBlob = identityModule.blob = "blob";
-//		String expectedMid = identityModule.mid = "1234567890";
-//		identityModule.locationHint = "9";
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		String expectedBlob = identityExtension.blob = "blob";
+//		String expectedMid = identityExtension.mid = "1234567890";
+//		identityExtension.locationHint = "9";
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		IdentityResponseObject responseObject = new IdentityResponseObject();
 //		responseObject.blob = expectedBlob;
 //		responseObject.hint = null;
 //		responseObject.mid = expectedMid;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// verify in-memory data
-//		assertEquals(expectedBlob, identityModule.blob);
-//		assertEquals(expectedMid, identityModule.mid);
-//		assertNull(identityModule.locationHint);
+//		assertEquals(expectedBlob, identityExtension.blob);
+//		assertEquals(expectedMid, identityExtension.mid);
+//		assertNull(identityExtension.locationHint);
 //
 //		// verify persistence
 //		assertPersistedValues(expectedMid, expectedBlob, null);
@@ -2993,22 +2964,22 @@
 //
 //	@Test
 //	public void testNetworkResponseLoaded_WhenChangedBlobToNull_setUpdateSharedStateTrue() {
-//		String expectedLocationHint = identityModule.locationHint = "9";
-//		String expectedMid = identityModule.mid = "1234567890";
-//		identityModule.blob = "blob";
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		String expectedLocationHint = identityExtension.locationHint = "9";
+//		String expectedMid = identityExtension.mid = "1234567890";
+//		identityExtension.blob = "blob";
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		IdentityResponseObject responseObject = new IdentityResponseObject();
 //		responseObject.blob = null;
 //		responseObject.hint = expectedLocationHint;
 //		responseObject.mid = expectedMid;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// verify in-memory data
-//		assertNull(identityModule.blob);
-//		assertEquals(expectedMid, identityModule.mid);
-//		assertEquals(expectedLocationHint, identityModule.locationHint);
+//		assertNull(identityExtension.blob);
+//		assertEquals(expectedMid, identityExtension.mid);
+//		assertEquals(expectedLocationHint, identityExtension.locationHint);
 //
 //		// verify persistence
 //		assertPersistedValues(expectedMid, null, expectedLocationHint);
@@ -3026,19 +2997,19 @@
 //
 //	@Test
 //	public void testNetworkResponseLoaded_WhenErrorAndGeneratedNewMID_setUpdateSharedStateTrue() {
-//		String expectedBlob = identityModule.blob = "blob";
-//		String expectedLocationHint = identityModule.locationHint = "9";
-//		identityModule.mid = null;
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		String expectedBlob = identityExtension.blob = "blob";
+//		String expectedLocationHint = identityExtension.locationHint = "9";
+//		identityExtension.mid = null;
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		IdentityResponseObject responseObject = new IdentityResponseObject();
 //		responseObject.error = "some error";
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// verify persistence
-//		assertNotNull(identityModule.mid);
-//		assertPersistedValues(identityModule.mid, expectedBlob, expectedLocationHint);
+//		assertNotNull(identityExtension.mid);
+//		assertPersistedValues(identityExtension.mid, expectedBlob, expectedLocationHint);
 //
 //		// verify dispatched event
 //		assertTrue(mockDispatcherIdentityResponseEvent.dispatchResponseWasCalled);
@@ -3055,15 +3026,15 @@
 //
 //	@Test
 //	public void testNetworkResponseLoaded_WhenErrorAndNotGeneratedNewMID_doesNotSetUpdateSharedState() {
-//		String expectedBlob = identityModule.blob = "blob";
-//		String expectedLocationHint = identityModule.locationHint = "9";
-//		String expectedMid = identityModule.mid = "123456";
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		String expectedBlob = identityExtension.blob = "blob";
+//		String expectedLocationHint = identityExtension.locationHint = "9";
+//		String expectedMid = identityExtension.mid = "123456";
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		IdentityResponseObject responseObject = new IdentityResponseObject();
 //		responseObject.error = "some error";
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// verify persistence
 //		assertPersistedValues(expectedMid, expectedBlob, expectedLocationHint);
@@ -3083,17 +3054,17 @@
 //
 //	@Test
 //	public void testNetworkResponseLoaded_WhenUnchangedBlobLocationHint_doesNotSetUpdateSharedState() {
-//		String expectedBlob = identityModule.blob = "blob";
-//		String expectedLocationHint = identityModule.locationHint = "9";
-//		String expectedMid = identityModule.mid = "123456";
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		String expectedBlob = identityExtension.blob = "blob";
+//		String expectedLocationHint = identityExtension.locationHint = "9";
+//		String expectedMid = identityExtension.mid = "123456";
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //		IdentityResponseObject responseObject = new IdentityResponseObject();
 //		responseObject.blob = expectedBlob;
 //		responseObject.hint = expectedLocationHint;
 //		responseObject.mid = expectedMid;
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// verify persistence
 //		assertPersistedValues(expectedMid, expectedBlob, expectedLocationHint);
@@ -3121,16 +3092,16 @@
 //		responseObject.ttl = 222222;
 //		responseObject.hint = "region";
 //
-//		identityModule.lastSync = 0;
-//		identityModule.mid = "123"; // different MID than what is in the response
+//		identityExtension.lastSync = 0;
+//		identityExtension.mid = "123"; // different MID than what is in the response
 //
 //		// test
-//		identityModule.networkResponseLoaded(responseObject, "pairID", 5);
+//		identityExtension.networkResponseLoaded(responseObject, "pairID", 5);
 //
 //		// Note, MID is generated from shouldSync if if sync is necessary. This test bypasses that call
 //		// and therefor the mid is null in all events, persistent storage, and shared states.
 //
-//		assertTrue(identityModule.lastSync > 0);
+//		assertTrue(identityExtension.lastSync > 0);
 //
 //		// verify persistence
 //		FakeLocalStorageService fakeLocalStorageService = platformServices.fakeLocalStorageService;
@@ -3155,16 +3126,16 @@
 //	@Test
 //	public void handleIdentityResponseIdentityForSharedState_WhenUpdateSharedState_CreatesNewSharedState() throws
 //		Exception {
-//		String expectedBlob = identityModule.blob = "blob";
-//		String expectedLocationHint = identityModule.locationHint = "9";
-//		String expectedMid = identityModule.mid = "123456";
+//		String expectedBlob = identityExtension.blob = "blob";
+//		String expectedLocationHint = identityExtension.locationHint = "9";
+//		String expectedMid = identityExtension.mid = "123456";
 //
 //		// test
 //		EventData updateSharedStateData = new EventData();
 //		updateSharedStateData.putBoolean(IdentityTestConstants.EventDataKeys.Identity.UPDATE_SHARED_STATE, true);
 //		Event event = new Event.Builder("Test", EventType.IDENTITY,
 //										EventSource.RESPONSE_IDENTITY).setData(updateSharedStateData).build();
-//		identityModule.handleIdentityResponseIdentityForSharedState(event);
+//		identityExtension.handleIdentityResponseIdentityForSharedState(event);
 //
 //		// verify
 //		assertTrue(eventHub.createSharedStateCalled);
@@ -3179,7 +3150,7 @@
 //	public void extractIdentifiers_Should_ReturnEmptyMap_WhenIDENTIFIERSKeyPresentInEventData_WithEmptyValue() {
 //		EventData eventData = new EventData();
 //		eventData.putStringMap(IdentityTestConstants.EventDataKeys.Identity.IDENTIFIERS, new HashMap<String, String>());
-//		HashMap<String, String> ids = (HashMap<String, String>) identityModule.extractIdentifiers(eventData);
+//		HashMap<String, String> ids = (HashMap<String, String>) identityExtension.extractIdentifiers(eventData);
 //		assertNotNull(ids);
 //		assertEquals(ids.size(), 0);
 //	}
@@ -3192,7 +3163,7 @@
 //
 //		String expected_string = "d_cid=key1%01val1&d_cid=key2%01val2";
 //
-//		String generatedString = identityModule.generateInternalIdString(dpids);
+//		String generatedString = identityExtension.generateInternalIdString(dpids);
 //		assertEquals(expected_string, generatedString);
 //	}
 //
@@ -3202,7 +3173,7 @@
 //
 //		String expected_string = "";
 //
-//		String generatedString = identityModule.generateInternalIdString(dpids);
+//		String generatedString = identityExtension.generateInternalIdString(dpids);
 //		assertEquals(expected_string, generatedString);
 //	}
 //
@@ -3222,9 +3193,9 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configurationSharedState);
 //
 //		//test
-//		identityModule.processAudienceResponse(audienceEvent);
+//		identityExtension.processAudienceResponse(audienceEvent);
 //		//verify
-//		assertFalse(identityModule.sendOptOutHitWasCalled);
+//		assertFalse(identityExtension.sendOptOutHitWasCalled);
 //
 //	}
 //
@@ -3244,9 +3215,9 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configurationSharedState);
 //
 //		//test
-//		identityModule.processAudienceResponse(audienceEvent);
+//		identityExtension.processAudienceResponse(audienceEvent);
 //		//verify
-//		assertTrue(identityModule.sendOptOutHitWasCalled);
+//		assertTrue(identityExtension.sendOptOutHitWasCalled);
 //
 //	}
 //
@@ -3266,9 +3237,9 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configurationSharedState);
 //
 //		//test
-//		identityModule.processAudienceResponse(audienceEvent);
+//		identityExtension.processAudienceResponse(audienceEvent);
 //		//verify
-//		assertFalse(identityModule.sendOptOutHitWasCalled);
+//		assertFalse(identityExtension.sendOptOutHitWasCalled);
 //
 //	}
 //
@@ -3288,9 +3259,9 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configurationSharedState);
 //
 //		//test
-//		identityModule.processAudienceResponse(audienceEvent);
+//		identityExtension.processAudienceResponse(audienceEvent);
 //		//verify
-//		assertFalse(identityModule.sendOptOutHitWasCalled);
+//		assertFalse(identityExtension.sendOptOutHitWasCalled);
 //
 //	}
 //
@@ -3308,9 +3279,9 @@
 //								   EventHub.SHARED_STATE_PENDING);
 //
 //		//test
-//		identityModule.processAudienceResponse(audienceEvent);
+//		identityExtension.processAudienceResponse(audienceEvent);
 //		//verify
-//		assertFalse(identityModule.sendOptOutHitWasCalled);
+//		assertFalse(identityExtension.sendOptOutHitWasCalled);
 //
 //	}
 //
@@ -3328,11 +3299,11 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configuration);
 //
 //		//test
-//		identityModule.handleConfiguration(configurationEvent);
+//		identityExtension.handleConfiguration(configurationEvent);
 //		//verify
-//		assertTrue(identityModule.handleOptOutWasCalled);
-//		assertTrue(identityModule.updateLatestValidConfigurationWasCalled);
-//		assertTrue(identityModule.processPrivacyChangeWasCalled);
+//		assertTrue(identityExtension.handleOptOutWasCalled);
+//		assertTrue(identityExtension.updateLatestValidConfigurationWasCalled);
+//		assertTrue(identityExtension.processPrivacyChangeWasCalled);
 //
 //	}
 //
@@ -3350,11 +3321,11 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configuration);
 //
 //		//test
-//		identityModule.handleConfiguration(configurationEvent);
+//		identityExtension.handleConfiguration(configurationEvent);
 //		//verify
-//		assertFalse(identityModule.handleOptOutWasCalled);
-//		assertTrue(identityModule.updateLatestValidConfigurationWasCalled);
-//		assertTrue(identityModule.processPrivacyChangeWasCalled);
+//		assertFalse(identityExtension.handleOptOutWasCalled);
+//		assertTrue(identityExtension.updateLatestValidConfigurationWasCalled);
+//		assertTrue(identityExtension.processPrivacyChangeWasCalled);
 //	}
 //
 //	@Test
@@ -3371,11 +3342,11 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configuration);
 //
 //		//test
-//		identityModule.handleConfiguration(configurationEvent);
+//		identityExtension.handleConfiguration(configurationEvent);
 //		//verify
-//		assertFalse(identityModule.handleOptOutWasCalled);
-//		assertTrue(identityModule.updateLatestValidConfigurationWasCalled);
-//		assertTrue(identityModule.processPrivacyChangeWasCalled);
+//		assertFalse(identityExtension.handleOptOutWasCalled);
+//		assertTrue(identityExtension.updateLatestValidConfigurationWasCalled);
+//		assertTrue(identityExtension.processPrivacyChangeWasCalled);
 //	}
 //
 //
@@ -3394,10 +3365,10 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configuration);
 //
 //		//test
-//		identityModule.handleOptOut(configurationEvent);
+//		identityExtension.handleOptOut(configurationEvent);
 //		//verify
 //
-//		assertTrue(identityModule.sendOptOutHitWasCalled);
+//		assertTrue(identityExtension.sendOptOutHitWasCalled);
 //
 //	}
 //
@@ -3416,10 +3387,10 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configuration);
 //
 //		//test
-//		identityModule.handleOptOut(configurationEvent);
+//		identityExtension.handleOptOut(configurationEvent);
 //		//verify
 //
-//		assertFalse(identityModule.sendOptOutHitWasCalled);
+//		assertFalse(identityExtension.sendOptOutHitWasCalled);
 //
 //	}
 //
@@ -3440,10 +3411,10 @@
 //		eventHub.createSharedState(IdentityTestConstants.EventDataKeys.Configuration.MODULE_NAME, 0, configurationSharedState);
 //
 //		//test
-//		identityModule.handleOptOut(configurationEvent);
+//		identityExtension.handleOptOut(configurationEvent);
 //		//verify
 //
-//		assertFalse(identityModule.sendOptOutHitWasCalled);
+//		assertFalse(identityExtension.sendOptOutHitWasCalled);
 //
 //	}
 //
@@ -3459,12 +3430,12 @@
 //		.setData(data)
 //		.build();
 //
-//		identityModule.handleAnalyticsResponseIdentity(event);
+//		identityExtension.handleAnalyticsResponseIdentity(event);
 //
-//		assertTrue(identityModule.tryProcessingEventQueueWasCalled);
-//		assertEquals(1, identityModule.eventsQueue.size());
+//		assertTrue(identityExtension.tryProcessingEventQueueWasCalled);
+//		assertEquals(1, identityExtension.eventsQueue.size());
 //
-//		Event actualEvent = identityModule.eventsQueue.peek();
+//		Event actualEvent = identityExtension.eventsQueue.peek();
 //		assertNotNull(actualEvent);
 //		EventData actualData = actualEvent.getData();
 //		assertNotNull(actualData);
@@ -3472,7 +3443,7 @@
 //		assertNotNull(ids);
 //		assertEquals("aid", ids.get(IdentityTestConstants.EventDataKeys.Identity.ANALYTICS_ID));
 //
-//		assertTrue(identityModule.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+//		assertTrue(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
 //	}
 //
 //	@Test
@@ -3483,12 +3454,12 @@
 //		.setData(data)
 //		.build();
 //
-//		identityModule.handleAnalyticsResponseIdentity(event);
+//		identityExtension.handleAnalyticsResponseIdentity(event);
 //
-//		assertFalse(identityModule.tryProcessingEventQueueWasCalled);
-//		assertEquals(0, identityModule.eventsQueue.size());
+//		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+//		assertEquals(0, identityExtension.eventsQueue.size());
 //
-//		assertFalse(identityModule.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+//		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
 //	}
 //
 //	@Test
@@ -3499,12 +3470,12 @@
 //		.setData(data)
 //		.build();
 //
-//		identityModule.handleAnalyticsResponseIdentity(event);
+//		identityExtension.handleAnalyticsResponseIdentity(event);
 //
-//		assertFalse(identityModule.tryProcessingEventQueueWasCalled);
-//		assertEquals(0, identityModule.eventsQueue.size());
+//		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+//		assertEquals(0, identityExtension.eventsQueue.size());
 //
-//		assertFalse(identityModule.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+//		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
 //	}
 //
 //	@Test
@@ -3513,28 +3484,28 @@
 //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
 //		.build();
 //
-//		identityModule.handleAnalyticsResponseIdentity(event);
+//		identityExtension.handleAnalyticsResponseIdentity(event);
 //
-//		assertFalse(identityModule.tryProcessingEventQueueWasCalled);
-//		assertEquals(0, identityModule.eventsQueue.size());
+//		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+//		assertEquals(0, identityExtension.eventsQueue.size());
 //
-//		assertFalse(identityModule.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+//		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
 //	}
 //
 //	@Test
 //	public void testHandleAnalyticsResponseIdentity_Fails_NoEvent() {
 //
-//		identityModule.handleAnalyticsResponseIdentity(null);
+//		identityExtension.handleAnalyticsResponseIdentity(null);
 //
-//		assertFalse(identityModule.tryProcessingEventQueueWasCalled);
-//		assertEquals(0, identityModule.eventsQueue.size());
+//		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+//		assertEquals(0, identityExtension.eventsQueue.size());
 //
-//		assertFalse(identityModule.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+//		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
 //	}
 //
 //	@Test
 //	public void testHandleAnalyticsResponseIdentity_Fails_DatastoreContainsKey() {
-//		identityModule.internalDataStore.setBoolean(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY, true);
+//		identityExtension.internalDataStore.setBoolean(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY, true);
 //
 //		EventData data = new EventData();
 //		data.putString(IdentityTestConstants.EventDataKeys.Analytics.ANALYTICS_ID, "aid");
@@ -3542,12 +3513,12 @@
 //		.setData(data)
 //		.build();
 //
-//		identityModule.handleAnalyticsResponseIdentity(event);
+//		identityExtension.handleAnalyticsResponseIdentity(event);
 //
-//		assertFalse(identityModule.tryProcessingEventQueueWasCalled);
-//		assertEquals(0, identityModule.eventsQueue.size());
+//		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+//		assertEquals(0, identityExtension.eventsQueue.size());
 //
-//		assertTrue(identityModule.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+//		assertTrue(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
 //	}
 //
 //
@@ -3557,54 +3528,54 @@
 //
 //	@Test
 //	public void processPrivacyChange_With_Null_EventData() {
-//		populateIdentifiers(identityModule);
+//		populateIdentifiers(identityExtension);
 //
-//		identityModule.privacyStatus = MobilePrivacyStatus.UNKNOWN;
-//		identityModule.processPrivacyChange(5, null);
-//		assertEquals(MobilePrivacyStatus.UNKNOWN, identityModule.privacyStatus);
+//		identityExtension.privacyStatus = MobilePrivacyStatus.UNKNOWN;
+//		identityExtension.processPrivacyChange(5, null);
+//		assertEquals(MobilePrivacyStatus.UNKNOWN, identityExtension.privacyStatus);
 //
 //		assertFalse(mockIdentityHitsDatabase.updatePrivacyStatusWasCalled);
-//		assertFalse(identityModule.hasSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME));
-//		assertFalse(StringUtils.isNullOrEmpty(identityModule.mid));
+//		assertFalse(identityExtension.hasSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME));
+//		assertFalse(StringUtils.isNullOrEmpty(identityExtension.mid));
 //	}
 //
 //	@Test
 //	public void processPrivacyChange_With_NoPrivacyConfig_EventData() {
-//		populateIdentifiers(identityModule);
+//		populateIdentifiers(identityExtension);
 //
 //		EventData data = new EventData();
 //
-//		identityModule.privacyStatus = MobilePrivacyStatus.UNKNOWN;
-//		identityModule.processPrivacyChange(5, data);
-//		assertEquals(MobilePrivacyStatus.UNKNOWN, identityModule.privacyStatus);
+//		identityExtension.privacyStatus = MobilePrivacyStatus.UNKNOWN;
+//		identityExtension.processPrivacyChange(5, data);
+//		assertEquals(MobilePrivacyStatus.UNKNOWN, identityExtension.privacyStatus);
 //
 //		assertFalse(mockIdentityHitsDatabase.updatePrivacyStatusWasCalled);
-//		assertFalse(identityModule.hasSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME));
-//		assertFalse(StringUtils.isNullOrEmpty(identityModule.mid));
+//		assertFalse(identityExtension.hasSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME));
+//		assertFalse(StringUtils.isNullOrEmpty(identityExtension.mid));
 //	}
 //
 //	@Test
 //	public void processPrivacyChange_To_Opt_In() {
-//		populateIdentifiers(identityModule);
+//		populateIdentifiers(identityExtension);
 //
 //		EventData data = new EventData();
 //		data.putString(IdentityTestConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
 //					   MobilePrivacyStatus.OPT_IN.getValue());
 //
-//		identityModule.privacyStatus = MobilePrivacyStatus.UNKNOWN;
-//		identityModule.processPrivacyChange(5, data);
-//		assertEquals(MobilePrivacyStatus.OPT_IN, identityModule.privacyStatus);
+//		identityExtension.privacyStatus = MobilePrivacyStatus.UNKNOWN;
+//		identityExtension.processPrivacyChange(5, data);
+//		assertEquals(MobilePrivacyStatus.OPT_IN, identityExtension.privacyStatus);
 //
 //		assertTrue(mockIdentityHitsDatabase.updatePrivacyStatusWasCalled);
-//		assertFalse(identityModule.hasSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME));
-//		assertFalse(StringUtils.isNullOrEmpty(identityModule.mid));
+//		assertFalse(identityExtension.hasSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME));
+//		assertFalse(StringUtils.isNullOrEmpty(identityExtension.mid));
 //	}
 //
 //	@Test
 //	public void processPrivacyChange_To_Opt_Out() {
-//		populateIdentifiers(identityModule);
+//		populateIdentifiers(identityExtension);
 //
-//		identityModule.setDataStore(null);
+//		identityExtension.setDataStore(null);
 //		FakeLocalStorageService fakeLocalStorageService = platformServices.fakeLocalStorageService;
 //		FakeDataStore fakeDataStore = new FakeDataStore();
 //		fakeDataStore.setBoolean(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY, true);
@@ -3615,26 +3586,26 @@
 //		data.putString(IdentityTestConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
 //					   MobilePrivacyStatus.OPT_OUT.getValue());
 //
-//		identityModule.privacyStatus = MobilePrivacyStatus.UNKNOWN;
-//		identityModule.processPrivacyChange(5, data);
-//		assertEquals(MobilePrivacyStatus.OPT_OUT, identityModule.privacyStatus);
+//		identityExtension.privacyStatus = MobilePrivacyStatus.UNKNOWN;
+//		identityExtension.processPrivacyChange(5, data);
+//		assertEquals(MobilePrivacyStatus.OPT_OUT, identityExtension.privacyStatus);
 //
 //		assertTrue(mockIdentityHitsDatabase.updatePrivacyStatusWasCalled);
-//		assertTrue(identityModule.hasSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME));
+//		assertTrue(identityExtension.hasSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME));
 //
-//		EventData state = identityModule.getSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME,
+//		EventData state = identityExtension.getSharedEventState(IdentityTestConstants.EventDataKeys.Identity.MODULE_NAME,
 //						  Event.SHARED_STATE_OLDEST);
 //		assertNotNull(state);
 //		assertEquals(1, state.size());
 //		assertEquals(0, state.optLong(IdentityTestConstants.EventDataKeys.Identity.VISITOR_IDS_LAST_SYNC, 5));
 //
 //
-//		assertNull(identityModule.mid);
-//		assertNull(identityModule.advertisingIdentifier);
-//		assertNull(identityModule.pushIdentifier);
-//		assertNull(identityModule.blob);
-//		assertNull(identityModule.locationHint);
-//		assertNull(identityModule.customerIds);
+//		assertNull(identityExtension.mid);
+//		assertNull(identityExtension.advertisingIdentifier);
+//		assertNull(identityExtension.pushIdentifier);
+//		assertNull(identityExtension.blob);
+//		assertNull(identityExtension.locationHint);
+//		assertNull(identityExtension.customerIds);
 //
 //		assertFalse(fakeDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
 //	}
@@ -3654,21 +3625,21 @@
 //		Event event3 = new Event.Builder("IdentityTest", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).build();
 //
 //		// populate queue with events
-//		identityModule.eventsQueue.add(event1);
-//		identityModule.eventsQueue.add(event2);
-//		identityModule.eventsQueue.add(event3);
+//		identityExtension.eventsQueue.add(event1);
+//		identityExtension.eventsQueue.add(event2);
+//		identityExtension.eventsQueue.add(event3);
 //
-//		identityModule.privacyStatus = MobilePrivacyStatus.OPT_IN;
+//		identityExtension.privacyStatus = MobilePrivacyStatus.OPT_IN;
 //
 //		// trigger call to clearEventQueue by changing privacy status to Opt-Out
 //		EventData data = new EventData();
 //		data.putString(IdentityTestConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
 //					   MobilePrivacyStatus.OPT_OUT.getValue());
-//		identityModule.processPrivacyChange(5, data);
+//		identityExtension.processPrivacyChange(5, data);
 //
 //		// verify queue is cleared except for AppendUrl request
-//		assertEquals(1, identityModule.eventsQueue.size());
-//		assertEquals(event2, identityModule.eventsQueue.peek());
+//		assertEquals(1, identityExtension.eventsQueue.size());
+//		assertEquals(event2, identityExtension.eventsQueue.peek());
 //	}
 //
 //	// ===========================
@@ -3684,7 +3655,7 @@
 //		identifiers.add(new VisitorID("id_origin4", "id_type4", "id4", VisitorID.AuthenticationState.LOGGED_OUT));
 //
 //		// test
-//		List<VisitorID> result = identityModule.cleanupVisitorIdentifiers(identifiers);
+//		List<VisitorID> result = identityExtension.cleanupVisitorIdentifiers(identifiers);
 //
 //		// verify
 //		List<VisitorID> expectedIdentifiers = new ArrayList<VisitorID>();
@@ -3705,7 +3676,7 @@
 //		identifiers.add(new VisitorID("id_origin4", "id_type4", "id4", VisitorID.AuthenticationState.LOGGED_OUT));
 //
 //		// test
-//		List<VisitorID> result = identityModule.cleanupVisitorIdentifiers(identifiers);
+//		List<VisitorID> result = identityExtension.cleanupVisitorIdentifiers(identifiers);
 //
 //		// verify
 //		List<VisitorID> expectedIdentifiers = new ArrayList<VisitorID>();
@@ -3726,7 +3697,7 @@
 //		identifiers.add(new VisitorID("id_origin4", "id_type4", "id4", VisitorID.AuthenticationState.LOGGED_OUT));
 //
 //		// test
-//		List<VisitorID> result = identityModule.cleanupVisitorIdentifiers(identifiers);
+//		List<VisitorID> result = identityExtension.cleanupVisitorIdentifiers(identifiers);
 //
 //		// verify
 //		assertEquals(4, result.size());
@@ -3743,7 +3714,7 @@
 //		identifiers.add(new VisitorID("id_origin4", "id_type4", null, VisitorID.AuthenticationState.LOGGED_OUT));
 //
 //		// test
-//		List<VisitorID> result = identityModule.cleanupVisitorIdentifiers(identifiers);
+//		List<VisitorID> result = identityExtension.cleanupVisitorIdentifiers(identifiers);
 //
 //		// verify
 //		assertTrue(result.isEmpty());
@@ -3752,7 +3723,7 @@
 //	@Test
 //	public void cleanupVisitorIdentifiers_EmptyVisitorIdsList_ReturnsEmptyList() {
 //		// test
-//		List<VisitorID> result = identityModule.cleanupVisitorIdentifiers(new ArrayList<VisitorID>());
+//		List<VisitorID> result = identityExtension.cleanupVisitorIdentifiers(new ArrayList<VisitorID>());
 //
 //		// verify
 //		assertTrue(result.isEmpty());
@@ -3761,7 +3732,7 @@
 //	@Test
 //	public void cleanupVisitorIdentifiers_NullVisitorIdsList_ReturnsNull() {
 //		// test
-//		List<VisitorID> result = identityModule.cleanupVisitorIdentifiers(null);
+//		List<VisitorID> result = identityExtension.cleanupVisitorIdentifiers(null);
 //
 //		// verify
 //		assertNull(result);
@@ -3779,7 +3750,7 @@
 //		EventData analyticsSharedState = generateAnalyticsSharedState("aid", "vid");
 //
 //		Event event = new Event.Builder("Test", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).build();
-//		boolean shouldWait = identityModule.callShouldWaitForPendingSharedState(event,
+//		boolean shouldWait = identityExtension.callShouldWaitForPendingSharedState(event,
 //							 IdentityTestConstants.EventDataKeys.Analytics.MODULE_NAME,
 //							 analyticsSharedState);
 //
@@ -3795,7 +3766,7 @@
 //		EventData analyticsSharedState = generateAnalyticsSharedState("aid", "vid");
 //
 //		Event event = new Event.Builder("Test", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).build();
-//		boolean shouldWait = identityModule.callShouldWaitForPendingSharedState(event,
+//		boolean shouldWait = identityExtension.callShouldWaitForPendingSharedState(event,
 //							 IdentityTestConstants.EventDataKeys.Analytics.MODULE_NAME,
 //							 analyticsSharedState);
 //
@@ -3819,7 +3790,7 @@
 //		EventData analyticsSharedState = EventHub.SHARED_STATE_PENDING;
 //
 //		Event event = new Event.Builder("Test", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).build();
-//		boolean shouldWait = identityModule.callShouldWaitForPendingSharedState(event,
+//		boolean shouldWait = identityExtension.callShouldWaitForPendingSharedState(event,
 //							 IdentityTestConstants.EventDataKeys.Analytics.MODULE_NAME,
 //							 analyticsSharedState);
 //
@@ -3835,7 +3806,7 @@
 //		EventData analyticsSharedState = EventHub.SHARED_STATE_PENDING;
 //
 //		Event event = new Event.Builder("Test", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).build();
-//		boolean shouldWait = identityModule.callShouldWaitForPendingSharedState(event,
+//		boolean shouldWait = identityExtension.callShouldWaitForPendingSharedState(event,
 //							 IdentityTestConstants.EventDataKeys.Analytics.MODULE_NAME,
 //							 analyticsSharedState);
 //
@@ -3851,7 +3822,7 @@
 //		EventData analyticsSharedState = EventHub.SHARED_STATE_PENDING;
 //
 //		Event event = new Event.Builder("Test", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).build();
-//		boolean shouldWait = identityModule.callShouldWaitForPendingSharedState(event,
+//		boolean shouldWait = identityExtension.callShouldWaitForPendingSharedState(event,
 //							 IdentityTestConstants.EventDataKeys.Analytics.MODULE_NAME,
 //							 analyticsSharedState);
 //
@@ -3866,7 +3837,7 @@
 //		EventData analyticsSharedState = null;
 //
 //		Event event = new Event.Builder("Test", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).build();
-//		boolean shouldWait = identityModule.callShouldWaitForPendingSharedState(event,
+//		boolean shouldWait = identityExtension.callShouldWaitForPendingSharedState(event,
 //							 IdentityTestConstants.EventDataKeys.Analytics.MODULE_NAME,
 //							 analyticsSharedState);
 //
@@ -4143,4 +4114,4 @@
 //		assertEquals(expectedLocationHint, dataStore.getString(IdentityTestConstants.DataStoreKeys.LOCATION_HINT, null));
 //		assertEquals(expectedMid, dataStore.getString(IdentityTestConstants.DataStoreKeys.MARKETING_CLOUD_ID, null));
 //	}
-//}
+}

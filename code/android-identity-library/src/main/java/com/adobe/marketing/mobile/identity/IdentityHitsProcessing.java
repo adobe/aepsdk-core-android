@@ -16,13 +16,16 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 class IdentityHitsProcessing implements HitProcessing {
     private static final String LOG_SOURCE = "IdentityHitsProcessing";
     private final IdentityExtension identityExtension;
+    private final int RETRY_INTERVAL = 30; //seconds
 
     IdentityHitsProcessing(IdentityExtension identityExtension) {
         this.identityExtension = identityExtension;
@@ -31,7 +34,7 @@ class IdentityHitsProcessing implements HitProcessing {
 
     @Override
     public int retryInterval(DataEntity entity) {
-        return 0;
+        return RETRY_INTERVAL;
     }
 
     @Override
@@ -40,84 +43,81 @@ class IdentityHitsProcessing implements HitProcessing {
         if (hit == null) {
             return true;
         }
-        if (hit.getUrl() == null) {
+        if (hit.getUrl() == null || hit.getEvent() == null) {
             Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                    "IdentityHitsDatabase.process : Unable to process IdentityExtension hit because it does not contain a url.");
-            // make sure the parent updates shared state and notifies one-time listeners accordingly
-            //TODO: ???
-//            identityExtension.networkResponseLoaded(null, hit.getEvent());
+                    "IdentityHitsDatabase.process : Unable to process IdentityExtension hit because it does not contain a url or the trigger event.");
             return true;
         }
 
         Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "IdentityHitsDatabase.process : Sending request: (%s).", hit.getUrl());
-        Map<String, String> requestPropertyMap = NetworkConnectionUtil.getHeaders(true, null);
+        Map<String, String> requestPropertyMap = NetworkConnectionUtil.getHeaders(true);
 
         // make the request synchronously
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        final AtomicBoolean networkRequestShouldBeResent = new AtomicBoolean(false);
-        NetworkRequest networkRequest = new NetworkRequest(hit.getUrl(), HttpMethod.GET, null, requestPropertyMap, IdentityConstants.Defaults.TIMEOUT,
+        final AtomicBoolean networkRequestNeedRetry = new AtomicBoolean(false);
+        NetworkRequest networkRequest = new NetworkRequest(
+                hit.getUrl(),
+                HttpMethod.GET,
+                null,
+                requestPropertyMap,
+                IdentityConstants.Defaults.TIMEOUT,
                 IdentityConstants.Defaults.TIMEOUT);
-        ServiceProvider.getInstance().getNetworkService().connectAsync(networkRequest, new NetworkCallback() {
-            @Override
-            public void call(HttpConnecting connection) {
-                if (connection == null) {
+        ServiceProvider.getInstance().getNetworkService().connectAsync(networkRequest, connection -> {
+            if (connection == null) {
+                Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
+                        "IdentityHitsDatabase.process : An unknown error occurred during the Identity network call, connection is null. Will not retry.");
+
+                // make sure the parent updates shared state and notifies one-time listeners accordingly
+                identityExtension.networkResponseLoaded(null, hit.getEvent());
+                networkRequestNeedRetry.set(true);
+                countDownLatch.countDown();
+                return;
+            }
+            if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+
+                try {
+                    String networkInputStreamJSONString = NetworkConnectionUtil.readFromInputStream(connection.getInputStream());
+                    JSONObject jsonObject = new JSONObject(networkInputStreamJSONString);
+
+                    IdentityResponseObject result = createIdentityObjectFromResponseJsonObject(jsonObject);
+                    Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "IdentityHitsDatabase.process : ECID Service response data was parsed successfully.");
+                    identityExtension.networkResponseLoaded(result, hit.getEvent());
+                    networkRequestNeedRetry.set(true);
+                } catch (final IOException | JSONException e) {
                     Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                            "IdentityHitsDatabase.process : An unknown error occurred during the Identity network call, connection is null. Will not retry.");
-
-                    // make sure the parent updates shared state and notifies one-time listeners accordingly
-                    identityExtension.networkResponseLoaded(null, hit.getEvent());
-
-                    networkRequestShouldBeResent.set(false);
+                            "IdentityHitsDatabase.process : An unknown exception occurred while trying to process the response from the ECID Service: (%s).",
+                            e);
+                    networkRequestNeedRetry.set(false);
                     countDownLatch.countDown();
                     return;
                 }
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
-                    String networkInputStreamJSONString;
-                    IdentityResponseObject result = null;
+            } else if (!NetworkConnectionUtil.recoverableNetworkErrorCodes.contains(connection.getResponseCode())) {
 
-                    try {
-                        networkInputStreamJSONString = NetworkConnectionUtil.readFromInputStream(connection.getInputStream());
-                        JSONObject jsonObject = new JSONObject(networkInputStreamJSONString);
-
-                        result = createIdentityObjectFromResponseJsonObject(jsonObject);
-
-                    } catch (final IOException | JSONException e) {
-                        Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                                "IdentityHitsDatabase.process : An unknown exception occurred while trying to process the response from the ECID Service: (%s).",
-                                e);
-                        networkRequestShouldBeResent.set(false);
-                        countDownLatch.countDown();
-                        return;
-                    }
-
-                    Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "IdentityHitsDatabase.process : ECID Service response data was parsed successfully.");
-                    identityExtension.networkResponseLoaded(result, hit.getEvent());
-                    networkRequestShouldBeResent.set(true);
-                    countDownLatch.countDown();
-
-                } else if (!NetworkConnectionUtil.recoverableNetworkErrorCodes.contains(connection.getResponseCode())) {
-
-                    // unrecoverable error. delete the hit from the database and continue
-                    Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                            "IdentityHitsDatabase.process : Discarding ECID Service request because of an un-recoverable network error with response code %d occurred while processing it.",
-                            connection.getResponseCode());
-                    // make sure the parent updates shared state and notifies one-time listeners accordingly
-                    identityExtension.networkResponseLoaded(null, hit.getEvent());
-                    networkRequestShouldBeResent.set(false);
-                    countDownLatch.countDown();
-                } else {
-                    // recoverable error.  leave the request in the queue, wait for 30 sec, and try again
-                    Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                            "IdentityHitsDatabase.process : A recoverable network error occurred with response code %d while processing ECID Service requests.  Will retry in 30 seconds.",
-                            connection.getResponseCode());
-                    networkRequestShouldBeResent.set(true);
-                    countDownLatch.countDown();
-                }
+                // unrecoverable error. delete the hit from the database and continue
+                Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
+                        "IdentityHitsDatabase.process : Discarding ECID Service request because of an un-recoverable network error with response code %d occurred while processing it.",
+                        connection.getResponseCode());
+                // make sure the parent updates shared state and notifies one-time listeners accordingly
+                identityExtension.networkResponseLoaded(null, hit.getEvent());
+                networkRequestNeedRetry.set(false);
+            } else {
+                // recoverable error.  leave the request in the queue, wait for 30 sec, and try again
+                Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
+                        "IdentityHitsDatabase.process : A recoverable network error occurred with response code %d while processing ECID Service requests.  Will retry in 30 seconds.",
+                        connection.getResponseCode());
+                networkRequestNeedRetry.set(true);
             }
+            countDownLatch.countDown();
         });
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            countDownLatch.await(IdentityConstants.Defaults.TIMEOUT + 1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            return false;
+        }
 
-        return networkRequestShouldBeResent.get();
+        return networkRequestNeedRetry.get();
     }
 
     IdentityResponseObject createIdentityObjectFromResponseJsonObject(final JSONObject jsonObject) {
@@ -137,13 +137,12 @@ class IdentityHitsProcessing implements HitProcessing {
 
         int hintValue = jsonObject.optInt(IdentityConstants.UrlKeys.HINT, -1);
         result.hint = hintValue == -1 ? null : Integer.toString(hintValue);
-
         result.ttl = jsonObject.optLong(IdentityConstants.UrlKeys.TTL, IdentityConstants.Defaults.DEFAULT_TTL_VALUE);
 
         JSONArray optOutJsonArray = jsonObject.optJSONArray(IdentityConstants.UrlKeys.OPT_OUT);
 
         if (optOutJsonArray != null) {
-            ArrayList<String> optOutVector = new ArrayList();
+            List<String> optOutVector = new ArrayList<>();
 
             for (int i = 0; i < optOutJsonArray.length(); i++) {
                 try {

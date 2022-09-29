@@ -43,6 +43,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.4.2'
     implementation project(path: ':android-core-library')
     implementation project(path: ':android-signal-library')
+    implementation project(path: ':android-identity-library')
 //    implementation project(path: ':android-signal-library')
 //    implementation project(path: ':android-lifecycle-library')
 

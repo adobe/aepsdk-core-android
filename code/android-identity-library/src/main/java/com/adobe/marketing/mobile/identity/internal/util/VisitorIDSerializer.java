@@ -8,7 +8,7 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.identity.util;
+package com.adobe.marketing.mobile.identity.internal.util;
 
 import com.adobe.marketing.mobile.VisitorID;
 
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//TODO: move it to Core ???
+//TODO: keep this class in Identity for now, we may move it to core when used in other extensions.
 public class VisitorIDSerializer {
     private static final String ID = "ID";
     private static final String ID_ORIGIN = "ID_ORIGIN";

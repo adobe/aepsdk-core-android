@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.identity;
 
-//TODO: will add this to Core in another PR
+//TODO: kee this utility class in Identity package for now, move it to Core when used in other extensions.
 import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;

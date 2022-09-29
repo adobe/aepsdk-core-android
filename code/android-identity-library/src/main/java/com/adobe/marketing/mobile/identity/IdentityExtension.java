@@ -26,7 +26,7 @@ import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.VisitorID;
 import com.adobe.marketing.mobile.identity.IdentityConstants.DataStoreKeys;
 import com.adobe.marketing.mobile.identity.IdentityConstants.Defaults;
-import com.adobe.marketing.mobile.identity.util.VisitorIDSerializer;
+import com.adobe.marketing.mobile.identity.internal.util.VisitorIDSerializer;
 import com.adobe.marketing.mobile.services.DataQueue;
 import com.adobe.marketing.mobile.services.HitQueuing;
 import com.adobe.marketing.mobile.services.HttpMethod;

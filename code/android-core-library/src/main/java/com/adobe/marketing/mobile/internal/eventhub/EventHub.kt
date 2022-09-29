@@ -126,6 +126,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                     }
                 }
             }
+            true
         }
 
     /**

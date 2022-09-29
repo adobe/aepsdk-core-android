@@ -60,8 +60,9 @@ public class SerialWorkDispatcherJavaCompatTests {
 
     private final SerialWorkDispatcher.WorkHandler<Integer> workHandler = new SerialWorkDispatcher.WorkHandler<Integer>() {
         @Override
-        public void doWork(Integer item) {
+        public boolean doWork(Integer item) {
             javaSerialWorkDispatcher.getProcessedItems().add(item);
+            return true;
         }
     };
 

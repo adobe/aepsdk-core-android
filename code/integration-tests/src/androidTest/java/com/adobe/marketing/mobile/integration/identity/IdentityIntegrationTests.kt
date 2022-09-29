@@ -173,8 +173,7 @@ class IdentityIntegrationTests {
         countDownLatchSecondNetworkMonitor.await()
     }
 
-    @Ignore
-    @Test(timeout = 10000)
+    @Test
     fun testOptedout() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -184,14 +183,13 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedout"
             )
         )
-        //TODO: why we send out this request event if SDK is optedout??
         networkMonitor = { url ->
             if (url.contains("d_cid_ic=id1%01value1%010")) {
                 countDownLatch.countDown()
             }
         }
         Identity.syncIdentifiers(mapOf("id1" to "value1"))
-        countDownLatch.await()
+        assertFalse(countDownLatch.await(200, TimeUnit.MILLISECONDS))
     }
 
     @Test(timeout = 10000)

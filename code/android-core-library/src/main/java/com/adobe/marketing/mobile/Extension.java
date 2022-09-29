@@ -24,7 +24,7 @@ import java.util.Map;
  *
  */
 public abstract class Extension {
-	private @NonNull ExtensionApi extensionApi;
+	private final @NonNull ExtensionApi extensionApi;
 
 	/**
 	 * Construct the extension and initialize with the {@code ExtensionApi}.

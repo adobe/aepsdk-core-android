@@ -25,8 +25,8 @@ public class DelimiterPair {
 	/**
 	 * Constructor.
 	 *
-	 * @param startString
-	 * @param endString
+	 * @param startString the startTag for this {@link DelimiterPair}
+	 * @param endString the endTag for this {@link DelimiterPair}
 	 */
 	public DelimiterPair(final String startString, final String endString) {
 		this.startTag = startString;
@@ -54,10 +54,4 @@ public class DelimiterPair {
 		return startTag.length();
 	}
 
-	/**
-	 * @return the character length of endTag of this delimiter
-	 */
-	int getEndTagLength() {
-		return endTag.length();
-	}
 }

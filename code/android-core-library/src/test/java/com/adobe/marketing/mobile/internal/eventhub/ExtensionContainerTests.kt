@@ -8,6 +8,7 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
+@file:Suppress("DEPRECATION")
 
 package com.adobe.marketing.mobile.internal.eventhub
 import com.adobe.marketing.mobile.Event
@@ -34,7 +35,6 @@ import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 internal class ExtensionContainerTests {
-
     private class TestExtension(api: ExtensionApi) : Extension(api) {
         companion object {
             const val VERSION = "0.1"
@@ -197,7 +197,6 @@ internal class ExtensionContainerTests {
 
     @Test
     fun testSetSharedState_ValidStateWithNullEvent() {
-        val event1: Event = Event.Builder("Event1", "eventtype", "eventsource").build()
         val state1 = mutableMapOf<String, Any?>("k1" to "v1")
         container?.setSharedEventState(state1, null) {}
         verify(EventHub.shared, times(1)).createSharedState(SharedStateType.STANDARD, TestExtension.EXTENSION_NAME, state1, null)
@@ -205,7 +204,6 @@ internal class ExtensionContainerTests {
 
     @Test
     fun testSetXDMSharedState_ValidStateWithNullEvent() {
-        val event1: Event = Event.Builder("Event1", "eventtype", "eventsource").build()
         val state1 = mutableMapOf<String, Any?>("k1" to "v1")
         container?.setXDMSharedEventState(state1, null) {}
         verify(EventHub.shared, times(1)).createSharedState(SharedStateType.XDM, TestExtension.EXTENSION_NAME, state1, null)
@@ -293,7 +291,7 @@ internal class ExtensionContainerTests {
             Executors.newSingleThreadExecutor()
         ) { error = it }
         Thread.sleep(100)
-        assertTrue { (container?.extension as TestExtension)?.registerCalled ?: false }
+        assertTrue { (container?.extension as TestExtension).registerCalled }
         assertEquals(error, EventHubError.None)
     }
 

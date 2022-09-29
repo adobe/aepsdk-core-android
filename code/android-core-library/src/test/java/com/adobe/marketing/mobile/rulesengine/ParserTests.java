@@ -21,15 +21,15 @@ import static org.junit.Assert.assertEquals;
 
 public class ParserTests {
 
-	private static final HashMap tokens = new HashMap() {
+	private static final HashMap<String, Object> tokens = new HashMap<String, Object>() {
 		{
 			put("one", true);
 			put("two", "2");
 			put("three", 3);
 		}
 	};
-	private TokenFinder tokenFinder = new FakeTokenFinder(tokens);
-	private Transformer transformer = new Transformer();
+	private final TokenFinder tokenFinder = new FakeTokenFinder(tokens);
+	private final Transformer transformer = new Transformer();
 
 	@Before()
 	public void setup() { }

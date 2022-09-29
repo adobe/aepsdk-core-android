@@ -12,16 +12,18 @@
 package com.example.victory;
 
 class VictoryConstants {
+	static final String EXTENSION_NAME = "com.example.victory";
+	static final String EXTENSION_FRIENDLY_NAME = "VictoryExtension";
+	static final String EXTENSION_VERSION = "2.0.0";
 
-	static final String EVENT_TYPE_CONFIGURATION = "com.adobe.eventType.configuration";
-	static final String EVENT_TYPE_HUB = "com.adobe.eventType.hub";
+	static final long API_TIMEOUT_MS = 1000;
+
 	static final String EVENT_TYPE_VICTORY = "com.example.victory.custom";
-	static final String EVENT_SOURCE_RESPONSE_CONTENT = "com.adobe.eventSource.responsecontent";
-	static final String EVENT_SOURCE_SHARED_STATE = "com.adobe.eventSource.sharedstate";
+
 	static final String EVENT_SOURCE_VICTORY_PAIRED_REQUEST = "com.example.victory.pairedrequest";
 	static final String EVENT_SOURCE_VICTORY_PAIRED_RESPONSE = "com.example.victory.pairedresponse";
 	static final String EVENT_SOURCE_VICTORY_REQUEST = "com.example.victory.request";
-	static final String STATE_OWNER = "stateowner";
+
 	static final String CONFIGURATION_SHARED_STATE = "com.adobe.module.configuration";
 	static final String NO_EVENTS_PROCESSED = "eventsprocessed";
 	static final String CONTEXT_DATA = "victorycontextdata";

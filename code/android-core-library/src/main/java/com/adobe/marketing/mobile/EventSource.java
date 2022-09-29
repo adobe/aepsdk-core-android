@@ -19,7 +19,9 @@ package com.adobe.marketing.mobile;
  * @see EventType
  */
 public final class EventSource {
-	public static final String BOOTED = "com.adobe.eventSource.booted";
+
+	private EventSource() {}
+
 	public static final String NONE = "com.adobe.eventSource.none";
 	public static final String OS = "com.adobe.eventSource.os";
 	public static final String REQUEST_CONTENT = "com.adobe.eventSource.requestContent";

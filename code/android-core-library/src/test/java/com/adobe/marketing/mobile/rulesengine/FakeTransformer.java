@@ -15,15 +15,12 @@ public class FakeTransformer {
 
 	static Transforming create() {
 		Transformer transformer = new Transformer();
-		transformer.register("addExtraString", new TransformerBlock<String>() {
-			@Override
-			public String transform(Object e) {
-				if (e != null && e instanceof String) {
-					return e + " extra";
-				}
-
-				return "";
+		transformer.register("addExtraString", (TransformerBlock<String>) e -> {
+			if (e instanceof String) {
+				return e + " extra";
 			}
+
+			return "";
 		});
 		return transformer;
 	}

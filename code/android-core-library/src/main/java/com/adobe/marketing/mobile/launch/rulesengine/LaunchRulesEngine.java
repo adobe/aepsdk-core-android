@@ -13,9 +13,6 @@ package com.adobe.marketing.mobile.launch.rulesengine;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator;
-import com.adobe.marketing.mobile.rulesengine.Log;
-import com.adobe.marketing.mobile.rulesengine.LogLevel;
-import com.adobe.marketing.mobile.rulesengine.Logging;
 import com.adobe.marketing.mobile.rulesengine.RulesEngine;
 
 import java.util.List;
@@ -24,43 +21,8 @@ public class LaunchRulesEngine {
     private final RulesEngine<LaunchRule> ruleRulesEngine;
     private final ExtensionApi extensionApi;
 
-    @SuppressWarnings("rawtypes")
     public LaunchRulesEngine(final ExtensionApi extensionApi) {
         ruleRulesEngine = new RulesEngine<>(new ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE), LaunchRuleTransformer.INSTANCE.createTransforming());
-        Log.setLogging(new Logging() {
-            @Override
-            public void log(LogLevel level, String tag, String message) {
-                switch (level) {
-                    case ERROR:
-                        com.adobe.marketing.mobile.services.Log.error(
-                                LaunchRulesEngineConstants.LOG_TAG,
-                                tag,
-                                message
-                        );
-                    case WARNING:
-                        com.adobe.marketing.mobile.services.Log.warning(
-                                LaunchRulesEngineConstants.LOG_TAG,
-                                tag,
-                                message
-                        );
-                    case DEBUG:
-                        com.adobe.marketing.mobile.services.Log.debug(
-                                LaunchRulesEngineConstants.LOG_TAG,
-                                tag,
-                                message
-                        );
-                    case VERBOSE:
-                        com.adobe.marketing.mobile.services.Log.trace(
-                                LaunchRulesEngineConstants.LOG_TAG,
-                                tag,
-                                message
-                        );
-                        break;
-                    default:
-                        break;
-                }
-            }
-        });
         this.extensionApi = extensionApi;
     }
 

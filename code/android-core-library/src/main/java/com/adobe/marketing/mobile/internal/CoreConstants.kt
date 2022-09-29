@@ -74,7 +74,7 @@ internal object CoreConstants {
             const val REACT_NATIVE = "React Native"
             const val FLUTTER = "Flutter"
             const val CORDOVA = "Cordova"
-            const val UNITY = " Unity"
+            const val UNITY = "Unity"
             const val XAMARIN = "Xamarin"
             const val NONE = "None"
         }

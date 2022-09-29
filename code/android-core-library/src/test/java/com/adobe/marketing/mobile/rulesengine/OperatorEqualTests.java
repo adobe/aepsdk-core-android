@@ -20,8 +20,8 @@ import static org.junit.Assert.*;
 
 public class OperatorEqualTests {
 
-	private ConditionEvaluator defaultEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.DEFAULT);
-	private ConditionEvaluator caseSensitiveEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE);
+	private final ConditionEvaluator defaultEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.DEFAULT);
+	private final ConditionEvaluator caseSensitiveEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE);
 
 	@Before()
 	public void setup() {
@@ -30,11 +30,11 @@ public class OperatorEqualTests {
 	@Test
 	public void testComparisonExpression_String_Equals_String() {
 		// setup
-		final Operand lhs = new OperandLiteral("This is a big string");
-		final Operand rhs = new OperandLiteral("This is a big string");
+		final Operand<String> lhs = new OperandLiteral<>("This is a big string");
+		final Operand<String> rhs = new OperandLiteral<>("This is a big string");
 
 		// test
-		ComparisonExpression expression = new ComparisonExpression(lhs, "equals", rhs);
+		ComparisonExpression<String, String> expression = new ComparisonExpression<>(lhs, "equals", rhs);
 
 		// verify
 		RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
@@ -44,11 +44,11 @@ public class OperatorEqualTests {
 	@Test
 	public void testComparisonExpression_Number_Equals_Number() {
 		// setup
-		final Operand lhs = new OperandLiteral(34);
-		final Operand rhs = new OperandLiteral(34);
+		final Operand<Number> lhs = new OperandLiteral<>(34);
+		final Operand<Number> rhs = new OperandLiteral<>(34);
 
 		// test
-		ComparisonExpression expression = new ComparisonExpression(lhs, "equals", rhs);
+		ComparisonExpression<Number, Number> expression = new ComparisonExpression<>(lhs, "equals", rhs);
 
 		// verify
 		RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
@@ -58,11 +58,11 @@ public class OperatorEqualTests {
 	@Test
 	public void testComparisonExpression_Double_Equals_Double() {
 		// setup
-		final Operand lhs = new OperandLiteral(55.55);
-		final Operand rhs = new OperandLiteral(55.55);
+		final Operand<Double> lhs = new OperandLiteral<>(55.55);
+		final Operand<Double> rhs = new OperandLiteral<>(55.55);
 
 		// test
-		ComparisonExpression expression = new ComparisonExpression(lhs, "equals", rhs);
+		ComparisonExpression<Double, Double> expression = new ComparisonExpression<>(lhs, "equals", rhs);
 
 		// verify
 		RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
@@ -72,11 +72,11 @@ public class OperatorEqualTests {
 	@Test
 	public void testComparisonExpression_Boolean_Equals_Boolean() {
 		// setup
-		final Operand lhs = new OperandLiteral(false);
-		final Operand rhs = new OperandLiteral(false);
+		final Operand<Boolean> lhs = new OperandLiteral<>(false);
+		final Operand<Boolean> rhs = new OperandLiteral<>(false);
 
 		// test
-		ComparisonExpression expression = new ComparisonExpression(lhs, "equals", rhs);
+		ComparisonExpression<Boolean, Boolean> expression = new ComparisonExpression<>(lhs, "equals", rhs);
 
 		// verify
 		RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
@@ -86,11 +86,11 @@ public class OperatorEqualTests {
 	@Test
 	public void testComparisonExpression_String_Equals_DifferentString() {
 		// setup
-		final Operand lhs = new OperandLiteral("This is a big string");
-		final Operand rhs = new OperandLiteral("This is another big string");
+		final Operand<String> lhs = new OperandLiteral<>("This is a big string");
+		final Operand<String> rhs = new OperandLiteral<>("This is another big string");
 
 		// test
-		final ComparisonExpression expression = new ComparisonExpression(lhs, "equals", rhs);
+		final ComparisonExpression<String, String> expression = new ComparisonExpression<>(lhs, "equals", rhs);
 
 		// verify
 		RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
@@ -101,10 +101,10 @@ public class OperatorEqualTests {
 	@Test
 	public void testComparisonExpression_String_Equals_CapedString() {
 		// setup
-		Operand lhs = new OperandLiteral("Deal");
-		Operand rhs = new OperandLiteral("DEAL");
+		Operand<String> lhs = new OperandLiteral<>("Deal");
+		Operand<String> rhs = new OperandLiteral<>("DEAL");
 
-		ComparisonExpression expression = new ComparisonExpression(lhs, "equals", rhs);
+		ComparisonExpression<String, String> expression = new ComparisonExpression<>(lhs, "equals", rhs);
 
 		RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
 		assertFalse(result.isSuccess());
@@ -114,11 +114,11 @@ public class OperatorEqualTests {
 	@Test
 	public void testComparisonExpression_String_Equals_String_CaseInsensitive() {
 		// setup
-		Operand lhs = new OperandLiteral("This is a big string");
-		Operand rhs = new OperandLiteral("This IS a BIG STRING");
+		Operand<String> lhs = new OperandLiteral<>("This is a big string");
+		Operand<String> rhs = new OperandLiteral<>("This IS a BIG STRING");
 
 		// test
-		ComparisonExpression expression = new ComparisonExpression(lhs, "equals", rhs);
+		ComparisonExpression<String, String> expression = new ComparisonExpression<>(lhs, "equals", rhs);
 
 		// verify
 		RulesResult result = expression.evaluate(defaultContext(caseSensitiveEvaluator));
@@ -128,31 +128,31 @@ public class OperatorEqualTests {
 	@Test
 	public void testComparisonExpression_NotEquals() {
 		// setup
-		final Operand op1 = new OperandLiteral(3);
-		final Operand op2 = new OperandLiteral("string");
-		final Operand op3 = new OperandLiteral(false);
-		final Operand op4 = new OperandLiteral(3.3);
-		final Operand op5 = new OperandLiteral("diffString");
+		final Operand<Integer> op1 = new OperandLiteral<>(3);
+		final Operand<String> op2 = new OperandLiteral<>("string");
+		final Operand<Boolean> op3 = new OperandLiteral<>(false);
+		final Operand<Double> op4 = new OperandLiteral<>(3.3);
+		final Operand<String> op5 = new OperandLiteral<>("diffString");
 
 		// test string not equals int
-		ComparisonExpression expression = new ComparisonExpression(op1, "notEquals", op2);
+		ComparisonExpression<?, ?> expression = new ComparisonExpression<>(op1, "notEquals", op2);
 		RulesResult result = expression.evaluate(defaultContext(caseSensitiveEvaluator));
 
 		assertTrue(result.isSuccess());
 
 		// test string not equals boolean
-		expression = new ComparisonExpression(op2, "notEquals", op3);
+		expression = new ComparisonExpression<>(op2, "notEquals", op3);
 		result = expression.evaluate(defaultContext(caseSensitiveEvaluator));
 		assertTrue(result.isSuccess());
 
 		// test boolean not equals double
-		expression = new ComparisonExpression(op3, "notEquals", op4);
+		expression = new ComparisonExpression<>(op3, "notEquals", op4);
 		result = expression.evaluate(defaultContext(caseSensitiveEvaluator));
 		assertTrue(result.isSuccess());
 
 
 		// test string not equals different string
-		expression = new ComparisonExpression(op2, "notEquals", op5);
+		expression = new ComparisonExpression<>(op2, "notEquals", op5);
 		result = expression.evaluate(defaultContext(caseSensitiveEvaluator));
 		assertTrue(result.isSuccess());
 	}

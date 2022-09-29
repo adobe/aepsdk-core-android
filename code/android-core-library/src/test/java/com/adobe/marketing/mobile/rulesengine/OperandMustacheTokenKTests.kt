@@ -16,8 +16,8 @@ import org.junit.Before
 import org.junit.Test
 
 class OperandMustacheTokenKTests {
-    private val defaultEvaluator: ConditionEvaluator<*, *> =
-        ConditionEvaluator<Any?, Any?>(ConditionEvaluator.Option.DEFAULT)
+    private val defaultEvaluator: ConditionEvaluator =
+        ConditionEvaluator(ConditionEvaluator.Option.DEFAULT)
 
     @Before
     fun setup() {
@@ -65,7 +65,7 @@ class OperandMustacheTokenKTests {
     /* **************************************************************************
 	 *  Private methods
 	 **************************************************************************/
-    private fun defaultContext(conditionEvaluator: ConditionEvaluator<*, *>): Context {
+    private fun defaultContext(conditionEvaluator: ConditionEvaluator): Context {
         val context = HashMap<String, Any>()
         context["Beer"] = "Corona"
         context["Hero"] = "Soldier"

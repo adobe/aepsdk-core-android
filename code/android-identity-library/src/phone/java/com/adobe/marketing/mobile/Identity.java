@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.identity.IdentityConstants;
 import com.adobe.marketing.mobile.identity.IdentityExtension;
+import com.adobe.marketing.mobile.identity.util.VisitorIDSerializer;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.StringUtils;
@@ -35,6 +36,11 @@ public class Identity {
 
     }
 
+    /**
+     * Returns the version of the {@link Identity} extension
+     *
+     * @return The version as {@code String}
+     */
     public static String extensionVersion() {
         return EXTENSION_VERSION;
     }
@@ -243,14 +249,16 @@ public class Identity {
                 null,
                 callback,
                 event -> {
-                    List<VisitorID> list = DataReader.optTypedList(
-                            VisitorID.class,
+                    List<Map> data = DataReader.optTypedList(
+                            Map.class,
                             event.getEventData(),
                             IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LIST,
                             new ArrayList<>());
+                    List<VisitorID> list = VisitorIDSerializer.convertToVisitorIds(data);
                     callback.call(list);
                 });
     }
+
 
     /**
      * Retrieves the Adobe Experience Cloud Visitor ID from the Adobe Experience Cloud ID Service.

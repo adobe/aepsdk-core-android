@@ -16,6 +16,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.BeforeClass
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.InputStream
@@ -81,7 +82,7 @@ class IdentityIntegrationTests {
         assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
     }
 
-    @Test(timeout = 2000)
+    @Test(timeout = 10000)
     fun testSyncIdentifiers() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -105,7 +106,8 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test
+
+    @Test(timeout = 10000)
     fun testIdentitySendsForceSyncRequestOnEveryLaunch() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -127,25 +129,20 @@ class IdentityIntegrationTests {
             mapOf("id1" to "value1"),
             VisitorID.AuthenticationState.AUTHENTICATED
         )
-//        countDownLatch.await()
-        assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
-//
+        assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
+        EventHubProxy.resetEventhub()
         Thread.sleep(100)
         val context = ApplicationProvider.getApplicationContext<Context>()
         val sharedPreference = context.getSharedPreferences("visitorIDServiceDataStore", 0)
         sharedPreference.all.entries.forEach { entry ->
             Log.d("integration_test", "${entry.key} - ${entry.value}")
         }
-        val editor = sharedPreference.edit()
-        editor.clear()
-        editor.commit()
-        EventHubProxy.resetEventhub()
+        //ADOBEMOBILE_PERSISTED_MID
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatchSecondNetworkMonitor = CountDownLatch(1)
         networkMonitor = { url ->
-            if (url.contains("d_cid_ic=id1%01value1%011")) {
-                assertTrue(url.contains("https://test.com/id"))
+            if (url.contains("https://test.com/id")) {
                 assertTrue(url.contains("d_orgid=orgid"))
                 assertTrue(url.contains("d_mid="))
                 countDownLatchSecondNetworkMonitor.countDown()
@@ -163,29 +160,31 @@ class IdentityIntegrationTests {
             )
         )
         assertTrue(countDownLatchSecondLaunch.await(100, TimeUnit.MILLISECONDS))
-        assertTrue(countDownLatchSecondNetworkMonitor.await(1000, TimeUnit.MILLISECONDS))
+        countDownLatchSecondNetworkMonitor.await()
     }
 
-//    @Test(timeout = 2000)
-//    fun testOptedout() {
-//        val countDownLatch = CountDownLatch(1)
-//        MobileCore.updateConfiguration(
-//            mapOf(
-//                "experienceCloud.org" to "orgid",
-//                "experienceCloud.server" to "test.com",
-//                "global.privacy" to "optedout"
-//            )
-//        )
-//        networkMonitor = { url ->
-//            if (url.contains("d_cid_ic=id1%01value1%010")) {
-//                countDownLatch.countDown()
-//            }
-//        }
-//        Identity.syncIdentifiers(mapOf("id1" to "value1"))
-//        countDownLatch.await()
-//    }
+    @Ignore
+    @Test(timeout = 10000)
+    fun testOptedout() {
+        val countDownLatch = CountDownLatch(1)
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedout"
+            )
+        )
+        //TODO: why we send out this request event if SDK is optedout??
+        networkMonitor = { url ->
+            if (url.contains("d_cid_ic=id1%01value1%010")) {
+                countDownLatch.countDown()
+            }
+        }
+        Identity.syncIdentifiers(mapOf("id1" to "value1"))
+        countDownLatch.await()
+    }
 
-    @Test(timeout = 2000)
+    @Test(timeout = 10000)
     fun testGetUrlVariables() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -205,7 +204,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test(timeout = 2000)
+    @Test(timeout = 10000)
     fun testAppendTo() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -225,7 +224,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test(timeout = 2000)
+    @Test(timeout = 10000)
     fun testGetExperienceCloudId() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -242,7 +241,9 @@ class IdentityIntegrationTests {
         assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
     }
 
-    @Test(timeout = 2000)
+    @Ignore
+    @Test(timeout = 10000)
+    //TODO: enable this test once MobileCore.getSdkIdentities event handling is implemented in the new Configuration extension
     fun testGetSdkIdentities() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -264,7 +265,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test(timeout = 2000)
+    @Test(timeout = 10000)
     fun testGetIdentifiers() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -274,7 +275,6 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
-        MobileCore.setAdvertisingIdentifier("adid")
         Identity.syncIdentifier("type1", "id1", VisitorID.AuthenticationState.AUTHENTICATED)
         Identity.getIdentifiers { identifiers ->
             assertNotNull(identifiers)
@@ -289,7 +289,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test(timeout = 2000)
+    @Test(timeout = 10000)
     fun testGetIdentifiers_returnsEmptyList_whenNoIds() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -307,7 +307,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test(timeout = 2000)
+    @Test(timeout = 10000)
     fun testSetPushIdentifier() {
         val countDownLatchNetworkMonitor = CountDownLatch(1)
         networkMonitor = { url ->
@@ -326,7 +326,8 @@ class IdentityIntegrationTests {
         MobileCore.setPushIdentifier("9516258b6230afdd93cf0cd07b8dd845")
         countDownLatchNetworkMonitor.await()
     }
-    @Test(timeout = 2000)
+
+    @Test(timeout = 10000)
     fun testSetAdvertisingIdentifier() {
         val countDownLatchNetworkMonitor = CountDownLatch(1)
         networkMonitor = { url ->
@@ -346,9 +347,50 @@ class IdentityIntegrationTests {
         countDownLatchNetworkMonitor.await()
     }
 
-    @Test(timeout = 2000)
+    @Test(timeout = 10000)
     fun testResetIdentities() {
+        val countDownLatch = CountDownLatch(1)
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/id")) {
+                assertTrue(url.contains("d_orgid=orgid"))
+                assertTrue(url.contains("d_mid="))
+                countDownLatch.countDown()
+            }
+        }
+        assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
+        val firstMid = loadStoreMid()
+        assertNotEquals("", firstMid)
 
+        MobileCore.resetIdentities()
+
+        val countDownLatchSecondNetworkMonitor = CountDownLatch(1)
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/id")) {
+                assertTrue(url.contains("d_orgid=orgid"))
+                assertTrue(url.contains("d_mid="))
+                assertFalse(url.contains(firstMid))
+                countDownLatchSecondNetworkMonitor.countDown()
+            }
+        }
+        countDownLatchSecondNetworkMonitor.await()
+        val secondMid = loadStoreMid()
+        assertNotEquals("", secondMid)
+    }
+
+    private fun loadStoreMid(): String {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val sharedPreference = context.getSharedPreferences("visitorIDServiceDataStore", 0)
+        sharedPreference.all.entries.forEach { entry ->
+            Log.d("integration_test", "${entry.key} - ${entry.value}")
+        }
+        return sharedPreference.getString("ADOBEMOBILE_PERSISTED_MID", "")!!
     }
 
 }

@@ -10,7 +10,6 @@
  */
 package com.adobe.marketing.mobile.identity;
 
-import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
 import com.adobe.marketing.mobile.identity.IdentityConstants.Defaults;
 import com.adobe.marketing.mobile.services.Log;
@@ -24,7 +23,6 @@ import java.util.Map;
  * <p>
  * Holds metadata containing all of the configuration information needed for the {@link IdentityExtension} module to know
  * if and how it should operate.  The {@code IdentityExtension} module will create an instance of this class
- * for each {@link Event} while iterating through its {@link IdentityExtension#eventsQueue}
  */
 final class ConfigurationSharedStateIdentity {
     private static final String LOG_SOURCE = "ConfigurationSharedStateIdentity";

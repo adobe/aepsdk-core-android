@@ -26,6 +26,7 @@ import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.VisitorID;
 import com.adobe.marketing.mobile.identity.IdentityConstants.DataStoreKeys;
 import com.adobe.marketing.mobile.identity.IdentityConstants.Defaults;
+import com.adobe.marketing.mobile.identity.util.VisitorIDSerializer;
 import com.adobe.marketing.mobile.services.DataQueue;
 import com.adobe.marketing.mobile.services.HitQueuing;
 import com.adobe.marketing.mobile.services.HttpMethod;
@@ -56,7 +57,6 @@ import java.util.*;
  * <p>
  * The IdentityExtension listens for the following {@link Event}s:
  * <ol>
- *     <li>{@link EventType#HUB} - {@link EventSource#BOOTED}</li>
  *     <li>{@code EventType.HUB} - {@link EventSource#SHARED_STATE}</li>
  *     <li>{@link EventType#IDENTITY} - {@link EventSource#REQUEST_IDENTITY}</li>
  * </ol>
@@ -162,10 +162,6 @@ final public class IdentityExtension extends Extension {
 
     @Override
     public boolean readyForEvent(@NonNull Event event) {
-        // skip waiting for latest configuration if it is getExperienceCloudId event or getIdentifiers event
-//        if (event.getEventData() == null && Objects.equals(event.getType(), EventType.IDENTITY) && Objects.equals(event.getSource(), EventSource.REQUEST_IDENTITY)) {
-//            return true;
-//        }
 
         if (!hasValidSharedState(IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
             Log.trace(
@@ -255,7 +251,6 @@ final public class IdentityExtension extends Extension {
             hitQueue = new PersistentHitQueue(dataQueue, new IdentityHitsProcessing(this));
         }
     }
-
 
     /**
      * Handles {@code Configuration} event passed on by the {@code Listener}
@@ -478,7 +473,7 @@ final public class IdentityExtension extends Extension {
      * @param configSharedState The current configuration shared state
      * @see #buildOptOutURLString(ConfigurationSharedStateIdentity)
      */
-    protected void sendOptOutHit(final ConfigurationSharedStateIdentity configSharedState) {
+    private void sendOptOutHit(final ConfigurationSharedStateIdentity configSharedState) {
         String optOutUrl = buildOptOutURLString(configSharedState);
 
         if (StringUtils.isNullOrEmpty(optOutUrl)) {
@@ -743,13 +738,6 @@ final public class IdentityExtension extends Extension {
         customerIds = mergeCustomerIds(currentCustomerIds);
         customerIds = cleanupVisitorIdentifiers(customerIds);
         currentCustomerIds = cleanupVisitorIdentifiers(currentCustomerIds);
-        if (customerIds == null) {
-            Log.error(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                    "customerIds == null");
-        } else {
-            Log.error(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                    "customerIds == %s", customerIds.size());
-        }
 
         // valid config: check if there's a need to sync. Don't if we're already up to date.
         if (shouldSync(currentCustomerIds, dpids, forceSync || didAdidConsentChange, currentEventValidConfig)) {
@@ -1108,11 +1096,19 @@ final public class IdentityExtension extends Extension {
         }
 
         if (customerIds != null && !customerIds.isEmpty()) {
-            eventData.put(IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LIST, customerIds);
+            eventData.put(IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LIST, convertVisitorIds(customerIds));
         }
 
         eventData.put(IdentityConstants.EventDataKeys.Identity.VISITOR_IDS_LAST_SYNC, lastSync);
         return eventData;
+    }
+
+    private List<Map<String, Object>> convertVisitorIds(List<VisitorID> visitorIDList) {
+        List<Map<String, Object>> data = new ArrayList<>();
+        for (VisitorID vId : visitorIDList) {
+            data.add(VisitorIDSerializer.convertVisitorId(vId));
+        }
+        return data;
     }
 
     /**
@@ -1390,8 +1386,6 @@ final public class IdentityExtension extends Extension {
                 IdentityConstants.EventDataKeys.Identity.PUSH_ID_ENABLED_ACTION_NAME);
         analyticsData.put(IdentityConstants.EventDataKeys.Analytics.CONTEXT_DATA, contextData);
 
-//        idAnalyticsEventDispatcher.dispatchAnalyticsHit(analyticsData);
-
         analyticsData.put(IdentityConstants.EventDataKeys.Analytics.TRACK_INTERNAL, true);
 
         final Event analyticsForMessageEvent = new Event.Builder(ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME,
@@ -1458,16 +1452,12 @@ final public class IdentityExtension extends Extension {
      * @param eventData to be used to create the event object to be dispatched.
      */
     private void handleIdentityConfigurationUpdateEvent(final Map<String, Object> eventData) {
-//        if (idConfigurationEventDispatcher != null) {
-//            idConfigurationEventDispatcher.dispatchConfigUpdateRequest(eventData);
-//        }
-
         final Event event = new Event.Builder("Configuration Update From IdentityExtension",
                 EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
 
         getApi().dispatch(event);
-//        Log.trace(IdentityExtension.LOG_SOURCE,
-//                "dispatchConfigUpdateRequest : Configuration Update event has been added to event hub : %s", event);
+        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
+                "dispatchConfigUpdateRequest : Configuration Update event has been added to event hub : %s", event.toString());
     }
 
     /**

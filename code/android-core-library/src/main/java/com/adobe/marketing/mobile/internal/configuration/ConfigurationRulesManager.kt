@@ -13,17 +13,14 @@ package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
+import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoadResult
+import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoader
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
-import com.adobe.marketing.mobile.rulesengine.download.RulesDownloadResult
-import com.adobe.marketing.mobile.rulesengine.download.RulesDownloader
 import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.services.caching.CacheResult
-import com.adobe.marketing.mobile.services.caching.CacheService
-import com.adobe.marketing.mobile.util.StreamUtils
 
 /**
  * Facilitates notifying [LaunchRulesEvaluator] about replacing current rules with cached or newly
@@ -42,23 +39,22 @@ internal class ConfigurationRulesManager {
     private val dataStoreService: DataStoring
     private val deviceInfoService: DeviceInforming
     private val networkService: Networking
-    private val cacheService: CacheService
-    private val rulesDownloader: RulesDownloader
+    private val rulesLoader: RulesLoader
     private val configDataStore: NamedCollection?
 
     constructor(
         launchRulesEvaluator: LaunchRulesEvaluator,
         dataStoreService: DataStoring,
         deviceInfoService: DeviceInforming,
-        networkService: Networking,
-        cacheFileService: CacheService
+        networkService: Networking
     ) : this(
         launchRulesEvaluator,
         dataStoreService,
         deviceInfoService,
         networkService,
-        cacheFileService,
-        RulesDownloader(RULES_CACHE_NAME, networkService, cacheFileService, deviceInfoService)
+        RulesLoader(
+            RULES_CACHE_NAME
+        )
     )
 
     constructor(
@@ -66,15 +62,13 @@ internal class ConfigurationRulesManager {
         dataStoreService: DataStoring,
         deviceInfoService: DeviceInforming,
         networkService: Networking,
-        cacheFileService: CacheService,
-        rulesDownloader: RulesDownloader
+        rulesLoader: RulesLoader
     ) {
         this.launchRulesEvaluator = launchRulesEvaluator
         this.dataStoreService = dataStoreService
         this.deviceInfoService = deviceInfoService
         this.networkService = networkService
-        this.cacheService = cacheFileService
-        this.rulesDownloader = rulesDownloader
+        this.rulesLoader = rulesLoader
         configDataStore = dataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)
     }
 
@@ -86,7 +80,7 @@ internal class ConfigurationRulesManager {
     internal fun applyCachedRules(extensionApi: ExtensionApi): Boolean {
 
         if (configDataStore == null) {
-            Log.trace(
+            Log.debug(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
                 "Cannot load rules from ${ConfigurationExtension.DATASTORE_KEY}. Cannot apply cached rules"
@@ -98,7 +92,7 @@ internal class ConfigurationRulesManager {
             configDataStore.getString(PERSISTED_RULES_URL, null)
 
         if (persistedRulesUrl.isNullOrBlank()) {
-            Log.trace(
+            Log.debug(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
                 "Persisted rules url is null or empty. Cannot apply cached rules"
@@ -106,13 +100,13 @@ internal class ConfigurationRulesManager {
             return false
         }
 
-        val cachedRuleResult: CacheResult? = cacheService.get(RULES_CACHE_NAME, persistedRulesUrl)
+        val rulesLoadResult: RulesLoadResult = rulesLoader.loadFromCache(persistedRulesUrl)
         Log.trace(
             ConfigurationExtension.TAG,
             LOG_TAG,
             "Attempting to replace rules with cached rules"
         )
-        return replaceRules(StreamUtils.readAsString(cachedRuleResult?.data), extensionApi)
+        return replaceRules(rulesLoadResult.data, extensionApi)
     }
 
     /**
@@ -123,7 +117,7 @@ internal class ConfigurationRulesManager {
      */
     internal fun applyDownloadedRules(url: String, extensionApi: ExtensionApi): Boolean {
         if (configDataStore == null) {
-            Log.trace(
+            Log.debug(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
                 "Cannot load rules from ${ConfigurationExtension.DATASTORE_KEY}. Cannot apply downloaded rules"
@@ -133,7 +127,7 @@ internal class ConfigurationRulesManager {
 
         configDataStore.setString(PERSISTED_RULES_URL, url)
 
-        rulesDownloader.load(url) { rulesDownloadResult ->
+        rulesLoader.loadFromUrl(url) { rulesDownloadResult ->
             val reason = rulesDownloadResult.reason
             Log.trace(
                 ConfigurationExtension.TAG,
@@ -141,8 +135,8 @@ internal class ConfigurationRulesManager {
                 "Rule Download result: $reason"
             )
 
-            if (reason == RulesDownloadResult.Reason.NOT_MODIFIED) {
-                Log.trace(
+            if (reason == RulesLoadResult.Reason.NOT_MODIFIED) {
+                Log.debug(
                     ConfigurationExtension.TAG,
                     LOG_TAG,
                     "Rules from $url have not been modified. Will not apply rules."
@@ -167,13 +161,13 @@ internal class ConfigurationRulesManager {
      * @return true if a rule replacement was triggered, false otherwise
      */
     internal fun applyBundledRules(api: ExtensionApi): Boolean {
-        val rulesDownloadResult: RulesDownloadResult =
-            rulesDownloader.load(BUNDLED_RULES_FILE_NAME)
-        if (rulesDownloadResult.reason != RulesDownloadResult.Reason.SUCCESS) {
+        val rulesLoadResult: RulesLoadResult =
+            rulesLoader.loadFromAsset(BUNDLED_RULES_FILE_NAME)
+        if (rulesLoadResult.reason != RulesLoadResult.Reason.SUCCESS) {
             Log.debug(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
-                "Cannot apply bundled rules - ${rulesDownloadResult.reason}"
+                "Cannot apply bundled rules - ${rulesLoadResult.reason}"
             )
             return false
         }
@@ -183,7 +177,7 @@ internal class ConfigurationRulesManager {
             LOG_TAG,
             "Attempting to replace rules with bundled rules"
         )
-        return replaceRules(rulesDownloadResult.data, api)
+        return replaceRules(rulesLoadResult.data, api)
     }
 
     /**
@@ -196,7 +190,7 @@ internal class ConfigurationRulesManager {
      */
     private fun replaceRules(rulesJson: String?, extensionApi: ExtensionApi): Boolean {
         if (rulesJson == null) {
-            Log.trace(
+            Log.debug(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
                 "Rules file content is null. Cannot apply new rules."
@@ -206,7 +200,7 @@ internal class ConfigurationRulesManager {
 
         val rules = JSONRulesParser.parse(rulesJson, extensionApi)
         return if (rules == null) {
-            Log.trace(
+            Log.debug(
                 ConfigurationExtension.TAG,
                 LOG_TAG,
                 "Parsed rules are null. Cannot apply new rules."

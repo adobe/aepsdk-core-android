@@ -1,4 +1,4 @@
-package com.adobe.marketing.mobile.rulesengine.download;
+package com.adobe.marketing.mobile.launch.rulesengine.download;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import com.adobe.marketing.mobile.internal.util.StringEncoder;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.test.util.FileTestHelper;
+import com.adobe.marketing.mobile.util.StreamUtils;
 
 import org.junit.After;
 import org.junit.Before;
@@ -77,7 +78,7 @@ public class RulesZipProcessingHelperTest {
     @Test
     public void testStoreRulesInTemporaryDirectory_NoTempDirCreated() throws FileNotFoundException {
         final String assetName = "rules_zip_happy/ADBMobileConfig-rules.zip";
-        mockRulesZip = prepareMockZipFile(assetName);
+        mockRulesZip = getResourceFile(assetName);
 
         assertFalse(rulesZipProcessingHelper.storeRulesInTemporaryDirectory(TEST_CACHE_KEY,
                 new FileInputStream(mockRulesZip)));
@@ -89,7 +90,7 @@ public class RulesZipProcessingHelperTest {
         assertTrue(rulesZipProcessingHelper.createTemporaryRulesDirectory(TEST_CACHE_KEY));
 
         final String assetName = "rules_zip_happy/ADBMobileConfig-rules.zip";
-        mockRulesZip = prepareMockZipFile(assetName);
+        mockRulesZip = getResourceFile(assetName);
 
         assertTrue(rulesZipProcessingHelper.storeRulesInTemporaryDirectory(TEST_CACHE_KEY,
                 new FileInputStream(mockRulesZip)));
@@ -114,7 +115,7 @@ public class RulesZipProcessingHelperTest {
     @Test
     public void testUnZipRules_UnExtractableZip() throws FileNotFoundException {
         final String assetName = "rules_zip_invalid/ADBMobileConfig-rules.zip";
-        mockRulesZip = prepareMockZipFile(assetName);
+        mockRulesZip = getResourceFile(assetName);
 
         // Create a temp dir for the key
         assertTrue(rulesZipProcessingHelper.createTemporaryRulesDirectory(TEST_CACHE_KEY));
@@ -128,7 +129,7 @@ public class RulesZipProcessingHelperTest {
     @Test
     public void testUnZipRules_NoRulesJsonInZip() throws FileNotFoundException {
         final String assetName = "rules_zip_invalid_content/ADBMobileConfig-rules.zip";
-        mockRulesZip = prepareMockZipFile(assetName);
+        mockRulesZip = getResourceFile(assetName);
 
         // Create a temp dir for the key
         assertTrue(rulesZipProcessingHelper.createTemporaryRulesDirectory(TEST_CACHE_KEY));
@@ -142,7 +143,7 @@ public class RulesZipProcessingHelperTest {
     @Test
     public void testUnZipRules_ValidZip() throws FileNotFoundException {
         final String assetName = "rules_zip_happy/ADBMobileConfig-rules.zip";
-        mockRulesZip = prepareMockZipFile(assetName);
+        mockRulesZip = getResourceFile(assetName);
 
         // Create a temp dir for the key
         assertTrue(rulesZipProcessingHelper.createTemporaryRulesDirectory(TEST_CACHE_KEY));
@@ -150,7 +151,9 @@ public class RulesZipProcessingHelperTest {
         assertTrue(rulesZipProcessingHelper.storeRulesInTemporaryDirectory(TEST_CACHE_KEY,
                 new FileInputStream(mockRulesZip)));
 
-        assertNotNull(rulesZipProcessingHelper.unzipRules(TEST_CACHE_KEY));
+        assertEquals(
+                StreamUtils.readAsString(new FileInputStream(getResourceFile("rules_zip_happy/expected_rules.json"))),
+                rulesZipProcessingHelper.unzipRules(TEST_CACHE_KEY));
     }
 
     @Test
@@ -190,7 +193,7 @@ public class RulesZipProcessingHelperTest {
         FileTestHelper.deleteFile(mockCacheDir, true);
     }
 
-    private File prepareMockZipFile(final String zipFileResourcePath) {
+    private File getResourceFile(final String zipFileResourcePath) {
         try {
             return new File(this.getClass().getClassLoader().getResource(zipFileResourcePath).getPath());
         } catch (final Exception e) {

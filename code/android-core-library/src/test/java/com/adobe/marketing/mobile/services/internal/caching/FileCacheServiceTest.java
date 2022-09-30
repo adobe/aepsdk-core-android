@@ -9,9 +9,17 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.services.caching;
+package com.adobe.marketing.mobile.services.internal.caching;
+
+import static org.mockito.Mockito.when;
 
 import com.adobe.marketing.mobile.services.DeviceInforming;
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.caching.CacheEntry;
+import com.adobe.marketing.mobile.services.caching.CacheExpiry;
+import com.adobe.marketing.mobile.services.caching.CacheResult;
+import com.adobe.marketing.mobile.services.internal.caching.FileCacheResult;
+import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
 import com.adobe.marketing.mobile.test.util.FileTestHelper;
 import com.adobe.marketing.mobile.util.StreamUtils;
 
@@ -20,6 +28,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
@@ -33,6 +42,9 @@ import java.util.concurrent.TimeUnit;
 public class FileCacheServiceTest {
     @Mock
     private DeviceInforming mockDeviceInfoService;
+    @Mock
+    private ServiceProvider mockServiceProvider;
+    private MockedStatic<ServiceProvider> mockedStaticServiceProvider;
 
     private static final String TEST_CACHE_NAME = "testCacheName";
     private static final String TEST_CACHE_KEY1 = "testCacheKey1";
@@ -48,9 +60,16 @@ public class FileCacheServiceTest {
         mockCacheDir = new File(this.getClass().getClassLoader().getResource("").getPath()
                 + File.separator + "TestCacheDir");
         mockCacheDir.mkdirs();
-        Mockito.when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
 
-        fileCacheService = new FileCacheService(mockDeviceInfoService);
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider.class);
+        mockedStaticServiceProvider.when(
+                ServiceProvider::getInstance
+        ).thenReturn(mockServiceProvider);
+
+        when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
+        when(mockServiceProvider.getDeviceInfoService()).thenReturn(mockDeviceInfoService);
+
+        fileCacheService = new FileCacheService();
     }
 
     @Test
@@ -232,5 +251,6 @@ public class FileCacheServiceTest {
         mockCacheDir.setReadable(true);
         mockCacheDir.setWritable(true);
         FileTestHelper.deleteFile(mockCacheDir, true);
+        mockedStaticServiceProvider.close();
     }
 }

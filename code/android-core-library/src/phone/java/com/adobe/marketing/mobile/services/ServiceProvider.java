@@ -15,7 +15,7 @@ import android.app.Application;
 import android.content.Context;
 
 import com.adobe.marketing.mobile.services.caching.CacheService;
-import com.adobe.marketing.mobile.services.caching.FileCacheService;
+import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -64,7 +64,7 @@ public class ServiceProvider {
         defaultUIService = new AndroidUIService();
         messageDelegate = null;
         defaultLoggingService = new AndroidLoggingService();
-        defaultCacheService = new FileCacheService(defaultDeviceInfoService);
+        defaultCacheService = new FileCacheService();
     }
 
     public void initializeApp(@NonNull Application app, @Nullable SimpleCallback<Activity> onActivityResumed) {
@@ -196,7 +196,7 @@ public class ServiceProvider {
         defaultDataStoreService = new LocalDataStoreService();
         defaultLoggingService = new AndroidLoggingService();
         defaultUIService = new AndroidUIService();
-        defaultCacheService = new FileCacheService(defaultDeviceInfoService);
+        defaultCacheService = new FileCacheService();
 
         overrideDeviceInfoService = null;
         overrideNetworkService = null;

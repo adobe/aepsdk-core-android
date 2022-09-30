@@ -69,6 +69,6 @@ public class CacheExpiry {
      * @return true if the {@code CacheExpiry.expiration} is before current time.
      */
     public boolean isExpired() {
-        return expiration != null && System.currentTimeMillis() > expiration.getTime();
+        return expiration != null && System.currentTimeMillis() >= expiration.getTime();
     }
 }

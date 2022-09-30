@@ -9,11 +9,13 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.rulesengine.download;
+package com.adobe.marketing.mobile.launch.rulesengine.download;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.adobe.marketing.mobile.AdobeCallback;
+import com.adobe.marketing.mobile.R;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.HttpConnecting;
 import com.adobe.marketing.mobile.services.HttpMethod;
@@ -21,10 +23,12 @@ import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.NetworkCallback;
 import com.adobe.marketing.mobile.services.NetworkRequest;
 import com.adobe.marketing.mobile.services.Networking;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.caching.CacheEntry;
 import com.adobe.marketing.mobile.services.caching.CacheExpiry;
 import com.adobe.marketing.mobile.services.caching.CacheResult;
 import com.adobe.marketing.mobile.services.caching.CacheService;
+import com.adobe.marketing.mobile.util.StreamUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.TimeUtils;
 import com.adobe.marketing.mobile.util.UrlUtils;
@@ -42,7 +46,7 @@ import java.util.TimeZone;
 /**
  * Facilitates the download and caching of rules from a url as well as an asset bundled with the app.
  */
-public class RulesDownloader {
+public class RulesLoader {
     private static final String TAG = "RulesDownloader";
 
     private static final int DEFAULT_CONNECTION_TIMEOUT_MS = 10000;
@@ -63,21 +67,31 @@ public class RulesDownloader {
     private final DeviceInforming deviceInfoService;
     private final RulesZipProcessingHelper rulesZipProcessingHelper;
 
+    public RulesLoader(@NonNull final String cacheName) {
+        this(
+                cacheName,
+                ServiceProvider.getInstance().getNetworkService(),
+                ServiceProvider.getInstance().getCacheService(),
+                ServiceProvider.getInstance().getDeviceInfoService()
+        );
+    }
 
-    public RulesDownloader(@NonNull final String cacheName,
-                           @NonNull final Networking networkService,
-                           @NonNull final CacheService cacheService,
-                           @NonNull final DeviceInforming deviceInfoService) {
-        this(cacheName, networkService, cacheService, deviceInfoService, new RulesZipProcessingHelper(deviceInfoService));
+    @VisibleForTesting
+    RulesLoader(@NonNull final String cacheName,
+                @NonNull final Networking networkService,
+                @NonNull final CacheService cacheService,
+                @NonNull final DeviceInforming deviceInfoService) {
+        this(cacheName, networkService, cacheService, deviceInfoService,
+                new RulesZipProcessingHelper(deviceInfoService));
 
     }
 
     @VisibleForTesting
-    RulesDownloader(@NonNull final String cacheName,
-                    @NonNull final Networking networkService,
-                    @NonNull final CacheService cacheService,
-                    @NonNull final DeviceInforming deviceInfoService,
-                    @NonNull final RulesZipProcessingHelper rulesZipProcessingHelper) {
+    RulesLoader(@NonNull final String cacheName,
+                @NonNull final Networking networkService,
+                @NonNull final CacheService cacheService,
+                @NonNull final DeviceInforming deviceInfoService,
+                @NonNull final RulesZipProcessingHelper rulesZipProcessingHelper) {
 
         if (StringUtils.isNullOrEmpty(cacheName))
             throw new IllegalArgumentException("Name cannot be null or empty");
@@ -97,11 +111,11 @@ public class RulesDownloader {
      * @param url      the url from which the compressed rules are to be downloaded
      * @param callback the callback that will be invoked with the result of the download
      */
-    public void load(@NonNull final String url,
-                     @NonNull final RulesDownloadCallback callback) {
+    public void loadFromUrl(@NonNull final String url,
+                            @NonNull final AdobeCallback<RulesLoadResult> callback) {
         if (!UrlUtils.isValidUrl(url)) {
             Log.trace(TAG, cacheName, "Provided download url: %s is null or empty. ", url);
-            callback.call(new RulesDownloadResult(null, RulesDownloadResult.Reason.INVALID_SOURCE));
+            callback.call(new RulesLoadResult(null, RulesLoadResult.Reason.INVALID_SOURCE));
             return;
         }
 
@@ -117,7 +131,7 @@ public class RulesDownloader {
         );
 
         final NetworkCallback networkCallback = response -> {
-            final RulesDownloadResult result = handleDownloadResponse(url, response);
+            final RulesLoadResult result = handleDownloadResponse(url, response);
             callback.call(result);
         };
 
@@ -133,18 +147,33 @@ public class RulesDownloader {
      * @return {@code RulesDownloadResult} indicating the result of the download.
      */
     @NonNull
-    public RulesDownloadResult load(@NonNull final String assetName) {
+    public RulesLoadResult loadFromAsset(@NonNull final String assetName) {
         if (StringUtils.isNullOrEmpty(assetName)) {
-            new RulesDownloadResult(null, RulesDownloadResult.Reason.INVALID_SOURCE);
+            new RulesLoadResult(null, RulesLoadResult.Reason.INVALID_SOURCE);
         }
 
         final InputStream bundledRulesStream = deviceInfoService.getAsset(assetName);
         if (bundledRulesStream == null) {
             Log.trace(TAG, cacheName, "Provided asset: %s is invalid.", assetName);
-            return new RulesDownloadResult(null, RulesDownloadResult.Reason.INVALID_SOURCE);
+            return new RulesLoadResult(null, RulesLoadResult.Reason.INVALID_SOURCE);
         }
 
         return extractRules(assetName, bundledRulesStream, new HashMap<>());
+    }
+
+    @NonNull
+    public RulesLoadResult loadFromCache(@NonNull final String key) {
+        if (StringUtils.isNullOrEmpty(key)) {
+            return new RulesLoadResult(null, RulesLoadResult.Reason.INVALID_SOURCE);
+        }
+
+        final CacheResult cacheResult = cacheService.get(cacheName, key);
+        if (cacheResult == null) {
+            return new RulesLoadResult(null, RulesLoadResult.Reason.NO_DATA);
+        }
+
+        return new RulesLoadResult(StreamUtils.readAsString(cacheResult.getData()),
+                RulesLoadResult.Reason.SUCCESS);
     }
 
     @NonNull
@@ -152,18 +181,18 @@ public class RulesDownloader {
         return cacheName;
     }
 
-    private RulesDownloadResult handleDownloadResponse(final String url, final HttpConnecting response) {
+    private RulesLoadResult handleDownloadResponse(final String url, final HttpConnecting response) {
         switch (response.getResponseCode()) {
             case HttpURLConnection.HTTP_OK:
                 return extractRules(url, response.getInputStream(), extractMetadataFromResponse(response));
 
             case HttpURLConnection.HTTP_NOT_MODIFIED:
-                return new RulesDownloadResult(null, RulesDownloadResult.Reason.NOT_MODIFIED);
+                return new RulesLoadResult(null, RulesLoadResult.Reason.NOT_MODIFIED);
 
             case HttpURLConnection.HTTP_NOT_FOUND:
             default:
                 Log.trace(TAG, cacheName, "Received download response: %s", response.getResponseCode());
-                return new RulesDownloadResult(null, RulesDownloadResult.Reason.NO_DATA);
+                return new RulesLoadResult(null, RulesLoadResult.Reason.NO_DATA);
         }
     }
 
@@ -176,32 +205,32 @@ public class RulesDownloader {
      * @param zipContentStream the zip stream that will need to be processed
      * @param metadata         any metadata associated with the zipContentStream
      */
-    private RulesDownloadResult extractRules(final String key,
-                                             final InputStream zipContentStream,
-                                             final Map<String, String> metadata) {
+    private RulesLoadResult extractRules(final String key,
+                                         final InputStream zipContentStream,
+                                         final Map<String, String> metadata) {
 
         if (zipContentStream == null) {
-            Log.trace(TAG, cacheName, "Zip content stream is null");
-            return new RulesDownloadResult(null, RulesDownloadResult.Reason.NO_DATA);
+            Log.debug(TAG, cacheName, "Zip content stream is null");
+            return new RulesLoadResult(null, RulesLoadResult.Reason.NO_DATA);
         }
 
         // Attempt to create a temporary directory for copying the zipContentStream
         if (!rulesZipProcessingHelper.createTemporaryRulesDirectory(key)) {
-            Log.trace(TAG, cacheName, "Cannot access application cache directory to create temp dir.");
-            return new RulesDownloadResult(null, RulesDownloadResult.Reason.CANNOT_CREATE_TEMP_DIR);
+            Log.debug(TAG, cacheName, "Cannot access application cache directory to create temp dir.");
+            return new RulesLoadResult(null, RulesLoadResult.Reason.CANNOT_CREATE_TEMP_DIR);
         }
 
         // Copy the content of zipContentStream into the previously created temporary folder
         if (!rulesZipProcessingHelper.storeRulesInTemporaryDirectory(key, zipContentStream)) {
-            Log.trace(TAG, cacheName, "Cannot read response content into temp dir.");
-            return new RulesDownloadResult(null, RulesDownloadResult.Reason.CANNOT_STORE_IN_TEMP_DIR);
+            Log.debug(TAG, cacheName, "Cannot read response content into temp dir.");
+            return new RulesLoadResult(null, RulesLoadResult.Reason.CANNOT_STORE_IN_TEMP_DIR);
         }
 
         // Extract the rules zip
         final String rules = rulesZipProcessingHelper.unzipRules(key);
         if (rules == null) {
-            Log.trace(TAG, cacheName, "Failed to extract rules response zip into temp dir.");
-            return new RulesDownloadResult(null, RulesDownloadResult.Reason.ZIP_EXTRACTION_FAILED);
+            Log.debug(TAG, cacheName, "Failed to extract rules response zip into temp dir.");
+            return new RulesLoadResult(null, RulesLoadResult.Reason.ZIP_EXTRACTION_FAILED);
         }
 
         // Cache the extracted contents
@@ -209,13 +238,13 @@ public class RulesDownloader {
                 CacheExpiry.never(), metadata);
         final boolean cached = cacheService.set(cacheName, key, cacheEntry);
         if (!cached) {
-            Log.trace(TAG, cacheName, "Could not cache rules from source %s", key);
+            Log.debug(TAG, cacheName, "Could not cache rules from source %s", key);
         }
 
         // Delete the temporary directory created for processing
         rulesZipProcessingHelper.deleteTemporaryDirectory(key);
 
-        return new RulesDownloadResult(rules, RulesDownloadResult.Reason.SUCCESS);
+        return new RulesLoadResult(rules, RulesLoadResult.Reason.SUCCESS);
     }
 
     /**
@@ -262,7 +291,13 @@ public class RulesDownloader {
 
         // Last modified in cache metadata is stored in epoch string. So Convert it to RFC-2822 date format.
         final String lastModified = metadata == null ? null : metadata.get(HTTP_HEADER_LAST_MODIFIED);
-        final long lastModifiedEpoch = lastModified != null ? Long.parseLong(lastModified) : 0L;
+        long lastModifiedEpoch;
+        try {
+            lastModifiedEpoch = lastModified != null ? Long.parseLong(lastModified) : 0L;
+        } catch (final NumberFormatException e) {
+            lastModifiedEpoch = 0L;
+        }
+
         final String ifModifiedSince = TimeUtils.getRFC2822Date(lastModifiedEpoch,
                 TimeZone.getTimeZone("GMT"), Locale.US);
         headers.put(HTTP_HEADER_IF_MODIFIED_SINCE, ifModifiedSince);

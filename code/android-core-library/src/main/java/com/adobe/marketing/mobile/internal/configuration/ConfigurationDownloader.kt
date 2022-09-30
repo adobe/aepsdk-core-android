@@ -29,6 +29,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.InputStream
+import java.lang.NumberFormatException
 import java.net.HttpURLConnection
 import java.util.Date
 import java.util.Locale
@@ -75,14 +76,25 @@ internal class ConfigurationDownloader(
         }
 
         val cacheResult = cacheService.get(CONFIG_CACHE_NAME, url)
+
+        // Compute headers
         val headers: MutableMap<String, String> = HashMap()
         if (cacheResult != null) {
+            // use the HTTP_HEADER_ETAG of cached result to populate
+            // HTTP_HEADER_IF_NONE_MATCH for the request
             val eTag = cacheResult.metadata?.get(HTTP_HEADER_ETAG) ?: ""
             headers[HTTP_HEADER_IF_NONE_MATCH] = eTag
 
+            // Use HTTP_HEADER_LAST_MODIFIED of the cached result to
+            // populate HTTP_HEADER_IF_MODIFIED_SINCE for the reqest
             // Last modified in cache metadata is stored in epoch string. So Convert it to RFC-2822 date format.
             val lastModified = cacheResult.metadata?.get(HTTP_HEADER_LAST_MODIFIED)
-            val lastModifiedEpoch = lastModified?.toLong() ?: 0L
+            val lastModifiedEpoch = try {
+                lastModified?.toLong() ?: 0L
+            } catch (e: NumberFormatException) {
+                0L
+            }
+
             val ifModifiedSince = getRFC2822Date(
                 lastModifiedEpoch,
                 TimeZone.getTimeZone("GMT"), Locale.US
@@ -173,13 +185,16 @@ internal class ConfigurationDownloader(
 
             else -> {
                 try {
+                    // Downloaded configuration is expected to be a JSON string.
                     val downloadedConfig = JSONObject(JSONTokener(content))
                     val configMap = downloadedConfig.toMap()
+
+                    // Cache the downloaded configuration before returning
                     val cacheEntry = CacheEntry(content.byteInputStream(), CacheExpiry.never(), metadata)
                     cacheService.set(CONFIG_CACHE_NAME, url, cacheEntry)
                     configMap
                 } catch (exception: JSONException) {
-                    Log.warning(
+                    Log.debug(
                         ConfigurationExtension.TAG,
                         LOG_TAG,
                         "Exception processing downloaded configuration $exception"

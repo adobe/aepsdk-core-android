@@ -9,17 +9,17 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.services.caching;
+package com.adobe.marketing.mobile.services.internal.caching;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
-import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.util.FileUtils;
 import com.adobe.marketing.mobile.internal.util.StringEncoder;
-import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.caching.CacheEntry;
 import com.adobe.marketing.mobile.util.StringUtils;
 
 import org.json.JSONException;
@@ -44,13 +44,10 @@ class CacheFileManager {
     @VisibleForTesting
     static final String CACHE_METADATA_FILE_EXT = "_metadata.txt";
 
-    private final DeviceInforming deviceInfoService;
     private final String rootCacheDirName;
 
-    CacheFileManager(@NonNull final DeviceInforming deviceInfoService,
-                     @NonNull final String rootCacheDirName) {
+    CacheFileManager(@NonNull final String rootCacheDirName) {
         this.rootCacheDirName = rootCacheDirName;
-        this.deviceInfoService = deviceInfoService;
     }
 
     /**
@@ -61,10 +58,10 @@ class CacheFileManager {
      * @return a {@code File} handle for the newly created/existing bucket;
      * null if the directory creation fails.
      */
-    File createCache(final String cacheName) {
+    File createCache(@NonNull final String cacheName) {
         if (StringUtils.isNullOrEmpty(cacheName)) return null;
 
-        final File appCacheDir = deviceInfoService.getApplicationCacheDir();
+        final File appCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
         if (!FileUtils.isWritableDirectory(appCacheDir)) {
             Log.debug(ServiceConstants.LOG_TAG, TAG, "App cache directory is not writable.");
             return null;
@@ -87,7 +84,7 @@ class CacheFileManager {
      * @param key       the key for which the cache file should be retrieved
      * @return the cache file for {@code key} if present; null otherwise.
      */
-    File getCacheFile(final String cacheName, final String key) {
+    File getCacheFile(@NonNull final String cacheName, @NonNull final String key) {
         final String entryLocation = getCacheLocation(cacheName, key);
         if (entryLocation == null) return null;
 
@@ -107,21 +104,21 @@ class CacheFileManager {
      * @param key       the key for which the cache file metadata should be retrieved
      * @return the cache metadata for cache file stored for {@code key} if present; null otherwise.
      */
-    Map<String, String> getCacheMetadata(final String cacheName, final String key) {
-        if (StringUtils.isNullOrEmpty(cacheName) || StringUtils.isNullOrEmpty(key)) {
+    Map<String, String> getCacheMetadata(@NonNull final String cacheName, @NonNull final String key) {
+        if (!canProcess(cacheName, key)) {
             return null;
         }
 
         final String metaDataLocation = getMetadataLocation(cacheName, key);
-        if (metaDataLocation == null)  {
-            Log.trace(ServiceConstants.LOG_TAG, TAG, "Metadata location for" +
+        if (metaDataLocation == null) {
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Metadata location for" +
                     "cache name: [%s], cache key [%s] is null.", cacheName, key);
             return null;
         }
 
         final String metadataJson = FileUtils.readAsString(new File(metaDataLocation));
         if (metadataJson == null) {
-            Log.trace(ServiceConstants.LOG_TAG, TAG, "Metadata stored for" +
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Metadata stored for" +
                     "cache name: [%s], cache key [%s] is null.", cacheName, key);
             return null;
         }
@@ -154,8 +151,8 @@ class CacheFileManager {
      * @param cacheEntry the cache entry based on which the cache file should be created
      * @return true if the cache file and metadata file are created successfully; false otherwise.
      */
-    boolean createCacheFile(final String cacheName, final String key, final CacheEntry cacheEntry) {
-        if (StringUtils.isNullOrEmpty(cacheName) || StringUtils.isNullOrEmpty(key)) {
+    boolean createCacheFile(@NonNull final String cacheName, @NonNull final String key, @NonNull final CacheEntry cacheEntry) {
+        if (!canProcess(cacheName, key)) {
             return false;
         }
 
@@ -163,7 +160,7 @@ class CacheFileManager {
         final String entryLocation = getCacheLocation(cacheName, key);
 
         if (entryLocation == null) {
-            Log.trace(ServiceConstants.LOG_TAG, TAG, "Entry location for " +
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Entry location for " +
                     "cache name: [%s], cache key [%s] is null.", cacheName, key);
             return false;
         }
@@ -172,7 +169,7 @@ class CacheFileManager {
                 cacheEntry.getData(), false);
 
         if (!saved) {
-            Log.trace(ServiceConstants.LOG_TAG, TAG, "Failed to save cache file for " +
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Failed to save cache file for " +
                     "cache name: [%s], cache key [%s].", cacheName, key);
             return false;
         }
@@ -182,7 +179,7 @@ class CacheFileManager {
         final boolean metadataSaved = createCacheMetadataFile(cacheEntry, entryLocation, metaDataLocation);
 
         if (!metadataSaved) {
-            Log.trace(ServiceConstants.LOG_TAG, TAG, "Failed to save metadata for" +
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Failed to save metadata for" +
                     "cache name: [%s], cache key [%s].", cacheName, key);
             // Metadata save failed. Delete the cache file previously saved.
             final File savedCacheFile = new File(entryLocation);
@@ -239,7 +236,7 @@ class CacheFileManager {
      * @return true if the cache file and metadata file were deleted successfully; false otherwise.
      */
     boolean deleteCacheFile(final String cacheName, final String key) {
-        if (StringUtils.isNullOrEmpty(cacheName) || StringUtils.isNullOrEmpty(key)) {
+        if (!canProcess(cacheName, key)) {
             return false;
         }
 
@@ -268,12 +265,12 @@ class CacheFileManager {
 
     @VisibleForTesting
     String getCacheLocation(final String cacheName, final String key) {
-        if (StringUtils.isNullOrEmpty(cacheName) || StringUtils.isNullOrEmpty(key)) {
+        if (!canProcess(cacheName, key)) {
             return null;
         }
 
         final String hash = StringEncoder.sha2hash(key);
-        return deviceInfoService.getApplicationCacheDir().getPath() +
+        return ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir().getPath() +
                 File.separator + rootCacheDirName +
                 File.separator + cacheName +
                 File.separator + hash;
@@ -281,10 +278,14 @@ class CacheFileManager {
 
     @VisibleForTesting
     String getMetadataLocation(final String cacheName, final String key) {
-        if (StringUtils.isNullOrEmpty(cacheName) || StringUtils.isNullOrEmpty(key)) {
+        if (!canProcess(cacheName, key)) {
             return null;
         }
 
         return getCacheLocation(cacheName, key) + CACHE_METADATA_FILE_EXT;
+    }
+
+    private boolean canProcess(final String cacheName, final String key) {
+        return !StringUtils.isNullOrEmpty(cacheName) && !StringUtils.isNullOrEmpty(key);
     }
 }

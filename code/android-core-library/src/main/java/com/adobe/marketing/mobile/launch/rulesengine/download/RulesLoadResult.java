@@ -8,27 +8,15 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.rulesengine.download;
+package com.adobe.marketing.mobile.launch.rulesengine.download;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.adobe.marketing.mobile.services.caching.CacheExpiry;
-import com.adobe.marketing.mobile.services.caching.CacheResult;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Map;
-
 /**
- * A holder for the downloaded data and result returned by {@code RulesDownloader}
+ * A holder for the data and result returned by {@code RulesLoader} when loading rules.
  */
-public class RulesDownloadResult {
+public class RulesLoadResult {
     private final String data;
     private final Reason reason;
 
@@ -69,8 +57,8 @@ public class RulesDownloadResult {
         SUCCESS
     }
 
-    public RulesDownloadResult(@Nullable final String data,
-                               @NonNull final Reason reason) {
+    public RulesLoadResult(@Nullable final String data,
+                           @NonNull final Reason reason) {
         this.data = data;
         this.reason = reason;
     }

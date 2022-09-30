@@ -72,7 +72,7 @@ internal class ConfigurationExtension : Extension {
 
     private val serviceProvider: ServiceProvider
     private val appIdManager: AppIdManager
-    private val cacheFileService: CacheService
+    private val cacheService: CacheService
     private val launchRulesEvaluator: LaunchRulesEvaluator
     private val configurationStateManager: ConfigurationStateManager
     private val configurationRulesManager: ConfigurationRulesManager
@@ -103,19 +103,19 @@ internal class ConfigurationExtension : Extension {
         extensionApi: ExtensionApi,
         serviceProvider: ServiceProvider,
         appIdManager: AppIdManager,
-        cacheFileService: CacheService,
+        cacheService: CacheService,
         launchRulesEvaluator: LaunchRulesEvaluator,
         retryWorker: ScheduledExecutorService
     ) : this(
         extensionApi,
         serviceProvider,
         appIdManager,
-        cacheFileService,
+        cacheService,
         launchRulesEvaluator,
         retryWorker,
         ConfigurationStateManager(
             appIdManager,
-            cacheFileService,
+            cacheService,
             serviceProvider.networkService,
             serviceProvider.deviceInfoService,
             serviceProvider.dataStoreService
@@ -125,7 +125,6 @@ internal class ConfigurationExtension : Extension {
             serviceProvider.dataStoreService,
             serviceProvider.deviceInfoService,
             serviceProvider.networkService,
-            cacheFileService
         )
     )
 
@@ -134,7 +133,7 @@ internal class ConfigurationExtension : Extension {
         extensionApi: ExtensionApi,
         serviceProvider: ServiceProvider,
         appIdManager: AppIdManager,
-        cacheFileService: CacheService,
+        cacheService: CacheService,
         launchRulesEvaluator: LaunchRulesEvaluator,
         retryWorker: ScheduledExecutorService,
         configurationStateManager: ConfigurationStateManager,
@@ -142,7 +141,7 @@ internal class ConfigurationExtension : Extension {
     ) : super(extensionApi) {
         this.serviceProvider = serviceProvider
         this.appIdManager = appIdManager
-        this.cacheFileService = cacheFileService
+        this.cacheService = cacheService
         this.launchRulesEvaluator = launchRulesEvaluator
         this.retryWorker = retryWorker
         this.configurationStateManager = configurationStateManager

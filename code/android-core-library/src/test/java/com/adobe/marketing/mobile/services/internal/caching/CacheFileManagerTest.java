@@ -9,12 +9,17 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.services.caching;
+package com.adobe.marketing.mobile.services.internal.caching;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-import com.adobe.marketing.mobile.internal.util.FileUtils;
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.caching.CacheEntry;
+import com.adobe.marketing.mobile.services.caching.CacheExpiry;
+import com.adobe.marketing.mobile.services.internal.caching.CacheFileManager;
+import com.adobe.marketing.mobile.services.internal.caching.FileCacheResult;
+import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
 import com.adobe.marketing.mobile.test.util.FileTestHelper;
 import com.adobe.marketing.mobile.util.StreamUtils;
 import com.adobe.marketing.mobile.internal.util.StringEncoder;
@@ -26,6 +31,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.ByteArrayInputStream;
@@ -44,8 +51,13 @@ public class CacheFileManagerTest {
     @Mock
     private DeviceInforming mockDeviceInfoService;
 
+    @Mock
+    private ServiceProvider mockServiceProvider;
+
+    private MockedStatic<ServiceProvider> mockedStaticServiceProvider;
     private File mockCacheDir;
     private File mockCacheBucket;
+
     private CacheFileManager cacheFileManager;
     private static final String TEST_CACHE_CONTENT = "This is sample cache content";
     private static final String TEST_CACHE_NAME = "JustARandomCacheBucket";
@@ -58,11 +70,18 @@ public class CacheFileManagerTest {
         mockCacheDir = new File(this.getClass().getClassLoader().getResource("").getPath()
                 + File.separator + "TestFolder");
         mockCacheDir.mkdirs();
+
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider.class);
+        mockedStaticServiceProvider.when(
+                ServiceProvider::getInstance
+        ).thenReturn(mockServiceProvider);
+
         when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
+        when(mockServiceProvider.getDeviceInfoService()).thenReturn(mockDeviceInfoService);
 
         mockCacheBucket = createCacheBucket(FileCacheService.ROOT_CACHE_DIR_NAME, TEST_CACHE_NAME);
 
-        cacheFileManager = new CacheFileManager(mockDeviceInfoService, FileCacheService.ROOT_CACHE_DIR_NAME);
+        cacheFileManager = new CacheFileManager(FileCacheService.ROOT_CACHE_DIR_NAME);
     }
 
     @Test
@@ -234,6 +253,7 @@ public class CacheFileManagerTest {
                 cacheFileManager.getCacheMetadata(TEST_CACHE_NAME, TEST_CACHE_KEY);
 
         assertNotNull(retrievedMetadata);
+        assertEquals("1", retrievedMetadata.get("One"));
     }
 
     @Test
@@ -281,6 +301,7 @@ public class CacheFileManagerTest {
     @After
     public void tearDown() throws Exception {
         FileTestHelper.deleteFile(mockCacheDir, true);
+        mockedStaticServiceProvider.close();
     }
 
     private File createCacheBucket(final String cacheRoot, final String cacheName) {

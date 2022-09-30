@@ -9,10 +9,13 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.services.caching;
+package com.adobe.marketing.mobile.services.internal.caching;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.adobe.marketing.mobile.services.caching.CacheExpiry;
+import com.adobe.marketing.mobile.services.caching.CacheResult;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,9 +23,9 @@ import java.io.InputStream;
 import java.util.Map;
 
 /**
- * Represents a result returned by {@code com.adobe.marketing.mobile.services.CacheFileService}
+ * Represents a result returned by {@link FileCacheService}
  */
-public class FileCacheResult implements CacheResult {
+class FileCacheResult implements CacheResult {
     private final File fileContent;
     private final CacheExpiry cacheExpiry;
     private final Map<String, String> metadata;

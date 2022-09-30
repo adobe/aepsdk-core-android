@@ -978,7 +978,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,

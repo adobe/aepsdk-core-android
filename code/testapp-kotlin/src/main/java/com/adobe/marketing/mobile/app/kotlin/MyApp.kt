@@ -20,6 +20,7 @@ class MyApp : Application() {
         super.onCreate()
         MobileCore.setApplication(this)
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
+
         //TODO: call MobileCore.registerExtensions() to register core extensions
         MobileCore.start {
         }

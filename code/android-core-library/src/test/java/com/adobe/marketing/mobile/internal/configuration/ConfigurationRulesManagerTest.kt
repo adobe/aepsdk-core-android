@@ -11,16 +11,15 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
+import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
-import com.adobe.marketing.mobile.rulesengine.download.RulesDownloadCallback
-import com.adobe.marketing.mobile.rulesengine.download.RulesDownloadResult
-import com.adobe.marketing.mobile.rulesengine.download.RulesDownloader
+import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoadResult
+import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoader
 import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.services.caching.CacheResult
 import com.adobe.marketing.mobile.services.caching.CacheService
 import org.junit.Before
 import org.junit.Test
@@ -63,7 +62,7 @@ class ConfigurationRulesManagerTest {
     private lateinit var mockNamedCollection: NamedCollection
 
     @Mock
-    private lateinit var mockRulesDownloader: RulesDownloader
+    private lateinit var mockRulesLoader: RulesLoader
 
     @Mock
     private lateinit var mockDownloadedRulesDir: File
@@ -89,8 +88,7 @@ class ConfigurationRulesManagerTest {
             mockDataStoreService,
             mockDeviceInfoService,
             mockNetworkService,
-            mockCacheService,
-            mockRulesDownloader
+            mockRulesLoader
         )
     }
 
@@ -133,37 +131,12 @@ class ConfigurationRulesManagerTest {
                 null
             )
         ).thenReturn(persistedRulesURL)
+
+        val rulesLoadResult = mock(RulesLoadResult::class.java)
+        `when`(rulesLoadResult.data).thenReturn(null)
         `when`(
-            mockCacheService.get(
-                ConfigurationRulesManager.RULES_CACHE_NAME,
-                persistedRulesURL,
-            )
-        ).thenReturn(null)
-
-        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
-
-        verifyNoInteractions(mockLaunchRulesEvaluator)
-    }
-
-    @Test
-    fun `Apply Cached Rules - Cached rules are null`() {
-        val persistedRulesURL = "www.example.com/rules"
-        `when`(
-            mockNamedCollection.getString(
-                ConfigurationRulesManager.PERSISTED_RULES_URL,
-                null
-            )
-        ).thenReturn(persistedRulesURL)
-
-        val mockCacheResult = mock(CacheResult::class.java)
-        `when`(mockCacheResult.data).thenReturn(null)
-
-        `when`(
-            mockCacheService.get(
-                ConfigurationRulesManager.RULES_CACHE_NAME,
-                persistedRulesURL
-            )
-        ).thenReturn(mockCacheResult)
+            mockRulesLoader.loadFromCache(persistedRulesURL)
+        ).thenReturn(rulesLoadResult)
 
         assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
@@ -180,15 +153,12 @@ class ConfigurationRulesManagerTest {
             )
         ).thenReturn(persistedRulesURL)
 
-        val mockCacheResult = mock(CacheResult::class.java)
-        `when`(mockCacheResult.data).thenReturn(validRulesJson.byteInputStream())
+        val rulesLoadResult = mock(RulesLoadResult::class.java)
+        `when`(rulesLoadResult.data).thenReturn(validRulesJson)
 
         `when`(
-            mockCacheService.get(
-                ConfigurationRulesManager.RULES_CACHE_NAME,
-                persistedRulesURL
-            )
-        ).thenReturn(mockCacheResult)
+            mockRulesLoader.loadFromCache(persistedRulesURL)
+        ).thenReturn(rulesLoadResult)
 
         assertTrue(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
@@ -206,15 +176,12 @@ class ConfigurationRulesManagerTest {
             )
         ).thenReturn(persistedRulesURL)
 
-        val mockCacheResult = mock(CacheResult::class.java)
-        `when`(mockCacheResult.data).thenReturn(invalidRulesJson.byteInputStream())
+        val rulesLoadResult = mock(RulesLoadResult::class.java)
+        `when`(rulesLoadResult.data).thenReturn(invalidRulesJson)
 
         `when`(
-            mockCacheService.get(
-                ConfigurationRulesManager.RULES_CACHE_NAME,
-                persistedRulesURL
-            )
-        ).thenReturn(mockCacheResult)
+            mockRulesLoader.loadFromCache(persistedRulesURL)
+        ).thenReturn(rulesLoadResult)
 
         verifyNoInteractions(mockLaunchRulesEvaluator)
     }
@@ -229,7 +196,7 @@ class ConfigurationRulesManagerTest {
             ConfigurationRulesManager.PERSISTED_RULES_URL,
             urlForRules
         )
-        verify(mockRulesDownloader).load(
+        verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
             any()
         )
@@ -246,9 +213,9 @@ class ConfigurationRulesManagerTest {
             urlForRules
         )
 
-        val callbackCaptor: KArgumentCaptor<RulesDownloadCallback> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<RulesLoadResult>> = argumentCaptor()
 
-        verify(mockRulesDownloader).load(
+        verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
             callbackCaptor.capture()
         )
@@ -257,9 +224,9 @@ class ConfigurationRulesManagerTest {
 
         // Simulate callback invocation
         capturedCallback.call(
-            RulesDownloadResult(
+            RulesLoadResult(
                 null,
-                RulesDownloadResult.Reason.SUCCESS
+                RulesLoadResult.Reason.SUCCESS
             )
         )
 
@@ -278,9 +245,9 @@ class ConfigurationRulesManagerTest {
             urlForRules
         )
 
-        val callbackCaptor: KArgumentCaptor<RulesDownloadCallback> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<RulesLoadResult>> = argumentCaptor()
 
-        verify(mockRulesDownloader).load(
+        verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
             callbackCaptor.capture()
         )
@@ -289,8 +256,8 @@ class ConfigurationRulesManagerTest {
 
         // Simulate callback invocation
         capturedCallback.call(
-            RulesDownloadResult(
-                invalidRulesJson, RulesDownloadResult.Reason.SUCCESS
+            RulesLoadResult(
+                invalidRulesJson, RulesLoadResult.Reason.SUCCESS
             )
         )
 
@@ -308,9 +275,9 @@ class ConfigurationRulesManagerTest {
             urlForRules
         )
 
-        val callbackCaptor: KArgumentCaptor<RulesDownloadCallback> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<RulesLoadResult>> = argumentCaptor()
 
-        verify(mockRulesDownloader).load(
+        verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
             callbackCaptor.capture()
         )
@@ -319,8 +286,8 @@ class ConfigurationRulesManagerTest {
 
         // Simulate callback invocation
         capturedCallback.call(
-            RulesDownloadResult(
-                validRulesJson, RulesDownloadResult.Reason.SUCCESS
+            RulesLoadResult(
+                validRulesJson, RulesLoadResult.Reason.SUCCESS
             )
         )
 
@@ -329,8 +296,11 @@ class ConfigurationRulesManagerTest {
 
     @Test
     fun `Apply Bundled Rules - bundled rules cannot be extracted`() {
-        `when`(mockRulesDownloader.load(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
-            RulesDownloadResult(null, RulesDownloadResult.Reason.ZIP_EXTRACTION_FAILED)
+        `when`(mockRulesLoader.loadFromAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
+            RulesLoadResult(
+                null,
+                RulesLoadResult.Reason.ZIP_EXTRACTION_FAILED
+            )
         )
 
         configurationRulesManager.applyBundledRules(mockExtensionApi)
@@ -340,8 +310,11 @@ class ConfigurationRulesManagerTest {
 
     @Test
     fun `Apply Bundled Rules - RulesDownloadResult has null data`() {
-        `when`(mockRulesDownloader.load(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
-            RulesDownloadResult(null, RulesDownloadResult.Reason.SUCCESS)
+        `when`(mockRulesLoader.loadFromAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
+            RulesLoadResult(
+                null,
+                RulesLoadResult.Reason.SUCCESS
+            )
         )
 
         configurationRulesManager.applyBundledRules(mockExtensionApi)
@@ -351,8 +324,11 @@ class ConfigurationRulesManagerTest {
 
     @Test
     fun `Apply Bundled Rules - temporary cache cannot be written into`() {
-        `when`(mockRulesDownloader.load(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
-            RulesDownloadResult(null, RulesDownloadResult.Reason.CANNOT_CREATE_TEMP_DIR)
+        `when`(mockRulesLoader.loadFromAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
+            RulesLoadResult(
+                null,
+                RulesLoadResult.Reason.CANNOT_CREATE_TEMP_DIR
+            )
         )
 
         configurationRulesManager.applyBundledRules(mockExtensionApi)
@@ -362,8 +338,11 @@ class ConfigurationRulesManagerTest {
 
     @Test
     fun `Apply Bundled Rules - RulesDownloadResult has valid data`() {
-        `when`(mockRulesDownloader.load(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
-            RulesDownloadResult(validRulesJson, RulesDownloadResult.Reason.SUCCESS)
+        `when`(mockRulesLoader.loadFromAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
+            RulesLoadResult(
+                validRulesJson,
+                RulesLoadResult.Reason.SUCCESS
+            )
         )
 
         configurationRulesManager.applyBundledRules(mockExtensionApi)

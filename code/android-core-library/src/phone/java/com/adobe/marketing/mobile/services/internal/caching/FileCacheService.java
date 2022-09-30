@@ -9,15 +9,19 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile.services.caching;
+package com.adobe.marketing.mobile.services.internal.caching;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
-import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.util.StringUtils;
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.caching.CacheEntry;
+import com.adobe.marketing.mobile.services.caching.CacheExpiry;
+import com.adobe.marketing.mobile.services.caching.CacheResult;
+import com.adobe.marketing.mobile.services.caching.CacheService;
 
 import java.io.File;
 import java.util.Date;
@@ -32,8 +36,8 @@ public class FileCacheService implements CacheService {
 
     private final CacheFileManager cacheFileManager;
 
-    public FileCacheService(@NonNull final DeviceInforming deviceInfoService) {
-        this.cacheFileManager = new CacheFileManager(deviceInfoService, ROOT_CACHE_DIR_NAME);
+    public FileCacheService() {
+        this.cacheFileManager = new CacheFileManager(ROOT_CACHE_DIR_NAME);
     }
 
     /**
@@ -48,7 +52,6 @@ public class FileCacheService implements CacheService {
      */
     @Override
     public boolean set(@NonNull String cacheName, @NonNull String key, @NonNull CacheEntry value) {
-        if (!canProcess(cacheName, key)) return false;
 
         // Create the bucket if necessary
         final File cacheBucket = cacheFileManager.createCache(cacheName);
@@ -74,8 +77,6 @@ public class FileCacheService implements CacheService {
     @Nullable
     @Override
     public CacheResult get(@NonNull String cacheName, @NonNull String key) {
-        if (!canProcess(cacheName, key)) return null;
-
         final File cacheFile = cacheFileManager.getCacheFile(cacheName, key);
 
         if (cacheFile == null) return null;
@@ -91,9 +92,7 @@ public class FileCacheService implements CacheService {
         }
 
         final String expiryFromMetadata = cacheMetadata.get(FileCacheResult.METADATA_KEY_EXPIRY_IN_MILLIS);
-        final CacheExpiry expiry = (expiryFromMetadata == null)
-                ? CacheExpiry.never()
-                : CacheExpiry.at(new Date(Long.parseLong(expiryFromMetadata)));
+        final CacheExpiry expiry = getExpiryFromEpoch(expiryFromMetadata);
 
         if (expiry.isExpired()) {
             // If the cache entry has expired by the time it was fetched, remove it
@@ -115,12 +114,24 @@ public class FileCacheService implements CacheService {
      */
     @Override
     public boolean remove(@NonNull String cacheName, @NonNull String key) {
-        if (!canProcess(cacheName, key)) return false;
-
         return cacheFileManager.deleteCacheFile(cacheName, key);
     }
 
-    private boolean canProcess(final String cacheName, final String cacheKey) {
-        return !(StringUtils.isNullOrEmpty(cacheName) || StringUtils.isNullOrEmpty(cacheKey));
+    /**
+     * Translates the epochString provided into a {@code CacheExpiry}
+     *
+     * @param epochString the epoch to use for populating {@code CacheExpiry.expiry}
+     * @return a valid CacheExpiry at epoch provided by {@code epochString} if valid;
+     * an expired CacheExpiry otherwise.
+     */
+    private CacheExpiry getExpiryFromEpoch(final String epochString) {
+        try {
+            return (epochString == null)
+                    ? CacheExpiry.never()
+                    : CacheExpiry.at(new Date(Long.parseLong(epochString)));
+        } catch (final NumberFormatException e) {
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Failed to parse expiry from stored metadata. Marking as expired");
+            return CacheExpiry.at(new Date(0));
+        }
     }
 }

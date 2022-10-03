@@ -196,20 +196,29 @@ final public class MobileCore {
             return;
         }
 
+        final List<Class<? extends Extension>> allExtensions = new ArrayList<>();
         if (extensions != null) {
             for (final Class<? extends Extension> extension : extensions) {
                 if (extension != null) {
-                    EventHub.Companion.getShared().registerExtension(extension, null);
+                    allExtensions.add(extension);
                 }
             }
         }
 
-        EventHub.Companion.getShared().start(() -> {
-            if (completionCallback != null) {
-                completionCallback.call(null);
-            }
-            return null;
-        });
+        final AtomicInteger registeredExtensions = new AtomicInteger(0);
+        for (final Class<? extends Extension> extension : allExtensions) {
+            EventHub.Companion.getShared().registerExtension(extension, eventHubError -> {
+                if (registeredExtensions.incrementAndGet() == allExtensions.size()) {
+                    EventHub.Companion.getShared().start();
+                    try {
+                        if (completionCallback != null) {
+                            completionCallback.call(null);
+                        }
+                    } catch (Exception ex) {}
+                }
+                return null;
+            });
+        }
     }
 
     /**

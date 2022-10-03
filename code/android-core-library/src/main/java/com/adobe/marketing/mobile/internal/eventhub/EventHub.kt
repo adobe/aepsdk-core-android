@@ -216,8 +216,14 @@ internal class EventHub(val eventHistory: EventHistory?) {
     /**
      * `EventHub` will begin processing `Event`s when this API is invoked.
      */
+    @JvmOverloads
     fun start(completion: (() -> Unit)? = null) {
         eventHubExecutor.submit {
+            if (hubStartReceived) {
+                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Dropping start call as it was already received")
+                return@submit
+            }
+
             this.hubStartReceived = true
             this.hubStartCallback = completion
 

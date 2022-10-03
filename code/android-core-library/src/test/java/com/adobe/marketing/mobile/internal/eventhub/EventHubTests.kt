@@ -175,6 +175,26 @@ internal class EventHubTests {
         }
     }
 
+    private class TestExtension_DelayedInit(api: ExtensionApi) : Extension(api) {
+        companion object {
+            const val VERSION = "0.1"
+            const val EXTENSION_NAME = "TestExtension_DelayedInit"
+            const val FRIENDLY_NAME = "FriendlyTestExtension_DelayedInit"
+
+            // Init will take DELAY ms
+            var DELAY_MS: Long? = null
+        }
+
+        // Clear everytime extension get registered
+        init {
+            DELAY_MS?.let { Thread.sleep(it) }
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
+        }
+    }
+
     private lateinit var eventHub: EventHub
     private val eventType = "Type"
     private val eventSource = "Source"
@@ -184,7 +204,7 @@ internal class EventHubTests {
     private val event4: Event = Event.Builder("Event4", eventType, eventSource).build()
 
     // Helper to register extensions
-    private fun registerExtension(extensionClass: Class<out Extension>?): EventHubError {
+    private fun registerExtension(extensionClass: Class<out Extension>): EventHubError {
         var ret: EventHubError = EventHubError.Unknown
 
         val latch = CountDownLatch(1)
@@ -219,6 +239,11 @@ internal class EventHubTests {
         eventHub.shutdown()
     }
 
+    private fun resetEventHub() {
+        eventHub.shutdown()
+        eventHub = EventHub()
+    }
+
     // Register, Unregister tests
     @Test
     fun testRegisterExtensionSuccess() {
@@ -227,12 +252,6 @@ internal class EventHubTests {
 
         ret = registerExtension(MockExtensions.MockExtensionKotlin::class.java)
         assertEquals(EventHubError.None, ret)
-    }
-
-    @Test
-    fun testRegisterExtensionFailure_NullExtension() {
-        val ret = registerExtension(null)
-        assertEquals(EventHubError.ExtensionInitializationFailure, ret)
     }
 
     @Test
@@ -247,9 +266,11 @@ internal class EventHubTests {
     fun testRegisterExtensionFailure_ExtensionInitialization() {
         var ret = registerExtension(MockExtensions.MockExtensionInitFailure::class.java)
         assertEquals(EventHubError.ExtensionInitializationFailure, ret)
+        assertNull(eventHub.getExtensionContainer(MockExtensions.MockExtensionInitFailure::class.java))
 
         ret = registerExtension(MockExtensions.MockExtensionInvalidConstructor::class.java)
         assertEquals(EventHubError.ExtensionInitializationFailure, ret)
+        assertNull(eventHub.getExtensionContainer(MockExtensions.MockExtensionInvalidConstructor::class.java))
     }
 
     @Test
@@ -281,6 +302,54 @@ internal class EventHubTests {
 
         ret = registerExtension(MockExtensions.MockExtensionKotlin::class.java)
         assertEquals(EventHubError.None, ret)
+    }
+
+    @Test
+    fun testStartHub() {
+        resetEventHub()
+
+        val latch = CountDownLatch(1)
+        eventHub.start {
+            latch.countDown()
+        }
+
+        assertTrue { latch.await(1000, TimeUnit.MILLISECONDS) }
+    }
+
+    @Test
+    fun testStartAfterExtensionRegistration() {
+        resetEventHub()
+
+        TestExtension_DelayedInit.DELAY_MS = 1000
+        val latch = CountDownLatch(1)
+        var registeredExtension = mutableListOf<Class<out Extension>>()
+
+        eventHub.registerExtension(TestExtension::class.java) { registeredExtension.add(TestExtension::class.java) }
+        eventHub.registerExtension(TestExtension_DelayedInit::class.java) { registeredExtension.add(TestExtension_DelayedInit::class.java) }
+        eventHub.start {
+            latch.countDown()
+        }
+
+        assertTrue { latch.await(2000, TimeUnit.MILLISECONDS) }
+        assertEquals(listOf(TestExtension::class.java, TestExtension_DelayedInit::class.java), registeredExtension)
+    }
+
+    @Test
+    fun testStartBetweenExtensionRegistration() {
+        resetEventHub()
+
+        TestExtension_DelayedInit.DELAY_MS = 1000
+        val latch = CountDownLatch(1)
+        var registeredExtension = mutableListOf<Class<out Extension>>()
+
+        eventHub.registerExtension(TestExtension::class.java) { registeredExtension.add(TestExtension::class.java) }
+        eventHub.start {
+            latch.countDown()
+        }
+        eventHub.registerExtension(TestExtension_DelayedInit::class.java) { registeredExtension.add(TestExtension_DelayedInit::class.java) }
+
+        assertTrue { latch.await(750, TimeUnit.MILLISECONDS) }
+        assertEquals(listOf<Class<out Extension>>(TestExtension::class.java), registeredExtension)
     }
 
     // Shared state tests

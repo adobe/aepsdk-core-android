@@ -11,16 +11,15 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoadResult
 import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoader
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
-import com.adobe.marketing.mobile.services.DataStoring
-import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NamedCollection
-import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 
 /**
  * Facilitates notifying [LaunchRulesEvaluator] about replacing current rules with cached or newly
@@ -36,40 +35,20 @@ internal class ConfigurationRulesManager {
     }
 
     private val launchRulesEvaluator: LaunchRulesEvaluator
-    private val dataStoreService: DataStoring
-    private val deviceInfoService: DeviceInforming
-    private val networkService: Networking
     private val rulesLoader: RulesLoader
     private val configDataStore: NamedCollection?
 
-    constructor(
-        launchRulesEvaluator: LaunchRulesEvaluator,
-        dataStoreService: DataStoring,
-        deviceInfoService: DeviceInforming,
-        networkService: Networking
-    ) : this(
+    constructor(launchRulesEvaluator: LaunchRulesEvaluator) : this(
         launchRulesEvaluator,
-        dataStoreService,
-        deviceInfoService,
-        networkService,
-        RulesLoader(
-            RULES_CACHE_NAME
-        )
+        RulesLoader(RULES_CACHE_NAME)
     )
 
-    constructor(
-        launchRulesEvaluator: LaunchRulesEvaluator,
-        dataStoreService: DataStoring,
-        deviceInfoService: DeviceInforming,
-        networkService: Networking,
-        rulesLoader: RulesLoader
-    ) {
+    @VisibleForTesting
+    constructor(launchRulesEvaluator: LaunchRulesEvaluator, rulesLoader: RulesLoader) {
         this.launchRulesEvaluator = launchRulesEvaluator
-        this.dataStoreService = dataStoreService
-        this.deviceInfoService = deviceInfoService
-        this.networkService = networkService
         this.rulesLoader = rulesLoader
-        configDataStore = dataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)
+        configDataStore =
+            ServiceProvider.getInstance().dataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)
     }
 
     /**

@@ -70,7 +70,6 @@ public abstract interface class com/adobe/marketing/mobile/EventPreprocessor {
 public final class com/adobe/marketing/mobile/EventSource {
 	public static final field APPLICATION_CLOSE Ljava/lang/String;
 	public static final field APPLICATION_LAUNCH Ljava/lang/String;
-	public static final field BOOTED Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
 	public static final field REQUEST_CONTENT Ljava/lang/String;
@@ -82,7 +81,6 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field RESPONSE_PROFILE Ljava/lang/String;
 	public static final field SHARED_STATE Ljava/lang/String;
 	public static final field WILDCARD Ljava/lang/String;
-	public fun <init> ()V
 }
 
 public final class com/adobe/marketing/mobile/EventType {
@@ -111,7 +109,6 @@ public final class com/adobe/marketing/mobile/EventType {
 	public static final field TARGET Ljava/lang/String;
 	public static final field USERPROFILE Ljava/lang/String;
 	public static final field WILDCARD Ljava/lang/String;
-	public fun <init> ()V
 }
 
 public abstract class com/adobe/marketing/mobile/Extension {
@@ -362,6 +359,32 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/RuleConsequence
 	public fun toString ()Ljava/lang/String;
 }
 
+public class com/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult {
+	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;)V
+	public fun getData ()Ljava/lang/String;
+	public fun getReason ()Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+}
+
+public final class com/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason : java/lang/Enum {
+	public static final field CANNOT_CREATE_TEMP_DIR Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field CANNOT_STORE_IN_TEMP_DIR Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field INVALID_SOURCE Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field NOT_MODIFIED Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field NO_DATA Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field SUCCESS Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field ZIP_EXTRACTION_FAILED Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static fun values ()[Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+}
+
+public class com/adobe/marketing/mobile/launch/rulesengine/download/RulesLoader {
+	public fun <init> (Ljava/lang/String;)V
+	public fun getCacheName ()Ljava/lang/String;
+	public fun loadFromAsset (Ljava/lang/String;)Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult;
+	public fun loadFromCache (Ljava/lang/String;)Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult;
+	public fun loadFromUrl (Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
+}
+
 public final class com/adobe/marketing/mobile/launch/rulesengine/json/JSONRulesParser {
 	public static final field INSTANCE Lcom/adobe/marketing/mobile/launch/rulesengine/json/JSONRulesParser;
 	public static final fun parse (Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionApi;)Ljava/util/List;
@@ -408,24 +431,6 @@ public abstract interface class com/adobe/marketing/mobile/rulesengine/Evaluatin
 
 public abstract interface class com/adobe/marketing/mobile/rulesengine/FunctionBlock {
 	public abstract fun execute ([Ljava/lang/Object;)Ljava/lang/Object;
-}
-
-public class com/adobe/marketing/mobile/rulesengine/Log {
-	public static fun setLogging (Lcom/adobe/marketing/mobile/rulesengine/Logging;)V
-}
-
-public final class com/adobe/marketing/mobile/rulesengine/LogLevel : java/lang/Enum {
-	public static final field DEBUG Lcom/adobe/marketing/mobile/rulesengine/LogLevel;
-	public static final field ERROR Lcom/adobe/marketing/mobile/rulesengine/LogLevel;
-	public static final field VERBOSE Lcom/adobe/marketing/mobile/rulesengine/LogLevel;
-	public static final field WARNING Lcom/adobe/marketing/mobile/rulesengine/LogLevel;
-	public final field id I
-	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/rulesengine/LogLevel;
-	public static fun values ()[Lcom/adobe/marketing/mobile/rulesengine/LogLevel;
-}
-
-public abstract interface class com/adobe/marketing/mobile/rulesengine/Logging {
-	public abstract fun log (Lcom/adobe/marketing/mobile/rulesengine/LogLevel;Ljava/lang/String;Ljava/lang/String;)V
 }
 
 public class com/adobe/marketing/mobile/rulesengine/LogicalExpression : com/adobe/marketing/mobile/rulesengine/Evaluable {
@@ -524,23 +529,6 @@ public abstract interface class com/adobe/marketing/mobile/rulesengine/Transform
 public class com/adobe/marketing/mobile/rulesengine/UnaryExpression : com/adobe/marketing/mobile/rulesengine/Evaluable {
 	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/Operand;Ljava/lang/String;)V
 	public fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/Context;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
-}
-
-public abstract interface class com/adobe/marketing/mobile/services/CacheFileService {
-	public static final field Companion Lcom/adobe/marketing/mobile/services/CacheFileService$Companion;
-	public static final field METADATA_KEY_ETAG Ljava/lang/String;
-	public static final field METADATA_KEY_LAST_MODIFIED_EPOCH Ljava/lang/String;
-	public abstract fun createCacheFile (Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)Ljava/io/File;
-	public abstract fun deleteCacheFile (Ljava/lang/String;Ljava/lang/String;)Z
-	public abstract fun getBaseFilePath (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
-	public abstract fun getCacheFile (Ljava/lang/String;Ljava/lang/String;Z)Ljava/io/File;
-	public abstract fun getMetadata (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
-	public abstract fun markComplete (Ljava/io/File;)Ljava/io/File;
-}
-
-public final class com/adobe/marketing/mobile/services/CacheFileService$Companion {
-	public static final field METADATA_KEY_ETAG Ljava/lang/String;
-	public static final field METADATA_KEY_LAST_MODIFIED_EPOCH Ljava/lang/String;
 }
 
 public final class com/adobe/marketing/mobile/services/DataEntity {
@@ -729,6 +717,7 @@ public class com/adobe/marketing/mobile/services/PersistentHitQueue : com/adobe/
 
 public class com/adobe/marketing/mobile/services/ServiceProvider {
 	public fun getApplicationContext ()Landroid/content/Context;
+	public fun getCacheService ()Lcom/adobe/marketing/mobile/services/caching/CacheService;
 	public fun getDataQueueService ()Lcom/adobe/marketing/mobile/services/DataQueuing;
 	public fun getDataStoreService ()Lcom/adobe/marketing/mobile/services/DataStoring;
 	public fun getDeviceInfoService ()Lcom/adobe/marketing/mobile/services/DeviceInforming;
@@ -743,6 +732,33 @@ public class com/adobe/marketing/mobile/services/ServiceProvider {
 	public fun setMessageDelegate (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;)V
 	public fun setNetworkService (Lcom/adobe/marketing/mobile/services/Networking;)V
 	public fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
+}
+
+public class com/adobe/marketing/mobile/services/caching/CacheEntry {
+	public fun <init> (Ljava/io/InputStream;Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;Ljava/util/Map;)V
+	public fun getData ()Ljava/io/InputStream;
+	public fun getExpiry ()Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+	public fun getMetadata ()Ljava/util/Map;
+}
+
+public class com/adobe/marketing/mobile/services/caching/CacheExpiry {
+	public static fun after (J)Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+	public static fun at (Ljava/util/Date;)Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+	public final fun getExpiration ()Ljava/util/Date;
+	public fun isExpired ()Z
+	public static fun never ()Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/caching/CacheResult {
+	public abstract fun getData ()Ljava/io/InputStream;
+	public abstract fun getExpiry ()Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+	public abstract fun getMetadata ()Ljava/util/Map;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/caching/CacheService {
+	public abstract fun get (Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/caching/CacheResult;
+	public abstract fun remove (Ljava/lang/String;Ljava/lang/String;)Z
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/services/caching/CacheEntry;)Z
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/AlertListener {
@@ -1003,7 +1019,7 @@ public final class com/adobe/marketing/mobile/util/SerialWorkDispatcher$State : 
 }
 
 public abstract interface class com/adobe/marketing/mobile/util/SerialWorkDispatcher$WorkHandler {
-	public abstract fun doWork (Ljava/lang/Object;)V
+	public abstract fun doWork (Ljava/lang/Object;)Z
 }
 
 public final class com/adobe/marketing/mobile/util/StreamUtils {
@@ -1028,43 +1044,28 @@ public final class com/adobe/marketing/mobile/util/TimeUtils {
 	public static final fun parseRFC2822Date (Ljava/lang/String;Ljava/util/TimeZone;Ljava/util/Locale;)Ljava/util/Date;
 }
 
+public class com/adobe/marketing/mobile/util/URLBuilder {
+	public fun <init> ()V
+	public fun addPath (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun addQuery (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun addQuery (Ljava/lang/String;Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun addQueryParameter (Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun addQueryParameters (Ljava/util/Map;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun build ()Ljava/lang/String;
+	public fun enableSSL (Z)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun setServer (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+}
+
+public final class com/adobe/marketing/mobile/util/URLBuilder$EncodeType : java/lang/Enum {
+	public static final field ENCODE Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;
+	public static final field NONE Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;
+	public final field id I
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;
+	public static fun values ()[Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;
+}
+
 public final class com/adobe/marketing/mobile/util/UrlUtils {
 	public static fun isValidUrl (Ljava/lang/String;)Z
 	public static fun urlEncode (Ljava/lang/String;)Ljava/lang/String;
-}
-
-public class com/adobe/marketing/mobile/util/remotedownload/DownloadResult {
-	public fun <init> (Ljava/io/File;Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;)V
-	public fun getData ()Ljava/io/File;
-	public fun getReason ()Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;
-}
-
-public final class com/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason : java/lang/Enum {
-	public static final field CANNOT_WRITE_TO_CACHE_DIR Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;
-	public static final field INVALID_URL Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;
-	public static final field NOT_MODIFIED Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;
-	public static final field NO_DATA Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;
-	public static final field RESPONSE_PROCESSING_FAILED Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;
-	public static final field SUCCESS Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;
-	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;
-	public static fun values ()[Lcom/adobe/marketing/mobile/util/remotedownload/DownloadResult$Reason;
-}
-
-public abstract interface class com/adobe/marketing/mobile/util/remotedownload/MetadataProvider {
-	public static final field ETAG Ljava/lang/String;
-	public static final field HTTP_HEADER_IF_MODIFIED_SINCE Ljava/lang/String;
-	public static final field HTTP_HEADER_IF_RANGE Ljava/lang/String;
-	public static final field HTTP_HEADER_LAST_MODIFIED Ljava/lang/String;
-	public static final field HTTP_HEADER_RANGE Ljava/lang/String;
-	public abstract fun getMetadata (Ljava/io/File;)Ljava/util/Map;
-}
-
-public final class com/adobe/marketing/mobile/util/remotedownload/RemoteDownloader {
-	public static final field Companion Lcom/adobe/marketing/mobile/util/remotedownload/RemoteDownloader$Companion;
-	public fun <init> (Lcom/adobe/marketing/mobile/services/Networking;Lcom/adobe/marketing/mobile/services/CacheFileService;)V
-	public final fun download (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/util/remotedownload/MetadataProvider;Lkotlin/jvm/functions/Function1;)V
-}
-
-public final class com/adobe/marketing/mobile/util/remotedownload/RemoteDownloader$Companion {
 }
 

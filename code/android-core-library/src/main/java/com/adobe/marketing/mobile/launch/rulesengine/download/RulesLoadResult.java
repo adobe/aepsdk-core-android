@@ -35,12 +35,12 @@ public class RulesLoadResult {
         ZIP_EXTRACTION_FAILED,
 
         /**
-         * Content cannot be written into the cache directoy used by {@code RulesDownloader}
+         * Content cannot be written into the cache directoy used by {@code RulesLoader}
          */
         CANNOT_CREATE_TEMP_DIR,
 
         /**
-         * Content cannot be written into a temp directory used by {@code RulesDownloader}
+         * Content cannot be written into a temp directory used by {@code RulesLoader}
          */
         CANNOT_STORE_IN_TEMP_DIR,
 

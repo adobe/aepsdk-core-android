@@ -101,6 +101,16 @@ internal class ConfigurationRulesManager {
         }
 
         val rulesLoadResult: RulesLoadResult = rulesLoader.loadFromCache(persistedRulesUrl)
+
+        if (rulesLoadResult.reason != RulesLoadResult.Reason.SUCCESS) {
+            Log.debug(
+                ConfigurationExtension.TAG,
+                LOG_TAG,
+                "Cannot apply cached rules - ${rulesLoadResult.reason}"
+            )
+            return false
+        }
+
         Log.trace(
             ConfigurationExtension.TAG,
             LOG_TAG,

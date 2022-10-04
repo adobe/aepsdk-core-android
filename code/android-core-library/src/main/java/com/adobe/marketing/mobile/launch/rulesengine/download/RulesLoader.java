@@ -47,7 +47,7 @@ import java.util.TimeZone;
  * Facilitates the download and caching of rules from a url as well as an asset bundled with the app.
  */
 public class RulesLoader {
-    private static final String TAG = "RulesDownloader";
+    private static final String TAG = "RulesLoader";
 
     private static final int DEFAULT_CONNECTION_TIMEOUT_MS = 10000;
     private static final int DEFAULT_READ_TIMEOUT_MS = 10000;
@@ -115,11 +115,11 @@ public class RulesLoader {
 
     /**
      * Loads rules from an asset bundled with the app and returns the extracted rules.
-     * Additionally, the extracted content is cached in cache bucket with name {@code RulesDownloader.name}
+     * Additionally, the extracted content is cached in cache bucket with name {@code RulesLoader.getCacheName()}
      * and {@code assetName} as the key in {@code CacheService}.
      *
      * @param assetName the asset name from where the rules must be fetched
-     * @return {@code RulesDownloadResult} indicating the result of the download.
+     * @return {@code RulesDownloadResult} indicating the result of the load operation.
      */
     @NonNull
     public RulesLoadResult loadFromAsset(@NonNull final String assetName) {
@@ -136,6 +136,13 @@ public class RulesLoader {
         return extractRules(assetName, bundledRulesStream, new HashMap<>());
     }
 
+    /**
+     * Loads rules that were previously cached via {@code loadFromAsset()} or {@code loadFromUrl}
+     *
+     * @param key the asset name or url that was previously used for loading and storing
+     *            rules via {@code loadFromAsset()} or {@code loadFromUrl}
+     * @return {@code RulesDownloadResult} indicating the result of the load operation.
+     */
     @NonNull
     public RulesLoadResult loadFromCache(@NonNull final String key) {
         if (StringUtils.isNullOrEmpty(key)) {
@@ -151,6 +158,12 @@ public class RulesLoader {
                 RulesLoadResult.Reason.SUCCESS);
     }
 
+    /**
+     * Gets the cache name that will be used for storing and retrieving the rules when using
+     * operations of this class.
+     *
+     * @return cache name that will be used for storing and retrieving the rules.
+     */
     @NonNull
     public String getCacheName() {
         return cacheName;

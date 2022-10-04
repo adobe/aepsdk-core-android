@@ -155,6 +155,7 @@ class ConfigurationRulesManagerTest {
 
         val rulesLoadResult = mock(RulesLoadResult::class.java)
         `when`(rulesLoadResult.data).thenReturn(validRulesJson)
+        `when`(rulesLoadResult.reason).thenReturn(RulesLoadResult.Reason.SUCCESS)
 
         `when`(
             mockRulesLoader.loadFromCache(persistedRulesURL)

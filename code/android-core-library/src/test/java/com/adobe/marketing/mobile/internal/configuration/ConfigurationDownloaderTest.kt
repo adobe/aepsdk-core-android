@@ -16,15 +16,18 @@ import com.adobe.marketing.mobile.services.HttpMethod
 import com.adobe.marketing.mobile.services.NetworkCallback
 import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheExpiry
 import com.adobe.marketing.mobile.services.caching.CacheResult
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.util.TimeUtils
+import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
@@ -55,18 +58,26 @@ class ConfigurationDownloaderTest {
 
     @Mock
     private lateinit var mockCompletionCallback: (Map<String, Any?>?) -> Unit
+
+    @Mock
+    private lateinit var mockServiceProvider: ServiceProvider
+
+    private lateinit var mockedStaticServiceProvider: MockedStatic<ServiceProvider>
+
     private lateinit var configurationDownloader: ConfigurationDownloader
 
     @Before
     fun setUp() {
-        configurationDownloader =
-            ConfigurationDownloader(mockNetworkService, mockCacheService)
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
+        `when`(mockServiceProvider.networkService).thenReturn(mockNetworkService)
+        `when`(mockServiceProvider.cacheService).thenReturn(mockCacheService)
+
+        configurationDownloader = ConfigurationDownloader()
     }
 
     @Test
     fun `Download never makes a network request for an invalid url`() {
-        val mockConfigJson = "{}"
-
         configurationDownloader.download(INVALID__URL, mockCompletionCallback)
 
         verify(mockCacheService, never()).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
@@ -272,6 +283,11 @@ class ConfigurationDownloaderTest {
         // verify that the original callback is invoked with right content
         val expectedConfig = mapOf("cachedKey" to "value")
         verify(mockCompletionCallback).invoke(expectedConfig)
+    }
+
+    @After
+    fun teardown() {
+        mockedStaticServiceProvider.close()
     }
 
     private fun verifyNetworkRequestParams(

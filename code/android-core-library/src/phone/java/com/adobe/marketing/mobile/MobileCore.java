@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.internal.context.App;
@@ -100,7 +101,6 @@ final public class MobileCore {
             return;
         }
 
-
         // AMSDK-8502
         // workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
         // https://issuetracker.google.com/issues/110848122
@@ -116,6 +116,9 @@ final public class MobileCore {
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
+
+        // Register configuration extension
+        EventHub.Companion.getShared().registerExtension(ConfigurationExtension.class);
     }
 
     /**

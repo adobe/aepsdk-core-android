@@ -184,7 +184,6 @@ internal class EventHub(val eventHistory: EventHistory?) {
 
     init {
         registerExtension(EventHubPlaceholderExtension::class.java)
-        registerExtension(ConfigurationExtension::class.java)
     }
 
     private var _wrapperType = WrapperType.NONE
@@ -299,6 +298,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * @param extensionClass The class of extension to register
      * @param completion Invoked when the extension has been registered or failed to register
      */
+    @JvmOverloads
     fun registerExtension(
         extensionClass: Class<out Extension>,
         completion: ((error: EventHubError) -> Unit)? = null

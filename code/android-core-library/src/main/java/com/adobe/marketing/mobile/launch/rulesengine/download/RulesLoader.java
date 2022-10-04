@@ -61,45 +61,20 @@ public class RulesLoader {
      * The cache name used for storing the downloaded results.
      */
     private final String cacheName;
-
-    private final Networking networkService;
-    private final CacheService cacheService;
-    private final DeviceInforming deviceInfoService;
     private final RulesZipProcessingHelper rulesZipProcessingHelper;
 
     public RulesLoader(@NonNull final String cacheName) {
-        this(
-                cacheName,
-                ServiceProvider.getInstance().getNetworkService(),
-                ServiceProvider.getInstance().getCacheService(),
-                ServiceProvider.getInstance().getDeviceInfoService()
-        );
+        this(cacheName, new RulesZipProcessingHelper());
     }
 
     @VisibleForTesting
     RulesLoader(@NonNull final String cacheName,
-                @NonNull final Networking networkService,
-                @NonNull final CacheService cacheService,
-                @NonNull final DeviceInforming deviceInfoService) {
-        this(cacheName, networkService, cacheService, deviceInfoService,
-                new RulesZipProcessingHelper(deviceInfoService));
-
-    }
-
-    @VisibleForTesting
-    RulesLoader(@NonNull final String cacheName,
-                @NonNull final Networking networkService,
-                @NonNull final CacheService cacheService,
-                @NonNull final DeviceInforming deviceInfoService,
                 @NonNull final RulesZipProcessingHelper rulesZipProcessingHelper) {
 
         if (StringUtils.isNullOrEmpty(cacheName))
             throw new IllegalArgumentException("Name cannot be null or empty");
 
         this.cacheName = cacheName;
-        this.networkService = networkService;
-        this.cacheService = cacheService;
-        this.deviceInfoService = deviceInfoService;
         this.rulesZipProcessingHelper = rulesZipProcessingHelper;
     }
 
@@ -119,7 +94,7 @@ public class RulesLoader {
             return;
         }
 
-        final CacheResult cacheResult = cacheService.get(cacheName, url);
+        final CacheResult cacheResult = ServiceProvider.getInstance().getCacheService().get(cacheName, url);
 
         final NetworkRequest networkRequest = new NetworkRequest(
                 url,
@@ -135,7 +110,7 @@ public class RulesLoader {
             callback.call(result);
         };
 
-        networkService.connectAsync(networkRequest, networkCallback);
+        ServiceProvider.getInstance().getNetworkService().connectAsync(networkRequest, networkCallback);
     }
 
     /**
@@ -152,7 +127,7 @@ public class RulesLoader {
             new RulesLoadResult(null, RulesLoadResult.Reason.INVALID_SOURCE);
         }
 
-        final InputStream bundledRulesStream = deviceInfoService.getAsset(assetName);
+        final InputStream bundledRulesStream = ServiceProvider.getInstance().getDeviceInfoService().getAsset(assetName);
         if (bundledRulesStream == null) {
             Log.trace(TAG, cacheName, "Provided asset: %s is invalid.", assetName);
             return new RulesLoadResult(null, RulesLoadResult.Reason.INVALID_SOURCE);
@@ -167,7 +142,7 @@ public class RulesLoader {
             return new RulesLoadResult(null, RulesLoadResult.Reason.INVALID_SOURCE);
         }
 
-        final CacheResult cacheResult = cacheService.get(cacheName, key);
+        final CacheResult cacheResult = ServiceProvider.getInstance().getCacheService().get(cacheName, key);
         if (cacheResult == null) {
             return new RulesLoadResult(null, RulesLoadResult.Reason.NO_DATA);
         }
@@ -236,7 +211,7 @@ public class RulesLoader {
         // Cache the extracted contents
         final CacheEntry cacheEntry = new CacheEntry(new ByteArrayInputStream(rules.getBytes(StandardCharsets.UTF_8)),
                 CacheExpiry.never(), metadata);
-        final boolean cached = cacheService.set(cacheName, key, cacheEntry);
+        final boolean cached = ServiceProvider.getInstance().getCacheService().set(cacheName, key, cacheEntry);
         if (!cached) {
             Log.debug(TAG, cacheName, "Could not cache rules from source %s", key);
         }

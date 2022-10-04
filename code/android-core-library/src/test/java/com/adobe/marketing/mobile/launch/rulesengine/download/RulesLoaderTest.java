@@ -23,6 +23,7 @@ import com.adobe.marketing.mobile.services.HttpMethod;
 import com.adobe.marketing.mobile.services.NetworkCallback;
 import com.adobe.marketing.mobile.services.NetworkRequest;
 import com.adobe.marketing.mobile.services.Networking;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.caching.CacheEntry;
 import com.adobe.marketing.mobile.services.caching.CacheExpiry;
 import com.adobe.marketing.mobile.services.caching.CacheResult;
@@ -36,6 +37,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
@@ -53,7 +56,6 @@ public class RulesLoaderTest {
     private static final String VALID_URL = "https://assets.adobedtm.com/1234";
     private static final String RULES_TEST_CACHE_NAME = "TestRulesCache";
     private static final String SAMPLE_ETAG = "sampleETAG";
-    private static final String SAMPLE_CACHE_DATA = "";
 
     private static final long SAMPLE_LAST_MODIFIED_MS = 50000L;
     private static final String SAMPLE_LAST_MODIFIED_RFC2822 =
@@ -70,6 +72,10 @@ public class RulesLoaderTest {
     @Mock
     private DeviceInforming mockDeviceInfoService;
 
+    @Mock
+    private ServiceProvider mockServiceProvider;
+    private MockedStatic<ServiceProvider> mockedStaticServiceProvider;
+
     private File mockCacheDir;
     private File mockRulesZip;
 
@@ -81,10 +87,15 @@ public class RulesLoaderTest {
                 + File.separator + "TestCache");
         mockCacheDir.mkdirs();
 
-        when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider.class);
+        mockedStaticServiceProvider.when(ServiceProvider::getInstance).thenReturn(mockServiceProvider);
 
-        rulesLoader = new RulesLoader(RULES_TEST_CACHE_NAME, mockNetworkService,
-                mockCacheService, mockDeviceInfoService);
+        when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
+        when(mockServiceProvider.getDeviceInfoService()).thenReturn(mockDeviceInfoService);
+        when(mockServiceProvider.getCacheService()).thenReturn(mockCacheService);
+        when(mockServiceProvider.getNetworkService()).thenReturn(mockNetworkService);
+
+        rulesLoader = new RulesLoader(RULES_TEST_CACHE_NAME);
     }
 
     @Test
@@ -571,8 +582,8 @@ public class RulesLoaderTest {
     public void tearDown() throws Exception {
         mockCacheDir.setWritable(true);
         mockCacheDir.setReadable(true);
-
         FileTestHelper.deleteFile(mockCacheDir, true);
+        mockedStaticServiceProvider.close();
     }
 
     private File prepareResourceFile(final String zipFileResourcePath) {

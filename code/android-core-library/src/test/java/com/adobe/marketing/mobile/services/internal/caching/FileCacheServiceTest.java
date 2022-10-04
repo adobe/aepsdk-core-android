@@ -62,9 +62,7 @@ public class FileCacheServiceTest {
         mockCacheDir.mkdirs();
 
         mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider.class);
-        mockedStaticServiceProvider.when(
-                ServiceProvider::getInstance
-        ).thenReturn(mockServiceProvider);
+        mockedStaticServiceProvider.when(ServiceProvider::getInstance).thenReturn(mockServiceProvider);
 
         when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
         when(mockServiceProvider.getDeviceInfoService()).thenReturn(mockDeviceInfoService);

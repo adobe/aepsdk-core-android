@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.adobe.marketing.mobile.internal.util.StringEncoder;
 import com.adobe.marketing.mobile.services.DeviceInforming;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.test.util.FileTestHelper;
 import com.adobe.marketing.mobile.util.StreamUtils;
 
@@ -18,6 +19,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
@@ -32,6 +35,10 @@ public class RulesZipProcessingHelperTest {
     @Mock
     private DeviceInforming mockDeviceInfoService;
 
+    @Mock
+    private ServiceProvider mockServiceProvider;
+    private MockedStatic<ServiceProvider> mockedStaticServiceProvider;
+
     private File mockCacheDir;
     private File mockRulesZip;
     private RulesZipProcessingHelper rulesZipProcessingHelper;
@@ -43,9 +50,14 @@ public class RulesZipProcessingHelperTest {
         mockCacheDir = new File(this.getClass().getClassLoader().getResource("").getPath()
                 + File.separator + "TestAppCache");
 
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider.class);
+        mockedStaticServiceProvider.when(ServiceProvider::getInstance).thenReturn(mockServiceProvider);
+
+        when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
+        when(mockServiceProvider.getDeviceInfoService()).thenReturn(mockDeviceInfoService);
         when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
 
-        rulesZipProcessingHelper = new RulesZipProcessingHelper(mockDeviceInfoService);
+        rulesZipProcessingHelper = new RulesZipProcessingHelper();
     }
 
     @Test
@@ -191,6 +203,7 @@ public class RulesZipProcessingHelperTest {
         }
 
         FileTestHelper.deleteFile(mockCacheDir, true);
+        mockedStaticServiceProvider.close();
     }
 
     private File getResourceFile(final String zipFileResourcePath) {

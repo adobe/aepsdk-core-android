@@ -8,6 +8,7 @@ import com.adobe.marketing.mobile.internal.util.FileUtils;
 import com.adobe.marketing.mobile.internal.util.StringEncoder;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.StreamUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
 
@@ -27,11 +28,6 @@ class RulesZipProcessingHelper {
     private static final String TEMP_RULES_ZIP = "rules.zip";
     private static final String TEMP_RULES_JSON = "rules.json";
 
-    private final DeviceInforming deviceInfoService;
-
-    RulesZipProcessingHelper(final DeviceInforming deviceInfoService) {
-        this.deviceInfoService = deviceInfoService;
-    }
 
     /**
      * Creates a temporary directory to store and process rules.
@@ -127,7 +123,7 @@ class RulesZipProcessingHelper {
     @VisibleForTesting
     File getTemporaryDirectory(@NonNull final String tag) {
         final String hash = StringEncoder.sha2hash(tag);
-        return new File(deviceInfoService.getApplicationCacheDir().getPath()
+        return new File(ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir().getPath()
                 + File.separator + TEMP_DOWNLOAD_DIR
                 + File.separator + hash);
     }

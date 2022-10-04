@@ -72,13 +72,10 @@ public class CacheFileManagerTest {
         mockCacheDir.mkdirs();
 
         mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider.class);
-        mockedStaticServiceProvider.when(
-                ServiceProvider::getInstance
-        ).thenReturn(mockServiceProvider);
+        mockedStaticServiceProvider.when(ServiceProvider::getInstance).thenReturn(mockServiceProvider);
 
         when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
         when(mockServiceProvider.getDeviceInfoService()).thenReturn(mockDeviceInfoService);
-
         mockCacheBucket = createCacheBucket(FileCacheService.ROOT_CACHE_DIR_NAME, TEST_CACHE_NAME);
 
         cacheFileManager = new CacheFileManager(FileCacheService.ROOT_CACHE_DIR_NAME);

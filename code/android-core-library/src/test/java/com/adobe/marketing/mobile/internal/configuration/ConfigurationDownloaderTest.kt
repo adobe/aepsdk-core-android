@@ -11,145 +11,147 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.internal.util.FileUtils
-import com.adobe.marketing.mobile.util.remotedownload.DownloadResult
-import com.adobe.marketing.mobile.util.remotedownload.DownloadResult.Reason
-import com.adobe.marketing.mobile.util.remotedownload.RemoteDownloader
-import org.junit.After
+import com.adobe.marketing.mobile.services.HttpConnecting
+import com.adobe.marketing.mobile.services.HttpMethod
+import com.adobe.marketing.mobile.services.NetworkCallback
+import com.adobe.marketing.mobile.services.NetworkRequest
+import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.caching.CacheExpiry
+import com.adobe.marketing.mobile.services.caching.CacheResult
+import com.adobe.marketing.mobile.services.caching.CacheService
+import com.adobe.marketing.mobile.util.TimeUtils
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.MockedStatic
-import org.mockito.Mockito.mockStatic
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
+import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import java.io.File
-import kotlin.test.assertEquals
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.util.Locale
+import java.util.TimeZone
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class ConfigurationDownloaderTest {
 
     companion object {
         const val SAMPLE_URL = "http://assets.adobe.com/1234"
-        const val SAMPLE_DIRECTORY = "downloaded/rules/folder"
+        const val INVALID__URL = "someinvalid url"
     }
 
     @Mock
-    private lateinit var mockMetadataProvider: FileMetadataProvider
+    private lateinit var mockNetworkService: Networking
+
+    @Mock
+    private lateinit var mockCacheService: CacheService
 
     @Mock
     private lateinit var mockCompletionCallback: (Map<String, Any?>?) -> Unit
-
-    @Mock
-    private lateinit var mockDownloadedFile: File
-
-    @Mock
-    private lateinit var mockRemoteDownloader: RemoteDownloader
-
-    private lateinit var mockFileUtils: MockedStatic<FileUtils>
-
     private lateinit var configurationDownloader: ConfigurationDownloader
 
     @Before
     fun setUp() {
-        mockFileUtils = mockStatic(FileUtils::class.java)
-
         configurationDownloader =
-            ConfigurationDownloader(mockRemoteDownloader, mockMetadataProvider)
+            ConfigurationDownloader(mockNetworkService, mockCacheService)
     }
 
     @Test
-    fun `Download invokes remote downloader`() {
+    fun `Download never makes a network request for an invalid url`() {
         val mockConfigJson = "{}"
 
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn(mockConfigJson)
+        configurationDownloader.download(INVALID__URL, mockCompletionCallback)
 
-        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
+        verify(mockCacheService, never()).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
+        verify(mockNetworkService, never()).connectAsync(any(), any())
+        // verify that the original callback is invoked with right content
+        verify(mockCompletionCallback).invoke(null)
+    }
 
-        configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
+    @Test
+    fun `Download always makes a network request for a valid url`() {
+        val mockConfigJson = "{}"
+        `when`(mockNetworkService.connectAsync(any(), any())).then {
+            val callback = it.getArgument<NetworkCallback>(1)
+            val simulatedResponse = simulateNetworkResponse(
+                HttpURLConnection.HTTP_OK,
+                mockConfigJson.byteInputStream(),
+                mapOf()
+            )
+            callback.call(simulatedResponse)
+        }
 
-        verify(mockRemoteDownloader).download(
-            eq(SAMPLE_URL),
-            eq(SAMPLE_DIRECTORY),
-            eq(mockMetadataProvider),
-            callbackCaptor.capture()
+        configurationDownloader.download(SAMPLE_URL, mockCompletionCallback)
+
+        verify(mockCacheService, times(1)).get(
+            ConfigurationDownloader.CONFIG_CACHE_NAME,
+            SAMPLE_URL
         )
-        val capturedCallback = callbackCaptor.firstValue
-
-        // Simulate callback from RemoteDownloader.download()
-        capturedCallback.invoke(DownloadResult(mockDownloadedFile, Reason.SUCCESS))
-
+        verify(mockNetworkService, times(1)).connectAsync(any(), any())
         // verify that the original callback is invoked with right content
         verify(mockCompletionCallback).invoke(emptyMap())
     }
 
     @Test
-    fun `Download when RemoteDownload result is a null file`() {
-        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
+    fun `Download when RemoteDownload result is null`() {
+        `when`(mockNetworkService.connectAsync(any(), any())).then {
+            val callback = it.getArgument<NetworkCallback>(1)
+            val simulatedResponse =
+                simulateNetworkResponse(HttpURLConnection.HTTP_OK, null, mapOf())
+            callback.call(simulatedResponse)
+        }
 
-        configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
+        configurationDownloader.download(SAMPLE_URL, mockCompletionCallback)
 
-        verify(mockRemoteDownloader).download(
-            eq(SAMPLE_URL),
-            eq(SAMPLE_DIRECTORY),
-            eq(mockMetadataProvider),
-            callbackCaptor.capture()
-        )
-        val capturedCallback = callbackCaptor.firstValue
-
-        // Simulate callback from RemoteDownloader.download()
-        capturedCallback.invoke(DownloadResult(null, Reason.NO_DATA))
-
-        // verify that the original callback is invoked with right content
+        verify(mockCacheService).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
+        verify(mockNetworkService, times(1)).connectAsync(any(), any())
         verify(mockCompletionCallback).invoke(null)
     }
 
     @Test
-    fun `Download when RemoteDownload result file cannot be parsed`() {
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn(null)
+    fun `Download when download result file cannot be parsed`() {
+        val mockConfigJson = "{invalid json}"
+        `when`(mockNetworkService.connectAsync(any(), any())).then {
+            val callback = it.getArgument<NetworkCallback>(1)
+            val simulatedResponse = simulateNetworkResponse(
+                HttpURLConnection.HTTP_OK,
+                mockConfigJson.byteInputStream(),
+                mapOf()
+            )
+            callback.call(simulatedResponse)
+        }
 
-        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
+        configurationDownloader.download(SAMPLE_URL, mockCompletionCallback)
 
-        configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
-
-        verify(mockRemoteDownloader).download(
-            eq(SAMPLE_URL),
-            eq(SAMPLE_DIRECTORY),
-            eq(mockMetadataProvider),
-            callbackCaptor.capture()
-        )
-        val capturedCallback = callbackCaptor.firstValue
-
-        // Simulate successful callback from RemoteDownloader.download() with a file that cannot be parsed
-        capturedCallback.invoke(DownloadResult(mockDownloadedFile, Reason.SUCCESS))
-
-        // verify that the original callback is invoked with right content
+        verify(mockCacheService).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
+        verify(mockNetworkService, times(1)).connectAsync(any(), any())
         verify(mockCompletionCallback).invoke(null)
     }
 
     @Test
-    fun `Download when RemoteDownload result file is empty`() {
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn("")
+    fun `Download when download result is empty`() {
+        val mockConfigJson = ""
+        `when`(mockNetworkService.connectAsync(any(), any())).then {
+            val callback = it.getArgument<NetworkCallback>(1)
+            val simulatedResponse = simulateNetworkResponse(
+                HttpURLConnection.HTTP_OK,
+                mockConfigJson.byteInputStream(),
+                mapOf()
+            )
+            callback.call(simulatedResponse)
+        }
 
-        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
+        configurationDownloader.download(SAMPLE_URL, mockCompletionCallback)
 
-        configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
-
-        verify(mockRemoteDownloader).download(
-            eq(SAMPLE_URL),
-            eq(SAMPLE_DIRECTORY),
-            eq(mockMetadataProvider),
-            callbackCaptor.capture()
-        )
-        val capturedCallback = callbackCaptor.firstValue
-
-        // Simulate successful callback from RemoteDownloader.download() with a file that is empty
-        capturedCallback.invoke(DownloadResult(mockDownloadedFile, Reason.SUCCESS))
-
+        verify(mockCacheService).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
+        verify(mockNetworkService, times(1)).connectAsync(any(), any())
         // verify that the original callback is invoked with right content
         verify(mockCompletionCallback).invoke(emptyMap())
     }
@@ -165,22 +167,17 @@ class ConfigurationDownloaderTest {
             "\"timeout\": 30.5" +
             "}"
 
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn(mockConfigContentJson)
+        `when`(mockNetworkService.connectAsync(any(), any())).then {
+            val callback = it.getArgument<NetworkCallback>(1)
+            val simulatedResponse = simulateNetworkResponse(
+                HttpURLConnection.HTTP_OK,
+                mockConfigContentJson.byteInputStream(),
+                mapOf()
+            )
+            callback.call(simulatedResponse)
+        }
 
-        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
-
-        configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
-
-        verify(mockRemoteDownloader).download(
-            eq(SAMPLE_URL),
-            eq(SAMPLE_DIRECTORY),
-            eq(mockMetadataProvider),
-            callbackCaptor.capture()
-        )
-        val capturedCallback = callbackCaptor.firstValue
-
-        // Simulate callback from RemoteDownloader.download()
-        capturedCallback.invoke(DownloadResult(mockDownloadedFile, Reason.SUCCESS))
+        configurationDownloader.download(SAMPLE_URL, mockCompletionCallback)
 
         // verify that the original callback is invoked with right content
         val expectedConfig = mapOf<String, Any?>(
@@ -192,9 +189,9 @@ class ConfigurationDownloaderTest {
             "timeout" to 30.5
         )
 
-        val configMapCaptor: KArgumentCaptor<Map<String, Any?>?> = argumentCaptor()
-        verify(mockCompletionCallback).invoke(configMapCaptor.capture())
-        assertEquals(expectedConfig, configMapCaptor.firstValue)
+        verify(mockCacheService).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
+        verify(mockNetworkService, times(1)).connectAsync(any(), any())
+        verify(mockCompletionCallback).invoke(expectedConfig)
     }
 
     @Test
@@ -204,28 +201,103 @@ class ConfigurationDownloaderTest {
             "\"global.ssl\": true,\n" +
             "\"rules.url\"= \"https://assets.adobedtm.com/launch-rules.zip\"," + // This line has = instead of :
             "}"
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(mockDownloadedFile) }.thenReturn(mockConfigContentJson)
+        `when`(mockNetworkService.connectAsync(any(), any())).then {
+            val callback = it.getArgument<NetworkCallback>(1)
+            val simulatedResponse = simulateNetworkResponse(
+                HttpURLConnection.HTTP_OK,
+                mockConfigContentJson.byteInputStream(),
+                mapOf()
+            )
+            callback.call(simulatedResponse)
+        }
 
-        val callbackCaptor: KArgumentCaptor<(DownloadResult) -> Unit> = argumentCaptor()
+        configurationDownloader.download(SAMPLE_URL, mockCompletionCallback)
 
-        configurationDownloader.download(SAMPLE_URL, SAMPLE_DIRECTORY, mockCompletionCallback)
-
-        verify(mockRemoteDownloader).download(
-            eq(SAMPLE_URL),
-            eq(SAMPLE_DIRECTORY),
-            eq(mockMetadataProvider),
-            callbackCaptor.capture()
-        )
-        val capturedCallback = callbackCaptor.firstValue
-
-        // Simulate successful callback from RemoteDownloader.download() with a file that is malformed
-        capturedCallback.invoke(DownloadResult(mockDownloadedFile, Reason.SUCCESS))
-
+        verify(mockCacheService).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
+        verify(mockNetworkService, times(1)).connectAsync(any(), any())
         verify(mockCompletionCallback).invoke(null)
     }
 
-    @After
-    fun teardown() {
-        mockFileUtils.close()
+    @Test
+    fun `Download when response is HTTP_NOT_MODIFIED`() {
+        `when`(mockNetworkService.connectAsync(any(), any())).then {
+            val callback = it.getArgument<NetworkCallback>(1)
+            val simulatedResponse =
+                simulateNetworkResponse(HttpURLConnection.HTTP_NOT_MODIFIED, null, mapOf())
+            callback.call(simulatedResponse)
+        }
+
+        val cachedContentData = "{\"cachedKey\":\"value\"}"
+        val mockCacheResult = Mockito.mock(CacheResult::class.java)
+        `when`(mockCacheResult.data).thenReturn(cachedContentData.byteInputStream())
+        `when`(mockCacheResult.expiry).thenReturn(CacheExpiry.never())
+        val cacheMetadata = mapOf(
+            ConfigurationDownloader.HTTP_HEADER_ETAG to "someETag",
+            ConfigurationDownloader.HTTP_HEADER_LAST_MODIFIED to "500"
+        )
+        `when`(mockCacheResult.metadata).thenReturn(cacheMetadata)
+
+        `when`(
+            mockCacheService.get(
+                ConfigurationDownloader.CONFIG_CACHE_NAME,
+                SAMPLE_URL
+            )
+        ).thenReturn(mockCacheResult)
+
+        // Test
+        configurationDownloader.download(SAMPLE_URL, mockCompletionCallback)
+
+        // Verify
+        val networkRequestCaptor: KArgumentCaptor<NetworkRequest> = argumentCaptor()
+        verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any())
+        val expectedNetworkRequest = NetworkRequest(
+            SAMPLE_URL, HttpMethod.GET, null,
+            mapOf(
+                ConfigurationDownloader.HTTP_HEADER_IF_NONE_MATCH to "someETag",
+                ConfigurationDownloader.HTTP_HEADER_IF_MODIFIED_SINCE to TimeUtils.getRFC2822Date(
+                    500L,
+                    TimeZone.getTimeZone("GMT"),
+                    Locale.US
+                )
+            ),
+            10000, 10000
+        )
+        verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.firstValue)
+
+        verify(mockCacheService, times(2)).get(
+            ConfigurationDownloader.CONFIG_CACHE_NAME,
+            SAMPLE_URL
+        ) // Cache service should be invoked twice, once for initial headers and then to get the cached data.
+
+        // verify that the original callback is invoked with right content
+        val expectedConfig = mapOf("cachedKey" to "value")
+        verify(mockCompletionCallback).invoke(expectedConfig)
+    }
+
+    private fun verifyNetworkRequestParams(
+        expectedNetworkRequest: NetworkRequest,
+        actualNetworkRequest: NetworkRequest
+    ) {
+        Assert.assertEquals(expectedNetworkRequest.url, actualNetworkRequest.url)
+        Assert.assertEquals(expectedNetworkRequest.method, actualNetworkRequest.method)
+        Assert.assertEquals(expectedNetworkRequest.body, actualNetworkRequest.body)
+        Assert.assertEquals(expectedNetworkRequest.connectTimeout, actualNetworkRequest.connectTimeout)
+        Assert.assertEquals(expectedNetworkRequest.readTimeout, actualNetworkRequest.readTimeout)
+        Assert.assertEquals(expectedNetworkRequest.headers, actualNetworkRequest.headers)
+    }
+
+    private fun simulateNetworkResponse(
+        responseCode: Int,
+        responseStream: InputStream?,
+        metadata: Map<String, String>
+    ): HttpConnecting {
+
+        val mockResponse = Mockito.mock(HttpConnecting::class.java)
+        `when`(mockResponse.responseCode).thenReturn(responseCode)
+        `when`(mockResponse.inputStream).thenReturn(responseStream)
+        `when`(mockResponse.getResponsePropertyValue(any())).then {
+            return@then metadata[it.getArgument(0)]
+        }
+        return mockResponse
     }
 }

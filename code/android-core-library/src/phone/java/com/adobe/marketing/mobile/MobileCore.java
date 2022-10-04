@@ -987,7 +987,7 @@ final public class MobileCore {
             return false;
         }
 
-        //responseEvent.setPairId(requestEvent.getResponseID());
+        responseEvent.setResponseID(requestEvent.getResponseID());
         dispatchEvent(responseEvent);
         return true;
     }

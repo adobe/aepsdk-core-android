@@ -22,11 +22,12 @@ import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
-import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.caching.CacheService
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.eq
@@ -59,7 +60,7 @@ class ConfigurationExtensionTest {
     private lateinit var mockAppIdManager: AppIdManager
 
     @Mock
-    private lateinit var mockCacheFileService: CacheFileService
+    private lateinit var mockCacheService: CacheService
 
     /**
      * Note that any values returned for [ConfigurationStateManager.environmentAwareConfiguration] in these tests
@@ -107,7 +108,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -164,7 +165,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -196,7 +197,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -227,7 +228,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -249,7 +250,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -292,7 +293,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -335,7 +336,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi, mockServiceProvider,
-            mockAppIdManager, mockCacheFileService, mockLaunchRulesEvaluator, mockExecutorService,
+            mockAppIdManager, mockCacheService, mockLaunchRulesEvaluator, mockExecutorService,
             mockConfigStateManager, mockConfigurationRulesManager
         )
 
@@ -377,7 +378,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi, mockServiceProvider,
-            mockAppIdManager, mockCacheFileService, mockLaunchRulesEvaluator, mockExecutorService,
+            mockAppIdManager, mockCacheService, mockLaunchRulesEvaluator, mockExecutorService,
             mockConfigStateManager, mockConfigurationRulesManager
         )
 
@@ -425,7 +426,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT,
             config,
-            event
+            null
         )
     }
 
@@ -475,7 +476,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -562,7 +563,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -591,7 +592,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT,
             config,
-            event
+            null
         )
     }
 
@@ -603,7 +604,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -639,7 +640,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -675,7 +676,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -710,7 +711,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -746,7 +747,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -791,7 +792,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -822,7 +823,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT,
             mockBundledConfig,
-            event
+            null
         )
     }
 
@@ -842,7 +843,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -886,7 +887,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -925,7 +926,7 @@ class ConfigurationExtensionTest {
             mockExtensionApi,
             mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
+            mockCacheService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -957,6 +958,52 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT,
             mockUpdatedConfig,
+            null
+        )
+    }
+
+    @Test
+    fun `Retrieve configuration attaches responseId to dispatched response`() {
+        val mockBundledConfig = mutableMapOf<String, Any?>(
+            ANALYTICS_RSID_KEY to SAMPLE_RSID,
+            ANALYTICS_SERVER_KEY to SAMPLE_SERVER,
+            ConfigurationExtension.RULES_CONFIG_URL to "rules.url"
+        )
+
+        `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
+        `when`(mockConfigStateManager.loadBundledConfig(anyString())).thenReturn(mockBundledConfig)
+        `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(mockBundledConfig)
+
+        val configurationExtension = ConfigurationExtension(
+            mockExtensionApi,
+            mockServiceProvider,
+            mockAppIdManager,
+            mockCacheService,
+            mockLaunchRulesEvaluator,
+            mockExecutorService,
+            mockConfigStateManager,
+            mockConfigurationRulesManager
+        )
+        reset(mockExtensionApi)
+
+        val event: Event = Event.Builder(
+            "Retrieve config",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG to null))
+            .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
+
+        configurationExtension.handleConfigurationRequestEvent(event)
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockExtensionApi, times(1)).dispatch(eventCaptor.capture())
+        verifyDispatchedEvent(
+            eventCaptor.firstValue,
+            EventType.CONFIGURATION,
+            EventSource.RESPONSE_CONTENT,
+            mockBundledConfig,
             event
         )
     }
@@ -973,6 +1020,7 @@ class ConfigurationExtensionTest {
         assertEquals(expectedEventData, capturedEvent.eventData)
         if (triggerEvent != null) {
             assertNotNull(triggerEvent)
+            assertEquals(triggerEvent.uniqueIdentifier, capturedEvent.responseID)
         }
     }
 

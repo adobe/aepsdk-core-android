@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TemplateParser {
-	static private DelimiterPair defaultDelimiter = new DelimiterPair("{{", "}}");
+	private static final DelimiterPair defaultDelimiter = new DelimiterPair("{{", "}}");
 
 	static List<Segment> parse(final String templateString) {
 		return TemplateParser.parse(templateString, defaultDelimiter);

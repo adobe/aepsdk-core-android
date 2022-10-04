@@ -41,8 +41,8 @@ class DataMarshaller {
 	static final String PUSH_MESSAGE_ID_KEY = "pushmessageid";
 	static final String LOCAL_NOTIFICATION_ID_KEY = "notificationid";
 
-	private Map<String, Object> launchData = new HashMap<>();
-	private List<String> adobeQueryKeys = new ArrayList<>();
+	private final Map<String, Object> launchData = new HashMap<>();
+	private final List<String> adobeQueryKeys = new ArrayList<>();
 
 
 	private static final String ADOBE_QUERY_KEYS_PREVIEW_TOKEN = "at_preview_token";
@@ -102,7 +102,7 @@ class DataMarshaller {
 
 		List<String> keys = new ArrayList<>(data.getQueryParameterNames());
 
-		if (keys == null || keys.isEmpty()) {
+		if (keys.isEmpty()) {
 			return false;
 		}
 
@@ -141,7 +141,7 @@ class DataMarshaller {
 
 				Object value = extraBundle.get(key);
 
-				if (value != null && value.toString() != null && value.toString().length() > 0) {
+				if (value != null && value.toString().length() > 0) {
 					this.launchData.put(newKey, value);
 				}
 			}

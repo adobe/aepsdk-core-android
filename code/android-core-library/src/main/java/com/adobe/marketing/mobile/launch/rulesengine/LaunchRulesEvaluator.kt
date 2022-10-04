@@ -24,7 +24,6 @@ internal class LaunchRulesEvaluator(
 ) : EventPreprocessor {
 
     private var cachedEvents: MutableList<Event>? = mutableListOf()
-    private val logTag = "LaunchRulesEvaluator_$name"
     private val launchRulesConsequence: LaunchRulesConsequence =
         LaunchRulesConsequence(extensionApi)
 
@@ -33,9 +32,7 @@ internal class LaunchRulesEvaluator(
         return cachedEvents?.size ?: 0
     }
 
-    override fun process(event: Event?): Event? {
-        if (event == null) return null
-
+    override fun process(event: Event): Event {
         // if cachedEvents is null, we know rules are set and can skip to evaluation
         // else check if this is an event to start processing of cachedEvents
         // otherwise, add the event to cachedEvents till rules are set

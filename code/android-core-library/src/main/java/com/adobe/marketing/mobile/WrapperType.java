@@ -21,7 +21,7 @@ public enum WrapperType {
 	UNITY(CoreConstants.Wrapper.Type.UNITY),
 	XAMARIN(CoreConstants.Wrapper.Type.XAMARIN);
 
-	private String wrapperTag;
+	private final String wrapperTag;
 
 	WrapperType(final String wrapperTag) {
 		this.wrapperTag = wrapperTag;

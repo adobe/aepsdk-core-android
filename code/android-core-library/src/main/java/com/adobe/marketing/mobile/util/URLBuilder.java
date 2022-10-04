@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * A class providing a better way to construct a url.
  */
-class URLBuilder {
+public class URLBuilder {
 
 	public enum EncodeType {
 		NONE(1),

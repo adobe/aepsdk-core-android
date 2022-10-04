@@ -27,8 +27,16 @@ public class LogicalExpression implements Evaluable {
     public RulesResult evaluate(Context context) {
         ArrayList<RulesResult> resolvedOperands = new ArrayList<>();
 
-        for (Evaluable evaluable : operands) {
-            resolvedOperands.add(evaluable.evaluate(context));
+        if (operationName == null || operationName.isEmpty()) {
+            return new RulesResult(RulesResult.FailureType.MISSING_OPERATOR, "Null or empty operator for logical expression");
+        }
+
+        if (operands != null) {
+            for (Evaluable evaluable : operands) {
+                if (evaluable != null) {
+                    resolvedOperands.add(evaluable.evaluate(context));
+                }
+            }
         }
 
         switch (operationName) {

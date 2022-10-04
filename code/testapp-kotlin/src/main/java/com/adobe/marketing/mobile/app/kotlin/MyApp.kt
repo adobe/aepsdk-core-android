@@ -11,11 +11,6 @@
 package com.adobe.marketing.mobile.app.kotlin
 
 import android.app.Application
-import com.adobe.marketing.mobile.AdobeCallbackWithError
-import com.adobe.marketing.mobile.AdobeError
-import com.adobe.marketing.mobile.Event
-import com.adobe.marketing.mobile.EventSource
-import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 

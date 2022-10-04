@@ -14,6 +14,8 @@ package com.adobe.marketing.mobile;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+
 public class WrapperTypeTests {
 
 	@Test
@@ -24,6 +26,16 @@ public class WrapperTypeTests {
 		assertEquals(WrapperType.CORDOVA, WrapperType.fromString("C"));
 		assertEquals(WrapperType.XAMARIN, WrapperType.fromString("X"));
 		assertEquals(WrapperType.NONE, WrapperType.fromString("N"));
+	}
+
+	@Test
+	public void wrapperFriendlyName() {
+		assertEquals(WrapperType.FLUTTER.getFriendlyName(), "Flutter");
+		assertEquals(WrapperType.REACT_NATIVE.getFriendlyName(), "React Native");
+		assertEquals(WrapperType.UNITY.getFriendlyName(), "Unity");
+		assertEquals(WrapperType.CORDOVA.getFriendlyName(), "Cordova");
+		assertEquals(WrapperType.XAMARIN.getFriendlyName(), "Xamarin");
+		assertEquals(WrapperType.NONE.getFriendlyName(), "None");
 	}
 
 	@Test

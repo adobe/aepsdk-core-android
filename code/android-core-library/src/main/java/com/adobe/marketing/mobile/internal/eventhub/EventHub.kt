@@ -27,7 +27,6 @@ import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.WrapperType
 import com.adobe.marketing.mobile.internal.CoreConstants
-import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.internal.eventhub.history.AndroidEventHistory
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import com.adobe.marketing.mobile.internal.util.prettify

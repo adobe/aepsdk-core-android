@@ -11,25 +11,22 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.services.DataStoring
-import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NamedCollection
+import com.adobe.marketing.mobile.services.ServiceProvider
 
 /**
  * Manages the storage and retrieval of AEP appID from shared preferences and the app manifest.
  */
-internal class AppIdManager(
-    private val dataStoreService: DataStoring,
-    private val deviceInfoService: DeviceInforming
-) {
+internal class AppIdManager {
 
     companion object {
         private const val LOG_TAG = "AppIdManager"
     }
 
     private val configStateStoreCollection: NamedCollection? =
-        dataStoreService.getNamedCollection(ConfigurationStateManager.DATASTORE_KEY)
+        ServiceProvider.getInstance().dataStoreService
+            .getNamedCollection(ConfigurationStateManager.DATASTORE_KEY)
 
     /**
      * Saves the appId provided into shared preferences.
@@ -101,6 +98,7 @@ internal class AppIdManager(
      *         null otherwise.
      */
     private fun getAppIDFromManifest(): String? {
-        return deviceInfoService.getPropertyFromManifest(ConfigurationStateManager.CONFIG_MANIFEST_APPID_KEY)
+        return ServiceProvider.getInstance().deviceInfoService
+            .getPropertyFromManifest(ConfigurationStateManager.CONFIG_MANIFEST_APPID_KEY)
     }
 }

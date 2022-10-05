@@ -20,11 +20,15 @@ import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.MockedStatic
+import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
@@ -70,6 +74,11 @@ class ConfigurationRulesManagerTest {
     @Mock
     private lateinit var mockExtensionApi: ExtensionApi
 
+    @Mock
+    private lateinit var mockServiceProvider: ServiceProvider
+
+    private lateinit var mockedStaticServiceProvider: MockedStatic<ServiceProvider>
+
     private lateinit var configurationRulesManager: ConfigurationRulesManager
     private val validRulesJson =
         this::class.java.classLoader?.getResource("rules_parser/launch_rule_root.json")!!.readText()
@@ -81,15 +90,15 @@ class ConfigurationRulesManagerTest {
             mockNamedCollection
         )
 
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
+        `when`(mockServiceProvider.dataStoreService).thenReturn(mockDataStoreService)
+        `when`(mockServiceProvider.deviceInfoService).thenReturn(mockDeviceInfoService)
+        `when`(mockServiceProvider.networkService).thenReturn(mockNetworkService)
+
         `when`(mockDownloadedRulesDir.isDirectory).thenReturn(true)
 
-        configurationRulesManager = ConfigurationRulesManager(
-            mockLaunchRulesEvaluator,
-            mockDataStoreService,
-            mockDeviceInfoService,
-            mockNetworkService,
-            mockRulesLoader
-        )
+        configurationRulesManager = ConfigurationRulesManager(mockLaunchRulesEvaluator, mockRulesLoader)
     }
 
     @Test
@@ -349,5 +358,10 @@ class ConfigurationRulesManagerTest {
         configurationRulesManager.applyBundledRules(mockExtensionApi)
 
         verify(mockLaunchRulesEvaluator, times(1)).replaceRules(any())
+    }
+
+    @After
+    fun teardown() {
+        mockedStaticServiceProvider.close()
     }
 }

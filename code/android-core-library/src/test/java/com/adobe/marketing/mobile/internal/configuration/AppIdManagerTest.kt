@@ -14,9 +14,13 @@ package com.adobe.marketing.mobile.internal.configuration
 import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.NamedCollection
+import com.adobe.marketing.mobile.services.ServiceProvider
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
+import org.mockito.MockedStatic
+import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.never
@@ -33,15 +37,27 @@ class AppIdManagerTest {
     @Mock
     private lateinit var mockNamedCollection: NamedCollection
 
+    @Mock
+    private lateinit var mockServiceProvider: ServiceProvider
+
+    private lateinit var mockedStaticServiceProvider: MockedStatic<ServiceProvider>
+
     private lateinit var appIdManager: AppIdManager
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
+
         `when`(mockDataStoreService.getNamedCollection(ConfigurationStateManager.DATASTORE_KEY)).thenReturn(
             mockNamedCollection
         )
-        appIdManager = AppIdManager(mockDataStoreService, mockDeviceInfoService)
+
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
+        `when`(mockServiceProvider.dataStoreService).thenReturn(mockDataStoreService)
+        `when`(mockServiceProvider.deviceInfoService).thenReturn(mockDeviceInfoService)
+
+        appIdManager = AppIdManager()
     }
 
     @Test
@@ -105,5 +121,10 @@ class AppIdManagerTest {
     fun `Remove AppID to Persistence - removes PERSISTED_APPID from data store`() {
         appIdManager.removeAppIdFromPersistence()
         verify(mockNamedCollection).remove(ConfigurationStateManager.PERSISTED_APPID)
+    }
+
+    @After
+    fun teardown() {
+        mockedStaticServiceProvider.close()
     }
 }

@@ -16,6 +16,7 @@ import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheResult
 import com.adobe.marketing.mobile.services.caching.CacheService
 import org.junit.After
@@ -30,6 +31,7 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
@@ -66,6 +68,11 @@ class ConfigurationStateManagerTest {
     @Mock
     private lateinit var mockCompletionCallback: (Map<String, Any?>?) -> Unit
 
+    @Mock
+    private lateinit var mockServiceProvider: ServiceProvider
+
+    private lateinit var mockedStaticServiceProvider: MockedStatic<ServiceProvider>
+
     private lateinit var mockFileUtils: MockedStatic<FileUtils>
 
     private lateinit var configurationStateManager: ConfigurationStateManager
@@ -86,6 +93,7 @@ class ConfigurationStateManagerTest {
 
     @Before
     fun setUp() {
+        MockitoAnnotations.openMocks(this)
 
         `when`(mockDataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)).thenReturn(
             mockNamedCollection
@@ -103,14 +111,15 @@ class ConfigurationStateManagerTest {
 
         mockFileUtils = Mockito.mockStatic(FileUtils::class.java)
 
-        configurationStateManager = ConfigurationStateManager(
-            mockAppIdManager,
-            mockCacheService,
-            mockNetworkService,
-            mockDeviceInfoService,
-            mockDataStoreService,
-            mockConfigurationDownloader
-        )
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
+        `when`(mockServiceProvider.dataStoreService).thenReturn(mockDataStoreService)
+        `when`(mockServiceProvider.deviceInfoService).thenReturn(mockDeviceInfoService)
+        `when`(mockServiceProvider.networkService).thenReturn(mockNetworkService)
+        `when`(mockServiceProvider.cacheService).thenReturn(mockCacheService)
+
+        configurationStateManager =
+            ConfigurationStateManager(mockAppIdManager, mockConfigurationDownloader)
     }
 
     @Test
@@ -367,14 +376,8 @@ class ConfigurationStateManagerTest {
             mockBundledConfigJson.byteInputStream()
         )
 
-        configurationStateManager = ConfigurationStateManager(
-            mockAppIdManager,
-            mockCacheService,
-            mockNetworkService,
-            mockDeviceInfoService,
-            mockDataStoreService,
-            mockConfigurationDownloader
-        )
+        configurationStateManager =
+            ConfigurationStateManager(mockAppIdManager, mockConfigurationDownloader)
 
         configurationStateManager.loadInitialConfig()
 
@@ -582,7 +585,10 @@ class ConfigurationStateManagerTest {
             "Key3" to false
         )
 
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @Test
@@ -613,7 +619,10 @@ class ConfigurationStateManagerTest {
             "Key3" to false
         )
 
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @Test
@@ -644,7 +653,10 @@ class ConfigurationStateManagerTest {
             "Key3" to false
         )
 
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @Test
@@ -674,7 +686,10 @@ class ConfigurationStateManagerTest {
             "Key3" to false
         )
 
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @Test
@@ -706,11 +721,15 @@ class ConfigurationStateManagerTest {
         )
 
         assertNotNull(configurationStateManager.environmentAwareConfiguration)
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @After
     fun teardown() {
         mockFileUtils.close()
+        mockedStaticServiceProvider.close()
     }
 }

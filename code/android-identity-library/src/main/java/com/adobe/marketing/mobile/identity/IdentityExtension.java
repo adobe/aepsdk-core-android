@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.identity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
@@ -98,6 +99,13 @@ final public class IdentityExtension extends Extension {
         super(extensionApi);
         this.namedCollection = ServiceProvider.getInstance().getDataStoreService().
                 getNamedCollection(DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME);
+    }
+
+    @VisibleForTesting
+    IdentityExtension(@NonNull ExtensionApi extensionApi, @NonNull NamedCollection namedCollection, @NonNull HitQueuing hitQueue) {
+        super(extensionApi);
+        this.namedCollection = namedCollection;
+        this.hitQueue = hitQueue;
     }
 
     @NonNull
@@ -215,7 +223,8 @@ final public class IdentityExtension extends Extension {
         return configuration != null && !configuration.isEmpty();
     }
 
-    private void forceSyncIdentifiers(@NonNull Event event) {
+    @VisibleForTesting
+    void forceSyncIdentifiers(@NonNull Event event) {
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Processing BOOTED event.");
 
         // The database is created when the privacy status changes or on the first sync event
@@ -1440,9 +1449,15 @@ final public class IdentityExtension extends Extension {
      * @param event     for one time callback listener
      */
     private void handleIdentityResponseEvent(final String eventName, final Map<String, Object> eventData, final Event event) {
+        Event newEvent;
+        if (event == null) {
+            newEvent = new Event.Builder(eventName, EventType.IDENTITY,
+                    EventSource.RESPONSE_IDENTITY).setEventData(eventData).build();
+        } else {
+            newEvent = new Event.Builder(eventName, EventType.IDENTITY,
+                    EventSource.RESPONSE_IDENTITY).setEventData(eventData).inResponseToEvent(event).build();
+        }
 
-        Event newEvent = new Event.Builder(eventName, EventType.IDENTITY,
-                EventSource.RESPONSE_IDENTITY).setEventData(eventData).inResponseToEvent(event).build();
         getApi().dispatch(newEvent);
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "dispatchResponse : Identity Response event has been added to event hub : %s",
                 newEvent.toString());

@@ -52,7 +52,9 @@ public class VisitorIDSerializer {
     public static List<Map<String, Object>> convertVisitorIds(@NonNull List<VisitorID> visitorIDList) {
         List<Map<String, Object>> data = new ArrayList<>();
         for (VisitorID vId : visitorIDList) {
-            data.add(VisitorIDSerializer.convertVisitorId(vId));
+            if (vId != null) {
+                data.add(VisitorIDSerializer.convertVisitorId(vId));
+            }
         }
         return data;
     }
@@ -67,11 +69,13 @@ public class VisitorIDSerializer {
     public static List<VisitorID> convertToVisitorIds(@NonNull List<Map> data) {
         List<VisitorID> visitorIDList = new ArrayList<>();
         for (Map item : data) {
-            String id = String.valueOf(item.get(ID));
-            String origin = String.valueOf(item.get(ID_ORIGIN));
-            String type = String.valueOf(item.get(ID_TYPE));
-            int state = Integer.parseInt(String.valueOf(item.get(STATE)));
-            visitorIDList.add(new VisitorID(origin, type, id, VisitorID.AuthenticationState.fromInteger(state)));
+            if (item != null) {
+                String id = String.valueOf(item.get(ID));
+                String origin = String.valueOf(item.get(ID_ORIGIN));
+                String type = String.valueOf(item.get(ID_TYPE));
+                int state = Integer.parseInt(String.valueOf(item.get(STATE)));
+                visitorIDList.add(new VisitorID(origin, type, id, VisitorID.AuthenticationState.fromInteger(state)));
+            }
         }
         return visitorIDList;
     }

@@ -23,10 +23,12 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
+import org.mockito.Mockito.*
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.util.*
@@ -1839,6 +1841,118 @@ class IdentityFunctionalTests {
 
         countDownLatch.await()
         assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
+    }
+
+    @Test
+    fun test_handleIdentityResponseIdentityForSharedState_null_event() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+        reset(mockedExtensionApi)
+        identityExtension.handleIdentityResponseIdentityForSharedState(null)
+        verify(mockedExtensionApi, never()).createSharedState(any(), any())
+    }
+
+    @Test
+    fun test_handleIdentityResponseIdentityForSharedState_null_eventData() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+        reset(mockedExtensionApi)
+        identityExtension.handleIdentityResponseIdentityForSharedState(
+            Event.Builder("event", "type", "source")
+                .setEventData(
+                    mapOf(
+                        "invalid_updatesharedstate" to true
+                    )
+                ).build()
+        )
+        verify(mockedExtensionApi, never()).createSharedState(any(), any())
+    }
+
+    @Test
+    fun test_handleIdentityResponseIdentityForSharedState_happy() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+        reset(mockedExtensionApi)
+        val spiedIdentityExtension = Mockito.spy(identityExtension)
+
+        spiedIdentityExtension.handleIdentityResponseIdentityForSharedState(
+            Event.Builder("event", "type", "source")
+                .setEventData(
+                    mapOf(
+                        "updatesharedstate" to true
+                    )
+                ).build()
+        )
+        verify(spiedIdentityExtension, times(1)).packageEventData()
+        verify(mockedExtensionApi, times(1)).createSharedState(any(), any())
+    }
+
+    @Test
+    fun test_testResetIdentities() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+        val oldMid = identityExtension.mid
+        val countDownLatch = CountDownLatch(2)
+        `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
+            val entity: DataEntity? = invocation.arguments[0] as DataEntity?
+            if (entity == null) {
+                fail("DataEntity is null.")
+                return@thenAnswer false
+            }
+            val hit = IdentityHit.fromDataEntity(entity)
+            if (hit != null) {
+                IdentityHitsProcessing(identityExtension).processHit(entity)
+                countDownLatch.countDown()
+            }
+            return@thenAnswer true
+        }
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/id?")) {
+                assertTrue(url.contains("d_mid="))
+                assertTrue(url.contains("d_orgid=orgid"))
+                assertTrue(url.contains("d_ver=2"))
+                assertTrue(oldMid.isNotEmpty())
+                assertFalse(url.contains(oldMid))
+                countDownLatch.countDown()
+            }
+        }
+
+        identityExtension.processIdentityRequest(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.generic.identity",
+                "com.adobe.eventSource.requestReset"
+            ).build()
+        )
+        countDownLatch.await()
     }
 
 }

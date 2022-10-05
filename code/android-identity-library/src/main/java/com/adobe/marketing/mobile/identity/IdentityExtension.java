@@ -103,7 +103,7 @@ final public class IdentityExtension extends Extension {
     }
 
     @VisibleForTesting
-    IdentityExtension(@NonNull ExtensionApi extensionApi, @NonNull NamedCollection namedCollection, @NonNull HitQueuing hitQueue) {
+    IdentityExtension(@NonNull ExtensionApi extensionApi, @Nullable NamedCollection namedCollection, @NonNull HitQueuing hitQueue) {
         super(extensionApi);
         this.namedCollection = namedCollection;
         this.hitQueue = hitQueue;
@@ -2020,6 +2020,11 @@ final public class IdentityExtension extends Extension {
 
         privacyStatus = MobilePrivacyStatus.fromString(privacyString);
         Log.trace(LOG_SOURCE, "loadPrivacyStatus : Updated the database with the current privacy status: %s.", privacyString);
+    }
+
+    @VisibleForTesting
+    String getMid() {
+        return mid;
     }
 
 }

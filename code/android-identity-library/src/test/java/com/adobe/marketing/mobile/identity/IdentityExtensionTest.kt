@@ -24,10 +24,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyOrNull
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
+import org.mockito.kotlin.*
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class IdentityExtensionTest {
@@ -299,6 +296,243 @@ class IdentityExtensionTest {
         )
         verify(spiedIdentityExtension, times(1)).isGetUrlVarsEvent(any())
     }
+
+    @Test
+    fun `handleConfiguration() - configuration is null`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+
+        spiedIdentityExtension.handleConfiguration(null)
+
+        verify(spiedIdentityExtension, never()).processPrivacyChange(any(), any())
+        verify(spiedIdentityExtension, never()).updateLatestValidConfiguration(any())
+    }
+
+    @Test
+    fun `handleConfiguration() - configuration's event data is null`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+
+        spiedIdentityExtension.handleConfiguration(Event.Builder("event", "type", "source").build())
+
+        verify(spiedIdentityExtension, never()).processPrivacyChange(any(), any())
+        verify(spiedIdentityExtension, never()).updateLatestValidConfiguration(any())
+    }
+
+    @Test
+    fun `handleIdentityRequestReset() - event is null`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        spiedIdentityExtension.handleIdentityRequestReset(null)
+
+        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
+    }
+
+    @Test
+    fun `handleIdentityRequestReset() - OptedOut`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+
+        spiedIdentityExtension.handleConfiguration(
+            Event.Builder("event", "type", "source").setEventData(
+                mapOf(
+                    "global.privacy" to "optedout"
+                )
+            ).build()
+        )
+        spiedIdentityExtension.handleIdentityRequestReset(
+            Event.Builder("event", "type", "source").build()
+        )
+
+        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
+    }
+
+    // ==============================================================================================================
+    // 	void handleAnalyticsResponseIdentity()
+    // ==============================================================================================================
+
+
+    @Test
+    fun `handleAnalyticsResponseIdentity() - event is null`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        spiedIdentityExtension.handleAnalyticsResponseIdentity(null)
+
+        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
+    }
+
+    @Test
+    fun `handleAnalyticsResponseIdentity() - eventData is null`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        spiedIdentityExtension.handleAnalyticsResponseIdentity(
+            Event.Builder(
+                "event",
+                "type",
+                "source"
+            ).build()
+        )
+
+        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
+    }
+
+    @Test
+    fun `handleAnalyticsResponseIdentity() - namedCollection is null`() {
+        val identityExtension =
+            IdentityExtension(mockedExtensionApi, null, mockedHitQueue)
+        val spiedIdentityExtension = Mockito.spy(identityExtension)
+        spiedIdentityExtension.handleAnalyticsResponseIdentity(
+            Event.Builder(
+                "event",
+                "type",
+                "source"
+            ).build()
+        )
+
+        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
+    }
+
+    @Test
+    fun `handleAnalyticsResponseIdentity() - no aid`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        spiedIdentityExtension.handleAnalyticsResponseIdentity(
+            Event.Builder(
+                "event",
+                "type",
+                "source"
+            ).setEventData(
+                mapOf(
+                    "invalid_aid" to "iddddd"
+                )
+            ).build()
+        )
+
+        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
+    }
+
+    @Test
+    fun `handleAnalyticsResponseIdentity() - aid is synced`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        Mockito.`when`(mockedNamedCollection.contains(any())).thenAnswer { invocation ->
+            val key = invocation.arguments[0] as? String
+            when(key){
+                "" ->{}
+            }
+        }
+
+        spiedIdentityExtension.handleAnalyticsResponseIdentity(
+            Event.Builder(
+                "event",
+                "type",
+                "source"
+            ).setEventData(
+                mapOf(
+                    "invalid_aid" to "iddddd"
+                )
+            ).build()
+        )
+
+        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
+    }
+
+    @Test
+    fun testHandleAnalyticsResponseIdentity() {
+//
+//        EventData data = new EventData();
+//        data.putString(IdentityTestConstants.EventDataKeys.Analytics.ANALYTICS_ID, "aid");
+//        Event event = new Event.Builder(
+//            "Identity Test",
+//            EventType.ANALYTICS,
+//            EventSource.RESPONSE_IDENTITY
+//        )
+//            .setData(data)
+//            .build();
+//
+//        identityExtension.handleAnalyticsResponseIdentity(event);
+//
+//        assertTrue(identityExtension.tryProcessingEventQueueWasCalled);
+//        assertEquals(1, identityExtension.eventsQueue.size());
+//
+//        Event actualEvent = identityExtension . eventsQueue . peek ();
+//        assertNotNull(actualEvent);
+//        EventData actualData = actualEvent . getData ();
+//        assertNotNull(actualData);
+//        Map<String, String> ids = actualData . optStringMap (IdentityTestConstants.EventDataKeys.Identity.IDENTIFIERS, null);
+//        assertNotNull(ids);
+//        assertEquals("aid", ids.get(IdentityTestConstants.EventDataKeys.Identity.ANALYTICS_ID));
+//
+//        assertTrue(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+    }
+    //
+    //	@Test
+    //	public void testHandleAnalyticsResponseIdentity_Fails_AidEmpty() {
+    //		EventData data = new EventData();
+    //		data.putString(IdentityTestConstants.EventDataKeys.Analytics.ANALYTICS_ID, "");
+    //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
+    //		.setData(data)
+    //		.build();
+    //
+    //		identityExtension.handleAnalyticsResponseIdentity(event);
+    //
+    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+    //		assertEquals(0, identityExtension.eventsQueue.size());
+    //
+    //		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+    //	}
+    //
+    //	@Test
+    //	public void testHandleAnalyticsResponseIdentity_Fails_NoAid() {
+    //		EventData data = new EventData();
+    //		data.putString("key", "aid");
+    //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
+    //		.setData(data)
+    //		.build();
+    //
+    //		identityExtension.handleAnalyticsResponseIdentity(event);
+    //
+    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+    //		assertEquals(0, identityExtension.eventsQueue.size());
+    //
+    //		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+    //	}
+    //
+    //	@Test
+    //	public void testHandleAnalyticsResponseIdentity_Fails_NoEventData() {
+    //		EventData data = new EventData();
+    //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
+    //		.build();
+    //
+    //		identityExtension.handleAnalyticsResponseIdentity(event);
+    //
+    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+    //		assertEquals(0, identityExtension.eventsQueue.size());
+    //
+    //		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+    //	}
+    //
+    //	@Test
+    //	public void testHandleAnalyticsResponseIdentity_Fails_NoEvent() {
+    //
+    //		identityExtension.handleAnalyticsResponseIdentity(null);
+    //
+    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+    //		assertEquals(0, identityExtension.eventsQueue.size());
+    //
+    //		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+    //	}
+    //
+    //	@Test
+    //	public void testHandleAnalyticsResponseIdentity_Fails_DatastoreContainsKey() {
+    //		identityExtension.internalDataStore.setBoolean(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY, true);
+    //
+    //		EventData data = new EventData();
+    //		data.putString(IdentityTestConstants.EventDataKeys.Analytics.ANALYTICS_ID, "aid");
+    //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
+    //		.setData(data)
+    //		.build();
+    //
+    //		identityExtension.handleAnalyticsResponseIdentity(event);
+    //
+    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
+    //		assertEquals(0, identityExtension.eventsQueue.size());
+    //
+    //		assertTrue(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
+    //	}
+    //
 
 
     //	// =================================================================================================================
@@ -3606,109 +3840,7 @@ class IdentityExtensionTest {
     //
     //	}
     //
-    //	// ==============================================================================================================
-    //	// 	void handleAnalyticsResponseIdentity()
-    //	// ==============================================================================================================
-    //
-    //	@Test
-    //	public void testHandleAnalyticsResponseIdentity() {
-    //		EventData data = new EventData();
-    //		data.putString(IdentityTestConstants.EventDataKeys.Analytics.ANALYTICS_ID, "aid");
-    //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
-    //		.setData(data)
-    //		.build();
-    //
-    //		identityExtension.handleAnalyticsResponseIdentity(event);
-    //
-    //		assertTrue(identityExtension.tryProcessingEventQueueWasCalled);
-    //		assertEquals(1, identityExtension.eventsQueue.size());
-    //
-    //		Event actualEvent = identityExtension.eventsQueue.peek();
-    //		assertNotNull(actualEvent);
-    //		EventData actualData = actualEvent.getData();
-    //		assertNotNull(actualData);
-    //		Map<String, String> ids = actualData.optStringMap(IdentityTestConstants.EventDataKeys.Identity.IDENTIFIERS, null);
-    //		assertNotNull(ids);
-    //		assertEquals("aid", ids.get(IdentityTestConstants.EventDataKeys.Identity.ANALYTICS_ID));
-    //
-    //		assertTrue(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
-    //	}
-    //
-    //	@Test
-    //	public void testHandleAnalyticsResponseIdentity_Fails_AidEmpty() {
-    //		EventData data = new EventData();
-    //		data.putString(IdentityTestConstants.EventDataKeys.Analytics.ANALYTICS_ID, "");
-    //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
-    //		.setData(data)
-    //		.build();
-    //
-    //		identityExtension.handleAnalyticsResponseIdentity(event);
-    //
-    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
-    //		assertEquals(0, identityExtension.eventsQueue.size());
-    //
-    //		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
-    //	}
-    //
-    //	@Test
-    //	public void testHandleAnalyticsResponseIdentity_Fails_NoAid() {
-    //		EventData data = new EventData();
-    //		data.putString("key", "aid");
-    //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
-    //		.setData(data)
-    //		.build();
-    //
-    //		identityExtension.handleAnalyticsResponseIdentity(event);
-    //
-    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
-    //		assertEquals(0, identityExtension.eventsQueue.size());
-    //
-    //		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
-    //	}
-    //
-    //	@Test
-    //	public void testHandleAnalyticsResponseIdentity_Fails_NoEventData() {
-    //		EventData data = new EventData();
-    //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
-    //		.build();
-    //
-    //		identityExtension.handleAnalyticsResponseIdentity(event);
-    //
-    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
-    //		assertEquals(0, identityExtension.eventsQueue.size());
-    //
-    //		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
-    //	}
-    //
-    //	@Test
-    //	public void testHandleAnalyticsResponseIdentity_Fails_NoEvent() {
-    //
-    //		identityExtension.handleAnalyticsResponseIdentity(null);
-    //
-    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
-    //		assertEquals(0, identityExtension.eventsQueue.size());
-    //
-    //		assertFalse(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
-    //	}
-    //
-    //	@Test
-    //	public void testHandleAnalyticsResponseIdentity_Fails_DatastoreContainsKey() {
-    //		identityExtension.internalDataStore.setBoolean(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY, true);
-    //
-    //		EventData data = new EventData();
-    //		data.putString(IdentityTestConstants.EventDataKeys.Analytics.ANALYTICS_ID, "aid");
-    //		Event event = new Event.Builder("Identity Test", EventType.ANALYTICS, EventSource.RESPONSE_IDENTITY)
-    //		.setData(data)
-    //		.build();
-    //
-    //		identityExtension.handleAnalyticsResponseIdentity(event);
-    //
-    //		assertFalse(identityExtension.tryProcessingEventQueueWasCalled);
-    //		assertEquals(0, identityExtension.eventsQueue.size());
-    //
-    //		assertTrue(identityExtension.internalDataStore.contains(IdentityTestConstants.DataStoreKeys.AID_SYNCED_KEY));
-    //	}
-    //
+
     //
     //	// ==============================================================================================================
     //	// 	void processPrivacyChange()

@@ -633,7 +633,7 @@ class IdentityFunctionalTests {
             ).build()
         )
 
-        assertFalse(countDownLatch2.await(2000, TimeUnit.MILLISECONDS))
+        assertFalse(countDownLatch2.await(1000, TimeUnit.MILLISECONDS))
     }
 
     @Test
@@ -994,273 +994,6 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    //TODO: move it to integration tests
-    @Test
-    @Ignore
-    fun test_getIdentifiers_afterExtensionRestart_restoresIdentifiers() {
-//        resetCore()
-//
-//        // set visitor ids in persistence
-//        val localStorageService = AndroidLocalStorageService()
-//        val identityDataStore: DataStore =
-//            localStorageService.getDataStore(OldIdentityFunctionalTests.IDENTITY_DATA_STORE_NAME)
-//        val testVisitorIds: MutableList<VisitorID> = ArrayList()
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin1",
-//                "idType1",
-//                "id1",
-//                VisitorID.AuthenticationState.AUTHENTICATED
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin2",
-//                "idType2",
-//                "",
-//                VisitorID.AuthenticationState.AUTHENTICATED
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin3",
-//                "idType3",
-//                "id3",
-//                VisitorID.AuthenticationState.AUTHENTICATED
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin4",
-//                "idType4",
-//                null,
-//                VisitorID.AuthenticationState.UNKNOWN
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin5",
-//                "ab独角兽",
-//                "独角兽",
-//                VisitorID.AuthenticationState.LOGGED_OUT
-//            )
-//        )
-//        identityDataStore.setString(
-//            OldIdentityFunctionalTests.VISITOR_IDS_KEY,
-//            identityTestHelper.stringFromVisitorIdList(testVisitorIds)
-//        )
-//
-//        // simulate restart
-//        identityTestHelper.resetIdentity()
-//
-//        //setup
-//        val latch = CountDownLatch(1)
-//        val storedData = HashMap<String, String>()
-//        //test
-//        val callback: AdobeCallback<List<VisitorID>> =
-//            AdobeCallback { data ->
-//                if (data != null) {
-//                    for (i in data.indices) {
-//                        val currentID = data[i]
-//                        storedData[currentID.idType] = currentID.id
-//                    }
-//                }
-//                latch.countDown()
-//            }
-//        Identity.getIdentifiers(callback)
-//        latch.await(5, TimeUnit.SECONDS)
-//        //verify
-//        assertEquals(3, storedData.size.toLong())
-//        assertEquals(storedData["idType1"], "id1")
-//        assertEquals(storedData["idType3"], "id3")
-//        assertEquals(storedData["ab"], "独角兽")
-//
-//        // cleanup after test
-//        identityDataStore.removeAll()
-    }
-
-    //TODO: move it to integration tests
-    @Test
-    @Ignore
-    fun test_getIdentifiers_afterExtensionRestart_removesVisitorIdsWithDuplicatedIdTypes() {
-//        resetCore()
-//
-//        // set visitor ids in persistence
-//        val localStorageService = AndroidLocalStorageService()
-//        val identityDataStore: DataStore =
-//            localStorageService.getDataStore(OldIdentityFunctionalTests.IDENTITY_DATA_STORE_NAME)
-//        val testVisitorIds: MutableList<VisitorID> = ArrayList()
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin",
-//                "idType0",
-//                "value0",
-//                VisitorID.AuthenticationState.LOGGED_OUT
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin",
-//                "idType1",
-//                "value1",
-//                VisitorID.AuthenticationState.AUTHENTICATED
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin",
-//                "anotherIdType",
-//                "value1000",
-//                VisitorID.AuthenticationState.UNKNOWN
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin",
-//                "idType1",
-//                "value2",
-//                VisitorID.AuthenticationState.LOGGED_OUT
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin",
-//                "idType1",
-//                "value3",
-//                VisitorID.AuthenticationState.UNKNOWN
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin", "anotherIdType", "value1001",
-//                VisitorID.AuthenticationState.AUTHENTICATED
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin",
-//                "anotherIdType",
-//                "value1002",
-//                VisitorID.AuthenticationState.LOGGED_OUT
-//            )
-//        )
-//        identityDataStore.setString(
-//            OldIdentityFunctionalTests.VISITOR_IDS_KEY,
-//            identityTestHelper.stringFromVisitorIdList(testVisitorIds)
-//        )
-//
-//        // simulate restart
-//        identityTestHelper.resetIdentity()
-//
-//        // verify
-//        var returnedIds: List<VisitorID?> = identityTestHelper.getVisitorIDs()
-//        val expectedVisitorIds: MutableList<VisitorID> = ArrayList()
-//        expectedVisitorIds.add(
-//            VisitorID(
-//                "idOrigin",
-//                "idType0",
-//                "value0",
-//                VisitorID.AuthenticationState.LOGGED_OUT
-//            )
-//        )
-//        expectedVisitorIds.add(
-//            VisitorID(
-//                "idOrigin",
-//                "idType1",
-//                "value3",
-//                VisitorID.AuthenticationState.UNKNOWN
-//            )
-//        )
-//        expectedVisitorIds.add(
-//            VisitorID(
-//                "idOrigin", "anotherIdType", "value1002",
-//                VisitorID.AuthenticationState.LOGGED_OUT
-//            )
-//        )
-//        assertEquals(expectedVisitorIds.size.toLong(), returnedIds.size.toLong())
-//        assertEquals(expectedVisitorIds, returnedIds)
-//
-//        // test&verify
-//        Identity.syncIdentifier("idType1", "value5", VisitorID.AuthenticationState.AUTHENTICATED)
-//        assertEquals(1, testableNetworkService.waitAndGetCount(1))
-//        returnedIds = identityTestHelper.getVisitorIDs()
-//        expectedVisitorIds.remove(
-//            VisitorID(
-//                "idOrigin",
-//                "idType1",
-//                "value3",
-//                VisitorID.AuthenticationState.LOGGED_OUT
-//            )
-//        )
-//        expectedVisitorIds.add(
-//            VisitorID(
-//                "idOrigin",
-//                "idType1",
-//                "value5",
-//                VisitorID.AuthenticationState.AUTHENTICATED
-//            )
-//        )
-//        assertEquals(expectedVisitorIds.size.toLong(), returnedIds.size.toLong())
-//        assertEquals(expectedVisitorIds, returnedIds)
-//
-//        // cleanup after test
-//        identityDataStore.removeAll()
-    }
-
-    //TODO: move it to integration tests
-    @Test
-    @Ignore
-    fun test_syncIdentifiers_afterExtensionRestart_removesDuplicatesWithSameIdType() {
-//        resetCore()
-//
-//        // set visitor ids in persistence
-//        val localStorageService = AndroidLocalStorageService()
-//        val identityDataStore: DataStore =
-//            localStorageService.getDataStore(OldIdentityFunctionalTests.IDENTITY_DATA_STORE_NAME)
-//        val testVisitorIds: MutableList<VisitorID> = ArrayList()
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin1",
-//                "idType1",
-//                "value1",
-//                VisitorID.AuthenticationState.AUTHENTICATED
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin1",
-//                "idType1",
-//                "value2",
-//                VisitorID.AuthenticationState.LOGGED_OUT
-//            )
-//        )
-//        testVisitorIds.add(
-//            VisitorID(
-//                "idOrigin1",
-//                "idType1",
-//                "value3",
-//                VisitorID.AuthenticationState.UNKNOWN
-//            )
-//        )
-//        identityDataStore.setString(
-//            OldIdentityFunctionalTests.VISITOR_IDS_KEY,
-//            identityTestHelper.stringFromVisitorIdList(testVisitorIds)
-//        )
-//
-//        // simulate restart
-//        identityTestHelper.resetIdentity()
-//        val returnedIds: List<VisitorID> = identityTestHelper.getVisitorIDs()
-//
-//        //verify
-//        assertEquals(1, returnedIds.size.toLong())
-//        val id = returnedIds[0]
-//        assertEquals("idType1", id.idType)
-//        assertEquals("value3", id.id)
-//        assertEquals(VisitorID.AuthenticationState.UNKNOWN, id.authenticationState)
-//
-//        // cleanup after test
-//        identityDataStore.removeAll()
-    }
 
     @Test
     fun test_appendToUrl_verifyExperienceCloudIdentifierPresentInUrl() {
@@ -1521,19 +1254,41 @@ class IdentityFunctionalTests {
         countDownLatch.await()
     }
 
-    @Ignore
     @Test
     fun test_getUrlVariables_setPrivacyOptOut_verifyOrgIdPresentInVariables() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
             "experienceCloud.server" to "test.com",
-            "global.privacy" to "optedout"
+            "global.privacy" to "optedin"
         )
         val identityExtension = initializeIdentityExtensionWithPreset(
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
         val countDownLatch = CountDownLatch(1)
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/demoptout.jpg?")) {
+                assertTrue(url.contains("d_mid="))
+                assertTrue(url.contains("d_orgid=orgid"))
+                countDownLatch.countDown()
+            }
+        }
+
+        identityExtension.handleConfiguration(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.configuration",
+                "com.adobe.eventSource.responseContent"
+            ).setEventData(
+                mapOf(
+                    "experienceCloud.org" to "orgid",
+                    "experienceCloud.server" to "test.com",
+                    "global.privacy" to "optedout"
+                )
+            ).build()
+        )
+        countDownLatch.await()
+        val countDownLatchGetter = CountDownLatch(1)
 
         doAnswer { invocation ->
             val event: Event? = invocation.arguments[0] as Event?
@@ -1546,7 +1301,7 @@ class IdentityFunctionalTests {
             assertFalse(urlVars.contains("?"))
             assertFalse(urlVars.contains("MCAID"))
             assertTrue(urlVars.contains("adobe_aa_vid=fake_vid"))
-            countDownLatch.countDown()
+            countDownLatchGetter.countDown()
         }.`when`(mockedExtensionApi).dispatch(any())
 
         identityExtension.processIdentityRequest(
@@ -1560,7 +1315,7 @@ class IdentityFunctionalTests {
                 )
             ).build()
         )
-        countDownLatch.await()
+        countDownLatchGetter.await()
     }
 
     //TODO: move it to Identity API tests
@@ -1649,7 +1404,7 @@ class IdentityFunctionalTests {
             ).build()
         )
         countDownLatch.await()
-        assertFalse(countDownLatchSecond.await(2000, TimeUnit.MILLISECONDS))
+        assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
     }
 
     @Test
@@ -1714,7 +1469,7 @@ class IdentityFunctionalTests {
                 )
             ).build()
         )
-        assertFalse(countDownLatch.await(2000, TimeUnit.MILLISECONDS))
+        assertFalse(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
     }
 
     @Test
@@ -1795,7 +1550,7 @@ class IdentityFunctionalTests {
             ).build()
         )
         countDownLatch.await()
-        assertFalse(countDownLatchSecond.await(2000, TimeUnit.MILLISECONDS))
+        assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
     }
 
     @Test
@@ -1871,7 +1626,7 @@ class IdentityFunctionalTests {
             ).build()
         )
         countDownLatch.await()
-        assertFalse(countDownLatchSecond.await(2000, TimeUnit.MILLISECONDS))
+        assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
 
         val countDownLatchGetter = CountDownLatch(1)
         doAnswer { invocation ->
@@ -1893,103 +1648,197 @@ class IdentityFunctionalTests {
 
     @Test
     fun test_whenPrivacyChangedToOptout_sendsOptOutRequest() {
-
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
             "experienceCloud.server" to "test.com",
-            "global.privacy" to "optedout"
+            "global.privacy" to "optedin"
         )
         val identityExtension = initializeIdentityExtensionWithPreset(
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
-        assertNotNull(identityExtension)
+        val countDownLatch = CountDownLatch(1)
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/demoptout.jpg?")) {
+                assertTrue(url.contains("d_mid="))
+                assertTrue(url.contains("d_orgid=orgid"))
+                countDownLatch.countDown()
+            }
+        }
+
+        identityExtension.handleConfiguration(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.configuration",
+                "com.adobe.eventSource.responseContent"
+            ).setEventData(
+                mapOf(
+                    "experienceCloud.org" to "orgid",
+                    "experienceCloud.server" to "test.com",
+                    "global.privacy" to "optedout"
+                )
+            ).build()
+        )
+        countDownLatch.await()
     }
 
-//    @Test
-//    fun test_whenPrivacyChangedToOptoutThenOptoutAgain_sendsOptOutRequestOnce() {
-//        //setup
-//        val ecid: String = identityTestHelper.getECID()
-//
-//        //test
-//        MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-//        MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-//        MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-//
-//        //verify
-//        asyncHelper.waitForAppThreads(1000, false)
-//        assertEquals(1, testableNetworkService.waitAndGetCount(1))
-//        val request: E2ETestableNetworkService.NetworkRequest = testableNetworkService.getItem(0)
-//        assertTrue(request.url.contains("https://identity.com/demoptout.jpg?"))
-//        assertTrue(request.url.contains("d_orgid=972C898555E9F7BC7F000101%40AdobeOrg"))
-//        assertTrue(request.url.contains("d_mid=$ecid"))
-//    }
-//
-//    @Test
-//    fun test_whenPrivacyChangedToOptoutOptinOptout_sendsOptOutRequestTwice() {
-//        //setup
-//        val ecid: String = identityTestHelper.getECID()
-//
-//        //test first optout
-//        MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-//
-//        //verify
-//        asyncHelper.waitForAppThreads(1000, false)
-//        assertEquals(1, testableNetworkService.waitAndGetCount(1))
-//        var request: E2ETestableNetworkService.NetworkRequest = testableNetworkService.getItem(0)
-//        assertTrue(request.url.contains("https://identity.com/demoptout.jpg?"))
-//        assertTrue(request.url.contains("d_orgid=972C898555E9F7BC7F000101%40AdobeOrg"))
-//        assertTrue(request.url.contains("d_mid=$ecid"))
-//        testableNetworkService.resetTestableNetworkService()
-//
-//        // test optin (new ecid), then optout
-//        MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_IN)
-//        identityTestHelper.waitForConfigChange()
-//        val ecid2: String = identityTestHelper.getECID()
-//        MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-//
-//        //verify
-//        asyncHelper.waitForAppThreads(1000, false)
-//        assertEquals(2, testableNetworkService.waitAndGetCount(2)) // one sync, one optout
-//        request = testableNetworkService.getItem(1)
-//        assertTrue(request.url.contains("https://identity.com/demoptout.jpg?"))
-//        assertTrue(request.url.contains("d_orgid=972C898555E9F7BC7F000101%40AdobeOrg"))
-//        assertTrue(
-//            java.lang.String.format(
-//                "Expected mid (%s), but requestUrl was: (%s)",
-//                ecid2,
-//                request.url
-//            ),
-//            request.url.contains("d_mid=$ecid2")
-//        )
-//    }
-//
-//    @Test
-//    fun test_whenPrivacyChangedToUnknownThenOptout_sendsOptOutRequestOnce() {
-//        //setup
-//        val ecid: String = identityTestHelper.getECID()
-//
-//        //test
-//        MobileCore.setPrivacyStatus(MobilePrivacyStatus.UNKNOWN)
-//        MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-//
-//        //verify
-//        asyncHelper.waitForAppThreads(1000, false)
-//        assertEquals(1, testableNetworkService.waitAndGetCount(1))
-//        val request: E2ETestableNetworkService.NetworkRequest = testableNetworkService.getItem(0)
-//        assertTrue(request.url.contains("https://identity.com/demoptout.jpg?"))
-//        assertTrue(request.url.contains("d_orgid=972C898555E9F7BC7F000101%40AdobeOrg"))
-//        assertTrue(request.url.contains("d_mid=$ecid"))
-//    }
-//
-//    fun resetCore() {
-//        MobileCore.setCore(null)
-//        asyncHelper.waitForAppThreads(1000, false)
-//        val testingPlatform = TestingPlatform()
-//        testableNetworkService = testingPlatform.e2EAndroidNetworkService
-//        MobileCore.setPlatformServices(testingPlatform)
-//        MobileCore.setApplication(this.defaultApplication)
-//        testableNetworkService.resetTestableNetworkService()
-//        identityTestHelper.resetTestableNetworkService(testableNetworkService)
-//    }
+    @Test
+    fun test_whenPrivacyChangedToOptoutThenOptoutAgain_sendsOptOutRequestOnce() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+        val countDownLatch = CountDownLatch(1)
+        val countDownLatchSecond = CountDownLatch(1)
+        counter = 0
+        networkMonitor = { url ->
+            counter++
+            if (counter == 2) {
+                countDownLatchSecond.countDown()
+            }
+            if (url.contains("https://test.com/demoptout.jpg?")) {
+                assertTrue(url.contains("d_mid="))
+                assertTrue(url.contains("d_orgid=orgid"))
+                countDownLatch.countDown()
+            }
+        }
+
+        val event = Event.Builder(
+            "event",
+            "com.adobe.eventType.configuration",
+            "com.adobe.eventSource.responseContent"
+        ).setEventData(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedout"
+            )
+        ).build()
+        identityExtension.handleConfiguration(event)
+        identityExtension.handleConfiguration(event)
+        identityExtension.handleConfiguration(event)
+
+        countDownLatch.await()
+        assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
+    }
+
+    @Test
+    fun test_whenPrivacyChangedToOptoutOptinOptout_sendsOptOutRequestTwice() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+        val countDownLatchForOptedOut = CountDownLatch(2)
+        val countDownLatchForOptedIn = CountDownLatch(1)
+        counter = 0
+        networkMonitor = { url ->
+            counter++
+            if (counter == 3) {
+                countDownLatchForOptedIn.countDown()
+            }
+            if (url.contains("https://test.com/demoptout.jpg?")) {
+                assertTrue(url.contains("d_mid="))
+                assertTrue(url.contains("d_orgid=orgid"))
+                countDownLatchForOptedOut.countDown()
+            }
+        }
+
+        val optedoutEvent = Event.Builder(
+            "event",
+            "com.adobe.eventType.configuration",
+            "com.adobe.eventSource.responseContent"
+        ).setEventData(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedout"
+            )
+        ).build()
+        identityExtension.handleConfiguration(optedoutEvent)
+        identityExtension.handleConfiguration(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.configuration",
+                "com.adobe.eventSource.responseContent"
+            ).setEventData(
+                mapOf(
+                    "experienceCloud.org" to "orgid",
+                    "experienceCloud.server" to "test.com",
+                    "global.privacy" to "optedin"
+                )
+            ).build()
+        )
+        identityExtension.handleConfiguration(optedoutEvent)
+
+        countDownLatchForOptedOut.await()
+        assertFalse(countDownLatchForOptedIn.await(1000, TimeUnit.MILLISECONDS))
+    }
+
+    @Test
+    fun test_whenPrivacyChangedToUnknownThenOptout_sendsOptOutRequestOnce() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+        val countDownLatch = CountDownLatch(1)
+        val countDownLatchSecond = CountDownLatch(1)
+        counter = 0
+        networkMonitor = { url ->
+            counter++
+            if (counter == 2) {
+                countDownLatchSecond.countDown()
+            }
+            if (url.contains("https://test.com/demoptout.jpg?")) {
+                assertTrue(url.contains("d_mid="))
+                assertTrue(url.contains("d_orgid=orgid"))
+                countDownLatch.countDown()
+            }
+        }
+
+        identityExtension.handleConfiguration(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.configuration",
+                "com.adobe.eventSource.responseContent"
+            ).setEventData(
+                mapOf(
+                    "experienceCloud.org" to "orgid",
+                    "experienceCloud.server" to "test.com",
+                    "global.privacy" to "optunknown"
+                )
+            ).build()
+        )
+        identityExtension.handleConfiguration(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.configuration",
+                "com.adobe.eventSource.responseContent"
+            ).setEventData(
+                mapOf(
+                    "experienceCloud.org" to "orgid",
+                    "experienceCloud.server" to "test.com",
+                    "global.privacy" to "optedout"
+                )
+            ).build()
+        )
+
+        countDownLatch.await()
+        assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
+    }
+
 }

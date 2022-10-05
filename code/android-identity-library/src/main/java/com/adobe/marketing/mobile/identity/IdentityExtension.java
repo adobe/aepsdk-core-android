@@ -20,6 +20,7 @@ import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.Extension;
 import com.adobe.marketing.mobile.ExtensionApi;
+import com.adobe.marketing.mobile.Identity;
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
 import com.adobe.marketing.mobile.SharedStateResolution;
 import com.adobe.marketing.mobile.SharedStateResult;
@@ -123,7 +124,7 @@ final public class IdentityExtension extends Extension {
     @Nullable
     @Override
     protected String getVersion() {
-        return super.getVersion();
+        return Identity.extensionVersion();
     }
 
     @Override
@@ -196,13 +197,14 @@ final public class IdentityExtension extends Extension {
                     false,
                     SharedStateResolution.LAST_SET
             );
-            return sharedStateResult == null || sharedStateResult.getStatus() == SharedStateStatus.SET;
+            return sharedStateResult != null && sharedStateResult.getStatus() == SharedStateStatus.SET;
         }
 
         return true;
     }
 
-    private boolean readyForSyncIdentifiers(Event event) {
+    @VisibleForTesting
+    boolean readyForSyncIdentifiers(Event event) {
         Map<String, Object> configuration = getApi().getSharedState(
                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
                 event,
@@ -554,7 +556,8 @@ final public class IdentityExtension extends Extension {
 
     }
 
-    private boolean isSyncEvent(@NonNull final Event event) {
+    @VisibleForTesting
+    boolean isSyncEvent(@NonNull final Event event) {
         return (DataReader.optBoolean(event.getEventData(), IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT, false)
                 || event.getType().equals(EventType.GENERIC_IDENTITY));
     }
@@ -564,11 +567,13 @@ final public class IdentityExtension extends Extension {
                 && event.getSource().equals(EventSource.REQUEST_RESET);
     }
 
-    private boolean isAppendUrlEvent(@NonNull final Event event) {
+    @VisibleForTesting
+    boolean isAppendUrlEvent(@NonNull final Event event) {
         return event.getEventData() != null && event.getEventData().containsKey(IdentityConstants.EventDataKeys.Identity.BASE_URL);
     }
 
-    private boolean isGetUrlVarsEvent(@NonNull final Event event) {
+    @VisibleForTesting
+    boolean isGetUrlVarsEvent(@NonNull final Event event) {
         return DataReader.optBoolean(event.getEventData(), IdentityConstants.EventDataKeys.Identity.URL_VARIABLES, false);
     }
 

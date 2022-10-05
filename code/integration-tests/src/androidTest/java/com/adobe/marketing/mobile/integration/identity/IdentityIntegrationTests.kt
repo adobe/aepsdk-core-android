@@ -92,6 +92,18 @@ class IdentityIntegrationTests {
         assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
     }
 
+    fun restartExtension() {
+        networkMonitor = null
+        MobileCore.setApplication(ApplicationProvider.getApplicationContext())
+        EventHubProxy.resetEventhub()
+        MobileCore.setLogLevel(LoggingMode.VERBOSE)
+        val countDownLatch = CountDownLatch(1)
+        MobileCore.registerExtensions(listOf(IdentityExtension::class.java)) {
+            countDownLatch.countDown()
+        }
+        assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
+    }
+
     @Test(timeout = 10000)
     fun testSyncIdentifiers() {
         val countDownLatch = CountDownLatch(1)
@@ -390,6 +402,139 @@ class IdentityIntegrationTests {
         countDownLatchSecondNetworkMonitor.await()
         val secondMid = loadStoreMid()
         assertNotEquals("", secondMid)
+    }
+
+    @Test(timeout = 10000)
+    fun test_getIdentifiers_afterExtensionRestart_restoresIdentifiers() {
+        val countDownLatch = CountDownLatch(1)
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+        networkMonitor = { url ->
+            if (url.contains("d_cid_ic=idType3%01id3%011")) {
+                assertTrue(url.contains("https://test.com/id"))
+                assertTrue(url.contains("d_orgid=orgid"))
+                assertTrue(url.contains("d_cid_ic=ab%E7%8B%AC%E8%A7%92%E5%85%BD%01%E7%8B%AC%E8%A7%92%E5%85%BD%011"))
+                assertTrue(url.contains("d_cid_ic=idType1%01id1%011"))
+                assertTrue(url.contains("d_cid_ic=anotherIdType%01value1001%011"))
+                countDownLatch.countDown()
+            }
+        }
+        val vidList = mapOf(
+            "idType1" to "id1",
+            "idType2" to "",
+            "idType3" to "id3",
+            "idType4" to null,
+            "ab独角兽" to "独角兽",
+            "anotherIdType" to "value1001"
+        )
+        Identity.syncIdentifiers(
+            vidList,
+            VisitorID.AuthenticationState.AUTHENTICATED
+        )
+        countDownLatch.await()
+
+        restartExtension()
+
+        val countDownLatchGetter = CountDownLatch(1)
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+        Identity.getIdentifiers { identifiers ->
+            assertNotNull(identifiers)
+            assertEquals(4, identifiers.size)
+            for (vid in identifiers) {
+                assertEquals(vidList[vid.idType], vid.id)
+                assertEquals(VisitorID.AuthenticationState.AUTHENTICATED, vid.authenticationState)
+            }
+            countDownLatchGetter.countDown()
+        }
+        countDownLatchGetter.await()
+    }
+
+    @Test(timeout = 10000)
+    fun test_getIdentifiers_afterExtensionRestart_removesVisitorIdsWithDuplicatedIdTypes() {
+        val countDownLatch = CountDownLatch(7)
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+        networkMonitor = { url ->
+            if (url.contains("idType0") || url.contains("idType1") || url.contains("anotherIdType")) {
+                countDownLatch.countDown()
+            }
+        }
+
+        Identity.syncIdentifier("idType0", "value0", VisitorID.AuthenticationState.LOGGED_OUT)
+        Identity.syncIdentifier("idType1", "value1", VisitorID.AuthenticationState.AUTHENTICATED)
+        Identity.syncIdentifier("anotherIdType", "value1000", VisitorID.AuthenticationState.UNKNOWN)
+        Identity.syncIdentifier("idType1", "value2", VisitorID.AuthenticationState.LOGGED_OUT)
+        Identity.syncIdentifier("idType1", "value3", VisitorID.AuthenticationState.UNKNOWN)
+        Identity.syncIdentifier(
+            "anotherIdType",
+            "value1001",
+            VisitorID.AuthenticationState.AUTHENTICATED
+        )
+        Identity.syncIdentifier(
+            "anotherIdType",
+            "value1002",
+            VisitorID.AuthenticationState.LOGGED_OUT
+        )
+        countDownLatch.await()
+
+        val countDownLatchGetter = CountDownLatch(3)
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+        Identity.getIdentifiers { identifiers ->
+            assertNotNull(identifiers)
+            assertEquals(3, identifiers.size)
+            for (vid in identifiers) {
+                when (vid.idType) {
+                    "idType0" -> {
+                        assertEquals("value0", vid.id)
+                        assertEquals(
+                            VisitorID.AuthenticationState.LOGGED_OUT,
+                            vid.authenticationState
+                        )
+                        countDownLatchGetter.countDown()
+                    }
+                    "idType1" -> {
+                        assertEquals("value3", vid.id)
+                        assertEquals(
+                            VisitorID.AuthenticationState.UNKNOWN,
+                            vid.authenticationState
+                        )
+                        countDownLatchGetter.countDown()
+                    }
+                    "anotherIdType" -> {
+                        assertEquals("value1002", vid.id)
+                        assertEquals(
+                            VisitorID.AuthenticationState.LOGGED_OUT,
+                            vid.authenticationState
+                        )
+                        countDownLatchGetter.countDown()
+                    }
+                }
+            }
+
+        }
+        countDownLatchGetter.await()
     }
 
     private fun loadStoreMid(): String {

@@ -10,6 +10,8 @@
  */
 package com.adobe.marketing.mobile.internal.util;
 
+import androidx.annotation.NonNull;
+
 import com.adobe.marketing.mobile.VisitorID;
 
 import java.util.ArrayList;
@@ -17,13 +19,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Utility class for serializing/deserializing {@link VisitorID} objects.
+ */
 public class VisitorIDSerializer {
     private static final String ID = "ID";
     private static final String ID_ORIGIN = "ID_ORIGIN";
     private static final String ID_TYPE = "ID_TYPE";
     private static final String STATE = "STATE";
 
-    public static Map<String, Object> convertVisitorId(VisitorID visitorID) {
+    /**
+     * Serializes the given {@link VisitorID} to a {@link Map}.
+     *
+     * @param visitorID {@link VisitorID} instance to serialize
+     * @return a {@link Map} representing {@link VisitorID} properties
+     */
+    public static Map<String, Object> convertVisitorId(@NonNull VisitorID visitorID) {
         Map<String, Object> data = new HashMap<>();
         data.put(ID, visitorID.getId());
         data.put(ID_ORIGIN, visitorID.getIdOrigin());
@@ -32,7 +43,28 @@ public class VisitorIDSerializer {
         return data;
     }
 
-    public static List<VisitorID> convertToVisitorIds(List<Map> data) {
+    /**
+     * Serializes the given {@link VisitorID} list to a {@link Map} list.
+     *
+     * @param visitorIDList a list of {@link VisitorID} instances to serialize
+     * @return a list of {@link Map} representing the given {@link VisitorID} properties
+     */
+    public static List<Map<String, Object>> convertVisitorIds(@NonNull List<VisitorID> visitorIDList) {
+        List<Map<String, Object>> data = new ArrayList<>();
+        for (VisitorID vId : visitorIDList) {
+            data.add(VisitorIDSerializer.convertVisitorId(vId));
+        }
+        return data;
+    }
+
+
+    /**
+     * Deserializes the given map {@link List} to a list of {@link VisitorID}.
+     *
+     * @param data a list of {@link Map} to deserialize
+     * @return a list of {@link VisitorID} that was deserialized from the property {@link Map}
+     */
+    public static List<VisitorID> convertToVisitorIds(@NonNull List<Map> data) {
         List<VisitorID> visitorIDList = new ArrayList<>();
         for (Map item : data) {
             String id = String.valueOf(item.get(ID));

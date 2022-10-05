@@ -190,6 +190,10 @@ public class com/adobe/marketing/mobile/ExtensionUnexpectedError : java/lang/Exc
 	public fun getErrorCode ()Lcom/adobe/marketing/mobile/ExtensionError;
 }
 
+public class com/adobe/marketing/mobile/InvalidInitException : java/lang/RuntimeException {
+	public fun <init> ()V
+}
+
 public final class com/adobe/marketing/mobile/LoggingMode : java/lang/Enum {
 	public static final field DEBUG Lcom/adobe/marketing/mobile/LoggingMode;
 	public static final field ERROR Lcom/adobe/marketing/mobile/LoggingMode;

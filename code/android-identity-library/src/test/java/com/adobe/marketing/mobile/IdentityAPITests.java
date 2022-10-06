@@ -136,6 +136,18 @@ public class IdentityAPITests {
     }
 
     @Test
+    public void test_syncIdentifiers_nullMap() {
+        try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
+            mobileCoreMockedStatic.reset();
+
+            Identity.syncIdentifiers(null, VisitorID.AuthenticationState.AUTHENTICATED);
+            Identity.syncIdentifiers(null);
+
+            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEvent(any()), never());
+        }
+    }
+
+    @Test
     public void test_appendVisitorInfoForURL() {
         try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
             mobileCoreMockedStatic.reset();

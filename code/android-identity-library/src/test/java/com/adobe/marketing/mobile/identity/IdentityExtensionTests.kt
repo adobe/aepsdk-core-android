@@ -27,16 +27,6 @@ import java.util.concurrent.CountDownLatch
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class IdentityExtensionTests {
-
-    val DEFAULT_TTL_VALUE: Long = 600
-    val DEFAULT_LAST_SYNC_VALUE = 0
-
-    //    private MockDispatcherIdentityResponseIdentityIdentity mockDispatcherIdentityResponseEvent;
-    //    private MockDispatcherAnalyticsRequestContentIdentity mockDispatcherIdentityAnalyticsEvent;
-    //    private MockIdentityHitsDatabase mockIdentityHitsDatabase;
-    private val genericConfigurationSharedState: ConfigurationSharedStateIdentity? = null
-
-    //    private EventData genericAnalyticsSharedState;
     @Mock
     private lateinit var mockedExtensionApi: ExtensionApi
 
@@ -51,15 +41,6 @@ class IdentityExtensionTests {
         Mockito.reset(mockedExtensionApi)
         Mockito.reset(mockedNamedCollection)
         Mockito.reset(mockedHitQueue)
-        //        mockDispatcherIdentityResponseEvent = new MockDispatcherIdentityResponseIdentityIdentity(eventHub, null);
-//        mockDispatcherIdentityAnalyticsEvent = new MockDispatcherAnalyticsRequestContentIdentity(eventHub, null);
-//        identityExtension = new MockIdentityExtension(eventHub, platformServices, mockDispatcherIdentityResponseEvent,
-//                mockDispatcherIdentityAnalyticsEvent);
-//        mockIdentityHitsDatabase = new MockIdentityHitsDatabase(identityExtension, platformServices);
-//        identityExtension.database = mockIdentityHitsDatabase;
-//
-//        genericConfigurationSharedState = generateConfigurationSharedState("test-orgid");
-//        genericAnalyticsSharedState = generateAnalyticsSharedState("test-aid", "test-vid");
     }
 
     private fun initializeSpiedIdentityExtension(): IdentityExtension {

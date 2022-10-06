@@ -106,7 +106,7 @@ public class Identity {
     public static void syncIdentifiers(@NonNull final Map<String, String> identifiers,
                                        @NonNull final VisitorID.AuthenticationState authenticationState) {
 
-        if (identifiers.isEmpty()) {
+        if (identifiers == null || identifiers.isEmpty()) {
             Log.warning(IdentityConstants.LOG_TAG, CLASS_NAME, "syncIdentifiers(ids, state) : Unable to sync Visitor identifiers, provided map was null or empty");
             return;
         }

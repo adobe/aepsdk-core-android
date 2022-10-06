@@ -106,9 +106,9 @@ class IdentityFunctionalTests {
 
     @Before
     fun setUp() {
-        Mockito.reset(mockedExtensionApi)
-        Mockito.reset(mockedNamedCollection)
-        Mockito.reset(mockedHitQueue)
+        reset(mockedExtensionApi)
+        reset(mockedNamedCollection)
+        reset(mockedHitQueue)
     }
 
     private fun initializeIdentityExtensionWithPreset(
@@ -169,7 +169,7 @@ class IdentityFunctionalTests {
         identityExtension.readyForEvent(Event.Builder("event", "type", "source").build())
 //        countDownLatch.await()
         assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
-        Mockito.reset(mockedHitQueue)
+        reset(mockedHitQueue)
 
         return identityExtension
     }
@@ -381,29 +381,6 @@ class IdentityFunctionalTests {
         countDownLatch.await()
     }
 
-    //TODO: move to Identity API class tests
-//    @Test
-//    fun test_syncIdentifiers_nullMap_doesNotSync() {
-//        //test
-//        Identity.syncIdentifiers(null, VisitorID.AuthenticationState.AUTHENTICATED)
-//        Identity.syncIdentifiers(null)
-//
-//        // verify
-//        asyncHelper.waitForAppThreads(1000, false)
-//        assertEquals(0, testableNetworkService.waitAndGetCount(0))
-//    }
-//    @Test
-//    fun test_syncIdentifiers_emptyMap_doesNotSync() {
-//        //test
-//        Identity.syncIdentifiers(HashMap(), VisitorID.AuthenticationState.AUTHENTICATED)
-//        Identity.syncIdentifiers(HashMap())
-//
-//        // verify
-//        asyncHelper.waitForAppThreads(1000, false)
-//        assertEquals(0, testableNetworkService.waitAndGetCount(0))
-//    }
-//
-
     @Test
     fun test_setAdvertisingIdentifier_validateIDFA_happy() {
         //setup
@@ -459,7 +436,6 @@ class IdentityFunctionalTests {
 
         countDownLatch.await()
     }
-
 
     @Test
     fun test_setAdvertisingIdentifier_valueChanged_syncCallsSentForValidValues() {
@@ -791,34 +767,6 @@ class IdentityFunctionalTests {
         )
         countDownLatchGetter.await()
     }
-
-    //TODO: move it to unit tests
-//    @Test
-//    fun test_setAdvertisingIdentifier_getSdkIdentitiesReturnsCorrectValue() {
-//        //setup
-//        val ecid: String = identityTestHelper.getECID()
-//        val rand = Random()
-//        val testAdvertisingId1 = "TestAdvertisingID" + (rand.nextInt(10000000) + 1).toString()
-//
-//        //test
-//        MobileCore.setAdvertisingIdentifier(testAdvertisingId1)
-//
-//        //verify
-//        assertEquals(1, testableNetworkService.waitAndGetCount(1))
-//        testableNetworkService.resetNetworkRequestList()
-//        val returnedIds: List<Map<String, String>> =
-//            identityTestHelper.getVisitorIDsFromSDKIdentifiers()
-//        assertNotNull(returnedIds)
-//        assertEquals(2, returnedIds.size.toLong())
-//        val id0 = returnedIds[0]
-//        assertEquals(ecid, id0[TestConstants.SDK_IDENTIFIERS_VALUE])
-//        assertEquals("4", id0[TestConstants.SDK_IDENTIFIERS_NAMESPACE])
-//        assertEquals("namespaceId", id0[TestConstants.SDK_IDENTIFIERS_TYPE])
-//        val id1 = returnedIds[1]
-//        assertEquals(testAdvertisingId1, id1[TestConstants.SDK_IDENTIFIERS_VALUE])
-//        assertEquals("DSID_20914", id1[TestConstants.SDK_IDENTIFIERS_NAMESPACE])
-//        assertEquals("integrationCode", id1[TestConstants.SDK_IDENTIFIERS_TYPE])
-//    }
 
     @Test
     fun test_getExperienceCloudId_verifyValidMidRetrieval_happy() {
@@ -1312,12 +1260,6 @@ class IdentityFunctionalTests {
         )
         countDownLatchGetter.await()
     }
-
-    //TODO: move it to Identity API tests
-//    @Test
-//    fun test_getUrlVariables_passNullCallback_doesNotThrow() {
-//        Identity.getUrlVariables(null)
-//    }
 
     @Test
     fun test_syncIdentifier_firstWithNullIdentifier_doesNotCrash() {

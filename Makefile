@@ -15,6 +15,12 @@ check-format: core-check-format
 
 format: core-format
 
+api-dump: 
+		(./code/gradlew -p code/android-core-library apiDump)
+
+api-check: 
+		(./code/gradlew -p code/android-core-library apiCheck)
+
 assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-phone
 	
 assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release

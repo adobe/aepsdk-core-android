@@ -19,7 +19,9 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.VisitorID
 import com.adobe.marketing.mobile.identity.IdentityExtension
+import com.adobe.marketing.mobile.integration.ConfigurationMonitor
 import com.adobe.marketing.mobile.integration.EventHubProxy
+import com.adobe.marketing.mobile.integration.MonitorExtension
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
@@ -86,7 +88,12 @@ class IdentityIntegrationTests {
         EventHubProxy.resetEventhub()
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatch = CountDownLatch(1)
-        MobileCore.registerExtensions(listOf(IdentityExtension::class.java)) {
+        MobileCore.registerExtensions(
+            listOf(
+                IdentityExtension::class.java,
+                MonitorExtension::class.java
+            )
+        ) {
             countDownLatch.countDown()
         }
         assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
@@ -102,6 +109,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         networkMonitor = { url ->
             if (url.contains("d_cid_ic=id1%01value1%011")) {
                 assertTrue(url.contains("https://test.com/id"))
@@ -127,6 +137,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         networkMonitor = { url ->
             if (url.contains("d_cid_ic=id1%01value1%011")) {
                 assertTrue(url.contains("https://test.com/id"))
@@ -183,6 +196,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedout"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         networkMonitor = { url ->
             if (url.contains("d_cid_ic=id1%01value1%010")) {
                 countDownLatch.countDown()
@@ -202,6 +218,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         Identity.getUrlVariables { variables ->
             assertNotNull(variables)
             assertTrue(variables.contains("TS"))
@@ -222,6 +241,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         Identity.appendVisitorInfoForURL("https://adobe.com") { url ->
             assertNotNull(url)
             assertTrue(url.contains("TS"))
@@ -242,6 +264,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         Identity.getExperienceCloudId { ecid ->
             assertTrue(ecid.isNotEmpty())
             countDownLatch.countDown()
@@ -283,6 +308,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         Identity.syncIdentifier("type1", "id1", VisitorID.AuthenticationState.AUTHENTICATED)
         Identity.getIdentifiers { identifiers ->
             assertNotNull(identifiers)
@@ -307,6 +335,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         Identity.getIdentifiers { identifiers ->
             assertNotNull(identifiers)
             assertEquals(0, identifiers.size)
@@ -331,6 +362,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         MobileCore.setPushIdentifier("9516258b6230afdd93cf0cd07b8dd845")
         countDownLatchNetworkMonitor.await()
     }
@@ -351,6 +385,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         MobileCore.setAdvertisingIdentifier("adid")
         countDownLatchNetworkMonitor.await()
     }
@@ -365,6 +402,9 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
         networkMonitor = { url ->
             if (url.contains("https://test.com/id")) {
                 assertTrue(url.contains("d_orgid=orgid"))
@@ -399,6 +439,10 @@ class IdentityIntegrationTests {
             Log.d("integration_test", "${entry.key} - ${entry.value}")
         }
         return sharedPreference.getString("ADOBEMOBILE_PERSISTED_MID", "")!!
+    }
+
+    private fun configurationAwareness(callback: ConfigurationMonitor) {
+        MonitorExtension.configurationAwareness(callback)
     }
 
 }

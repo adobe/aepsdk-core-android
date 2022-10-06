@@ -14,14 +14,11 @@ package com.adobe.marketing.mobile.internal.configuration
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.internal.util.FileUtils
 import com.adobe.marketing.mobile.internal.util.toMap
-import com.adobe.marketing.mobile.services.CacheFileService
-import com.adobe.marketing.mobile.services.DataStoring
-import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NamedCollection
-import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.caching.CacheResult
 import com.adobe.marketing.mobile.util.StreamUtils
-import com.adobe.marketing.mobile.util.remotedownload.RemoteDownloader
 import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener
@@ -49,10 +46,6 @@ internal class ConfigurationStateManager {
     }
 
     private val appIdManager: AppIdManager
-    private val cacheFileService: CacheFileService
-    val networkService: Networking
-    private val deviceInfoService: DeviceInforming
-    private val dataStoreService: DataStoring
 
     /**
      * Responsible for downloading the configuration from a given appId.
@@ -90,32 +83,17 @@ internal class ConfigurationStateManager {
 
     constructor(
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
-        networkService: Networking,
-        deviceInfoService: DeviceInforming,
-        dataStoreService: DataStoring
     ) : this(
-        appIdManager, cacheFileService, networkService, deviceInfoService, dataStoreService,
-        ConfigurationDownloader(
-            RemoteDownloader(networkService, cacheFileService),
-            FileMetadataProvider(cacheFileService)
-        )
+        appIdManager,
+        ConfigurationDownloader()
     )
 
     @VisibleForTesting
     internal constructor (
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
-        networkService: Networking,
-        deviceInfoService: DeviceInforming,
-        dataStoreService: DataStoring,
         configDownloader: ConfigurationDownloader
     ) {
         this.appIdManager = appIdManager
-        this.cacheFileService = cacheFileService
-        this.networkService = networkService
-        this.deviceInfoService = deviceInfoService
-        this.dataStoreService = dataStoreService
         this.configDownloader = configDownloader
 
         // retrieve the persisted programmatic configuration
@@ -168,7 +146,8 @@ internal class ConfigurationStateManager {
             LOG_TAG,
             "Attempting to load bundled config."
         )
-        val contentStream: InputStream? = deviceInfoService.getAsset(bundledConfigFileName)
+        val contentStream: InputStream? =
+            ServiceProvider.getInstance().deviceInfoService.getAsset(bundledConfigFileName)
         val contentString =
             StreamUtils.readAsString(
                 contentStream
@@ -293,7 +272,8 @@ internal class ConfigurationStateManager {
      *         null otherwise.
      */
     private fun getPersistedProgrammaticConfig(): Map<String, Any?>? {
-        val configStore: NamedCollection = dataStoreService.getNamedCollection(DATASTORE_KEY)
+        val configStore: NamedCollection =
+            ServiceProvider.getInstance().dataStoreService.getNamedCollection(DATASTORE_KEY)
         val persistedConfigContent = configStore.getString(PERSISTED_OVERRIDDEN_CONFIG, null)
 
         if (persistedConfigContent.isNullOrEmpty()) return null
@@ -330,9 +310,15 @@ internal class ConfigurationStateManager {
             LOG_TAG,
             "Attempting to load cached config."
         )
+
         val url = String.format(CONFIGURATION_URL_BASE, appId)
-        val cacheFile: File? = cacheFileService.getCacheFile(url, null, false)
-        val contentString = FileUtils.readAsString(cacheFile)
+        val cacheResult: CacheResult? =
+            ServiceProvider.getInstance().cacheService.get(
+                ConfigurationDownloader.CONFIG_CACHE_NAME,
+                url
+            )
+
+        val contentString = StreamUtils.readAsString(cacheResult?.data)
         if (contentString.isNullOrEmpty()) {
             Log.trace(
                 ConfigurationExtension.TAG,
@@ -374,7 +360,7 @@ internal class ConfigurationStateManager {
         appIdManager.saveAppIdToPersistence(appId)
         val url = String.format(CONFIGURATION_URL_BASE, appId)
 
-        configDownloader.download(url, null) { config ->
+        configDownloader.download(url) { config ->
             if (config != null) {
                 // replace the configuration with downloaded content first
                 replaceConfiguration(config)
@@ -396,7 +382,8 @@ internal class ConfigurationStateManager {
      */
     internal fun clearProgrammaticConfig() {
         // Clear programmatic config from persistence
-        val configStore: NamedCollection = dataStoreService.getNamedCollection(DATASTORE_KEY)
+        val configStore: NamedCollection =
+            ServiceProvider.getInstance().dataStoreService.getNamedCollection(DATASTORE_KEY)
         configStore.remove(PERSISTED_OVERRIDDEN_CONFIG)
 
         // Clear im memory programmatic config
@@ -446,7 +433,8 @@ internal class ConfigurationStateManager {
         programmaticConfiguration.putAll(config)
 
         // Save the new/modified programmatic config to persistence
-        val configStore: NamedCollection = dataStoreService.getNamedCollection(DATASTORE_KEY)
+        val configStore: NamedCollection =
+            ServiceProvider.getInstance().dataStoreService.getNamedCollection(DATASTORE_KEY)
         val jsonString = JSONObject(programmaticConfiguration).toString()
         configStore.setString(PERSISTED_OVERRIDDEN_CONFIG, jsonString)
 

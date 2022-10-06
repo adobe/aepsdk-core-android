@@ -16,7 +16,7 @@ import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.identity.IdentityConstants;
 import com.adobe.marketing.mobile.identity.IdentityExtension;
-import com.adobe.marketing.mobile.identity.internal.util.VisitorIDSerializer;
+import com.adobe.marketing.mobile.internal.util.VisitorIDSerializer;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.StringUtils;

@@ -8,22 +8,6 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.app.kotlin
+package com.adobe.marketing.mobile;
 
-import android.app.Application
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
-
-class MyApp : Application() {
-
-    override fun onCreate() {
-        super.onCreate()
-        MobileCore.setApplication(this)
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-
-        //TODO: call MobileCore.registerExtensions() to register core extensions
-        MobileCore.start {
-        }
-    }
-
-}
+public class InvalidInitException extends RuntimeException { }

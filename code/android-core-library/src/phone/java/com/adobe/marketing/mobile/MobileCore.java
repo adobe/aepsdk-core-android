@@ -101,7 +101,6 @@ final public class MobileCore {
             return;
         }
 
-
         // AMSDK-8502
         // workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
         // https://issuetracker.google.com/issues/110848122
@@ -117,6 +116,9 @@ final public class MobileCore {
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
+
+        // Register configuration extension
+        EventHub.Companion.getShared().registerExtension(ConfigurationExtension.class);
     }
 
     /**
@@ -198,7 +200,6 @@ final public class MobileCore {
         }
 
         final List<Class<? extends Extension>> allExtensions = new ArrayList<>();
-        allExtensions.add(ConfigurationExtension.class);
         if (extensions != null) {
             for (final Class<? extends Extension> extension : extensions) {
                 if (extension != null) {
@@ -210,10 +211,7 @@ final public class MobileCore {
         final AtomicInteger registeredExtensions = new AtomicInteger(0);
         for (final Class<? extends Extension> extension : allExtensions) {
             EventHub.Companion.getShared().registerExtension(extension, eventHubError -> {
-                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Registered extension " + extension + "with status " + eventHubError);
-
                 if (registeredExtensions.incrementAndGet() == allExtensions.size()) {
-                    Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Registered all extensions. Starting event processing.");
                     EventHub.Companion.getShared().start();
                     try {
                         if (completionCallback != null) {
@@ -271,6 +269,7 @@ final public class MobileCore {
 
             return null;
         });
+
         return true;
     }
 
@@ -289,12 +288,12 @@ final public class MobileCore {
             return;
         }
 
-        EventHub.Companion.getShared().start();
-
-        if (completionCallback != null) {
-            completionCallback.call(null);
-        }
-
+        EventHub.Companion.getShared().start(() -> {
+            if (completionCallback != null) {
+                completionCallback.call(null);
+            }
+            return null;
+        });
     }
 
     /**

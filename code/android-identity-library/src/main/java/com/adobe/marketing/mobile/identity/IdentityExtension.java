@@ -2055,12 +2055,12 @@ final public class IdentityExtension extends Extension {
     }
 
     @VisibleForTesting
-    void setBlob(String blob){
+    void setBlob(String blob) {
         this.blob = blob;
     }
 
     @VisibleForTesting
-    void setLocationHint(String locationHint){
+    void setLocationHint(String locationHint) {
         this.locationHint = locationHint;
     }
 

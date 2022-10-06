@@ -28,7 +28,7 @@ import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.VisitorID;
 import com.adobe.marketing.mobile.identity.IdentityConstants.DataStoreKeys;
 import com.adobe.marketing.mobile.identity.IdentityConstants.Defaults;
-import com.adobe.marketing.mobile.identity.internal.util.VisitorIDSerializer;
+import com.adobe.marketing.mobile.internal.util.VisitorIDSerializer;
 import com.adobe.marketing.mobile.services.DataQueue;
 import com.adobe.marketing.mobile.services.HitQueuing;
 import com.adobe.marketing.mobile.services.HttpMethod;
@@ -216,12 +216,16 @@ final public class IdentityExtension extends Extension {
     }
 
     private boolean hasValidSharedState(final String extensionName, final Event event) {
-        Map<String, Object> configuration = getApi().getSharedState(
+        SharedStateResult result = getApi().getSharedState(
                 extensionName,
                 event,
                 false,
                 SharedStateResolution.LAST_SET
-        ).getValue();
+        );
+        if (result == null) {
+            return false;
+        }
+        Map<String, Object> configuration = result.getValue();
         return configuration != null && !configuration.isEmpty();
     }
 

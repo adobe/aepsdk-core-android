@@ -19,13 +19,10 @@ import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.CoreConstants
-import com.adobe.marketing.mobile.internal.compatibility.CacheManager
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
-import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.DataReader
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -71,9 +68,7 @@ internal class ConfigurationExtension : Extension {
         REMOTE
     }
 
-    private val serviceProvider: ServiceProvider
     private val appIdManager: AppIdManager
-    private val cacheFileService: CacheFileService
     private val launchRulesEvaluator: LaunchRulesEvaluator
     private val configurationStateManager: ConfigurationStateManager
     private val configurationRulesManager: ConfigurationRulesManager
@@ -81,18 +76,9 @@ internal class ConfigurationExtension : Extension {
     private var retryConfigurationCounter: Int = 0
     private var retryConfigTaskHandle: Future<*>? = null
 
-    constructor(extensionApi: ExtensionApi) : this(extensionApi, ServiceProvider.getInstance())
-
-    /**
-     * Exists only for cascading components for dependency injection.
-     */
-    private constructor(
-        extensionApi: ExtensionApi,
-        serviceProvider: ServiceProvider
-    ) : this(
-        extensionApi, serviceProvider,
-        AppIdManager(serviceProvider.dataStoreService, serviceProvider.deviceInfoService),
-        CacheManager(serviceProvider.deviceInfoService),
+    constructor(extensionApi: ExtensionApi) : this(
+        extensionApi,
+        AppIdManager(),
         LaunchRulesEvaluator("Configuration", LaunchRulesEngine(extensionApi), extensionApi),
         Executors.newSingleThreadScheduledExecutor()
     )
@@ -102,48 +88,28 @@ internal class ConfigurationExtension : Extension {
      */
     private constructor(
         extensionApi: ExtensionApi,
-        serviceProvider: ServiceProvider,
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
         launchRulesEvaluator: LaunchRulesEvaluator,
         retryWorker: ScheduledExecutorService
     ) : this(
         extensionApi,
-        serviceProvider,
         appIdManager,
-        cacheFileService,
         launchRulesEvaluator,
         retryWorker,
-        ConfigurationStateManager(
-            appIdManager,
-            cacheFileService,
-            serviceProvider.networkService,
-            serviceProvider.deviceInfoService,
-            serviceProvider.dataStoreService
-        ),
-        ConfigurationRulesManager(
-            launchRulesEvaluator,
-            serviceProvider.dataStoreService,
-            serviceProvider.deviceInfoService,
-            serviceProvider.networkService,
-            cacheFileService
-        )
+        ConfigurationStateManager(appIdManager),
+        ConfigurationRulesManager(launchRulesEvaluator)
     )
 
     @VisibleForTesting
     internal constructor(
         extensionApi: ExtensionApi,
-        serviceProvider: ServiceProvider,
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
         launchRulesEvaluator: LaunchRulesEvaluator,
         retryWorker: ScheduledExecutorService,
         configurationStateManager: ConfigurationStateManager,
         configurationRulesManager: ConfigurationRulesManager
     ) : super(extensionApi) {
-        this.serviceProvider = serviceProvider
         this.appIdManager = appIdManager
-        this.cacheFileService = cacheFileService
         this.launchRulesEvaluator = launchRulesEvaluator
         this.retryWorker = retryWorker
         this.configurationStateManager = configurationStateManager
@@ -486,7 +452,10 @@ internal class ConfigurationExtension : Extension {
      * @param eventData the content of the event data for the response event
      * @param triggerEvent the [Event] to which the response is being dispatched
      */
-    private fun dispatchConfigurationResponse(eventData: Map<String, Any?>, triggerEvent: Event? = null) {
+    private fun dispatchConfigurationResponse(
+        eventData: Map<String, Any?>,
+        triggerEvent: Event? = null
+    ) {
         val builder = Event.Builder(
             "Configuration Response Event",
             EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT

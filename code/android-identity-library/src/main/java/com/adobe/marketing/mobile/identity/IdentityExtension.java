@@ -13,12 +13,14 @@ package com.adobe.marketing.mobile.identity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.Extension;
 import com.adobe.marketing.mobile.ExtensionApi;
+import com.adobe.marketing.mobile.Identity;
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
 import com.adobe.marketing.mobile.SharedStateResolution;
 import com.adobe.marketing.mobile.SharedStateResult;
@@ -100,6 +102,13 @@ final public class IdentityExtension extends Extension {
                 getNamedCollection(DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME);
     }
 
+    @VisibleForTesting
+    IdentityExtension(@NonNull ExtensionApi extensionApi, @Nullable NamedCollection namedCollection, @NonNull HitQueuing hitQueue) {
+        super(extensionApi);
+        this.namedCollection = namedCollection;
+        this.hitQueue = hitQueue;
+    }
+
     @NonNull
     @Override
     protected String getName() {
@@ -115,7 +124,7 @@ final public class IdentityExtension extends Extension {
     @Nullable
     @Override
     protected String getVersion() {
-        return super.getVersion();
+        return Identity.extensionVersion();
     }
 
     @Override
@@ -188,13 +197,14 @@ final public class IdentityExtension extends Extension {
                     false,
                     SharedStateResolution.LAST_SET
             );
-            return sharedStateResult == null || sharedStateResult.getStatus() == SharedStateStatus.SET;
+            return sharedStateResult != null && sharedStateResult.getStatus() == SharedStateStatus.SET;
         }
 
         return true;
     }
 
-    private boolean readyForSyncIdentifiers(Event event) {
+    @VisibleForTesting
+    boolean readyForSyncIdentifiers(Event event) {
         Map<String, Object> configuration = getApi().getSharedState(
                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
                 event,
@@ -215,7 +225,8 @@ final public class IdentityExtension extends Extension {
         return configuration != null && !configuration.isEmpty();
     }
 
-    private void forceSyncIdentifiers(@NonNull Event event) {
+    @VisibleForTesting
+    void forceSyncIdentifiers(@NonNull Event event) {
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Processing BOOTED event.");
 
         // The database is created when the privacy status changes or on the first sync event
@@ -473,7 +484,8 @@ final public class IdentityExtension extends Extension {
      * @param configSharedState The current configuration shared state
      * @see #buildOptOutURLString(ConfigurationSharedStateIdentity)
      */
-    private void sendOptOutHit(final ConfigurationSharedStateIdentity configSharedState) {
+    @VisibleForTesting
+    void sendOptOutHit(final ConfigurationSharedStateIdentity configSharedState) {
         String optOutUrl = buildOptOutURLString(configSharedState);
 
         if (StringUtils.isNullOrEmpty(optOutUrl)) {
@@ -545,7 +557,8 @@ final public class IdentityExtension extends Extension {
 
     }
 
-    private boolean isSyncEvent(@NonNull final Event event) {
+    @VisibleForTesting
+    boolean isSyncEvent(@NonNull final Event event) {
         return (DataReader.optBoolean(event.getEventData(), IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT, false)
                 || event.getType().equals(EventType.GENERIC_IDENTITY));
     }
@@ -555,11 +568,13 @@ final public class IdentityExtension extends Extension {
                 && event.getSource().equals(EventSource.REQUEST_RESET);
     }
 
-    private boolean isAppendUrlEvent(@NonNull final Event event) {
+    @VisibleForTesting
+    boolean isAppendUrlEvent(@NonNull final Event event) {
         return event.getEventData() != null && event.getEventData().containsKey(IdentityConstants.EventDataKeys.Identity.BASE_URL);
     }
 
-    private boolean isGetUrlVarsEvent(@NonNull final Event event) {
+    @VisibleForTesting
+    boolean isGetUrlVarsEvent(@NonNull final Event event) {
         return DataReader.optBoolean(event.getEventData(), IdentityConstants.EventDataKeys.Identity.URL_VARIABLES, false);
     }
 
@@ -569,12 +584,17 @@ final public class IdentityExtension extends Extension {
      * @param event {@code Event} to be marshaled
      */
     void processIdentityRequest(@NonNull final Event event) {
-        Map<String, Object> configuration = getApi().getSharedState(
+        SharedStateResult result = getApi().getSharedState(
                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
                 event,
                 false,
                 SharedStateResolution.LAST_SET
-        ).getValue();
+        );
+        if (result == null) {
+            return;
+        }
+
+        Map<String, Object> configuration = result.getValue();
 
         if (configuration == null) {
             Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
@@ -1440,9 +1460,15 @@ final public class IdentityExtension extends Extension {
      * @param event     for one time callback listener
      */
     private void handleIdentityResponseEvent(final String eventName, final Map<String, Object> eventData, final Event event) {
+        Event newEvent;
+        if (event == null) {
+            newEvent = new Event.Builder(eventName, EventType.IDENTITY,
+                    EventSource.RESPONSE_IDENTITY).setEventData(eventData).build();
+        } else {
+            newEvent = new Event.Builder(eventName, EventType.IDENTITY,
+                    EventSource.RESPONSE_IDENTITY).setEventData(eventData).inResponseToEvent(event).build();
+        }
 
-        Event newEvent = new Event.Builder(eventName, EventType.IDENTITY,
-                EventSource.RESPONSE_IDENTITY).setEventData(eventData).inResponseToEvent(event).build();
         getApi().dispatch(newEvent);
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "dispatchResponse : Identity Response event has been added to event hub : %s",
                 newEvent.toString());
@@ -1518,7 +1544,8 @@ final public class IdentityExtension extends Extension {
     /**
      * If the {@link IdentityExtension} DataStore is available, writes {@code IdentityExtension} fields to persistence
      */
-    private void savePersistently() {
+    @VisibleForTesting
+    void savePersistently() {
 
         if (namedCollection == null) {
             Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
@@ -2000,6 +2027,41 @@ final public class IdentityExtension extends Extension {
 
         privacyStatus = MobilePrivacyStatus.fromString(privacyString);
         Log.trace(LOG_SOURCE, "loadPrivacyStatus : Updated the database with the current privacy status: %s.", privacyString);
+    }
+
+    @VisibleForTesting
+    String getMid() {
+        return mid;
+    }
+
+    @VisibleForTesting
+    void setLastSync(long lastSync) {
+        this.lastSync = lastSync;
+    }
+
+    @VisibleForTesting
+    long getLastSync() {
+        return lastSync;
+    }
+
+    @VisibleForTesting
+    void setMid(String mid) {
+        this.mid = mid;
+    }
+
+    @VisibleForTesting
+    void setPrivacyStatus(MobilePrivacyStatus privacyStatus) {
+        this.privacyStatus = privacyStatus;
+    }
+
+    @VisibleForTesting
+    void setBlob(String blob) {
+        this.blob = blob;
+    }
+
+    @VisibleForTesting
+    void setLocationHint(String locationHint) {
+        this.locationHint = locationHint;
     }
 
 }

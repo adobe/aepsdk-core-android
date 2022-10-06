@@ -1136,13 +1136,6 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    //TODO: move it to Identity API tests
-    @Test
-    @Ignore
-    fun test_appendToUrl_passNullCallback_doesNotThrow() {
-        Identity.appendVisitorInfoForURL("http://testURL", null)
-    }
-
     @Test
     fun test_setPushIdentifier_SyncsNewValue() {
         val configuration = mapOf(

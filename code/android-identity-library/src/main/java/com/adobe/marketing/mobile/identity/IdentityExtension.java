@@ -484,7 +484,8 @@ final public class IdentityExtension extends Extension {
      * @param configSharedState The current configuration shared state
      * @see #buildOptOutURLString(ConfigurationSharedStateIdentity)
      */
-    private void sendOptOutHit(final ConfigurationSharedStateIdentity configSharedState) {
+    @VisibleForTesting
+    void sendOptOutHit(final ConfigurationSharedStateIdentity configSharedState) {
         String optOutUrl = buildOptOutURLString(configSharedState);
 
         if (StringUtils.isNullOrEmpty(optOutUrl)) {
@@ -583,12 +584,17 @@ final public class IdentityExtension extends Extension {
      * @param event {@code Event} to be marshaled
      */
     void processIdentityRequest(@NonNull final Event event) {
-        Map<String, Object> configuration = getApi().getSharedState(
+        SharedStateResult result = getApi().getSharedState(
                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
                 event,
                 false,
                 SharedStateResolution.LAST_SET
-        ).getValue();
+        );
+        if (result == null) {
+            return;
+        }
+
+        Map<String, Object> configuration = result.getValue();
 
         if (configuration == null) {
             Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
@@ -1538,7 +1544,8 @@ final public class IdentityExtension extends Extension {
     /**
      * If the {@link IdentityExtension} DataStore is available, writes {@code IdentityExtension} fields to persistence
      */
-    private void savePersistently() {
+    @VisibleForTesting
+    void savePersistently() {
 
         if (namedCollection == null) {
             Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
@@ -2025,6 +2032,36 @@ final public class IdentityExtension extends Extension {
     @VisibleForTesting
     String getMid() {
         return mid;
+    }
+
+    @VisibleForTesting
+    void setLastSync(long lastSync) {
+        this.lastSync = lastSync;
+    }
+
+    @VisibleForTesting
+    long getLastSync() {
+        return lastSync;
+    }
+
+    @VisibleForTesting
+    void setMid(String mid) {
+        this.mid = mid;
+    }
+
+    @VisibleForTesting
+    void setPrivacyStatus(MobilePrivacyStatus privacyStatus) {
+        this.privacyStatus = privacyStatus;
+    }
+
+    @VisibleForTesting
+    void setBlob(String blob){
+        this.blob = blob;
+    }
+
+    @VisibleForTesting
+    void setLocationHint(String locationHint){
+        this.locationHint = locationHint;
     }
 
 }

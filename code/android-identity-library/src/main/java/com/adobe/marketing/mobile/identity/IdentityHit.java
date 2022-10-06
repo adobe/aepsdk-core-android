@@ -55,6 +55,9 @@ final class IdentityHit {
 
     @Nullable
     static IdentityHit fromDataEntity(DataEntity dataEntity) {
+        if (dataEntity == null) {
+            return null;
+        }
 
         try {
             String json = dataEntity.getData();

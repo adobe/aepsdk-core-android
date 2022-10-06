@@ -65,7 +65,7 @@ class IdentityHitsProcessing implements HitProcessing {
 
         // make the request synchronously
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        final AtomicBoolean networkRequestNeedRetry = new AtomicBoolean(false);
+        final AtomicBoolean networkRequestSucessful = new AtomicBoolean(false);
         NetworkRequest networkRequest = new NetworkRequest(
                 hit.getUrl(),
                 HttpMethod.GET,
@@ -80,7 +80,7 @@ class IdentityHitsProcessing implements HitProcessing {
 
                 // make sure the parent updates shared state and notifies one-time listeners accordingly
                 identityExtension.networkResponseLoaded(null, hit.getEvent());
-                networkRequestNeedRetry.set(true);
+                networkRequestSucessful.set(true);
                 countDownLatch.countDown();
                 return;
             }
@@ -93,12 +93,12 @@ class IdentityHitsProcessing implements HitProcessing {
                     IdentityResponseObject result = createIdentityObjectFromResponseJsonObject(jsonObject);
                     Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "IdentityHitsDatabase.process : ECID Service response data was parsed successfully.");
                     identityExtension.networkResponseLoaded(result, hit.getEvent());
-                    networkRequestNeedRetry.set(true);
+                    networkRequestSucessful.set(true);
                 } catch (final IOException | JSONException e) {
                     Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                             "IdentityHitsDatabase.process : An unknown exception occurred while trying to process the response from the ECID Service: (%s).",
                             e);
-                    networkRequestNeedRetry.set(false);
+                    networkRequestSucessful.set(false);
                     countDownLatch.countDown();
                     return;
                 }
@@ -111,13 +111,13 @@ class IdentityHitsProcessing implements HitProcessing {
                         connection.getResponseCode());
                 // make sure the parent updates shared state and notifies one-time listeners accordingly
                 identityExtension.networkResponseLoaded(null, hit.getEvent());
-                networkRequestNeedRetry.set(false);
+                networkRequestSucessful.set(false);
             } else {
                 // recoverable error.  leave the request in the queue, wait for 30 sec, and try again
                 Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                         "IdentityHitsDatabase.process : A recoverable network error occurred with response code %d while processing ECID Service requests.  Will retry in 30 seconds.",
                         connection.getResponseCode());
-                networkRequestNeedRetry.set(true);
+                networkRequestSucessful.set(true);
             }
             countDownLatch.countDown();
         });
@@ -128,7 +128,7 @@ class IdentityHitsProcessing implements HitProcessing {
             return false;
         }
 
-        return networkRequestNeedRetry.get();
+        return networkRequestSucessful.get();
     }
 
     IdentityResponseObject createIdentityObjectFromResponseJsonObject(final JSONObject jsonObject) {

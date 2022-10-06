@@ -183,7 +183,11 @@ public class Identity {
      *                 when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
      *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the Identity URL variables are retrieved
      */
-    public static void appendVisitorInfoForURL(final String baseURL, final AdobeCallback<String> callback) {
+    public static void appendVisitorInfoForURL(@NonNull final String baseURL, @NonNull final AdobeCallback<String> callback) {
+        if (callback == null) {
+            Log.warning(IdentityConstants.LOG_TAG, CLASS_NAME, "appendVisitorInfoForURL : callback shouldn't be null.");
+            return;
+        }
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "appendVisitorInfoForURL : Processing a request to append Adobe visitor data to a URL string.");
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(IdentityConstants.EventDataKeys.Identity.BASE_URL, baseURL);
@@ -223,7 +227,11 @@ public class Identity {
      *                 when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
      *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the Identity URL variables are retrieved
      */
-    public static void getUrlVariables(final AdobeCallback<String> callback) {
+    public static void getUrlVariables(@NonNull final AdobeCallback<String> callback) {
+        if (callback == null) {
+            Log.warning(IdentityConstants.LOG_TAG, CLASS_NAME, "getUrlVariables : callback shouldn't be null.");
+            return;
+        }
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getUrlVariables : Processing the request to get Visitor information as URL query parameters.");
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(IdentityConstants.EventDataKeys.Identity.URL_VARIABLES, true);
@@ -243,7 +251,11 @@ public class Identity {
      *                 when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
      *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the customer identifiers are retrieved
      */
-    public static void getIdentifiers(final AdobeCallback<List<VisitorID>> callback) {
+    public static void getIdentifiers(@NonNull final AdobeCallback<List<VisitorID>> callback) {
+        if (callback == null) {
+            Log.warning(IdentityConstants.LOG_TAG, CLASS_NAME, "getIdentifiers : callback shouldn't be null.");
+            return;
+        }
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getIdentifiers : Processing a request to get all customer identifiers.");
         createIdentityRequestWithCallbacks(
                 null,
@@ -271,7 +283,11 @@ public class Identity {
      *                 when an {@link AdobeCallbackWithError} is provided, an {@link AdobeError} can be returned in the
      *                 eventuality of an unexpected error or if the default timeout (500ms) is met before the ECID is retrieved
      */
-    public static void getExperienceCloudId(final AdobeCallback<String> callback) {
+    public static void getExperienceCloudId(@NonNull final AdobeCallback<String> callback) {
+        if (callback == null) {
+            Log.warning(IdentityConstants.LOG_TAG, CLASS_NAME, "getIdentifiers : callback shouldn't be null.");
+            return;
+        }
 
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME, "getExperienceCloudId : Processing the request to get ECID.");
         createIdentityRequestWithCallbacks(
@@ -315,8 +331,6 @@ public class Identity {
         Log.trace(IdentityConstants.LOG_TAG, CLASS_NAME,
                 "createIdentityRequestWithOneTimeCallbackWithCallbackParam : Identity request event has been added to the event hub : %s",
                 event);
-
     }
-
 
 }

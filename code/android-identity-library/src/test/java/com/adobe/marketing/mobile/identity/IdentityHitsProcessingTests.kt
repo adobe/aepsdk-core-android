@@ -1,0 +1,167 @@
+package com.adobe.marketing.mobile.identity
+
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventCoder
+import com.adobe.marketing.mobile.services.DataEntity
+import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
+import org.json.JSONObject
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mock
+import org.mockito.Mockito
+import org.mockito.Spy
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import java.io.InputStream
+import java.util.concurrent.CountDownLatch
+
+@RunWith(MockitoJUnitRunner.Silent::class)
+class IdentityHitsProcessingTests {
+
+    @Mock
+    private lateinit var mockedIdentityExtension: IdentityExtension
+
+    @Spy
+    private lateinit var spiedNetworking: Networking
+
+    private val event = Event.Builder("event", "type", "source").build()
+
+    @Before
+    fun setup() {
+        Mockito.reset(mockedIdentityExtension)
+        val event = Event.Builder("event", "type", "source").build()
+    }
+
+
+    private fun initializeIdentityHitsProcessing(): IdentityHitsProcessing {
+
+        return IdentityHitsProcessing(mockedIdentityExtension)
+    }
+
+    @Test
+    fun `retryInterval() - 30s`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        assertEquals(30, identityHitsProcessing.retryInterval(null))
+    }
+
+    @Test
+    fun `processHit() - null entity`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        assertTrue(identityHitsProcessing.processHit(null))
+        verify(spiedNetworking, never()).connectAsync(any(), any())
+    }
+
+    @Test
+    fun `processHit() - bad entity`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val json = """
+            {
+              "URL": "url",
+              "invalid_EVENT": ""
+            }
+        """.trimIndent()
+        assertTrue(identityHitsProcessing.processHit(DataEntity(json)))
+        verify(spiedNetworking, never()).connectAsync(any(), any())
+    }
+
+    @Test
+    fun `processHit() - null connection`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val jsonObject = JSONObject()
+        jsonObject.put("URL", "url")
+        jsonObject.put("EVENT", EventCoder.encode(event))
+
+        ServiceProvider.getInstance().networkService = Networking { _, callback ->
+
+            callback.call(null)
+        }
+        val countDownLatch = CountDownLatch(1)
+        doAnswer { invocation ->
+            assertNull(invocation.arguments[0])
+            countDownLatch.countDown()
+        }.`when`(mockedIdentityExtension).networkResponseLoaded(anyOrNull(), any())
+
+        assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        countDownLatch.await()
+    }
+
+    @Test
+    fun `processHit() - response code is unrecoverable (502)`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val jsonObject = JSONObject()
+        jsonObject.put("URL", "url")
+        jsonObject.put("EVENT", EventCoder.encode(event))
+
+        ServiceProvider.getInstance().networkService = Networking { _, callback ->
+            callback.call(object : DefaultHttpConnecting() {
+                override fun getResponseCode(): Int {
+                    return 502
+                }
+            })
+        }
+        val countDownLatch = CountDownLatch(1)
+        doAnswer { invocation ->
+            assertNull(invocation.arguments[0])
+            countDownLatch.countDown()
+        }.`when`(mockedIdentityExtension).networkResponseLoaded(anyOrNull(), any())
+
+        assertFalse(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        countDownLatch.await()
+    }
+
+    @Test
+    fun `processHit() - response code is 200`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val jsonObject = JSONObject()
+        jsonObject.put("URL", "url")
+        jsonObject.put("EVENT", EventCoder.encode(event))
+
+        ServiceProvider.getInstance().networkService = Networking { _, callback ->
+            callback.call(object : DefaultHttpConnecting() {
+                override fun getResponseCode(): Int {
+                    return 200
+                }
+
+                override fun getInputStream(): InputStream? {
+                    val json = """
+                            {
+                                "d_mid":"32392347938908875026252848914224372728",
+                                "id_sync_ttl":604800,
+                                "d_blob":"hmk_Lq6TPIBMW925SPhw3Q",
+                                "dcs_region":9,
+                                "d_ottl":7200,
+                                "ibs":[],
+                                "subdomain":"obumobile5",
+                                "tid":"d47JfAKTTsU="
+                            }
+                        """.trimIndent()
+                    return json.byteInputStream(Charsets.UTF_8)
+                }
+            })
+        }
+        val countDownLatch = CountDownLatch(1)
+        doAnswer { invocation ->
+            val result = invocation.arguments[0] as? IdentityResponseObject
+            assertNotNull(result)
+            assertEquals("hmk_Lq6TPIBMW925SPhw3Q", result?.blob)
+            countDownLatch.countDown()
+        }.`when`(mockedIdentityExtension).networkResponseLoaded(any(), any())
+
+        assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        countDownLatch.await()
+    }
+}
+
+

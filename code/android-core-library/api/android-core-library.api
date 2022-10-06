@@ -16,13 +16,6 @@ public class com/adobe/marketing/mobile/AdobeError : java/io/Serializable {
 	public fun getErrorName ()Ljava/lang/String;
 }
 
-public final class com/adobe/marketing/mobile/BuildConfig {
-	public static final field BUILD_TYPE Ljava/lang/String;
-	public static final field DEBUG Z
-	public static final field LIBRARY_PACKAGE_NAME Ljava/lang/String;
-	public fun <init> ()V
-}
-
 public final class com/adobe/marketing/mobile/Event {
 	public fun cloneWithEventData (Ljava/util/Map;)Lcom/adobe/marketing/mobile/Event;
 	public fun copy ()Lcom/adobe/marketing/mobile/Event;
@@ -292,6 +285,8 @@ public final class com/adobe/marketing/mobile/VisitorID$AuthenticationState : ja
 	public static final field AUTHENTICATED Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
 	public static final field LOGGED_OUT Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
 	public static final field UNKNOWN Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public static fun fromInteger (I)Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public fun getValue ()I
 	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
 	public static fun values ()[Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
 }

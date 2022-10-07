@@ -20,7 +20,6 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.VisitorID
 import com.adobe.marketing.mobile.identity.IdentityExtension
 import com.adobe.marketing.mobile.integration.ConfigurationMonitor
-import com.adobe.marketing.mobile.integration.EventHubProxy
 import com.adobe.marketing.mobile.integration.MonitorExtension
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.Networking
@@ -79,8 +78,7 @@ class IdentityIntegrationTests {
     @Before
     fun setup() {
         networkMonitor = null
-        MobileCore.resetFlag()
-        EventHubProxy.resetEventhub()
+        MobileCore.resetSDK()
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
 
@@ -105,8 +103,9 @@ class IdentityIntegrationTests {
 
     private fun restartExtension() {
         networkMonitor = null
-        EventHubProxy.resetEventhub()
-        MobileCore.resetFlag()
+
+        MobileCore.resetSDK()
+
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatch = CountDownLatch(1)
@@ -179,8 +178,8 @@ class IdentityIntegrationTests {
             Log.d("integration_test", "${entry.key} - ${entry.value}")
         }
 
-        EventHubProxy.resetEventhub()
-        MobileCore.resetFlag()
+        MobileCore.resetSDK()
+
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatchSecondNetworkMonitor = CountDownLatch(1)

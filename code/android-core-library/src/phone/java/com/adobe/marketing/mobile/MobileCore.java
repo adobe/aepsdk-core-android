@@ -993,7 +993,8 @@ final public class MobileCore {
     }
 
     @VisibleForTesting
-    public static void resetFlag() {
+    public static void resetSDK() {
+        EventHub.Companion.setShared(new EventHub());
         sdkInitializedWithContext.set(false);
     }
 

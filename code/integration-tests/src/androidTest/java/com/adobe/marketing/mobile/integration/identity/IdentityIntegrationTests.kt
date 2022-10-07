@@ -14,13 +14,9 @@ import android.content.Context
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.adobe.marketing.mobile.Identity
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.VisitorID
+import com.adobe.marketing.mobile.*
 import com.adobe.marketing.mobile.identity.IdentityExtension
 import com.adobe.marketing.mobile.integration.ConfigurationMonitor
-import com.adobe.marketing.mobile.integration.EventHubProxy
 import com.adobe.marketing.mobile.integration.MonitorExtension
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.Networking
@@ -79,8 +75,7 @@ class IdentityIntegrationTests {
     @Before
     fun setup() {
         networkMonitor = null
-        MobileCore.resetFlag()
-        EventHubProxy.resetEventhub()
+        SDKHelper.resetSDK()
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
 
@@ -166,8 +161,8 @@ class IdentityIntegrationTests {
             Log.d("integration_test", "${entry.key} - ${entry.value}")
         }
 
-        EventHubProxy.resetEventhub()
-        MobileCore.resetFlag()
+        SDKHelper.resetSDK()
+
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatchSecondNetworkMonitor = CountDownLatch(1)

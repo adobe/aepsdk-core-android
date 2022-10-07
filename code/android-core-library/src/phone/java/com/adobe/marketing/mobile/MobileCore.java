@@ -217,7 +217,8 @@ final public class MobileCore {
                         if (completionCallback != null) {
                             completionCallback.call(null);
                         }
-                    } catch (Exception ex) {}
+                    } catch (Exception ex) {
+                    }
                 }
                 return null;
             });
@@ -992,7 +993,7 @@ final public class MobileCore {
     }
 
     @VisibleForTesting
-    public static void resetSDK() {
+    static void resetSDK() {
         EventHub.Companion.setShared(new EventHub());
         sdkInitializedWithContext.set(false);
     }

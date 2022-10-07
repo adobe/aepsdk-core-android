@@ -222,7 +222,6 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun registerExtension (Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public static fun registerExtensions (Ljava/util/List;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun resetIdentities ()V
-	public static fun resetSDK ()V
 	public static fun setAdvertisingIdentifier (Ljava/lang/String;)V
 	public static fun setApplication (Landroid/app/Application;)V
 	public static fun setLargeIconResourceID (I)V

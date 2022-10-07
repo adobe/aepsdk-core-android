@@ -12,11 +12,13 @@
 package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.internal.util.FileUtils
-import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.caching.CacheResult
+import com.adobe.marketing.mobile.services.caching.CacheService
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -29,6 +31,7 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
@@ -45,7 +48,7 @@ class ConfigurationStateManagerTest {
     private lateinit var mockAppIdManager: AppIdManager
 
     @Mock
-    private lateinit var mockCacheFileService: CacheFileService
+    private lateinit var mockCacheService: CacheService
 
     @Mock
     private lateinit var mockNetworkService: Networking
@@ -64,6 +67,11 @@ class ConfigurationStateManagerTest {
 
     @Mock
     private lateinit var mockCompletionCallback: (Map<String, Any?>?) -> Unit
+
+    @Mock
+    private lateinit var mockServiceProvider: ServiceProvider
+
+    private lateinit var mockedStaticServiceProvider: MockedStatic<ServiceProvider>
 
     private lateinit var mockFileUtils: MockedStatic<FileUtils>
 
@@ -85,6 +93,7 @@ class ConfigurationStateManagerTest {
 
     @Before
     fun setUp() {
+        MockitoAnnotations.openMocks(this)
 
         `when`(mockDataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)).thenReturn(
             mockNamedCollection
@@ -102,14 +111,15 @@ class ConfigurationStateManagerTest {
 
         mockFileUtils = Mockito.mockStatic(FileUtils::class.java)
 
-        configurationStateManager = ConfigurationStateManager(
-            mockAppIdManager,
-            mockCacheFileService,
-            mockNetworkService,
-            mockDeviceInfoService,
-            mockDataStoreService,
-            mockConfigurationDownloader
-        )
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
+        `when`(mockServiceProvider.dataStoreService).thenReturn(mockDataStoreService)
+        `when`(mockServiceProvider.deviceInfoService).thenReturn(mockDeviceInfoService)
+        `when`(mockServiceProvider.networkService).thenReturn(mockNetworkService)
+        `when`(mockServiceProvider.cacheService).thenReturn(mockCacheService)
+
+        configurationStateManager =
+            ConfigurationStateManager(mockAppIdManager, mockConfigurationDownloader)
     }
 
     @Test
@@ -131,19 +141,16 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Load Initial Config - loads cached config when app id is not null`() {
-        val mockCachedFile = mock(File::class.java)
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
-        `when`(
-            mockCacheFileService.getCacheFile(
-                "https://assets.adobedtm.com/SampleAppId.json",
-                null,
-                false
-            )
-        ).thenReturn(mockCachedFile)
 
-        mockFileUtils.`when`<Any> {
-            FileUtils.readAsString(mockCachedFile)
-        }.thenReturn(mockCachedConfigJson)
+        val mockCacheResult = mock(CacheResult::class.java)
+        `when`(mockCacheResult.data).thenReturn(mockCachedConfigJson.byteInputStream())
+        `when`(
+            mockCacheService.get(
+                ConfigurationDownloader.CONFIG_CACHE_NAME,
+                "https://assets.adobedtm.com/SampleAppId.json",
+            )
+        ).thenReturn(mockCacheResult)
 
         val expectedInitialConfig = mapOf<String, Any?>(
             "Key1" to "persisted_Key1Value",
@@ -162,21 +169,17 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Load Initial Config - loads bundled config when cached config is invalid`() {
-        val mockCachedFile = mock(File::class.java)
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
-        `when`(
-            mockCacheFileService.getCacheFile(
-                "https://assets.adobedtm.com/SampleAppId.json",
-                null,
-                false
-            )
-        ).thenReturn(mockCachedFile)
+        val mockCacheResult = mock(CacheResult::class.java)
 
         val malformedCachedConfig = "{SomeMalformedContent}"
-
-        mockFileUtils.`when`<Any> {
-            FileUtils.readAsString(mockCachedFile)
-        }.thenReturn(malformedCachedConfig)
+        `when`(mockCacheResult.data).thenReturn(malformedCachedConfig.byteInputStream())
+        `when`(
+            mockCacheService.get(
+                ConfigurationDownloader.CONFIG_CACHE_NAME,
+                "https://assets.adobedtm.com/SampleAppId.json",
+            )
+        ).thenReturn(mockCacheResult)
 
         val expectedInitialConfig = mapOf<String, Any?>(
             "Key" to true,
@@ -193,19 +196,13 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Load Initial Config - loads bundled config when cached config is null`() {
-        val mockCachedFile = mock(File::class.java)
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
         `when`(
-            mockCacheFileService.getCacheFile(
-                "https://assets.adobedtm.com/SampleAppId.json",
-                null,
-                false
+            mockCacheService.get(
+                ConfigurationDownloader.CONFIG_CACHE_NAME,
+                "https://assets.adobedtm.com/SampleAppId.json"
             )
-        ).thenReturn(mockCachedFile)
-
-        mockFileUtils.`when`<Any> {
-            FileUtils.readAsString(mockCachedFile)
-        }.thenReturn(null)
+        ).thenReturn(null)
 
         val expectedInitialConfig = mapOf<String, Any?>(
             "Key" to true,
@@ -281,7 +278,7 @@ class ConfigurationStateManagerTest {
         val expectedURL = "https://assets.adobedtm.com/NewAppID.json"
         val callbackCaptor: KArgumentCaptor<(Map<String, Any?>?) -> Unit> = argumentCaptor()
 
-        verify(mockConfigurationDownloader).download(eq(expectedURL), eq(null), callbackCaptor.capture())
+        verify(mockConfigurationDownloader).download(eq(expectedURL), callbackCaptor.capture())
 
         val capturedCallback = callbackCaptor.firstValue
 
@@ -306,7 +303,7 @@ class ConfigurationStateManagerTest {
 
         val callbackCaptor: KArgumentCaptor<(Map<String, Any?>?) -> Unit> = argumentCaptor()
 
-        verify(mockConfigurationDownloader).download(eq(expectedURL), eq(null), callbackCaptor.capture())
+        verify(mockConfigurationDownloader).download(eq(expectedURL), callbackCaptor.capture())
 
         val capturedCallback = callbackCaptor.firstValue
 
@@ -320,19 +317,16 @@ class ConfigurationStateManagerTest {
     @Test
     fun `Clear programmatic config - programmatic config exists`() {
         // Setup with initial config
-        val mockCachedFile = mock(File::class.java)
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
-        `when`(
-            mockCacheFileService.getCacheFile(
-                "https://assets.adobedtm.com/SampleAppId.json",
-                null,
-                false
-            )
-        ).thenReturn(mockCachedFile)
 
-        mockFileUtils.`when`<Any> {
-            FileUtils.readAsString(mockCachedFile)
-        }.thenReturn(mockCachedConfigJson)
+        val mockCacheResult = mock(CacheResult::class.java)
+        `when`(mockCacheResult.data).thenReturn(mockCachedConfigJson.byteInputStream())
+        `when`(
+            mockCacheService.get(
+                ConfigurationDownloader.CONFIG_CACHE_NAME,
+                "https://assets.adobedtm.com/SampleAppId.json"
+            )
+        ).thenReturn(mockCacheResult)
 
         val expectedInitialConfig = mapOf<String, Any?>(
             "Key1" to "persisted_Key1Value",
@@ -382,14 +376,8 @@ class ConfigurationStateManagerTest {
             mockBundledConfigJson.byteInputStream()
         )
 
-        configurationStateManager = ConfigurationStateManager(
-            mockAppIdManager,
-            mockCacheFileService,
-            mockNetworkService,
-            mockDeviceInfoService,
-            mockDataStoreService,
-            mockConfigurationDownloader
-        )
+        configurationStateManager =
+            ConfigurationStateManager(mockAppIdManager, mockConfigurationDownloader)
 
         configurationStateManager.loadInitialConfig()
 
@@ -415,19 +403,16 @@ class ConfigurationStateManagerTest {
     @Test
     fun `Replace configuration - retains programmatic config`() {
         // Setup to load programmatic config + cached config
-        val mockCachedFile = mock(File::class.java)
+        val mockCacheResult = mock(CacheResult::class.java)
+        `when`(mockCacheResult.data).thenReturn(mockCachedConfigJson.byteInputStream())
+
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
         `when`(
-            mockCacheFileService.getCacheFile(
-                "https://assets.adobedtm.com/SampleAppId.json",
-                null,
-                false
+            mockCacheService.get(
+                ConfigurationDownloader.CONFIG_CACHE_NAME,
+                "https://assets.adobedtm.com/SampleAppId.json"
             )
-        ).thenReturn(mockCachedFile)
-
-        mockFileUtils.`when`<Any> {
-            FileUtils.readAsString(mockCachedFile)
-        }.thenReturn(mockCachedConfigJson)
+        ).thenReturn(mockCacheResult)
 
         val expectedInitialConfig = mapOf<String, Any?>(
             "Key1" to "persisted_Key1Value",
@@ -479,19 +464,16 @@ class ConfigurationStateManagerTest {
     @Test
     fun `Replace configuration - when replacing config is empty`() {
         // Setup to load programmatic config + cached config
-        val mockCachedFile = mock(File::class.java)
+        val mockCacheResult = mock(CacheResult::class.java)
+        `when`(mockCacheResult.data).thenReturn(mockCachedConfigJson.byteInputStream())
+
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
         `when`(
-            mockCacheFileService.getCacheFile(
-                "https://assets.adobedtm.com/SampleAppId.json",
-                null,
-                false
+            mockCacheService.get(
+                ConfigurationDownloader.CONFIG_CACHE_NAME,
+                "https://assets.adobedtm.com/SampleAppId.json"
             )
-        ).thenReturn(mockCachedFile)
-
-        mockFileUtils.`when`<Any> {
-            FileUtils.readAsString(mockCachedFile)
-        }.thenReturn(mockCachedConfigJson)
+        ).thenReturn(mockCacheResult)
 
         val expectedInitialConfig = mapOf<String, Any?>(
             "Key1" to "persisted_Key1Value",
@@ -531,19 +513,16 @@ class ConfigurationStateManagerTest {
     @Test
     fun `Replace configuration - when config is null`() {
         // Setup to load programmatic config + cached config
-        val mockCachedFile = mock(File::class.java)
+        val mockCacheResult = mock(CacheResult::class.java)
+        `when`(mockCacheResult.data).thenReturn(mockCachedConfigJson.byteInputStream())
+
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
         `when`(
-            mockCacheFileService.getCacheFile(
-                "https://assets.adobedtm.com/SampleAppId.json",
-                null,
-                false
+            mockCacheService.get(
+                ConfigurationDownloader.CONFIG_CACHE_NAME,
+                "https://assets.adobedtm.com/SampleAppId.json"
             )
-        ).thenReturn(mockCachedFile)
-
-        mockFileUtils.`when`<Any> {
-            FileUtils.readAsString(mockCachedFile)
-        }.thenReturn(mockCachedConfigJson)
+        ).thenReturn(mockCacheResult)
 
         val expectedInitialConfig = mapOf<String, Any?>(
             "Key1" to "persisted_Key1Value",
@@ -606,7 +585,10 @@ class ConfigurationStateManagerTest {
             "Key3" to false
         )
 
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @Test
@@ -637,7 +619,10 @@ class ConfigurationStateManagerTest {
             "Key3" to false
         )
 
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @Test
@@ -668,7 +653,10 @@ class ConfigurationStateManagerTest {
             "Key3" to false
         )
 
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @Test
@@ -698,7 +686,10 @@ class ConfigurationStateManagerTest {
             "Key3" to false
         )
 
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @Test
@@ -730,11 +721,15 @@ class ConfigurationStateManagerTest {
         )
 
         assertNotNull(configurationStateManager.environmentAwareConfiguration)
-        assertEquals(expectedEnvAwareConfig, configurationStateManager.environmentAwareConfiguration)
+        assertEquals(
+            expectedEnvAwareConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
     }
 
     @After
     fun teardown() {
         mockFileUtils.close()
+        mockedStaticServiceProvider.close()
     }
 }

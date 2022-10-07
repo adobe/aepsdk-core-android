@@ -60,6 +60,7 @@ class SerialWorkDispatcherTests {
     private val workHandler: SerialWorkDispatcher.WorkHandler<Event> =
         SerialWorkDispatcher.WorkHandler {
             serialWorkDispatcher.processedEvents?.add(it)
+            true
         }
 
     @Mock
@@ -283,6 +284,7 @@ class SerialWorkDispatcherTests {
                     latch.countDown()
                 }
                 Thread.sleep(50)
+                true
             }
 
         val serialDispatcher = SerialWorkDispatcher("", workHandler)

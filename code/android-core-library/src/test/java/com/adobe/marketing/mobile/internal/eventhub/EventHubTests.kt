@@ -175,6 +175,26 @@ internal class EventHubTests {
         }
     }
 
+    private class TestExtension_DelayedInit(api: ExtensionApi) : Extension(api) {
+        companion object {
+            const val VERSION = "0.1"
+            const val EXTENSION_NAME = "TestExtension_DelayedInit"
+            const val FRIENDLY_NAME = "FriendlyTestExtension_DelayedInit"
+
+            // Init will take DELAY ms
+            var DELAY_MS: Long? = null
+        }
+
+        // Clear everytime extension get registered
+        init {
+            DELAY_MS?.let { Thread.sleep(it) }
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
+        }
+    }
+
     private lateinit var eventHub: EventHub
     private val eventType = "Type"
     private val eventSource = "Source"
@@ -184,7 +204,7 @@ internal class EventHubTests {
     private val event4: Event = Event.Builder("Event4", eventType, eventSource).build()
 
     // Helper to register extensions
-    private fun registerExtension(extensionClass: Class<out Extension>?): EventHubError {
+    private fun registerExtension(extensionClass: Class<out Extension>): EventHubError {
         var ret: EventHubError = EventHubError.Unknown
 
         val latch = CountDownLatch(1)
@@ -219,6 +239,11 @@ internal class EventHubTests {
         eventHub.shutdown()
     }
 
+    private fun resetEventHub() {
+        eventHub.shutdown()
+        eventHub = EventHub()
+    }
+
     // Register, Unregister tests
     @Test
     fun testRegisterExtensionSuccess() {
@@ -227,12 +252,6 @@ internal class EventHubTests {
 
         ret = registerExtension(MockExtensions.MockExtensionKotlin::class.java)
         assertEquals(EventHubError.None, ret)
-    }
-
-    @Test
-    fun testRegisterExtensionFailure_NullExtension() {
-        val ret = registerExtension(null)
-        assertEquals(EventHubError.ExtensionInitializationFailure, ret)
     }
 
     @Test
@@ -247,9 +266,11 @@ internal class EventHubTests {
     fun testRegisterExtensionFailure_ExtensionInitialization() {
         var ret = registerExtension(MockExtensions.MockExtensionInitFailure::class.java)
         assertEquals(EventHubError.ExtensionInitializationFailure, ret)
+        assertNull(eventHub.getExtensionContainer(MockExtensions.MockExtensionInitFailure::class.java))
 
         ret = registerExtension(MockExtensions.MockExtensionInvalidConstructor::class.java)
         assertEquals(EventHubError.ExtensionInitializationFailure, ret)
+        assertNull(eventHub.getExtensionContainer(MockExtensions.MockExtensionInvalidConstructor::class.java))
     }
 
     @Test
@@ -281,6 +302,54 @@ internal class EventHubTests {
 
         ret = registerExtension(MockExtensions.MockExtensionKotlin::class.java)
         assertEquals(EventHubError.None, ret)
+    }
+
+    @Test
+    fun testStartHub() {
+        resetEventHub()
+
+        val latch = CountDownLatch(1)
+        eventHub.start {
+            latch.countDown()
+        }
+
+        assertTrue { latch.await(1000, TimeUnit.MILLISECONDS) }
+    }
+
+    @Test
+    fun testStartAfterExtensionRegistration() {
+        resetEventHub()
+
+        TestExtension_DelayedInit.DELAY_MS = 1000
+        val latch = CountDownLatch(1)
+        var registeredExtension = mutableListOf<Class<out Extension>>()
+
+        eventHub.registerExtension(TestExtension::class.java) { registeredExtension.add(TestExtension::class.java) }
+        eventHub.registerExtension(TestExtension_DelayedInit::class.java) { registeredExtension.add(TestExtension_DelayedInit::class.java) }
+        eventHub.start {
+            latch.countDown()
+        }
+
+        assertTrue { latch.await(2000, TimeUnit.MILLISECONDS) }
+        assertEquals(listOf(TestExtension::class.java, TestExtension_DelayedInit::class.java), registeredExtension)
+    }
+
+    @Test
+    fun testStartBetweenExtensionRegistration() {
+        resetEventHub()
+
+        TestExtension_DelayedInit.DELAY_MS = 1000
+        val latch = CountDownLatch(1)
+        var registeredExtension = mutableListOf<Class<out Extension>>()
+
+        eventHub.registerExtension(TestExtension::class.java) { registeredExtension.add(TestExtension::class.java) }
+        eventHub.start {
+            latch.countDown()
+        }
+        eventHub.registerExtension(TestExtension_DelayedInit::class.java) { registeredExtension.add(TestExtension_DelayedInit::class.java) }
+
+        assertTrue { latch.await(750, TimeUnit.MILLISECONDS) }
+        assertEquals(listOf<Class<out Extension>>(TestExtension::class.java), registeredExtension)
     }
 
     // Shared state tests
@@ -993,6 +1062,206 @@ internal class EventHubTests {
         }
 
         verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+    }
+
+    @Test
+    fun testGetSharedState_Any_WithBarrier() {
+        registerExtension(TestExtension_Barrier::class.java)
+        //  Stop processing after this event
+        TestExtension_Barrier.BARRIER_EVENT = event2
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.dispatch(event2)
+        // Wait for events to get processed
+        val latch = CountDownLatch(1)
+        latch.await(500, TimeUnit.MILLISECONDS)
+
+        val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            state1,
+            event1
+        )
+
+        // event1: Returns valid shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.ANY,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event2: With barrier returns pending state as it has not processed the event
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.PENDING, state1),
+            SharedStateResolution.ANY,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME,
+        )
+    }
+
+    @Test
+    fun testGetSharedState_Any_NoBarrier() {
+        registerExtension(TestExtension_Barrier::class.java)
+        //  Stop processing after this event
+        TestExtension_Barrier.BARRIER_EVENT = event2
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.dispatch(event2)
+        // Wait for events to get processed
+        val latch = CountDownLatch(1)
+        latch.await(500, TimeUnit.MILLISECONDS)
+
+        val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            state1,
+            event1
+        )
+
+        // event1: Returns valid shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.ANY,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event2: Without barrier returns state1
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.ANY,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+    }
+
+    @Test
+    fun testGetSharedState_LastSet_WithBarrier() {
+        registerExtension(TestExtension_Barrier::class.java)
+        //  Stop processing after this event
+        TestExtension_Barrier.BARRIER_EVENT = event3
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.dispatch(event2)
+        eventHub.dispatch(event3)
+        // Wait for events to get processed
+        val latch = CountDownLatch(1)
+        latch.await(500, TimeUnit.MILLISECONDS)
+
+        val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            state1,
+            event1
+        )
+        eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            event2
+        )
+
+        // event1: Returns valid shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event2: Returns state set for event1 as shared state for event2 is pending
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event3: Returns pending shared state as the extension has not processed the event
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event3,
+            SharedStateResult(SharedStateStatus.PENDING, state1),
+            SharedStateResolution.LAST_SET,
+            true,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+    }
+
+    @Test
+    fun testGetSharedState_LastSet_NoBarrier() {
+        registerExtension(TestExtension_Barrier::class.java)
+        //  Stop processing after this event
+        TestExtension_Barrier.BARRIER_EVENT = event3
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.dispatch(event2)
+        eventHub.dispatch(event3)
+        // Wait for events to get processed
+        val latch = CountDownLatch(1)
+        latch.await(500, TimeUnit.MILLISECONDS)
+
+        val state1: MutableMap<String, Any?> = mutableMapOf("One" to 1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            state1,
+            event1
+        )
+        eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension_Barrier.EXTENSION_NAME,
+            event2
+        )
+
+        // event1: Returns valid shared state
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event2: Returns state set for event1 as shared state for event2 is pending
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event2,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
+
+        // event3: Returns state set for event1 as event3 has not been processed
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event3,
+            SharedStateResult(SharedStateStatus.SET, state1),
+            SharedStateResolution.LAST_SET,
+            false,
+            TestExtension_Barrier.EXTENSION_NAME
+        )
     }
 
     // / ExtensionInfo shared state tests

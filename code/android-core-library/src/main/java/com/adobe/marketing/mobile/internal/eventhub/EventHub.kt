@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.AdobeError
@@ -65,7 +66,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
     private val extensionInitExecutor: ExecutorService by lazy { Executors.newCachedThreadPool() }
 
     /**
-     * Executor for scheduled response listeners
+     * Executor for eventhub callbacks and response listeners
      */
     private val scheduledExecutor: ScheduledExecutorService by lazy { Executors.newSingleThreadScheduledExecutor() }
 
@@ -74,12 +75,53 @@ internal class EventHub(val eventHistory: EventHistory?) {
      */
     private val eventHubExecutor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
 
+    /**
+     * Concurrent map which stores the backing extension container for each Extension and can be referenced by extension type name
+     */
     private val registeredExtensions: ConcurrentHashMap<String, ExtensionContainer> =
         ConcurrentHashMap()
+
+    /**
+     * Concurrent list which stores the event listeners for response events.
+     */
     private val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> =
         ConcurrentLinkedQueue()
+
+    /**
+     * Concurrent list which stores the registered event preprocessors.
+     * Preprocessors will be executed on each event before distributing it to extension queue.
+     */
     private val eventPreprocessors: ConcurrentLinkedQueue<EventPreprocessor> = ConcurrentLinkedQueue()
+
+    /**
+     * Atomic counter which is incremented when processing event and shared state.
+     */
     private val lastEventNumber: AtomicInteger = AtomicInteger(0)
+
+    /**
+     * A cache that maps UUID of an Event to an internal sequence of its dispatch.
+     */
+    private val eventNumberMap: ConcurrentHashMap<String, Int> = ConcurrentHashMap<String, Int>()
+
+    /**
+     * Mutable set to track extension registration requests received before [start] call.
+     * The extension is removed from this set once the registration completes.
+     */
+    private val registrationRequestsBeforeStart: MutableSet<Class<out Extension>> = mutableSetOf()
+
+    /**
+     * Boolean to denote if [start] call was received.
+     */
+    private var hubStartReceived = false
+
+    /**
+     * Stores the start callback for deferred execution.
+     */
+    private var hubStartCallback: (() -> Unit)? = null
+
+    /**
+     * Boolean to denote if event hub has started processing events
+     */
     private var hubStarted = false
 
     /**
@@ -105,8 +147,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
                     }
                 }
 
-                matchingResponseListeners.forEach { listener ->
-                    listener.notify(processedEvent)
+                // Call the response event listeners from different thread to avoid block event processing queue
+                executeCompletionHandler {
+                    matchingResponseListeners.forEach { listener ->
+                        listener.notify(processedEvent)
+                    }
                 }
             }
 
@@ -115,6 +160,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 it.eventProcessor.offer(processedEvent)
             }
 
+            // Record event history
             processedEvent.mask?.let {
                 eventHistory?.recordEvent(processedEvent) { result ->
                     if (Log.getLogLevel() == LoggingMode.VERBOSE) {
@@ -126,6 +172,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                     }
                 }
             }
+            true
         }
 
     /**
@@ -134,13 +181,8 @@ internal class EventHub(val eventHistory: EventHistory?) {
     private val eventDispatcher: SerialWorkDispatcher<Event> =
         SerialWorkDispatcher("EventHub", dispatchJob)
 
-    /**
-     * A cache that maps UUID of an Event to an internal sequence of its dispatch.
-     */
-    private val eventNumberMap: ConcurrentHashMap<String, Int> = ConcurrentHashMap<String, Int>()
-
     init {
-        registerExtension(EventHubPlaceholderExtension::class.java) {}
+        registerExtension(EventHubPlaceholderExtension::class.java)
     }
 
     private var _wrapperType = WrapperType.NONE
@@ -172,13 +214,43 @@ internal class EventHub(val eventHistory: EventHistory?) {
     /**
      * `EventHub` will begin processing `Event`s when this API is invoked.
      */
-    fun start() {
+    @JvmOverloads
+    fun start(completion: (() -> Unit)? = null) {
         eventHubExecutor.submit {
-            this.hubStarted = true
-            this.eventDispatcher.start()
-            this.shareEventHubSharedState()
-            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Event Hub successfully started")
+            if (hubStartReceived) {
+                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Dropping start call as it was already received")
+                return@submit
+            }
+
+            this.hubStartReceived = true
+            this.hubStartCallback = completion
+
+            tryStartHub()
         }
+    }
+
+    private fun tryStartHub() {
+        if (hubStarted || !hubStartReceived) {
+            return
+        }
+
+        // Start the event hub only after all extensions registration requests before start() is completed.
+        if (hubStartReceived && registrationRequestsBeforeStart.size != 0) {
+            return
+        }
+
+        Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "EventHub started. Will begin processing events")
+
+        this.hubStarted = true
+        this.eventDispatcher.start()
+        this.shareEventHubSharedState()
+
+        hubStartCallback?.let {
+            executeCompletionHandler {
+                it.invoke()
+            }
+        }
+        hubStartCallback = null
     }
 
     /**
@@ -225,24 +297,58 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * @param extensionClass The class of extension to register
      * @param completion Invoked when the extension has been registered or failed to register
      */
+    @JvmOverloads
     fun registerExtension(
-        extensionClass: Class<out Extension>?,
-        completion: (error: EventHubError) -> Unit
+        extensionClass: Class<out Extension>,
+        completion: ((error: EventHubError) -> Unit)? = null
     ) {
         eventHubExecutor.submit {
-            if (extensionClass == null) {
-                completion(EventHubError.ExtensionInitializationFailure)
-                return@submit
-            }
-
             val extensionTypeName = extensionClass.extensionTypeName
             if (registeredExtensions.containsKey(extensionTypeName)) {
-                completion(EventHubError.DuplicateExtensionName)
+                completion?.let { executeCompletionHandler { it(EventHubError.DuplicateExtensionName) } }
                 return@submit
             }
 
-            val container = ExtensionContainer(extensionClass, extensionInitExecutor, completion)
+            extensionPreRegistration(extensionClass)
+            val container = ExtensionContainer(extensionClass, extensionInitExecutor) { error ->
+                eventHubExecutor.submit {
+                    completion?.let { executeCompletionHandler { it(error) } }
+                    extensionPostRegistration(extensionClass, error)
+                }
+            }
             registeredExtensions[extensionTypeName] = container
+        }
+    }
+
+    /**
+     * Called before creating extension container to hold the extension
+     *
+     * @param extensionClass The class of extension to register
+     */
+    private fun extensionPreRegistration(extensionClass: Class<out Extension>) {
+        if (!hubStartReceived) {
+            registrationRequestsBeforeStart.add(extensionClass)
+        }
+    }
+
+    /**
+     * Called after creating extension container to hold the extension
+     *
+     * @param extensionClass The class of extension to register
+     * @param error Error denoting the status of registration
+     */
+    private fun extensionPostRegistration(extensionClass: Class<out Extension>, error: EventHubError) {
+        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Registered extension $extensionClass with status $error")
+
+        if (error != EventHubError.None) {
+            unregisterExtensionInternal(extensionClass)
+        } else {
+            shareEventHubSharedState()
+        }
+
+        if (!hubStarted) {
+            registrationRequestsBeforeStart.remove(extensionClass)
+            tryStartHub()
         }
     }
 
@@ -252,23 +358,31 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * @param completion Invoked when the extension has been unregistered or failed to unregister
      */
     fun unregisterExtension(
-        extensionClass: Class<out Extension>?,
+        extensionClass: Class<out Extension>,
         completion: ((error: EventHubError) -> Unit)
     ) {
         eventHubExecutor.submit {
-            val extensionName = extensionClass?.extensionTypeName
-            val container = registeredExtensions.remove(extensionName)
-
-            if (container != null) {
-                container.shutdown()
-                shareEventHubSharedState()
-                completion(EventHubError.None)
-            } else {
-                completion(EventHubError.ExtensionNotRegistered)
-            }
+            unregisterExtensionInternal(extensionClass, completion)
         }
     }
 
+    private fun unregisterExtensionInternal(
+        extensionClass: Class<out Extension>,
+        completion: ((error: EventHubError) -> Unit)? = null
+    ) {
+        val extensionName = extensionClass.extensionTypeName
+        val container = registeredExtensions.remove(extensionName)
+        var error: EventHubError? = null
+        if (container != null) {
+            container.shutdown()
+            shareEventHubSharedState()
+            error = EventHubError.None
+        } else {
+            error = EventHubError.ExtensionNotRegistered
+        }
+
+        completion.let { executeCompletionHandler { it?.invoke(error) } }
+    }
     /**
      * Registers an event listener which will be invoked when the response event to trigger event is dispatched
      * @param triggerEvent An [Event] which will trigger a response event
@@ -645,6 +759,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * @return [ExtensionContainer] with [extensionName] provided if one was registered,
      *         null if no extension is registered with the [extensionName]
      */
+    @VisibleForTesting
     internal fun getExtensionContainer(extensionClass: Class<out Extension>): ExtensionContainer? {
         return registeredExtensions[extensionClass.extensionTypeName]
     }
@@ -768,6 +883,20 @@ internal class EventHub(val eventHistory: EventHistory?) {
             EventDataUtils.clone(data),
             null
         )
+    }
+
+    private fun executeCompletionHandler(runnable: Runnable) {
+        scheduledExecutor.submit {
+            try {
+                runnable.run()
+            } catch (ex: Exception) {
+                Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Exception thrown from callback - $ex"
+                )
+            }
+        }
     }
 }
 

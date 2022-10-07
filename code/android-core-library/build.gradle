@@ -3,6 +3,24 @@ apply plugin: 'kotlin-android'
 apply plugin: 'org.jlleitschuh.gradle.ktlint'
 apply plugin: 'org.jetbrains.dokka'
 
+// Disable variants for binary compatiblity validation tasks.
+apply plugin: 'binary-compatibility-validator'
+ext.disableVariants = project.gradle.startParameter.taskNames.any { taskName ->
+    project.logger.debug(taskName)
+    taskName.contains("apiDump") || taskName.contains("apiCheck")
+}
+apiValidation {
+    ignoredPackages += [
+        "com.adobe.marketing.mobile.internal",
+        "com.adobe.marketing.mobile.services.internal",
+        "com.adobe.marketing.mobile.services.ui.internal"
+    ]
+
+    ignoredClasses += [
+        "com.adobe.marketing.mobile.BuildConfig"
+    ]
+}
+
 android {
     compileSdkVersion 31
 
@@ -15,14 +33,6 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
-    sourceSets {
-        test{
-            java{
-                srcDirs += "src/test/kotlin"
-            }
-        }
-    }
-
     testOptions {
         unitTests.returnDefaultValues = true
         unitTests.includeAndroidResources = true
@@ -30,9 +40,19 @@ android {
 
     flavorDimensions "target"
 
-    productFlavors {
-        phone {
-            dimension "target"
+    if (disableVariants) {
+        sourceSets {
+            main {
+                java {
+                    srcDirs 'src/phone/java'
+                }
+            }
+        }
+    } else {
+        productFlavors {
+            phone {
+                dimension "target"
+            }
         }
     }
 
@@ -53,6 +73,8 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
+        languageVersion = "1.4"
+        apiVersion = "1.4"
     }
 }
 
@@ -69,11 +91,14 @@ dokkaJavadoc.configure {
                 suppress.set(true)
             }
         }
-        named("phone") {
-            noAndroidSdkLink.set(false)
-            perPackageOption {
-                matchingRegex.set(".*\\.internal.*") // proper setting
-                suppress.set(true)
+
+        if (!disableVariants) {
+            named("phone") {
+                noAndroidSdkLink.set(false)
+                perPackageOption {
+                    matchingRegex.set(".*\\.internal.*") // proper setting
+                    suppress.set(true)
+                }
             }
         }
     }

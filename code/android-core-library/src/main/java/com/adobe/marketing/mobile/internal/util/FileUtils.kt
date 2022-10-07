@@ -241,4 +241,13 @@ internal object FileUtils {
     fun copyFile(src: File, dest: File) {
         src.copyTo(dest, true)
     }
+
+    @JvmStatic
+    @Throws(SecurityException::class)
+    fun deleteFile(fileToDelete: File?, recursive: Boolean): Boolean {
+        if (fileToDelete == null) {
+            return false
+        }
+        return if (recursive) fileToDelete.deleteRecursively() else fileToDelete.delete()
+    }
 }

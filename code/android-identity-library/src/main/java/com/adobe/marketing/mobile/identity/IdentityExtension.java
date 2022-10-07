@@ -166,7 +166,7 @@ final public class IdentityExtension extends Extension {
 
     @Override
     protected void onUnregistered() {
-        super.onUnregistered();
+        hitQueue.close();
     }
 
     @Override
@@ -191,13 +191,13 @@ final public class IdentityExtension extends Extension {
         }
 
         if (isAppendUrlEvent(event) || isGetUrlVarsEvent(event)) {
-            SharedStateResult sharedStateResult = getApi().getSharedState(
-                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
-                    event,
-                    false,
-                    SharedStateResolution.LAST_SET
-            );
-            return sharedStateResult != null && sharedStateResult.getStatus() == SharedStateStatus.SET;
+            if (!hasValidSharedState(IdentityConstants.EventDataKeys.Analytics.MODULE_NAME, event)) {
+                Log.trace(
+                        IdentityConstants.LOG_TAG, LOG_SOURCE,
+                        "Waiting for the Analytics shared state to get required configuration fields before processing [event: %s].",
+                        event.getName());
+                return false;
+            }
         }
 
         return true;
@@ -601,12 +601,6 @@ final public class IdentityExtension extends Extension {
 
         Map<String, Object> configuration = result.getValue();
 
-        if (configuration == null) {
-            Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                    "processEventQueue : Unable to process the Identity events in the event queue because the configuration shared state is not ready.");
-            return;
-        }
-
         ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
         configSharedState.getConfigurationProperties(configuration);
 
@@ -669,6 +663,7 @@ final public class IdentityExtension extends Extension {
      * @return true if the {@code event} was successfully processed, false if the {@code event} could not be processed
      * at this time
      */
+    @VisibleForTesting
     boolean handleSyncIdentifiers(final Event event, final ConfigurationSharedStateIdentity configSharedState) {
         if (configSharedState == null) {
             // sanity check, should never get here
@@ -792,6 +787,7 @@ final public class IdentityExtension extends Extension {
      * @param eventData {@code EventData} containing sync identifiers
      * @return a map containing the identifiers or an empty map if event data is null or does not contain an any identifiers
      */
+    @VisibleForTesting
     Map<String, String> extractIdentifiers(final Map<String, Object> eventData) {
         Map<String, String> identifiers = new HashMap<>();
 
@@ -1669,7 +1665,7 @@ final public class IdentityExtension extends Extension {
             return null;
         }
 
-        final Map<String, String> queryParameters = new HashMap<String, String>();
+        final Map<String, String> queryParameters = new HashMap<>();
         queryParameters.put(IdentityConstants.UrlKeys.ORGID, configSharedState.orgID);
         queryParameters.put(IdentityConstants.UrlKeys.MID, mid);
 
@@ -2073,4 +2069,8 @@ final public class IdentityExtension extends Extension {
         this.locationHint = locationHint;
     }
 
+    @VisibleForTesting
+    ConfigurationSharedStateIdentity getLatestValidConfig() {
+        return this.latestValidConfig;
+    }
 }

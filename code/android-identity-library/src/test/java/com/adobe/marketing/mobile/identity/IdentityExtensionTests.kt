@@ -11,8 +11,7 @@
 package com.adobe.marketing.mobile.identity
 
 import com.adobe.marketing.mobile.*
-import com.adobe.marketing.mobile.services.HitQueuing
-import com.adobe.marketing.mobile.services.NamedCollection
+import com.adobe.marketing.mobile.services.*
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
@@ -37,11 +36,15 @@ class IdentityExtensionTests {
     @Mock
     private lateinit var mockedHitQueue: HitQueuing
 
+    @Mock
+    private lateinit var mockedConnection: HttpConnecting
+
     @Before
     fun setup() {
         Mockito.reset(mockedExtensionApi)
         Mockito.reset(mockedNamedCollection)
         Mockito.reset(mockedHitQueue)
+        Mockito.reset(mockedConnection)
     }
 
     private fun initializeSpiedIdentityExtension(): IdentityExtension {
@@ -66,6 +69,13 @@ class IdentityExtensionTests {
     fun `get extension version`() {
         val identityExtension = initializeSpiedIdentityExtension()
         assertEquals("2.0.0", identityExtension.version)
+    }
+
+    @Test
+    fun `onUnregistered() should close HitQueue`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onUnregistered()
+        verify(mockedHitQueue, times(1)).close()
     }
 
     @Test
@@ -115,6 +125,71 @@ class IdentityExtensionTests {
                 Event.Builder("event", "type", "source").build()
             )
         )
+    }
+
+    @Test(timeout = 10000)
+    fun `readyForEvent() should return false for appendUrl and urlVars events if Analytics extension is not registered`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onRegistered()
+        val countDownLatch = CountDownLatch(2)
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.SET, mapOf(
+                        "experienceCloud.org" to "orgid"
+                    )
+                )
+            }
+            if ("com.adobe.module.analytics" === extension) {
+                countDownLatch.countDown()
+                return@thenAnswer null
+            }
+            return@thenAnswer null
+        }
+        assertFalse(
+            identityExtension.readyForEvent(
+                Event.Builder("event", "type", "source").setEventData(
+                    mapOf(
+                        "baseurl" to true
+                    )
+                ).build()
+            )
+        )
+        assertFalse(
+            identityExtension.readyForEvent(
+                Event.Builder("event", "type", "source").setEventData(
+                    mapOf(
+                        "urlvariables" to true
+                    )
+                ).build()
+            )
+        )
+        countDownLatch.await()
+    }
+
+    @Test
+    fun `readyForEvent() should trigger one forceSync event `() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.SET, mapOf(
+                        "experienceCloud.org" to "orgid"
+                    )
+                )
+            }
+            return@thenAnswer null
+        }
+        spiedIdentityExtension.readyForEvent(Event.Builder("event", "type", "source").build())
+
+        spiedIdentityExtension.readyForEvent(Event.Builder("event", "type", "source").build())
+        verify(spiedIdentityExtension, times(1)).forceSyncIdentifiers(any())
     }
 
     @Test
@@ -318,6 +393,24 @@ class IdentityExtensionTests {
     }
 
     @Test
+    fun `handleConfiguration() - experienceCloud_server not exists - return default value`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+
+        spiedIdentityExtension.handleConfiguration(
+            Event.Builder("event", "type", "source").setEventData(
+                mapOf(
+                    "experienceCloud.org" to "orgId",
+                    "global.privacy" to "optedin"
+                )
+            ).build()
+        )
+        assertEquals(
+            "dpm.demdex.net",
+            spiedIdentityExtension.latestValidConfig.marketingCloudServer
+        )
+    }
+
+    @Test
     fun `loadVariablesFromPersistentData() - shouldn't crash if NamedCollection is null`() {
         val identityExtension =
             IdentityExtension(mockedExtensionApi, null, mockedHitQueue)
@@ -368,6 +461,16 @@ class IdentityExtensionTests {
     @Test
     fun `handleAnalyticsResponseIdentity() - event is null`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        spiedIdentityExtension.handleAnalyticsResponseIdentity(null)
+
+        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
+    }
+
+    @Test
+    fun `handleAnalyticsResponseIdentity() - NamedCollection is null`() {
+        val identityExtension =
+            IdentityExtension(mockedExtensionApi, null, mockedHitQueue)
+        val spiedIdentityExtension = Mockito.spy(identityExtension)
         spiedIdentityExtension.handleAnalyticsResponseIdentity(null)
 
         verify(spiedIdentityExtension, never()).processIdentityRequest(any())
@@ -626,6 +729,135 @@ class IdentityExtensionTests {
         verify(spiedIdentityExtension, times(1)).sendOptOutHit(any())
     }
 
+    @Test(timeout = 10000)
+    fun `sendOptOutHit() - happy (200)`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        val state = ConfigurationSharedStateIdentity()
+        spiedIdentityExtension.mid = "123455"
+        Mockito.`when`(mockedConnection.responseCode).thenReturn(200)
+        val countDownLatch = CountDownLatch(1)
+        ServiceProvider.getInstance().networkService = Networking { request, callback ->
+            assertEquals(2, request.readTimeout)
+            assertEquals(2, request.connectTimeout)
+            callback.call(mockedConnection)
+            countDownLatch.countDown()
+        }
+        state.getConfigurationProperties(
+            mapOf(
+                "experienceCloud.org" to "orgId"
+            )
+        )
+        spiedIdentityExtension.sendOptOutHit(state)
+        countDownLatch.await()
+        verify(mockedConnection, times(1)).close()
+    }
+
+    @Test(timeout = 10000)
+    fun `sendOptOutHit() - bad request (400)`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        val state = ConfigurationSharedStateIdentity()
+        spiedIdentityExtension.mid = "123455"
+        Mockito.`when`(mockedConnection.responseCode).thenReturn(400)
+        val countDownLatch = CountDownLatch(1)
+        ServiceProvider.getInstance().networkService = Networking { request, callback ->
+            assertEquals(2, request.readTimeout)
+            assertEquals(2, request.connectTimeout)
+            callback.call(mockedConnection)
+            countDownLatch.countDown()
+        }
+        state.getConfigurationProperties(
+            mapOf(
+                "experienceCloud.org" to "orgId"
+            )
+        )
+        spiedIdentityExtension.sendOptOutHit(state)
+        countDownLatch.await()
+        verify(mockedConnection, times(1)).close()
+    }
+
+    @Test(timeout = 10000)
+    fun `sendOptOutHit() - null connection`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        val state = ConfigurationSharedStateIdentity()
+        spiedIdentityExtension.mid = "123455"
+        Mockito.`when`(mockedConnection.responseCode).thenReturn(200)
+        val countDownLatch = CountDownLatch(1)
+        ServiceProvider.getInstance().networkService = Networking { request, callback ->
+            assertEquals(2, request.readTimeout)
+            assertEquals(2, request.connectTimeout)
+            callback.call(null)
+            countDownLatch.countDown()
+        }
+        state.getConfigurationProperties(
+            mapOf(
+                "experienceCloud.org" to "orgId"
+            )
+        )
+        spiedIdentityExtension.sendOptOutHit(state)
+        countDownLatch.await()
+        verify(mockedConnection, never()).close()
+    }
+
+    @Test
+    fun `handleSyncIdentifiers() - null configuration`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        assertTrue(
+            spiedIdentityExtension.handleSyncIdentifiers(
+                Event.Builder("event", "type", "source").build(), null
+            )
+        )
+        verify(spiedIdentityExtension, never()).extractIdentifiers(any())
+    }
+
+    @Test
+    fun `handleSyncIdentifiers() - cached state is OPTED_OUT`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        spiedIdentityExtension.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
+        val state = ConfigurationSharedStateIdentity()
+        assertTrue(
+            spiedIdentityExtension.handleSyncIdentifiers(
+                Event.Builder("event", "type", "source").build(), state
+            )
+        )
+
+        verify(spiedIdentityExtension, never()).extractIdentifiers(any())
+    }
+
+    @Test
+    fun `handleSyncIdentifiers() - latest state is OPTED_OUT`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        val state = ConfigurationSharedStateIdentity()
+        state.getConfigurationProperties(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "global.privacy" to "optedout"
+
+            )
+        )
+        assertTrue(
+            spiedIdentityExtension.handleSyncIdentifiers(
+                Event.Builder("event", "type", "source").build(), state
+            )
+        )
+
+        verify(spiedIdentityExtension, never()).extractIdentifiers(any())
+    }
+
+    @Test
+    fun `handleSyncIdentifiers() - null event`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        val state = ConfigurationSharedStateIdentity()
+        state.getConfigurationProperties(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "global.privacy" to "optedout"
+
+            )
+        )
+        assertTrue(spiedIdentityExtension.handleSyncIdentifiers(null, state))
+
+        verify(spiedIdentityExtension, never()).extractIdentifiers(any())
+    }
 
     // ==============================================================================================================
     // 	void networkResponseLoaded(final HashMap<String, String> result, final String pairID, final int stateVersion)

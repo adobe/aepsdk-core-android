@@ -1807,6 +1807,24 @@ class IdentityFunctionalTests {
         )
         reset(mockedExtensionApi)
         identityExtension.handleIdentityResponseIdentityForSharedState(
+            Event.Builder("event", "type", "source").build()
+        )
+        verify(mockedExtensionApi, never()).createSharedState(any(), any())
+    }
+
+    @Test
+    fun test_handleIdentityResponseIdentityForSharedState_invalid_eventData() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+        reset(mockedExtensionApi)
+        identityExtension.handleIdentityResponseIdentityForSharedState(
             Event.Builder("event", "type", "source")
                 .setEventData(
                     mapOf(

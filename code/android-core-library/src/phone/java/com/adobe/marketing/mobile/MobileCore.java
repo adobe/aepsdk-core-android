@@ -994,6 +994,7 @@ final public class MobileCore {
 
     @VisibleForTesting
     static void resetSDK() {
+        EventHub.Companion.getShared().shutdown();
         EventHub.Companion.setShared(new EventHub());
         sdkInitializedWithContext.set(false);
     }

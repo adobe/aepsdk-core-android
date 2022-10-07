@@ -8,12 +8,10 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.integration;
+package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.eventhub.EventHub;
-
-public class EventHubProxy {
-    public static void resetEventhub() {
-        EventHub.Companion.setShared(new EventHub());
+public class SDKHelper {
+    public static void resetSDK() {
+        MobileCore.resetSDK();
     }
 }

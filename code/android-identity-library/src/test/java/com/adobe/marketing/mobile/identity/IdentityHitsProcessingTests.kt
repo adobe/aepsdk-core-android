@@ -31,6 +31,7 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import java.io.InputStream
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class IdentityHitsProcessingTests {
@@ -98,6 +99,20 @@ class IdentityHitsProcessingTests {
     }
 
     @Test
+    fun `processHit() - invalid event json 2`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val json = """
+            {
+              "URL": null,
+              "EVENT": null
+            }
+        """.trimIndent()
+        assertTrue(identityHitsProcessing.processHit(DataEntity(json)))
+        verify(spiedNetworking, never()).connectAsync(any(), any())
+    }
+
+    @Test
     fun `processHit() - null connection`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -117,6 +132,24 @@ class IdentityHitsProcessingTests {
 
         assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
         countDownLatch.await()
+    }
+
+    @Test(timeout = 10000)
+    fun `processHit() - network request timeout`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val jsonObject = JSONObject()
+        jsonObject.put("URL", "url")
+        jsonObject.put("EVENT", EventCoder.encode(event))
+        val timeoutLatch = CountDownLatch(1)
+        val countDownLatch = CountDownLatch(1)
+        ServiceProvider.getInstance().networkService = Networking { _, _ ->
+            countDownLatch.countDown()
+            assertFalse(timeoutLatch.await(120, TimeUnit.MILLISECONDS))
+        }
+        assertFalse(identityHitsProcessing.processHit(DataEntity(jsonObject.toString()), 100))
+        countDownLatch.await()
+        verify(mockedIdentityExtension, never()).networkResponseLoaded(any(), any())
     }
 
     @Test
@@ -286,6 +319,7 @@ class IdentityHitsProcessingTests {
         assertFalse(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
         verify(mockedIdentityExtension, never()).networkResponseLoaded(any(), any())
     }
+
 }
 
 

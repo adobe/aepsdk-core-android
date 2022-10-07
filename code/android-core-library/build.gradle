@@ -11,9 +11,13 @@ ext.disableVariants = project.gradle.startParameter.taskNames.any { taskName ->
 }
 apiValidation {
     ignoredPackages += [
-            "com.adobe.marketing.mobile.internal",
-            "com.adobe.marketing.mobile.services.internal",
-            "com.adobe.marketing.mobile.services.ui.internal"
+        "com.adobe.marketing.mobile.internal",
+        "com.adobe.marketing.mobile.services.internal",
+        "com.adobe.marketing.mobile.services.ui.internal"
+    ]
+
+    ignoredClasses += [
+        "com.adobe.marketing.mobile.BuildConfig"
     ]
 }
 

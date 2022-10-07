@@ -50,6 +50,10 @@ class IdentityHitsProcessing implements HitProcessing {
 
     @Override
     public boolean processHit(DataEntity entity) {
+        return processHit(entity, IdentityConstants.Defaults.TIMEOUT_IN_MILLISECONDS + 1);
+    }
+
+    public boolean processHit(DataEntity entity, int networkTimeoutInMilliseconds) {
         IdentityHit hit = IdentityHit.fromDataEntity(entity);
         if (hit == null) {
             return true;
@@ -123,7 +127,7 @@ class IdentityHitsProcessing implements HitProcessing {
         });
         try {
             //noinspection ResultOfMethodCallIgnored
-            countDownLatch.await(IdentityConstants.Defaults.TIMEOUT + 1, TimeUnit.SECONDS);
+            countDownLatch.await(networkTimeoutInMilliseconds, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             return false;
         }

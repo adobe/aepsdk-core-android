@@ -1355,6 +1355,21 @@ class IdentityExtensionTests {
         verify(spiedIdentityExtension, times(1)).savePersistently()
     }
 
+    @Test
+    fun `handleNetworkResponseMap() - IdentityResponseObject is null`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        assertFalse(spiedIdentityExtension.handleNetworkResponseMap(null))
+    }
+
+    @Test
+    fun `handleNetworkResponseMap() - OPT_OUT list is not null or empty`() {
+        val responseObject = IdentityResponseObject()
+        responseObject.optOutList = listOf("a", "b")
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        assertFalse(spiedIdentityExtension.handleNetworkResponseMap(responseObject))
+        verify(spiedIdentityExtension, times(1)).handleIdentityConfigurationUpdateEvent(any())
+    }
+
     // ==============================================================================================================
     // 	List<VisitorID> convertVisitorIdsStringToVisitorIDObjects(final String idString)
     // ==============================================================================================================
@@ -1408,6 +1423,15 @@ class IdentityExtensionTests {
     fun `convertVisitorIdsStringToVisitorIDObjects() - bad string format - 3`() {
         val visitorIdString =
             "d_cid_ic=loginidhash%0197717&d_cid_ic="
+        val visitorIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdString)
+        assertEquals(0, visitorIds.size)
+    }
+
+    @Test
+    fun `convertVisitorIdsStringToVisitorIDObjects() - bad string format - 4`() {
+        val visitorIdString =
+            "d_cid_ic=loginidhash%0197717%01x&d_cid_ic="
         val visitorIds =
             IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdString)
         assertEquals(0, visitorIds.size)

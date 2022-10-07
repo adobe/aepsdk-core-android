@@ -1478,7 +1478,8 @@ final public class IdentityExtension extends Extension {
     /**
      * @param eventData to be used to create the event object to be dispatched.
      */
-    private void handleIdentityConfigurationUpdateEvent(final Map<String, Object> eventData) {
+    @VisibleForTesting
+    void handleIdentityConfigurationUpdateEvent(final Map<String, Object> eventData) {
         final Event event = new Event.Builder("Configuration Update From IdentityExtension",
                 EventType.CONFIGURATION, EventSource.REQUEST_CONTENT).setEventData(eventData).build();
 
@@ -1842,15 +1843,11 @@ final public class IdentityExtension extends Extension {
         try {
             return new VisitorID(currentCustomerIdOrigin, idInfo.get(0), idInfo.get(1),
                     VisitorID.AuthenticationState.fromInteger(Integer.parseInt(idInfo.get(2))));
-        } catch (final NumberFormatException ex) {
+        } catch (final NumberFormatException | IllegalStateException ex) {
             Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "parseCustomerIDStringToVisitorIDObject : Unable to parse the ECID: (%s) due to an exception: (%s).",
                     customerIdString,
                     ex.getLocalizedMessage());
-        } catch (final IllegalStateException ex) {
-            Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                    "parseCustomerIDStringToVisitorIDObject : Unable to create the ECID after encoding due to an exception: (%s).",
-                    ex);
         }
 
         return null;
@@ -1908,13 +1905,14 @@ final public class IdentityExtension extends Extension {
      * @param identityResponseObject representing the parsed JSON response
      * @return {@code boolean} indicating if there is a change in the local properties (mid, blob, locationHint)
      */
-    private boolean handleNetworkResponseMap(final IdentityResponseObject identityResponseObject) {
+    @VisibleForTesting
+    boolean handleNetworkResponseMap(final IdentityResponseObject identityResponseObject) {
         boolean requiresSharedStateUpdate = false;
 
         if (identityResponseObject == null) {
             Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "handleNetworkResponseMap : Received an empty JSON in response from ECID Service, so there is nothing to handle.");
-            return requiresSharedStateUpdate;
+            return false;
         }
 
         if (identityResponseObject.optOutList != null && !identityResponseObject.optOutList.isEmpty()) {

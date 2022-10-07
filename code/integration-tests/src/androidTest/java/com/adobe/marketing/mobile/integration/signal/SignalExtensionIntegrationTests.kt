@@ -16,6 +16,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.SDKHelper
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
@@ -44,9 +45,7 @@ class SignalExtensionIntegrationTests {
                 InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as Application
 
             val countDownLatch = CountDownLatch(1)
-
-            MobileCore.resetSDK()
-
+            SDKHelper.resetSDK()
             ServiceProvider.getInstance().networkService = Networking { request, callback ->
                 var connection: HttpConnecting? = null
                 with(request.url) {

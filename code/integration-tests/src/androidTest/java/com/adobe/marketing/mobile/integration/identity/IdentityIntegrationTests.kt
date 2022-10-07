@@ -14,10 +14,7 @@ import android.content.Context
 import android.util.Log
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.adobe.marketing.mobile.Identity
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.VisitorID
+import com.adobe.marketing.mobile.*
 import com.adobe.marketing.mobile.identity.IdentityExtension
 import com.adobe.marketing.mobile.integration.ConfigurationMonitor
 import com.adobe.marketing.mobile.integration.MonitorExtension
@@ -78,7 +75,7 @@ class IdentityIntegrationTests {
     @Before
     fun setup() {
         networkMonitor = null
-        MobileCore.resetSDK()
+        SDKHelper.resetSDK()
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
 
@@ -104,7 +101,7 @@ class IdentityIntegrationTests {
     private fun restartExtension() {
         networkMonitor = null
 
-        MobileCore.resetSDK()
+        SDKHelper.resetSDK()
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
@@ -178,7 +175,7 @@ class IdentityIntegrationTests {
             Log.d("integration_test", "${entry.key} - ${entry.value}")
         }
 
-        MobileCore.resetSDK()
+        SDKHelper.resetSDK()
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)

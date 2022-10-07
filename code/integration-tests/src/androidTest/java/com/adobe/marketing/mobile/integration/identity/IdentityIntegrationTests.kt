@@ -103,10 +103,11 @@ class IdentityIntegrationTests {
         assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
     }
 
-    fun restartExtension() {
+    private fun restartExtension() {
         networkMonitor = null
-        MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         EventHubProxy.resetEventhub()
+        MobileCore.resetFlag()
+        MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatch = CountDownLatch(1)
         MobileCore.registerExtensions(listOf(IdentityExtension::class.java)) {

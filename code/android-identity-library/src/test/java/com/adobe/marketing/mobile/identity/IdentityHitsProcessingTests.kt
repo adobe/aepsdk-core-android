@@ -131,6 +131,26 @@ class IdentityHitsProcessingTests {
     }
 
     @Test
+    fun `processHit() - response code is recoverable (408)`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val jsonObject = JSONObject()
+        jsonObject.put("URL", "url")
+        jsonObject.put("EVENT", EventCoder.encode(event))
+
+        ServiceProvider.getInstance().networkService = Networking { _, callback ->
+            callback.call(object : DefaultHttpConnecting() {
+                override fun getResponseCode(): Int {
+                    return 408
+                }
+            })
+        }
+
+        assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        verify(mockedIdentityExtension, never()).networkResponseLoaded(any(), any())
+    }
+
+    @Test
     fun `processHit() - response code is 200`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -153,6 +173,7 @@ class IdentityHitsProcessingTests {
                                 "dcs_region":9,
                                 "d_ottl":7200,
                                 "ibs":[],
+                                "d_optout":["a", "b"],
                                 "subdomain":"obumobile5",
                                 "tid":"d47JfAKTTsU="
                             }
@@ -171,6 +192,85 @@ class IdentityHitsProcessingTests {
 
         assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
         countDownLatch.await()
+    }
+
+    @Test
+    fun `processHit() - response code is 200 - unsupported json array`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val jsonObject = JSONObject()
+        jsonObject.put("URL", "url")
+        jsonObject.put("EVENT", EventCoder.encode(event))
+
+        ServiceProvider.getInstance().networkService = Networking { _, callback ->
+            callback.call(object : DefaultHttpConnecting() {
+                override fun getResponseCode(): Int {
+                    return 200
+                }
+
+                override fun getInputStream(): InputStream? {
+                    val json = """
+                            {
+                                "d_mid":"32392347938908875026252848914224372728",
+                                "id_sync_ttl":604800,
+                                "d_blob":"hmk_Lq6TPIBMW925SPhw3Q",
+                                "dcs_region":9,
+                                "d_ottl":7200,
+                                "ibs":[],
+                                "d_optout":["a", {}],
+                                "subdomain":"obumobile5",
+                                "tid":"d47JfAKTTsU="
+                            }
+                        """.trimIndent()
+                    return json.byteInputStream(Charsets.UTF_8)
+                }
+            })
+        }
+        val countDownLatch = CountDownLatch(1)
+        doAnswer { invocation ->
+            val result = invocation.arguments[0] as? IdentityResponseObject
+            assertNotNull(result)
+            assertEquals("hmk_Lq6TPIBMW925SPhw3Q", result?.blob)
+            countDownLatch.countDown()
+        }.`when`(mockedIdentityExtension).networkResponseLoaded(any(), any())
+
+        assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        countDownLatch.await()
+    }
+
+    @Test
+    fun `processHit() - response code is 200 with bad json`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val jsonObject = JSONObject()
+        jsonObject.put("URL", "url")
+        jsonObject.put("EVENT", EventCoder.encode(event))
+
+        ServiceProvider.getInstance().networkService = Networking { _, callback ->
+            callback.call(object : DefaultHttpConnecting() {
+                override fun getResponseCode(): Int {
+                    return 200
+                }
+
+                override fun getInputStream(): InputStream? {
+                    val json = """
+                            invalid_json{
+                                "d_mid":"32392347938908875026252848914224372728",
+                                "id_sync_ttl":604800,
+                                "d_blob":"hmk_Lq6TPIBMW925SPhw3Q",
+                                "dcs_region":9,
+                                "d_ottl":7200,
+                                "ibs":[],
+                                "subdomain":"obumobile5",
+                                "tid":"d47JfAKTTsU="
+                            }
+                        """.trimIndent()
+                    return json.byteInputStream(Charsets.UTF_8)
+                }
+            })
+        }
+        assertFalse(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        verify(mockedIdentityExtension, never()).networkResponseLoaded(any(), any())
     }
 }
 

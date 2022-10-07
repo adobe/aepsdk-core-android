@@ -534,6 +534,7 @@ final public class IdentityExtension extends Extension {
      * <p>
      * Returns early without setting variables if LocalStorageService is unavailable
      */
+    @VisibleForTesting
     void loadVariablesFromPersistentData() {
 
         if (namedCollection == null) {
@@ -1142,7 +1143,7 @@ final public class IdentityExtension extends Extension {
      * @param idString {@link String} to be parsed for valid {@code VisitorID} objects
      * @return {@code List<VisitorID>} containing the objects represented in the {@code idString}, deduplicated by idTypes
      */
-    List<VisitorID> convertVisitorIdsStringToVisitorIDObjects(final String idString) {
+    static List<VisitorID> convertVisitorIdsStringToVisitorIDObjects(final String idString) {
         if (StringUtils.isNullOrEmpty(idString)) {
             return new ArrayList<>();
         }
@@ -1796,7 +1797,7 @@ final public class IdentityExtension extends Extension {
      * @param customerIdString {@link String} representing a customer ID
      * @return {@code VisitorID} object representing the values provided by the string parameter
      */
-    private VisitorID parseCustomerIDStringToVisitorIDObject(final String customerIdString) {
+    private static VisitorID parseCustomerIDStringToVisitorIDObject(final String customerIdString) {
 
         // AMSDK-3868
         // in this case, having an equals sign in the value doesn't cause a crash (like it did in iOS),
@@ -2000,7 +2001,7 @@ final public class IdentityExtension extends Extension {
      * @return status of the comparison between the two visitor identifier idTypes
      * @see {@link #mergeCustomerIds(List)}
      */
-    private boolean sameIdType(final VisitorID visitorId1, final VisitorID visitorId2) {
+    private static boolean sameIdType(final VisitorID visitorId1, final VisitorID visitorId2) {
         if (visitorId1 == null || visitorId2 == null) {
             return false;
         }
@@ -2017,11 +2018,15 @@ final public class IdentityExtension extends Extension {
      * @param event the {@link Event} used to retrieve the {@code Configuration} state
      */
     private void loadPrivacyStatus(final Event event) {
-        Map<String, Object> configState = getApi().getSharedState(
+        SharedStateResult result = getApi().getSharedState(
                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
                 event,
                 false,
-                SharedStateResolution.LAST_SET).getValue();
+                SharedStateResolution.LAST_SET);
+        if (result == null) {
+            return;
+        }
+        Map<String, Object> configState = result.getValue();
         if (configState == null) {
             return;
         }

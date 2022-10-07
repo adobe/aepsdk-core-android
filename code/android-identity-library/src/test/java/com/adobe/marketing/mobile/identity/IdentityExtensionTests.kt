@@ -25,6 +25,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.*
 import java.util.concurrent.CountDownLatch
 
+
 @RunWith(MockitoJUnitRunner.Silent::class)
 class IdentityExtensionTests {
     @Mock
@@ -93,6 +94,35 @@ class IdentityExtensionTests {
                 Event.Builder("event", "type", "source").build()
             )
         )
+    }
+
+    @Test
+    fun `readyForEvent() should return false if configuration is not registered`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onRegistered()
+
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer null
+            }
+            return@thenAnswer null
+        }
+        assertFalse(
+            identityExtension.readyForEvent(
+                Event.Builder("event", "type", "source").build()
+            )
+        )
+    }
+
+    @Test
+    fun `forceSyncIdentifiers() should still create a shared state if OPTED_OUT`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
+        identityExtension.forceSyncIdentifiers(Event.Builder("event", "type", "source").build())
+        verify(mockedExtensionApi, times(1)).createSharedState(any(), anyOrNull())
     }
 
     @Test
@@ -285,6 +315,13 @@ class IdentityExtensionTests {
 
         verify(spiedIdentityExtension, never()).processPrivacyChange(any(), any())
         verify(spiedIdentityExtension, never()).updateLatestValidConfiguration(any())
+    }
+
+    @Test
+    fun `loadVariablesFromPersistentData() - shouldn't crash if NamedCollection is null`() {
+        val identityExtension =
+            IdentityExtension(mockedExtensionApi, null, mockedHitQueue)
+        identityExtension.loadVariablesFromPersistentData()
     }
 
     @Test
@@ -1081,4 +1118,182 @@ class IdentityExtensionTests {
         assertTrue(spiedIdentityExtension.lastSync > 0)
         verify(spiedIdentityExtension, times(1)).savePersistently()
     }
+
+    // ==============================================================================================================
+    // 	List<VisitorID> convertVisitorIdsStringToVisitorIDObjects(final String idString)
+    // ==============================================================================================================
+    @Test
+    fun convertVisitorIdsStringToVisitorIDObjects_ConvertStringToVisitorIDsCorrectly() {
+        val visitorIdString =
+            "d_cid_ic=loginidhash%0197717%010&d_cid_ic=xboxlivehash%011629158955%011&d_cid_ic" +
+                    "=psnidhash%011144032295%012&d_cid=pushid%01testPushId%011"
+        val visitorIDList = listOf(
+            VisitorID(
+                "d_cid_ic", "loginidhash", "97717",
+                VisitorID.AuthenticationState.UNKNOWN
+            ),
+            VisitorID(
+                "d_cid_ic", "xboxlivehash", "1629158955",
+                VisitorID.AuthenticationState.AUTHENTICATED
+            ),
+            VisitorID(
+                "d_cid_ic", "psnidhash", "1144032295",
+                VisitorID.AuthenticationState.LOGGED_OUT
+            ),
+            VisitorID(
+                "d_cid", "pushid", "testPushId",
+                VisitorID.AuthenticationState.AUTHENTICATED
+            )
+        )
+        val visitorIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdString)
+        assertEquals(visitorIds, visitorIDList)
+    }
+
+    @Test
+    fun testConvertVisitorIdsStringToVisitorIDObjects_OneVisitorId_Works() {
+        // setup
+        val visitorIds = listOf(
+            VisitorID(
+                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "customIdValue",
+                VisitorID.AuthenticationState.AUTHENTICATED
+            )
+        )
+        val visitorIdsString = stringFromVisitorIdList(visitorIds)
+
+        // test
+        val returnedIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString)
+
+        // verify
+        assertNotNull(returnedIds)
+        assertEquals(1, returnedIds.size)
+        assertEquals(visitorIds, returnedIds)
+    }
+
+    @Test
+    fun testConvertVisitorIdsStringToVisitorIDObjects_TwoVisitorIds_Works() {
+        // setup
+        val visitorIds = listOf(
+            VisitorID(
+                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "customIdValue",
+                VisitorID.AuthenticationState.AUTHENTICATED
+            ),
+            VisitorID(
+                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType2", "customIdValue2",
+                VisitorID.AuthenticationState.UNKNOWN
+            )
+        )
+        val visitorIdsString = stringFromVisitorIdList(visitorIds)
+
+        // test
+        val returnedIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString)
+
+        // verify
+        assertNotNull(returnedIds)
+        assertEquals(2, returnedIds.size)
+        assertEquals(visitorIds, returnedIds)
+    }
+
+    @Test
+    fun testConvertVisitorIdsStringToVisitorIDObjects_EqualsInValue_Works() {
+        // setup
+        val visitorIds = listOf(
+            VisitorID(
+                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType",
+                "customIdValue==withEquals", VisitorID.AuthenticationState.AUTHENTICATED
+            )
+        )
+        val visitorIdsString = stringFromVisitorIdList(visitorIds)
+
+        // test
+        val returnedIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString)
+
+        // verify
+        assertNotNull(returnedIds)
+        assertEquals(1, returnedIds.size)
+        assertEquals(visitorIds, returnedIds)
+    }
+
+    @Test
+    fun testConvertVisitorIdsStringToVisitorIDObjects_TwoVisitorIdsOneInvalid_ReturnsOnlyValidOne() {
+        // setup
+        val visitorIds = listOf(
+            VisitorID(
+                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "value1",
+                VisitorID.AuthenticationState.AUTHENTICATED
+            ),
+            VisitorID(
+                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "",
+                VisitorID.AuthenticationState.LOGGED_OUT
+            )
+        )
+
+        val visitorIdsString = stringFromVisitorIdList(visitorIds)
+
+        // test
+        val returnedIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString)
+
+        // verify
+        assertNotNull(returnedIds)
+        assertEquals(returnedIds.size, 1)
+        val visitorID = returnedIds[0]
+        assertEquals(IdentityTestConstants.UrlKeys.VISITOR_ID, visitorID.idOrigin)
+        assertEquals("customIdType", visitorID.idType)
+        assertEquals("value1", visitorID.id)
+        assertEquals(VisitorID.AuthenticationState.AUTHENTICATED, visitorID.authenticationState)
+    }
+
+    @Test
+    fun testConvertVisitorIdsStringToVisitorIDObjects__removesDuplicatedIdTypes() {
+        // setup
+        val visitorIds = listOf(
+            VisitorID(
+                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "value1",
+                VisitorID.AuthenticationState.AUTHENTICATED
+            ),
+            VisitorID(
+                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "value2",
+                VisitorID.AuthenticationState.LOGGED_OUT
+            )
+        )
+        val visitorIdsString: String = stringFromVisitorIdList(visitorIds)
+
+        // test
+        val returnedIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdsString)
+
+        // verify
+        assertNotNull(returnedIds)
+        assertEquals(1, returnedIds.size)
+        val visitorID = returnedIds[0]
+        assertEquals(IdentityTestConstants.UrlKeys.VISITOR_ID, visitorID.idOrigin)
+        assertEquals("customIdType", visitorID.idType)
+        assertEquals("value2", visitorID.id)
+        assertEquals(VisitorID.AuthenticationState.LOGGED_OUT, visitorID.authenticationState)
+    }
+
+    private fun stringFromVisitorIdList(visitorIDs: List<VisitorID>?): String {
+        if (visitorIDs == null) {
+            return ""
+        }
+        val customerIdString = StringBuilder()
+        for (visitorID in visitorIDs) {
+            customerIdString.append("&")
+            customerIdString.append(IdentityConstants.UrlKeys.VISITOR_ID)
+            customerIdString.append("=")
+            customerIdString.append(visitorID.idType)
+            customerIdString.append(IdentityTestConstants.Defaults.CID_DELIMITER)
+            if (visitorID.id != null) {
+                customerIdString.append(visitorID.id)
+            }
+            customerIdString.append(IdentityTestConstants.Defaults.CID_DELIMITER)
+            customerIdString.append(visitorID.authenticationState.value)
+        }
+        return customerIdString.toString()
+    }
+
 }

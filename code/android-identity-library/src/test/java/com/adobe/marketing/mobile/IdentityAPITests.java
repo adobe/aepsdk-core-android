@@ -30,6 +30,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class IdentityAPITests {
@@ -41,7 +43,7 @@ public class IdentityAPITests {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void test_registerExtension() throws Exception {
+    public void test_registerExtension() {
         try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
             // mock MobileCore.registerExtension()
             ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
@@ -58,6 +60,28 @@ public class IdentityAPITests {
             assertEquals(IdentityExtension.class, extensionClassCaptor.getValue());
             // verify: error callback was called
             callbackCaptor.getValue().error(ExtensionError.UNEXPECTED_ERROR);
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void test_registerExtension_nullError() {
+        try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
+            // mock MobileCore.registerExtension()
+            ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
+            ArgumentCaptor<ExtensionErrorCallback> callbackCaptor = ArgumentCaptor.forClass(
+                    ExtensionErrorCallback.class
+            );
+            mobileCoreMockedStatic
+                    .when(() -> MobileCore.registerExtension(extensionClassCaptor.capture(), callbackCaptor.capture()))
+                    .thenReturn(true);
+            // call registerExtension() API
+            Identity.registerExtension();
+            // verify: happy
+            assertNotNull(callbackCaptor.getValue());
+            assertEquals(IdentityExtension.class, extensionClassCaptor.getValue());
+
+            callbackCaptor.getValue().error(null);
         }
     }
 
@@ -82,6 +106,15 @@ public class IdentityAPITests {
             assertEquals(false, eventData.get("forcesync"));
             assertEquals(1, eventData.get("authenticationstate"));
             assertEquals(true, eventData.get("issyncevent"));
+        }
+    }
+
+    @Test
+    public void test_syncIdentifier_emptyType() {
+        try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
+            mobileCoreMockedStatic.reset();
+            Identity.syncIdentifier("", "id", VisitorID.AuthenticationState.AUTHENTICATED);
+            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEvent(any()), never());
         }
     }
 
@@ -148,11 +181,26 @@ public class IdentityAPITests {
     }
 
     @Test
-    public void test_appendVisitorInfoForURL() {
+    public void test_syncIdentifiers_emptyMap() {
+        try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
+            mobileCoreMockedStatic.reset();
+            Map<String, String> identifiers = new HashMap<>();
+            Identity.syncIdentifiers(identifiers, VisitorID.AuthenticationState.AUTHENTICATED);
+            Identity.syncIdentifiers(identifiers);
+
+            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEvent(any()), never());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test_appendVisitorInfoForURL() throws InterruptedException {
+        String expectedUrl = "expectedUrl";
         try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
             mobileCoreMockedStatic.reset();
             ArgumentCaptor<Event> eventCaptor = ArgumentCaptor.forClass(Event.class);
             ArgumentCaptor<Long> timeoutCaptor = ArgumentCaptor.forClass(Long.class);
+            CountDownLatch countDownLatch = new CountDownLatch(1);
             Identity.appendVisitorInfoForURL("https://adobe.com", new AdobeCallbackWithError<String>() {
                 @Override
                 public void fail(AdobeError error) {
@@ -161,10 +209,17 @@ public class IdentityAPITests {
 
                 @Override
                 public void call(String value) {
-
+                    assertEquals(expectedUrl, value);
+                    countDownLatch.countDown();
                 }
             });
-            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), timeoutCaptor.capture(), any()));
+            ArgumentCaptor<AdobeCallbackWithError> callbackCaptor = ArgumentCaptor.forClass(
+                    AdobeCallbackWithError.class
+            );
+            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEventWithResponseCallback(
+                    eventCaptor.capture(),
+                    timeoutCaptor.capture(),
+                    callbackCaptor.capture()));
             Event dispatchedEvent = eventCaptor.getValue();
             assertEquals(new Long(500), timeoutCaptor.getValue());
             assertNotNull(dispatchedEvent);
@@ -173,6 +228,15 @@ public class IdentityAPITests {
             assertEquals("com.adobe.eventSource.requestIdentity", dispatchedEvent.getSource());
             Map<String, Object> eventData = dispatchedEvent.getEventData();
             assertEquals("https://adobe.com", eventData.get("baseurl"));
+            assertNotNull(callbackCaptor.getValue());
+            callbackCaptor.getValue().call(
+                    new Event.Builder("event-name", "type", "source")
+                            .setEventData(new HashMap<String, Object>() {
+                                {
+                                    put("updatedurl", expectedUrl);
+                                }
+                            }).build());
+            assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS));
         }
     }
 
@@ -187,10 +251,13 @@ public class IdentityAPITests {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    public void test_getUrlVariables() {
+    public void test_getUrlVariables() throws InterruptedException {
+        String expectedUrl = "expectedUrl";
         try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
             mobileCoreMockedStatic.reset();
+            CountDownLatch countDownLatch = new CountDownLatch(1);
             ArgumentCaptor<Event> eventCaptor = ArgumentCaptor.forClass(Event.class);
             ArgumentCaptor<Long> timeoutCaptor = ArgumentCaptor.forClass(Long.class);
             Identity.getUrlVariables(new AdobeCallbackWithError<String>() {
@@ -201,10 +268,14 @@ public class IdentityAPITests {
 
                 @Override
                 public void call(String value) {
-
+                    assertEquals(expectedUrl, value);
+                    countDownLatch.countDown();
                 }
             });
-            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), timeoutCaptor.capture(), any()));
+            ArgumentCaptor<AdobeCallbackWithError> callbackCaptor = ArgumentCaptor.forClass(
+                    AdobeCallbackWithError.class
+            );
+            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), timeoutCaptor.capture(), callbackCaptor.capture()));
             Event dispatchedEvent = eventCaptor.getValue();
             assertEquals(new Long(500), timeoutCaptor.getValue());
             assertNotNull(dispatchedEvent);
@@ -213,6 +284,15 @@ public class IdentityAPITests {
             assertEquals("com.adobe.eventSource.requestIdentity", dispatchedEvent.getSource());
             Map<String, Object> eventData = dispatchedEvent.getEventData();
             assertEquals(true, eventData.get("urlvariables"));
+            assertNotNull(callbackCaptor.getValue());
+            callbackCaptor.getValue().call(
+                    new Event.Builder("event-name", "type", "source")
+                            .setEventData(new HashMap<String, Object>() {
+                                {
+                                    put("urlvariables", expectedUrl);
+                                }
+                            }).build());
+            assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS));
         }
     }
 
@@ -266,10 +346,13 @@ public class IdentityAPITests {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    public void test_getExperienceCloudId() {
+    public void test_getExperienceCloudId() throws InterruptedException {
+        String expectedId = "expectedId";
         try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
             mobileCoreMockedStatic.reset();
+            CountDownLatch countDownLatch = new CountDownLatch(1);
             ArgumentCaptor<Event> eventCaptor = ArgumentCaptor.forClass(Event.class);
             ArgumentCaptor<Long> timeoutCaptor = ArgumentCaptor.forClass(Long.class);
             Identity.getExperienceCloudId(new AdobeCallbackWithError<String>() {
@@ -280,10 +363,14 @@ public class IdentityAPITests {
 
                 @Override
                 public void call(String value) {
-
+                    assertEquals(expectedId, value);
+                    countDownLatch.countDown();
                 }
             });
-            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), timeoutCaptor.capture(), any()));
+            ArgumentCaptor<AdobeCallbackWithError> callbackCaptor = ArgumentCaptor.forClass(
+                    AdobeCallbackWithError.class
+            );
+            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), timeoutCaptor.capture(), callbackCaptor.capture()));
             Event dispatchedEvent = eventCaptor.getValue();
             assertEquals(new Long(500), timeoutCaptor.getValue());
             assertNotNull(dispatchedEvent);
@@ -291,6 +378,55 @@ public class IdentityAPITests {
             assertEquals("com.adobe.eventType.identity", dispatchedEvent.getType());
             assertEquals("com.adobe.eventSource.requestIdentity", dispatchedEvent.getSource());
             assertNull(dispatchedEvent.getEventData());
+
+            assertNotNull(callbackCaptor.getValue());
+            callbackCaptor.getValue().call(
+                    new Event.Builder("event-name", "type", "source")
+                            .setEventData(new HashMap<String, Object>() {
+                                {
+                                    put("mid", expectedId);
+                                }
+                            }).build());
+            assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test_getExperienceCloudId_error() throws InterruptedException {
+        String expectedId = "expectedId";
+        try (MockedStatic<MobileCore> mobileCoreMockedStatic = Mockito.mockStatic(MobileCore.class)) {
+            mobileCoreMockedStatic.reset();
+            CountDownLatch countDownLatch = new CountDownLatch(1);
+            ArgumentCaptor<Event> eventCaptor = ArgumentCaptor.forClass(Event.class);
+            ArgumentCaptor<Long> timeoutCaptor = ArgumentCaptor.forClass(Long.class);
+            Identity.getExperienceCloudId(new AdobeCallbackWithError<String>() {
+                @Override
+                public void fail(AdobeError error) {
+                    assertEquals(AdobeError.UNEXPECTED_ERROR, error);
+                    countDownLatch.countDown();
+                }
+
+                @Override
+                public void call(String value) {
+
+                }
+            });
+            ArgumentCaptor<AdobeCallbackWithError> callbackCaptor = ArgumentCaptor.forClass(
+                    AdobeCallbackWithError.class
+            );
+            mobileCoreMockedStatic.verify(() -> MobileCore.dispatchEventWithResponseCallback(eventCaptor.capture(), timeoutCaptor.capture(), callbackCaptor.capture()));
+            Event dispatchedEvent = eventCaptor.getValue();
+            assertEquals(new Long(500), timeoutCaptor.getValue());
+            assertNotNull(dispatchedEvent);
+            assertEquals("IdentityRequestIdentity", dispatchedEvent.getName());
+            assertEquals("com.adobe.eventType.identity", dispatchedEvent.getType());
+            assertEquals("com.adobe.eventSource.requestIdentity", dispatchedEvent.getSource());
+            assertNull(dispatchedEvent.getEventData());
+
+            assertNotNull(callbackCaptor.getValue());
+            callbackCaptor.getValue().fail(AdobeError.UNEXPECTED_ERROR);
+            assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS));
         }
     }
 

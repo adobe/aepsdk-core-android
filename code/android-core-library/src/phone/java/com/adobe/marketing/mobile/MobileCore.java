@@ -991,4 +991,10 @@ final public class MobileCore {
         return true;
     }
 
+    @VisibleForTesting
+    public static void resetSDK() {
+        EventHub.Companion.setShared(new EventHub());
+        sdkInitializedWithContext.set(false);
+    }
+
 }

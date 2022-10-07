@@ -24,8 +24,8 @@ import org.json.JSONObject;
 final class IdentityHit {
     private static final String URL = "URL";
     private static final String EVENT = "EVENT";
-    private String url;
-    private Event event;
+    private final String url;
+    private final Event event;
 
     IdentityHit(@NonNull String url, @NonNull Event event) {
         this.url = url;
@@ -48,7 +48,6 @@ final class IdentityHit {
             jsonObject.put(EVENT, EventCoder.encode(this.event));
             return new DataEntity(jsonObject.toString());
         } catch (JSONException e) {
-            e.printStackTrace();
             return null;
         }
     }

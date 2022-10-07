@@ -84,6 +84,20 @@ class IdentityHitsProcessingTests {
     }
 
     @Test
+    fun `processHit() - invalid event json`() {
+        val identityHitsProcessing = initializeIdentityHitsProcessing()
+        ServiceProvider.getInstance().networkService = spiedNetworking
+        val json = """
+            {
+              "URL": "url",
+              "EVENT": "x{+"
+            }
+        """.trimIndent()
+        assertTrue(identityHitsProcessing.processHit(DataEntity(json)))
+        verify(spiedNetworking, never()).connectAsync(any(), any())
+    }
+
+    @Test
     fun `processHit() - null connection`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking

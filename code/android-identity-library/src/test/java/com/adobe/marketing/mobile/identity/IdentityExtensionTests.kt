@@ -397,6 +397,10 @@ class IdentityExtensionTests {
                 "event",
                 "type",
                 "source"
+            ).setEventData(
+                mapOf(
+                    "key" to "value"
+                )
             ).build()
         )
 
@@ -441,7 +445,7 @@ class IdentityExtensionTests {
                 "source"
             ).setEventData(
                 mapOf(
-                    "invalid_aid" to "iddddd"
+                    "aid" to "iddddd"
                 )
             ).build()
         )
@@ -1148,6 +1152,33 @@ class IdentityExtensionTests {
         val visitorIds =
             IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdString)
         assertEquals(visitorIds, visitorIDList)
+    }
+
+    @Test
+    fun `convertVisitorIdsStringToVisitorIDObjects() - bad string format - 1`() {
+        val visitorIdString =
+            "there is no equals sign & there is no equals sign "
+        val visitorIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdString)
+        assertEquals(0, visitorIds.size)
+    }
+
+    @Test
+    fun `convertVisitorIdsStringToVisitorIDObjects() - bad string format - 2`() {
+        val visitorIdString =
+            "d_cid_ic=loginidhash%0197717%010&d_cid_ic="
+        val visitorIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdString)
+        assertEquals(1, visitorIds.size)
+    }
+
+    @Test
+    fun `convertVisitorIdsStringToVisitorIDObjects() - bad string format - 3`() {
+        val visitorIdString =
+            "d_cid_ic=loginidhash%0197717&d_cid_ic="
+        val visitorIds =
+            IdentityExtension.convertVisitorIdsStringToVisitorIDObjects(visitorIdString)
+        assertEquals(0, visitorIds.size)
     }
 
     @Test

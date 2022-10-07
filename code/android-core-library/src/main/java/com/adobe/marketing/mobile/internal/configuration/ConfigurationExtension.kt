@@ -403,11 +403,17 @@ internal class ConfigurationExtension : Extension {
      */
     private fun retrieveSDKIdentifiers(event: Event) {
         val eventData = mutableMapOf<String, Any?>()
-        MobileIdentitiesProvider.collectSdkIdentifiers(event, api).also { sdkIdentities ->
-            eventData[CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS] = sdkIdentities
+        MobileIdentitiesProvider.collectSdkIdentifiers(event, api).also { sdkIdentitiesJson ->
+            eventData[CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS] = sdkIdentitiesJson
         }
 
-        dispatchConfigurationResponse(eventData, event)
+        val responseIdentityEvent = Event.Builder(
+            "Configuration Response Identity",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_IDENTITY
+        ).setEventData(eventData).inResponseToEvent(event).build()
+
+        api.dispatch(responseIdentityEvent)
     }
 
     /**

@@ -52,6 +52,7 @@ android {
 }
 
 apply from: '../jacoco.gradle'
+apply from: '../checkstyle.gradle'
 
 dependencies {
     //noinspection GradleDependency,GradleCompatible

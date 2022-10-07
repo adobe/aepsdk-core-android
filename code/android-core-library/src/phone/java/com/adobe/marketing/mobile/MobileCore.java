@@ -217,7 +217,8 @@ final public class MobileCore {
                         if (completionCallback != null) {
                             completionCallback.call(null);
                         }
-                    } catch (Exception ex) {}
+                    } catch (Exception ex) {
+                    }
                 }
                 return null;
             });
@@ -989,6 +990,11 @@ final public class MobileCore {
         responseEvent.setResponseID(requestEvent.getResponseID());
         dispatchEvent(responseEvent);
         return true;
+    }
+
+    @VisibleForTesting
+    public static void resetFlag() {
+        sdkInitializedWithContext.set(false);
     }
 
 }

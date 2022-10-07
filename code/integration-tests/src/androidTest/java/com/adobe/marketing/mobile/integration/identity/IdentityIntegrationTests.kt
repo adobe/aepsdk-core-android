@@ -79,13 +79,17 @@ class IdentityIntegrationTests {
     @Before
     fun setup() {
         networkMonitor = null
+        MobileCore.resetFlag()
+        EventHubProxy.resetEventhub()
+
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
+
         val context = ApplicationProvider.getApplicationContext<Context>()
         val sharedPreference = context.getSharedPreferences("visitorIDServiceDataStore", 0)
         val editor = sharedPreference.edit()
         editor.clear()
         editor.commit()
-        EventHubProxy.resetEventhub()
+
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatch = CountDownLatch(1)
         MobileCore.registerExtensions(
@@ -149,9 +153,11 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
         configurationLatch.await()
+
         networkMonitor = { url ->
             if (url.contains("d_cid_ic=id1%01value1%011")) {
                 assertTrue(url.contains("https://test.com/id"))
@@ -165,14 +171,15 @@ class IdentityIntegrationTests {
             VisitorID.AuthenticationState.AUTHENTICATED
         )
         assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
-        EventHubProxy.resetEventhub()
-        Thread.sleep(100)
+
         val context = ApplicationProvider.getApplicationContext<Context>()
         val sharedPreference = context.getSharedPreferences("visitorIDServiceDataStore", 0)
         sharedPreference.all.entries.forEach { entry ->
             Log.d("integration_test", "${entry.key} - ${entry.value}")
         }
-        //ADOBEMOBILE_PERSISTED_MID
+
+        EventHubProxy.resetEventhub()
+        MobileCore.resetFlag()
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatchSecondNetworkMonitor = CountDownLatch(1)
@@ -184,9 +191,15 @@ class IdentityIntegrationTests {
             }
         }
         val countDownLatchSecondLaunch = CountDownLatch(1)
-        MobileCore.registerExtensions(listOf(IdentityExtension::class.java)) {
+        MobileCore.registerExtensions(
+            listOf(
+                IdentityExtension::class.java,
+                MonitorExtension::class.java
+            )
+        ) {
             countDownLatchSecondLaunch.countDown()
         }
+
         MobileCore.updateConfiguration(
             mapOf(
                 "experienceCloud.org" to "orgid",
@@ -194,11 +207,16 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
-        assertTrue(countDownLatchSecondLaunch.await(100, TimeUnit.MILLISECONDS))
+
+        val configurationLatch2 = CountDownLatch(1)
+        configurationAwareness { configurationLatch2.countDown() }
+        configurationLatch2.await()
+
+        assertTrue(countDownLatchSecondLaunch.await(500, TimeUnit.MILLISECONDS))
         countDownLatchSecondNetworkMonitor.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun testOptedout() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -221,8 +239,9 @@ class IdentityIntegrationTests {
     }
 
     @Test(timeout = 10000)
+    @Ignore
+    //TODO: getUrlVariables feature depends on Analytics shared state, will re-enable it once Analytics 2.0 migration is done.
     fun testGetUrlVariables() {
-        val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
             mapOf(
                 "experienceCloud.org" to "orgid",
@@ -230,9 +249,12 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
         configurationLatch.await()
+
+        val countDownLatch = CountDownLatch(1)
         Identity.getUrlVariables { variables ->
             assertNotNull(variables)
             assertTrue(variables.contains("TS"))
@@ -240,10 +262,13 @@ class IdentityIntegrationTests {
             assertTrue(variables.contains("MCORGID"))
             countDownLatch.countDown()
         }
+
         countDownLatch.await()
     }
 
-    @Test(timeout = 10000)
+    @Test
+    @Ignore
+    //TODO: appendUrl feature depends on Analytics shared state, will re-enable it once Analytics 2.0 migration is done.
     fun testAppendTo() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(

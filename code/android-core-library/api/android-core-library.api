@@ -228,6 +228,7 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallbackWithError;)V
 	public static fun registerExtension (Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public static fun registerExtensions (Ljava/util/List;Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public static fun resetFlag ()V
 	public static fun resetIdentities ()V
 	public static fun setAdvertisingIdentifier (Ljava/lang/String;)V
 	public static fun setApplication (Landroid/app/Application;)V
@@ -292,6 +293,8 @@ public final class com/adobe/marketing/mobile/VisitorID$AuthenticationState : ja
 	public static final field AUTHENTICATED Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
 	public static final field LOGGED_OUT Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
 	public static final field UNKNOWN Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public static fun fromInteger (I)Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public fun getValue ()I
 	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
 	public static fun values ()[Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
 }

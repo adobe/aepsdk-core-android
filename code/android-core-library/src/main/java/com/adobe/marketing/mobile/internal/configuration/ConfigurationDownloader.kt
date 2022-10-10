@@ -17,7 +17,7 @@ import com.adobe.marketing.mobile.services.HttpMethod
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NetworkCallback
 import com.adobe.marketing.mobile.services.NetworkRequest
-import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheEntry
 import com.adobe.marketing.mobile.services.caching.CacheExpiry
 import com.adobe.marketing.mobile.services.caching.CacheService
@@ -39,10 +39,7 @@ import java.util.TimeZone
  * Responsible for downloading configuration json file and processing it to provide a
  * usable configuration for the app implementing AEP SDK.
  */
-internal class ConfigurationDownloader(
-    private val networkService: Networking,
-    private val cacheService: CacheService
-) {
+internal class ConfigurationDownloader {
 
     companion object {
         const val LOG_TAG = "ConfigurationDownloader"
@@ -75,7 +72,7 @@ internal class ConfigurationDownloader(
             return
         }
 
-        val cacheResult = cacheService.get(CONFIG_CACHE_NAME, url)
+        val cacheResult = ServiceProvider.getInstance().cacheService.get(CONFIG_CACHE_NAME, url)
 
         // Compute headers
         val headers: MutableMap<String, String> = HashMap()
@@ -116,7 +113,7 @@ internal class ConfigurationDownloader(
             completionCallback.invoke(config)
         }
 
-        networkService.connectAsync(networkRequest, networkCallback)
+        ServiceProvider.getInstance().networkService.connectAsync(networkRequest, networkCallback)
     }
 
     /**
@@ -150,7 +147,7 @@ internal class ConfigurationDownloader(
                     "Configuration from $url has not been modified. Fetching from cache."
                 )
 
-                val cacheResult = cacheService.get(CONFIG_CACHE_NAME, url)
+                val cacheResult = ServiceProvider.getInstance().cacheService.get(CONFIG_CACHE_NAME, url)
                 processDownloadedConfig(url, cacheResult?.data, cacheResult?.metadata)
             }
 
@@ -191,7 +188,7 @@ internal class ConfigurationDownloader(
 
                     // Cache the downloaded configuration before returning
                     val cacheEntry = CacheEntry(content.byteInputStream(), CacheExpiry.never(), metadata)
-                    cacheService.set(CONFIG_CACHE_NAME, url, cacheEntry)
+                    ServiceProvider.getInstance().cacheService.set(CONFIG_CACHE_NAME, url, cacheEntry)
                     configMap
                 } catch (exception: JSONException) {
                     Log.debug(

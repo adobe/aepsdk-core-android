@@ -32,6 +32,7 @@ public class Identity {
     private static final String REQUEST_IDENTITY_EVENT_NAME = "IdentityRequestIdentity";
     private static final int PUBLIC_API_TIME_OUT_MILLISECOND = 500; //ms
 
+
     private Identity() {
 
     }

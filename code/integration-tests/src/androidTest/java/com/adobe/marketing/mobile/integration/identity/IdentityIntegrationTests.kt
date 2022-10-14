@@ -72,6 +72,15 @@ class IdentityIntegrationTests {
         }
     }
 
+    private fun clearSharedPreference(){
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val sharedPreference = context.getSharedPreferences("visitorIDServiceDataStore", 0)
+        val editor = sharedPreference.edit()
+        editor.clear()
+        editor.commit()
+    }
+
+
     @Before
     fun setup() {
         networkMonitor = null
@@ -79,11 +88,7 @@ class IdentityIntegrationTests {
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
 
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val sharedPreference = context.getSharedPreferences("visitorIDServiceDataStore", 0)
-        val editor = sharedPreference.edit()
-        editor.clear()
-        editor.commit()
+        clearSharedPreference()
 
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatch = CountDownLatch(1)
@@ -101,6 +106,9 @@ class IdentityIntegrationTests {
     @Test(timeout = 10000)
     fun testSyncIdentifiers() {
         val countDownLatch = CountDownLatch(1)
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+
         MobileCore.updateConfiguration(
             mapOf(
                 "experienceCloud.org" to "orgid",
@@ -108,8 +116,7 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
-        val configurationLatch = CountDownLatch(1)
-        configurationAwareness { configurationLatch.countDown() }
+
         configurationLatch.await()
         networkMonitor = { url ->
             if (url.contains("d_cid_ic=id1%01value1%011")) {

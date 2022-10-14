@@ -19,6 +19,7 @@ import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.NetworkCallback;
 import com.adobe.marketing.mobile.services.NetworkRequest;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.util.StreamUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -87,14 +88,14 @@ class IdentityHitsProcessing implements HitProcessing {
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
                 try {
-                    String networkInputStreamJSONString = NetworkConnectionUtil.readFromInputStream(connection.getInputStream());
+                    String networkInputStreamJSONString = StreamUtils.readAsString(connection.getInputStream());
                     JSONObject jsonObject = new JSONObject(networkInputStreamJSONString);
 
                     IdentityResponseObject result = createIdentityObjectFromResponseJsonObject(jsonObject);
                     Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "IdentityHitsDatabase.process : ECID Service response data was parsed successfully.");
                     identityExtension.networkResponseLoaded(result, hit.getEvent());
                     networkRequestSucessful.set(true);
-                } catch (final IOException | JSONException e) {
+                } catch (final JSONException e) {
                     Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                             "IdentityHitsDatabase.process : An unknown exception occurred while trying to process the response from the ECID Service: (%s).",
                             e);

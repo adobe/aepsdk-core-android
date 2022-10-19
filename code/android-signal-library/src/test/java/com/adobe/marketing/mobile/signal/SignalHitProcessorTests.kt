@@ -34,11 +34,6 @@ class SignalHitProcessorTests {
         signalHitProcessor = SignalHitProcessor()
     }
 
-    @Test
-    fun `retryInterval() should return positive integer`() {
-        assertTrue(signalHitProcessor.retryInterval(null) >= 0)
-    }
-
     @Test(timeout = 100)
     fun `processHit() should return true for data with bad format`() {
         val entity = DataEntity("{}")
@@ -139,10 +134,7 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        val countDownLatch = CountDownLatch(1)
-        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
-
-        countDownLatch.await()
+        signalHitProcessor.processHit(entity) { }
         assertEquals(2, requestRecorder?.connectTimeout)
     }
 
@@ -163,10 +155,7 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        val countDownLatch = CountDownLatch(1)
-        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
-
-        countDownLatch.await()
+        signalHitProcessor.processHit(entity) { }
         assertEquals(2, requestRecorder?.connectTimeout)
     }
 
@@ -187,10 +176,7 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        val countDownLatch = CountDownLatch(1)
-        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
-
-        countDownLatch.await()
+        signalHitProcessor.processHit(entity) {}
         val headerSize = requestRecorder?.headers?.size
         assertEquals(0, headerSize)
     }
@@ -212,10 +198,7 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        val countDownLatch = CountDownLatch(1)
-        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
-
-        countDownLatch.await()
+        signalHitProcessor.processHit(entity) { }
         assertEquals(2, requestRecorder?.connectTimeout)
         assertEquals(2, requestRecorder?.readTimeout)
     }

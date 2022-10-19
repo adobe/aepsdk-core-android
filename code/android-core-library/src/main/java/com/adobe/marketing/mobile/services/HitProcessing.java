@@ -22,12 +22,12 @@ public interface HitProcessing {
      * @param entity The hit whose retry interval is to be computed
      * @return Hit retry interval in seconds.
      */
-    int retryInterval(DataEntity entity);
+    int retryInterval(@NonNull DataEntity entity);
 
     /**
      * Function that is invoked with a {@link DataEntity} and provides functionality for processing the hit.
      *
-     * @param entity     The <code>DataEntity</code> to be processed.
+     * @param entity           The <code>DataEntity</code> to be processed.
      * @param processingResult Return a boolean variable indicating <code>DataEntity</code> is successfully processed or not.
      */
     void processHit(@NonNull DataEntity entity, @NonNull HitProcessingResult processingResult);

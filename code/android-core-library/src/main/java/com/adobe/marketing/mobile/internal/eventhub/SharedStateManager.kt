@@ -11,10 +11,10 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.services.Log
 import java.util.TreeMap
 
 /**
@@ -44,13 +44,13 @@ internal enum class SharedStateType {
  */
 internal class SharedStateManager(private val name: String) {
 
+    private val LOG_TAG = "SharedStateManager($name)"
     /**
      * A mapping between the version of the state to the state.
      */
     private val states: TreeMap<Int, SharedState> = TreeMap<Int, SharedState>()
 
     companion object {
-        private const val LOG_TAG = "SharedStateManager"
         const val VERSION_LATEST: Int = Int.MAX_VALUE
     }
 
@@ -88,11 +88,6 @@ internal class SharedStateManager(private val name: String) {
     fun updatePendingState(version: Int, data: Map<String, Any?>?): Boolean {
         val stateAtVersion = states[version] ?: return false
         if (stateAtVersion.status != SharedStateStatus.PENDING) {
-            MobileCore.log(
-                LoggingMode.WARNING, LOG_TAG,
-                "Cannot update a non pending $name shared state " +
-                    "at version $version."
-            )
             return false
         }
 
@@ -116,6 +111,11 @@ internal class SharedStateManager(private val name: String) {
         // Return first state equal to or less than version
         val resolvedState = states.floorEntry(version)?.value
         if (resolvedState != null) {
+            Log.trace(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Resolving state($version) with version ${resolvedState.version} and data ${resolvedState.data}"
+            )
             return resolvedState.getResult()
         }
 
@@ -136,8 +136,14 @@ internal class SharedStateManager(private val name: String) {
     fun resolveLastSet(version: Int): SharedStateResult {
         // Return the first non pending state equal to or less than version
         states.descendingMap().tailMap(version).forEach {
-            if (it.value.status != SharedStateStatus.PENDING) {
-                return it.value.getResult()
+            val state = it.value
+            if (state.status != SharedStateStatus.PENDING) {
+                Log.trace(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Resolving lastSet state($version) with version ${state.version} and data ${state.data}"
+                )
+                return state.getResult()
             }
         }
 
@@ -176,8 +182,9 @@ internal class SharedStateManager(private val name: String) {
     private fun set(version: Int, state: SharedState): Boolean {
         // Check if there exists a state at a version equal to, or higher than the one provided.
         if (states.ceilingEntry(version) != null) {
-            MobileCore.log(
-                LoggingMode.VERBOSE, LOG_TAG,
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
                 "Cannot create $name shared state at version $version. " +
                     "More recent state exists."
             )

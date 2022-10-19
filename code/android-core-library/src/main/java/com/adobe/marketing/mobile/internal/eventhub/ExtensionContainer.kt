@@ -25,11 +25,11 @@ import com.adobe.marketing.mobile.ExtensionErrorCallback
 import com.adobe.marketing.mobile.ExtensionEventListener
 import com.adobe.marketing.mobile.ExtensionListener
 import com.adobe.marketing.mobile.ExtensionUnexpectedError
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -78,7 +78,7 @@ internal class ExtensionContainer constructor(
     private val dispatchJob: SerialWorkDispatcher.WorkHandler<Event> =
         SerialWorkDispatcher.WorkHandler { event ->
             if (extension?.readyForEvent(event) != true) {
-                return@WorkHandler
+                return@WorkHandler false
             }
 
             eventListeners.forEach {
@@ -88,6 +88,7 @@ internal class ExtensionContainer constructor(
             }
 
             lastProcessedEvent = event
+            return@WorkHandler true
         }
 
     val eventProcessor: SerialWorkDispatcher<Event> =
@@ -126,6 +127,12 @@ internal class ExtensionContainer constructor(
 
             // Start event processor now as extensions can add event listeners onRegistered() callback
             eventProcessor.start()
+
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                getTag(),
+                "ExtensionContainer started processing events"
+            )
         }
     }
 
@@ -147,7 +154,7 @@ internal class ExtensionContainer constructor(
         if (extension == null) {
             return LOG_TAG
         }
-        return "$sharedStateName-$version"
+        return "$sharedStateName($version)"
     }
 
     // Override ExtensionApi Methods
@@ -176,17 +183,17 @@ internal class ExtensionContainer constructor(
     override fun createSharedState(
         state: MutableMap<String, Any?>,
         event: Event?
-    ): Boolean {
+    ) {
         val sharedStateName = this.sharedStateName ?: run {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 getTag(),
                 "ExtensionContainer is not fully initialized. createSharedState should not be called from Extension constructor"
             )
-            return false
+            return
         }
 
-        return EventHub.shared.createSharedState(
+        EventHub.shared.createSharedState(
             SharedStateType.STANDARD,
             sharedStateName,
             state,
@@ -198,8 +205,8 @@ internal class ExtensionContainer constructor(
         event: Event?
     ): SharedStateResolver? {
         val sharedStateName = this.sharedStateName ?: run {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 getTag(),
                 "ExtensionContainer is not fully initialized. createPendingSharedState should not be called from 'Extension' constructor"
             )
@@ -224,32 +231,32 @@ internal class ExtensionContainer constructor(
             extensionName,
             event,
             barrier,
-            resolution ?: SharedStateResolution.ANY
+            resolution
         )
     }
 
     override fun createXDMSharedState(
         state: MutableMap<String, Any?>,
         event: Event?
-    ): Boolean {
+    ) {
         val sharedStateName = this.sharedStateName ?: run {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 getTag(),
                 "ExtensionContainer is not fully initialized. createXDMSharedState should not be called from Extension constructor"
             )
-            return false
+            return
         }
 
-        return EventHub.shared.createSharedState(SharedStateType.XDM, sharedStateName, state, event)
+        EventHub.shared.createSharedState(SharedStateType.XDM, sharedStateName, state, event)
     }
 
     override fun createPendingXDMSharedState(
         event: Event?
     ): SharedStateResolver? {
         val sharedStateName = this.sharedStateName ?: run {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 getTag(),
                 "ExtensionContainer is not fully initialized. createPendingXDMSharedState should not be called from 'Extension' constructor"
             )
@@ -279,6 +286,7 @@ internal class ExtensionContainer constructor(
     }
 
     // Deprecated ExtensionApi methods
+    @Deprecated("Deprecated in ExtensionAPI")
     override fun setSharedEventState(
         state: MutableMap<String, Any?>?,
         event: Event?,
@@ -293,6 +301,7 @@ internal class ExtensionContainer constructor(
         )
     }
 
+    @Deprecated("Deprecated in ExtensionAPI")
     override fun setXDMSharedEventState(
         state: MutableMap<String, Any?>?,
         event: Event?,
@@ -315,8 +324,8 @@ internal class ExtensionContainer constructor(
         errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 getTag(),
                 "ExtensionContainer is not fully initialized. setSharedEventState/setXDMSharedEventState should not be called from Extension constructor"
             )
@@ -367,6 +376,7 @@ internal class ExtensionContainer constructor(
         }
     }
 
+    @Deprecated("Deprecated in ExtensionAPI")
     override fun getSharedEventState(
         stateName: String?,
         event: Event?,
@@ -380,6 +390,7 @@ internal class ExtensionContainer constructor(
         return null
     }
 
+    @Deprecated("Deprecated in ExtensionAPI")
     override fun getXDMSharedEventState(
         stateName: String?,
         event: Event?,
@@ -393,10 +404,11 @@ internal class ExtensionContainer constructor(
         return null
     }
 
+    @Deprecated("Deprecated in ExtensionAPI")
     override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "ExtensionContainer is not fully initialized. clearSharedEventStates should not be called from 'Extension' constructor"
             )
@@ -405,10 +417,11 @@ internal class ExtensionContainer constructor(
         return EventHub.shared.clearSharedState(SharedStateType.STANDARD, sharedStateName)
     }
 
+    @Deprecated("Deprecated in ExtensionAPI")
     override fun clearXDMSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
         val sharedStateName = this.sharedStateName ?: run {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.warning(
+                CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "ExtensionContainer is not fully initialized. clearXDMSharedEventStates should not be called from 'Extension' constructor"
             )
@@ -417,6 +430,7 @@ internal class ExtensionContainer constructor(
         return EventHub.shared.clearSharedState(SharedStateType.XDM, sharedStateName)
     }
 
+    @Deprecated("Deprecated in ExtensionAPI")
     override fun <T : ExtensionListener> registerEventListener(
         eventType: String?,
         eventSource: String?,
@@ -433,6 +447,7 @@ internal class ExtensionContainer constructor(
         return true
     }
 
+    @Deprecated("Deprecated in ExtensionAPI")
     override fun <T : ExtensionListener> registerWildcardListener(
         extensionListenerClass: Class<T>?,
         errorCallback: ExtensionErrorCallback<ExtensionError>?,

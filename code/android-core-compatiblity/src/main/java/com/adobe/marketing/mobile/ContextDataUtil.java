@@ -11,14 +11,15 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.internal.util.StringUtils;
-import com.adobe.marketing.mobile.internal.util.UrlUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
+import com.adobe.marketing.mobile.internal.util.UrlEncoder;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+//TODO: move this class to Analytics extension: https://github.com/adobe/aepsdk-core-android/issues/217
 class ContextDataUtil {
 	private static final String LOG_TAG = ContextDataUtil.class.getSimpleName();
 	private static final boolean[] contextDataMask = new boolean[] {
@@ -121,51 +122,46 @@ class ContextDataUtil {
 
 		String cleanKey;
 
-		try {
-			// get our current key buffer and an output buffer of equal length
-			final byte[] utf8Key = key.getBytes(StringUtils.CHARSET_UTF_8);
-			final byte[] outPut = new byte[utf8Key.length];
-			final byte periodChar = (byte) 0x2E;
-			final int mask = 0xFF;
-			byte lastByte = 0;
-			int outIndex = 0;
+		// get our current key buffer and an output buffer of equal length
+		final byte[] utf8Key = key.getBytes(StandardCharsets.UTF_8);
+		final byte[] outPut = new byte[utf8Key.length];
+		final byte periodChar = (byte) 0x2E;
+		final int mask = 0xFF;
+		byte lastByte = 0;
+		int outIndex = 0;
 
-			// iterate characters
-			for (final byte curByte : utf8Key) {
-				// handle consecutive periods
-				if (curByte == periodChar && lastByte == periodChar) {
-					continue;
-				}
-
-				// check characters against allowed mask
-				if (contextDataMask[curByte & mask]) {
-					// put character into output array and increment index
-					outPut[outIndex++] = curByte;
-					lastByte = curByte;
-				}
+		// iterate characters
+		for (final byte curByte : utf8Key) {
+			// handle consecutive periods
+			if (curByte == periodChar && lastByte == periodChar) {
+				continue;
 			}
 
-			// handle empty outputs
-			if (outIndex == 0) {
-				return null;
+			// check characters against allowed mask
+			if (contextDataMask[curByte & mask]) {
+				// put character into output array and increment index
+				outPut[outIndex++] = curByte;
+				lastByte = curByte;
 			}
+		}
 
-			// handle starting and ending periods
-			final int startIndex = outPut[0] == periodChar ? 1 : 0;
-			final int endTrim = outPut[outIndex - 1] == periodChar ? 1 : 0;
-			final int totalLength = outIndex - endTrim - startIndex;
-
-			// handle edge case where user inputted nothing but periods
-			if (totalLength <= 0) {
-				return null;
-			}
-
-			// create cleaned string
-			cleanKey = new String(outPut, startIndex, totalLength, StringUtils.CHARSET_UTF_8);
-		} catch (UnsupportedEncodingException exeption) {
-			Log.error(LOG_TAG, "Unable to clean context data key (%s)", exeption);
+		// handle empty outputs
+		if (outIndex == 0) {
 			return null;
 		}
+
+		// handle starting and ending periods
+		final int startIndex = outPut[0] == periodChar ? 1 : 0;
+		final int endTrim = outPut[outIndex - 1] == periodChar ? 1 : 0;
+		final int totalLength = outIndex - endTrim - startIndex;
+
+		// handle edge case where user inputted nothing but periods
+		if (totalLength <= 0) {
+			return null;
+		}
+
+		// create cleaned string
+		cleanKey = new String(outPut, startIndex, totalLength, StandardCharsets.UTF_8);
 
 		// add the cleaned key to our whitelist
 		synchronized (contextDataKeyWhiteList) {
@@ -197,7 +193,7 @@ class ContextDataUtil {
 		}
 
 		for (Map.Entry<String, Object> entry : parameters.entrySet()) {
-			String key = UrlUtils.urlEncode(entry.getKey());
+			String key = UrlEncoder.urlEncode(entry.getKey());
 
 			if (key == null) {
 				continue;
@@ -360,9 +356,9 @@ class ContextDataUtil {
 		builder.append("=");
 
 		if (value instanceof List) {
-			builder.append(UrlUtils.urlEncode(join((List) value, ",")));
+			builder.append(UrlEncoder.urlEncode(join((List) value, ",")));
 		} else {
-			builder.append(UrlUtils.urlEncode(value.toString()));
+			builder.append(UrlEncoder.urlEncode(value.toString()));
 		}
 	}
 
@@ -394,7 +390,7 @@ class ContextDataUtil {
 				String contextDataKey = contextDataStringPath(keyPath, kvpair[0]);
 
 				try {
-					contextData.put(contextDataKey, java.net.URLDecoder.decode(kvpair[1], StringUtils.CHARSET_UTF_8));
+					contextData.put(contextDataKey, java.net.URLDecoder.decode(kvpair[1], String.valueOf(StandardCharsets.UTF_8)));
 				} catch (UnsupportedEncodingException e) {
 					Log.warning(LOG_TAG, "Appending the context data information failed with %s", e);
 				}

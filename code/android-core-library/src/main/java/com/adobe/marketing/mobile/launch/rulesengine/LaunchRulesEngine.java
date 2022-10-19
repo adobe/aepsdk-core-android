@@ -12,12 +12,7 @@ package com.adobe.marketing.mobile.launch.rulesengine;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.ExtensionApi;
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator;
-import com.adobe.marketing.mobile.rulesengine.Log;
-import com.adobe.marketing.mobile.rulesengine.LogLevel;
-import com.adobe.marketing.mobile.rulesengine.Logging;
 import com.adobe.marketing.mobile.rulesengine.RulesEngine;
 
 import java.util.List;
@@ -26,29 +21,8 @@ public class LaunchRulesEngine {
     private final RulesEngine<LaunchRule> ruleRulesEngine;
     private final ExtensionApi extensionApi;
 
-    @SuppressWarnings("rawtypes")
     public LaunchRulesEngine(final ExtensionApi extensionApi) {
         ruleRulesEngine = new RulesEngine<>(new ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE), LaunchRuleTransformer.INSTANCE.createTransforming());
-        Log.setLogging(new Logging() {
-            @Override
-            public void log(LogLevel level, String tag, String message) {
-                LoggingMode loggingMode;
-                switch (level) {
-                    case DEBUG:
-                        loggingMode = LoggingMode.DEBUG;
-                        break;
-                    case ERROR:
-                        loggingMode = LoggingMode.ERROR;
-                        break;
-                    case WARNING:
-                        loggingMode = LoggingMode.WARNING;
-                        break;
-                    default:
-                        loggingMode = LoggingMode.VERBOSE;
-                }
-                MobileCore.log(loggingMode, tag, message);
-            }
-        });
         this.extensionApi = extensionApi;
     }
 

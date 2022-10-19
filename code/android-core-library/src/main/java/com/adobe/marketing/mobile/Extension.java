@@ -14,6 +14,9 @@ package com.adobe.marketing.mobile;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
+
 import java.util.Map;
 
 /**
@@ -21,7 +24,7 @@ import java.util.Map;
  *
  */
 public abstract class Extension {
-	private @NonNull ExtensionApi extensionApi;
+	private final @NonNull ExtensionApi extensionApi;
 
 	/**
 	 * Construct the extension and initialize with the {@code ExtensionApi}.
@@ -72,7 +75,7 @@ public abstract class Extension {
 	 * Implementers can implement this method to setup event listeners and shared states.
 	 */
 	protected void onRegistered() {
-		Log.debug(getLogTag(), "Extension registered successfully.");
+		Log.debug(CoreConstants.LOG_TAG, getLogTag(), "Extension registered successfully.");
 	}
 
 	/**
@@ -80,7 +83,7 @@ public abstract class Extension {
 	 * Implementers can implement this method to clean up resources when the extension is released.
 	 */
 	protected void onUnregistered() {
-		Log.debug(getLogTag(), "Extension unregistered successfully.");
+		Log.debug(CoreConstants.LOG_TAG, getLogTag(), "Extension unregistered successfully.");
 	}
 
 	/**
@@ -95,7 +98,7 @@ public abstract class Extension {
 		ExtensionError error = extensionUnexpectedError != null ? extensionUnexpectedError.getErrorCode() : null;
 
 		if (error != null) {
-			Log.error(getLogTag(), "Extension processing failed with error code: %s (%s), error message: %s",
+			Log.error(CoreConstants.LOG_TAG, getLogTag(), "Extension processing failed with error code: %s (%s), error message: %s",
 					  error.getErrorCode(), error.getErrorName(), extensionUnexpectedError.getMessage());
 		}
 	}

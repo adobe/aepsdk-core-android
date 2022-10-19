@@ -16,9 +16,9 @@ import android.animation.ObjectAnimator;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 
@@ -55,7 +55,7 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 	@Override
 	public boolean onDown(final MotionEvent motionEvent) {
 		// this listener only handles touches that occurred on the webview so we always want to consume the touch.
-		MobileCore.log(LoggingMode.VERBOSE, TAG, "onDown: " + motionEvent.toString());
+		Log.trace(ServiceConstants.LOG_TAG, TAG, "onDown: " + motionEvent.toString());
 		return true;
 	}
 
@@ -82,10 +82,10 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 		if (Math.abs(deltaX) > Math.abs(deltaY)) {
 			if (Math.abs(deltaX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
 				if (deltaX > 0) {
-					MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected swipe right.");
+					Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected swipe right.");
 					handleGesture(MessageGesture.SWIPE_RIGHT);
 				} else {
-					MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected swipe left.");
+					Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected swipe left.");
 					handleGesture(MessageGesture.SWIPE_LEFT);
 				}
 
@@ -96,10 +96,10 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 		} else {
 			if (Math.abs(deltaY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
 				if (deltaY > 0) {
-					MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected swipe down.");
+					Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected swipe down.");
 					handleGesture(MessageGesture.SWIPE_DOWN);
 				} else {
-					MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected swipe up.");
+					Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected swipe up.");
 					handleGesture(MessageGesture.SWIPE_UP);
 				}
 

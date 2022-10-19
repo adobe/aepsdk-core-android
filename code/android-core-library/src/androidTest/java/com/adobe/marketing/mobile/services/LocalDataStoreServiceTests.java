@@ -19,8 +19,12 @@ import static junit.framework.Assert.assertTrue;
 import android.content.Context;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import com.adobe.marketing.mobile.services.internal.context.App;
+
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -35,7 +39,7 @@ public class LocalDataStoreServiceTests {
 	@Before
 	public void beforeEach() {
 		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		ServiceProvider.getInstance().setContext(context);
+		App.INSTANCE.setAppContext(context);
 		this.sharedPreferencesNamedCollection = new
 		LocalDataStoreService().getNamedCollection("AndroidLocalStorageServiceTests");
 		this.sharedPreferencesNamedCollection.removeAll();
@@ -56,7 +60,7 @@ public class LocalDataStoreServiceTests {
 
 	@Test
 	public void testApplicationContextIsNotSet() {
-		ServiceProvider.getInstance().setContext(null);
+		App.INSTANCE.resetInstance();
 		NamedCollection namedCollection = new LocalDataStoreService().getNamedCollection("AndroidLocalStorageServiceTests");
 		assertNull(namedCollection);
 	}

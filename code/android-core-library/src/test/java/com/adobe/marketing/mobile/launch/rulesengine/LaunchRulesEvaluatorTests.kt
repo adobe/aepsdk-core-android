@@ -18,15 +18,12 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchRulesEvaluatorTests {
@@ -41,13 +38,6 @@ class LaunchRulesEvaluatorTests {
     fun setup() {
         extensionApi = Mockito.mock(ExtensionApi::class.java)
         launchRulesEvaluator = LaunchRulesEvaluator("", launchRulesEngine, extensionApi)
-    }
-
-    @Test
-    fun `Process a null event`() {
-        assertNull(launchRulesEvaluator.process(null))
-        verify(launchRulesEngine, never()).process(any())
-        assertEquals(0, launchRulesEvaluator.getCachedEventCount())
     }
 
     @Test

@@ -14,8 +14,10 @@ package com.adobe.marketing.mobile.rulesengine;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * RulesEngine to evaluate matching rules for given input data
+ */
 public class RulesEngine<T extends Rule> {
-    private final static String LOG_TAG = "RulesEngine";
     private final Object rulesEngineMutex = new Object();
     private final Evaluating evaluator;
     private final Transforming transformer;
@@ -36,8 +38,6 @@ public class RulesEngine<T extends Rule> {
                 RulesResult result = rule.getEvaluable().evaluate(context);
                 if (result.isSuccess()) {
                     triggerRules.add(rule);
-                } else {
-                    Log.debug(LOG_TAG, result.getFailureMessage());
                 }
             }
             return triggerRules;

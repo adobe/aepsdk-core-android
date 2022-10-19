@@ -23,7 +23,7 @@ import com.adobe.marketing.mobile.services.HitQueuing
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.signal.SignalConstants.LOG_TAG
+import com.adobe.marketing.mobile.signal.SignalConstants
 import com.adobe.marketing.mobile.util.DataReader
 
 class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
@@ -62,7 +62,7 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
 
     private fun handleConfigurationResponse(event: Event) {
         val privacyStatus = try {
-            MobilePrivacyStatus.valueOf(
+            MobilePrivacyStatus.fromString(
                 DataReader.getString(
                     event.eventData,
                     SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
@@ -74,7 +74,11 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         }
         hitQueue.handlePrivacyChange(privacyStatus)
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            Log.debug(LOG_TAG, CLASS_NAME, "Device has opted-out of tracking. Clearing the Signal queue.")
+            Log.debug(
+                SignalConstants.LOG_TAG,
+                CLASS_NAME,
+                "Device has opted-out of tracking. Clearing the Signal queue."
+            )
         }
     }
 
@@ -101,37 +105,34 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
     private fun handleOpenURL(event: Event) {
         val url = event.urlToOpen() ?: run {
             Log.warning(
-                LOG_TAG,
+                SignalConstants.LOG_TAG,
                 CLASS_NAME,
                 "Unable to process OpenURL consequence - no URL was found in EventData."
             )
             return
         }
-        Log.debug(LOG_TAG, CLASS_NAME, "Opening URL $url.")
+        Log.debug(SignalConstants.LOG_TAG, CLASS_NAME, "Opening URL $url.")
         ServiceProvider.getInstance().uiService.showUrl(url)
     }
 
     private fun handlePostback(event: Event) {
         val url = event.templateUrl() ?: run {
-            Log.warning(LOG_TAG, CLASS_NAME, "Rule consequence Event for Signal doesn't contain url.")
+            Log.warning(
+                SignalConstants.LOG_TAG,
+                CLASS_NAME,
+                "Rule consequence Event for Signal doesn't contain url."
+            )
             return
         }
         if (event.isCollectPii() && !url.startsWith("https")) {
             Log.warning(
-                LOG_TAG,
+                SignalConstants.LOG_TAG,
                 CLASS_NAME,
                 "Rule consequence Event for Signal will not be processed, url must be https."
             )
             return
         }
-        val body = event.templateBody() ?: run {
-            Log.warning(
-                LOG_TAG,
-                CLASS_NAME,
-                "Rule consequence Event for Signal will not be processed, url must be https."
-            )
-            return
-        }
+        val body = event.templateBody() ?: ""
         val contentType = event.contentType()
         val timeout = event.timeout()
         val dataEntity = SignalHit(url, body, contentType, timeout).toDataEntity()

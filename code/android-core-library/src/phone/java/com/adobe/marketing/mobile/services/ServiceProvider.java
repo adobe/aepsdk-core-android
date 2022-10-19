@@ -11,14 +11,20 @@
 package com.adobe.marketing.mobile.services;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 
+import com.adobe.marketing.mobile.services.caching.CacheService;
+import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.internal.context.SimpleCallback;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 import com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate;
 import com.adobe.marketing.mobile.services.ui.UIService;
 import com.adobe.marketing.mobile.services.ui.URIHandler;
-
-import java.lang.ref.WeakReference;
 
 /**
  * Maintains the current set of provided services and any potential service overrides
@@ -38,9 +44,6 @@ public class ServiceProvider {
         return ServiceProviderSingleton.INSTANCE;
     }
 
-    private volatile WeakReference<Activity> currentActivity;
-    private volatile WeakReference<Context> applicationContext;
-
     private DeviceInfoService defaultDeviceInfoService;
     private DeviceInforming overrideDeviceInfoService;
     private NetworkService defaultNetworkService;
@@ -50,6 +53,8 @@ public class ServiceProvider {
     private UIService defaultUIService;
     private FullscreenMessageDelegate messageDelegate;
     private Logging defaultLoggingService;
+    private Logging overrideLoggingService;
+    private CacheService defaultCacheService;
 
     private ServiceProvider() {
         defaultNetworkService = new NetworkService();
@@ -59,42 +64,16 @@ public class ServiceProvider {
         defaultUIService = new AndroidUIService();
         messageDelegate = null;
         defaultLoggingService = new AndroidLoggingService();
+        defaultCacheService = new FileCacheService();
     }
 
-    /**
-     * Sets the {@link Context} of the application
-     *
-     * @param applicationContext android application {@link Context}
-     */
-    public void setContext(final Context applicationContext) {
-        this.applicationContext = new WeakReference<>(applicationContext);
+    public void initializeApp(@NonNull Application app, @Nullable SimpleCallback<Activity> onActivityResumed) {
+        App.INSTANCE.initializeApp(app, onActivityResumed);
     }
 
-    /**
-     * Sets the current {@link Activity}
-     *
-     * @param activity the current {@link Activity}
-     */
-    public void setCurrentActivity(final Activity activity) {
-        this.currentActivity = new WeakReference<>(activity);
-    }
-
-    /**
-     * Returns the {@code Context} of the application
-     *
-     * @return the {@code Context} of the application
-     */
-    Context getApplicationContext() {
-        return this.applicationContext != null ? this.applicationContext.get() : null;
-    }
-
-    /**
-     * Returns the current {@code Activity}
-     *
-     * @return the current {@code Activity}
-     */
-    Activity getCurrentActivity() {
-        return this.currentActivity != null ? this.currentActivity.get() : null;
+    //TODO: expose a new service [AppInfoService] when we need to expose more methods in App.
+    public Context getApplicationContext() {
+        return App.INSTANCE.getAppContext();
     }
 
     /**
@@ -103,8 +82,18 @@ public class ServiceProvider {
      * @return the current {@link Logging}
      */
     public Logging getLoggingService() {
-        return this.defaultLoggingService;
+        return overrideLoggingService != null ? overrideLoggingService : defaultLoggingService;
     }
+
+    /**
+     * Overrides the {@link Logging} service.
+     *
+     * @param loggingService the new {@link Logging} service which will override the default  {@link Logging} service
+     */
+    public void setLoggingService(Logging loggingService) {
+        overrideLoggingService = loggingService;
+    }
+
 
     /**
      * Gets the {@link DataStoring} service
@@ -165,6 +154,10 @@ public class ServiceProvider {
         return defaultUIService;
     }
 
+    public CacheService getCacheService() {
+        return defaultCacheService;
+    }
+
     /**
      * Gets the custom {@link FullscreenMessageDelegate}.
      *
@@ -196,14 +189,21 @@ public class ServiceProvider {
      * Reset the {@code ServiceProvider} to its default state.
      * Any previously set services are reset to their default state.
      */
-    protected void reset() {
+    void resetServices() {
         defaultDeviceInfoService = new DeviceInfoService();
         defaultNetworkService = new NetworkService();
         dataQueueService = new DataQueueService();
         defaultDataStoreService = new LocalDataStoreService();
+        defaultLoggingService = new AndroidLoggingService();
+        defaultUIService = new AndroidUIService();
+        defaultCacheService = new FileCacheService();
 
         overrideDeviceInfoService = null;
         overrideNetworkService = null;
         messageDelegate = null;
+    }
+
+    void resetAppInstance() {
+        App.INSTANCE.resetInstance();
     }
 }

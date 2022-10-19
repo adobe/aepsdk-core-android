@@ -10,15 +10,14 @@
  */
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.NetworkService.Callback;
 import com.adobe.marketing.mobile.NetworkService.HttpConnection;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
 import com.adobe.marketing.mobile.services.HttpConnecting;
 import com.adobe.marketing.mobile.services.HttpMethod;
 import com.adobe.marketing.mobile.services.NetworkCallback;
 import com.adobe.marketing.mobile.services.NetworkRequest;
 import com.adobe.marketing.mobile.services.Networking;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.util.UrlUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -179,7 +178,7 @@ class RemoteDownloader {
 	 */
 	public boolean startDownload() {
 		// url validation
-		if (!StringUtils.stringIsUrl(url)) {
+		if (!UrlUtils.isValidUrl(url)) {
 			Log.warning(LOG_TAG, "Given url is not valid and contents cannot be cached : (%s)", url);
 			return false;
 		}
@@ -219,7 +218,7 @@ class RemoteDownloader {
 
 	public File startDownloadSync() {
 		// URL Validation
-		if (!StringUtils.stringIsUrl(url)) {
+		if (!UrlUtils.isValidUrl(url)) {
 			Log.warning(LOG_TAG, "Given url is not valid and contents cannot be cached : (%s)", url);
 			return null;
 		}

@@ -15,6 +15,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 
 import java.util.ArrayList;
@@ -38,8 +41,8 @@ class DataMarshaller {
 	static final String PUSH_MESSAGE_ID_KEY = "pushmessageid";
 	static final String LOCAL_NOTIFICATION_ID_KEY = "notificationid";
 
-	private Map<String, Object> launchData = new HashMap<>();
-	private List<String> adobeQueryKeys = new ArrayList<>();
+	private final Map<String, Object> launchData = new HashMap<>();
+	private final List<String> adobeQueryKeys = new ArrayList<>();
 
 
 	private static final String ADOBE_QUERY_KEYS_PREVIEW_TOKEN = "at_preview_token";
@@ -69,7 +72,7 @@ class DataMarshaller {
 
 				if (data != null && !data.toString().isEmpty()) {
 
-					Log.trace(TAG, "Receiving the Activity Uri (%s)", data.toString());
+					Log.trace(CoreConstants.LOG_TAG, TAG, "Receiving the Activity Uri (%s)", data.toString());
 					launchData.put(DEEPLINK_KEY, data.toString());
 
 					// This will remove the adobe specific keys from the intent data
@@ -99,7 +102,7 @@ class DataMarshaller {
 
 		List<String> keys = new ArrayList<>(data.getQueryParameterNames());
 
-		if (keys == null || keys.isEmpty()) {
+		if (keys.isEmpty()) {
 			return false;
 		}
 
@@ -138,7 +141,7 @@ class DataMarshaller {
 
 				Object value = extraBundle.get(key);
 
-				if (value != null && value.toString() != null && value.toString().length() > 0) {
+				if (value != null && value.toString().length() > 0) {
 					this.launchData.put(newKey, value);
 				}
 			}

@@ -27,12 +27,15 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import android.app.Application;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
+import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.SharedStateStatus;
 import com.adobe.marketing.mobile.TestableExtensionApi;
 import com.adobe.marketing.mobile.services.DeviceInforming;
@@ -88,7 +91,7 @@ public class LifecycleFunctionalTest {
 	@Before
 	public void beforeEach() {
 		setupMockDeviceInfoService();
-		ServiceProvider.getInstance().setContext(InstrumentationRegistry.getInstrumentation().getContext());
+		MobileCore.setApplication((Application) InstrumentationRegistry.getInstrumentation().getContext().getApplicationContext());
 		lifecycleDataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(DATA_STORE_NAME);
 
 		mockExtensionApi = new TestableExtensionApi();

@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.util
 
-import com.adobe.marketing.mobile.internal.util.UrlUtils.urlEncode
+import com.adobe.marketing.mobile.internal.util.UrlEncoder.urlEncode
 import org.json.JSONObject
 
 /**
@@ -81,7 +81,7 @@ internal fun Map<String, Any?>.serializeToQueryString(): String {
         val encodedKey = urlEncode(key) ?: continue
 
         // TODO add serializing for custom objects
-        var encodedValue: String? = if (value is List<*>) {
+        val encodedValue: String? = if (value is List<*>) {
             urlEncode(join(value, ","))
         } else {
             urlEncode(value?.toString())
@@ -110,15 +110,6 @@ internal fun Map<String, Any?>.prettify(): String {
     }
 }
 
-private fun Set<*>.isAllString(): Boolean {
-    if (this.isEmpty())
-        return false
-    this.forEach {
-        if (it !is String) return false
-    }
-    return true
-}
-
 /**
  * Encodes the key/value pair and prepares it in the URL format.
  * If the value is a List, it will create a join string with the "," delimiter before encoding,
@@ -143,7 +134,7 @@ private fun serializeKeyValuePair(key: String?, value: String?): String? {
  * @param delimiter the `String` to be used as the delimiter between all elements
  * @return [String] containing the elements joined by delimiters
  */
-fun join(elements: Iterable<*>, delimiter: String?): String {
+private fun join(elements: Iterable<*>, delimiter: String?): String {
     val sBuilder = java.lang.StringBuilder()
     val iterator = elements.iterator()
 

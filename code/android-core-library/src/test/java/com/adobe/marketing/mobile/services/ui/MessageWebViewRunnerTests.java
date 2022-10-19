@@ -22,7 +22,8 @@ import android.webkit.WebSettings;
 import android.widget.FrameLayout;
 
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
@@ -32,6 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -53,8 +55,6 @@ public class MessageWebViewRunnerTests {
     private Context mockContext;
     @Mock
     private Application mockApp;
-    @Mock
-    private App.AppContextProvider mockAppContextProvider;
 
     private MessageWebViewRunner messageFragmentRunner;
     private MessageSettings aepMessageSettings;
@@ -65,8 +65,7 @@ public class MessageWebViewRunnerTests {
     @Before
     public void setup() throws Exception {
         MobileCore.setApplication(mockApp);
-        when(mockAppContextProvider.getAppContext()).thenReturn(mockContext);
-        App.getInstance().initializeApp(mockAppContextProvider);
+        App.INSTANCE.setAppContext(mockContext);
         gestureMap.put(MessageGesture.BACKGROUND_TAP, "adbinapp://dismiss");
         gestureMap.put(MessageGesture.SWIPE_LEFT, "adbinapp://dismiss?interaction=negative");
         gestureMap.put(MessageGesture.SWIPE_RIGHT, "adbinapp://dismiss?interaction=positive");
@@ -94,6 +93,7 @@ public class MessageWebViewRunnerTests {
         mockAEPMessage.rootViewGroup = mockViewGroup;
         mockAEPMessage.fragmentFrameLayout = mockFrameLayout;
         mockMessageWebview = null;
+
     }
 
     @Test

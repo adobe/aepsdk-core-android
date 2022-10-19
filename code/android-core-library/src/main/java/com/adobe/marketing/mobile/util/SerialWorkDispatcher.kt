@@ -12,8 +12,8 @@
 package com.adobe.marketing.mobile.util
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.services.Log
 import java.lang.Exception
 import java.lang.IllegalStateException
 import java.util.Queue
@@ -71,13 +71,17 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
         /**
          * Handles processing on [item]
          *
-         * @param item  the work item on which is dispatched for processing.
+         * @param item  the work item which is dispatched for processing.
+         * @return [Boolean] A boolean variable denoting whether the [item] has completed processing.
+         * If [WorkHandler.doWork] returns false after processing an item, the [SerialWorkDispatcher] stops processing the work queue without removing the item. It restarts when
+         * [resume] is called or a new item is enqueued.
+         * If [WorkHandler.doWork] returns true after processing an item, it removes it from work queue and continues processing other queued items.
          */
-        fun doWork(item: W)
+        fun doWork(item: W): Boolean
     }
 
     /**
-     * The [Executor] to which work is submitted for sequencing.
+     * The executor to which work is submitted for sequencing.
      */
     private var executorService: ExecutorService = Executors.newSingleThreadExecutor()
 
@@ -111,8 +115,6 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      */
     private val activenessMutex: Any = Any()
 
-    init {
-    }
     /**
      * Enqueues an item to the end of the [workQueue]. Additionally,
      * resumes the queue processing if the [SerialWorkDispatcher] is active
@@ -163,7 +165,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
             }
 
             if (state != State.NOT_STARTED) {
-                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) has already started.")
+                Log.debug(
+                    CoreConstants.LOG_TAG, getTag(), "SerialWorkDispatcher ($name) has already started."
+                )
                 return false
             }
 
@@ -188,7 +192,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
             }
 
             if (state != State.ACTIVE) {
-                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) is not active.")
+                Log.debug(
+                    CoreConstants.LOG_TAG, getTag(), "SerialWorkDispatcher ($name) is not active."
+                )
                 return false
             }
 
@@ -210,7 +216,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
             }
 
             if (state == State.NOT_STARTED) {
-                MobileCore.log(LoggingMode.VERBOSE, getTag(), "SerialWorkDispatcher ($name) has not started.")
+                Log.debug(
+                    CoreConstants.LOG_TAG, getTag(), "SerialWorkDispatcher ($name) has not started."
+                )
                 return false
             }
 
@@ -258,8 +266,17 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      *
      * @return the work item at the front (earliest queued) of the [workQueue], null if [workQueue] is empty
      */
-    private fun getWorkItem(): T? {
+    private fun removeWorkItem(): T? {
         return workQueue.poll()
+    }
+
+    /**
+     * Peeks the work item at the front (earliest queued) of the [workQueue]
+     *
+     * @return the work item at the front (earliest queued) of the [workQueue], null if [workQueue] is empty
+     */
+    private fun peekWorkItem(): T? {
+        return workQueue.peek()
     }
 
     /**
@@ -313,12 +330,18 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
             // items in the queue to perform work on.
             while (!Thread.interrupted() && state == State.ACTIVE && canWork() && hasWork()) {
                 try {
-                    val workItem = getWorkItem() ?: return
-                    workHandler.doWork(workItem)
+                    val workItem = peekWorkItem() ?: return
+                    if (workHandler.doWork(workItem)) {
+                        // Handler has successfully processed the work item, remove and try processing the next item
+                        removeWorkItem()
+                    } else {
+                        // Work handler cannot process the work item, wait until next item.
+                        break
+                    }
                 } catch (exception: Exception) {
                     Thread.currentThread().interrupt()
-                    MobileCore.log(
-                        LoggingMode.ERROR,
+                    Log.warning(
+                        CoreConstants.LOG_TAG,
                         getTag(),
                         "Exception encountered while processing item. $exception"
                     )

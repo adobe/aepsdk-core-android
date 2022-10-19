@@ -12,8 +12,7 @@ package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.services.Log
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -40,8 +39,8 @@ internal fun historicalEventsQuerying(
         latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
         eventCounts
     } catch (e: Exception) {
-        MobileCore.log(
-            LoggingMode.WARNING,
+        Log.warning(
+            LaunchRulesEngineConstants.LOG_TAG,
             LOG_TAG,
             "Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
         )

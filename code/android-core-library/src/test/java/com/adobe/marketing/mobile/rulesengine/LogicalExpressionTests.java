@@ -23,10 +23,31 @@ import static org.junit.Assert.assertEquals;
 
 public class LogicalExpressionTests {
 
-	private ComparisonExpression expressionTrue = new ComparisonExpression(new OperandLiteral("One"), "equals",
-			new OperandLiteral("One"));
-	private ComparisonExpression expressionFalse = new ComparisonExpression(new OperandLiteral("One"), "notEquals",
-			new OperandLiteral("One"));
+	private final ComparisonExpression<String, String> expressionTrue = new ComparisonExpression<>(new OperandLiteral<>("One"), "equals",
+			new OperandLiteral<>("One"));
+	private final ComparisonExpression<String, String> expressionFalse = new ComparisonExpression<>(new OperandLiteral<>("One"), "notEquals",
+			new OperandLiteral<>("One"));
+
+	@Test
+	public void testLogicalExpression_NullOperands() {
+		// setup
+		List<Evaluable> operands = new ArrayList<>();
+		operands.add(expressionTrue);
+		operands.add(expressionTrue);
+		operands.add(null);
+
+		// test
+		RulesResult result = new LogicalExpression(operands, "and").evaluate(defaultContext());
+		assertTrue(result.isSuccess());
+
+		// setup again
+		operands.add(expressionFalse);
+
+		// test
+		RulesResult result2 = new LogicalExpression(operands, "and").evaluate(defaultContext());
+		assertFalse(result2.isSuccess());
+		assertEquals("AND operation returned false.", result2.getFailureMessage());
+	}
 
 	@Test
 	public void testLogicalExpression_AND() {
@@ -81,15 +102,6 @@ public class LogicalExpressionTests {
 		assertFalse(result.isSuccess());
 		assertEquals("Unknown conjunction operator - equal.", result.getFailureMessage());
 	}
-
-
-	@Test
-	public void test_test() {
-		MustacheToken mustacheToken = new MustacheToken("functi(variable)");
-
-	}
-
-
 
 	private Context defaultContext() {
 		return new Context(new FakeTokenFinder(new HashMap<>()), new ConditionEvaluator(ConditionEvaluator.Option.DEFAULT),

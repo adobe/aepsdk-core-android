@@ -15,7 +15,8 @@ import com.adobe.marketing.mobile.internal.util.FileUtils;
 import com.adobe.marketing.mobile.internal.util.StringEncoder;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
+import com.adobe.marketing.mobile.util.UrlUtils;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -234,7 +235,7 @@ class CacheManager {
 		if (files != null) {
 			for (final String file : files) {
 				// in case of recursion, make sure we only hash once
-				if (StringUtils.stringIsUrl(file)) {
+				if (UrlUtils.isValidUrl(file)) {
 					hashedUrls.add(sha2hash(file));
 				} else {
 					hashedUrls.add(file);

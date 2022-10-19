@@ -11,6 +11,7 @@
 package com.adobe.marketing.mobile
 
 import android.app.Application
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError
@@ -21,6 +22,7 @@ import org.mockito.Mockito.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.collections.HashMap
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -130,7 +132,7 @@ class MobileCoreTests {
         MockExtension.registrationClosure = { latch.countDown() }
 
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
+        MobileCore.registerExtensions(listOf(MockExtension::class.java)) {}
 
         assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
@@ -141,9 +143,13 @@ class MobileCoreTests {
         MockExtension.registrationClosure = { latch.countDown() }
         MockExtension2.registrationClosure = { latch.countDown() }
 
+        val extensions: List<Class<out Extension>> = listOf(
+            MockExtension::class.java,
+            MockExtension2::class.java
+        )
+
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.registerExtension(MockExtension2::class.java) {}
+        MobileCore.registerExtensions(extensions) {}
 
         assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
@@ -156,10 +162,14 @@ class MobileCoreTests {
 
         MockExtensionWithSlowInit.initWaitTimeMS = 2000
 
+        val extensions: List<Class<out Extension>> = listOf(
+            MockExtensionWithSlowInit::class.java,
+            MockExtension::class.java,
+            MockExtension2::class.java
+        )
+
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtensionWithSlowInit::class.java) {}
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.registerExtension(MockExtension2::class.java) {}
+        MobileCore.registerExtensions(extensions) {}
 
         assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
@@ -228,7 +238,7 @@ class MobileCoreTests {
 
     @Test
     fun testRegisterMultipleExtensionsDispatchEventBeforeRegister() {
-        val latch = CountDownLatch(2)
+        val latch = CountDownLatch(3)
         MockExtension.eventReceivedClosure = {
             if (it.name == "test-event") {
                 latch.countDown()
@@ -246,9 +256,11 @@ class MobileCoreTests {
         MobileCore.setApplication(mock(Application::class.java))
         MobileCore.registerExtension(MockExtension::class.java) {}
         MobileCore.registerExtension(MockExtension2::class.java) {}
-        MobileCore.start {}
+        MobileCore.start {
+            latch.countDown()
+        }
 
-        assertTrue { latch.await(10, TimeUnit.SECONDS) }
+        assertTrue { latch.await(1000, TimeUnit.SECONDS) }
     }
 
     @Test
@@ -1035,6 +1047,66 @@ class MobileCoreTests {
         val expectedData = mapOf(
             CoreConstants.EventDataKeys.Analytics.TRACK_STATE to state,
             CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA to contextData,
+        )
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    // Lifecycle methods
+    @Test
+    fun testLifecycleStart() {
+        registerExtension(MockExtension::class.java)
+
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.GENERIC_LIFECYCLE,
+            EventSource.REQUEST_CONTENT
+        ) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        val contextData = mapOf("testKey" to "testVal")
+
+        // test
+        MobileCore.lifecycleStart(contextData)
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+
+        val expectedData = mapOf(
+            CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY to CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START,
+            CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA to contextData,
+        )
+        assertEquals(expectedData, capturedEvents[0].eventData)
+    }
+
+    @Test
+    fun testLifecyclePause() {
+        registerExtension(MockExtension::class.java)
+
+        val latch = CountDownLatch(1)
+        val capturedEvents = mutableListOf<Event>()
+        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(
+            EventType.GENERIC_LIFECYCLE,
+            EventSource.REQUEST_CONTENT
+        ) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+        EventHub.shared.start()
+
+        val contextData = mapOf("testKey" to "testVal")
+
+        // test
+        MobileCore.lifecyclePause()
+        assertTrue {
+            latch.await(1, TimeUnit.SECONDS)
+        }
+
+        val expectedData = mapOf(
+            CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY to CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE,
         )
         assertEquals(expectedData, capturedEvents[0].eventData)
     }

@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 
 import com.adobe.marketing.mobile.NetworkService.HttpCommand;
 import com.adobe.marketing.mobile.NetworkService.HttpConnection;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.NetworkRequest;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.DeviceInforming;

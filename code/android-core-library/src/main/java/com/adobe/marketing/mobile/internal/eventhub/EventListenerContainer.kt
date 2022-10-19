@@ -16,8 +16,8 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionEventListener
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.services.Log
 import java.lang.Exception
 import java.util.concurrent.ScheduledFuture
 
@@ -40,8 +40,8 @@ internal class ResponseListenerContainer(
         try {
             listener.call(event)
         } catch (ex: Exception) {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 "ResponseListenerContainer",
                 "Exception thrown for EventId ${event.uniqueIdentifier}. $ex"
             )
@@ -64,8 +64,8 @@ internal class ExtensionListenerContainer(val eventType: String, val eventSource
         try {
             listener.hear(event)
         } catch (ex: Exception) {
-            MobileCore.log(
-                LoggingMode.DEBUG,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 "ExtensionListenerContainer",
                 "Exception thrown for EventId ${event.uniqueIdentifier}. $ex"
             )

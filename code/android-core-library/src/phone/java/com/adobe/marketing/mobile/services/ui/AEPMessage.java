@@ -26,10 +26,11 @@ import android.view.animation.TranslateAnimation;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 
-import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
+import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 
@@ -84,7 +85,7 @@ class AEPMessage implements FullscreenMessage {
                final boolean isLocalImageUsed,
                final MessagesMonitor messagesMonitor, final MessageSettings settings) throws MessageCreationException {
         if (messageDelegate == null) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, "Message couldn't be created because the FullscreenMessageDelegate was null.");
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Message couldn't be created because the FullscreenMessageDelegate was null.");
             throw new MessageCreationException("Message couldn't be created because the FullscreenMessageDelegate was null.");
         }
 
@@ -104,21 +105,21 @@ class AEPMessage implements FullscreenMessage {
     @Override
     public void show() {
         if (messagesMonitor != null && messagesMonitor.isDisplayed()) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, "Message couldn't be displayed, another message is displayed at this time.");
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Message couldn't be displayed, another message is displayed at this time.");
             fullScreenMessageDelegate.onShowFailure();
             return;
         }
 
         if (!fullScreenMessageDelegate.shouldShowMessage(this)) {
-            MobileCore.log(LoggingMode.DEBUG, TAG,
+            Log.debug(ServiceConstants.LOG_TAG, TAG,
                     "Message couldn't be displayed, FullscreenMessageDelegate#shouldShowMessage states the message should not be displayed.");
             return;
         }
 
-        final Activity currentActivity = App.getInstance().getCurrentActivity();
+        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
 
         if (currentActivity == null) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (current activity), failed to show the message.");
+            Log.debug(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (current activity), failed to show the message.");
             fullScreenMessageDelegate.onShowFailure();
             return;
         }
@@ -135,7 +136,7 @@ class AEPMessage implements FullscreenMessage {
         frameLayoutResourceId = new Random().nextInt();
 
         if (fragmentFrameLayout == null) {
-            fragmentFrameLayout = new FrameLayout(App.getInstance().getAppContext());
+            fragmentFrameLayout = new FrameLayout(App.INSTANCE.getAppContext());
             fragmentFrameLayout.setId(frameLayoutResourceId);
         }
 
@@ -152,7 +153,7 @@ class AEPMessage implements FullscreenMessage {
                 // add the frame layout to be replaced with the message fragment
                 rootViewGroup.addView(fragmentFrameLayout);
 
-                final FragmentManager fragmentManager = App.getInstance().getCurrentActivity().getFragmentManager();
+                final FragmentManager fragmentManager = App.INSTANCE.getCurrentActivity().getFragmentManager();
 
                 // ensure there are no existing webview fragments before creating a new one
                 final Fragment currentMessageFragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG);
@@ -164,9 +165,9 @@ class AEPMessage implements FullscreenMessage {
                 // prepare a message fragment and replace the frame layout with the fragment
                 messageFragment = new MessageFragment();
                 messageFragment.setAEPMessage(message);
-                final int id = App.getInstance().getAppContext().getResources().getIdentifier(Integer.toString(frameLayoutResourceId),
+                final int id = App.INSTANCE.getAppContext().getResources().getIdentifier(Integer.toString(frameLayoutResourceId),
                         "id",
-                        App.getInstance().getAppContext().getPackageName());
+                        App.INSTANCE.getAppContext().getPackageName());
                 final FragmentTransaction transaction = fragmentManager.beginTransaction();
                 transaction.replace(id, messageFragment, FRAGMENT_TAG).addToBackStack(null).commit();
                 fragmentManager.executePendingTransactions();
@@ -190,15 +191,15 @@ class AEPMessage implements FullscreenMessage {
     @Override
     public void openUrl(final String url) {
         if (StringUtils.isNullOrEmpty(url)) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, "Could not open url because it is null or empty.");
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Could not open url because it is null or empty.");
             return;
         }
 
         try {
             final Intent intent = ServiceProvider.getInstance().getUIService().getIntentWithURI(url);
-            App.getInstance().getCurrentActivity().startActivity(intent);
+            App.INSTANCE.getCurrentActivity().startActivity(intent);
         } catch (final NullPointerException ex) {
-            MobileCore.log(LoggingMode.WARNING, TAG, "Could not open the url from the message " + ex.getMessage());
+            Log.debug(ServiceConstants.LOG_TAG, TAG, "Could not open the url from the message " + ex.getMessage());
         }
     }
 
@@ -264,7 +265,7 @@ class AEPMessage implements FullscreenMessage {
      * create the {@link MessageWebView}.
      */
     void showInRootViewGroup() {
-        final int currentOrientation = App.getInstance().getCurrentOrientation();
+        final int currentOrientation = ServiceProvider.getInstance().getDeviceInfoService().getCurrentOrientation();
 
         if (isVisible && orientationWhenShown == currentOrientation) {
             return;
@@ -273,7 +274,7 @@ class AEPMessage implements FullscreenMessage {
         orientationWhenShown = currentOrientation;
         messageWebViewRunner = new MessageWebViewRunner(this);
         messageWebViewRunner.setLocalAssetsMap(assetMap);
-        final Activity currentActivity = App.getInstance().getCurrentActivity();
+        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
         currentActivity.runOnUiThread(messageWebViewRunner);
     }
 
@@ -281,7 +282,7 @@ class AEPMessage implements FullscreenMessage {
      * Tears down views and listeners used to display the {@link AEPMessage}.
      */
     void cleanup() {
-        MobileCore.log(LoggingMode.DEBUG, TAG, "Cleaning the AEPMessage.");
+        Log.trace(ServiceConstants.LOG_TAG, TAG, "Cleaning the AEPMessage.");
         delegateFullscreenMessageDismiss();
 
         if (messagesMonitor != null) {
@@ -301,7 +302,7 @@ class AEPMessage implements FullscreenMessage {
         fragmentFrameLayout = null;
         webView = null;
         // clean the message fragment
-        final FragmentManager fragmentManager = App.getInstance().getCurrentActivity().getFragmentManager();
+        final FragmentManager fragmentManager = App.INSTANCE.getCurrentActivity().getFragmentManager();
         final Fragment messageFragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG);
 
         if (messageFragment != null) {
@@ -354,7 +355,7 @@ class AEPMessage implements FullscreenMessage {
      */
     private void removeFromRootViewGroup() {
         if (rootViewGroup == null) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (root viewgroup), failed to dismiss the message.");
+            Log.debug(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (root viewgroup), failed to dismiss the message.");
             return;
         }
 
@@ -392,12 +393,12 @@ class AEPMessage implements FullscreenMessage {
         final MessageSettings.MessageAnimation animation = getSettings().getDismissAnimation();
 
         if (animation == null) {
-            MobileCore.log(LoggingMode.VERBOSE, TAG,
+            Log.trace(ServiceConstants.LOG_TAG, TAG,
                     "No dismiss animation found in the message settings. Message will be removed.");
             return new TranslateAnimation(0, 0, 0, 0);
         }
 
-        MobileCore.log(LoggingMode.VERBOSE, TAG, "Creating dismiss animation for " + animation.name());
+        Log.trace(ServiceConstants.LOG_TAG, TAG, "Creating dismiss animation for " + animation.name());
         final Animation dismissAnimation;
 
         switch (animation) {

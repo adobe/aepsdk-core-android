@@ -3,6 +3,24 @@ apply plugin: 'kotlin-android'
 apply plugin: 'org.jlleitschuh.gradle.ktlint'
 apply plugin: 'org.jetbrains.dokka'
 
+// Disable variants for binary compatiblity validation tasks.
+apply plugin: 'binary-compatibility-validator'
+ext.disableVariants = project.gradle.startParameter.taskNames.any { taskName ->
+    project.logger.debug(taskName)
+    taskName.contains("apiDump") || taskName.contains("apiCheck")
+}
+apiValidation {
+    ignoredPackages += [
+        "com.adobe.marketing.mobile.internal",
+        "com.adobe.marketing.mobile.services.internal",
+        "com.adobe.marketing.mobile.services.ui.internal"
+    ]
+
+    ignoredClasses += [
+        "com.adobe.marketing.mobile.BuildConfig"
+    ]
+}
+
 android {
     compileSdkVersion 31
 
@@ -15,14 +33,6 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
-    sourceSets {
-        test{
-            java{
-                srcDirs += "src/test/kotlin"
-            }
-        }
-    }
-
     testOptions {
         unitTests.returnDefaultValues = true
         unitTests.includeAndroidResources = true
@@ -30,15 +40,25 @@ android {
 
     flavorDimensions "target"
 
-    productFlavors {
-        phone {
-            dimension "target"
+    if (disableVariants) {
+        sourceSets {
+            main {
+                java {
+                    srcDirs 'src/phone/java'
+                }
+            }
+        }
+    } else {
+        productFlavors {
+            phone {
+                dimension "target"
+            }
         }
     }
 
     buildTypes {
         debug {
-            testCoverageEnabled false
+            testCoverageEnabled true
         }
         release {
             minifyEnabled false
@@ -53,94 +73,37 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
-    }
-}
-apply plugin: 'jacoco'
-task jacocoTestReport(type: JacocoReport, dependsOn: ['testPhoneDebugUnitTest','createPhoneDebugCoverageReport']) {
-
-    def debugTree = fileTree(dir: "${project.buildDir}/intermediates/javac/phoneDebug/classes")
-
-    additionalClassDirs.setFrom files([debugTree])
-    additionalSourceDirs.setFrom files(android.sourceSets.phone.java.sourceFiles)
-    sourceDirectories.setFrom files(android.sourceSets.main.java.sourceFiles)
-    executionData.setFrom fileTree(dir: "$buildDir", includes: [
-            "jacoco/testPhoneDebugUnitTest.exec",
-            "outputs/code_coverage/phoneDebugAndroidTest/connected/*coverage.ec"
-    ])
-    reports {
-        xml.enabled true
-        csv.enabled false
-        html.enabled true
+        languageVersion = "1.4"
+        apiVersion = "1.4"
     }
 }
 
-android.libraryVariants.all { variant ->
-    tasks.withType(Javadoc) {
-        source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
-        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+apply from: '../checkstyle.gradle'
+apply from: '../jacoco.gradle'
+apply from: 'release.gradle'
 
-        doFirst{classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)}
-
-        exclude "**/BuildConfig.java"
-        exclude "**/R.java"
-        options {
-            links "https://developer.android.com/reference"
+dokkaJavadoc.configure {
+    dokkaSourceSets {
+        named("main") {
+            noAndroidSdkLink.set(false)
+            perPackageOption {
+                matchingRegex.set(".*\\.internal.*") // proper setting
+                suppress.set(true)
+            }
         }
-    }
-}
 
-
-apply from: 'checkStyle.gradle'
-//apply from: 'release.gradle'
-
-def isJitPackBuild() {
-    return hasProperty('jitpack')
-}
-def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
-publishing {
-    publications {
-        release(MavenPublication) {
-            groupId = groupIdForPublish
-            artifactId = rootProject.coreExtensionName
-            version = rootProject.coreExtensionVersion
-            artifact("$buildDir/outputs/aar/${rootProject.coreExtensionAARName}")
-
-            pom {
-                name = rootProject.mavenRepoName
-                description = rootProject.mavenRepoDescription
-                url = 'https://aep-sdks.gitbook.io'
-                licenses {
-                    license {
-                        name = 'Adobe Proprietary'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'adobe'
-                        name = 'adobe'
-                        email = 'adobe-mobile-testing@adobe.com'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:github.com//Adobe-Marketing-Cloud/acp-sdks.git'
-                    developerConnection = 'scm:git:ssh://github.com//Adobe-Marketing-Cloud/acp-sdks.git'
-                    url = 'https://github.com/Adobe-Marketing-Cloud/acp-sdks'
-                }
-                withXml {
-                    def dependenciesNode = asNode().appendNode('dependencies')
-
-                    def coreDependencyNode = dependenciesNode.appendNode('dependency')
-                    coreDependencyNode.appendNode('groupId', 'org.jetbrains.kotlin')
-                    coreDependencyNode.appendNode('artifactId', 'kotlin-stdlib-jdk8')
-                    coreDependencyNode.appendNode('version', rootProject.kotlin_version)
+        if (!disableVariants) {
+            named("phone") {
+                noAndroidSdkLink.set(false)
+                perPackageOption {
+                    matchingRegex.set(".*\\.internal.*") // proper setting
+                    suppress.set(true)
                 }
             }
         }
     }
 }
-tasks.withType(Javadoc).all { enabled = false }
-publishToMavenLocal.dependsOn('assemblePhone')
-publishReleasePublicationToMavenLocal.dependsOn('assemblePhone')
+
 dependencies {
     //noinspection GradleDependency,GradleCompatible
     implementation 'androidx.appcompat:appcompat:1.0.0'
@@ -164,4 +127,6 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.4.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_version"
+
+    dokkaGfmPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:${dokka_version}")
 }

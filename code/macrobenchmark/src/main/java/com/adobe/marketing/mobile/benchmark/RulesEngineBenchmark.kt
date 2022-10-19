@@ -20,6 +20,9 @@ class RulesEngineBenchmark {
     @get:Rule
     val benchmarkRule = MacrobenchmarkRule()
 
+    //TODO: This test not working because of this benchmark library issue: https://issuetracker.google.com/issues/238350808
+    // The trace file is generated, but the benchmark library can't read it -> /storage/emulated/0/Android/data/com.adobe.marketing.mobile.benchmark/cache/RulesEngineBenchmark_simpleViewClick_iter000_2022-10-19-02-13-45.perfetto-trace
+    // As a workaround, we can manually download the above trace file and upload it to https://ui.perfetto.dev/
     @Test
     fun simpleViewClick() {
         var firstStart = true
@@ -39,8 +42,10 @@ class RulesEngineBenchmark {
         ) {
             device.findObject(By.text("EvaluateRules")).click()
             waitForTextShown("999 consequence events caught")
+//            Thread.sleep(500)
         }
     }
+
     private fun MacrobenchmarkScope.waitForTextShown(text: String) {
         check(device.wait(Until.hasObject(By.text(text)), 1000)) {
             "View showing '$text' not found after waiting 1000 ms."

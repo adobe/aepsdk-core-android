@@ -25,6 +25,7 @@ class StartupBenchmark {
     @get:Rule
     val benchmarkRule = MacrobenchmarkRule()
 
+    //TODO: due to a benchmark library issue, this test can only be running on the device with Android API < 31
     @Test
     fun startup() = benchmarkRule.measureRepeated(
         packageName = "com.adobe.marketing.mobile.app.kotlin",

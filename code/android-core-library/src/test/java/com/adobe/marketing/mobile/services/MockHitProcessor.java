@@ -25,7 +25,7 @@ class MockHitProcessor implements HitProcessing {
     public List<DataEntity> processedHits = new ArrayList<>();
 
     @Override
-    public int retryInterval(DataEntity entity) {
+    public int retryInterval(@NonNull DataEntity entity) {
         return retryInterval;
     }
 

@@ -11,13 +11,7 @@
 package com.adobe.marketing.mobile.signal
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.services.DataEntity
-import com.adobe.marketing.mobile.services.HitProcessing
-import com.adobe.marketing.mobile.services.HttpMethod
-import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.NetworkRequest
-import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -42,10 +36,10 @@ internal class SignalHitProcessor : HitProcessing {
         return HIT_QUEUE_RETRY_TIME_SECONDS
     }
 
-    override fun processHit(entity: DataEntity?): Boolean {
-        if (entity == null) {
-            Log.warning(SignalConstants.LOG_TAG, CLASS_NAME,"Drop this data entity as it is null.")
-            return true
+    override fun processHit(entity: DataEntity, processingResult: HitProcessingResult) {
+        if (entity == null || processingResult == null) {
+            Log.warning(SignalConstants.LOG_TAG, CLASS_NAME, "Drop this data entity as it is null.")
+            return
         }
         val request = buildNetworkRequest(entity) ?: run {
             Log.warning(
@@ -53,7 +47,8 @@ internal class SignalHitProcessor : HitProcessing {
                 CLASS_NAME,
                 "Drop this data entity as it's not able to convert it to a valid Signal request: ${entity.data}"
             )
-            return true
+            processingResult.complete(true)
+            return
         }
         val countDownLatch = CountDownLatch(1)
         var result = false
@@ -92,7 +87,7 @@ internal class SignalHitProcessor : HitProcessing {
             countDownLatch.countDown()
         }
         countDownLatch.await((request.connectTimeout + 1).toLong(), TimeUnit.SECONDS)
-        return result
+        processingResult.complete(result)
     }
 
     private fun buildNetworkRequest(entity: DataEntity): NetworkRequest? {

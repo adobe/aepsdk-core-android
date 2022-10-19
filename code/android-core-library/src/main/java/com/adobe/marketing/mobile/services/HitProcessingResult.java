@@ -9,26 +9,9 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.services;
 
-import com.adobe.marketing.mobile.services.DataEntity;
-import com.adobe.marketing.mobile.services.HitProcessing;
-import java.util.ArrayList;
-import java.util.List;
-
-class MockHitProcessor implements HitProcessing {
-	public int retryInterval = 1;
-	public boolean hitResult = true;
-	public List<DataEntity> processedHits = new ArrayList<>();
-
-	@Override
-	public int retryInterval(DataEntity entity) {
-		return retryInterval;
-	}
-
-	@Override
-	public boolean processHit(DataEntity entity) {
-		processedHits.add(entity);
-		return hitResult;
-	}
+@FunctionalInterface
+public interface HitProcessingResult {
+    void complete(boolean result);
 }

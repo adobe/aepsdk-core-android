@@ -19,6 +19,7 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
+import java.util.concurrent.CountDownLatch
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class SignalHitProcessorTests {
@@ -38,22 +39,20 @@ class SignalHitProcessorTests {
         assertTrue(signalHitProcessor.retryInterval(null) >= 0)
     }
 
-    @Test
-    fun `processHit() should return true for null data`() {
-        // notes: if return false, HitQueue will reprocess this data entity
-        assertTrue(signalHitProcessor.processHit(null))
-    }
-
-    @Test
+    @Test(timeout = 100)
     fun `processHit() should return true for data with bad format`() {
-        // notes: if return false, HitQueue will reprocess this data entity
         val entity = DataEntity("{}")
-        assertTrue(signalHitProcessor.processHit(entity))
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { result ->
+            if (result) {
+                countDownLatch.countDown()
+            }
+        }
+        countDownLatch.await()
     }
 
     @Test
     fun `processHit() should return true for data with empty url`() {
-        // notes: if return false, HitQueue will reprocess this data entity
         val entity = DataEntity(
             """
             {
@@ -64,7 +63,14 @@ class SignalHitProcessorTests {
             }
         """.trimIndent()
         )
-        assertTrue(signalHitProcessor.processHit(entity))
+
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { result ->
+            if (result) {
+                countDownLatch.countDown()
+            }
+        }
+        countDownLatch.await()
     }
 
     @Test
@@ -84,8 +90,12 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        signalHitProcessor.processHit(entity)
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
+
+        countDownLatch.await()
         assertEquals(HttpMethod.GET, requestRecorder?.method)
+
     }
 
     @Test
@@ -105,7 +115,10 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        signalHitProcessor.processHit(entity)
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
+
+        countDownLatch.await()
         assertEquals(HttpMethod.POST, requestRecorder?.method)
     }
 
@@ -126,7 +139,10 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        signalHitProcessor.processHit(entity)
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
+
+        countDownLatch.await()
         assertEquals(2, requestRecorder?.connectTimeout)
     }
 
@@ -147,7 +163,10 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        signalHitProcessor.processHit(entity)
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
+
+        countDownLatch.await()
         assertEquals(2, requestRecorder?.connectTimeout)
     }
 
@@ -168,7 +187,10 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        signalHitProcessor.processHit(entity)
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
+
+        countDownLatch.await()
         val headerSize = requestRecorder?.headers?.size
         assertEquals(0, headerSize)
     }
@@ -190,7 +212,10 @@ class SignalHitProcessorTests {
             requestRecorder = request
             callback.call(null)
         }
-        signalHitProcessor.processHit(entity)
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
+
+        countDownLatch.await()
         assertEquals(2, requestRecorder?.connectTimeout)
         assertEquals(2, requestRecorder?.readTimeout)
     }
@@ -210,7 +235,10 @@ class SignalHitProcessorTests {
         signalHitProcessor = SignalHitProcessor { _, callback ->
             callback.call(null)
         }
-        signalHitProcessor.processHit(entity)
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
+
+        countDownLatch.await()
     }
 
     @Test
@@ -229,7 +257,10 @@ class SignalHitProcessorTests {
         signalHitProcessor = SignalHitProcessor { _, callback ->
             callback.call(httpResponseConnection)
         }
-        assertTrue(signalHitProcessor.processHit(entity))
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { if (it) countDownLatch.countDown() }
+
+        countDownLatch.await()
     }
 
     @Test
@@ -248,7 +279,10 @@ class SignalHitProcessorTests {
         signalHitProcessor = SignalHitProcessor { _, callback ->
             callback.call(httpResponseConnection)
         }
-        assertFalse(signalHitProcessor.processHit(entity))
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { if (!it) countDownLatch.countDown() }
+
+        countDownLatch.await()
     }
 
     @Test
@@ -267,7 +301,10 @@ class SignalHitProcessorTests {
         signalHitProcessor = SignalHitProcessor { _, callback ->
             callback.call(httpResponseConnection)
         }
-        assertTrue(signalHitProcessor.processHit(entity))
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { if (it) countDownLatch.countDown() }
+
+        countDownLatch.await()
     }
 
 }

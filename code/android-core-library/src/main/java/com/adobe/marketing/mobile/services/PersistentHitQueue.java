@@ -22,104 +22,100 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class PersistentHitQueue extends HitQueuing {
 
-	private final DataQueue queue;
-	private final HitProcessing processor;
-	private AtomicBoolean suspended = new AtomicBoolean(true);
-	private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-	private final AtomicBoolean isTaskScheduled = new AtomicBoolean(false);
+    private final DataQueue queue;
+    private final HitProcessing processor;
+    private AtomicBoolean suspended = new AtomicBoolean(true);
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+    private final AtomicBoolean isTaskScheduled = new AtomicBoolean(false);
 
-	/**
-	 * Constructor to create {@link HitQueuing} with underlying {@link DataQueue}
-	 *
-	 * @param queue     object of <code>DataQueue</code> for persisting hits
-	 * @param processor object of {@link HitProcessing} for processing hits
-	 * @throws IllegalArgumentException
-	 */
-	public PersistentHitQueue(final DataQueue queue, final HitProcessing processor) throws IllegalArgumentException {
-		if (queue == null || processor == null) {
-			throw new IllegalArgumentException("Null value is not allowed in PersistentHitQueue Constructor.");
-		}
+    /**
+     * Constructor to create {@link HitQueuing} with underlying {@link DataQueue}
+     *
+     * @param queue     object of <code>DataQueue</code> for persisting hits
+     * @param processor object of {@link HitProcessing} for processing hits
+     * @throws IllegalArgumentException
+     */
+    public PersistentHitQueue(final DataQueue queue, final HitProcessing processor) throws IllegalArgumentException {
+        if (queue == null || processor == null) {
+            throw new IllegalArgumentException("Null value is not allowed in PersistentHitQueue Constructor.");
+        }
 
-		this.queue = queue;
-		this.processor = processor;
-	}
+        this.queue = queue;
+        this.processor = processor;
+    }
 
-	@Override
-	public boolean queue(final DataEntity entity) {
-		final boolean result = queue.add(entity);
-		processNextHit();
-		return result;
-	}
+    @Override
+    public boolean queue(final DataEntity entity) {
+        final boolean result = queue.add(entity);
+        processNextHit();
+        return result;
+    }
 
-	@Override
-	public void beginProcessing() {
-		suspended.set(false);
-		processNextHit();
-	}
+    @Override
+    public void beginProcessing() {
+        suspended.set(false);
+        processNextHit();
+    }
 
-	@Override
-	public void suspend() {
-		suspended.set(true);
-	}
+    @Override
+    public void suspend() {
+        suspended.set(true);
+    }
 
-	@Override
-	public void clear() {
-		queue.clear();
-	}
+    @Override
+    public void clear() {
+        queue.clear();
+    }
 
-	@Override
-	public int count() {
-		return queue.count();
-	}
+    @Override
+    public int count() {
+        return queue.count();
+    }
 
-	@Override
-	public void close() {
-		suspend();
-		queue.close();
-	}
+    @Override
+    public void close() {
+        suspend();
+        queue.close();
+    }
 
-	/**
-	 * A Recursive function for processing persisted hits. I will continue processing
-	 * all the Hits until none are left in the DataQueue.
-	 */
-	private void processNextHit() {
-		if (suspended.get()) {
-			return;
-		}
+    /**
+     * A Recursive function for processing persisted hits. I will continue processing
+     * all the Hits until none are left in the DataQueue.
+     */
+    private void processNextHit() {
+        if (suspended.get()) {
+            return;
+        }
 
-		// If taskScheduled is false, then set to true and return true.
-		// If taskScheduled is true, then compareAndSet returns false
-		if (!isTaskScheduled.compareAndSet(false, true)) {
-			return;
-		}
+        // If taskScheduled is false, then set to true and return true.
+        // If taskScheduled is true, then compareAndSet returns false
+        if (!isTaskScheduled.compareAndSet(false, true)) {
+            return;
+        }
 
-		scheduledExecutorService.execute(new Runnable() {
-			@Override
-			public void run() {
-				DataEntity entity = queue.peek();
+        scheduledExecutorService.execute(() -> {
+            DataEntity entity = queue.peek();
 
-				if (entity == null) {
-					isTaskScheduled.set(false);
-					return;
-				}
+            if (entity == null) {
+                isTaskScheduled.set(false);
+                return;
+            }
 
-				boolean result = processor.processHit(entity);
+            processor.processHit(entity, result -> {
+                if (result) {
+                    queue.remove();
+                    isTaskScheduled.set(false);
+                    processNextHit();
+                } else {
+                    long delay = processor.retryInterval(entity);
+                    scheduledExecutorService.schedule(() -> {
+                        isTaskScheduled.set(false);
+                        processNextHit();
+                    }, delay, TimeUnit.SECONDS);
+                }
+            });
 
-				if (result) {
-					queue.remove();
-					isTaskScheduled.set(false);
-					processNextHit();
-				} else {
-					long delay = processor.retryInterval(entity);
-					scheduledExecutorService.schedule(new Runnable() {
-						@Override
-						public void run() {
-							isTaskScheduled.set(false);
-							processNextHit();
-						}
-					}, delay, TimeUnit.SECONDS);
-				}
-			}
-		});
-	}
+
+        });
+    }
 }

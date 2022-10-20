@@ -16,4 +16,5 @@ sealed class NavRoutes(val route: String) {
     object SignalView : NavRoutes("signal")
     object LifecycleView : NavRoutes("lifecycle")
     object ServicesView : NavRoutes("services")
+    object PerformanceView : NavRoutes("performance")
 }

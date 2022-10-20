@@ -14,4 +14,8 @@ public class ServiceProviderModifier {
     public static void resetApp() {
         ServiceProvider.getInstance().resetAppInstance();
     }
+    public static void reset(){
+        ServiceProvider.getInstance().resetAppInstance();
+        ServiceProvider.getInstance().resetServices();
+    }
 }

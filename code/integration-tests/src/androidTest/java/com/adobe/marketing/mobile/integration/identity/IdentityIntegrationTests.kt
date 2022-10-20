@@ -21,6 +21,7 @@ import com.adobe.marketing.mobile.integration.MonitorExtension
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.ServiceProviderModifier
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.BeforeClass
@@ -42,6 +43,10 @@ class IdentityIntegrationTests {
         @BeforeClass
         @JvmStatic
         fun setupClass() {
+            overrideNetworkService()
+        }
+
+        private fun overrideNetworkService() {
             ServiceProvider.getInstance().networkService = Networking { request, callback ->
                 networkMonitor?.let { it(request.url) }
                 callback.call(object : HttpConnecting {
@@ -183,6 +188,8 @@ class IdentityIntegrationTests {
         }
 
         SDKHelper.resetSDK()
+        ServiceProviderModifier.reset()
+        overrideNetworkService()
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
@@ -195,6 +202,7 @@ class IdentityIntegrationTests {
             }
         }
         val countDownLatchSecondLaunch = CountDownLatch(1)
+
         MobileCore.registerExtensions(
             listOf(
                 IdentityExtension::class.java,

@@ -21,6 +21,8 @@ public final class IdentityConstants {
     static final String FRIENDLY_NAME = "Identity";
     static final String EXTENSION_NAME = "com.adobe.module.identity";
 
+    static final String ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME = "AnalyticsForIdentityRequest";
+
     static final class Defaults {
         static final long DEFAULT_TTL_VALUE = 600;
         static final String SERVER = "dpm.demdex.net";

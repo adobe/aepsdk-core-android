@@ -54,7 +54,7 @@ class IdentityIntegrationTests {
                     }
 
                     override fun getResponseCode(): Int {
-                        return HttpURLConnection.HTTP_UNAVAILABLE
+                        return HttpURLConnection.HTTP_REQ_TOO_LONG
                     }
 
                     override fun getResponseMessage(): String {
@@ -72,7 +72,7 @@ class IdentityIntegrationTests {
         }
     }
 
-    private fun clearSharedPreference(){
+    private fun clearSharedPreference() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val sharedPreference = context.getSharedPreferences("visitorIDServiceDataStore", 0)
         val editor = sharedPreference.edit()
@@ -443,8 +443,6 @@ class IdentityIntegrationTests {
         val firstMid = loadStoreMid()
         assertNotEquals("", firstMid)
 
-        MobileCore.resetIdentities()
-
         val countDownLatchSecondNetworkMonitor = CountDownLatch(1)
         networkMonitor = { url ->
             if (url.contains("https://test.com/id")) {
@@ -454,6 +452,7 @@ class IdentityIntegrationTests {
                 countDownLatchSecondNetworkMonitor.countDown()
             }
         }
+        MobileCore.resetIdentities()
         countDownLatchSecondNetworkMonitor.await()
         val secondMid = loadStoreMid()
         assertNotEquals("", secondMid)

@@ -16,60 +16,55 @@ import java.util.List;
  * Class to represent IdentityExtension network call json response.
  */
 class IdentityResponseObject {
-	/**
-	 * Blob value as received in the visitor id service network response json.
-	 * <p>
-	 * Expected value type: {@link String}
-	 */
-	String blob;
+    /**
+     * Blob value as received in the visitor id service network response json.
+     * <p>
+     * Expected value type: {@link String}
+     */
+    String blob;
 
-	/**
-	 * Marketing cloud id value as received in the visitor id service network response json.
-	 * <p>
-	 * Expected value type: {@link String}
-	 */
-	String mid;
+    /**
+     * Marketing cloud id value as received in the visitor id service network response json.
+     * <p>
+     * Expected value type: {@link String}
+     */
+    String mid;
 
-	/**
-	 * Location value as received in the visitor id service network response json.
-	 * <p>
-	 * Expected value type: {@link String}
-	 */
-	String hint;
+    /**
+     * Location value as received in the visitor id service network response json.
+     * <p>
+     * Expected value type: {@link String}
+     */
+    String hint;
 
-	/**
-	 * Error value as received in the visitor id service network response json.
-	 * <p>
-	 * Expected value type: {@link String}
-	 */
-	String error;
+    /**
+     * Error value as received in the visitor id service network response json.
+     * <p>
+     * Expected value type: {@link String}
+     */
+    String error;
 
-	/**
-	 * ttl value as received in the visitor id service network response json.
-	 * <p>
-	 * Expected value type: {@link Long}
-	 */
-	long ttl;
+    /**
+     * ttl value as received in the visitor id service network response json.
+     * <p>
+     * Expected value type: {@link Long}
+     */
+    long ttl;
 
-	/**
-	 * ArrayList of global opt out as received in the visitor id service network response json.
-	 * <p>
-	 * Expected value type: {@code List}
-	 */
-	List<String> optOutList;
+    /**
+     * ArrayList of global opt out as received in the visitor id service network response json.
+     * <p>
+     * Expected value type: {@code List}
+     */
+    List<String> optOutList;
 
 
-	/**
-	 * Constructor initializes blob, mid, hint, error, optOutList to null, and ttl to its defualt value of DEFAULT_TTL_VALUE.
-	 */
-	IdentityResponseObject() {
-		blob = null;
-		mid = null;
-		hint = null;
-		error = null;
-		ttl = IdentityConstants.Defaults.DEFAULT_TTL_VALUE;
-		optOutList = null;
-	}
+    /**
+     * Constructor initializes blob, mid, hint, error, optOutList to null, and ttl to its defualt value of DEFAULT_TTL_VALUE.
+     */
+    IdentityResponseObject() {
+        ttl = IdentityConstants.Defaults.DEFAULT_TTL_VALUE;
+    }
 
 
 }

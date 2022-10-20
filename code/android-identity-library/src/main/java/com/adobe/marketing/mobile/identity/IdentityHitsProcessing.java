@@ -11,8 +11,11 @@
 
 package com.adobe.marketing.mobile.identity;
 
+import androidx.annotation.NonNull;
+
 import com.adobe.marketing.mobile.services.DataEntity;
 import com.adobe.marketing.mobile.services.HitProcessing;
+import com.adobe.marketing.mobile.services.HitProcessingResult;
 import com.adobe.marketing.mobile.services.HttpConnecting;
 import com.adobe.marketing.mobile.services.HttpMethod;
 import com.adobe.marketing.mobile.services.Log;
@@ -50,23 +53,23 @@ class IdentityHitsProcessing implements HitProcessing {
     }
 
     @Override
-    public boolean processHit(DataEntity entity) {
+    public void processHit(@NonNull DataEntity entity, @NonNull HitProcessingResult processingResult) {
         IdentityHit hit = IdentityHit.fromDataEntity(entity);
         if (hit == null) {
-            return true;
+            processingResult.complete(true);
         }
         if (hit.getUrl() == null || hit.getEvent() == null) {
             Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "IdentityHitsDatabase.process : Unable to process IdentityExtension hit because it does not contain a url or the trigger event.");
-            return true;
+            processingResult.complete(true);
         }
 
         Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "IdentityHitsDatabase.process : Sending request: (%s).", hit.getUrl());
         Map<String, String> requestPropertyMap = NetworkConnectionUtil.getHeaders(true);
 
         // make the request synchronously
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        final AtomicBoolean networkRequestSucessful = new AtomicBoolean(false);
+//        CountDownLatch countDownLatch = new CountDownLatch(1);
+//        final AtomicBoolean networkRequestSucessful = new AtomicBoolean(false);
         NetworkRequest networkRequest = new NetworkRequest(
                 hit.getUrl(),
                 HttpMethod.GET,
@@ -81,8 +84,7 @@ class IdentityHitsProcessing implements HitProcessing {
 
                 // make sure the parent updates shared state and notifies one-time listeners accordingly
                 identityExtension.networkResponseLoaded(null, hit.getEvent());
-                networkRequestSucessful.set(true);
-                countDownLatch.countDown();
+                processingResult.complete(true);
                 return;
             }
             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -94,14 +96,12 @@ class IdentityHitsProcessing implements HitProcessing {
                     IdentityResponseObject result = createIdentityObjectFromResponseJsonObject(jsonObject);
                     Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "IdentityHitsDatabase.process : ECID Service response data was parsed successfully.");
                     identityExtension.networkResponseLoaded(result, hit.getEvent());
-                    networkRequestSucessful.set(true);
+                    processingResult.complete(true);
                 } catch (final JSONException e) {
                     Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                             "IdentityHitsDatabase.process : An unknown exception occurred while trying to process the response from the ECID Service: (%s).",
                             e);
-                    networkRequestSucessful.set(false);
-                    countDownLatch.countDown();
-                    return;
+                    processingResult.complete(false);
                 }
 
             } else if (!NetworkConnectionUtil.recoverableNetworkErrorCodes.contains(connection.getResponseCode())) {
@@ -112,33 +112,24 @@ class IdentityHitsProcessing implements HitProcessing {
                         connection.getResponseCode());
                 // make sure the parent updates shared state and notifies one-time listeners accordingly
                 identityExtension.networkResponseLoaded(null, hit.getEvent());
-                networkRequestSucessful.set(false);
+                processingResult.complete(true);
             } else {
                 // recoverable error.  leave the request in the queue, wait for 30 sec, and try again
                 Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                         "IdentityHitsDatabase.process : A recoverable network error occurred with response code %d while processing ECID Service requests.  Will retry in 30 seconds.",
                         connection.getResponseCode());
-                networkRequestSucessful.set(true);
+                processingResult.complete(false);
             }
-            countDownLatch.countDown();
         });
-        try {
-            //noinspection ResultOfMethodCallIgnored
-            countDownLatch.await(IdentityConstants.Defaults.TIMEOUT + 1, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            return false;
-        }
-
-        return networkRequestSucessful.get();
     }
 
     IdentityResponseObject createIdentityObjectFromResponseJsonObject(final JSONObject jsonObject) {
-        IdentityResponseObject result = null;
+        IdentityResponseObject result;
 
         if (jsonObject == null) {
             Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "createIdentityObjectFromResponseJsonObject: Unable to parse identity network response because the JSON object created was null.");
-            return result;
+            return null;
         }
 
         result = new IdentityResponseObject();

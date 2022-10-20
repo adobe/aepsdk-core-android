@@ -871,7 +871,7 @@ final public class IdentityExtension extends Extension {
 
         final String urlString = DataReader.optString(eventData, IdentityConstants.EventDataKeys.Identity.BASE_URL, null);
 
-        appendVisitorInfoForURL(urlString, event, configSharedState, analyticsSharedState);
+        appendVisitorInfoForURL(urlString, event, configSharedState, analyticsSharedState, null);
     }
 
     void handleGetUrlVariables(final Event event,
@@ -961,7 +961,8 @@ final public class IdentityExtension extends Extension {
     void appendVisitorInfoForURL(final String baseURL,
                                  final Event event,
                                  final ConfigurationSharedStateIdentity configSharedState,
-                                 final Map<String, Object> analyticsSharedState) {
+                                 final Map<String, Object> analyticsSharedState,
+                                 final StringBuilder idStringBuilderForTesting) {
 
         if (StringUtils.isNullOrEmpty(baseURL)) {
             // nothing to update, dispatch provided baseURL
@@ -972,7 +973,8 @@ final public class IdentityExtension extends Extension {
         }
 
         final StringBuilder modifiedURL = new StringBuilder(baseURL);
-        final StringBuilder idStringBuilder = generateVisitorIDURLPayload(configSharedState, analyticsSharedState);
+        final StringBuilder idStringBuilder = idStringBuilderForTesting != null ? idStringBuilderForTesting :
+                generateVisitorIDURLPayload(configSharedState, analyticsSharedState);
 
         if (!StringUtils.isNullOrEmpty(idStringBuilder.toString())) {
             // add separator based on if url contains query parameters

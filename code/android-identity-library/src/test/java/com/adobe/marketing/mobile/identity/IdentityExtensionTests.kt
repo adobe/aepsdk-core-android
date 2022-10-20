@@ -12,6 +12,7 @@ package com.adobe.marketing.mobile.identity
 
 import com.adobe.marketing.mobile.*
 import com.adobe.marketing.mobile.services.*
+import com.adobe.marketing.mobile.util.DataReader
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
@@ -22,6 +23,9 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.*
+import java.io.*
+import java.net.URL
+import java.util.*
 import java.util.concurrent.CountDownLatch
 
 
@@ -1561,6 +1565,76 @@ class IdentityExtensionTests {
         assertEquals("customIdType", visitorID.idType)
         assertEquals("value2", visitorID.id)
         assertEquals(VisitorID.AuthenticationState.LOGGED_OUT, visitorID.authenticationState)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun appendVisitorInfoForURL_Should_HandleAllURLs() {
+        var inputStream: InputStream? = null
+        try {
+            inputStream = FileInputStream(getResource("SampleURLTestSet.tab"))
+        } catch (ex: Exception) {
+            fail("Could not read the sample urls file!")
+        }
+        val buf = BufferedReader(InputStreamReader(inputStream))
+        var line: String? = buf.readLine()
+        val sb = java.lang.StringBuilder()
+        var testComponents: Array<String?>
+        var lineNumber = 0
+        while (line != null) {
+            lineNumber++
+            if (lineNumber == 1 || line == "") {
+                line = buf.readLine()
+                continue
+            }
+            sb.append(line).append("\n")
+            testComponents = line.split("\t".toRegex()).toTypedArray()
+            val testURL = testComponents[0]
+            val idPayload = java.lang.StringBuilder(testComponents[1])
+            val expectedResult = testComponents[2]
+
+            val spiedIdentityExtension = initializeSpiedIdentityExtension()
+
+            val configurationSharedStateIdentity = ConfigurationSharedStateIdentity()
+            configurationSharedStateIdentity.getConfigurationProperties(
+                mapOf(
+                    "experienceCloud.org" to "orgid"
+                )
+            )
+
+            val countDownLatch = CountDownLatch(1)
+            doAnswer { invocation ->
+                val event = invocation.arguments[0] as? Event
+                val eventData = event?.eventData
+                assertNotNull(eventData)
+                val returnURL: String = DataReader.optString(eventData, "updatedurl", "")
+                assertEquals(expectedResult, returnURL)
+
+                countDownLatch.countDown()
+            }.`when`(mockedExtensionApi).dispatch(any())
+
+            spiedIdentityExtension.appendVisitorInfoForURL(
+                testURL,
+                null,
+                configurationSharedStateIdentity,
+                mapOf(
+                    "aid" to "test-aid",
+                    "vid" to "test-vid"
+                ),
+                idPayload
+            )
+            countDownLatch.await()
+            line = buf.readLine()
+        }
+    }
+
+    private fun getResource(resourceName: String?): File? {
+        var resourceFile: File? = null
+        val resource: URL? = this.javaClass.classLoader.getResource(resourceName)
+        if (resource != null) {
+            resourceFile = File(resource.getFile())
+        }
+        return resourceFile
     }
 
     private fun stringFromVisitorIdList(visitorIDs: List<VisitorID>?): String {

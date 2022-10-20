@@ -73,7 +73,6 @@ import java.util.*;
  */
 final public class IdentityExtension extends Extension {
     private static final String LOG_SOURCE = "IdentityExtension";
-    private static final String ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME = "AnalyticsForIdentityRequest";
     private HitQueuing hitQueue;
     private static boolean pushEnabled = false;
     private static final Object _pushEnabledMutex = new Object();
@@ -1409,7 +1408,7 @@ final public class IdentityExtension extends Extension {
 
         analyticsData.put(IdentityConstants.EventDataKeys.Analytics.TRACK_INTERNAL, true);
 
-        final Event analyticsForMessageEvent = new Event.Builder(ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME,
+        final Event analyticsForMessageEvent = new Event.Builder(IdentityConstants.ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME,
                 EventType.ANALYTICS, EventSource.REQUEST_CONTENT).setEventData(analyticsData).build();
 
         getApi().dispatch(analyticsForMessageEvent);

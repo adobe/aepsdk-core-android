@@ -617,8 +617,12 @@ public abstract interface class com/adobe/marketing/mobile/services/DeviceInform
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/HitProcessing {
-	public abstract fun processHit (Lcom/adobe/marketing/mobile/services/DataEntity;)Z
+	public abstract fun processHit (Lcom/adobe/marketing/mobile/services/DataEntity;Lcom/adobe/marketing/mobile/services/HitProcessingResult;)V
 	public abstract fun retryInterval (Lcom/adobe/marketing/mobile/services/DataEntity;)I
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/HitProcessingResult {
+	public abstract fun complete (Z)V
 }
 
 public abstract class com/adobe/marketing/mobile/services/HitQueuing {

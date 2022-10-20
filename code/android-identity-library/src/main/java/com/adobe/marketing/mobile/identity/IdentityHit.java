@@ -65,7 +65,6 @@ final class IdentityHit {
             Event event = EventCoder.decode(jsonObject.getString(EVENT));
             return new IdentityHit(url, event);
         } catch (JSONException e) {
-            e.printStackTrace();
             return null;
         }
     }

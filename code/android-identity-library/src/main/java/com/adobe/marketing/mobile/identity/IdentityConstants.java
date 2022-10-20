@@ -21,12 +21,14 @@ public final class IdentityConstants {
     static final String FRIENDLY_NAME = "Identity";
     static final String EXTENSION_NAME = "com.adobe.module.identity";
 
+    static final String ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME = "AnalyticsForIdentityRequest";
+
     static final class Defaults {
         static final long DEFAULT_TTL_VALUE = 600;
         static final String SERVER = "dpm.demdex.net";
         static final String CID_DELIMITER = "%01";
         static final int TIMEOUT = 2;
-        static final int TIMEOUT_IN_MILLISECONDS = 2000;
+        static final int TIMEOUT_IN_SECONDS = 2;
         static final boolean DEFAULT_SSL = true;
         static final MobilePrivacyStatus DEFAULT_MOBILE_PRIVACY = MobilePrivacyStatus.UNKNOWN;
         static final String ZERO_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000";

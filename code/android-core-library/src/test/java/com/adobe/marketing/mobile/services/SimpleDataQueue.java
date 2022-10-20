@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
  */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.services;
 
 import com.adobe.marketing.mobile.services.DataEntity;
 import com.adobe.marketing.mobile.services.DataQueue;

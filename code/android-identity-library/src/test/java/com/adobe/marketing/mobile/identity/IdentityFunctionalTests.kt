@@ -156,8 +156,7 @@ class IdentityFunctionalTests {
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
                 assertTrue(hit.url.contains("https://test.com/id?"))
-                IdentityHitsProcessing(identityExtension).processHit(entity)
-                countDownLatch.countDown()
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
             }
             return@thenAnswer true
         }
@@ -174,7 +173,7 @@ class IdentityFunctionalTests {
         return identityExtension
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_syncIdentifier_validateQueryParams_happy() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -200,8 +199,8 @@ class IdentityFunctionalTests {
                 assertTrue(hit.url.contains("idValueSYNC"))
                 assertTrue(hit.url.contains("d_ver=2"))
                 assertTrue(hit.url.contains("d_orgid=orgid"))
-                IdentityHitsProcessing(identityExtension).processHit(entity)
-                countDownLatch.countDown()
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
             }
             return@thenAnswer true
         }
@@ -237,7 +236,7 @@ class IdentityFunctionalTests {
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_syncIdentifiers_validateQueryParams_happy() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -265,8 +264,8 @@ class IdentityFunctionalTests {
                 assertTrue(hit.url.contains("d_ver=2"))
                 assertTrue(hit.url.contains("d_orgid=orgid"))
 //                assertTrue(hit.url.contains("d_blob=hmk_Lq6TPIBMW925SPhw3Q"))
-                IdentityHitsProcessing(identityExtension).processHit(entity)
-                countDownLatch.countDown()
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
             }
             return@thenAnswer true
         }
@@ -306,7 +305,63 @@ class IdentityFunctionalTests {
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
+    fun test_setAdvertisingIdentifier_validateIDFA_happy() {
+        //setup
+        val rand = Random()
+        val randomString = (rand.nextInt(10000000) + 1).toString()
+        val testAdvertisingId = "TestAdvertisingID$randomString"
+
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+
+        val countDownLatch = CountDownLatch(2)
+        `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
+            val entity: DataEntity? = invocation.arguments[0] as DataEntity?
+            if (entity == null) {
+                fail("DataEntity is null.")
+                return@thenAnswer false
+            }
+            val hit = IdentityHit.fromDataEntity(entity)
+            if (hit != null) {
+                assertTrue(hit.url.contains("https://test.com/id?"))
+                assertTrue(hit.url.contains(testAdvertisingId))
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
+            }
+            return@thenAnswer true
+        }
+
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/id?")) {
+                assertTrue(url.contains(testAdvertisingId))
+                countDownLatch.countDown()
+            }
+        }
+
+        identityExtension.processIdentityRequest(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.generic.identity",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(
+                mapOf(
+                    "advertisingidentifier" to testAdvertisingId
+                )
+            ).build()
+        )
+
+        countDownLatch.await()
+    }
+
+    @Test(timeout = 10000)
     fun test_syncIdentifiers_nullAndEmptyIdTypeAndIdentifier_ValidateQueryParams() {
 
         val configuration = mapOf(
@@ -337,8 +392,8 @@ class IdentityFunctionalTests {
                 assertFalse(hit.url.contains("value4"))
                 assertFalse(hit.url.contains("keye"))
 //                assertTrue(hit.url.contains("d_blob=hmk_Lq6TPIBMW925SPhw3Q"))
-                IdentityHitsProcessing(identityExtension).processHit(entity)
-                countDownLatch.countDown()
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
             }
             return@thenAnswer true
         }
@@ -381,63 +436,7 @@ class IdentityFunctionalTests {
         countDownLatch.await()
     }
 
-    @Test
-    fun test_setAdvertisingIdentifier_validateIDFA_happy() {
-        //setup
-        val rand = Random()
-        val randomString = (rand.nextInt(10000000) + 1).toString()
-        val testAdvertisingId = "TestAdvertisingID$randomString"
-
-        val configuration = mapOf(
-            "experienceCloud.org" to "orgid",
-            "experienceCloud.server" to "test.com",
-            "global.privacy" to "optedin"
-        )
-        val identityExtension = initializeIdentityExtensionWithPreset(
-            FRESH_INSTALL_WITHOUT_CACHE,
-            configuration
-        )
-
-        val countDownLatch = CountDownLatch(2)
-        `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
-            val entity: DataEntity? = invocation.arguments[0] as DataEntity?
-            if (entity == null) {
-                fail("DataEntity is null.")
-                return@thenAnswer false
-            }
-            val hit = IdentityHit.fromDataEntity(entity)
-            if (hit != null) {
-                assertTrue(hit.url.contains("https://test.com/id?"))
-                assertTrue(hit.url.contains(testAdvertisingId))
-                IdentityHitsProcessing(identityExtension).processHit(entity)
-                countDownLatch.countDown()
-            }
-            return@thenAnswer true
-        }
-
-        networkMonitor = { url ->
-            if (url.contains("https://test.com/id?")) {
-                assertTrue(url.contains(testAdvertisingId))
-                countDownLatch.countDown()
-            }
-        }
-
-        identityExtension.processIdentityRequest(
-            Event.Builder(
-                "event",
-                "com.adobe.eventType.generic.identity",
-                "com.adobe.eventSource.requestContent"
-            ).setEventData(
-                mapOf(
-                    "advertisingidentifier" to testAdvertisingId
-                )
-            ).build()
-        )
-
-        countDownLatch.await()
-    }
-
-    @Test
+    @Test(timeout = 10000)
     fun test_setAdvertisingIdentifier_valueChanged_syncCallsSentForValidValues() {
         //setup
         val rand = Random()
@@ -468,20 +467,20 @@ class IdentityFunctionalTests {
                     1 -> {
                         assertTrue(hit.url.contains("https://test.com/id?"))
                         assertTrue(hit.url.contains(testAdvertisingId1))
-                        IdentityHitsProcessing(identityExtension).processHit(entity)
-                        countDownLatch.countDown()
+                        IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
                     }
                     2 -> {
                         assertTrue(hit.url.contains("https://test.com/id?"))
                         assertTrue(hit.url.contains("DSID_20914&"))
-                        IdentityHitsProcessing(identityExtension).processHit(entity)
-                        countDownLatch.countDown()
+                        IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
                     }
                     3 -> {
                         assertTrue(hit.url.contains("https://test.com/id?"))
                         assertTrue(hit.url.contains(testAdvertisingId2))
-                        IdentityHitsProcessing(identityExtension).processHit(entity)
-                        countDownLatch.countDown()
+                        IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
                     }
                 }
             }
@@ -536,7 +535,7 @@ class IdentityFunctionalTests {
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_setAdvertisingIdentifier_sameValueTwice_syncsOnlyOnce() {
         //setup
         val rand = Random()
@@ -569,8 +568,8 @@ class IdentityFunctionalTests {
                     if (hit != null) {
                         assertTrue(hit.url.contains("https://test.com/id?"))
                         assertTrue(hit.url.contains(testAdvertisingId))
-                        IdentityHitsProcessing(identityExtension).processHit(entity)
-                        countDownLatch1.countDown()
+                        IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch1.countDown() }
+
                     }
                 }
                 2 -> {
@@ -614,7 +613,7 @@ class IdentityFunctionalTests {
         assertFalse(countDownLatch2.await(1000, TimeUnit.MILLISECONDS))
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_setAdvertisingIdentifier_sameValueTwice_getIdentifiersReturnsOne() {
         val rand = Random()
         val randomString = (rand.nextInt(10000000) + 1).toString()
@@ -636,7 +635,7 @@ class IdentityFunctionalTests {
                 fail("DataEntity is null.")
                 return@thenAnswer false
             }
-            IdentityHitsProcessing(identityExtension).processHit(entity)
+            IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
             countDownLatch.countDown()
             return@thenAnswer true
         }
@@ -691,7 +690,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_setAdvertisingIdentifier_newValue_getIdentifiersReturnsOne() {
         val rand = Random()
         val testAdvertisingId1 = "TestAdvertisingID" + (rand.nextInt(10000000) + 1).toString()
@@ -713,8 +712,8 @@ class IdentityFunctionalTests {
                 fail("DataEntity is null.")
                 return@thenAnswer false
             }
-            IdentityHitsProcessing(identityExtension).processHit(entity)
-            countDownLatch.countDown()
+            IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
             return@thenAnswer true
         }
 
@@ -768,7 +767,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_getExperienceCloudId_verifyValidMidRetrieval_happy() {
 
         val configuration = mapOf(
@@ -799,7 +798,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_getIdentifiers_validateReturnedIdentifiers_happy() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -820,8 +819,8 @@ class IdentityFunctionalTests {
             }
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
-                IdentityHitsProcessing(identityExtension).processHit(entity)
-                countDownLatch.countDown()
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
             }
             return@thenAnswer true
         }
@@ -870,7 +869,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_getIdentifiers_invalidIdentifiers_validateReturnedIdentifiers() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -891,8 +890,7 @@ class IdentityFunctionalTests {
             }
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
-                IdentityHitsProcessing(identityExtension).processHit(entity)
-                countDownLatch.countDown()
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
             }
             return@thenAnswer true
         }
@@ -945,7 +943,7 @@ class IdentityFunctionalTests {
     }
 
 
-    @Test
+    @Test(timeout = 10000)
     fun test_appendToUrl_verifyExperienceCloudIdentifierPresentInUrl() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -981,7 +979,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_appendToUrl_passNullUrl_returnsNull() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1014,7 +1012,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_appendToUrl_passEmptyUrl_returnsEmpty() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1047,7 +1045,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_appendToUrl_passInvalidUrl_returnsAppendedParameters() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1084,7 +1082,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_setPushIdentifier_SyncsNewValue() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1098,7 +1096,7 @@ class IdentityFunctionalTests {
 
         val token = "D52DB39EEE21395B2B67B895FC478301CE6E936D82521E095902A5E0F57EE0B3"
         val newToken = "D52DB39EEE21395B2B67B895FC478301CE6E936D82521E095902A5E0F57EE1A3"
-        val countDownLatch = CountDownLatch(2)
+        val countDownLatch = CountDownLatch(3)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
             if (entity == null) {
@@ -1107,7 +1105,7 @@ class IdentityFunctionalTests {
             }
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
-                IdentityHitsProcessing(identityExtension).processHit(entity)
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
             }
             return@thenAnswer true
         }
@@ -1156,7 +1154,7 @@ class IdentityFunctionalTests {
 
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_getUrlVariables_VerifyMarketingCloudIdentifiersPresentInVariables() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1197,7 +1195,7 @@ class IdentityFunctionalTests {
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_getUrlVariables_setPrivacyOptOut_verifyOrgIdPresentInVariables() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1261,7 +1259,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_syncIdentifier_firstWithNullIdentifier_doesNotCrash() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1273,7 +1271,7 @@ class IdentityFunctionalTests {
             configuration
         )
         //setup
-        val countDownLatch = CountDownLatch(1)
+        val countDownLatch = CountDownLatch(2)
         val countDownLatchSecond = CountDownLatch(1)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
@@ -1283,7 +1281,7 @@ class IdentityFunctionalTests {
             }
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
-                IdentityHitsProcessing(identityExtension).processHit(entity)
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
             }
             return@thenAnswer true
         }
@@ -1344,7 +1342,7 @@ class IdentityFunctionalTests {
         assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_syncIdentifier_withTwoNullIdentifiers_doesNotCrash() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1356,7 +1354,7 @@ class IdentityFunctionalTests {
             configuration
         )
         //setup
-        val countDownLatch = CountDownLatch(1)
+        val countDownLatch = CountDownLatch(2)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
             if (entity == null) {
@@ -1365,7 +1363,7 @@ class IdentityFunctionalTests {
             }
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
-                IdentityHitsProcessing(identityExtension).processHit(entity)
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
             }
             return@thenAnswer true
         }
@@ -1409,7 +1407,7 @@ class IdentityFunctionalTests {
         assertFalse(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_syncIdentifier_withSecondNullIdentifier_doesNotCrash() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1421,7 +1419,7 @@ class IdentityFunctionalTests {
             configuration
         )
         //setup
-        val countDownLatch = CountDownLatch(1)
+        val countDownLatch = CountDownLatch(2)
         val countDownLatchSecond = CountDownLatch(1)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
@@ -1431,7 +1429,7 @@ class IdentityFunctionalTests {
             }
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
-                IdentityHitsProcessing(identityExtension).processHit(entity)
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
             }
             return@thenAnswer true
         }
@@ -1490,7 +1488,7 @@ class IdentityFunctionalTests {
         assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_syncIdentifier_withSecondNullIdentifier_clearsIdentifier() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1502,7 +1500,7 @@ class IdentityFunctionalTests {
             configuration
         )
         //setup
-        val countDownLatch = CountDownLatch(1)
+        val countDownLatch = CountDownLatch(2)
         val countDownLatchSecond = CountDownLatch(1)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
@@ -1512,7 +1510,7 @@ class IdentityFunctionalTests {
             }
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
-                IdentityHitsProcessing(identityExtension).processHit(entity)
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
             }
             return@thenAnswer true
         }
@@ -1583,7 +1581,7 @@ class IdentityFunctionalTests {
         countDownLatchGetter.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_whenPrivacyChangedToOptout_sendsOptOutRequest() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1619,7 +1617,7 @@ class IdentityFunctionalTests {
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_whenPrivacyChangedToOptoutThenOptoutAgain_sendsOptOutRequestOnce() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1664,7 +1662,7 @@ class IdentityFunctionalTests {
         assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_whenPrivacyChangedToOptoutOptinOptout_sendsOptOutRequestTwice() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1721,7 +1719,7 @@ class IdentityFunctionalTests {
         assertFalse(countDownLatchForOptedIn.await(1000, TimeUnit.MILLISECONDS))
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_whenPrivacyChangedToUnknownThenOptout_sendsOptOutRequestOnce() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1778,7 +1776,7 @@ class IdentityFunctionalTests {
         assertFalse(countDownLatchSecond.await(1000, TimeUnit.MILLISECONDS))
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_handleIdentityResponseIdentityForSharedState_null_event() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1794,7 +1792,7 @@ class IdentityFunctionalTests {
         verify(mockedExtensionApi, never()).createSharedState(any(), any())
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_handleIdentityResponseIdentityForSharedState_null_eventData() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1812,7 +1810,7 @@ class IdentityFunctionalTests {
         verify(mockedExtensionApi, never()).createSharedState(any(), any())
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_handleIdentityResponseIdentityForSharedState_invalid_eventData() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1835,7 +1833,7 @@ class IdentityFunctionalTests {
         verify(mockedExtensionApi, never()).createSharedState(any(), any())
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_handleIdentityResponseIdentityForSharedState_happy() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1861,7 +1859,7 @@ class IdentityFunctionalTests {
         verify(mockedExtensionApi, times(1)).createSharedState(any(), any())
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun test_testResetIdentities() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -1882,8 +1880,8 @@ class IdentityFunctionalTests {
             }
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
-                IdentityHitsProcessing(identityExtension).processHit(entity)
-                countDownLatch.countDown()
+                IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
+
             }
             return@thenAnswer true
         }

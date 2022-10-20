@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.identity
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventCoder
 import com.adobe.marketing.mobile.services.DataEntity
+import com.adobe.marketing.mobile.services.HitProcessingResult
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
 import org.json.JSONObject
@@ -44,12 +45,12 @@ class IdentityHitsProcessingTests {
 
     private val event = Event.Builder("event", "type", "source").build()
 
+
     @Before
     fun setup() {
         Mockito.reset(mockedIdentityExtension)
         val event = Event.Builder("event", "type", "source").build()
     }
-
 
     private fun initializeIdentityHitsProcessing(): IdentityHitsProcessing {
 
@@ -59,18 +60,10 @@ class IdentityHitsProcessingTests {
     @Test
     fun `retryInterval() - 30s`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
-        assertEquals(30, identityHitsProcessing.retryInterval(null))
+        assertEquals(30, identityHitsProcessing.retryInterval(DataEntity("{}")))
     }
 
-    @Test
-    fun `processHit() - null entity`() {
-        val identityHitsProcessing = initializeIdentityHitsProcessing()
-        ServiceProvider.getInstance().networkService = spiedNetworking
-        assertTrue(identityHitsProcessing.processHit(null))
-        verify(spiedNetworking, never()).connectAsync(any(), any())
-    }
-
-    @Test
+    @Test(timeout = 10000)
     fun `processHit() - bad entity`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -80,11 +73,17 @@ class IdentityHitsProcessingTests {
               "invalid_EVENT": ""
             }
         """.trimIndent()
-        assertTrue(identityHitsProcessing.processHit(DataEntity(json)))
+
+        val countDownLatch = CountDownLatch(1)
+        identityHitsProcessing.processHit(DataEntity(json)) {
+            assertTrue(it)
+            countDownLatch.countDown()
+        }
+        countDownLatch.await()
         verify(spiedNetworking, never()).connectAsync(any(), any())
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun `processHit() - invalid event json`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -94,11 +93,16 @@ class IdentityHitsProcessingTests {
               "EVENT": "x{+"
             }
         """.trimIndent()
-        assertTrue(identityHitsProcessing.processHit(DataEntity(json)))
+        val countDownLatch = CountDownLatch(1)
+        identityHitsProcessing.processHit(DataEntity(json)) {
+            assertTrue(it)
+            countDownLatch.countDown()
+        }
+        countDownLatch.await()
         verify(spiedNetworking, never()).connectAsync(any(), any())
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun `processHit() - invalid event json 2`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -108,11 +112,16 @@ class IdentityHitsProcessingTests {
               "EVENT": null
             }
         """.trimIndent()
-        assertTrue(identityHitsProcessing.processHit(DataEntity(json)))
+        val countDownLatch = CountDownLatch(1)
+        identityHitsProcessing.processHit(DataEntity(json)) {
+            assertTrue(it)
+            countDownLatch.countDown()
+        }
+        countDownLatch.await()
         verify(spiedNetworking, never()).connectAsync(any(), any())
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun `processHit() - null connection`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -124,35 +133,19 @@ class IdentityHitsProcessingTests {
 
             callback.call(null)
         }
-        val countDownLatch = CountDownLatch(1)
+        val countDownLatch = CountDownLatch(2)
         doAnswer { invocation ->
             assertNull(invocation.arguments[0])
             countDownLatch.countDown()
         }.`when`(mockedIdentityExtension).networkResponseLoaded(anyOrNull(), any())
-
-        assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        identityHitsProcessing.processHit(DataEntity(jsonObject.toString())) {
+            assertTrue(it)
+            countDownLatch.countDown()
+        }
         countDownLatch.await()
     }
 
     @Test(timeout = 10000)
-    fun `processHit() - network request timeout`() {
-        val identityHitsProcessing = initializeIdentityHitsProcessing()
-        ServiceProvider.getInstance().networkService = spiedNetworking
-        val jsonObject = JSONObject()
-        jsonObject.put("URL", "url")
-        jsonObject.put("EVENT", EventCoder.encode(event))
-        val timeoutLatch = CountDownLatch(1)
-        val countDownLatch = CountDownLatch(1)
-        ServiceProvider.getInstance().networkService = Networking { _, _ ->
-            countDownLatch.countDown()
-            assertFalse(timeoutLatch.await(120, TimeUnit.MILLISECONDS))
-        }
-        assertFalse(identityHitsProcessing.processHit(DataEntity(jsonObject.toString()), 100))
-        countDownLatch.await()
-        verify(mockedIdentityExtension, never()).networkResponseLoaded(any(), any())
-    }
-
-    @Test
     fun `processHit() - response code is unrecoverable (502)`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -167,17 +160,20 @@ class IdentityHitsProcessingTests {
                 }
             })
         }
-        val countDownLatch = CountDownLatch(1)
+        val countDownLatch = CountDownLatch(2)
         doAnswer { invocation ->
             assertNull(invocation.arguments[0])
             countDownLatch.countDown()
         }.`when`(mockedIdentityExtension).networkResponseLoaded(anyOrNull(), any())
 
-        assertFalse(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        identityHitsProcessing.processHit(DataEntity(jsonObject.toString())) {
+            assertTrue(it)
+            countDownLatch.countDown()
+        }
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun `processHit() - response code is recoverable (408)`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -192,12 +188,16 @@ class IdentityHitsProcessingTests {
                 }
             })
         }
-
-        assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        val countDownLatch = CountDownLatch(1)
+        identityHitsProcessing.processHit(DataEntity(jsonObject.toString())) {
+            assertFalse(it)
+            countDownLatch.countDown()
+        }
+        countDownLatch.await()
         verify(mockedIdentityExtension, never()).networkResponseLoaded(any(), any())
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun `processHit() - response code is 200`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -237,11 +237,14 @@ class IdentityHitsProcessingTests {
             countDownLatch.countDown()
         }.`when`(mockedIdentityExtension).networkResponseLoaded(any(), any())
 
-        assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        identityHitsProcessing.processHit(DataEntity(jsonObject.toString())) {
+            assertTrue(it)
+            countDownLatch.countDown()
+        }
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun `processHit() - response code is 200 - unsupported json array`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -273,7 +276,7 @@ class IdentityHitsProcessingTests {
                 }
             })
         }
-        val countDownLatch = CountDownLatch(1)
+        val countDownLatch = CountDownLatch(2)
         doAnswer { invocation ->
             val result = invocation.arguments[0] as? IdentityResponseObject
             assertNotNull(result)
@@ -281,11 +284,14 @@ class IdentityHitsProcessingTests {
             countDownLatch.countDown()
         }.`when`(mockedIdentityExtension).networkResponseLoaded(any(), any())
 
-        assertTrue(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        identityHitsProcessing.processHit(DataEntity(jsonObject.toString())) {
+            assertTrue(it)
+            countDownLatch.countDown()
+        }
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun `processHit() - response code is 200 with bad json`() {
         val identityHitsProcessing = initializeIdentityHitsProcessing()
         ServiceProvider.getInstance().networkService = spiedNetworking
@@ -316,7 +322,12 @@ class IdentityHitsProcessingTests {
                 }
             })
         }
-        assertFalse(identityHitsProcessing.processHit(DataEntity(jsonObject.toString())))
+        val countDownLatch = CountDownLatch(1)
+        identityHitsProcessing.processHit(DataEntity(jsonObject.toString())) {
+            assertFalse(it)
+            countDownLatch.countDown()
+        }
+        countDownLatch.await()
         verify(mockedIdentityExtension, never()).networkResponseLoaded(any(), any())
     }
 

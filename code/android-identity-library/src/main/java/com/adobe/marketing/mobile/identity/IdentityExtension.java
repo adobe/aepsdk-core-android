@@ -96,13 +96,12 @@ final public class IdentityExtension extends Extension {
      * @param extensionApi the {@link ExtensionApi} this extension will use
      */
     IdentityExtension(@NonNull ExtensionApi extensionApi) {
-        super(extensionApi);
-        this.namedCollection = ServiceProvider.getInstance().getDataStoreService().
-                getNamedCollection(DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME);
+        this(extensionApi, ServiceProvider.getInstance().getDataStoreService().
+                getNamedCollection(DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME), null);
     }
 
     @VisibleForTesting
-    IdentityExtension(@NonNull ExtensionApi extensionApi, @Nullable NamedCollection namedCollection, @NonNull HitQueuing hitQueue) {
+    IdentityExtension(@NonNull ExtensionApi extensionApi, @Nullable NamedCollection namedCollection, @Nullable HitQueuing hitQueue) {
         super(extensionApi);
         this.namedCollection = namedCollection;
         this.hitQueue = hitQueue;

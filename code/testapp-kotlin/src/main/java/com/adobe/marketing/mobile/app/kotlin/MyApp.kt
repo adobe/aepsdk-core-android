@@ -21,7 +21,7 @@ class MyApp : Application() {
         super.onCreate()
         MobileCore.setApplication(this)
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        MobileCore.configureWithAppID("94f571f308d5/fec7505defe0/launch-eaa54c95a6b5-development")
+        MobileCore.configureWithAppID("your app id")
 
         MobileCore.registerExtensions(listOf(PerfExtension::class.java)) {
 

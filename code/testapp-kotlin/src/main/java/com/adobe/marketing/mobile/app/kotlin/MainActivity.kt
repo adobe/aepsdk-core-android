@@ -69,6 +69,10 @@ fun NavigationInit() {
         composable(NavRoutes.LifecycleView.route) {
             LifecycleView(navController = navController)
         }
+
+        composable(NavRoutes.PerformanceView.route) {
+            PerformanceView(navController = navController)
+        }
     }
 }
 

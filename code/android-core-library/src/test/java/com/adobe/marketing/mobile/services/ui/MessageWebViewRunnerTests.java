@@ -23,7 +23,8 @@ import android.widget.FrameLayout;
 
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.AppContextService;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
@@ -54,6 +55,8 @@ public class MessageWebViewRunnerTests {
     @Mock
     private Context mockContext;
     @Mock
+    private AppContextService mockAppContextService;
+    @Mock
     private Application mockApp;
 
     private MessageWebViewRunner messageFragmentRunner;
@@ -64,8 +67,8 @@ public class MessageWebViewRunnerTests {
 
     @Before
     public void setup() throws Exception {
-        MobileCore.setApplication(mockApp);
-        App.INSTANCE.setAppContext(mockContext);
+        ServiceProviderModifier.setAppContextService(mockAppContextService);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         gestureMap.put(MessageGesture.BACKGROUND_TAP, "adbinapp://dismiss");
         gestureMap.put(MessageGesture.SWIPE_LEFT, "adbinapp://dismiss?interaction=negative");
         gestureMap.put(MessageGesture.SWIPE_RIGHT, "adbinapp://dismiss?interaction=positive");

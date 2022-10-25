@@ -16,8 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import android.content.Context;
-import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import java.util.HashMap;
@@ -28,7 +27,7 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 @SuppressWarnings("all")
 @RunWith(AndroidJUnit4.class)
@@ -38,8 +37,7 @@ public class AndroidLocalStorageServiceTests {
 
 	@Before
 	public void beforeEach() {
-		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		App.INSTANCE.setAppContext(context.getApplicationContext());
+		ServiceProvider.getInstance().getAppContextService().setApplication(ApplicationProvider.getApplicationContext());
 		androidLocalStorageService = new AndroidLocalStorageService();
 		androidSharedPreferences = androidLocalStorageService.getDataStore("AndroidLocalStorageServiceTests");
 		androidSharedPreferences.removeAll();

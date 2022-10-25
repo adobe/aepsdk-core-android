@@ -39,9 +39,9 @@ public interface AppContextService {
     @Nullable Activity getCurrentActivity();
 
     /**
-     * Returns the current {@code Context}
+     * Returns the application {@code Context}
      *
-     * @return the current {@code Context}
+     * @return the application {@code Context}
      */
     @Nullable Context getApplicationContext();
 

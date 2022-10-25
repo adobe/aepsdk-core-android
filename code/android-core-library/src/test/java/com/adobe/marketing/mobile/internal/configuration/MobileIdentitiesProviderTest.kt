@@ -144,6 +144,22 @@ class MobileIdentitiesProviderTest {
     }
 
     @Test
+    fun `Get SDK Identifiers when only Target shared state is available`() {
+        setTargetSharedState()
+
+        val collectedSDKIdentities =
+            MobileIdentitiesProvider.collectSdkIdentifiers(mockEvent, mockExtensionApi)
+        val expectedIdentifiers = "{" +
+            "\"users\":" +
+            "[{\"userIDs\":" +
+            // Target
+            "[{\"namespace\":\"tntid\",\"type\":\"target\",\"value\":\"test_tntid\"}," +
+            "{\"namespace\":\"3rdpartyid\",\"type\":\"target\",\"value\":\"test_thirdpartyid\"}]}]}"
+
+        assertEquals(expectedIdentifiers, collectedSDKIdentities)
+    }
+
+    @Test
     fun `Get SDK Identifiers when Analytics and Target states are pending`() {
         setAudienceSharedState()
         setConfigurationSharedState()
@@ -186,7 +202,7 @@ class MobileIdentitiesProviderTest {
     }
 
     @Test
-    fun `Get SDK Identifiers when no states are available`() {
+    fun `Get SDK Identifiers when all states are pending`() {
         `when`(
             mockExtensionApi.getSharedState(
                 anyString(),
@@ -195,6 +211,23 @@ class MobileIdentitiesProviderTest {
                 eq(SharedStateResolution.ANY)
             )
         ).thenReturn(SharedStateResult(SharedStateStatus.PENDING, null))
+
+        val collectedSDKIdentities = MobileIdentitiesProvider.collectSdkIdentifiers(mockEvent, mockExtensionApi)
+        val expectedIdentifiers = "{}"
+
+        assertEquals(expectedIdentifiers, collectedSDKIdentities)
+    }
+
+    @Test
+    fun `Get SDK Identifiers when no states are available`() {
+        `when`(
+            mockExtensionApi.getSharedState(
+                anyString(),
+                eq(mockEvent),
+                eq(false),
+                eq(SharedStateResolution.ANY)
+            )
+        ).thenReturn(SharedStateResult(SharedStateStatus.NONE, null))
 
         val collectedSDKIdentities = MobileIdentitiesProvider.collectSdkIdentifiers(mockEvent, mockExtensionApi)
         val expectedIdentifiers = "{}"

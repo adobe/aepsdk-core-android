@@ -16,6 +16,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.view.ViewGroup;
@@ -29,7 +30,6 @@ import android.widget.FrameLayout;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
@@ -116,7 +116,7 @@ class AEPMessage implements FullscreenMessage {
             return;
         }
 
-        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
             Log.debug(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (current activity), failed to show the message.");
@@ -136,7 +136,7 @@ class AEPMessage implements FullscreenMessage {
         frameLayoutResourceId = new Random().nextInt();
 
         if (fragmentFrameLayout == null) {
-            fragmentFrameLayout = new FrameLayout(App.INSTANCE.getAppContext());
+            fragmentFrameLayout = new FrameLayout(ServiceProvider.getInstance().getAppContextService().getApplicationContext());
             fragmentFrameLayout.setId(frameLayoutResourceId);
         }
 
@@ -153,7 +153,7 @@ class AEPMessage implements FullscreenMessage {
                 // add the frame layout to be replaced with the message fragment
                 rootViewGroup.addView(fragmentFrameLayout);
 
-                final FragmentManager fragmentManager = App.INSTANCE.getCurrentActivity().getFragmentManager();
+                final FragmentManager fragmentManager = ServiceProvider.getInstance().getAppContextService().getCurrentActivity().getFragmentManager();
 
                 // ensure there are no existing webview fragments before creating a new one
                 final Fragment currentMessageFragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG);
@@ -165,9 +165,10 @@ class AEPMessage implements FullscreenMessage {
                 // prepare a message fragment and replace the frame layout with the fragment
                 messageFragment = new MessageFragment();
                 messageFragment.setAEPMessage(message);
-                final int id = App.INSTANCE.getAppContext().getResources().getIdentifier(Integer.toString(frameLayoutResourceId),
+                Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+                final int id = appContext.getResources().getIdentifier(Integer.toString(frameLayoutResourceId),
                         "id",
-                        App.INSTANCE.getAppContext().getPackageName());
+                        appContext.getPackageName());
                 final FragmentTransaction transaction = fragmentManager.beginTransaction();
                 transaction.replace(id, messageFragment, FRAGMENT_TAG).addToBackStack(null).commit();
                 fragmentManager.executePendingTransactions();
@@ -197,7 +198,10 @@ class AEPMessage implements FullscreenMessage {
 
         try {
             final Intent intent = ServiceProvider.getInstance().getUIService().getIntentWithURI(url);
-            App.INSTANCE.getCurrentActivity().startActivity(intent);
+            Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+            if (currentActivity != null) {
+                currentActivity.startActivity(intent);
+            }
         } catch (final NullPointerException ex) {
             Log.debug(ServiceConstants.LOG_TAG, TAG, "Could not open the url from the message " + ex.getMessage());
         }
@@ -274,7 +278,7 @@ class AEPMessage implements FullscreenMessage {
         orientationWhenShown = currentOrientation;
         messageWebViewRunner = new MessageWebViewRunner(this);
         messageWebViewRunner.setLocalAssetsMap(assetMap);
-        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
         currentActivity.runOnUiThread(messageWebViewRunner);
     }
 
@@ -302,7 +306,7 @@ class AEPMessage implements FullscreenMessage {
         fragmentFrameLayout = null;
         webView = null;
         // clean the message fragment
-        final FragmentManager fragmentManager = App.INSTANCE.getCurrentActivity().getFragmentManager();
+        final FragmentManager fragmentManager = ServiceProvider.getInstance().getAppContextService().getCurrentActivity().getFragmentManager();
         final Fragment messageFragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG);
 
         if (messageFragment != null) {

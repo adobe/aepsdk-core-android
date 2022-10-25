@@ -10,7 +10,6 @@
  */
 package com.adobe.marketing.mobile.services.internal.context
 
-// TODO: move it to the utility package if used in other places.
 fun interface SimpleCallback<T> {
     fun call(t: T)
 }

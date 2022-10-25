@@ -29,7 +29,7 @@ import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 class FloatingButtonManager implements FloatingButton {
     private static final String LOG_TAG = FloatingButtonManager.class.getSimpleName();
@@ -50,7 +50,7 @@ class FloatingButtonManager implements FloatingButton {
 
     @Override
     public void display() {
-        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
             Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Current activity), will not display button.",
@@ -268,7 +268,7 @@ class FloatingButtonManager implements FloatingButton {
 
     @Override
     public void remove() {
-        Activity activity = App.INSTANCE.getCurrentActivity();
+        Activity activity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
         removeFloatingButtonFromActivity(activity);
         displayFloatingButtonAcrossActivities = false;
     }
@@ -283,7 +283,7 @@ class FloatingButtonManager implements FloatingButton {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Activity activity = App.INSTANCE.getCurrentActivity();
+                Activity activity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
                 if (activity == null) {
                     Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Activity), cannot remove button!",

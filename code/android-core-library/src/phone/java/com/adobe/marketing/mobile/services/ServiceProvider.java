@@ -10,17 +10,12 @@
  */
 package com.adobe.marketing.mobile.services;
 
-import android.app.Activity;
-import android.app.Application;
-import android.content.Context;
+import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.services.caching.CacheService;
 import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.services.internal.context.App;
-import com.adobe.marketing.mobile.services.internal.context.SimpleCallback;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 import com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate;
 import com.adobe.marketing.mobile.services.ui.UIService;
@@ -55,6 +50,8 @@ public class ServiceProvider {
     private Logging defaultLoggingService;
     private Logging overrideLoggingService;
     private CacheService defaultCacheService;
+    private AppContextService defaultAppContextService;
+    private AppContextService overrideAppContextService;
 
     private ServiceProvider() {
         defaultNetworkService = new NetworkService();
@@ -65,15 +62,6 @@ public class ServiceProvider {
         messageDelegate = null;
         defaultLoggingService = new AndroidLoggingService();
         defaultCacheService = new FileCacheService();
-    }
-
-    public void initializeApp(@NonNull Application app, @Nullable SimpleCallback<Activity> onActivityResumed) {
-        App.INSTANCE.initializeApp(app, onActivityResumed);
-    }
-
-    //TODO: expose a new service [AppInfoService] when we need to expose more methods in App.
-    public Context getApplicationContext() {
-        return App.INSTANCE.getAppContext();
     }
 
     /**
@@ -118,7 +106,8 @@ public class ServiceProvider {
      *
      * @param deviceInfoService new {@link DeviceInforming} service
      */
-    protected void setDeviceInfoService(DeviceInforming deviceInfoService) {
+    @VisibleForTesting
+    void setDeviceInfoService(DeviceInforming deviceInfoService) {
         overrideDeviceInfoService = deviceInfoService;
     }
 
@@ -150,13 +139,38 @@ public class ServiceProvider {
         return dataQueueService;
     }
 
+    /**
+     * Gets the {@link UIService} service
+     *
+     * @return the {@link UIService} service
+     */
     public UIService getUIService() {
         return defaultUIService;
     }
 
+    /**
+     * Gets the {@link CacheService} service
+     *
+     * @return the {@link UIService} service
+     */
     public CacheService getCacheService() {
         return defaultCacheService;
     }
+
+    /**
+     * Gets the {@link AppContextService} service
+     *
+     * @return the {@link AppContextService} service
+     */
+    public AppContextService getAppContextService() { return overrideAppContextService != null ? overrideAppContextService : App.INSTANCE; }
+
+    /**
+     * For testing purpose. Overrides the default {@link AppContextService} service
+     *
+     * @param appContextService new {@link AppContextService} service
+     */
+    @VisibleForTesting
+    void setAppContextService(AppContextService appContextService) { overrideAppContextService = appContextService; }
 
     /**
      * Gets the custom {@link FullscreenMessageDelegate}.
@@ -200,10 +214,7 @@ public class ServiceProvider {
 
         overrideDeviceInfoService = null;
         overrideNetworkService = null;
+        overrideAppContextService = null;
         messageDelegate = null;
-    }
-
-    void resetAppInstance() {
-        App.INSTANCE.resetInstance();
     }
 }

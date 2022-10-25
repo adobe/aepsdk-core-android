@@ -15,7 +15,6 @@ import android.content.Context;
 
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.internal.util.FileUtils;
-import com.adobe.marketing.mobile.services.internal.context.App;
 
 import java.io.File;
 import java.util.HashMap;
@@ -83,7 +82,7 @@ class DataQueueService implements DataQueuing {
 			return null;
 		}
 
-		Context appContext = App.INSTANCE.getAppContext();
+		Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
 		if(appContext == null) {
 			Log.warning(ServiceConstants.LOG_TAG,

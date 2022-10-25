@@ -27,11 +27,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
-
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.services.internal.context.App;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -532,11 +527,11 @@ class DeviceInfoService implements DeviceInforming {
     }
 
     private Context getApplicationContext() {
-        return App.INSTANCE.getAppContext();
+        return ServiceProvider.getInstance().getAppContextService().getApplicationContext();
     }
 
     private Activity getCurrentActivity() {
-        return App.INSTANCE.getCurrentActivity();
+        return ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
     }
 
 

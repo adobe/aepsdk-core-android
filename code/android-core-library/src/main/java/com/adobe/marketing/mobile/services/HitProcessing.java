@@ -11,21 +11,25 @@
 
 package com.adobe.marketing.mobile.services;
 
+import androidx.annotation.NonNull;
+
 //A Type provide the functionality for processing hits.
 public interface HitProcessing {
 
-	/**
-	 * Determines the interval at which a hit should be retried
-	 * @param entity The hit whose retry interval is to be computed
-	 * @return Hit retry interval in seconds.
-	 */
-	int retryInterval(DataEntity entity);
+    /**
+     * Determines the interval at which a hit should be retried
+     *
+     * @param entity The hit whose retry interval is to be computed
+     * @return Hit retry interval in seconds.
+     */
+    int retryInterval(@NonNull DataEntity entity);
 
-	/**
-	 * Function that is invoked with a {@link DataEntity} and provides functionality for processing the hit.
-	 * @param entity The <code>DataEntity</code> to be processed.
-	 * @return A boolean variable indicating <code>DataEntity</code> is successfully processed or not.
-	 */
-	boolean processHit(DataEntity entity);
+    /**
+     * Function that is invoked with a {@link DataEntity} and provides functionality for processing the hit.
+     *
+     * @param entity           The <code>DataEntity</code> to be processed.
+     * @param processingResult Return a boolean variable indicating <code>DataEntity</code> is successfully processed or not.
+     */
+    void processHit(@NonNull DataEntity entity, @NonNull HitProcessingResult processingResult);
 
 }

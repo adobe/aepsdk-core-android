@@ -11,13 +11,7 @@
 package com.adobe.marketing.mobile.signal
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.services.DataEntity
-import com.adobe.marketing.mobile.services.HitProcessing
-import com.adobe.marketing.mobile.services.HttpMethod
-import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.NetworkRequest
-import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -38,61 +32,54 @@ internal class SignalHitProcessor : HitProcessing {
         this.networkService = networkService
     }
 
-    override fun retryInterval(entity: DataEntity?): Int {
+    override fun retryInterval(entity: DataEntity): Int {
         return HIT_QUEUE_RETRY_TIME_SECONDS
     }
 
-    override fun processHit(entity: DataEntity?): Boolean {
-        if (entity == null) {
-            Log.warning(SignalConstants.LOG_TAG, CLASS_NAME,"Drop this data entity as it is null.")
-            return true
-        }
+    override fun processHit(entity: DataEntity, processingResult: HitProcessingResult) {
         val request = buildNetworkRequest(entity) ?: run {
             Log.warning(
                 SignalConstants.LOG_TAG,
                 CLASS_NAME,
                 "Drop this data entity as it's not able to convert it to a valid Signal request: ${entity.data}"
             )
-            return true
+            processingResult.complete(true)
+            return
         }
-        val countDownLatch = CountDownLatch(1)
-        var result = false
         networkService.connectAsync(request) { connection ->
             if (connection == null) {
-                countDownLatch.countDown()
+                processingResult.complete(false)
                 return@connectAsync
             }
-            val responseCode = connection.responseCode
-            result = when (responseCode) {
+            when (val responseCode = connection.responseCode) {
                 in SignalConstants.HTTP_SUCCESS_CODES -> {
                     Log.debug(
                         SignalConstants.LOG_TAG,
                         CLASS_NAME,
                         "Signal request (${request.url}) successfully sent."
                     )
-                    true
+                    processingResult.complete(true)
                 }
                 in SignalConstants.RECOVERABLE_ERROR_CODES -> {
                     Log.debug(
                         SignalConstants.LOG_TAG,
                         CLASS_NAME,
-                        "Signal request failed with recoverable error ($result).Will retry sending the request (${request.url}) later."
+                        "Signal request failed with recoverable error ($responseCode).Will retry sending the request (${request.url}) later."
                     )
-                    false
+
+                    processingResult.complete(false)
                 }
                 else -> {
                     Log.warning(
                         SignalConstants.LOG_TAG,
                         CLASS_NAME,
-                        "Signal request (${request.url}) failed with unrecoverable error ($result)."
+                        "Signal request (${request.url}) failed with unrecoverable error ($responseCode)."
                     )
-                    true
+                    processingResult.complete(true)
                 }
             }
-            countDownLatch.countDown()
         }
-        countDownLatch.await((request.connectTimeout + 1).toLong(), TimeUnit.SECONDS)
-        return result
+
     }
 
     private fun buildNetworkRequest(entity: DataEntity): NetworkRequest? {

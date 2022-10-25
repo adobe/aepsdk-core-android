@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.app.kotlin
 import android.app.Application
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.app.kotlin.extension.PerfExtension
 
 class MyApp : Application() {
 
@@ -20,9 +21,10 @@ class MyApp : Application() {
         super.onCreate()
         MobileCore.setApplication(this)
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
+        MobileCore.configureWithAppID("your app id")
 
-        //TODO: call MobileCore.registerExtensions() to register core extensions
-        MobileCore.start {
+        MobileCore.registerExtensions(listOf(PerfExtension::class.java)) {
+
         }
     }
 

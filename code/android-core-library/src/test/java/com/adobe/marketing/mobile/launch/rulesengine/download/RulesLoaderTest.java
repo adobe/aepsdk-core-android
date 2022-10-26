@@ -176,6 +176,73 @@ public class RulesLoaderTest {
     }
 
     @Test
+    public void testLoadFromURL_Happy_CustomHeadersPresent() throws FileNotFoundException {
+        mockRulesZip = prepareResourceFile("rules_zip_happy/ADBMobileConfig-rules.zip");
+
+        // Setup to return null when fetching from cache
+        final AdobeCallback<RulesLoadResult> mockCallback = mock(AdobeCallback.class);
+        when(mockCacheService.get(RULES_TEST_CACHE_NAME, VALID_URL)).thenReturn(null);
+
+        // Simulate a mock network response.
+        final HttpConnecting mockResponse = mock(HttpConnecting.class);
+        when(mockResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(mockResponse.getInputStream()).thenReturn(new FileInputStream(mockRulesZip));
+        when(mockResponse.getResponsePropertyValue(RulesLoader.HTTP_HEADER_ETAG)).thenReturn(SAMPLE_ETAG);
+        when(mockResponse.getResponsePropertyValue(RulesLoader.HTTP_HEADER_LAST_MODIFIED)).thenReturn(
+                TimeUtils.getRFC2822Date(SAMPLE_LAST_MODIFIED_MS, TimeZone.getTimeZone("GMT"), Locale.US)
+        );
+
+        doAnswer(
+                invocation -> {
+                    final NetworkCallback callback = invocation.getArgument(1);
+                    callback.call(mockResponse);
+                    return null;
+                }
+        ).when(mockNetworkService).connectAsync(any(NetworkRequest.class), any(NetworkCallback.class));
+
+        final Map<String, String> customHeaders = new HashMap<String, String>() {
+            {
+                put("customHeader", "Value1");
+                put("X-InApp-Auth", "VmFsdWUy"); // Base64 encoded "Value2"
+            }
+        };
+
+        final NetworkRequest expectedNetworkRequest = new NetworkRequest(
+                VALID_URL,
+                HttpMethod.GET,
+                null,
+                customHeaders,
+                10000,
+                10000
+        );
+
+        // Test
+        rulesLoader.loadFromUrl(VALID_URL, customHeaders, mockCallback);
+
+        verify(mockCacheService).get(RULES_TEST_CACHE_NAME, VALID_URL);
+        final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);
+        verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
+        verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.getValue());
+
+        final ArgumentCaptor<RulesLoadResult> resultCaptor = ArgumentCaptor.forClass(RulesLoadResult.class);
+        verify(mockCallback, times(1)).call(resultCaptor.capture());
+
+        final RulesLoadResult capturedResult = resultCaptor.getValue();
+        assertNotNull(capturedResult);
+        assertEquals(RulesLoadResult.Reason.SUCCESS, capturedResult.getReason());
+        assertNotNull(capturedResult.getData());
+
+
+        ArgumentCaptor<CacheEntry> cacheEntryArgumentCaptor = ArgumentCaptor.forClass(CacheEntry.class);
+        verify(mockCacheService).set(eq(RULES_TEST_CACHE_NAME), eq(VALID_URL), cacheEntryArgumentCaptor.capture());
+        final CacheEntry capturedCacheEntry = cacheEntryArgumentCaptor.getValue();
+        assertNull(capturedCacheEntry.getExpiry().getExpiration());
+        assertNotNull(capturedCacheEntry.getMetadata());
+        assertEquals(SAMPLE_ETAG, capturedCacheEntry.getMetadata().get(RulesLoader.HTTP_HEADER_ETAG));
+        assertEquals(String.valueOf(SAMPLE_LAST_MODIFIED_MS), capturedCacheEntry.getMetadata().get(RulesLoader.HTTP_HEADER_LAST_MODIFIED));
+    }
+
+    @Test
     public void testLoadFromURL_Happy_CachedFileExists() throws FileNotFoundException {
         mockRulesZip = prepareResourceFile("rules_zip_happy/ADBMobileConfig-rules.zip");
 
@@ -218,6 +285,77 @@ public class RulesLoaderTest {
 
         // Test
         rulesLoader.loadFromUrl(VALID_URL, mockCallback);
+
+        verify(mockCacheService).get(RULES_TEST_CACHE_NAME, VALID_URL);
+        final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);
+        verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
+        verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.getValue());
+
+        final ArgumentCaptor<RulesLoadResult> resultCaptor = ArgumentCaptor.forClass(RulesLoadResult.class);
+        verify(mockCallback, times(1)).call(resultCaptor.capture());
+
+        final RulesLoadResult capturedResult = resultCaptor.getValue();
+        assertNotNull(capturedResult);
+        assertEquals(RulesLoadResult.Reason.SUCCESS, capturedResult.getReason());
+        assertNotNull(capturedResult.getData());
+        assertEquals(
+                StreamUtils.readAsString(new FileInputStream(prepareResourceFile("rules_zip_happy/expected_rules.json"))),
+                capturedResult.getData());
+
+        verify(mockCacheService).set(eq(RULES_TEST_CACHE_NAME), eq(VALID_URL), any());
+    }
+
+    @Test
+    public void testLoadFromURL_Happy_CachedFileExists_CustomHeadersPresent() throws FileNotFoundException {
+        mockRulesZip = prepareResourceFile("rules_zip_happy/ADBMobileConfig-rules.zip");
+
+        final AdobeCallback<RulesLoadResult> mockCallback = mock(AdobeCallback.class);
+
+        // Setup to return a valid cache result
+        final CacheResult mockCacheResult = mock(CacheResult.class);
+        when(mockCacheResult.getData()).thenReturn(new FileInputStream(mockRulesZip));
+        when(mockCacheResult.getExpiry()).thenReturn(CacheExpiry.never());
+        final HashMap<String, String> mockCacheMetadata = new HashMap<>();
+        mockCacheMetadata.put(RulesLoader.HTTP_HEADER_ETAG, SAMPLE_ETAG);
+        mockCacheMetadata.put(RulesLoader.HTTP_HEADER_LAST_MODIFIED, String.valueOf(SAMPLE_LAST_MODIFIED_MS));
+        when(mockCacheResult.getMetadata()).thenReturn(mockCacheMetadata);
+        when(mockCacheService.get(RULES_TEST_CACHE_NAME, VALID_URL)).thenReturn(mockCacheResult);
+
+        final HttpConnecting mockResponse = mock(HttpConnecting.class);
+        when(mockResponse.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
+        when(mockResponse.getInputStream()).thenReturn(new FileInputStream(mockRulesZip));
+
+        doAnswer(
+                invocation -> {
+                    final NetworkCallback callback = invocation.getArgument(1);
+                    callback.call(mockResponse);
+                    return null;
+                }
+        ).when(mockNetworkService).connectAsync(any(NetworkRequest.class), any(NetworkCallback.class));
+
+        final Map<String, String> customHeaders = new HashMap<String, String>() {
+            {
+                put("customHeader", "Value1");
+                put("X-InApp-Auth", "VmFsdWUy"); // Base64 encoded "Value2"
+            }
+        };
+
+        final HashMap<String, String> expectedHeaders = new HashMap<>();
+        expectedHeaders.put(RulesLoader.HTTP_HEADER_IF_NONE_MATCH, SAMPLE_ETAG);
+        expectedHeaders.put(RulesLoader.HTTP_HEADER_IF_MODIFIED_SINCE, SAMPLE_LAST_MODIFIED_RFC2822);
+        expectedHeaders.putAll(customHeaders);
+
+        final NetworkRequest expectedNetworkRequest = new NetworkRequest(
+                VALID_URL,
+                HttpMethod.GET,
+                null,
+                expectedHeaders,
+                10000,
+                10000
+        );
+
+        // Test
+        rulesLoader.loadFromUrl(VALID_URL, customHeaders, mockCallback);
 
         verify(mockCacheService).get(RULES_TEST_CACHE_NAME, VALID_URL);
         final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);

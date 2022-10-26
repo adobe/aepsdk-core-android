@@ -12,22 +12,19 @@
 package com.adobe.marketing.mobile.launch.rulesengine.download;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.AdobeCallback;
-import com.adobe.marketing.mobile.R;
-import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.HttpConnecting;
 import com.adobe.marketing.mobile.services.HttpMethod;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.NetworkCallback;
 import com.adobe.marketing.mobile.services.NetworkRequest;
-import com.adobe.marketing.mobile.services.Networking;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.caching.CacheEntry;
 import com.adobe.marketing.mobile.services.caching.CacheExpiry;
 import com.adobe.marketing.mobile.services.caching.CacheResult;
-import com.adobe.marketing.mobile.services.caching.CacheService;
 import com.adobe.marketing.mobile.util.StreamUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.TimeUtils;
@@ -88,6 +85,21 @@ public class RulesLoader {
      */
     public void loadFromUrl(@NonNull final String url,
                             @NonNull final AdobeCallback<RulesLoadResult> callback) {
+        loadFromUrl(url, null, callback);
+    }
+
+    /**
+     * Loads rules from the {@code url} and invokes {@code callback} with the extracted rules.
+     * Any provided {@code customHeaders} are merged with the extracted cache headers and used in the rules download request.
+     * Additionally, the extracted content is cached in cache bucket with name {@code name} and {@code url} as the key
+     * in {@code CacheService}.
+     *
+     * @param url               the url from which the compressed rules are to be downloaded
+     * @param customHeaders     custom headers to include in the rules download request
+     * @param callback          the callback that will be invoked with the result of the download
+     */
+    public void loadFromUrl(@NonNull final String url, @Nullable final Map<String, String> customHeaders,
+                            @NonNull final AdobeCallback<RulesLoadResult> callback) {
         if (!UrlUtils.isValidUrl(url)) {
             Log.trace(TAG, cacheName, "Provided download url: %s is null or empty. ", url);
             callback.call(new RulesLoadResult(null, RulesLoadResult.Reason.INVALID_SOURCE));
@@ -95,12 +107,19 @@ public class RulesLoader {
         }
 
         final CacheResult cacheResult = ServiceProvider.getInstance().getCacheService().get(cacheName, url);
+        final Map<String, String> headers = extractHeadersFromCache(cacheResult);
+        if (customHeaders != null && !customHeaders.isEmpty()) {
+            for (final Map.Entry entry : customHeaders.entrySet()) {
+                Log.trace(TAG, cacheName, "Including custom header in rules download request: (%s: %s)", entry.getKey(), entry.getValue());
+            }
+            headers.putAll(customHeaders);
+        }
 
         final NetworkRequest networkRequest = new NetworkRequest(
                 url,
                 HttpMethod.GET,
                 null,
-                extractHeadersFromCache(cacheResult),
+                headers,
                 DEFAULT_CONNECTION_TIMEOUT_MS,
                 DEFAULT_READ_TIMEOUT_MS
         );

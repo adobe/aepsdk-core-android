@@ -382,6 +382,7 @@ public class com/adobe/marketing/mobile/launch/rulesengine/download/RulesLoader 
 	public fun loadFromAsset (Ljava/lang/String;)Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult;
 	public fun loadFromCache (Ljava/lang/String;)Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult;
 	public fun loadFromUrl (Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public fun loadFromUrl (Ljava/lang/String;Ljava/util/Map;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 }
 
 public final class com/adobe/marketing/mobile/launch/rulesengine/json/JSONRulesParser {

@@ -114,14 +114,11 @@ internal object MobileIdentitiesProvider {
         identifiers.addAll(getVisitorIdentifiers(event, extensionApi))
         identifiers.addAll(getTargetIdentifiers(event, extensionApi))
 
-        val identifierMaps = mutableListOf<Map<String, String>>()
-        identifiers.map {
-            identifierMaps.add(
-                mapOf(
-                    JSON_KEY_NAMESPACE to it.namespace,
-                    JSON_KEY_VALUE to it.value,
-                    JSON_KEY_TYPE to it.type
-                )
+        val identifierMaps = identifiers.map {
+            mapOf(
+                JSON_KEY_NAMESPACE to it.namespace,
+                JSON_KEY_VALUE to it.value,
+                JSON_KEY_TYPE to it.type
             )
         }
 

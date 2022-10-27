@@ -116,8 +116,14 @@ class AEPMessage implements FullscreenMessage {
             return;
         }
 
-        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+        if (appContext == null) {
+            Log.debug(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (context), failed to show the message.");
+            fullScreenMessageDelegate.onShowFailure();
+            return;
+        }
 
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
         if (currentActivity == null) {
             Log.debug(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (current activity), failed to show the message.");
             fullScreenMessageDelegate.onShowFailure();
@@ -136,7 +142,7 @@ class AEPMessage implements FullscreenMessage {
         frameLayoutResourceId = new Random().nextInt();
 
         if (fragmentFrameLayout == null) {
-            fragmentFrameLayout = new FrameLayout(ServiceProvider.getInstance().getAppContextService().getApplicationContext());
+            fragmentFrameLayout = new FrameLayout(appContext);
             fragmentFrameLayout.setId(frameLayoutResourceId);
         }
 
@@ -153,7 +159,7 @@ class AEPMessage implements FullscreenMessage {
                 // add the frame layout to be replaced with the message fragment
                 rootViewGroup.addView(fragmentFrameLayout);
 
-                final FragmentManager fragmentManager = ServiceProvider.getInstance().getAppContextService().getCurrentActivity().getFragmentManager();
+                final FragmentManager fragmentManager = currentActivity.getFragmentManager();
 
                 // ensure there are no existing webview fragments before creating a new one
                 final Fragment currentMessageFragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG);
@@ -165,7 +171,7 @@ class AEPMessage implements FullscreenMessage {
                 // prepare a message fragment and replace the frame layout with the fragment
                 messageFragment = new MessageFragment();
                 messageFragment.setAEPMessage(message);
-                Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+
                 final int id = appContext.getResources().getIdentifier(Integer.toString(frameLayoutResourceId),
                         "id",
                         appContext.getPackageName());
@@ -279,7 +285,9 @@ class AEPMessage implements FullscreenMessage {
         messageWebViewRunner = new MessageWebViewRunner(this);
         messageWebViewRunner.setLocalAssetsMap(assetMap);
         final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
-        currentActivity.runOnUiThread(messageWebViewRunner);
+        if (currentActivity != null) {
+            currentActivity.runOnUiThread(messageWebViewRunner);
+        }
     }
 
     /**
@@ -306,9 +314,16 @@ class AEPMessage implements FullscreenMessage {
         fragmentFrameLayout = null;
         webView = null;
         // clean the message fragment
-        final FragmentManager fragmentManager = ServiceProvider.getInstance().getAppContextService().getCurrentActivity().getFragmentManager();
-        final Fragment messageFragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG);
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        if (currentActivity == null) {
+            return;
+        }
+        final FragmentManager fragmentManager = currentActivity.getFragmentManager();
+        if (fragmentManager == null) {
+            return;
+        }
 
+        final Fragment messageFragment = fragmentManager.findFragmentByTag(FRAGMENT_TAG);
         if (messageFragment != null) {
             fragmentManager.beginTransaction().remove(messageFragment).commit();
         }

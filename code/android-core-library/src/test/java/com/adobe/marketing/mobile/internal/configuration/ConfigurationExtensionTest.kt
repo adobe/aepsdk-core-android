@@ -246,6 +246,12 @@ class ConfigurationExtensionTest {
             eq(EventSource.REQUEST_CONTENT),
             any()
         )
+
+        verify(mockExtensionApi).registerEventListener(
+            eq(EventType.CONFIGURATION),
+            eq(EventSource.REQUEST_IDENTITY),
+            any()
+        )
     }
 
     @Test

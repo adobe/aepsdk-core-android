@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile;
 
 import android.content.Context;
 
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import junit.framework.Assert;
 
@@ -228,7 +228,7 @@ public class TestHelper {
 		InputStream zipFile = null;
 
 		try {
-			zipFile = App.INSTANCE.getAppContext().getAssets().open(path);
+			zipFile = ServiceProvider.getInstance().getAppContextService().getApplicationContext().getAssets().open(path);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

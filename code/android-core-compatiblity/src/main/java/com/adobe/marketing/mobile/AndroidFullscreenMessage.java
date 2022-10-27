@@ -36,7 +36,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import com.adobe.marketing.mobile.util.UrlUtils;
@@ -102,7 +101,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
             return;
         }
 
-        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
             Log.debug(TAG, "%s (current activity), failed to show the fullscreen message.", Log.UNEXPECTED_NULL_VALUE);
@@ -271,7 +270,7 @@ class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
                     method.invoke(settings, false);
                 }
 
-                Context appContext = App.INSTANCE.getAppContext();
+                Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
                 File cacheDirectory = null;
 
                 if (appContext != null) {

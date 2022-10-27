@@ -11,135 +11,95 @@
 
 package com.adobe.marketing.mobile.services.internal.context;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
-import android.app.Application;
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.app.Activity;
+import android.content.ComponentCallbacks2;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.AppState;
 
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class AppTests {
 
-    private static final String DATASTORE_KEY_LARGE_ICON = "LARGE_ICON_RESOURCE_ID";
-    private static final String DATASTORE_KEY_SMALL_ICON = "SMALL_ICON_RESOURCE_ID";
-
-
     @Mock
-    Context mockContext;
-
-    @Mock
-    SharedPreferences mockSharedPreferences;
-
-    @Mock
-    SharedPreferences.Editor mockPreferenceEditor;
-
-    @Mock
-    Application mockApplication;
+    private Activity mockedActivity;
+    private AppStateListener appStateListener;
+    private boolean isOnForeground = false;
+    private App app;
 
     @Before
     public void beforeEach() {
-        when(mockPreferenceEditor.putInt(anyString(), anyInt())).thenReturn(mockPreferenceEditor);
-        when(mockSharedPreferences.edit()).thenReturn(mockPreferenceEditor);
-        when(mockContext.getApplicationContext()).thenReturn(mockContext);
-        when(mockContext.getSharedPreferences(anyString(), anyInt())).thenReturn(mockSharedPreferences);
-        App.INSTANCE.setAppContext(mockContext);
+        app = App.INSTANCE;
+        isOnForeground = false;
+        app.registerListener(new AppStateListener() {
+            @Override
+            public void onForeground() {
+                isOnForeground = true;
+            }
+
+            @Override
+            public void onBackground() {
+                isOnForeground = false;
+            }
+        });
+    }
+
+    @After
+    public void afterEach() {
+        app.resetInstance();
     }
 
     @Test
-    public void testSetLargeIconResourceId_ValidIdSet() {
-        //Setup
-        final int expectedValueStored = 123456;
-        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_LARGE_ICON),
-                anyInt())).thenAnswer(new Answer<SharedPreferences.Editor>() {
-            @Override
-            public SharedPreferences.Editor answer(InvocationOnMock invocation) throws Throwable {
-                int actualValueStored = invocation.getArgument(1);
-                assertEquals(expectedValueStored, actualValueStored);
-                return mockPreferenceEditor;
-            }
-        });
-
-        //Test
-        App.INSTANCE.setLargeIconResourceID(expectedValueStored);
-
+    public void isOnForeground_When_onActivityResumedIsCalled() {
+        app.onActivityResumed(mockedActivity);
+        assertTrue(isOnForeground);
+        assertEquals(AppState.FOREGROUND, app.getAppState());
     }
 
     @Test
-    public void testSetSmallIconResourceId_ValidIdSet() {
-        //Setup
-        final int expectedValueStored = 123456;
-        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_SMALL_ICON),
-                anyInt())).thenAnswer(new Answer<SharedPreferences.Editor>() {
-            @Override
-            public SharedPreferences.Editor answer(InvocationOnMock invocation) throws Throwable {
-                int actualValueStored = invocation.getArgument(1);
-                assertEquals(expectedValueStored, actualValueStored);
-                return mockPreferenceEditor;
-            }
-        });
-
-        //Test
-        App.INSTANCE.setSmallIconResourceID(expectedValueStored);
-
+    public void isOnBackground_When_onActivityResumeAndTrimMemoryIsCalled() {
+        app.onActivityResumed(mockedActivity);
+        app.onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN);
+        assertFalse(isOnForeground);
+        assertEquals(AppState.BACKGROUND, app.getAppState());
     }
 
     @Test
-    public void testSetLargeIconResourceId_ValidIdSetTwice() {
-        //Setup
-        final int expectedValueStored = 123456;
-        App.INSTANCE.setLargeIconResourceID(111111);
-
-        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_LARGE_ICON),
-                anyInt())).thenAnswer(new Answer<SharedPreferences.Editor>() {
-            @Override
-            public SharedPreferences.Editor answer(InvocationOnMock invocation) throws Throwable {
-                int actualValueStored = invocation.getArgument(1);
-                assertEquals(expectedValueStored, actualValueStored);
-                return mockPreferenceEditor;
-            }
-        });
-
-        //Test
-        App.INSTANCE.setLargeIconResourceID(expectedValueStored);
-
+    public void isOnForeground_When_onActivityResumeAndTrimMemoryIsCalledWithWrongValue() {
+        app.onActivityResumed(mockedActivity);
+        app.onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN - 1);
+        assertTrue(isOnForeground);
+        assertEquals(AppState.FOREGROUND, app.getAppState());
     }
 
     @Test
-    public void testSetSmallIconResourceId_ValidIdSetTwice() {
-        //Setup
-        final int expectedValueStored = 123456;
-        App.INSTANCE.setSmallIconResourceID(11111);
+    public void isOnForeground_When_onActivityResumeAndTrimMemoryIsCalledThenStartedAndResumed() {
+        app.onActivityResumed(mockedActivity);
+        app.onTrimMemory(ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN);
+        assertFalse(isOnForeground);
+        app.onActivityResumed(mockedActivity);
+        assertTrue(isOnForeground);
+        assertEquals(AppState.FOREGROUND, app.getAppState());
+    }
 
-        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_SMALL_ICON),
-                anyInt())).thenAnswer(new Answer<SharedPreferences.Editor>() {
-            @Override
-            public SharedPreferences.Editor answer(InvocationOnMock invocation) throws Throwable {
-                int actualValueStored = invocation.getArgument(1);
-                assertEquals(expectedValueStored, actualValueStored);
-                return mockPreferenceEditor;
-            }
-        });
-
-        //Test
-        App.INSTANCE.setSmallIconResourceID(expectedValueStored);
-
+    @Test
+    public void isOnForeground_When_onActivityResumedIsCalledRightAfterOnActivityPaused() {
+        app.onActivityResumed(mockedActivity);
+        assertTrue(isOnForeground);
+        app.onActivityResumed(mockedActivity);
+        assertTrue(isOnForeground);
+        assertEquals(AppState.FOREGROUND, app.getAppState());
     }
 
 }

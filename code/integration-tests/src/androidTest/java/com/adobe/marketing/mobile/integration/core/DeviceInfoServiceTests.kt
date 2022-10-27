@@ -12,6 +12,7 @@ package com.adobe.marketing.mobile.integration.core
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.services.DeviceInforming
+import com.adobe.marketing.mobile.services.MockAppContextService
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ServiceProviderModifier
 import junit.framework.TestCase
@@ -25,12 +26,12 @@ class DeviceInfoServiceTests {
 
     @Before
     fun setup() {
+        ServiceProviderModifier.setAppContextService(MockAppContextService());
         deviceInfoService = ServiceProvider.getInstance().deviceInfoService
     }
 
     @Test
     fun testWhenNullContext() {
-        ServiceProviderModifier.resetApp()
         TestCase.assertNull(deviceInfoService!!.activeLocale)
         TestCase.assertNull(deviceInfoService!!.displayInformation)
         TestCase.assertEquals(

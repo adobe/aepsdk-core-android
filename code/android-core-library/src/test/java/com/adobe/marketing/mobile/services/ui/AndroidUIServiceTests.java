@@ -45,12 +45,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class AndroidUIServiceTests {
+    @Mock
+    private AppContextService mockAppContextService;
     @Mock
     private MessagesMonitor mockMessagesMonitor;
     @Mock
@@ -67,6 +70,7 @@ public class AndroidUIServiceTests {
     @Before
     public void setup() {
         androidUIService = new AndroidUIService();
+        ServiceProviderModifier.setAppContextService(mockAppContextService);
     }
 
     @After
@@ -91,7 +95,7 @@ public class AndroidUIServiceTests {
         ArgumentCaptor<Runnable> argumentCaptor = ArgumentCaptor.forClass(Runnable.class);
         doNothing().when(mockActivity).runOnUiThread(argumentCaptor.capture());
 
-        App.INSTANCE.setCurrentActivity(mockActivity);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
         //test
         androidUIService.showAlert(AlertSetting.build("title", "message", "ok", "no"), null);
         //verify that the runOnUIThread was called with a valid runnable
@@ -105,7 +109,7 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(true);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
-        App.INSTANCE.setCurrentActivity(mockActivity);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
         //test
         androidUIService.showAlert(AlertSetting.build("title", "message", "ok", "no"), null);
         //verify
@@ -119,7 +123,7 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
-        App.INSTANCE.setCurrentActivity(null);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(null);
         //test
         androidUIService.showAlert(AlertSetting.build("title", "message", "ok", "no"), null);
         //verify
@@ -133,7 +137,7 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
-        App.INSTANCE.setCurrentActivity(mockActivity);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
         //test
         androidUIService.showAlert(AlertSetting.build("title", "message", null, null), null);
         //verify
@@ -151,7 +155,7 @@ public class AndroidUIServiceTests {
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
 
 
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         //test
         androidUIService.showLocalNotification(NotificationSetting.build("id", "content", 123456, 123, "myscheme://link", null,
                 "sound.wav", null));
@@ -174,7 +178,7 @@ public class AndroidUIServiceTests {
         when(mockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mockAlarmManager);
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
 
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         //test
         androidUIService.showLocalNotification(NotificationSetting.build("id", "content", 123456, 123, "myscheme://link", null,
                 "sound.wav", "title"));
@@ -197,7 +201,7 @@ public class AndroidUIServiceTests {
         when(mockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mockAlarmManager);
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
 
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         //test
         androidUIService.showLocalNotification(NotificationSetting.build("id", "content", 123456, 123, "myscheme://link", null,
                 "sound.wav", null));
@@ -221,7 +225,7 @@ public class AndroidUIServiceTests {
         when(mockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mockAlarmManager);
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
 
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         //test
         androidUIService.showLocalNotification(NotificationSetting.build("id", "content", 123456, 123, "myscheme://link", null,
                 "sound.wav", "title"));
@@ -245,7 +249,7 @@ public class AndroidUIServiceTests {
         when(mockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mockAlarmManager);
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
 
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         //test
         androidUIService.showLocalNotification(NotificationSetting.build("id", "content", 0, 123, "myscheme://link", null,
                 "sound.wav", null));
@@ -269,7 +273,7 @@ public class AndroidUIServiceTests {
         when(mockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mockAlarmManager);
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
 
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         //test
         androidUIService.showLocalNotification(NotificationSetting.build("id", "content", 0, 123, "myscheme://link", null,
                 "sound.wav", "title"));
@@ -290,7 +294,7 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         //test
         androidUIService.showLocalNotification(NotificationSetting.build("id", "content", 123456, 123, "myscheme://link", null,
                 "sound.wav", "title"));
@@ -306,7 +310,7 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         //test
         androidUIService.showLocalNotification(NotificationSetting.build("id", "content", 123456, 123, "myscheme://link", null,
                 "sound.wav", null));
@@ -319,7 +323,7 @@ public class AndroidUIServiceTests {
     @Test
     public void showUrlStartsActivity_When_ValidUrl() {
         //Setup
-        App.INSTANCE.setCurrentActivity(mockActivity);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
 
         ArgumentCaptor<Intent> intentArgumentCaptor = ArgumentCaptor.forClass(Intent.class);
         doNothing().when(mockActivity).startActivity(intentArgumentCaptor.capture());
@@ -338,7 +342,7 @@ public class AndroidUIServiceTests {
         //Setup
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
 
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
         AndroidUIService spyUIService = spy(new AndroidUIService());
         doReturn(mockIntent).when(spyUIService).getIntentWithURI(anyString());
         //test
@@ -378,8 +382,8 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
+        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
 
-        App.INSTANCE.setCurrentActivity(mockActivity);
         //test
         androidUIService.showAlert(AlertSetting.build("title", "message", "ok", "no"), null);
         //verify

@@ -11,7 +11,7 @@
 package com.adobe.marketing.mobile.services;
 
 public class ServiceProviderModifier {
-    public static void resetApp() {
-        ServiceProvider.getInstance().resetAppInstance();
+    public static void setAppContextService(AppContextService service) {
+        ServiceProvider.getInstance().setAppContextService(service);
     }
 }

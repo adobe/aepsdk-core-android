@@ -18,6 +18,7 @@ import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import android.app.Activity;
 import android.content.Intent;
@@ -25,9 +26,11 @@ import static junit.framework.Assert.assertEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.adobe.marketing.mobile.services.internal.context.App;
-
+import com.adobe.marketing.mobile.services.AppContextService;
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -37,12 +40,16 @@ public class AndroidDeepLinkServiceTests {
 	public TestName name = new TestName();
 
 	@Mock
+	AppContextService mockAppContextService;
+
+	@Mock
 	Activity mockActivity;
 
 	AndroidDeepLinkService deepLinkService;
 
 	@Before
 	public void beforeEach() {
+		ServiceProviderModifier.setAppContextService(mockAppContextService);
 		deepLinkService = new AndroidDeepLinkService();
 	}
 
@@ -57,7 +64,7 @@ public class AndroidDeepLinkServiceTests {
 
 	@Test
 	public void startActivity_When_UrlIsValid() throws Exception {
-		App.INSTANCE.setCurrentActivity(mockActivity);
+		when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
 		final ArgumentCaptor<Intent> captor = ArgumentCaptor.forClass(Intent.class);
 
 		deepLinkService.triggerDeepLink("test");

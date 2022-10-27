@@ -129,6 +129,8 @@ jobs:
             post-emulator-launch-assemble-command: make assemble-phone
             test-command: make integration-test
 
+        - store_test_results:
+            path: code/integration-tests/build/outputs/androidTest-results/connected
 
 workflows:
   version: 2

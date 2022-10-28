@@ -21,8 +21,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.AppContextService;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 
 import org.junit.Assert;
@@ -49,6 +49,8 @@ public class MessageFragmentTests {
     @Mock
     private Application mockApplication;
     @Mock
+    private AppContextService mockAppContextService;
+    @Mock
     private Activity mockActivity;
     @Mock
     private FrameLayout mockFrameLayout;
@@ -70,6 +72,8 @@ public class MessageFragmentTests {
 
     @Before
     public void setup() throws Exception {
+        ServiceProviderModifier.setAppContextService(mockAppContextService);
+
         gestureMap.put(MessageGesture.BACKGROUND_TAP, "adbinapp://dismiss");
         gestureMap.put(MessageGesture.SWIPE_LEFT, "adbinapp://dismiss?interaction=negative");
         gestureMap.put(MessageGesture.SWIPE_RIGHT, "adbinapp://dismiss?interaction=positive");
@@ -116,7 +120,8 @@ public class MessageFragmentTests {
         mockAEPMessage.frameLayoutResourceId = new Random().nextInt();
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
         messageFragment.gestureDetector = mockGestureDetector;
-        App.INSTANCE.setCurrentActivity(mockActivity);
+
+        Mockito.when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
         Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt())).thenReturn(mockFrameLayout);
         // test
         messageFragment.onResume();
@@ -146,8 +151,9 @@ public class MessageFragmentTests {
         mockAEPMessage.frameLayoutResourceId = new Random().nextInt();
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
         messageFragment.gestureDetector = mockGestureDetector;
-        MobileCore.setApplication(mockApplication);
-        App.INSTANCE.setCurrentActivity(mockActivity);
+
+        Mockito.when(mockAppContextService.getApplication()).thenReturn(mockApplication);
+        Mockito.when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
         // test
         messageFragment.onResume();
         // verify

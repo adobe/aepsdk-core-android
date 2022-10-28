@@ -530,6 +530,22 @@ public class com/adobe/marketing/mobile/rulesengine/UnaryExpression : com/adobe/
 	public fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/Context;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
 }
 
+public abstract interface class com/adobe/marketing/mobile/services/AppContextService {
+	public abstract fun getAppState ()Lcom/adobe/marketing/mobile/services/AppState;
+	public abstract fun getApplication ()Landroid/app/Application;
+	public abstract fun getApplicationContext ()Landroid/content/Context;
+	public abstract fun getCurrentActivity ()Landroid/app/Activity;
+	public abstract fun setApplication (Landroid/app/Application;)V
+}
+
+public final class com/adobe/marketing/mobile/services/AppState : java/lang/Enum {
+	public static final field BACKGROUND Lcom/adobe/marketing/mobile/services/AppState;
+	public static final field FOREGROUND Lcom/adobe/marketing/mobile/services/AppState;
+	public static final field UNKNOWN Lcom/adobe/marketing/mobile/services/AppState;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/AppState;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/AppState;
+}
+
 public final class com/adobe/marketing/mobile/services/DataEntity {
 	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/util/Date;Ljava/lang/String;)V
@@ -719,7 +735,7 @@ public class com/adobe/marketing/mobile/services/PersistentHitQueue : com/adobe/
 }
 
 public class com/adobe/marketing/mobile/services/ServiceProvider {
-	public fun getApplicationContext ()Landroid/content/Context;
+	public fun getAppContextService ()Lcom/adobe/marketing/mobile/services/AppContextService;
 	public fun getCacheService ()Lcom/adobe/marketing/mobile/services/caching/CacheService;
 	public fun getDataQueueService ()Lcom/adobe/marketing/mobile/services/DataQueuing;
 	public fun getDataStoreService ()Lcom/adobe/marketing/mobile/services/DataStoring;
@@ -729,8 +745,6 @@ public class com/adobe/marketing/mobile/services/ServiceProvider {
 	public fun getMessageDelegate ()Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;
 	public fun getNetworkService ()Lcom/adobe/marketing/mobile/services/Networking;
 	public fun getUIService ()Lcom/adobe/marketing/mobile/services/ui/UIService;
-	public fun initializeApp (Landroid/app/Application;Lcom/adobe/marketing/mobile/services/internal/context/SimpleCallback;)V
-	protected fun setDeviceInfoService (Lcom/adobe/marketing/mobile/services/DeviceInforming;)V
 	public fun setLoggingService (Lcom/adobe/marketing/mobile/services/Logging;)V
 	public fun setMessageDelegate (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;)V
 	public fun setNetworkService (Lcom/adobe/marketing/mobile/services/Networking;)V

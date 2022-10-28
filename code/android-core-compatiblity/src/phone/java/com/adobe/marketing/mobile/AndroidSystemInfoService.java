@@ -22,7 +22,6 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.util.DisplayMetrics;
 
-import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;
@@ -84,7 +83,7 @@ class AndroidSystemInfoService implements SystemInfoService {
 
     @Override
     public DisplayInformation getDisplayInformation() {
-        Context context = App.INSTANCE.getAppContext();
+        Context context = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
         if (context == null) {
             return null;
@@ -132,7 +131,7 @@ class AndroidSystemInfoService implements SystemInfoService {
     @Override
     public DeviceType getDeviceType() {
         final double MIN_TABLET_INCHES = 6.5d;
-        final Context context = App.INSTANCE.getAppContext();
+        final Context context = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
         if (context == null) {
             return DeviceType.UNKNOWN;
@@ -178,7 +177,7 @@ class AndroidSystemInfoService implements SystemInfoService {
 
     @Override
     public ConnectionStatus getNetworkConnectionStatus() {
-        Context context = App.INSTANCE.getAppContext();
+        Context context = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
         if (context == null) {
             return ConnectionStatus.UNKNOWN;
@@ -222,7 +221,7 @@ class AndroidSystemInfoService implements SystemInfoService {
     @Override
     public boolean registerOneTimeNetworkConnectionActiveListener(final NetworkConnectionActiveListener listener) {
         try {
-            final Context context = App.INSTANCE.getAppContext();
+            final Context context = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
             if (context == null) {
                 Log.debug(LOG_TAG,

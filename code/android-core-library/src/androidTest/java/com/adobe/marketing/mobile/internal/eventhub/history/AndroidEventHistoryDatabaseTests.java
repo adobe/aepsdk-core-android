@@ -18,12 +18,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 import com.adobe.marketing.mobile.TestUtils;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.services.MockAppContextService;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,8 +37,11 @@ public class AndroidEventHistoryDatabaseTests {
 
 	@Before
 	public void beforeEach() {
-		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		App.INSTANCE.setAppContext(context);
+		Context context = ApplicationProvider.getApplicationContext();
+		MockAppContextService mockAppContextService = new MockAppContextService();
+		mockAppContextService.appContext = context;
+		ServiceProviderModifier.setAppContextService(mockAppContextService);
+
 		TestUtils.deleteAllFilesInCacheDir(context);
 
 		try {

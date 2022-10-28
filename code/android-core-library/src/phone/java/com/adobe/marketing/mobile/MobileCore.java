@@ -18,14 +18,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
+import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.util.DataReader;
 
 import java.util.ArrayList;
@@ -102,7 +104,7 @@ final public class MobileCore {
         }
 
         // AMSDK-8502
-        // workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
+        // Workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
         // https://issuetracker.google.com/issues/110848122
         try {
             new Date().toString();
@@ -112,7 +114,8 @@ final public class MobileCore {
             // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
         }
 
-        ServiceProvider.getInstance().initializeApp(application, MobileCore::collectLaunchInfo);
+        ServiceProvider.getInstance().getAppContextService().setApplication(application);
+        App.INSTANCE.registerActivityResumedListener(MobileCore::collectLaunchInfo);
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
@@ -130,9 +133,8 @@ final public class MobileCore {
      * the {@code Application} process was destroyed.
      */
     @Nullable
-    @Deprecated
     public static Application getApplication() {
-        return App.INSTANCE.getApplication();
+        return ServiceProvider.getInstance().getAppContextService().getApplication();
     }
 
     /**
@@ -372,7 +374,7 @@ final public class MobileCore {
      * @param resourceID the resource Id of the icon
      */
     public static void setSmallIconResourceID(final int resourceID) {
-        App.INSTANCE.setSmallIconResourceID(resourceID);
+        AppResourceStore.INSTANCE.setSmallIconResourceID(resourceID);
     }
 
     /**
@@ -381,7 +383,7 @@ final public class MobileCore {
      * @param resourceID the resource Id of the icon
      */
     public static void setLargeIconResourceID(final int resourceID) {
-        App.INSTANCE.setLargeIconResourceID(resourceID);
+        AppResourceStore.INSTANCE.setLargeIconResourceID(resourceID);
     }
 
     // ========================================================

@@ -16,7 +16,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.util.Map;
 
@@ -38,13 +38,13 @@ class AndroidDataStore implements LocalStorageService.DataStore {
 	 * @return  AndroidDataStore created DataStore object
 	 */
 	static AndroidDataStore createDataStore(String dataStoreName) {
-		Context appContext = App.INSTANCE.getAppContext();
+		Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
 		if (appContext == null || dataStoreName == null || dataStoreName.isEmpty()) {
 			return null;
 		}
 
-		AndroidDataStore dataStore = new AndroidDataStore(dataStoreName);
+		AndroidDataStore dataStore = new AndroidDataStore(appContext, dataStoreName);
 
 		if (dataStore.sharedPreferences == null || dataStore.sharedPreferencesEditor == null) {
 			return null;
@@ -58,8 +58,8 @@ class AndroidDataStore implements LocalStorageService.DataStore {
 	 *
 	 * @param dataStoreName the name of the DataStore
 	 */
-	private AndroidDataStore(String dataStoreName) {
-		sharedPreferences = App.INSTANCE.getAppContext().getSharedPreferences(dataStoreName, 0);
+	private AndroidDataStore(Context context, String dataStoreName) {
+		sharedPreferences = context.getSharedPreferences(dataStoreName, 0);
 
 		if (sharedPreferences != null) {
 			sharedPreferencesEditor = sharedPreferences.edit();

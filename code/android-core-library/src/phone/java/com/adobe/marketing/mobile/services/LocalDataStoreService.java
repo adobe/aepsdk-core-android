@@ -13,10 +13,6 @@ package com.adobe.marketing.mobile.services;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.services.internal.context.App;
-
 /**
  * Implementation of {@link DataStoring} service
  */
@@ -32,7 +28,7 @@ class LocalDataStoreService implements DataStoring {
             return null;
         }
 
-        Context appContext = App.INSTANCE.getAppContext();
+        Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
         if (appContext == null) {
             Log.error(ServiceConstants.LOG_TAG, TAG,

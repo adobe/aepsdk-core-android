@@ -83,6 +83,7 @@ public class DataReader {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     private static <T> T castObject(Class<T> tClass, Object obj) throws DataReaderException {
         if (obj == null) {
             return null;
@@ -170,6 +171,7 @@ public class DataReader {
      * @return {@code Map<String, T>} Map associated with {@code key} or null if {@code key} is not present in {@code map}
      * @throws DataReaderException      if value is not gettable as a {@code Map<String,T>}
      */
+    @SuppressWarnings("unchecked")
     public static <T> Map<String, T> getTypedMap(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
         if (tClass == null) {
             throw new DataReaderException("Class type is null");
@@ -230,6 +232,7 @@ public class DataReader {
      * @return {@code List<T>} List associated with {@code key} or null if {@code key} is not present in {@code map}
      * @throws DataReaderException      if value is not gettable as a {@code List<T>}
      */
+    @SuppressWarnings("unchecked")
     public static <T> List<T> getTypedList(Class<T> tClass, Map<String, ?> map, String key) throws DataReaderException {
         if (tClass == null) {
             throw new DataReaderException("Class type is null");

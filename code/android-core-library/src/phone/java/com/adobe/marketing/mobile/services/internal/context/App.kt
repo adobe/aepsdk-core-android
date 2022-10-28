@@ -12,10 +12,16 @@ package com.adobe.marketing.mobile.services.internal.context
 
 import android.app.Activity
 import android.app.Application
+import android.content.ComponentCallbacks2
+import android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
 import android.content.Context
+import android.content.res.Configuration
+import android.os.Bundle
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.AppContextService
+import com.adobe.marketing.mobile.services.AppState
 import java.lang.ref.WeakReference
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * The [App] holds some variables related to the current application, including app [Context],
@@ -23,11 +29,10 @@ import java.lang.ref.WeakReference
  * methods to get and set icons for notifications.
  */
 
-internal object App {
+internal object App : AppContextService, Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
-    private const val DATASTORE_NAME = "ADOBE_MOBILE_APP_STATE"
-    private const val SMALL_ICON_RESOURCE_ID_KEY = "SMALL_ICON_RESOURCE_ID"
-    private const val LARGE_ICON_RESOURCE_ID_KEY = "LARGE_ICON_RESOURCE_ID"
+    @Volatile
+    private var application: WeakReference<Application>? = null
 
     @Volatile
     private var applicationContext: WeakReference<Context>? = null
@@ -36,49 +41,88 @@ internal object App {
     private var currentActivity: WeakReference<Activity>? = null
 
     @Volatile
-    private var application: WeakReference<Application>? = null
+    private var appState = AppState.UNKNOWN
 
-    @Volatile
-    private var smallIconResourceID = -1
+    private var onActivityResumed: SimpleCallback<Activity>? = null
 
-    @Volatile
-    private var largeIconResourceID = -1
+    private var appStateListeners: ConcurrentLinkedQueue<AppStateListener> = ConcurrentLinkedQueue()
 
-    /**
-     * Registers `Application.ActivityLifecycleCallbacks` to the `Application` instance,
-     * and the context variable.
-     *
-     * @param application               the current `Application`
-     * @param onActivityResumed invoked when ActivityLifecycleCallbacks.onActivityResumed() is called
-     */
-    // TODO: we can refactor the "onActivityResumed" parameter to a LifecycleListener interface later when we want to listen to other app actions.
-    @JvmName("initializeApp")
-    internal fun initializeApp(
-        application: Application,
-        onActivityResumed: SimpleCallback<Activity>?
-    ) {
-        this.setApplication(application)
-        AppLifecycleListener.instance
-            ?.registerActivityLifecycleCallbacks(application, onActivityResumed)
-        applicationContext = WeakReference(application)
+    // AppContextService overrides
+    override fun setApplication(application: Application) {
+        if (this.application?.get() != null) {
+            return
+        }
+
+        this.application = WeakReference(application)
+        setAppContext(application)
+        registerActivityLifecycleCallbacks(application)
     }
 
-    fun getApplication(): Application? {
+    override fun getApplication(): Application? {
         return application?.get()
     }
 
-    @VisibleForTesting
-    @JvmName("setApplication")
-    internal fun setApplication(application: Application) {
-        this.application = WeakReference(application)
-    }
-
-    @JvmName("getAppContext")
-    internal fun getAppContext(): Context? {
+    override fun getApplicationContext(): Context? {
         return applicationContext?.get()
     }
 
-    // TODO: this method is called in LocalNotificationHandler class, we can make it package private when cleaning up the LocalNotificationHandler class.
+    override fun getCurrentActivity(): Activity? {
+        return this.currentActivity?.get()
+    }
+
+    override fun getAppState(): AppState {
+        return appState
+    }
+
+    // Android Lifecycle overrides
+    override fun onActivityResumed(activity: Activity) {
+        setAppState(AppState.FOREGROUND)
+        onActivityResumed?.let {
+            it.call(activity)
+        }
+        setCurrentActivity(activity)
+    }
+
+    override fun onActivityPaused(activity: Activity) {
+        // do nothing
+    }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+        // do nothing
+    }
+
+    override fun onActivityStarted(activity: Activity) {
+        // do nothing
+    }
+
+    override fun onActivityStopped(activity: Activity) {
+        // do nothing
+    }
+
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+        // do nothing
+    }
+
+    override fun onActivityDestroyed(activity: Activity) {
+        // do nothing
+    }
+
+    override fun onConfigurationChanged(paramConfiguration: Configuration) {
+        // do nothing
+    }
+
+    override fun onLowMemory() {
+        // do nothing
+    }
+
+    override fun onTrimMemory(level: Int) {
+        // https://developer.android.com/reference/android/content/ComponentCallbacks2.html#TRIM_MEMORY_UI_HIDDEN
+        if (level >= TRIM_MEMORY_UI_HIDDEN) {
+            setAppState(AppState.BACKGROUND)
+        }
+    }
+
+    // Internal methods called current from Core.
     @JvmName("setAppContext")
     internal fun setAppContext(appContext: Context?) {
         val context = appContext?.applicationContext
@@ -87,112 +131,90 @@ internal object App {
         }
     }
 
-    @JvmName("getCurrentActivity")
-    internal fun getCurrentActivity(): Activity? {
-        return this.currentActivity?.get()
-    }
-
     @JvmName("setCurrentActivity")
     internal fun setCurrentActivity(activity: Activity?) {
-        if (activity == null) {
-            this.currentActivity = null
-        } else {
-            this.currentActivity = WeakReference(activity)
-        }
+        this.currentActivity = if (activity != null) { WeakReference(activity) } else { null }
+    }
+
+    @JvmName("registerActivityResumedListener")
+    internal fun registerActivityResumedListener(resumedListener: SimpleCallback<Activity>) {
+        onActivityResumed = resumedListener
     }
 
     /**
-     * Returns the `Context` which was set either by `setApplication` or `setAppContext`.
+     * Registers a `AppStateListener` which will gets called when the app state changes.
      *
-     * @return the current `Context`
+     * @param listener the [AppStateListener] to receive app state change events
      */
-    /**
-     * Sets the `context` variable.
-     *
-     * @param context the current `Context`
-     */
-
-    /**
-     * Returns the `Activity` which was set by `setCurrentActivity`.
-     *
-     * @return the current `Activity`
-     */
-    /**
-     * Sets the  `activity` variable and also update the  `context` variable
-     *
-     * @param activity the current `Activity`
-     */
-
-    /**
-     * Sets the resource Id for small icon.
-     *
-     * @param resourceID the resource Id of the icon
-     */
-    @JvmName("setSmallIconResourceID")
-    internal fun setSmallIconResourceID(resourceID: Int) {
-        smallIconResourceID = resourceID
-        val dataStore = ServiceProvider.getInstance().dataStoreService.getNamedCollection(
-            DATASTORE_NAME
-        )
-        dataStore?.setInt(SMALL_ICON_RESOURCE_ID_KEY, smallIconResourceID)
+    fun registerListener(listener: AppStateListener) {
+        appStateListeners.add(listener)
     }
 
     /**
-     * Returns the resource Id for small icon if it was set by `setSmallIconResourceID`.
+     * Unregisters a `AppStateListener`.
      *
-     * @return a `int` value if it has been set, otherwise -1
+     * @param listener the [AppStateListener] to unregister
      */
-    @JvmName("getSmallIconResourceID")
-    internal fun getSmallIconResourceID(): Int {
-        if (smallIconResourceID == -1) {
-            val dataStore = ServiceProvider.getInstance().dataStoreService.getNamedCollection(
-                DATASTORE_NAME
-            )
-            if (dataStore != null) {
-                smallIconResourceID = dataStore.getInt(SMALL_ICON_RESOURCE_ID_KEY, -1)
-            }
-        }
-        return smallIconResourceID
+    fun unregisterListener(listener: AppStateListener) {
+        appStateListeners.remove(listener)
     }
 
-    /**
-     * Sets the resource Id for large icon.
-     *
-     * @param resourceID the resource Id of the icon
-     */
-    @JvmName("setLargeIconResourceID")
-    internal fun setLargeIconResourceID(resourceID: Int) {
-        largeIconResourceID = resourceID
-        val dataStore = ServiceProvider.getInstance().dataStoreService.getNamedCollection(
-            DATASTORE_NAME
-        )
-        dataStore?.setInt(LARGE_ICON_RESOURCE_ID_KEY, largeIconResourceID)
-    }
-
-    /**
-     * Returns the resource Id for large icon if it was set by `setLargeIconResourceID`.
-     *
-     * @return a `int` value if it has been set, otherwise -1
-     */
-    @JvmName("getLargeIconResourceID")
-    internal fun getLargeIconResourceID(): Int {
-        if (largeIconResourceID == -1) {
-            val dataStore = ServiceProvider.getInstance().dataStoreService.getNamedCollection(
-                DATASTORE_NAME
-            )
-            if (dataStore != null) {
-                largeIconResourceID = dataStore.getInt(LARGE_ICON_RESOURCE_ID_KEY, -1)
-            }
-        }
-        return largeIconResourceID
-    }
-
+    // This method is used only for testing
+    @VisibleForTesting
     @JvmName("resetInstance")
     internal fun resetInstance() {
+        application?.get()?.let {
+            unregisterActivityLifecycleCallbacks(it)
+        }
         applicationContext = null
         currentActivity = null
         application = null
-        smallIconResourceID = -1
-        largeIconResourceID = -1
+
+        appStateListeners = ConcurrentLinkedQueue()
+        appState = AppState.UNKNOWN
+    }
+
+    private fun setAppState(state: AppState) {
+        if (appState == state) {
+            return
+        }
+
+        appState = state
+        notifyAppStateListeners()
+    }
+
+    private fun notifyAppStateListeners() {
+        for (listener in appStateListeners) {
+            if (appState == AppState.FOREGROUND) {
+                listener.onForeground()
+            } else if (appState == AppState.BACKGROUND) {
+                listener.onBackground()
+            }
+        }
+    }
+
+    /**
+     * Registers `this` as the activity lifecycle callback for the `Application`.
+     *
+     * @param application       the [Application] of the app
+     * @param onActivityResumed invoked when ActivityLifecycleCallbacks.onActivityResumed() is called
+     */
+    private fun registerActivityLifecycleCallbacks(
+        application: Application
+    ) {
+        application.registerActivityLifecycleCallbacks(this)
+        application.registerComponentCallbacks(this)
+    }
+
+    /**
+     * Unregisters `this` as the activity lifecycle callback for the `Application`.
+     *
+     * @param application       the [Application] of the app
+     */
+    private fun unregisterActivityLifecycleCallbacks(
+        application: Application
+    ) {
+        application.unregisterActivityLifecycleCallbacks(this)
+        application.unregisterComponentCallbacks(this)
     }
 }

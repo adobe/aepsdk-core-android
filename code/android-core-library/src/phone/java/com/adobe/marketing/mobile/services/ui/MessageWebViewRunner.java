@@ -27,7 +27,7 @@ import android.widget.LinearLayout;
 
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
@@ -102,7 +102,7 @@ class MessageWebViewRunner implements Runnable {
                 return;
             }
 
-            final Context context = App.INSTANCE.getAppContext();
+            final Context context = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
             if (context == null) {
                 Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, the app context is null.");
@@ -147,7 +147,7 @@ class MessageWebViewRunner implements Runnable {
                 method.invoke(webviewSettings, false);
             }
 
-            final Context appContext = App.INSTANCE.getAppContext();
+            final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
             File cacheDirectory = null;
 
             if (appContext != null) {
@@ -258,7 +258,7 @@ class MessageWebViewRunner implements Runnable {
         }
 
         // create a new view to apply a background dimming effect behind a displayed message
-        backdrop = new View(App.INSTANCE.getAppContext());
+        backdrop = new View(ServiceProvider.getInstance().getAppContextService().getApplicationContext());
         backdrop.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         backdrop.setBackgroundColor(Color.parseColor(settings.getBackdropColor()));
         backdrop.setAlpha(settings.getBackdropOpacity());

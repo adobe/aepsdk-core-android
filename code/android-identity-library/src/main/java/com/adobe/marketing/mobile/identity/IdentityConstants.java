@@ -16,8 +16,8 @@ import com.adobe.marketing.mobile.MobilePrivacyStatus;
 /**
  * Holds all the constant values to be used by various classes in the {@link IdentityExtension}
  */
-public final class IdentityConstants {
-    public static final String LOG_TAG = "Identity";
+final class IdentityConstants {
+    static final String LOG_TAG = "Identity";
     static final String FRIENDLY_NAME = "Identity";
     static final String EXTENSION_NAME = "com.adobe.module.identity";
 
@@ -91,7 +91,7 @@ public final class IdentityConstants {
     private IdentityConstants() {
     }
 
-    public static final class EventDataKeys {
+    static final class EventDataKeys {
         static final String STATE_OWNER = "stateowner";
 
         private EventDataKeys() {
@@ -136,7 +136,7 @@ public final class IdentityConstants {
             }
         }
 
-        public static final class Identity {
+        static final class Identity {
             static final String MODULE_NAME = "com.adobe.module.identity";
             static final String MCPNS_DPID = "20919";
             static final String ADID_DSID = "DSID_20914";

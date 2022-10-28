@@ -15,7 +15,6 @@ public class ServiceProviderModifier {
         ServiceProvider.getInstance().setAppContextService(service);
     }
     public static void reset(){
-        ServiceProvider.getInstance().resetAppInstance();
         ServiceProvider.getInstance().resetServices();
     }
 }

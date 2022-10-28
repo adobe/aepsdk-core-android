@@ -28,6 +28,7 @@ final class IdentityConstants {
         static final String SERVER = "dpm.demdex.net";
         static final String CID_DELIMITER = "%01";
         static final int TIMEOUT = 2;
+        static final int TIMEOUT_IN_SECONDS = 2;
         static final boolean DEFAULT_SSL = true;
         static final MobilePrivacyStatus DEFAULT_MOBILE_PRIVACY = MobilePrivacyStatus.UNKNOWN;
         static final String ZERO_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000";

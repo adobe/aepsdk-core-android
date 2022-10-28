@@ -16,10 +16,8 @@ import androidx.annotation.NonNull;
 import com.adobe.marketing.mobile.services.DataEntity;
 import com.adobe.marketing.mobile.services.HitProcessing;
 import com.adobe.marketing.mobile.services.HitProcessingResult;
-import com.adobe.marketing.mobile.services.HttpConnecting;
 import com.adobe.marketing.mobile.services.HttpMethod;
 import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.services.NetworkCallback;
 import com.adobe.marketing.mobile.services.NetworkRequest;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.StreamUtils;
@@ -28,14 +26,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 class IdentityHitsProcessing implements HitProcessing {
     private static final String LOG_SOURCE = "IdentityHitsProcessing";
@@ -52,31 +46,30 @@ class IdentityHitsProcessing implements HitProcessing {
         return RETRY_INTERVAL;
     }
 
-    @Override
-    public void processHit(@NonNull DataEntity entity, @NonNull HitProcessingResult processingResult) {
+    public void processHit(@NonNull DataEntity entity, @NonNull int networkTimeoutInSeconds, @NonNull HitProcessingResult processingResult) {
         IdentityHit hit = IdentityHit.fromDataEntity(entity);
         if (hit == null) {
             processingResult.complete(true);
+            return;
         }
         if (hit.getUrl() == null || hit.getEvent() == null) {
             Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
                     "IdentityHitsDatabase.process : Unable to process IdentityExtension hit because it does not contain a url or the trigger event.");
             processingResult.complete(true);
+            return;
         }
 
         Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "IdentityHitsDatabase.process : Sending request: (%s).", hit.getUrl());
         Map<String, String> requestPropertyMap = NetworkConnectionUtil.getHeaders(true);
 
         // make the request synchronously
-//        CountDownLatch countDownLatch = new CountDownLatch(1);
-//        final AtomicBoolean networkRequestSucessful = new AtomicBoolean(false);
         NetworkRequest networkRequest = new NetworkRequest(
                 hit.getUrl(),
                 HttpMethod.GET,
                 null,
                 requestPropertyMap,
-                IdentityConstants.Defaults.TIMEOUT,
-                IdentityConstants.Defaults.TIMEOUT);
+                networkTimeoutInSeconds,
+                networkTimeoutInSeconds);
         ServiceProvider.getInstance().getNetworkService().connectAsync(networkRequest, connection -> {
             if (connection == null) {
                 Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE,
@@ -121,6 +114,11 @@ class IdentityHitsProcessing implements HitProcessing {
                 processingResult.complete(false);
             }
         });
+    }
+
+    @Override
+    public void processHit(@NonNull DataEntity entity, @NonNull HitProcessingResult processingResult) {
+        processHit(entity, IdentityConstants.Defaults.TIMEOUT_IN_SECONDS, processingResult);
     }
 
     IdentityResponseObject createIdentityObjectFromResponseJsonObject(final JSONObject jsonObject) {

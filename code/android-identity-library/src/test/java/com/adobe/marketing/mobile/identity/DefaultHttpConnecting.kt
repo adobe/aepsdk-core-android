@@ -8,13 +8,31 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.services;
+package com.adobe.marketing.mobile.identity
 
-public class ServiceProviderModifier {
-    public static void setAppContextService(AppContextService service) {
-        ServiceProvider.getInstance().setAppContextService(service);
+import com.adobe.marketing.mobile.services.HttpConnecting
+import java.io.InputStream
+
+internal open class DefaultHttpConnecting : HttpConnecting {
+    override fun getInputStream(): InputStream? {
+        return null
     }
-    public static void reset(){
-        ServiceProvider.getInstance().resetServices();
+
+    override fun getErrorStream(): InputStream? {
+        return null
     }
+
+    override fun getResponseCode(): Int {
+        return 0
+    }
+
+    override fun getResponseMessage(): String {
+        return ""
+    }
+
+    override fun getResponsePropertyValue(responsePropertyKey: String?): String {
+        return ""
+    }
+
+    override fun close() {}
 }

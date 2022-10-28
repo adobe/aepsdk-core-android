@@ -44,8 +44,7 @@ dependencies {
     implementation project(path: ':android-core-library')
     implementation project(path: ':android-signal-library')
     implementation project(path: ':android-identity-library')
-//    implementation project(path: ':android-signal-library')
-//    implementation project(path: ':android-lifecycle-library')
+    implementation project(path: ':android-lifecycle-library')
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

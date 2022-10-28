@@ -71,7 +71,6 @@ public class IdentityObjectTest {
         assertEquals(2, identityResponseObject.optOutList.size());
     }
 
-
 }
 
 

@@ -59,8 +59,13 @@ fun HomeView(navController: NavHostController) {
             Text(text = "Lifecycle")
         }
         Button(onClick = {
-                navController.navigate(NavRoutes.PerformanceView.route)
-            }) {
+            navController.navigate(NavRoutes.IdentityView.route)
+        }) {
+            Text(text = "Identity")
+        }
+        Button(onClick = {
+            navController.navigate(NavRoutes.PerformanceView.route)
+        }) {
             Text(text = "PerformanceTest")
         }
 

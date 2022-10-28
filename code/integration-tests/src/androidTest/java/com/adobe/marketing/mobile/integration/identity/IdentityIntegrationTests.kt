@@ -178,7 +178,7 @@ class IdentityIntegrationTests {
         ServiceProviderModifier.reset()
 
         overrideNetworkService()
-        
+
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatchSecondNetworkMonitor = CountDownLatch(1)

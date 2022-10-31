@@ -319,7 +319,7 @@ public class Identity {
 
         MobileCore.dispatchEventWithResponseCallback(event, PUBLIC_API_TIME_OUT_MILLISECOND, new AdobeCallbackWithError<Event>() {
             @Override
-            public void fail(AdobeError error) {
+            public void fail(final AdobeError error) {
                 if (errorCallback instanceof AdobeCallbackWithError) {
                     AdobeCallbackWithError adobeCallbackWithError = (AdobeCallbackWithError) errorCallback;
                     adobeCallbackWithError.fail(error);
@@ -327,7 +327,7 @@ public class Identity {
             }
 
             @Override
-            public void call(Event e) {
+            public void call(final Event e) {
                 callback.call(e);
             }
         });

@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.integration.core
 
 import android.app.Application
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.adobe.marketing.mobile.AdobeCallbackWithError
@@ -42,16 +43,13 @@ class RulesEngineIntegrationTests {
         const val TEST_RULES_URL = "https://rules.com/rules.zip"
         const val TEST_APP_ID = "appId"
         const val TEST_CONFIG_URL = "https://assets.adobedtm.com/${TEST_APP_ID}.json"
-        const val TEST_RULES_RESOURCE = "rules_dispatch_consequence.zip"
+        const val TEST_RULES_RESOURCE = "rules_integration.zip"
         const val WAIT_TIME_MILLIS_LONG = 500L
         const val WAIT_TIME_MILLIS_SHORT = 100L
     }
 
     @Before
     fun setup() {
-        val appContext =
-            InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as Application
-
         // Setup with only configuration extension
         SDKHelper.resetSDK()
 
@@ -73,7 +71,7 @@ class RulesEngineIntegrationTests {
             }
         }
 
-        MobileCore.setApplication(appContext)
+        MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         MobileCore.start {
             initializationLatch.countDown()
@@ -88,7 +86,7 @@ class RulesEngineIntegrationTests {
     }
 
     @Test
-    fun testEventDispatchConsequence() {
+    fun testDispatchConsequence() {
         val capturedEvents = mutableListOf<Event>()
 
         val eventLatch = CountDownLatch(1)
@@ -106,16 +104,15 @@ class RulesEngineIntegrationTests {
                 }
             })
 
+        val eventData = mapOf("xdm" to "test data")
         val event = Event.Builder("Test Event Trigger", "test.type.trigger", "test.source.trigger")
-            .setEventData(
-                mapOf("xdm" to "test data")
-            )
+            .setEventData(eventData)
             .build()
         MobileCore.dispatchEvent(event)
 
         assertTrue(eventLatch.await(WAIT_TIME_MILLIS_SHORT, TimeUnit.MILLISECONDS))
         assertTrue(capturedEvents.size == 1)
-        assertEquals("test data", capturedEvents[0].eventData?.get("xdm"))
+        assertEquals(eventData, capturedEvents[0].eventData)
     }
 
     @Test
@@ -138,10 +135,9 @@ class RulesEngineIntegrationTests {
             })
 
         // Test
+        val eventData = mapOf("dispatch" to "yes") // This is to trigger the consequence
         val event = Event.Builder("Test Event Trigger", "test.type.trigger", "test.source.trigger")
-            .setEventData(
-                mapOf("dispatch" to "yes")
-            )
+            .setEventData(eventData)
             .build()
         MobileCore.dispatchEvent(event)
 
@@ -153,7 +149,6 @@ class RulesEngineIntegrationTests {
             assertEquals("yes", e.eventData?.get("dispatch"))
         }
     }
-
 
     @Test
     fun testDispatchConsequenceChainDoesNotLoop() {
@@ -229,6 +224,76 @@ class RulesEngineIntegrationTests {
         }
     }
 
+    @Test
+    fun testAttachData_dispatchesEventWithAttachedKeys() {
+        val capturedEvents = mutableListOf<Event>()
+
+        val eventLatch = CountDownLatch(1)
+        MobileCore.registerEventListener(
+            "test.type.consequence",
+            "test.source.consequence",
+            object : AdobeCallbackWithError<Event> {
+                override fun call(value: Event) {
+                    capturedEvents.add(value)
+                    eventLatch.countDown()
+                }
+
+                override fun fail(error: AdobeError?) {
+                    eventLatch.countDown()
+                }
+            })
+
+        // Test
+        val eventData = mapOf("attach" to "yes") // "attach" triggers the condition
+        val event = Event.Builder("Test Event Trigger", "test.type.trigger", "test.source.trigger")
+            .setEventData(eventData)
+            .build()
+        MobileCore.dispatchEvent(event)
+
+        // Verify
+        assertTrue(eventLatch.await(WAIT_TIME_MILLIS_SHORT, TimeUnit.MILLISECONDS))
+        assertEquals(1, capturedEvents.size)
+        val expectedEventData = mapOf("attach" to "yes", "attachedKey" to "attachedValue")
+        capturedEvents.forEach { e ->
+            assertEquals(expectedEventData, e.eventData)
+        }
+    }
+
+    @Test
+    fun testModifyData_dispatchesEventWithChangedValue() {
+        val capturedEvents = mutableListOf<Event>()
+
+        val eventLatch = CountDownLatch(1)
+        MobileCore.registerEventListener(
+            "test.type.consequence",
+            "test.source.consequence",
+            object : AdobeCallbackWithError<Event> {
+                override fun call(value: Event) {
+                    capturedEvents.add(value)
+                    eventLatch.countDown()
+                }
+
+                override fun fail(error: AdobeError?) {
+                    eventLatch.countDown()
+                }
+            })
+
+        // Test
+        val eventData = mapOf("modify" to "yes", "keyToModify" to "originalValue") // "keyToModify" triggers the condition
+        val event = Event.Builder("Test Event Trigger", "test.type.trigger", "test.source.trigger")
+            .setEventData(eventData)
+            .build()
+        MobileCore.dispatchEvent(event)
+
+        // Verify
+        assertTrue(eventLatch.await(WAIT_TIME_MILLIS_SHORT, TimeUnit.MILLISECONDS))
+        assertEquals(1, capturedEvents.size)
+
+        val expectedEventData = mapOf("modify" to "yes", "keyToModify" to "modifiedValue")
+        capturedEvents.forEach { e ->
+            assertEquals(expectedEventData, e.eventData)
+        }
+    }
 
     @After
     fun cleanup() {

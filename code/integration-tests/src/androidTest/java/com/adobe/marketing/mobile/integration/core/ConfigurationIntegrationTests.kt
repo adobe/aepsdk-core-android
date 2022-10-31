@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.integration.core
 
 import android.app.Application
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.adobe.marketing.mobile.LoggingMode
@@ -251,11 +252,9 @@ class ConfigurationIntegrationTests {
     }
 
     private fun initializeSDK() {
-        val appContext =
-            InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as Application
         val initializationLatch = CountDownLatch(1)
 
-        MobileCore.setApplication(appContext)
+        MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         MobileCore.registerExtensions(listOf(SignalExtension::class.java)) {
             initializationLatch.countDown()

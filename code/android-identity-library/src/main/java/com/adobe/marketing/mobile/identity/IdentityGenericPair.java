@@ -8,14 +8,29 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.app.kotlin
 
-sealed class NavRoutes(val route: String) {
-    object HomeView : NavRoutes("home")
-    object CoreView : NavRoutes("core")
-    object SignalView : NavRoutes("signal")
-    object LifecycleView : NavRoutes("lifecycle")
-    object IdentityView : NavRoutes("Identity")
-    object ServicesView : NavRoutes("services")
-    object PerformanceView : NavRoutes("performance")
+package com.adobe.marketing.mobile.identity;
+
+/**
+ * Class to represent a pair of Objects.
+ * May be used to return two Object results from a method.
+ * @param <T>
+ * @param <S>
+ */
+class IdentityGenericPair<T, S> {
+	private final T first;
+	private final S second;
+
+	IdentityGenericPair(final T first, final S second) {
+		this.first = first;
+		this.second = second;
+	}
+
+	T getFirst() {
+		return first;
+	}
+
+	S getSecond() {
+		return second;
+	}
 }

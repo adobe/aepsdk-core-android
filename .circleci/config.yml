@@ -75,6 +75,18 @@ jobs:
           command: |            
             bash ./codecov -v -X s3 -c -D "./code/android-lifecycle-library/build/reports/coverage/test/phone/debug" -F unit-tests
 
+      - run:
+          name: Run Identity unit tests
+          command: make identity-unit-test-coverage
+
+      - store_test_results:
+          path: code/android-identity-library/build/test-results/testPhoneDebugUnitTest
+
+      - run:
+          name: Upload Identity coverage report
+          command: |            
+            bash ./codecov -v -X s3 -c -D "./code/android-identity-library/build/reports/coverage/test/phone/debug" -F unit-tests
+
   functional-test:
       executor:
         name: android/android-machine

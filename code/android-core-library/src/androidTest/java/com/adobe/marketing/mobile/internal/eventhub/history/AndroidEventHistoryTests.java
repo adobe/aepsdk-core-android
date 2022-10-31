@@ -17,6 +17,7 @@ import static org.junit.Assert.fail;
 
 import android.content.Context;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
@@ -24,7 +25,9 @@ import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventHistoryRequest;
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.TestUtils;
+import com.adobe.marketing.mobile.services.MockAppContextService;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.internal.context.App;
 
 import org.junit.Before;
@@ -42,8 +45,12 @@ public class AndroidEventHistoryTests {
 
     @Before
     public void beforeEach() {
-        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        App.INSTANCE.setAppContext(context);
+        Context context = ApplicationProvider.getApplicationContext();
+
+        MockAppContextService mockAppContextService = new MockAppContextService();
+        mockAppContextService.appContext = context;
+        ServiceProviderModifier.setAppContextService(mockAppContextService);
+
         TestUtils.deleteAllFilesInCacheDir(context);
 
         try {

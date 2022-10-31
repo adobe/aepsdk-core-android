@@ -13,8 +13,8 @@ package com.adobe.marketing.mobile;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.adobe.marketing.mobile.services.internal.context.AppLifecycleListener;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.AlertSetting;
 import com.adobe.marketing.mobile.services.ui.NotificationSetting;
 import com.adobe.marketing.mobile.services.ui.UIError;
@@ -114,7 +114,7 @@ class AndroidUIService implements UIService {
 
     @Override
     public AppState getAppState() {
-        return AppState.from(AppLifecycleListener.getInstance().getAppState());
+        return AppState.from( ServiceProvider.getInstance().getAppContextService().getAppState());
     }
 
     @Override
@@ -133,7 +133,8 @@ class AndroidUIService implements UIService {
                 listener.onBackground();
             }
         });
-        AppLifecycleListener.getInstance().registerListener(listenerMap.get(listener));
+
+        App.INSTANCE.registerListener(listenerMap.get(listener));
     }
 
     @Override
@@ -141,7 +142,7 @@ class AndroidUIService implements UIService {
         if (listener == null) {
             return;
         }
-        AppLifecycleListener.getInstance().unregisterListener(listenerMap.get(listener));
+        App.INSTANCE.unregisterListener(listenerMap.get(listener));
     }
 
     @Override

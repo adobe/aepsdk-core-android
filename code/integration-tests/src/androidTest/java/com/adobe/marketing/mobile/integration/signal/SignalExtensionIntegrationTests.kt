@@ -30,7 +30,7 @@ import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-typealias NetworkMonitor = (url: String) -> Unit
+private typealias NetworkMonitor = (url: String) -> Unit
 
 @RunWith(AndroidJUnit4::class)
 class SignalExtensionIntegrationTests {

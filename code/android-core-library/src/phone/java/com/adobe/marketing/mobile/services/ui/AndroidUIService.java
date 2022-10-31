@@ -28,7 +28,7 @@ import com.adobe.marketing.mobile.LoggingMode;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 
 import java.lang.reflect.Field;
@@ -65,7 +65,7 @@ public class AndroidUIService implements UIService {
             return;
         }
 
-        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (current activity), unable to show alert",
@@ -170,7 +170,7 @@ public class AndroidUIService implements UIService {
     @SuppressLint("TrulyRandom")
     @Override
     public void showLocalNotification(final NotificationSetting notificationSetting) {
-        final Context appContext = App.INSTANCE.getAppContext();
+        final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
         if (appContext == null) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (application context), unable to show local notification",
@@ -234,7 +234,7 @@ public class AndroidUIService implements UIService {
 
     @Override
     public boolean showUrl(final String url) {
-        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (current activity), could not open URL %s",
@@ -282,7 +282,7 @@ public class AndroidUIService implements UIService {
 
     @Override
     public FloatingButton createFloatingButton(FloatingButtonListener buttonListener) {
-        Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (current activity), no button created.",

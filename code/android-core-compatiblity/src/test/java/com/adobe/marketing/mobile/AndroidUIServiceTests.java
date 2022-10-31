@@ -29,13 +29,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.URIHandler;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class AndroidUIServiceTests {
+    @Mock
+    AppContextService mockAppContextService;
     @Mock
     private MessagesMonitor mockMessagesMonitor;
     @Mock
@@ -46,6 +49,7 @@ public class AndroidUIServiceTests {
     @Before
     public void setup() {
         androidUIService = new AndroidUIService();
+        ServiceProviderModifier.setAppContextService(mockAppContextService);
     }
 
     @After
@@ -60,7 +64,7 @@ public class AndroidUIServiceTests {
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
 
-        App.INSTANCE.setCurrentActivity(mockActivity);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
         //test
         UIService.UIFullScreenMessage fullScreenMessage = androidUIService.createFullscreenMessage("", null);
         fullScreenMessage.show();
@@ -76,7 +80,7 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(true);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
-        App.INSTANCE.setCurrentActivity(mockActivity);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
         //test
         UIService.UIFullScreenMessage fullScreenMessage = androidUIService.createFullscreenMessage("", null);
         fullScreenMessage.show();
@@ -118,7 +122,7 @@ public class AndroidUIServiceTests {
         when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
         androidUIService.messagesMonitor = mockMessagesMonitor;
 
-        App.INSTANCE.setCurrentActivity(mockActivity);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
 
         UIService.UIFullScreenMessage uiFullScreenMessage =
                 androidUIService.createFullscreenMessage("", null);

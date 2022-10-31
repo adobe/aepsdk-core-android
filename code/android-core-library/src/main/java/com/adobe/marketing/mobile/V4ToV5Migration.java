@@ -16,7 +16,6 @@ import android.content.SharedPreferences;
 
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
@@ -556,7 +555,7 @@ class V4ToV5Migration {
 
     private static SharedPreferences getV4SharedPreferences() {
         if (prefs == null) {
-            Context appContext = App.INSTANCE.getAppContext();
+            Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
             if (appContext != null) {
                 prefs = appContext.getSharedPreferences(V4.DATASTORE_NAME, 0);

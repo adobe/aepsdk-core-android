@@ -46,8 +46,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
-import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.util.StreamUtils;
 
 @SuppressWarnings("all")
@@ -56,6 +56,9 @@ public class AndroidSystemInfoServiceTests {
 
     private static final int MAXIMUM_READ_SIZE = 65535;
     public static final String CHARSET_UTF_8 = "UTF-8";
+
+    @Mock
+    AppContextService mockAppContextService;
 
     @Mock
     Activity mockActivity;
@@ -101,8 +104,10 @@ public class AndroidSystemInfoServiceTests {
 
     @Before
     public void beforeEach() {
+        ServiceProviderModifier.setAppContextService(mockAppContextService);
         when(mockContext.getApplicationContext()).thenReturn(mockContext);
-        App.INSTANCE.setAppContext(mockContext);
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
     }
 
     @Test
@@ -122,7 +127,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetApplicationBaseDir_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNull(systemInfoService.getApplicationBaseDir());
     }
@@ -145,7 +150,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetApplicationCacheDir_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNull(systemInfoService.getApplicationCacheDir());
     }
@@ -163,7 +168,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetApplicationName_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNull(systemInfoService.getApplicationName());
     }
@@ -186,7 +191,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetApplicationPackageName_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNull(systemInfoService.getApplicationPackageName());
     }
@@ -194,7 +199,6 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetCurrentOrientation_Happy() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setCurrentActivity(mockActivity);
         when(mockActivity.getResources()).thenReturn(mockResources);
         when(mockResources.getConfiguration()).thenReturn(mockConfiguration);
         mockConfiguration.orientation = 1;
@@ -204,7 +208,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetCurrentOrientation_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setCurrentActivity(null);
+        when(mockAppContextService.getCurrentActivity()).thenReturn(null);
         assertEquals(0, systemInfoService.getCurrentOrientation());
     }
 
@@ -221,7 +225,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetApplicationVersion_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNull(systemInfoService.getApplicationVersion());
     }
@@ -239,7 +243,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetApplicationVersionCode_ReturnsNull_WhenNullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNull(systemInfoService.getApplicationVersionCode());
     }
@@ -319,7 +323,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetActiveLocale_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNull(systemInfoService.getActiveLocale());
     }
@@ -347,7 +351,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetDisplayInformation_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNull(systemInfoService.getDisplayInformation());
     }
@@ -361,7 +365,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetOperatingSystemName_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNotNull(systemInfoService.getOperatingSystemName());
     }
@@ -377,7 +381,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetMobileCarrierName_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertNull(systemInfoService.getMobileCarrierName());
     }
@@ -385,7 +389,7 @@ public class AndroidSystemInfoServiceTests {
     @Test
     public void testGetNetworkConnectionStatusReturnsUnknown_When_NullContext() throws Exception {
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
-        App.INSTANCE.setAppContext(null);
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         Runtime.getRuntime().gc();
         assertEquals(SystemInfoService.ConnectionStatus.UNKNOWN, systemInfoService.getNetworkConnectionStatus());
     }
@@ -468,8 +472,7 @@ public class AndroidSystemInfoServiceTests {
 
     @Test
     public void testGetAssets_when_nullContext_should_returnNull() throws Exception {
-
-        ServiceProviderModifier.resetApp();
+        when(mockAppContextService.getApplicationContext()).thenReturn(null);
         AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
         when(mockContext.getResources()).thenReturn(mockResources);
         when(mockResources.getAssets()).thenReturn(mockAssetManager);

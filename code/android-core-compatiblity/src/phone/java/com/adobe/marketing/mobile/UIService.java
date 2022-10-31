@@ -164,7 +164,7 @@ interface UIService {
         BACKGROUND,
         UNKNOWN;
 
-        static AppState from(com.adobe.marketing.mobile.services.internal.context.AppState appState) {
+        static AppState from(com.adobe.marketing.mobile.services.AppState appState) {
             switch (appState) {
                 case FOREGROUND:
                     return AppState.FOREGROUND;

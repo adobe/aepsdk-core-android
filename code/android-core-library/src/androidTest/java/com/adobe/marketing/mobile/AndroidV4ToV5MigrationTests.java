@@ -13,14 +13,14 @@ package com.adobe.marketing.mobile;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import androidx.test.platform.app.InstrumentationRegistry;
+
+import androidx.test.core.app.ApplicationProvider;
 
 import junit.framework.Assert;
 
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -30,9 +30,10 @@ import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
+import com.adobe.marketing.mobile.services.MockAppContextService;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.services.ServiceProvider;
@@ -226,13 +227,18 @@ public class AndroidV4ToV5MigrationTests {
 	private SharedPreferences v4DataStore;
 	private SharedPreferences.Editor v4DataStoreEditor;
 	private V4ToV5Migration migrationTool;
+	private MockAppContextService mockAppContextService;
 
 	@Before
 	public void setup() {
-		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		App.INSTANCE.setAppContext(context);
+		Context context = ApplicationProvider.getApplicationContext();
+
+		mockAppContextService = new MockAppContextService();
+		mockAppContextService.appContext = context;
+		ServiceProviderModifier.setAppContextService(mockAppContextService);
+
 		migrationTool = new V4ToV5Migration();
-		v4DataStore = App.INSTANCE.getAppContext().getSharedPreferences(V4.DATASTORE_NAME, 0);
+		v4DataStore = context.getSharedPreferences(V4.DATASTORE_NAME, 0);
 		v4DataStoreEditor = v4DataStore.edit();
 		v4DataStoreEditor.clear();
 		v4DataStoreEditor.commit();
@@ -434,7 +440,7 @@ public class AndroidV4ToV5MigrationTests {
 
 	@Test
 	public void testDataMigration_DoesNotThrow_WhenNullContext() {
-		App.INSTANCE.resetInstance();
+		mockAppContextService.appContext = null;
 		try {
 			migrationTool.migrate();
 		} catch (Throwable e) {

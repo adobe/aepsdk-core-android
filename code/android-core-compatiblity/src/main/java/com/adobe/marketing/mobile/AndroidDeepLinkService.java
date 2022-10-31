@@ -15,7 +15,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 /**
  * The Android implementation for for {@link DeepLinkService}.
@@ -30,7 +30,7 @@ class AndroidDeepLinkService implements DeepLinkService {
 			return;
 		}
 
-		final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+		final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
 		if (currentActivity == null) {
 			Log.debug(LOG_TAG, "%s (current activity), unable to trigger deep link", Log.UNEXPECTED_NULL_VALUE);

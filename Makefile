@@ -21,9 +21,9 @@ api-dump:
 api-check: 
 		(./code/gradlew -p code/android-core-library apiCheck)
 
-assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-phone
+assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-phone identity-assemble-phone
 	
-assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release
+assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release identity-assemble-phone-release
 
 javadoc: core-javadoc
 
@@ -148,3 +148,31 @@ lifecycle-publish-maven-local:
 		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToMavenLocal)	
 
 ### Identity 
+
+identity-checkstyle:
+		(./code/gradlew -p code/android-identity-library checkstyle)
+
+identity-assemble-phone:
+		(./code/gradlew -p code/android-identity-library assemblePhone)
+		
+identity-assemble-phone-release:		
+		(./code/gradlew -p code/android-identity-library assemblePhoneRelease)
+		
+identity-unit-test:
+		(./code/gradlew -p code/android-identity-library testPhoneDebugUnitTest)
+		
+identity-unit-test-coverage:
+		(./code/gradlew -p code/android-identity-library createPhoneDebugUnitTestCoverageReport)
+
+# identity-functional-test:
+# 		(./code/gradlew -p code/android-identity-library uninstallPhoneDebugAndroidTest)
+# 		(./code/gradlew -p code/android-identity-library connectedPhoneDebugAndroidTest)		
+
+# identity-functional-test-coverage:		
+# 		(./code/gradlew -p code/android-identity-library createPhoneDebugAndroidTestCoverageReport)
+
+identity-publish:
+		(./code/gradlew -p code/android-identity-library  publishReleasePublicationToSonatypeRepository)
+
+identity-publish-maven-local:
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal)

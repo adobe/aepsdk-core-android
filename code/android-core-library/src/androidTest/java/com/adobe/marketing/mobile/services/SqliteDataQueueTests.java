@@ -11,8 +11,10 @@
 
 package com.adobe.marketing.mobile.services;
 
+import android.content.Context;
+
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -32,8 +34,9 @@ public class SqliteDataQueueTests {
 
     @Before
     public void setUp() {
-        dbFile = InstrumentationRegistry.getInstrumentation().getContext().getDatabasePath(QUEUE_NAME);
-        dataQueue = new SQLiteDataQueue(InstrumentationRegistry.getInstrumentation().getContext().getDatabasePath(QUEUE_NAME).getPath());
+        Context context = ApplicationProvider.getApplicationContext();
+        dbFile = context.getDatabasePath(QUEUE_NAME);
+        dataQueue = new SQLiteDataQueue(context.getDatabasePath(QUEUE_NAME).getPath());
     }
 
     @After

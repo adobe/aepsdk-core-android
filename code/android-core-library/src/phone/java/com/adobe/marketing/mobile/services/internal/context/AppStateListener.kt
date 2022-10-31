@@ -15,12 +15,12 @@ package com.adobe.marketing.mobile.services.internal.context
  */
 internal interface AppStateListener {
     /**
-     * invoked when the application transitions into the AppState.FOREGROUND state.
+     * Invoked when the application transitions into the AppState.FOREGROUND state.
      */
     fun onForeground()
 
     /**
-     * invoked when the application transitions into the AppState.BACKGROUND state.
+     * Invoked when the application transitions into the AppState.BACKGROUND state.
      */
     fun onBackground()
 }

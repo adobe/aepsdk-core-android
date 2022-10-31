@@ -48,6 +48,8 @@ import static com.adobe.marketing.mobile.AndroidUIService.NOTIFICATION_SOUND_KEY
 import static com.adobe.marketing.mobile.AndroidUIService.NOTIFICATION_TITLE;
 import static com.adobe.marketing.mobile.AndroidUIService.NOTIFICATION_USER_INFO_KEY;
 
+import com.adobe.marketing.mobile.internal.AppResourceStore;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.util.StringUtils;
 
@@ -104,7 +106,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 			return;
 		}
 
-		Activity currentActivity = App.INSTANCE.getCurrentActivity();
+		Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 		Intent resumeIntent;
 
 		// if we have a deep link, we need to create a new Intent because the old intents are using setClass (overrides opening a deeplink)
@@ -155,6 +157,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 				return;
 			}
 
+			// Todo:- This seems redundant as the App is first launched before handling Broadcast intent
 			App.INSTANCE.setAppContext(context.getApplicationContext());
 			AndroidSystemInfoService systemInfoService = new AndroidSystemInfoService();
 			String appName = systemInfoService.getApplicationName();
@@ -318,7 +321,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 	}
 
 	private int getSmallIcon() {
-		return App.INSTANCE.getSmallIconResourceID() != -1 ? App.INSTANCE.getSmallIconResourceID() :
+		return AppResourceStore.INSTANCE.getSmallIconResourceID() != -1 ? AppResourceStore.INSTANCE.getSmallIconResourceID() :
 			   android.R.drawable.sym_def_app_icon;
 	}
 
@@ -330,7 +333,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 
 		Drawable iconDrawable = null;
 		// first see if we have a user defined one
-		int largeIconResourceId = App.INSTANCE.getLargeIconResourceID();
+		int largeIconResourceId = AppResourceStore.INSTANCE.getLargeIconResourceID();
 
 		if (largeIconResourceId != -1) {
 			if (Build.VERSION.SDK_INT > 20) {
@@ -381,5 +384,4 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 		drawable.draw(canvas);
 		return bmp;
 	}
-
 }

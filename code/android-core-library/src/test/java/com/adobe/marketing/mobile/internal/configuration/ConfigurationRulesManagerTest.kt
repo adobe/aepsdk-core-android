@@ -208,6 +208,7 @@ class ConfigurationRulesManagerTest {
         )
         verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
+            eq(null),
             any()
         )
     }
@@ -227,6 +228,7 @@ class ConfigurationRulesManagerTest {
 
         verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
+            eq(null),
             callbackCaptor.capture()
         )
 
@@ -259,6 +261,7 @@ class ConfigurationRulesManagerTest {
 
         verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
+            eq(null),
             callbackCaptor.capture()
         )
 
@@ -289,6 +292,7 @@ class ConfigurationRulesManagerTest {
 
         verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
+            eq(null),
             callbackCaptor.capture()
         )
 

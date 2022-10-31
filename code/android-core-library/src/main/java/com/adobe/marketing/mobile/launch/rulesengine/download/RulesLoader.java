@@ -77,19 +77,6 @@ public class RulesLoader {
 
     /**
      * Loads rules from the {@code url} and invokes {@code callback} with the extracted rules.
-     * Additionally, the extracted content is cached in cache bucket with name {@code name} and {@code url} as the key
-     * in {@code CacheService}.
-     *
-     * @param url      the url from which the compressed rules are to be downloaded
-     * @param callback the callback that will be invoked with the result of the download
-     */
-    public void loadFromUrl(@NonNull final String url,
-                            @NonNull final AdobeCallback<RulesLoadResult> callback) {
-        loadFromUrl(url, null, callback);
-    }
-
-    /**
-     * Loads rules from the {@code url} and invokes {@code callback} with the extracted rules.
      * Any provided {@code customHeaders} are merged with the extracted cache headers and used in the rules download request.
      * Additionally, the extracted content is cached in cache bucket with name {@code name} and {@code url} as the key
      * in {@code CacheService}.

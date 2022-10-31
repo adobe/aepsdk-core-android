@@ -116,7 +116,7 @@ internal class ConfigurationRulesManager {
 
         configDataStore.setString(PERSISTED_RULES_URL, url)
 
-        rulesLoader.loadFromUrl(url) { rulesDownloadResult ->
+        rulesLoader.loadFromUrl(url, null) { rulesDownloadResult ->
             val reason = rulesDownloadResult.reason
             Log.trace(
                 ConfigurationExtension.TAG,

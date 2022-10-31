@@ -102,7 +102,7 @@ public class RulesLoaderTest {
     public void testLoadFromURL_InvalidURL() {
         final AdobeCallback<RulesLoadResult> mockCallback = mock(AdobeCallback.class);
 
-        rulesLoader.loadFromUrl("not a url", mockCallback);
+        rulesLoader.loadFromUrl("not a url", null, mockCallback);
 
         verifyNoInteractions(mockNetworkService);
         verifyNoInteractions(mockCacheService);
@@ -150,7 +150,7 @@ public class RulesLoaderTest {
         );
 
         // Test
-        rulesLoader.loadFromUrl(VALID_URL, mockCallback);
+        rulesLoader.loadFromUrl(VALID_URL, null, mockCallback);
 
         verify(mockCacheService).get(RULES_TEST_CACHE_NAME, VALID_URL);
         final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);
@@ -284,7 +284,7 @@ public class RulesLoaderTest {
         );
 
         // Test
-        rulesLoader.loadFromUrl(VALID_URL, mockCallback);
+        rulesLoader.loadFromUrl(VALID_URL, null, mockCallback);
 
         verify(mockCacheService).get(RULES_TEST_CACHE_NAME, VALID_URL);
         final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);
@@ -405,7 +405,7 @@ public class RulesLoaderTest {
                 10000
         );
 
-        rulesLoader.loadFromUrl(VALID_URL, mockCallback);
+        rulesLoader.loadFromUrl(VALID_URL, null, mockCallback);
 
         verify(mockCacheService).get(RULES_TEST_CACHE_NAME, VALID_URL);
         final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);
@@ -451,7 +451,7 @@ public class RulesLoaderTest {
                 10000
         );
 
-        rulesLoader.loadFromUrl(VALID_URL, mockCallback);
+        rulesLoader.loadFromUrl(VALID_URL, null, mockCallback);
 
         verify(mockCacheService).get(RULES_TEST_CACHE_NAME, VALID_URL);
         final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);
@@ -495,7 +495,7 @@ public class RulesLoaderTest {
                 10000
         );
 
-        rulesLoader.loadFromUrl(VALID_URL, mockCallback);
+        rulesLoader.loadFromUrl(VALID_URL, null, mockCallback);
 
         final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);
         verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
@@ -551,7 +551,7 @@ public class RulesLoaderTest {
 
         // Test
         final AdobeCallback<RulesLoadResult> mockCallback = mock(AdobeCallback.class);
-        rulesLoader.loadFromUrl(VALID_URL, mockCallback);
+        rulesLoader.loadFromUrl(VALID_URL, null, mockCallback);
 
         final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);
         verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
@@ -592,7 +592,7 @@ public class RulesLoaderTest {
                 10000
         );
 
-        rulesLoader.loadFromUrl(VALID_URL, mockCallback);
+        rulesLoader.loadFromUrl(VALID_URL, null, mockCallback);
 
         verify(mockCacheService).get(RULES_TEST_CACHE_NAME, VALID_URL);
         final ArgumentCaptor<NetworkRequest> networkRequestCaptor = ArgumentCaptor.forClass(NetworkRequest.class);

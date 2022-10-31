@@ -279,7 +279,7 @@ class RulesEngineIntegrationTests {
             })
 
         // Test
-        val eventData = mapOf("modify" to "yes", "keyToModify" to "originalValue") // "keyToModify" triggers the condition
+        val eventData = mapOf("modify" to "yes", "keyToModify" to "originalValue") // "modify" triggers the condition
         val event = Event.Builder("Test Event Trigger", "test.type.trigger", "test.source.trigger")
             .setEventData(eventData)
             .build()

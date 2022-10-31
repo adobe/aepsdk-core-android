@@ -23,17 +23,6 @@ import java.util.Map;
 
 public class EventCoderTests {
 
-    void verifyEventEquals(final Event a, final Event b) {
-        assertEquals(a.getName(), b.getName());
-        assertEquals(a.getTimestamp(), b.getTimestamp());
-        assertEquals(a.getType(), b.getType());
-        assertEquals(a.getSource(), b.getSource());
-        assertEquals(a.getUniqueIdentifier(), b.getUniqueIdentifier());
-        assertEquals(a.getResponseID(), b.getResponseID());
-        assertEquals(a.getEventData(), b.getEventData());
-        assertTrue(Arrays.equals(a.getMask(), b.getMask()));
-    }
-
     @Test
     public void testEncode_When_EventIsNull() {
         assertNull(EventCoder.encode(null));
@@ -76,7 +65,6 @@ public class EventCoderTests {
                 .setResponseId("response id")
                 .setUniqueIdentifier("uuid")
                 .build();
-        String a = EventCoder.encode(event);
         Event decodedEvent = EventCoder.decode(EventCoder.encode(event));
         verifyEventEquals(event, decodedEvent);
     }
@@ -89,7 +77,6 @@ public class EventCoderTests {
                 put("int", 3);
                 put("double", 3.11d);
                 put("long", Long.MAX_VALUE);
-                put("null", null);
                 put("String", "abcd");
                 put("boolean", true);
 
@@ -149,12 +136,11 @@ public class EventCoderTests {
             }
         };
 
-        Event event = new Event.Builder("name", "type", "source", )
+        Event event = new Event.Builder("name", "type", "source", new String[]{"mask1", "mask2"})
                 .setEventData(data)
                 .setResponseId("response id")
                 .setUniqueIdentifier("uuid")
                 .build();
-        String a = EventCoder.encode(event);
         Event decodedEvent = EventCoder.decode(EventCoder.encode(event));
         verifyEventEquals(event, decodedEvent);
     }
@@ -172,7 +158,6 @@ public class EventCoderTests {
                 .setResponseId("response id")
                 .setUniqueIdentifier("uuid")
                 .build();
-        String a = EventCoder.encode(event);
         Event decodedEvent = EventCoder.decode(EventCoder.encode(event));
 
         assertEquals(Arrays.asList("a", "b", "c"), decodedEvent.getEventData().get("array"));
@@ -210,9 +195,20 @@ public class EventCoderTests {
                 .setResponseId("response id")
                 .setUniqueIdentifier("uuid")
                 .build();
-        String a = EventCoder.encode(event);
+
         Event decodedEvent = EventCoder.decode(EventCoder.encode(event));
         assertTrue(decodedEvent.getEventData().get("long") instanceof Integer);
         assertEquals(3, decodedEvent.getEventData().get("long"));
+    }
+
+    private void verifyEventEquals(final Event a, final Event b) {
+        assertEquals(a.getName(), b.getName());
+        assertEquals(a.getTimestamp(), b.getTimestamp());
+        assertEquals(a.getType(), b.getType());
+        assertEquals(a.getSource(), b.getSource());
+        assertEquals(a.getUniqueIdentifier(), b.getUniqueIdentifier());
+        assertEquals(a.getResponseID(), b.getResponseID());
+        assertEquals(a.getEventData(), b.getEventData());
+        assertTrue(Arrays.equals(a.getMask(), b.getMask()));
     }
 }

@@ -29,12 +29,12 @@ import java.util.Map;
 public class EventCoder {
 
     private static final String NAME = "name";
-    private static final String TYPE = "type";
-    private static final String SOURCE = "source";
     private static final String UUID = "uuid";
-    private static final String RESPONSE_ID = "responseId";
-    private static final String TIMESTAMP = "timestamp";
+    private static final String SOURCE = "source";
+    private static final String TYPE = "type";
     private static final String DATA = "data";
+    private static final String TIMESTAMP = "timestamp";
+    private static final String RESPONSE_ID = "responseId";
     private static final String MASK = "mask";
 
     /**
@@ -51,16 +51,17 @@ public class EventCoder {
         try {
             final JSONObject json = new JSONObject(eventString);
             final String name = optString(json, NAME, null);
-            final String type = optString(json, TYPE, null);
-            final String source = optString(json, SOURCE, null);
             final String uniqueIdentifier = optString(json, UUID, null);
-            final long timestamp = json.optLong(TIMESTAMP, 0);
+            final String source = optString(json, SOURCE, null);
+            final String type = optString(json, TYPE, null);
             final Map<String, Object> data = toMap(json.optJSONObject(DATA));
+            final long timestamp = json.optLong(TIMESTAMP, 0);
             final String responseId = optString(json, RESPONSE_ID, null);
-            final JSONArray maskJson = json.optJSONArray(MASK);
+            final JSONArray maskJsonArray = json.optJSONArray(MASK);
+
             String[] mask = null;
-            if (maskJson != null) {
-                mask = toList(maskJson).toArray(new String[0]);
+            if (maskJsonArray != null) {
+                mask = toList(maskJsonArray).toArray(new String[0]);
             }
 
             final Event ret = new Event.Builder(name, type, source, mask)
@@ -115,9 +116,7 @@ public class EventCoder {
      * @return value mapped by {@code key} if it exists in {@code jsonObject}, or {@code fallback}
      * if no such mapping exists.
      */
-    private static String optString(final JSONObject jsonObject,
-									final String key,
-									@Nullable final String fallback) {
+    private static String optString(final JSONObject jsonObject, final String key, @Nullable final String fallback) {
         try {
             return jsonObject.getString(key);
         } catch (final JSONException e) {
@@ -125,7 +124,7 @@ public class EventCoder {
         }
     }
 
-    // TODO: Methods below can be removed in favor of a JsonUtility
+    // TODO: Methods below can be removed in favor of a json utility
 
     private static Map<String, Object> toMap(JSONObject object) throws JSONException {
         Map<String, Object> map = new HashMap<>();

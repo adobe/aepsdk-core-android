@@ -29,6 +29,26 @@ jobs:
           command: make javadoc
 
       - run:
+          name: Install jitpack (core) to maven local
+          command: make core-publish-maven-local-jitpack
+
+      - run:
+          name: Install jitpack (signal) to maven local
+          command: make signal-publish-maven-local-jitpack
+
+      - run:
+          name: Install jitpack (lifecycle) to maven local
+          command: make lifecycle-publish-maven-local-jitpack
+
+      - run:
+          name: Install jitpack (identity) to maven local
+          command: make identity-publish-maven-local-jitpack
+          
+      - run:
+          name: Install jitpack (compatibility) to maven local
+          command: make compatibility-publish-maven-local-jitpack
+
+      - run:
           name: Download Codecov Uploader
           command: |
             curl -s https://codecov.io/bash > codecov;

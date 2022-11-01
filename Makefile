@@ -202,4 +202,4 @@ compatibility-publish-maven-local:
 
 compatibility-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-core-compatiblity assemblePhone)
-		(./code/gradlew -p code/android-core-compatiblity publishReleasePublicationToMavenLocal -Pjitpack)B
+		(./code/gradlew -p code/android-core-compatiblity publishReleasePublicationToMavenLocal -Pjitpack)

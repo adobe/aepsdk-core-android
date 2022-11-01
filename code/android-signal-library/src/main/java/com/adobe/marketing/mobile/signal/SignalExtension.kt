@@ -10,33 +10,30 @@
  */
 package com.adobe.marketing.mobile.signal
 
-import com.adobe.marketing.mobile.Event
-import com.adobe.marketing.mobile.EventSource
-import com.adobe.marketing.mobile.EventType
-import com.adobe.marketing.mobile.Extension
-import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.MobilePrivacyStatus
-import com.adobe.marketing.mobile.SharedStateResolution
-import com.adobe.marketing.mobile.SharedStateStatus
-import com.adobe.marketing.mobile.Signal
+import androidx.annotation.VisibleForTesting
+import com.adobe.marketing.mobile.*
 import com.adobe.marketing.mobile.services.HitQueuing
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.signal.SignalConstants
 import com.adobe.marketing.mobile.util.DataReader
 
-class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
+class SignalExtension : Extension {
     private val hitQueue: HitQueuing
 
     companion object {
         private const val CLASS_NAME = "SignalExtension"
     }
 
-    init {
+    constructor(extensionApi: ExtensionApi) : super(extensionApi) {
         val dataQueue =
             ServiceProvider.getInstance().dataQueueService.getDataQueue(SignalConstants.EXTENSION_NAME)
         hitQueue = PersistentHitQueue(dataQueue, SignalHitProcessor())
+    }
+
+    @VisibleForTesting
+    constructor(extensionApi: ExtensionApi, hitQueue: HitQueuing) : super(extensionApi) {
+        this.hitQueue = hitQueue
     }
 
     override fun onRegistered() {
@@ -60,7 +57,8 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         return Signal.extensionVersion()
     }
 
-    private fun handleConfigurationResponse(event: Event) {
+    @VisibleForTesting
+    internal fun handleConfigurationResponse(event: Event) {
         val privacyStatus = try {
             MobilePrivacyStatus.fromString(
                 DataReader.getString(
@@ -82,7 +80,8 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         }
     }
 
-    private fun handleRulesEngineResponse(event: Event) {
+    @VisibleForTesting
+    internal fun handleRulesEngineResponse(event: Event) {
         if (shouldIgnore(event)) {
             return
         }
@@ -102,7 +101,8 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         )?.status == SharedStateStatus.SET
     }
 
-    private fun handleOpenURL(event: Event) {
+    @VisibleForTesting
+    internal fun handleOpenURL(event: Event) {
         val url = event.urlToOpen() ?: run {
             Log.warning(
                 SignalConstants.LOG_TAG,
@@ -115,7 +115,8 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         ServiceProvider.getInstance().uiService.showUrl(url)
     }
 
-    private fun handlePostback(event: Event) {
+    @VisibleForTesting
+    internal fun handlePostback(event: Event) {
         val url = event.templateUrl() ?: run {
             Log.warning(
                 SignalConstants.LOG_TAG,

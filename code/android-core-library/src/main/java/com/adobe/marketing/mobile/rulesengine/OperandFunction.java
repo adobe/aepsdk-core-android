@@ -21,7 +21,7 @@ public class OperandFunction<T> implements Operand<T> {
 	}
 
 	@Override
-	public T resolve(Context context) {
+	public T resolve(final Context context) {
 		return block.execute(functionParameters);
 	}
 }

@@ -63,7 +63,7 @@ class DataMarshaller {
 	 * @param activity Instance of an {@code Activity}.
 	 * @return An instance of this same marshaller, to help with chaining calls.
 	 */
-	DataMarshaller marshal(Activity activity) {
+	DataMarshaller marshal(final Activity activity) {
 		if (activity != null) {
 			if (activity.getIntent() != null) {
 				Intent intent = activity.getIntent();
@@ -95,7 +95,7 @@ class DataMarshaller {
 	 * @param data The {@link java.net.URI} to be verified.
 	 * @return true if the URI contains the Adobe specific query parameters
 	 */
-	private boolean containAdobeQueryKeys(Uri data) {
+	private boolean containAdobeQueryKeys(final Uri data) {
 		if (!data.isHierarchical()) {
 			return false;
 		}
@@ -125,7 +125,7 @@ class DataMarshaller {
 	 *
 	 * @param extraBundle {@code Bundle} containing all the extras data
 	 */
-	private void marshalIntentExtras(Bundle extraBundle) {
+	private void marshalIntentExtras(final Bundle extraBundle) {
 		if (extraBundle != null) {
 
 			for (String key : extraBundle.keySet()) {
@@ -157,7 +157,7 @@ class DataMarshaller {
 	 * @param data The {@link java.net.URI} to be cleaned
 	 * @return The cleaned URI
 	 */
-	private Uri cleanUpUri(Uri data) {
+	private Uri cleanUpUri(final Uri data) {
 		if (!data.isHierarchical()) {
 			return data;
 		}

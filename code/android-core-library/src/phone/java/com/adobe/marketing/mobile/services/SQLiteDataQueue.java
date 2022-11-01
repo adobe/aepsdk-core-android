@@ -17,8 +17,6 @@ import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 
 import java.util.ArrayList;

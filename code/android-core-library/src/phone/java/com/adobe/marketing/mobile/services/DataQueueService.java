@@ -72,7 +72,7 @@ class DataQueueService implements DataQueuing {
 	 * @param databaseName name of the database to be migrated or opened
 	 * @return {@code File} representing the database in {@code Context#getDatabasePath(String)}
 	 */
-	private File openOrMigrateExistingDataQueue(String databaseName) {
+	private File openOrMigrateExistingDataQueue(final String databaseName) {
 		final String cleanedDatabaseName = FileUtils.removeRelativePath(databaseName);
 
 		if(StringUtils.isNullOrEmpty(databaseName)) {

@@ -15,13 +15,13 @@ public class UnaryExpression<A> implements Evaluable {
 	private final Operand<A> lhs;
 	private final String operationName;
 
-	public UnaryExpression(Operand<A> lhs, String operationName) {
+	public UnaryExpression(final Operand<A> lhs, final String operationName) {
 		this.lhs = lhs;
 		this.operationName = operationName;
 	}
 
 	@Override
-	public RulesResult evaluate(Context context) {
+	public RulesResult evaluate(final Context context) {
 		A resolvedLhs = null;
 
 		if (lhs != null) {

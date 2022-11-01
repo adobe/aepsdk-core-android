@@ -302,7 +302,7 @@ public final class Event {
 	 *
 	 */
 	@Deprecated
-	void setResponseID(String responseID) {
+	void setResponseID(final String responseID) {
 		this.responseID = responseID;
 	}
 

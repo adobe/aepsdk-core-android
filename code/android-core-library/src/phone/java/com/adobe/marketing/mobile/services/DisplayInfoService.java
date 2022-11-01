@@ -6,7 +6,7 @@ class DisplayInfoService implements DeviceInforming.DisplayInformation {
 
 	private DisplayMetrics displayMetrics;
 
-	DisplayInfoService(DisplayMetrics displayMetrics) {
+	DisplayInfoService(final DisplayMetrics displayMetrics) {
 		this.displayMetrics = displayMetrics;
 	}
 

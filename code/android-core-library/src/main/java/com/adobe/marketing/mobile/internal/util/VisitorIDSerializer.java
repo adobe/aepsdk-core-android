@@ -34,7 +34,7 @@ public class VisitorIDSerializer {
      * @param visitorID {@link VisitorID} instance to serialize
      * @return a {@link Map} representing {@link VisitorID} properties
      */
-    public static Map<String, Object> convertVisitorId(@NonNull VisitorID visitorID) {
+    public static Map<String, Object> convertVisitorId(@NonNull final VisitorID visitorID) {
         Map<String, Object> data = new HashMap<>();
         data.put(ID, visitorID.getId());
         data.put(ID_ORIGIN, visitorID.getIdOrigin());
@@ -49,7 +49,7 @@ public class VisitorIDSerializer {
      * @param visitorIDList a list of {@link VisitorID} instances to serialize
      * @return a list of {@link Map} representing the given {@link VisitorID} properties
      */
-    public static List<Map<String, Object>> convertVisitorIds(@NonNull List<VisitorID> visitorIDList) {
+    public static List<Map<String, Object>> convertVisitorIds(@NonNull final List<VisitorID> visitorIDList) {
         List<Map<String, Object>> data = new ArrayList<>();
         for (VisitorID vId : visitorIDList) {
             if (vId != null) {
@@ -66,7 +66,7 @@ public class VisitorIDSerializer {
      * @param data a list of {@link Map} to deserialize
      * @return a list of {@link VisitorID} that was deserialized from the property {@link Map}
      */
-    public static List<VisitorID> convertToVisitorIds(@NonNull List<Map> data) {
+    public static List<VisitorID> convertToVisitorIds(@NonNull final List<Map> data) {
         List<VisitorID> visitorIDList = new ArrayList<>();
         for (Map item : data) {
             if (item != null) {

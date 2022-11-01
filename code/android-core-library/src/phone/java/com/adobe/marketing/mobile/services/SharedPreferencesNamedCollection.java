@@ -14,9 +14,6 @@ package com.adobe.marketing.mobile.services;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.HashMap;

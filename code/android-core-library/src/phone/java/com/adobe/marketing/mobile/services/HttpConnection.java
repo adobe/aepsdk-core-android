@@ -11,9 +11,6 @@
 
 package com.adobe.marketing.mobile.services;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.UnknownServiceException;

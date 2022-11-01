@@ -294,7 +294,7 @@ class MessageWebViewRunner implements Runnable {
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
-    private int getPixelValueForHeight(float percentage) {
+    private int getPixelValueForHeight(final float percentage) {
         return (int) (message.baseRootViewHeight * (percentage / 100));
     }
 
@@ -304,7 +304,7 @@ class MessageWebViewRunner implements Runnable {
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
-    private int getPixelValueForWidth(float percentage) {
+    private int getPixelValueForWidth(final float percentage) {
         return (int) (message.baseRootViewWidth * (percentage / 100));
     }
 

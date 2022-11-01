@@ -13,9 +13,6 @@ package com.adobe.marketing.mobile.services;
 
 import androidx.annotation.VisibleForTesting;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -48,7 +45,7 @@ class NetworkService implements Networking {
 	}
 
 	@VisibleForTesting
-	NetworkService(ExecutorService executorService) {
+	NetworkService(final ExecutorService executorService) {
 		this.executorService = executorService;
 	}
 
@@ -116,10 +113,10 @@ class NetworkService implements Networking {
 			final String protocol = serverUrl.getProtocol();
 
 			/*
-			 * Only http and https are supported as of now.
+			 * Only https is supported as of now.
 			 * No special handling for https is supported for now.
 			 */
-			if (protocol != null &&  protocol.equalsIgnoreCase("https")) {
+			if (protocol != null &&  "https".equalsIgnoreCase(protocol)) {
 				try {
 					final HttpConnectionHandler httpConnectionHandler = new HttpConnectionHandler(serverUrl);
 

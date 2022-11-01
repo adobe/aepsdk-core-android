@@ -13,9 +13,6 @@ package com.adobe.marketing.mobile.services;
 
 import android.os.Build;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;

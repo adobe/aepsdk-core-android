@@ -204,7 +204,7 @@ public class AndroidUIService implements UIService {
         try {
             PendingIntent sender;
 
-            if (Build.VERSION.SDK_INT >= 23) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // 23
                 Class pendingIntentClass = PendingIntent.class;
                 Field immutableFlagField = pendingIntentClass.getField("FLAG_IMMUTABLE");
                 immutableFlagField.setAccessible(true);

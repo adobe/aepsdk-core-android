@@ -34,6 +34,7 @@ class NetworkService implements Networking {
 	private static final int THREAD_POOL_CORE_SIZE = 0;
 	private static final int THREAD_POOL_MAXIMUM_SIZE = 32;
 	private static final int THREAD_POOL_KEEP_ALIVE_TIME = 60;
+	private static final int SEC_TO_MS_MULTIPLIER = 1000;
 	private final ExecutorService executorService;
 
 	NetworkService() {
@@ -122,8 +123,8 @@ class NetworkService implements Networking {
 
 					if (httpConnectionHandler.setCommand(request.getMethod())) {
 						httpConnectionHandler.setRequestProperty(headers);
-						httpConnectionHandler.setConnectTimeout(request.getConnectTimeout() * 1000);
-						httpConnectionHandler.setReadTimeout(request.getReadTimeout() * 1000);
+						httpConnectionHandler.setConnectTimeout(request.getConnectTimeout() * SEC_TO_MS_MULTIPLIER);
+						httpConnectionHandler.setReadTimeout(request.getReadTimeout() * SEC_TO_MS_MULTIPLIER);
 						connection = httpConnectionHandler.connect(request.getBody());
 					}
 				} catch (final IOException e) {

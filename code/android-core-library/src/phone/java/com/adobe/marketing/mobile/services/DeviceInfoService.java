@@ -460,7 +460,7 @@ class DeviceInfoService implements DeviceInforming {
         final int buildVersion = Build.VERSION.SDK_INT;
         int versionCode = 0;
 
-        if (buildVersion >= 28) {
+        if (buildVersion >= Build.VERSION_CODES.P) { //28
             try {
                 Method method = packageInfo.getClass().getDeclaredMethod("getLongVersionCode");
                 long longVersion = (Long) method.invoke(packageInfo);

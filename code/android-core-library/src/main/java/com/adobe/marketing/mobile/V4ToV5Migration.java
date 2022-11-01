@@ -409,6 +409,7 @@ class V4ToV5Migration {
         Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Migrating complete for Target data.");
     }
 
+    @SuppressWarnings("checkstyle:NestedIfDepth")
     private void migrateConfigurationLocalStorage() {
         SharedPreferences v4DataStore = getV4SharedPreferences();
 
@@ -565,6 +566,7 @@ class V4ToV5Migration {
         return prefs;
     }
 
+    @SuppressWarnings("checkstyle:MagicNumber")
     private long convertMsToSec(final long timestampMs) {
         return timestampMs / 1000;
     }

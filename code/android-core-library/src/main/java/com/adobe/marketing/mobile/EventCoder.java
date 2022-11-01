@@ -126,7 +126,7 @@ public class EventCoder {
 
     // TODO: Methods below can be removed in favor of a json utility
 
-    private static Map<String, Object> toMap(JSONObject object) throws JSONException {
+    private static Map<String, Object> toMap(final JSONObject object) throws JSONException {
         Map<String, Object> map = new HashMap<>();
 
         if (object == null) {
@@ -143,7 +143,7 @@ public class EventCoder {
         return map;
     }
 
-    private static Object fromJson(Object json) throws JSONException {
+    private static Object fromJson(final Object json) throws JSONException {
         if (json == null || json == JSONObject.NULL) {
             return null;
         } else if (json instanceof JSONObject) {
@@ -155,7 +155,7 @@ public class EventCoder {
         }
     }
 
-    private static List<Object> toList(JSONArray array) throws JSONException {
+    private static List<Object> toList(final JSONArray array) throws JSONException {
         final List<Object> list = new ArrayList<Object>();
 
         for (int i = 0; i < array.length(); i++) {

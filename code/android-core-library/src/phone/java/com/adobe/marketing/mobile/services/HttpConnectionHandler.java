@@ -75,7 +75,7 @@ class HttpConnectionHandler {
 		final int buildVersion = Build.VERSION.SDK_INT;
 
 		// https://developer.android.com/reference/javax/net/ssl/SSLSocket#default-configuration-for-different-android-versions
-		if (buildVersion < 20) {
+		if (buildVersion < Build.VERSION_CODES.KITKAT_WATCH) { //20
 			httpsUrlConnection.setSSLSocketFactory(TLSSocketFactory.getInstance());
 		}
 	}

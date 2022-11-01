@@ -247,8 +247,9 @@ class FloatingButtonManager implements FloatingButton {
                     ViewGroup.LayoutParams layoutParams = floatingButtonView.getLayoutParams();
 
                     if (layoutParams != null) {
-                        layoutParams.width = getPxForDp(floatingButtonView.getContext(), 80);
-                        layoutParams.height = getPxForDp(floatingButtonView.getContext(), 80);
+                        final int LAYOUT_PARAMS_DP = 80;
+                        layoutParams.width = getPxForDp(floatingButtonView.getContext(), LAYOUT_PARAMS_DP);
+                        layoutParams.height = getPxForDp(floatingButtonView.getContext(), LAYOUT_PARAMS_DP);
 
                         floatingButtonView.setLayoutParams(layoutParams);
 
@@ -335,7 +336,7 @@ class FloatingButtonManager implements FloatingButton {
     }
 
     /**
-     * Convert {@code dp} inot {@code px} scale.
+     * Convert {@code dp} into {@code px} scale.
      *
      * @param context The {@link Context} instance
      * @param dp      The dp value to be converted
@@ -346,7 +347,8 @@ class FloatingButtonManager implements FloatingButton {
             float density = context.getResources().getDisplayMetrics().density;
             return Math.round((float) dp * density);
         } catch (Exception e) {
-            return 210; //80dp for density 2.65 - fallback default
+            final int DEFAULT_FALLBACK = 210; // dp=80 density=2.65
+            return DEFAULT_FALLBACK;
         }
     }
 
@@ -363,7 +365,7 @@ class FloatingButtonManager implements FloatingButton {
                                             final ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener) {
         ViewTreeObserver viewTreeObserver = floatingButtonView.getViewTreeObserver();
 
-        if (Build.VERSION.SDK_INT >= 16) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) { //16
             try {
                 Class<?> viewTreeObserverClass = viewTreeObserver.getClass();
                 Method removeOnGlobalLayoutListenerMethod = viewTreeObserverClass.getDeclaredMethod("removeOnGlobalLayoutListener",

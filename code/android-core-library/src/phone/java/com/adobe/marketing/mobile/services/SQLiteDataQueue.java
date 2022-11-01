@@ -60,11 +60,14 @@ final class SQLiteDataQueue implements DataQueue {
                         if (database == null) {
                             return false;
                         }
+                        final int INDEX_UUID = 1;
+                        final int INDEX_TIMESTAMP = 2;
+                        final int INDEX_DATA = 3;
                         try (SQLiteStatement insertStatement = database.compileStatement(
                                 "INSERT INTO " + TABLE_NAME + " (uniqueIdentifier, timestamp, data) VALUES (?, ?, ?)")) {
-                            insertStatement.bindString(1, dataEntity.getUniqueIdentifier());
-                            insertStatement.bindLong(2, dataEntity.getTimestamp().getTime());
-                            insertStatement.bindString(3, dataEntity.getData() != null ? dataEntity.getData() : "");
+                            insertStatement.bindString(INDEX_UUID, dataEntity.getUniqueIdentifier());
+                            insertStatement.bindLong(INDEX_TIMESTAMP, dataEntity.getTimestamp().getTime());
+                            insertStatement.bindString(INDEX_DATA, dataEntity.getData() != null ? dataEntity.getData() : "");
                             long rowId = insertStatement.executeInsert();
                             return rowId >= 0;
                         } catch (Exception e) {

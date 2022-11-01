@@ -64,27 +64,34 @@ class DataMarshaller {
 	 * @return An instance of this same marshaller, to help with chaining calls.
 	 */
 	DataMarshaller marshal(final Activity activity) {
-		if (activity != null) {
-			if (activity.getIntent() != null) {
-				Intent intent = activity.getIntent();
-				marshalIntentExtras(intent.getExtras());
-				Uri data = intent.getData();
-
-				if (data != null && !data.toString().isEmpty()) {
-
-					Log.trace(CoreConstants.LOG_TAG, TAG, "Receiving the Activity Uri (%s)", data.toString());
-					launchData.put(DEEPLINK_KEY, data.toString());
-
-					// This will remove the adobe specific keys from the intent data
-					// This ensures that if this intent is marshaled again, we will not track
-					// duplicate data
-					if (containAdobeQueryKeys(data)) {
-						Uri cleanDataUri = cleanUpUri(data);
-						intent.setData(cleanDataUri);
-					}
-				}
+		do {
+			if (activity == null) {
+				break;
 			}
-		}
+
+			if (activity.getIntent() == null) {
+				break;
+			}
+
+			Intent intent = activity.getIntent();
+			marshalIntentExtras(intent.getExtras());
+			Uri data = intent.getData();
+
+			if (data == null || data.toString().isEmpty()) {
+				break;
+			}
+
+			Log.trace(CoreConstants.LOG_TAG, TAG, "Receiving the Activity Uri (%s)", data.toString());
+			launchData.put(DEEPLINK_KEY, data.toString());
+
+			// This will remove the adobe specific keys from the intent data
+			// This ensures that if this intent is marshaled again, we will not track
+			// duplicate data
+			if (containAdobeQueryKeys(data)) {
+				Uri cleanDataUri = cleanUpUri(data);
+				intent.setData(cleanDataUri);
+			}
+		} while (false);
 
 		return this;
 	}

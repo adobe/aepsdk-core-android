@@ -252,7 +252,8 @@ class MessageWebViewRunner implements Runnable {
         FrameLayout.LayoutParams params = generateLayoutParams(messageHeight, messageWidth, originX, originY);
 
         // if we have non fullscreen messages, fill the webview
-        if (settings.getHeight() != 100) {
+        final int fullScreenMessageHeight = 100;
+        if (settings.getHeight() != fullScreenMessageHeight) {
             webviewSettings.setLoadWithOverviewMode(true);
             webviewSettings.setUseWideViewPort(true);
         }
@@ -294,6 +295,7 @@ class MessageWebViewRunner implements Runnable {
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
+    @SuppressWarnings("checkstyle:MagicNumber")
     private int getPixelValueForHeight(final float percentage) {
         return (int) (message.baseRootViewHeight * (percentage / 100));
     }
@@ -304,6 +306,7 @@ class MessageWebViewRunner implements Runnable {
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
+    @SuppressWarnings("checkstyle:MagicNumber")
     private int getPixelValueForWidth(final float percentage) {
         return (int) (message.baseRootViewWidth * (percentage / 100));
     }

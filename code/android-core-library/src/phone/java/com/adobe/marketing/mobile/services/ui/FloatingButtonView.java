@@ -102,7 +102,7 @@ public class FloatingButtonView extends Button implements View.OnTouchListener {
 			throw new IllegalArgumentException("Bitmap is null!");
 		}
 
-		if (Build.VERSION.SDK_INT >= 16) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) { //16
 			//Should be View.class
 			Class<?> classs = this.getClass().getSuperclass().getSuperclass().getSuperclass();
 			Method setBackgroundMethod = classs.getDeclaredMethod("setBackground", Drawable.class);

@@ -44,17 +44,17 @@ final class SQLiteDataQueue implements DataQueue {
 
     @Override
     public boolean add(final DataEntity dataEntity) {
-        if (isClose) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "add - Returning false, DataQueue is closed.");
-            return false;
-        }
-
         if (dataEntity == null) {
             Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "add - Returning false, DataEntity is null.");
             return false;
         }
 
         synchronized (dbMutex) {
+            if (isClose) {
+                Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "add - Returning false, DataQueue is closed.");
+                return false;
+            }
+
             return SQLiteDatabaseHelper.process(databasePath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
                     database -> {
                         if (database == null) {
@@ -80,11 +80,6 @@ final class SQLiteDataQueue implements DataQueue {
 
     @Override
     public List<DataEntity> peek(final int n) {
-        if (isClose) {
-            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "peek n - Returning null, DataQueue is closed.");
-            return null;
-        }
-
         if (n <= 0) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "peek n - Returning null, n <= 0.");
             return null;
@@ -93,6 +88,11 @@ final class SQLiteDataQueue implements DataQueue {
         final List<ContentValues> rows = new ArrayList<>();
 
         synchronized (dbMutex) {
+            if (isClose) {
+                Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "peek n - Returning null, DataQueue is closed.");
+                return null;
+            }
+
             SQLiteDatabaseHelper.process(databasePath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_ONLY,
                     database -> {
                         if (database == null) {
@@ -142,11 +142,6 @@ final class SQLiteDataQueue implements DataQueue {
 
     @Override
     public DataEntity peek() {
-        if (isClose) {
-            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "peek - Returning null, DataQueue is closed");
-            return null;
-        }
-
         final List<DataEntity> dataEntities = peek(1);
 
         if (dataEntities == null) {
@@ -166,17 +161,17 @@ final class SQLiteDataQueue implements DataQueue {
 
     @Override
     public boolean remove(final int n) {
-        if (isClose) {
-            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "remove n - Returning false, DataQueue is closed");
-            return false;
-        }
-
         if (n <= 0) {
             Log.debug(ServiceConstants.LOG_TAG, LOG_PREFIX, "remove n - Returning false, n <= 0");
             return false;
         }
 
         synchronized (dbMutex) {
+            if (isClose) {
+                Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "remove n - Returning false, DataQueue is closed");
+                return false;
+            }
+
             return SQLiteDatabaseHelper.process(databasePath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
                     database -> {
                         int deletedRowsCount = -1;
@@ -202,22 +197,17 @@ final class SQLiteDataQueue implements DataQueue {
 
     @Override
     public boolean remove() {
-        if (isClose) {
-            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "remove - Returning false, DataQueue is closed");
-            return false;
-        }
-
         return remove(1);
     }
 
     @Override
     public boolean clear() {
-        if (isClose) {
-            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "clear - Returning false, DataQueue is closed");
-            return false;
-        }
-
         synchronized (dbMutex) {
+            if (isClose) {
+                Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "clear - Returning false, DataQueue is closed");
+                return false;
+            }
+
             boolean result = SQLiteDatabaseHelper.clearTable(databasePath, TABLE_NAME);
             Log.trace(ServiceConstants.LOG_TAG, LOG_PREFIX, String.format("clear - %s in clearing Table %s",
                     (result ? "Successful" : "Failed"), TABLE_NAME));
@@ -227,19 +217,21 @@ final class SQLiteDataQueue implements DataQueue {
 
     @Override
     public int count() {
-        if (isClose) {
-            Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "count - Returning 0, DataQueue is closed");
-            return 0;
-        }
-
         synchronized (dbMutex) {
+            if (isClose) {
+                Log.warning(ServiceConstants.LOG_TAG, LOG_PREFIX, "count - Returning 0, DataQueue is closed");
+                return 0;
+            }
+
             return SQLiteDatabaseHelper.getTableSize(databasePath, TABLE_NAME);
         }
     }
 
     @Override
     public void close() {
-        isClose = true;
+        synchronized (dbMutex) {
+            isClose = true;
+        }
     }
 
     /**

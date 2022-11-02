@@ -92,17 +92,10 @@ class RulesEngineIntegrationTests {
         val eventLatch = CountDownLatch(1)
         MobileCore.registerEventListener(
             "test.type.consequence",
-            "test.source.consequence",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents.add(value)
+            "test.source.consequence") {
+                    capturedEvents.add(it)
                     eventLatch.countDown()
                 }
-
-                override fun fail(error: AdobeError?) {
-                    eventLatch.countDown()
-                }
-            })
 
         val eventData = mapOf("xdm" to "test data")
         val event = Event.Builder("Test Event Trigger", "test.type.trigger", "test.source.trigger")
@@ -122,17 +115,10 @@ class RulesEngineIntegrationTests {
         val eventLatch = CountDownLatch(2)
         MobileCore.registerEventListener(
             "test.type.consequence",
-            "test.source.consequence",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents.add(value)
-                    eventLatch.countDown()
-                }
-
-                override fun fail(error: AdobeError?) {
-                    eventLatch.countDown()
-                }
-            })
+            "test.source.consequence"){
+            capturedEvents.add(it)
+            eventLatch.countDown()
+        }
 
         // Test
         val eventData = mapOf("dispatch" to "yes") // This is to trigger the consequence
@@ -157,47 +143,26 @@ class RulesEngineIntegrationTests {
         val consequenceEventLatch1 = CountDownLatch(1)
         MobileCore.registerEventListener(
             "test.type.consequence",
-            "test.source.consequence",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents.add(value)
-                    consequenceEventLatch1.countDown()
-                }
-
-                override fun fail(error: AdobeError?) {
-                    consequenceEventLatch1.countDown()
-                }
-            })
+            "test.source.consequence"){
+            capturedEvents.add(it)
+            consequenceEventLatch1.countDown()
+        }
 
         val consequenceEventLatch2 = CountDownLatch(1)
         MobileCore.registerEventListener(
             "test.type.consequence.2",
-            "test.source.consequence.2",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents.add(value)
-                    consequenceEventLatch2.countDown()
-                }
-
-                override fun fail(error: AdobeError?) {
-                    consequenceEventLatch2.countDown()
-                }
-            })
+            "test.source.consequence.2") {
+            capturedEvents.add(it)
+            consequenceEventLatch2.countDown()
+        }
 
         val consequenceEventLatch3 = CountDownLatch(1)
         MobileCore.registerEventListener(
             "test.type.consequence.3",
-            "test.source.consequence.3",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents.add(value)
-                    consequenceEventLatch3.countDown()
-                }
-
-                override fun fail(error: AdobeError?) {
-                    consequenceEventLatch3.countDown()
-                }
-            })
+            "test.source.consequence.3") {
+            capturedEvents.add(it)
+            consequenceEventLatch3.countDown()
+        }
 
         // Test
         val event = Event.Builder(
@@ -231,17 +196,10 @@ class RulesEngineIntegrationTests {
         val eventLatch = CountDownLatch(1)
         MobileCore.registerEventListener(
             "test.type.consequence",
-            "test.source.consequence",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents.add(value)
-                    eventLatch.countDown()
-                }
-
-                override fun fail(error: AdobeError?) {
-                    eventLatch.countDown()
-                }
-            })
+            "test.source.consequence") {
+            capturedEvents.add(it)
+            eventLatch.countDown()
+        }
 
         // Test
         val eventData = mapOf("attach" to "yes") // "attach" triggers the condition
@@ -266,17 +224,10 @@ class RulesEngineIntegrationTests {
         val eventLatch = CountDownLatch(1)
         MobileCore.registerEventListener(
             "test.type.consequence",
-            "test.source.consequence",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents.add(value)
-                    eventLatch.countDown()
-                }
-
-                override fun fail(error: AdobeError?) {
-                    eventLatch.countDown()
-                }
-            })
+            "test.source.consequence") {
+            capturedEvents.add(it)
+            eventLatch.countDown()
+        }
 
         // Test
         val eventData = mapOf("modify" to "yes", "keyToModify" to "originalValue") // "modify" triggers the condition

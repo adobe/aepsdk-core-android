@@ -242,6 +242,31 @@ internal object FileUtils {
         src.copyTo(dest, true)
     }
 
+    /**
+     * Move file from `src` to `dest`.
+     *
+     * @param src [File] source file
+     * @param dest [File] destination to move the file
+     * @throws Exception if `src` is not present or it does not have read permissions
+     */
+    @JvmStatic
+    @Throws(Exception::class)
+    fun moveFile(src: File, dest: File) {
+        if (!dest.exists()) {
+            dest.createNewFile()
+        }
+
+        copyFile(src, dest)
+        deleteFile(src, false)
+    }
+
+    /**
+     * Deletes the file
+     *
+     * @param fileToDelete [File] which needs to be deleted
+     * @param recursive [Boolean] if true, delete this file with all its children.
+     * @throws SecurityException if it does not have permission to delete file
+     */
     @JvmStatic
     @Throws(SecurityException::class)
     fun deleteFile(fileToDelete: File?, recursive: Boolean): Boolean {

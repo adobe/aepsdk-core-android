@@ -19,17 +19,13 @@ import android.util.DisplayMetrics;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
-import static android.view.View.GONE;
-
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 class FloatingButtonManager implements FloatingButton {
     private static final String LOG_TAG = FloatingButtonManager.class.getSimpleName();
@@ -43,7 +39,7 @@ class FloatingButtonManager implements FloatingButton {
 
     Map<String, FloatingButtonView> managedButtons = new HashMap<String, FloatingButtonView>();
 
-    FloatingButtonManager(AndroidUIService androidUIService, FloatingButtonListener listener) {
+    FloatingButtonManager(final AndroidUIService androidUIService, final FloatingButtonListener listener) {
         this.androidUIService = androidUIService;
         this.buttonListener = listener;
     }
@@ -64,7 +60,7 @@ class FloatingButtonManager implements FloatingButton {
         }
 
         //We need to register for app states
-        Application application = MobileCore.getApplication();
+        Application application = ServiceProvider.getInstance().getAppContextService().getApplication();
 
         if (application != null) {
             activityLifecycleCallbacks = getActivityLifecycleCallbacks();
@@ -88,15 +84,15 @@ class FloatingButtonManager implements FloatingButton {
     Application.ActivityLifecycleCallbacks getActivityLifecycleCallbacks() {
         return new Application.ActivityLifecycleCallbacks() {
             @Override
-            public void onActivityCreated(Activity activity, Bundle bundle) {
+            public void onActivityCreated(final Activity activity, final Bundle bundle) {
             }
 
             @Override
-            public void onActivityStarted(Activity activity) {
+            public void onActivityStarted(final Activity activity) {
             }
 
             @Override
-            public void onActivityResumed(Activity activity) {
+            public void onActivityResumed(final Activity activity) {
                 //if a floating button should no longer be displayed,
                 //and this activity has a button showing, then remove it
                 if (!displayFloatingButtonAcrossActivities) {
@@ -127,20 +123,20 @@ class FloatingButtonManager implements FloatingButton {
             }
 
             @Override
-            public void onActivityPaused(Activity activity) {
+            public void onActivityPaused(final Activity activity) {
             }
 
             @Override
-            public void onActivityStopped(Activity activity) {
+            public void onActivityStopped(final Activity activity) {
             }
 
             @Override
-            public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+            public void onActivitySaveInstanceState(final Activity activity, final Bundle bundle) {
 
             }
 
             @Override
-            public void onActivityDestroyed(Activity activity) {
+            public void onActivityDestroyed(final Activity activity) {
                 managedButtons.remove(activity.getLocalClassName());
             }
         };
@@ -148,7 +144,7 @@ class FloatingButtonManager implements FloatingButton {
 
     void deregisterLifecycleCallbacks() {
         //deregister lifecycle listener
-        Application application = MobileCore.getApplication();
+        Application application = ServiceProvider.getInstance().getAppContextService().getApplication();
 
         if (application != null) {
             application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks);
@@ -164,7 +160,7 @@ class FloatingButtonManager implements FloatingButton {
      * @see AndroidUIService#createFloatingButtonView(Activity)
      * @see Activity#getLocalClassName()
      */
-    void addManagedButton(String activityClassName, FloatingButtonView uiButton) {
+    void addManagedButton(final String activityClassName, final FloatingButtonView uiButton) {
         uiButton.setFloatingButtonListener(buttonListener);
         managedButtons.put(activityClassName, uiButton);
     }
@@ -218,7 +214,7 @@ class FloatingButtonManager implements FloatingButton {
 
                     floatingButtonView.setOnPositionChangedListener(new FloatingButtonView.OnPositionChangedListener() {
                         @Override
-                        public void onPositionChanged(float newX, float newY) {
+                        public void onPositionChanged(final float newX, final float newY) {
                             lastKnownXPos = newX;
                             lastKnownYPos = newY;
 
@@ -251,8 +247,9 @@ class FloatingButtonManager implements FloatingButton {
                     ViewGroup.LayoutParams layoutParams = floatingButtonView.getLayoutParams();
 
                     if (layoutParams != null) {
-                        layoutParams.width = getPxForDp(floatingButtonView.getContext(), 80);
-                        layoutParams.height = getPxForDp(floatingButtonView.getContext(), 80);
+                        final int LAYOUT_PARAMS_DP = 80;
+                        layoutParams.width = getPxForDp(floatingButtonView.getContext(), LAYOUT_PARAMS_DP);
+                        layoutParams.height = getPxForDp(floatingButtonView.getContext(), LAYOUT_PARAMS_DP);
 
                         floatingButtonView.setLayoutParams(layoutParams);
 
@@ -273,7 +270,7 @@ class FloatingButtonManager implements FloatingButton {
         displayFloatingButtonAcrossActivities = false;
     }
 
-    void removeFloatingButtonFromActivity(Activity activity) {
+    void removeFloatingButtonFromActivity(final Activity activity) {
         if (activity == null) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Activity), cannot remove button!",
                     UNEXPECTED_NULL_VALUE));
@@ -295,7 +292,7 @@ class FloatingButtonManager implements FloatingButton {
                 FloatingButtonView floatingButton = (FloatingButtonView) rootViewGroup.findViewWithTag(FloatingButtonView.VIEW_TAG);
 
                 if (floatingButton != null) {
-                    floatingButton.setVisibility(GONE);
+                    floatingButton.setVisibility(ViewGroup.GONE);
                 } else {
                     Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("No button found to remove for %s",
                             activity.getLocalClassName()));
@@ -314,7 +311,7 @@ class FloatingButtonManager implements FloatingButton {
      * @param oldXvalue          The x co-ordinate which needs to be adjusted
      * @return The adjusted x co-ordinate
      */
-    private float adjustXBounds(final FloatingButtonView floatingButtonView, float screenWidth, float oldXvalue) {
+    private float adjustXBounds(final FloatingButtonView floatingButtonView, final float screenWidth, final float oldXvalue) {
         if (floatingButtonView != null && oldXvalue > (screenWidth - floatingButtonView.getWidth())) {
             return (screenWidth - floatingButtonView.getWidth());
         }
@@ -330,7 +327,7 @@ class FloatingButtonManager implements FloatingButton {
      * @param oldYvalue          The y co-ordinate which needs to be adjusted
      * @return The adjusted y co-ordinate
      */
-    private float adjustYBounds(final FloatingButtonView floatingButtonView, float screenHeight, float oldYvalue) {
+    private float adjustYBounds(final FloatingButtonView floatingButtonView, final float screenHeight, final float oldYvalue) {
         if (floatingButtonView != null && oldYvalue > (screenHeight - floatingButtonView.getHeight())) {
             return (screenHeight - floatingButtonView.getHeight());
         }
@@ -339,18 +336,19 @@ class FloatingButtonManager implements FloatingButton {
     }
 
     /**
-     * Convert {@code dp} inot {@code px} scale.
+     * Convert {@code dp} into {@code px} scale.
      *
      * @param context The {@link Context} instance
      * @param dp      The dp value to be converted
      * @return The converted px value
      */
-    private int getPxForDp(Context context, int dp) {
+    private int getPxForDp(final Context context, final int dp) {
         try {
             float density = context.getResources().getDisplayMetrics().density;
             return Math.round((float) dp * density);
         } catch (Exception e) {
-            return 210; //80dp for density 2.65 - fallback default
+            final int DEFAULT_FALLBACK = 210; // dp=80 density=2.65
+            return DEFAULT_FALLBACK;
         }
     }
 
@@ -363,11 +361,11 @@ class FloatingButtonManager implements FloatingButton {
      * @param floatingButtonView     The {@link FloatingButtonView} instance which is used to retrieve the {@link ViewTreeObserver}
      * @param onGlobalLayoutListener The {@link ViewTreeObserver.OnGlobalLayoutListener} instance
      */
-    void removeOnGlobalLayoutListenerCompat(FloatingButtonView floatingButtonView,
-                                            ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener) {
+    void removeOnGlobalLayoutListenerCompat(final FloatingButtonView floatingButtonView,
+                                            final ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener) {
         ViewTreeObserver viewTreeObserver = floatingButtonView.getViewTreeObserver();
 
-        if (Build.VERSION.SDK_INT >= 16) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) { //16
             try {
                 Class<?> viewTreeObserverClass = viewTreeObserver.getClass();
                 Method removeOnGlobalLayoutListenerMethod = viewTreeObserverClass.getDeclaredMethod("removeOnGlobalLayoutListener",

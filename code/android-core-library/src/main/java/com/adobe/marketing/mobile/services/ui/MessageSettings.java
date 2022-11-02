@@ -120,7 +120,7 @@ public class MessageSettings {
         return this.parent;
     }
 
-    public void setParent(Object parent) {
+    public void setParent(final Object parent) {
         this.parent = parent;
     }
 
@@ -135,7 +135,7 @@ public class MessageSettings {
         return this.width;
     }
 
-    public void setWidth(int width) {
+    public void setWidth(final int width) {
         this.width = width;
     }
 
@@ -154,7 +154,7 @@ public class MessageSettings {
      *
      * @param height An {@code int} containing the height of the view in which the message is displayed
      */
-    public void setHeight(int height) {
+    public void setHeight(final int height) {
         this.height = height;
     }
 
@@ -173,7 +173,7 @@ public class MessageSettings {
      *
      * @param verticalAlign A {@code MessageAlignment} value for the vertical alignment
      */
-    public void setVerticalAlign(MessageAlignment verticalAlign) {
+    public void setVerticalAlign(final MessageAlignment verticalAlign) {
         this.verticalAlign = verticalAlign;
     }
 
@@ -193,7 +193,7 @@ public class MessageSettings {
      *
      * @param horizontalAlign A {@code MessageAlignment} value for the horizontal alignment
      */
-    public void setHorizontalAlign(MessageAlignment horizontalAlign) {
+    public void setHorizontalAlign(final MessageAlignment horizontalAlign) {
         this.horizontalAlign = horizontalAlign;
     }
 
@@ -213,7 +213,7 @@ public class MessageSettings {
      *
      * @param verticalInset An {@code int} containing the vertical inset percentage
      */
-    public void setVerticalInset(int verticalInset) {
+    public void setVerticalInset(final int verticalInset) {
         this.verticalInset = verticalInset;
     }
 
@@ -234,7 +234,7 @@ public class MessageSettings {
      *
      * @param horizontalInset An {@code int} containing the horizontal inset percentage
      */
-    public void setHorizontalInset(int horizontalInset) {
+    public void setHorizontalInset(final int horizontalInset) {
         this.horizontalInset = horizontalInset;
     }
 
@@ -252,7 +252,7 @@ public class MessageSettings {
      *
      * @param uiTakeover A {@code boolean} value which if true, will prevent the user from other UI interactions if a message is currently displayed.
      */
-    public void setUiTakeover(boolean uiTakeover) {
+    public void setUiTakeover(final boolean uiTakeover) {
         this.uiTakeover = uiTakeover;
     }
 
@@ -272,7 +272,7 @@ public class MessageSettings {
      *
      * @param displayAnimation A {@code MessageAnimation} value for the display animation
      */
-    public void setDisplayAnimation(MessageAnimation displayAnimation) {
+    public void setDisplayAnimation(final MessageAnimation displayAnimation) {
         this.displayAnimation = displayAnimation;
     }
 
@@ -292,7 +292,7 @@ public class MessageSettings {
      *
      * @param dismissAnimation A {@code MessageAnimation} value for the dismiss animation
      */
-    public void setDismissAnimation(MessageAnimation dismissAnimation) {
+    public void setDismissAnimation(final MessageAnimation dismissAnimation) {
         this.dismissAnimation = dismissAnimation;
     }
 
@@ -310,7 +310,7 @@ public class MessageSettings {
      *
      * @param backdropColor A {@code String} containing the HTML hex string color code to use for the backdrop
      */
-    public void setBackdropColor(String backdropColor) {
+    public void setBackdropColor(final String backdropColor) {
         this.backdropColor = backdropColor;
     }
 
@@ -330,7 +330,7 @@ public class MessageSettings {
      * @param backdropOpacity A {@code float} containing the backdrop opacity percentage with 0.0 being fully transparent
      *                        and 1.0 being fully opaque
      */
-    public void setBackdropOpacity(float backdropOpacity) {
+    public void setBackdropOpacity(final float backdropOpacity) {
         this.backdropColor = backdropColor;
     }
 
@@ -348,7 +348,7 @@ public class MessageSettings {
      *
      * @param cornerRadius A {@code float} containing the corner radius angle to use when rounding the message corners
      */
-    public void setCornerRadius(float cornerRadius) {
+    public void setCornerRadius(final float cornerRadius) {
         this.cornerRadius = cornerRadius;
     }
 
@@ -366,7 +366,7 @@ public class MessageSettings {
      *
      * @param gestures A {@code Map<MessageGesture, String} containing gestures and their associated behaviors
      */
-    public void setGestures(Map<MessageGesture, String> gestures) {
+    public void setGestures(final Map<MessageGesture, String> gestures) {
         this.gestures = gestures;
     }
 }

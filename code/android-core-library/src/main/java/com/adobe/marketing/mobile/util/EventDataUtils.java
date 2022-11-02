@@ -56,7 +56,7 @@ public class EventDataUtils {
 
     private EventDataUtils(){}
 
-    private static Object cloneObject(Object obj, CloneMode mode, int depth) throws CloneFailedException {
+    private static Object cloneObject(final Object obj, final CloneMode mode, final int depth) throws CloneFailedException {
         if (obj == null) {
             return null;
         }
@@ -81,7 +81,7 @@ public class EventDataUtils {
         }
     }
 
-    private static Map<String, Object> cloneMap(Map<?, ?> map, CloneMode mode, int depth) throws CloneFailedException {
+    private static Map<String, Object> cloneMap(final Map<?, ?> map, final CloneMode mode, final int depth) throws CloneFailedException {
         if (map == null) return null;
 
         Map<String, Object> ret = new HashMap<>();
@@ -96,7 +96,7 @@ public class EventDataUtils {
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableMap(ret): ret;
     }
 
-    private static Collection<Object> cloneCollection(Collection<?> collection, CloneMode mode, int depth) throws CloneFailedException {
+    private static Collection<Object> cloneCollection(final Collection<?> collection, final CloneMode mode, final int depth) throws CloneFailedException {
         if (collection == null) return null;
 
         List<Object> ret = new ArrayList<>();
@@ -107,7 +107,7 @@ public class EventDataUtils {
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret): ret;
     }
 
-    private static Collection<Object> cloneArray(Object array, CloneMode mode, int depth) throws CloneFailedException {
+    private static Collection<Object> cloneArray(final Object array, final CloneMode mode, final int depth) throws CloneFailedException {
         if (array == null) return  null;
 
         List<Object> ret = new ArrayList<>();
@@ -134,7 +134,7 @@ public class EventDataUtils {
      * @return Cloned map
      * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or contains unsupported type.
      */
-    public static Map<String, Object> clone(Map<String, ?> map) throws CloneFailedException {
+    public static Map<String, Object> clone(final Map<String, ?> map) throws CloneFailedException {
         return cloneMap(map, CloneMode.MutableContainer, 0);
     }
 
@@ -152,7 +152,7 @@ public class EventDataUtils {
      * @return Cloned immutable map
      * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or contains unsupported type.
      */
-    public static Map<String, Object> immutableClone(Map<String, ?> map) throws CloneFailedException {
+    public static Map<String, Object> immutableClone(final Map<String, ?> map) throws CloneFailedException {
         return cloneMap(map, CloneMode.ImmutableContainer, 0);
     }
 
@@ -167,7 +167,7 @@ public class EventDataUtils {
      *
      */
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> castFromGenericType(Map<?, ?> map) {
+    public static Map<String, Object> castFromGenericType(final Map<?, ?> map) {
         if (map == null) return null;
 
         for(Map.Entry<?, ?> entry : map.entrySet()) {

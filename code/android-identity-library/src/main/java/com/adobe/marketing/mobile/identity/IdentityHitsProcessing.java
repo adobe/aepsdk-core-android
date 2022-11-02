@@ -36,17 +36,17 @@ class IdentityHitsProcessing implements HitProcessing {
     private final IdentityExtension identityExtension;
     private final int RETRY_INTERVAL = 30; //seconds
 
-    IdentityHitsProcessing(IdentityExtension identityExtension) {
+    IdentityHitsProcessing(final IdentityExtension identityExtension) {
         this.identityExtension = identityExtension;
     }
 
 
     @Override
-    public int retryInterval(DataEntity entity) {
+    public int retryInterval(final DataEntity entity) {
         return RETRY_INTERVAL;
     }
 
-    public void processHit(@NonNull DataEntity entity, @NonNull int networkTimeoutInSeconds, @NonNull HitProcessingResult processingResult) {
+    public void processHit(@NonNull final DataEntity entity, @NonNull final int networkTimeoutInSeconds, @NonNull final HitProcessingResult processingResult) {
         IdentityHit hit = IdentityHit.fromDataEntity(entity);
         if (hit == null) {
             processingResult.complete(true);
@@ -117,7 +117,7 @@ class IdentityHitsProcessing implements HitProcessing {
     }
 
     @Override
-    public void processHit(@NonNull DataEntity entity, @NonNull HitProcessingResult processingResult) {
+    public void processHit(@NonNull final DataEntity entity, @NonNull final HitProcessingResult processingResult) {
         processHit(entity, IdentityConstants.Defaults.TIMEOUT_IN_SECONDS, processingResult);
     }
 

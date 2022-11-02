@@ -13,11 +13,9 @@ package com.adobe.marketing.mobile.services.internal.caching;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.caching.CacheEntry;
 import com.adobe.marketing.mobile.services.caching.CacheExpiry;
 import com.adobe.marketing.mobile.services.caching.CacheResult;
@@ -51,7 +49,7 @@ public class FileCacheService implements CacheService {
      * @return true if the value for the key was created or updated; false otherwise.
      */
     @Override
-    public boolean set(@NonNull String cacheName, @NonNull String key, @NonNull CacheEntry value) {
+    public boolean set(@NonNull final String cacheName, @NonNull final String key, @NonNull final CacheEntry value) {
 
         // Create the bucket if necessary
         final File cacheBucket = cacheFileManager.createCache(cacheName);
@@ -76,7 +74,7 @@ public class FileCacheService implements CacheService {
      */
     @Nullable
     @Override
-    public CacheResult get(@NonNull String cacheName, @NonNull String key) {
+    public CacheResult get(@NonNull final String cacheName, @NonNull final String key) {
         final File cacheFile = cacheFileManager.getCacheFile(cacheName, key);
 
         if (cacheFile == null) return null;
@@ -113,7 +111,7 @@ public class FileCacheService implements CacheService {
      * @return true if the removal was successful; false otherwise.
      */
     @Override
-    public boolean remove(@NonNull String cacheName, @NonNull String key) {
+    public boolean remove(@NonNull final String cacheName, @NonNull final String key) {
         return cacheFileManager.deleteCacheFile(cacheName, key);
     }
 

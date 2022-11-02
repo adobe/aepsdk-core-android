@@ -17,7 +17,7 @@ import java.util.Map;
  */
 
 public class ExtensionHelper {
-    public static String getName(Extension extension) {
+    public static String getName(final Extension extension) {
         try {
             if (extension != null) {
                 return extension.getName();
@@ -26,7 +26,7 @@ public class ExtensionHelper {
         return null;
     }
 
-    public static String getFriendlyName(Extension extension) {
+    public static String getFriendlyName(final Extension extension) {
         try {
             if (extension != null) {
                 return extension.getFriendlyName();
@@ -35,7 +35,7 @@ public class ExtensionHelper {
         return null;
     }
 
-    public static String getVersion(Extension extension) {
+    public static String getVersion(final Extension extension) {
         try {
             if (extension != null) {
                 return extension.getVersion();
@@ -44,7 +44,7 @@ public class ExtensionHelper {
         return null;
     }
 
-    public static Map<String, String> getMetadata(Extension extension) {
+    public static Map<String, String> getMetadata(final Extension extension) {
         try {
             if (extension != null) {
                 return extension.getMetadata();
@@ -53,7 +53,7 @@ public class ExtensionHelper {
         return null;
     }
 
-    public static void notifyUnregistered(Extension extension) {
+    public static void notifyUnregistered(final Extension extension) {
         try {
             if (extension != null) {
                 extension.onUnregistered();
@@ -61,7 +61,7 @@ public class ExtensionHelper {
         } catch (Exception ex) { }
     }
 
-    public static void notifyRegistered(Extension extension) {
+    public static void notifyRegistered(final Extension extension) {
         try {
             if (extension != null) {
                 extension.onRegistered();
@@ -69,7 +69,7 @@ public class ExtensionHelper {
         } catch (Exception ex) { }
     }
 
-    public static void notifyError(Extension extension, ExtensionUnexpectedError error) {
+    public static void notifyError(final Extension extension, final ExtensionUnexpectedError error) {
         try {
             if (extension != null) {
                 extension.onUnexpectedError(error);

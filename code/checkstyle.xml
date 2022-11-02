@@ -16,5 +16,8 @@
 		<module name="NestedTryDepth"/>
 		<module name="MagicNumber"/>
 		<module name="AvoidStaticImport"/>
+		<module name="IllegalImport"></module> 
+    	<module name="RedundantImport"></module> 
+    	<module name="UnusedImports"></module> 
 	</module>
 </module>

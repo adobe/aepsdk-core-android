@@ -348,7 +348,7 @@ class AEPMessage implements FullscreenMessage {
      * @param messageSettings {@link MessageSettings} object defining layout and behavior of the new message.
      */
     @Override
-    public void setMessageSetting(MessageSettings messageSettings) {
+    public void setMessageSetting(final MessageSettings messageSettings) {
         this.settings = messageSettings;
     }
 
@@ -384,16 +384,16 @@ class AEPMessage implements FullscreenMessage {
 
             animationListener = new Animation.AnimationListener() {
                 @Override
-                public void onAnimationStart(Animation animation) {
+                public void onAnimationStart(final Animation animation) {
                 }
 
                 @Override
-                public void onAnimationEnd(Animation animation) {
+                public void onAnimationEnd(final Animation animation) {
                     cleanup();
                 }
 
                 @Override
-                public void onAnimationRepeat(Animation animation) {
+                public void onAnimationRepeat(final Animation animation) {
                 }
             };
             dismissAnimation.setAnimationListener(animationListener);

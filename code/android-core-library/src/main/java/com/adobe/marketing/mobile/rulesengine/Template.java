@@ -20,7 +20,7 @@ public class Template {
 		this.segments = TemplateParser.parse(templateString);
 	}
 
-	public Template(final String templateString, DelimiterPair delimiterPair) {
+	public Template(final String templateString, final DelimiterPair delimiterPair) {
 		this.segments = TemplateParser.parse(templateString, delimiterPair);
 	}
 

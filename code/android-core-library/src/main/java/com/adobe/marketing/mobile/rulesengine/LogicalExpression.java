@@ -18,13 +18,13 @@ public class LogicalExpression implements Evaluable {
     public final List<Evaluable> operands;
     public final String operationName;
 
-    public LogicalExpression(List<Evaluable> operands, String operationName) {
+    public LogicalExpression(final List<Evaluable> operands, final String operationName) {
         this.operands = operands;
         this.operationName = operationName;
     }
 
     @Override
-    public RulesResult evaluate(Context context) {
+    public RulesResult evaluate(final Context context) {
         ArrayList<RulesResult> resolvedOperands = new ArrayList<>();
 
         if (operationName == null || operationName.isEmpty()) {

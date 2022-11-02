@@ -261,7 +261,7 @@ class DeviceInfoService implements DeviceInforming {
     }
 
     @Override
-    public boolean registerOneTimeNetworkConnectionActiveListener(NetworkConnectionActiveListener listener) {
+    public boolean registerOneTimeNetworkConnectionActiveListener(final NetworkConnectionActiveListener listener) {
         return false;
     }
 
@@ -315,7 +315,7 @@ class DeviceInfoService implements DeviceInforming {
     }
 
     @Override
-    public InputStream getAsset(String fileName) {
+    public InputStream getAsset(final String fileName) {
         final Context context = getApplicationContext();
 
         if (isNullOrEmpty(fileName) || context == null) {
@@ -353,7 +353,7 @@ class DeviceInfoService implements DeviceInforming {
     }
 
     @Override
-    public String getPropertyFromManifest(String propertyKey) {
+    public String getPropertyFromManifest(final String propertyKey) {
         final Context context = getApplicationContext();
 
         if (isNullOrEmpty(propertyKey) || context == null) {
@@ -460,7 +460,7 @@ class DeviceInfoService implements DeviceInforming {
         final int buildVersion = Build.VERSION.SDK_INT;
         int versionCode = 0;
 
-        if (buildVersion >= 28) {
+        if (buildVersion >= Build.VERSION_CODES.P) { //28
             try {
                 Method method = packageInfo.getClass().getDeclaredMethod("getLongVersionCode");
                 long longVersion = (Long) method.invoke(packageInfo);

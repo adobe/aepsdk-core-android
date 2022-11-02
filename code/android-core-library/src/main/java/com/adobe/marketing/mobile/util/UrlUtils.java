@@ -35,7 +35,7 @@ public final class UrlUtils {
      * @param unencodedString nullable {@link String} value to be encoded
      * @return the encoded {@code String}
      */
-    public static String urlEncode(String unencodedString) {
+    public static String urlEncode(final String unencodedString) {
         return UrlEncoder.urlEncode(unencodedString);
     }
 }

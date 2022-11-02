@@ -27,7 +27,7 @@ final class IdentityHit {
     private final String url;
     private final Event event;
 
-    IdentityHit(@NonNull String url, @NonNull Event event) {
+    IdentityHit(@NonNull final String url, @NonNull final Event event) {
         this.url = url;
         this.event = event;
     }
@@ -53,7 +53,7 @@ final class IdentityHit {
     }
 
     @Nullable
-    static IdentityHit fromDataEntity(DataEntity dataEntity) {
+    static IdentityHit fromDataEntity(final DataEntity dataEntity) {
         if (dataEntity == null) {
             return null;
         }

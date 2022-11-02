@@ -123,7 +123,7 @@ public class LifecycleExtension extends Extension {
 	}
 
 	@Override
-	public boolean readyForEvent(Event event) {
+	public boolean readyForEvent(final Event event) {
 		if (event.getType().equalsIgnoreCase(EventType.GENERIC_LIFECYCLE) && event.getSource().equalsIgnoreCase(EventSource.REQUEST_CONTENT)) {
 			SharedStateResult configurationSharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Configuration.MODULE_NAME, event, false, SharedStateResolution.ANY);
 			return configurationSharedState != null && configurationSharedState.getStatus() == SharedStateStatus.SET;

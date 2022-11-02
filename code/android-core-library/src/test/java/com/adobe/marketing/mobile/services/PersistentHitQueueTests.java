@@ -13,6 +13,12 @@ package com.adobe.marketing.mobile.services;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import com.adobe.marketing.mobile.MobilePrivacyStatus;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -248,4 +254,32 @@ public class PersistentHitQueueTests {
         Assert.assertEquals(0, queue.count());
         Assert.assertEquals(expectedHitOrder, processor.processedHits);
     }
+
+    @Test
+    public void handlePrivacyChange_OptIn() {
+        PersistentHitQueue spiedHitQueue = spy(new PersistentHitQueue(dataQueue, processor));
+        spiedHitQueue.handlePrivacyChange(MobilePrivacyStatus.OPT_IN);
+        verify(spiedHitQueue, times(1)).beginProcessing();
+        verify(spiedHitQueue, never()).suspend();
+        verify(spiedHitQueue, never()).clear();
+    }
+
+    @Test
+    public void handlePrivacyChange_OptOut() {
+        PersistentHitQueue spiedHitQueue = spy(new PersistentHitQueue(dataQueue, processor));
+        spiedHitQueue.handlePrivacyChange(MobilePrivacyStatus.OPT_OUT);
+        verify(spiedHitQueue, never()).beginProcessing();
+        verify(spiedHitQueue, times(1)).suspend();
+        verify(spiedHitQueue, times(1)).clear();
+    }
+
+    @Test
+    public void handlePrivacyChange_Default() {
+        PersistentHitQueue spiedHitQueue = spy(new PersistentHitQueue(dataQueue, processor));
+        spiedHitQueue.handlePrivacyChange(MobilePrivacyStatus.UNKNOWN);
+        verify(spiedHitQueue, never()).beginProcessing();
+        verify(spiedHitQueue, times(1)).suspend();
+        verify(spiedHitQueue, never()).clear();
+    }
+
 }

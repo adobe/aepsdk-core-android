@@ -10,6 +10,9 @@
  */
 package com.adobe.marketing.mobile;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.util.Map;
 
 /**
@@ -17,63 +20,35 @@ import java.util.Map;
  */
 
 public class ExtensionHelper {
-    public static String getName(final Extension extension) {
-        try {
-            if (extension != null) {
-                return extension.getName();
-            }
-        } catch (Exception ex) { }
-        return null;
+    public static @NonNull
+    String getName(@NonNull final Extension extension) {
+        return extension.getName();
     }
 
-    public static String getFriendlyName(final Extension extension) {
-        try {
-            if (extension != null) {
-                return extension.getFriendlyName();
-            }
-        } catch (Exception ex) { }
-        return null;
+    public static @Nullable
+    String getFriendlyName(@NonNull final Extension extension) {
+        return extension.getFriendlyName();
     }
 
-    public static String getVersion(final Extension extension) {
-        try {
-            if (extension != null) {
-                return extension.getVersion();
-            }
-        } catch (Exception ex) { }
-        return null;
+    public static @Nullable
+    String getVersion(@NonNull final Extension extension) {
+        return extension.getVersion();
     }
 
-    public static Map<String, String> getMetadata(final Extension extension) {
-        try {
-            if (extension != null) {
-                return extension.getMetadata();
-            }
-        } catch (Exception ex) { }
-        return null;
+    public static @Nullable
+    Map<String, String> getMetadata(@NonNull final Extension extension) {
+        return extension.getMetadata();
     }
 
-    public static void notifyUnregistered(final Extension extension) {
-        try {
-            if (extension != null) {
-                extension.onUnregistered();
-            }
-        } catch (Exception ex) { }
+    public static void notifyUnregistered(@NonNull final Extension extension) {
+        extension.onUnregistered();
     }
 
-    public static void notifyRegistered(final Extension extension) {
-        try {
-            if (extension != null) {
-                extension.onRegistered();
-            }
-        } catch (Exception ex) { }
+    public static void notifyRegistered(@NonNull final Extension extension) {
+        extension.onRegistered();
     }
 
-    public static void notifyError(final Extension extension, final ExtensionUnexpectedError error) {
-        try {
-            if (extension != null) {
-                extension.onUnexpectedError(error);
-            }
-        } catch (Exception ex) { }
+    public static void notifyError(@NonNull final Extension extension, @NonNull final ExtensionUnexpectedError error) {
+        extension.onUnexpectedError(error);
     }
 }

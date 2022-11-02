@@ -20,35 +20,60 @@ import java.util.Map;
  */
 
 public class ExtensionHelper {
-    public static @NonNull
+    public static @Nullable
     String getName(@NonNull final Extension extension) {
-        return extension.getName();
+        try {
+            return extension.getName();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static @Nullable
     String getFriendlyName(@NonNull final Extension extension) {
-        return extension.getFriendlyName();
+        try {
+            return extension.getFriendlyName();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static @Nullable
     String getVersion(@NonNull final Extension extension) {
-        return extension.getVersion();
+        try {
+            return extension.getVersion();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static @Nullable
     Map<String, String> getMetadata(@NonNull final Extension extension) {
-        return extension.getMetadata();
+        try {
+            return extension.getMetadata();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static void notifyUnregistered(@NonNull final Extension extension) {
-        extension.onUnregistered();
+        try {
+            extension.onUnregistered();
+        } catch (Exception ignored) {
+        }
     }
 
     public static void notifyRegistered(@NonNull final Extension extension) {
-        extension.onRegistered();
+        try {
+            extension.onRegistered();
+        } catch (Exception ignored) {
+        }
     }
 
     public static void notifyError(@NonNull final Extension extension, @NonNull final ExtensionUnexpectedError error) {
-        extension.onUnexpectedError(error);
+        try {
+            extension.onUnexpectedError(error);
+        } catch (Exception ignored) {
+        }
     }
 }

@@ -724,6 +724,26 @@ public abstract interface class com/adobe/marketing/mobile/services/Networking {
 	public abstract fun connectAsync (Lcom/adobe/marketing/mobile/services/NetworkRequest;Lcom/adobe/marketing/mobile/services/NetworkCallback;)V
 }
 
+public class com/adobe/marketing/mobile/services/NetworkingConstants {
+	public static field RECOVERABLE_ERROR_CODES Ljava/util/ArrayList;
+}
+
+public class com/adobe/marketing/mobile/services/NetworkingConstants$HeaderValues {
+	public static final field ACCEPT_TEXT_HTML Ljava/lang/String;
+	public static final field CONTENT_TYPE_JSON_APPLICATION Ljava/lang/String;
+	public static final field CONTENT_TYPE_URL_ENCODED Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/services/NetworkingConstants$Headers {
+	public static final field ACCEPT Ljava/lang/String;
+	public static final field ACCEPT_LANGUAGE Ljava/lang/String;
+	public static final field CONTENT_TYPE Ljava/lang/String;
+	public static final field ETAG Ljava/lang/String;
+	public static final field IF_MODIFIED_SINCE Ljava/lang/String;
+	public static final field IF_NONE_MATCH Ljava/lang/String;
+	public static final field LAST_MODIFIED Ljava/lang/String;
+}
+
 public class com/adobe/marketing/mobile/services/PersistentHitQueue : com/adobe/marketing/mobile/services/HitQueuing {
 	public fun <init> (Lcom/adobe/marketing/mobile/services/DataQueue;Lcom/adobe/marketing/mobile/services/HitProcessing;)V
 	public fun beginProcessing ()V

@@ -1027,6 +1027,11 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 	public static fun immutableClone (Ljava/util/Map;)Ljava/util/Map;
 }
 
+public final class com/adobe/marketing/mobile/util/JSONUtils {
+	public static fun toList (Lorg/json/JSONArray;)Ljava/util/List;
+	public static fun toMap (Lorg/json/JSONObject;)Ljava/util/Map;
+}
+
 public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
 	public static final field Companion Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$Companion;
 	public static final field LOG_TAG Ljava/lang/String;

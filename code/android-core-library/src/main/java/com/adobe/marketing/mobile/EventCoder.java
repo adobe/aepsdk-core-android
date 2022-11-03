@@ -13,14 +13,12 @@ package com.adobe.marketing.mobile;
 
 import androidx.annotation.Nullable;
 
+import com.adobe.marketing.mobile.util.JSONUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,14 +52,14 @@ public class EventCoder {
             final String uniqueIdentifier = optString(json, UUID, null);
             final String source = optString(json, SOURCE, null);
             final String type = optString(json, TYPE, null);
-            final Map<String, Object> data = toMap(json.optJSONObject(DATA));
+            final Map<String, Object> data = JSONUtils.toMap(json.optJSONObject(DATA));
             final long timestamp = json.optLong(TIMESTAMP, 0);
             final String responseId = optString(json, RESPONSE_ID, null);
             final JSONArray maskJsonArray = json.optJSONArray(MASK);
 
             String[] mask = null;
             if (maskJsonArray != null) {
-                mask = toList(maskJsonArray).toArray(new String[0]);
+                mask = JSONUtils.toList(maskJsonArray).toArray(new String[0]);
             }
 
             final Event ret = new Event.Builder(name, type, source, mask)
@@ -122,46 +120,5 @@ public class EventCoder {
         } catch (final JSONException e) {
             return fallback;
         }
-    }
-
-    // TODO: Methods below can be removed in favor of a json utility
-
-    private static Map<String, Object> toMap(final JSONObject object) throws JSONException {
-        Map<String, Object> map = new HashMap<>();
-
-        if (object == null) {
-            return null;
-        }
-
-        Iterator<String> keys = object.keys();
-
-        while (keys.hasNext()) {
-            String key = keys.next();
-            map.put(key, fromJson(object.get(key)));
-        }
-
-        return map;
-    }
-
-    private static Object fromJson(final Object json) throws JSONException {
-        if (json == null || json == JSONObject.NULL) {
-            return null;
-        } else if (json instanceof JSONObject) {
-            return toMap((JSONObject) json);
-        } else if (json instanceof JSONArray) {
-            return toList((JSONArray) json);
-        } else {
-            return json;
-        }
-    }
-
-    private static List<Object> toList(final JSONArray array) throws JSONException {
-        final List<Object> list = new ArrayList<Object>();
-
-        for (int i = 0; i < array.length(); i++) {
-            list.add(fromJson(array.get(i)));
-        }
-
-        return list;
     }
 }

@@ -1028,7 +1028,6 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 }
 
 public final class com/adobe/marketing/mobile/util/JSONUtils {
-	public fun <init> ()V
 	public static fun toList (Lorg/json/JSONArray;)Ljava/util/List;
 	public static fun toMap (Lorg/json/JSONObject;)Ljava/util/Map;
 }

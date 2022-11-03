@@ -218,7 +218,7 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun lifecyclePause ()V
 	public static fun lifecycleStart (Ljava/util/Map;)V
 	public static fun log (Lcom/adobe/marketing/mobile/LoggingMode;Ljava/lang/String;Ljava/lang/String;)V
-	public static fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallbackWithError;)V
+	public static fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun registerExtension (Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public static fun registerExtensions (Ljava/util/List;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun resetIdentities ()V

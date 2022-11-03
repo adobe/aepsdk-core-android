@@ -349,19 +349,10 @@ class MobileCoreTests {
         val latch = CountDownLatch(2)
         val capturedEvents = mutableListOf<Event>()
 
-        MobileCore.registerEventListener(
-            "analytics", "requestContent",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents.add(value)
-                    latch.countDown()
-                }
-
-                override fun fail(error: AdobeError?) {
-                    latch.countDown()
-                }
-            }
-        )
+        MobileCore.registerEventListener("analytics", "requestContent") {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
 
         // dispatch the events
         MobileCore.dispatchEvent(event1)
@@ -385,34 +376,20 @@ class MobileCoreTests {
         val latch1 = CountDownLatch(2)
         val capturedEvents1 = mutableListOf<Event>()
         MobileCore.registerEventListener(
-            "analytics", "requestContent",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents1.add(value)
-                    latch1.countDown()
-                }
-
-                override fun fail(error: AdobeError?) {
-                    latch1.countDown()
-                }
-            }
-        )
+            "analytics", "requestContent"
+        ) {
+            capturedEvents1.add(it)
+            latch1.countDown()
+        }
 
         val latch2 = CountDownLatch(2)
         val capturedEvents2 = mutableListOf<Event>()
         MobileCore.registerEventListener(
-            "analytics", "requestContent",
-            object : AdobeCallbackWithError<Event> {
-                override fun call(value: Event) {
-                    capturedEvents2.add(value)
-                    latch2.countDown()
-                }
-
-                override fun fail(error: AdobeError?) {
-                    latch2.countDown()
-                }
-            }
-        )
+            "analytics", "requestContent"
+        ) {
+            capturedEvents2.add(it)
+            latch2.countDown()
+        }
 
         // dispatch the events
         MobileCore.dispatchEvent(event1)

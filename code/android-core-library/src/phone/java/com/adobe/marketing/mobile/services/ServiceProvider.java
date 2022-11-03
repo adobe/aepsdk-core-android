@@ -78,7 +78,7 @@ public class ServiceProvider {
      *
      * @param loggingService the new {@link Logging} service which will override the default  {@link Logging} service
      */
-    public void setLoggingService(Logging loggingService) {
+    public void setLoggingService(final Logging loggingService) {
         overrideLoggingService = loggingService;
     }
 
@@ -107,7 +107,7 @@ public class ServiceProvider {
      * @param deviceInfoService new {@link DeviceInforming} service
      */
     @VisibleForTesting
-    void setDeviceInfoService(DeviceInforming deviceInfoService) {
+    void setDeviceInfoService(final DeviceInforming deviceInfoService) {
         overrideDeviceInfoService = deviceInfoService;
     }
 
@@ -126,7 +126,7 @@ public class ServiceProvider {
      *
      * @param networkService the new {@link Networking} service which will override the default  {@link Networking} service
      */
-    public void setNetworkService(Networking networkService) {
+    public void setNetworkService(final Networking networkService) {
         overrideNetworkService = networkService;
     }
 
@@ -170,7 +170,7 @@ public class ServiceProvider {
      * @param appContextService new {@link AppContextService} service
      */
     @VisibleForTesting
-    void setAppContextService(AppContextService appContextService) { overrideAppContextService = appContextService; }
+    void setAppContextService(final AppContextService appContextService) { overrideAppContextService = appContextService; }
 
     /**
      * Gets the custom {@link FullscreenMessageDelegate}.
@@ -195,7 +195,7 @@ public class ServiceProvider {
      *
      * @param uriHandler An {@link URIHandler} instance used to decide the Android link's destination
      */
-    public void setURIHandler(URIHandler uriHandler) {
+    public void setURIHandler(final URIHandler uriHandler) {
         this.getUIService().setURIHandler(uriHandler);
     }
 

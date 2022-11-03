@@ -18,9 +18,6 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
@@ -47,7 +44,7 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
      *
      * @param message the {@link AEPMessage} object which created this fragment
      */
-    public void setAEPMessage(AEPMessage message) {
+    public void setAEPMessage(final AEPMessage message) {
         this.message = message;
     }
 

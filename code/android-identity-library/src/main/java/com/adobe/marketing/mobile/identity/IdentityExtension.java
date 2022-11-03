@@ -95,13 +95,13 @@ final public class IdentityExtension extends Extension {
      *
      * @param extensionApi the {@link ExtensionApi} this extension will use
      */
-    IdentityExtension(@NonNull ExtensionApi extensionApi) {
+    IdentityExtension(@NonNull final ExtensionApi extensionApi) {
         this(extensionApi, ServiceProvider.getInstance().getDataStoreService().
                 getNamedCollection(DataStoreKeys.IDENTITY_PROPERTIES_DATA_STORE_NAME), null);
     }
 
     @VisibleForTesting
-    IdentityExtension(@NonNull ExtensionApi extensionApi, @Nullable NamedCollection namedCollection, @Nullable HitQueuing hitQueue) {
+    IdentityExtension(@NonNull final ExtensionApi extensionApi, @Nullable final NamedCollection namedCollection, @Nullable final HitQueuing hitQueue) {
         super(extensionApi);
         this.namedCollection = namedCollection;
         this.hitQueue = hitQueue;
@@ -113,13 +113,13 @@ final public class IdentityExtension extends Extension {
         return IdentityConstants.EXTENSION_NAME;
     }
 
-    @Nullable
+    @NonNull
     @Override
     protected String getFriendlyName() {
         return IdentityConstants.FRIENDLY_NAME;
     }
 
-    @Nullable
+    @NonNull
     @Override
     protected String getVersion() {
         return Identity.extensionVersion();
@@ -168,7 +168,7 @@ final public class IdentityExtension extends Extension {
     }
 
     @Override
-    public boolean readyForEvent(@NonNull Event event) {
+    public boolean readyForEvent(@NonNull final Event event) {
 
         if (!hasValidSharedState(IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
             Log.trace(
@@ -202,7 +202,7 @@ final public class IdentityExtension extends Extension {
     }
 
     @VisibleForTesting
-    boolean readyForSyncIdentifiers(Event event) {
+    boolean readyForSyncIdentifiers(final Event event) {
         Map<String, Object> configuration = getApi().getSharedState(
                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
                 event,
@@ -228,7 +228,7 @@ final public class IdentityExtension extends Extension {
     }
 
     @VisibleForTesting
-    void forceSyncIdentifiers(@NonNull Event event) {
+    void forceSyncIdentifiers(@NonNull final Event event) {
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Processing BOOTED event.");
 
         // The database is created when the privacy status changes or on the first sync event
@@ -466,17 +466,20 @@ final public class IdentityExtension extends Extension {
                     audienceEvent,
                     false,
                     SharedStateResolution.ANY);
-            if (identitySharedState != null && identitySharedState.getStatus() == SharedStateStatus.SET) {
-                //Make sure that the configuration shared state at this point has not changed the privacy status
-                ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
-                configSharedState.getConfigurationProperties(identitySharedState.getValue());
 
-                if (configSharedState.privacyStatus.equals(MobilePrivacyStatus.OPT_OUT)) {
-                    sendOptOutHit(configSharedState);
-                }
+            if (identitySharedState == null || identitySharedState.getStatus() != SharedStateStatus.SET) {
+                Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
+                        "processAudienceResponse : Unable to process the Identity events in the event queue because the configuration shared state is pending.");
+                return;
             }
-            Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE,
-                    "processAudienceResponse : Unable to process the Identity events in the event queue because the configuration shared state is pending.");
+
+            //Make sure that the configuration shared state at this point has not changed the privacy status
+            ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
+            configSharedState.getConfigurationProperties(identitySharedState.getValue());
+
+            if (configSharedState.privacyStatus.equals(MobilePrivacyStatus.OPT_OUT)) {
+                sendOptOutHit(configSharedState);
+            }
         }
     }
 
@@ -1124,7 +1127,7 @@ final public class IdentityExtension extends Extension {
         return eventData;
     }
 
-    private List<Map<String, Object>> convertVisitorIds(List<VisitorID> visitorIDList) {
+    private List<Map<String, Object>> convertVisitorIds(final List<VisitorID> visitorIDList) {
         List<Map<String, Object>> data = new ArrayList<>();
         for (VisitorID vId : visitorIDList) {
             data.add(VisitorIDSerializer.convertVisitorId(vId));
@@ -2038,7 +2041,7 @@ final public class IdentityExtension extends Extension {
     }
 
     @VisibleForTesting
-    void setLastSync(long lastSync) {
+    void setLastSync(final long lastSync) {
         this.lastSync = lastSync;
     }
 
@@ -2048,22 +2051,22 @@ final public class IdentityExtension extends Extension {
     }
 
     @VisibleForTesting
-    void setMid(String mid) {
+    void setMid(final String mid) {
         this.mid = mid;
     }
 
     @VisibleForTesting
-    void setPrivacyStatus(MobilePrivacyStatus privacyStatus) {
+    void setPrivacyStatus(final MobilePrivacyStatus privacyStatus) {
         this.privacyStatus = privacyStatus;
     }
 
     @VisibleForTesting
-    void setBlob(String blob) {
+    void setBlob(final String blob) {
         this.blob = blob;
     }
 
     @VisibleForTesting
-    void setLocationHint(String locationHint) {
+    void setLocationHint(final String locationHint) {
         this.locationHint = locationHint;
     }
 

@@ -1,3 +1,13 @@
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+ */
 package com.adobe.marketing.mobile;
 
 import java.util.Map;
@@ -7,7 +17,7 @@ import java.util.Map;
  */
 
 public class ExtensionHelper {
-    public static String getName(Extension extension) {
+    public static String getName(final Extension extension) {
         try {
             if (extension != null) {
                 return extension.getName();
@@ -16,7 +26,7 @@ public class ExtensionHelper {
         return null;
     }
 
-    public static String getFriendlyName(Extension extension) {
+    public static String getFriendlyName(final Extension extension) {
         try {
             if (extension != null) {
                 return extension.getFriendlyName();
@@ -25,7 +35,7 @@ public class ExtensionHelper {
         return null;
     }
 
-    public static String getVersion(Extension extension) {
+    public static String getVersion(final Extension extension) {
         try {
             if (extension != null) {
                 return extension.getVersion();
@@ -34,7 +44,7 @@ public class ExtensionHelper {
         return null;
     }
 
-    public static Map<String, String> getMetadata(Extension extension) {
+    public static Map<String, String> getMetadata(final Extension extension) {
         try {
             if (extension != null) {
                 return extension.getMetadata();
@@ -43,7 +53,7 @@ public class ExtensionHelper {
         return null;
     }
 
-    public static void notifyUnregistered(Extension extension) {
+    public static void notifyUnregistered(final Extension extension) {
         try {
             if (extension != null) {
                 extension.onUnregistered();
@@ -51,7 +61,7 @@ public class ExtensionHelper {
         } catch (Exception ex) { }
     }
 
-    public static void notifyRegistered(Extension extension) {
+    public static void notifyRegistered(final Extension extension) {
         try {
             if (extension != null) {
                 extension.onRegistered();
@@ -59,7 +69,7 @@ public class ExtensionHelper {
         } catch (Exception ex) { }
     }
 
-    public static void notifyError(Extension extension, ExtensionUnexpectedError error) {
+    public static void notifyError(final Extension extension, final ExtensionUnexpectedError error) {
         try {
             if (extension != null) {
                 extension.onUnexpectedError(error);

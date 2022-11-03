@@ -22,7 +22,7 @@ public class Transformer implements Transforming {
 	}
 
 	@Override
-	public Object transform(String name, Object parameter) {
+	public Object transform(final String name, final Object parameter) {
 		TransformerBlock<?> block = transformations.get(name);
 
 		if (block == null) {

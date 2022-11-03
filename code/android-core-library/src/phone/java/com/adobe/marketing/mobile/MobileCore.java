@@ -21,7 +21,6 @@ import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
-import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
@@ -142,7 +141,7 @@ final public class MobileCore {
      *
      * @param mode the logging mode. It should not be null.
      */
-    public static void setLogLevel(@NonNull LoggingMode mode) {
+    public static void setLogLevel(@NonNull final LoggingMode mode) {
         if (mode == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "setLogLevel failed - mode is null");
             return;
@@ -351,7 +350,7 @@ final public class MobileCore {
      * @see MobileCore#dispatchResponseEvent(Event, Event, ExtensionErrorCallback)
      */
     public static void dispatchEventWithResponseCallback(@NonNull final Event event,
-                                                         long timeoutMS,
+                                                         final long timeoutMS,
                                                          @NonNull final AdobeCallbackWithError<Event> responseCallback) {
         if (responseCallback == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEventWithResponseCallback - callback is null");
@@ -695,7 +694,7 @@ final public class MobileCore {
 
         AdobeCallbackWithError<Event> callbackWithError = new AdobeCallbackWithError<Event>() {
             @Override
-            public void fail(AdobeError error) {
+            public void fail(final AdobeError error) {
                 if (callback instanceof AdobeCallbackWithError) {
                     ((AdobeCallbackWithError<?>) callback).fail(AdobeError.CALLBACK_TIMEOUT);
                 } else {
@@ -705,7 +704,7 @@ final public class MobileCore {
             }
 
             @Override
-            public void call(Event event) {
+            public void call(final Event event) {
                 String status = DataReader.optString(event.getEventData(),
                         CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, null);
                 callback.call(MobilePrivacyStatus.fromString(status));
@@ -729,7 +728,7 @@ final public class MobileCore {
 
         AdobeCallbackWithError<Event> callbackWithError = new AdobeCallbackWithError<Event>() {
             @Override
-            public void fail(AdobeError error) {
+            public void fail(final AdobeError error) {
                 if (callback instanceof AdobeCallbackWithError) {
                     ((AdobeCallbackWithError<?>) callback).fail(AdobeError.CALLBACK_TIMEOUT);
                 } else {
@@ -738,7 +737,7 @@ final public class MobileCore {
             }
 
             @Override
-            public void call(Event event) {
+            public void call(final Event event) {
                 String value = DataReader.optString(event.getEventData(),
                         CoreConstants.EventDataKeys.Configuration.CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS, "{}");
                 callback.call(value);
@@ -943,7 +942,7 @@ final public class MobileCore {
 
         AdobeCallbackWithError<Event> callbackWithError = new AdobeCallbackWithError<Event>() {
             @Override
-            public void fail(AdobeError error) {
+            public void fail(final AdobeError error) {
                 if (responseCallback instanceof AdobeCallbackWithError) {
                     ((AdobeCallbackWithError<?>) responseCallback).fail(AdobeError.CALLBACK_TIMEOUT);
                 } else {
@@ -953,7 +952,7 @@ final public class MobileCore {
             }
 
             @Override
-            public void call(Event event) {
+            public void call(final Event event) {
                 responseCallback.call(event);
             }
         };

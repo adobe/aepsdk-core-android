@@ -17,6 +17,10 @@ jobs:
           command: make check-format
 
       - run:
+          name: Check style
+          command: make checkstyle
+
+      - run:
           name: Assemble phone release
           command: make assemble-phone-release
       

@@ -156,7 +156,7 @@ public class AndroidEventHistory implements EventHistory {
         });
     }
 
-    private <T> void notifyHandler(EventHistoryResultHandler<T> handler, T value) {
+    private <T> void notifyHandler(final EventHistoryResultHandler<T> handler, final T value) {
         if (handler != null) {
             try {
                 handler.call(value);

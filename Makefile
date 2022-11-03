@@ -9,8 +9,8 @@ update-version:
 clean:
 	  (./code/gradlew -p code clean)
 
-checkstyle: core-checkstyle
-		
+checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-checkstyle
+
 check-format: core-check-format
 
 format: core-format
@@ -22,7 +22,7 @@ api-check:
 		(./code/gradlew -p code/android-core-library apiCheck)
 
 assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-phone identity-assemble-phone
-	
+
 assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release identity-assemble-phone-release
 
 javadoc: core-javadoc
@@ -55,13 +55,13 @@ core-format:
 
 core-assemble-phone:
 		(./code/gradlew -p code/android-core-library assemblePhone)
-		
+
 core-assemble-phone-release:		
 		(./code/gradlew -p code/android-core-library assemblePhoneRelease)
-		
+
 core-unit-test:
 		(./code/gradlew -p code/android-core-library testPhoneDebugUnitTest)
-		
+
 core-unit-test-coverage:
 		(./code/gradlew -p code/android-core-library createPhoneDebugUnitTestCoverageReport)
 
@@ -97,13 +97,13 @@ signal-format:
 
 signal-assemble-phone:
 		(./code/gradlew -p code/android-signal-library assemblePhone)
-		
+
 signal-assemble-phone-release:		
 		(./code/gradlew -p code/android-signal-library assemblePhoneRelease)
-		
+
 signal-unit-test:
 		(./code/gradlew -p code/android-signal-library testPhoneDebugUnitTest)
-		
+
 signal-unit-test-coverage:
 		(./code/gradlew -p code/android-signal-library createPhoneDebugUnitTestCoverageReport)
 
@@ -132,13 +132,13 @@ lifecycle-checkstyle:
 
 lifecycle-assemble-phone:
 		(./code/gradlew -p code/android-lifecycle-library assemblePhone)
-		
+
 lifecycle-assemble-phone-release:		
 		(./code/gradlew -p code/android-lifecycle-library assemblePhoneRelease)
-		
+
 lifecycle-unit-test:
 		(./code/gradlew -p code/android-lifecycle-library testPhoneDebugUnitTest)
-		
+
 lifecycle-unit-test-coverage:
 		(./code/gradlew -p code/android-lifecycle-library createPhoneDebugUnitTestCoverageReport)
 
@@ -167,13 +167,13 @@ identity-checkstyle:
 
 identity-assemble-phone:
 		(./code/gradlew -p code/android-identity-library assemblePhone)
-		
+
 identity-assemble-phone-release:		
 		(./code/gradlew -p code/android-identity-library assemblePhoneRelease)
-		
+
 identity-unit-test:
 		(./code/gradlew -p code/android-identity-library testPhoneDebugUnitTest)
-		
+
 identity-unit-test-coverage:
 		(./code/gradlew -p code/android-identity-library createPhoneDebugUnitTestCoverageReport)
 

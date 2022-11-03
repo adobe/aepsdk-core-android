@@ -181,7 +181,7 @@ public class SQLiteDatabaseHelper {
 
         final int mode;
 
-        DatabaseOpenMode(int mode) {
+        DatabaseOpenMode(final int mode) {
             this.mode = mode;
         }
     }

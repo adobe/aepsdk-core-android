@@ -69,7 +69,7 @@ public class LifecycleV1Extension {
      */
      void start(final Event startEvent,
                    final Map<String, Object> configurationSharedState,
-                   boolean isInstall) {
+                   final boolean isInstall) {
 
          final long startTimestampInSeconds = startEvent.getTimestampInSeconds();
 
@@ -144,7 +144,7 @@ public class LifecycleV1Extension {
      * @param configurationSharedState current configuration shared state
      * @return session timeout
      */
-    private long getSessionTimeoutLength(Map<String, Object> configurationSharedState) {
+    private long getSessionTimeoutLength(final Map<String, Object> configurationSharedState) {
         return DataReader.optLong(configurationSharedState,
                 LifecycleConstants.EventDataKeys.Configuration.LIFECYCLE_CONFIG_SESSION_TIMEOUT,
                 LifecycleConstants.DEFAULT_LIFECYCLE_TIMEOUT);
@@ -175,7 +175,7 @@ public class LifecycleV1Extension {
      * @param previousStartTime start time of previous session
      * @param previousPauseTime pause time of previous session
      */
-    private void dispatchSessionStart(long startTimestampInSeconds, long previousStartTime, long previousPauseTime){
+    private void dispatchSessionStart(final long startTimestampInSeconds, final long previousStartTime, final long previousPauseTime){
         // Dispatch a new event with session related data
         Map<String, Object> eventDataMap = new HashMap<>();
         eventDataMap.put(LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_CONTEXT_DATA, lifecycleState.getContextData());

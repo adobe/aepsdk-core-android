@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * Utility class for transforming json objects.
  */
-public class JSONUtils {
+public final class JSONUtils {
 
     /**
      * Converts contents of a {@code JSONObject} into a {@code Map<String, Object>}

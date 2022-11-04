@@ -38,19 +38,12 @@ public class SerialWorkDispatcherJavaCompatTests {
     static class TestJavaSerialWorkDispatcher extends SerialWorkDispatcher<Integer> {
         private ArrayList<Integer> processedItems = null;
 
+        final Runnable setupJob = () -> { processedItems = new ArrayList<>(); };
+        final Runnable teardownJob = () -> { processedItems = null; };
+
         TestJavaSerialWorkDispatcher(@NotNull final String name,
                                      @NotNull final WorkHandler<Integer> workHandler) {
             super(name, workHandler);
-        }
-
-        @Override
-        public void prepare() {
-            processedItems = new ArrayList<>();
-        }
-
-        @Override
-        public void cleanup() {
-            processedItems = null;
         }
 
         List<Integer> getProcessedItems() {
@@ -75,6 +68,9 @@ public class SerialWorkDispatcherJavaCompatTests {
     @Before
     public void setup() {
         javaSerialWorkDispatcher.setExecutorService(mockExecutorService);
+        javaSerialWorkDispatcher.setStartupJob(javaSerialWorkDispatcher.setupJob);
+        javaSerialWorkDispatcher.setTeardownJob((javaSerialWorkDispatcher.teardownJob));
+
         Mockito.doAnswer(new Answer() {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {

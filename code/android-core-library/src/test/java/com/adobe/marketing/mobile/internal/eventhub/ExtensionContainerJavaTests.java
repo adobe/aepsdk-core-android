@@ -74,13 +74,9 @@ public class ExtensionContainerJavaTests {
         CountDownLatch latch = new CountDownLatch(1);
         container = new ExtensionContainer(
                 TestExtension.class,
-                Executors.newSingleThreadExecutor(),
-                new Function1<EventHubError, Unit>() {
-                    @Override
-                    public Unit invoke(EventHubError eventHubError) {
-                        latch.countDown();
-                        return null;
-                    }
+                eventHubError -> {
+                    latch.countDown();
+                    return null;
                 }
         );
         latch.await();

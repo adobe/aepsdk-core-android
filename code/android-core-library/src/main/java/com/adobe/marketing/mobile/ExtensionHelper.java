@@ -10,6 +10,9 @@
  */
 package com.adobe.marketing.mobile;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.util.Map;
 
 /**
@@ -17,63 +20,60 @@ import java.util.Map;
  */
 
 public class ExtensionHelper {
-    public static String getName(final Extension extension) {
+    public static @Nullable
+    String getName(@NonNull final Extension extension) {
         try {
-            if (extension != null) {
-                return extension.getName();
-            }
-        } catch (Exception ex) { }
-        return null;
+            return extension.getName();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    public static String getFriendlyName(final Extension extension) {
+    public static @Nullable
+    String getFriendlyName(@NonNull final Extension extension) {
         try {
-            if (extension != null) {
-                return extension.getFriendlyName();
-            }
-        } catch (Exception ex) { }
-        return null;
+            return extension.getFriendlyName();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    public static String getVersion(final Extension extension) {
+    public static @Nullable
+    String getVersion(@NonNull final Extension extension) {
         try {
-            if (extension != null) {
-                return extension.getVersion();
-            }
-        } catch (Exception ex) { }
-        return null;
+            return extension.getVersion();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    public static Map<String, String> getMetadata(final Extension extension) {
+    public static @Nullable
+    Map<String, String> getMetadata(@NonNull final Extension extension) {
         try {
-            if (extension != null) {
-                return extension.getMetadata();
-            }
-        } catch (Exception ex) { }
-        return null;
+            return extension.getMetadata();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    public static void notifyUnregistered(final Extension extension) {
+    public static void notifyUnregistered(@NonNull final Extension extension) {
         try {
-            if (extension != null) {
-                extension.onUnregistered();
-            }
-        } catch (Exception ex) { }
+            extension.onUnregistered();
+        } catch (Exception ignored) {
+        }
     }
 
-    public static void notifyRegistered(final Extension extension) {
+    public static void notifyRegistered(@NonNull final Extension extension) {
         try {
-            if (extension != null) {
-                extension.onRegistered();
-            }
-        } catch (Exception ex) { }
+            extension.onRegistered();
+        } catch (Exception ignored) {
+        }
     }
 
-    public static void notifyError(final Extension extension, final ExtensionUnexpectedError error) {
+    public static void notifyError(@NonNull final Extension extension, @NonNull final ExtensionUnexpectedError error) {
         try {
-            if (extension != null) {
-                extension.onUnexpectedError(error);
-            }
-        } catch (Exception ex) { }
+            extension.onUnexpectedError(error);
+        } catch (Exception ignored) {
+        }
     }
 }

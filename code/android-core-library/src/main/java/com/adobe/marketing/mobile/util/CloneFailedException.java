@@ -18,26 +18,10 @@ package com.adobe.marketing.mobile.util;
 public class CloneFailedException extends Exception {
     /**
      * Constructor.
-     */
-    public CloneFailedException() {
-        super("Object clone error occurred.");
-    }
-
-    /**
-     * Constructor.
      *
      * @param message {@code String} message for the exception
      */
     public CloneFailedException(final String message) {
         super(message);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param inner {@code Exception} that caused this exception
-     */
-    public CloneFailedException(final Exception inner) {
-        super(inner);
     }
 }

@@ -236,8 +236,8 @@ final public class IdentityExtension extends Extension {
         loadPrivacyStatus(event); // attempt to load privacy status from Configuration state
 
         final Event forcedSyncEvent = createForcedSyncEvent();
-        getApi().dispatch(forcedSyncEvent);
-//        processIdentityRequest(forcedSyncEvent);
+//        getApi().dispatch(forcedSyncEvent);
+        processIdentityRequest(forcedSyncEvent);
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Added an Identity force sync event on boot.");
 
         // Identity should always share its state
@@ -776,7 +776,11 @@ final public class IdentityExtension extends Extension {
 
         // Update share state and persistence here. Any state changes from the server response will be included in the next shared state
         // it's more important to not block other extensions with an IdentityExtension pending state
-        getApi().createSharedState(packageEventData(), event);
+        if (forceSync) {
+            getApi().createSharedState(packageEventData(), null);
+        } else {
+            getApi().createSharedState(packageEventData(), event);
+        }
         savePersistently();
 
         return true;

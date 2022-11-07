@@ -170,14 +170,17 @@ class IdentityFunctionalTests {
         identityExtension.readyForEvent(Event.Builder("event", "type", "source").build())
 
         val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
-        verify(mockedExtensionApi, org.mockito.kotlin.times(1)).dispatch(eventCaptor.capture())
-        val event = eventCaptor.value
-        assertNotNull(event.eventData)
-        assertTrue(event.eventData.contains("forcesync"))
-        assertTrue(event.eventData.contains("authenticationstate"))
-        assertTrue(event.eventData.contains("issyncevent"))
+        verify(mockedExtensionApi, atLeast(1)).dispatch(eventCaptor.capture())
+        eventCaptor.allValues.forEach { event ->
+            assertNotNull(event.eventData)
+            if (event.eventData.contains("forcesync") && event.eventData.contains("issyncevent") && event.eventData.contains(
+                    "issyncevent"
+                )
+            ) {
+                identityExtension.processIdentityRequest(event)
+            }
+        }
 
-        identityExtension.processIdentityRequest(event)
 
         //        countDownLatch.await()
         assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))

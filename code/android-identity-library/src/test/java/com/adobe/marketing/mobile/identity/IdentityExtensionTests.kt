@@ -257,7 +257,7 @@ class IdentityExtensionTests {
                     .build()
             )
         )
-        verify(spiedIdentityExtension, times(1)).isSyncEvent(any())
+        verify(spiedIdentityExtension, times(2)).isSyncEvent(any())
     }
 
     @Test

@@ -90,6 +90,11 @@ class DataQueueService implements DataQueuing {
 		final String cleanedDatabaseName = FileUtils.removeRelativePath(databaseName);
 		final File databaseDirDataQueue = appContext.getDatabasePath(cleanedDatabaseName);
 
+		// Return the db which exists in database directory.
+		if (databaseDirDataQueue.exists()) {
+			return databaseDirDataQueue;
+		}
+
 		// If db exists in cache directory, migrate it to new path.
 		try {
 			final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();

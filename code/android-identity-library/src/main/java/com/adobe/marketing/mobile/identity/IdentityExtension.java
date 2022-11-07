@@ -353,7 +353,8 @@ final public class IdentityExtension extends Extension {
                 EventSource.REQUEST_IDENTITY)
                 .setEventData(syncData)
                 .build();
-        processIdentityRequest(avidEvent);
+        getApi().dispatch(avidEvent);
+//        processIdentityRequest(avidEvent);
     }
 
     /**

@@ -257,7 +257,7 @@ class IdentityExtensionTests {
                     .build()
             )
         )
-        verify(spiedIdentityExtension, times(2)).isSyncEvent(any())
+        verify(spiedIdentityExtension, times(1)).isSyncEvent(any())
     }
 
     @Test
@@ -595,7 +595,7 @@ class IdentityExtensionTests {
         )
         countDownLatch.await()
         val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
-        verify(spiedIdentityExtension, times(1)).processIdentityRequest(eventCaptor.capture())
+        verify(mockedExtensionApi, times(1)).dispatch(eventCaptor.capture())
         val event = eventCaptor.value
         assertNotNull(event.eventData)
         assertTrue(event.eventData.contains("forcesync"))

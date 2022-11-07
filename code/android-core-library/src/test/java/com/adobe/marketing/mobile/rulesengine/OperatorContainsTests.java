@@ -17,8 +17,8 @@ import static org.junit.Assert.*;
 
 public class OperatorContainsTests {
 
-	private ConditionEvaluator defaultEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.DEFAULT);
-	private ConditionEvaluator caseSensitiveEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE);
+	private final ConditionEvaluator defaultEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.DEFAULT);
+	private final ConditionEvaluator caseSensitiveEvaluator = new ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE);
 
 	/* **************************************************************************
 	 *  Operand - Contains
@@ -26,11 +26,11 @@ public class OperatorContainsTests {
 	@Test
 	public void test_operator_contains() {
 		// setup
-		final Operand op1 = new OperandLiteral("This is a big sentence that contains, contains.");
-		final Operand op2 = new OperandLiteral(", contains.");
+		final Operand<String> op1 = new OperandLiteral<>("This is a big sentence that contains, contains.");
+		final Operand<String> op2 = new OperandLiteral<>(", contains.");
 
 		// test
-		final ComparisonExpression expression = new ComparisonExpression(op1, "contains", op2);
+		final ComparisonExpression<String, String> expression = new ComparisonExpression<>(op1, "contains", op2);
 		final RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
 
 		// verify
@@ -40,11 +40,11 @@ public class OperatorContainsTests {
 	@Test
 	public void test_operator_contains_notHappy() {
 		// setup
-		final Operand op1 = new OperandLiteral("This is a big sentence that contains, contains.");
-		final Operand op2 = new OperandLiteral("this isn't present");
+		final Operand<String> op1 = new OperandLiteral<>("This is a big sentence that contains, contains.");
+		final Operand<String> op2 = new OperandLiteral<>("this isn't present");
 
 		// test
-		final ComparisonExpression expression = new ComparisonExpression(op1, "contains", op2);
+		final ComparisonExpression<String, String> expression = new ComparisonExpression<>(op1, "contains", op2);
 		final RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
 
 		// verify
@@ -58,11 +58,11 @@ public class OperatorContainsTests {
 	@Test
 	public void test_operator_notContains() {
 		// setup
-		final Operand op1 = new OperandLiteral("This doesn't have the secret word.");
-		final Operand op2 = new OperandLiteral("contains");
+		final Operand<String> op1 = new OperandLiteral<>("This doesn't have the secret word.");
+		final Operand<String> op2 = new OperandLiteral<>("contains");
 
 		// test
-		final ComparisonExpression expression = new ComparisonExpression(op1, "notContains", op2);
+		final ComparisonExpression<String, String> expression = new ComparisonExpression<>(op1, "notContains", op2);
 		final RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
 
 		// verify
@@ -72,11 +72,11 @@ public class OperatorContainsTests {
 	@Test
 	public void test_operator_notContains_notHappy() {
 		// setup
-		final Operand op1 = new OperandLiteral("This is a big sentence that contains, contains.");
-		final Operand op2 = new OperandLiteral("contains");
+		final Operand<String> op1 = new OperandLiteral<>("This is a big sentence that contains, contains.");
+		final Operand<String> op2 = new OperandLiteral<>("contains");
 
 		// test
-		final ComparisonExpression expression = new ComparisonExpression(op1, "notContains", op2);
+		final ComparisonExpression<String, String> expression = new ComparisonExpression<>(op1, "notContains", op2);
 		final RulesResult result = expression.evaluate(defaultContext(defaultEvaluator));
 
 		// verify
@@ -87,17 +87,77 @@ public class OperatorContainsTests {
 	@Test
 	public void test_operator_contain_caseSensitive() {
 		// setup
-		final Operand op1 = new OperandLiteral("This is a big sentence that contains, contains.");
-		final Operand op2 = new OperandLiteral(", CONTAINS.");
+		final Operand<String> op1 = new OperandLiteral<>("This is a big sentence that contains, contains.");
+		final Operand<String> op2 = new OperandLiteral<>(", CONTAINS.");
 
 		// test
-		final ComparisonExpression expression = new ComparisonExpression(op1, "contains", op2);
+		final ComparisonExpression<String, String> expression = new ComparisonExpression<>(op1, "contains", op2);
 		final RulesResult result = expression.evaluate(defaultContext(caseSensitiveEvaluator));
 
 		// verify
 		assertTrue(result.isSuccess());
 	}
 
+	@Test
+	public void test_operator_contain_nonStringOperands() {
+		// Always returns false
+		// setup
+		final Operand<String> op1 = new OperandLiteral<>("11");
+		final Operand<Integer> op2 = new OperandLiteral<>(1);
+
+		// test
+		final ComparisonExpression<String, Integer> expression = new ComparisonExpression<>(op1, "contains", op2);
+		final RulesResult result = expression.evaluate(defaultContext(caseSensitiveEvaluator));
+
+		// verify
+		assertFalse(result.isSuccess());
+		assertEquals("Condition not matched for operation \"contains\"", result.getFailureMessage());
+	}
+
+	@Test
+	public void test_operator_nonContain_nonStringOperands() {
+		// Always returns true
+		// setup
+		final Operand<String> op1 = new OperandLiteral<>("11");
+		final Operand<Integer> op2 = new OperandLiteral<>(1);
+
+		// test
+		final ComparisonExpression<String, Integer> expression = new ComparisonExpression<>(op1, "notContains", op2);
+		final RulesResult result = expression.evaluate(defaultContext(caseSensitiveEvaluator));
+
+		// verify
+		assertTrue(result.isSuccess());
+	}
+
+	@Test
+	public void testComparisonExpression_InvalidArguments() {
+		// test
+		ComparisonExpression<String, String> expression = new ComparisonExpression<>(null, "contains",
+				new OperandLiteral<>("One"));
+		ComparisonExpression<String, String> expression1 = new ComparisonExpression<>(new OperandLiteral<>("One") , "contains", null);
+		ComparisonExpression<String, String> expression2 = new ComparisonExpression<>(new OperandLiteral<>("One"), null,
+				new OperandLiteral<>("One"));
+
+
+		assertFalse(expression.evaluate(defaultContext(caseSensitiveEvaluator)).isSuccess());
+		assertFalse(expression1.evaluate(defaultContext(caseSensitiveEvaluator)).isSuccess());
+		assertFalse(expression2.evaluate(defaultContext(caseSensitiveEvaluator)).isSuccess());
+	}
+
+	@Test
+	public void test_unknown_operator() {
+		// Always returns true
+		// setup
+		final Operand<String> op1 = new OperandLiteral<>("11");
+		final Operand<Integer> op2 = new OperandLiteral<>(1);
+
+		// test
+		final ComparisonExpression<String, Integer> expression = new ComparisonExpression<>(op1, "invalid", op2);
+		final RulesResult result = expression.evaluate(defaultContext(caseSensitiveEvaluator));
+
+		// verify
+		assertFalse(result.isSuccess());
+	}
 
 	/* **************************************************************************
 	 *  Private methods

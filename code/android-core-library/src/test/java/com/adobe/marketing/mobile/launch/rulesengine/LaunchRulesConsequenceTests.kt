@@ -99,7 +99,7 @@ class LaunchRulesConsequenceTests {
         // / Then: no consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
 
-        val attachedData = processedEvent?.eventData?.get("attached_data") as Map<*, *>
+        val attachedData = processedEvent.eventData?.get("attached_data") as Map<*, *>
 
         // / Then: ["key1": "value1"] should be attached to above launch event
         assertEquals("value1", attachedData["key1"])
@@ -131,7 +131,7 @@ class LaunchRulesConsequenceTests {
         verify(extensionApi, never()).dispatch(any())
 
         // / Then: no data should not be attached to original launch event
-        val attachedData = processedEvent?.eventData?.get("attached_data")
+        val attachedData = processedEvent.eventData?.get("attached_data")
         assertNull(attachedData)
     }
 
@@ -179,7 +179,7 @@ class LaunchRulesConsequenceTests {
 
         // / Then: "launchevent" should be removed from event data
         val lifecycleContextData =
-            processedEvent?.eventData?.get("lifecyclecontextdata") as Map<*, *>
+            processedEvent.eventData?.get("lifecyclecontextdata") as Map<*, *>
         assertNull(lifecycleContextData["launchevent"])
 
         // / Then: should get "launches" value from (lifecycle) shared state
@@ -210,7 +210,7 @@ class LaunchRulesConsequenceTests {
 
         // / Then: "launchevent" should not be removed from event data
         val lifecycleContextData =
-            processedEvent?.eventData?.get("lifecyclecontextdata") as Map<*, *>
+            processedEvent.eventData?.get("lifecyclecontextdata") as Map<*, *>
         assertNotNull(lifecycleContextData["launchevent"])
         assertNull(lifecycleContextData["launches"])
     }

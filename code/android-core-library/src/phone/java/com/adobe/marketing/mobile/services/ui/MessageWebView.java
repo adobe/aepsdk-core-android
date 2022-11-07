@@ -64,13 +64,13 @@ class MessageWebView extends WebView {
 	}
 
 	@Override
-	public void onDraw(Canvas canvas) {
+	public void onDraw(final Canvas canvas) {
 		super.onDraw(new Canvas(bitmap));
 		canvas.drawRoundRect(webviewRect, cornerRadius, cornerRadius, shaderPaint);
 	}
 
 	@Override
-	public void onSizeChanged(int newWidth, int newHeight, int oldWidth, int oldHeight) {
+	public void onSizeChanged(final int newWidth, final int newHeight, final int oldWidth, final int oldHeight) {
 		super.onSizeChanged(newWidth, newHeight, oldWidth, oldHeight);
 		webviewRect = new RectF(left, top, newWidth, newHeight);
 	}

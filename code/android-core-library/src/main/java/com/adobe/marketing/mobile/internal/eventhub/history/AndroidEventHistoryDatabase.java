@@ -18,11 +18,10 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.util.FileUtils;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;
@@ -49,7 +48,6 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
      *                or database table.
      */
     AndroidEventHistoryDatabase() throws EventHistoryDatabaseCreationException {
-        //TODO: add functional tests for testing DB migration
         try {
             openOrMigrateEventHistoryDatabaseFile();
             final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
@@ -57,8 +55,8 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
 
             synchronized (dbMutex) {
                 if (SQLiteDatabaseHelper.createTableIfNotExist(databaseFile.getCanonicalPath(), tableCreationQuery)) {
-                    MobileCore.log(LoggingMode.VERBOSE, LOG_TAG,
-                            String.format("createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME));
+                    Log.trace(CoreConstants.LOG_TAG, LOG_TAG,
+                            "createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME);
                 } else {
                     throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table in the Android Event History database.");
                 }
@@ -70,11 +68,11 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
     }
 
     private void openOrMigrateEventHistoryDatabaseFile() throws Exception {
-        final Context appContext = App.getInstance().getAppContext();
+        final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
         if(appContext == null) {
-            MobileCore.log(LoggingMode.WARNING,
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG,
                     LOG_TAG,
-                    String.format("Failed to create database (%s), the ApplicationContext is null", DATABASE_NAME));
+                    "Failed to create database (%s), the ApplicationContext is null", DATABASE_NAME);
             throw new EventHistoryDatabaseCreationException("ApplicationContext is null");
         }
         databaseFile = appContext.getDatabasePath(DATABASE_NAME);
@@ -85,15 +83,9 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                     final String cacheDirCanonicalPath = applicationCacheDir.getCanonicalPath();
                     File cacheDirDatabaseFile = new File(cacheDirCanonicalPath + "/" + DATABASE_NAME);
                     if (cacheDirDatabaseFile.exists()) {
-                        FileUtils.copyFile(cacheDirDatabaseFile, databaseFile);
-                        MobileCore.log(LoggingMode.DEBUG,
-                                LOG_TAG,
-                                String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", DATABASE_NAME));
-                        if (cacheDirDatabaseFile.delete()) {
-                            MobileCore.log(LoggingMode.DEBUG,
-                                    LOG_TAG,
-                                    String.format("Successfully delete DataQueue for database (%s) from cache directory", DATABASE_NAME));
-                        }
+                        FileUtils.moveFile(cacheDirDatabaseFile, databaseFile);
+                        Log.warning(CoreConstants.LOG_TAG, LOG_TAG,
+                                "Successfully moved DataQueue for database (%s) from cache directory to database directory", DATABASE_NAME);
                     }
                 }
             }
@@ -117,9 +109,9 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                 contentValues.put(COLUMN_TIMESTAMP, System.currentTimeMillis());
                 result = database.insert(TABLE_NAME, null, contentValues) != -1;
             } catch (final SQLException | IOException e) {
-                MobileCore.log(LoggingMode.WARNING, LOG_TAG,
-                        String.format("Failed to insert rows into the table (%s)",
-                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
+                Log.warning(CoreConstants.LOG_TAG, LOG_TAG,
+                        "Failed to insert rows into the table (%s)",
+                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage()));
                 return false;
             } finally {
                 closeDatabase();
@@ -170,9 +162,9 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
 
                 return cursor;
             } catch (final SQLException | IOException e) {
-                MobileCore.log(LoggingMode.WARNING, LOG_TAG,
-                        String.format("Failed to execute query (%s)",
-                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
+                Log.warning(CoreConstants.LOG_TAG, LOG_TAG,
+                        "Failed to execute query (%s)",
+                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage()));
             } finally {
                 closeDatabase();
             }
@@ -203,14 +195,14 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                                 + " AND " + COLUMN_TIMESTAMP + " >= ?"
                                 + " AND " + COLUMN_TIMESTAMP + " <= ?",
                         whereArgs);
-                MobileCore.log(LoggingMode.VERBOSE, LOG_TAG,
-                        String.format("Count of rows deleted in table %s are %d", TABLE_NAME, affectedRowsCount));
+                Log.trace(CoreConstants.LOG_TAG, LOG_TAG,
+                        "Count of rows deleted in table %s are %d", TABLE_NAME, affectedRowsCount);
 
                 return affectedRowsCount;
             } catch (final SQLException | IOException e) {
-                MobileCore.log(LoggingMode.DEBUG, LOG_TAG,
-                        String.format("Failed to delete table rows (%s)",
-                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
+                Log.debug(CoreConstants.LOG_TAG, LOG_TAG,
+                        "Failed to delete table rows (%s)",
+                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage()));
             } finally {
                 closeDatabase();
             }

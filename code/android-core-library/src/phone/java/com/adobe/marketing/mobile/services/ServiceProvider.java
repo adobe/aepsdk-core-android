@@ -10,15 +10,16 @@
  */
 package com.adobe.marketing.mobile.services;
 
-import android.app.Activity;
-import android.content.Context;
+import androidx.annotation.VisibleForTesting;
 
+import com.adobe.marketing.mobile.services.caching.CacheService;
+import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
+
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 import com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate;
 import com.adobe.marketing.mobile.services.ui.UIService;
 import com.adobe.marketing.mobile.services.ui.URIHandler;
-
-import java.lang.ref.WeakReference;
 
 /**
  * Maintains the current set of provided services and any potential service overrides
@@ -38,9 +39,6 @@ public class ServiceProvider {
         return ServiceProviderSingleton.INSTANCE;
     }
 
-    private volatile WeakReference<Activity> currentActivity;
-    private volatile WeakReference<Context> applicationContext;
-
     private DeviceInfoService defaultDeviceInfoService;
     private DeviceInforming overrideDeviceInfoService;
     private NetworkService defaultNetworkService;
@@ -50,6 +48,10 @@ public class ServiceProvider {
     private UIService defaultUIService;
     private FullscreenMessageDelegate messageDelegate;
     private Logging defaultLoggingService;
+    private Logging overrideLoggingService;
+    private CacheService defaultCacheService;
+    private AppContextService defaultAppContextService;
+    private AppContextService overrideAppContextService;
 
     private ServiceProvider() {
         defaultNetworkService = new NetworkService();
@@ -59,42 +61,7 @@ public class ServiceProvider {
         defaultUIService = new AndroidUIService();
         messageDelegate = null;
         defaultLoggingService = new AndroidLoggingService();
-    }
-
-    /**
-     * Sets the {@link Context} of the application
-     *
-     * @param applicationContext android application {@link Context}
-     */
-    public void setContext(final Context applicationContext) {
-        this.applicationContext = new WeakReference<>(applicationContext);
-    }
-
-    /**
-     * Sets the current {@link Activity}
-     *
-     * @param activity the current {@link Activity}
-     */
-    public void setCurrentActivity(final Activity activity) {
-        this.currentActivity = new WeakReference<>(activity);
-    }
-
-    /**
-     * Returns the {@code Context} of the application
-     *
-     * @return the {@code Context} of the application
-     */
-    Context getApplicationContext() {
-        return this.applicationContext != null ? this.applicationContext.get() : null;
-    }
-
-    /**
-     * Returns the current {@code Activity}
-     *
-     * @return the current {@code Activity}
-     */
-    Activity getCurrentActivity() {
-        return this.currentActivity != null ? this.currentActivity.get() : null;
+        defaultCacheService = new FileCacheService();
     }
 
     /**
@@ -103,8 +70,18 @@ public class ServiceProvider {
      * @return the current {@link Logging}
      */
     public Logging getLoggingService() {
-        return this.defaultLoggingService;
+        return overrideLoggingService != null ? overrideLoggingService : defaultLoggingService;
     }
+
+    /**
+     * Overrides the {@link Logging} service.
+     *
+     * @param loggingService the new {@link Logging} service which will override the default  {@link Logging} service
+     */
+    public void setLoggingService(final Logging loggingService) {
+        overrideLoggingService = loggingService;
+    }
+
 
     /**
      * Gets the {@link DataStoring} service
@@ -129,7 +106,8 @@ public class ServiceProvider {
      *
      * @param deviceInfoService new {@link DeviceInforming} service
      */
-    protected void setDeviceInfoService(DeviceInforming deviceInfoService) {
+    @VisibleForTesting
+    void setDeviceInfoService(final DeviceInforming deviceInfoService) {
         overrideDeviceInfoService = deviceInfoService;
     }
 
@@ -148,7 +126,7 @@ public class ServiceProvider {
      *
      * @param networkService the new {@link Networking} service which will override the default  {@link Networking} service
      */
-    public void setNetworkService(Networking networkService) {
+    public void setNetworkService(final Networking networkService) {
         overrideNetworkService = networkService;
     }
 
@@ -161,9 +139,38 @@ public class ServiceProvider {
         return dataQueueService;
     }
 
+    /**
+     * Gets the {@link UIService} service
+     *
+     * @return the {@link UIService} service
+     */
     public UIService getUIService() {
         return defaultUIService;
     }
+
+    /**
+     * Gets the {@link CacheService} service
+     *
+     * @return the {@link UIService} service
+     */
+    public CacheService getCacheService() {
+        return defaultCacheService;
+    }
+
+    /**
+     * Gets the {@link AppContextService} service
+     *
+     * @return the {@link AppContextService} service
+     */
+    public AppContextService getAppContextService() { return overrideAppContextService != null ? overrideAppContextService : App.INSTANCE; }
+
+    /**
+     * For testing purpose. Overrides the default {@link AppContextService} service
+     *
+     * @param appContextService new {@link AppContextService} service
+     */
+    @VisibleForTesting
+    void setAppContextService(final AppContextService appContextService) { overrideAppContextService = appContextService; }
 
     /**
      * Gets the custom {@link FullscreenMessageDelegate}.
@@ -188,7 +195,7 @@ public class ServiceProvider {
      *
      * @param uriHandler An {@link URIHandler} instance used to decide the Android link's destination
      */
-    public void setURIHandler(URIHandler uriHandler) {
+    public void setURIHandler(final URIHandler uriHandler) {
         this.getUIService().setURIHandler(uriHandler);
     }
 
@@ -196,14 +203,18 @@ public class ServiceProvider {
      * Reset the {@code ServiceProvider} to its default state.
      * Any previously set services are reset to their default state.
      */
-    protected void reset() {
+    void resetServices() {
         defaultDeviceInfoService = new DeviceInfoService();
         defaultNetworkService = new NetworkService();
         dataQueueService = new DataQueueService();
         defaultDataStoreService = new LocalDataStoreService();
+        defaultLoggingService = new AndroidLoggingService();
+        defaultUIService = new AndroidUIService();
+        defaultCacheService = new FileCacheService();
 
         overrideDeviceInfoService = null;
         overrideNetworkService = null;
+        overrideAppContextService = null;
         messageDelegate = null;
     }
 }

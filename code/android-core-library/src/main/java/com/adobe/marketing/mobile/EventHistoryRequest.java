@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.internal.util.MapUtilsKt;
-import com.adobe.marketing.mobile.internal.util.StringEncoder;
 
 import java.util.Map;
 
@@ -28,7 +27,7 @@ public class EventHistoryRequest {
      * @param fromDate Date that represents the lower bounds of the date range used when looking up an Event. If not provided, the lookup will use the beginning of Event History as the lower bounds.
      * @param toDate   Date that represents the upper bounds of the date range used when looking up an Event. If not provided, there will be no upper bound on the date range.
      */
-    public EventHistoryRequest(Map<String, Object> map, long fromDate, long toDate) {
+    public EventHistoryRequest(final Map<String, Object> map, final long fromDate, final long toDate) {
         this.map = map;
         this.fromDate = fromDate;
         this.toDate = toDate;

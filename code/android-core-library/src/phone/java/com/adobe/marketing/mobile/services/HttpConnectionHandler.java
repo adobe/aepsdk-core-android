@@ -13,10 +13,6 @@ package com.adobe.marketing.mobile.services;
 
 import android.os.Build;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.TLSSocketFactory;
-
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -79,7 +75,7 @@ class HttpConnectionHandler {
 		final int buildVersion = Build.VERSION.SDK_INT;
 
 		// https://developer.android.com/reference/javax/net/ssl/SSLSocket#default-configuration-for-different-android-versions
-		if (buildVersion < 20) {
+		if (buildVersion < Build.VERSION_CODES.KITKAT_WATCH) { //20
 			httpsUrlConnection.setSSLSocketFactory(TLSSocketFactory.getInstance());
 		}
 	}
@@ -113,15 +109,15 @@ class HttpConnectionHandler {
 			this.command = requestedCommand;
 			return true;
 		} catch (final ProtocolException e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("%s is not a valid HTTP command (%s)!", command.toString(), e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("%s is not a valid HTTP command (%s)!", command.toString(), e));
 		} catch (final IllegalStateException e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Cannot set command after connect (%s)!", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Cannot set command after connect (%s)!", e));
 		} catch (final IllegalArgumentException e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("%s command is not supported (%s)!", command.toString(), e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("%s command is not supported (%s)!", command.toString(), e));
 		} catch (final Exception e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Failed to set http command (%s)!", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Failed to set http command (%s)!", e));
 		} catch (final Error e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Failed to set http command (%s)!", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Failed to set http command (%s)!", e));
 		}
 
 		return false;
@@ -150,12 +146,12 @@ class HttpConnectionHandler {
 			try {
 				httpsUrlConnection.setRequestProperty(entry.getKey(), entry.getValue());
 			} catch (final IllegalStateException e) {
-				MobileCore.log(LoggingMode.WARNING, TAG, String.format("Cannot set header field after connect (%s)!", e));
+				Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Cannot set header field after connect (%s)!", e));
 				return;
 			} catch (final Exception e) {
-				MobileCore.log(LoggingMode.WARNING, TAG, String.format("Failed to set request property (%s)!", e));
+				Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Failed to set request property (%s)!", e));
 			} catch (final Error e) {
-				MobileCore.log(LoggingMode.WARNING, TAG, String.format("Failed to set request property (%s)!", e));
+				Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Failed to set request property (%s)!", e));
 			}
 		}
 	}
@@ -170,11 +166,11 @@ class HttpConnectionHandler {
 		try {
 			httpsUrlConnection.setConnectTimeout(connectTimeout);
 		} catch (final IllegalArgumentException e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format(connectTimeout + " is not valid timeout value (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG,TAG, String.format(connectTimeout + " is not valid timeout value (%s)", e));
 		} catch (final Exception e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Failed to set connection timeout (%s)!", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Failed to set connection timeout (%s)!", e));
 		} catch (final Error e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Failed to set connection timeout (%s)!", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Failed to set connection timeout (%s)!", e));
 		}
 	}
 
@@ -188,11 +184,11 @@ class HttpConnectionHandler {
 		try {
 			httpsUrlConnection.setReadTimeout(readTimeout);
 		} catch (final IllegalArgumentException e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format(readTimeout + " is not valid timeout value (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format(readTimeout + " is not valid timeout value (%s)", e));
 		} catch (final Exception e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Failed to set read timeout (%s)!", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Failed to set read timeout (%s)!", e));
 		} catch (final Error e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Failed to set read timeout (%s)!", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Failed to set read timeout (%s)!", e));
 		}
 
 	}
@@ -209,7 +205,7 @@ class HttpConnectionHandler {
 	 * @see HttpURLConnection#connect()
 	 */
 	HttpConnecting connect(final byte[] payload) {
-		MobileCore.log(LoggingMode.DEBUG, TAG, String.format("Connecting to URL %s (%s)",
+		Log.debug(ServiceConstants.LOG_TAG, TAG, String.format("Connecting to URL %s (%s)",
 					   (httpsUrlConnection.getURL() == null ? "" : httpsUrlConnection.getURL().toString()), command.toString()));
 
 		//If the command to be used is POST, set the length before connection
@@ -230,14 +226,14 @@ class HttpConnectionHandler {
 				os.close();
 			}
 		} catch (final SocketTimeoutException e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Connection failure, socket timeout (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Connection failure, socket timeout (%s)", e));
 		} catch (final IOException e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Connection failure (%s)",
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Connection failure (%s)",
 						   (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
 		} catch (final Exception e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Connection failure (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Connection failure (%s)", e));
 		} catch (final Error e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Connection failure (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Connection failure (%s)", e));
 		}
 
 		//Create a connection object here

@@ -11,10 +11,10 @@
 
 package com.adobe.marketing.mobile.internal.util;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.StringUtils;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -80,7 +80,7 @@ final public class StringEncoder {
 
             hash = new String(hexChars);
         } catch (final NoSuchAlgorithmException ex) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_TAG, "ADBMobile - error while attempting to encode a string (%s)" + ex);
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG,"Error while attempting to encode a string (%s)" + ex);
         }
 
         return hash;
@@ -205,7 +205,8 @@ final public class StringEncoder {
 
             return sha2HexBuilder.toString();
         } catch (NoSuchAlgorithmException e) {
-            MobileCore.log(LoggingMode.WARNING, LOG_TAG, "Cached Files - Failed to get sha2 hash " + e);
+
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Failed to create sha2 hash " + e);
         }
 
         return null;

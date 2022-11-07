@@ -16,6 +16,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ui.AndroidUIService;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,8 +41,8 @@ class DataMarshaller {
 	static final String PUSH_MESSAGE_ID_KEY = "pushmessageid";
 	static final String LOCAL_NOTIFICATION_ID_KEY = "notificationid";
 
-	private Map<String, Object> launchData = new HashMap<>();
-	private List<String> adobeQueryKeys = new ArrayList<>();
+	private final Map<String, Object> launchData = new HashMap<>();
+	private final List<String> adobeQueryKeys = new ArrayList<>();
 
 
 	private static final String ADOBE_QUERY_KEYS_PREVIEW_TOKEN = "at_preview_token";
@@ -59,28 +63,35 @@ class DataMarshaller {
 	 * @param activity Instance of an {@code Activity}.
 	 * @return An instance of this same marshaller, to help with chaining calls.
 	 */
-	DataMarshaller marshal(Activity activity) {
-		if (activity != null) {
-			if (activity.getIntent() != null) {
-				Intent intent = activity.getIntent();
-				marshalIntentExtras(intent.getExtras());
-				Uri data = intent.getData();
-
-				if (data != null && !data.toString().isEmpty()) {
-
-					Log.trace(TAG, "Receiving the Activity Uri (%s)", data.toString());
-					launchData.put(DEEPLINK_KEY, data.toString());
-
-					// This will remove the adobe specific keys from the intent data
-					// This ensures that if this intent is marshaled again, we will not track
-					// duplicate data
-					if (containAdobeQueryKeys(data)) {
-						Uri cleanDataUri = cleanUpUri(data);
-						intent.setData(cleanDataUri);
-					}
-				}
+	DataMarshaller marshal(final Activity activity) {
+		do {
+			if (activity == null) {
+				break;
 			}
-		}
+
+			if (activity.getIntent() == null) {
+				break;
+			}
+
+			Intent intent = activity.getIntent();
+			marshalIntentExtras(intent.getExtras());
+			Uri data = intent.getData();
+
+			if (data == null || data.toString().isEmpty()) {
+				break;
+			}
+
+			Log.trace(CoreConstants.LOG_TAG, TAG, "Receiving the Activity Uri (%s)", data.toString());
+			launchData.put(DEEPLINK_KEY, data.toString());
+
+			// This will remove the adobe specific keys from the intent data
+			// This ensures that if this intent is marshaled again, we will not track
+			// duplicate data
+			if (containAdobeQueryKeys(data)) {
+				Uri cleanDataUri = cleanUpUri(data);
+				intent.setData(cleanDataUri);
+			}
+		} while (false);
 
 		return this;
 	}
@@ -91,14 +102,14 @@ class DataMarshaller {
 	 * @param data The {@link java.net.URI} to be verified.
 	 * @return true if the URI contains the Adobe specific query parameters
 	 */
-	private boolean containAdobeQueryKeys(Uri data) {
+	private boolean containAdobeQueryKeys(final Uri data) {
 		if (!data.isHierarchical()) {
 			return false;
 		}
 
 		List<String> keys = new ArrayList<>(data.getQueryParameterNames());
 
-		if (keys == null || keys.isEmpty()) {
+		if (keys.isEmpty()) {
 			return false;
 		}
 
@@ -121,7 +132,7 @@ class DataMarshaller {
 	 *
 	 * @param extraBundle {@code Bundle} containing all the extras data
 	 */
-	private void marshalIntentExtras(Bundle extraBundle) {
+	private void marshalIntentExtras(final Bundle extraBundle) {
 		if (extraBundle != null) {
 
 			for (String key : extraBundle.keySet()) {
@@ -137,7 +148,7 @@ class DataMarshaller {
 
 				Object value = extraBundle.get(key);
 
-				if (value != null && value.toString() != null && value.toString().length() > 0) {
+				if (value != null && value.toString().length() > 0) {
 					this.launchData.put(newKey, value);
 				}
 			}
@@ -153,7 +164,7 @@ class DataMarshaller {
 	 * @param data The {@link java.net.URI} to be cleaned
 	 * @return The cleaned URI
 	 */
-	private Uri cleanUpUri(Uri data) {
+	private Uri cleanUpUri(final Uri data) {
 		if (!data.isHierarchical()) {
 			return data;
 		}

@@ -11,22 +11,39 @@
 
 package com.adobe.marketing.mobile;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.util.Map;
 
 /**
  * Contains the status and value for a given shared state
  */
 public class SharedStateResult {
-    public final SharedStateStatus status;
-    public final Map<String, Object> value;
+    private final SharedStateStatus status;
+    private final Map<String, Object> value;
 
     /**
      * Creates a new shared state result with given status and value
      * @param status status of the shared state
      * @param value value of the shared state
      */
-    public SharedStateResult(SharedStateStatus status, Map<String, Object> value) {
+    public SharedStateResult(@NonNull final SharedStateStatus status, @Nullable final Map<String, Object> value) {
         this.status = status;
         this.value = value;
+    }
+
+    /**
+     * Returns the {@link SharedStateStatus}.
+     */
+    public @NonNull SharedStateStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * Returns the shared state.
+     */
+    public @Nullable Map<String, Object> getValue() {
+        return value;
     }
 }

@@ -11,14 +11,17 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
+import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.internal.util.FileUtils
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
-import com.adobe.marketing.mobile.services.CacheFileService
+import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoadResult
+import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoader
 import com.adobe.marketing.mobile.services.DataStoring
 import com.adobe.marketing.mobile.services.DeviceInforming
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.caching.CacheService
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -38,9 +41,6 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.io.File
-import java.io.InputStream
-import java.lang.reflect.Field
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -60,13 +60,13 @@ class ConfigurationRulesManagerTest {
     private lateinit var mockNetworkService: Networking
 
     @Mock
-    private lateinit var mockCacheFileService: CacheFileService
+    private lateinit var mockCacheService: CacheService
 
     @Mock
     private lateinit var mockNamedCollection: NamedCollection
 
     @Mock
-    private lateinit var mockConfigurationRuleDownloader: ConfigurationRulesDownloader
+    private lateinit var mockRulesLoader: RulesLoader
 
     @Mock
     private lateinit var mockDownloadedRulesDir: File
@@ -74,12 +74,10 @@ class ConfigurationRulesManagerTest {
     @Mock
     private lateinit var mockExtensionApi: ExtensionApi
 
-    private lateinit var mockFileUtils: MockedStatic<FileUtils>
+    @Mock
+    private lateinit var mockServiceProvider: ServiceProvider
 
-    private var mockConfigRuleDownloaderSupplier: (Networking, CacheFileService, ZipFileMetadataProvider) -> ConfigurationRulesDownloader =
-        { _, _, _ ->
-            mockConfigurationRuleDownloader
-        }
+    private lateinit var mockedStaticServiceProvider: MockedStatic<ServiceProvider>
 
     private lateinit var configurationRulesManager: ConfigurationRulesManager
     private val validRulesJson =
@@ -92,20 +90,15 @@ class ConfigurationRulesManagerTest {
             mockNamedCollection
         )
 
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
+        `when`(mockServiceProvider.dataStoreService).thenReturn(mockDataStoreService)
+        `when`(mockServiceProvider.deviceInfoService).thenReturn(mockDeviceInfoService)
+        `when`(mockServiceProvider.networkService).thenReturn(mockNetworkService)
+
         `when`(mockDownloadedRulesDir.isDirectory).thenReturn(true)
 
-        configurationRulesManager = ConfigurationRulesManager(
-            mockLaunchRulesEvaluator,
-            mockDataStoreService,
-            mockDeviceInfoService,
-            mockNetworkService,
-            mockCacheFileService
-        )
-        mockFileUtils = Mockito.mockStatic(FileUtils::class.java)
-
-        val field: Field = ConfigurationRulesManager::class.java.getDeclaredField("configRulesDownloaderSupplier")
-        field.isAccessible = true
-        field.set(configurationRulesManager, mockConfigRuleDownloaderSupplier)
+        configurationRulesManager = ConfigurationRulesManager(mockLaunchRulesEvaluator, mockRulesLoader)
     }
 
     @Test
@@ -119,7 +112,7 @@ class ConfigurationRulesManagerTest {
 
         assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
-        verifyNoInteractions(mockCacheFileService)
+        verifyNoInteractions(mockCacheService)
         verifyNoInteractions(mockLaunchRulesEvaluator)
     }
 
@@ -134,12 +127,12 @@ class ConfigurationRulesManagerTest {
 
         assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
-        verifyNoInteractions(mockCacheFileService)
+        verifyNoInteractions(mockCacheService)
         verifyNoInteractions(mockLaunchRulesEvaluator)
     }
 
     @Test
-    fun `Apply Cached Rules - Cached rule directory for URL does not exist`() {
+    fun `Apply Cached Rules - Cached entry for URL does not exist`() {
         val persistedRulesURL = "www.example.com/rules"
         `when`(
             mockNamedCollection.getString(
@@ -147,70 +140,15 @@ class ConfigurationRulesManagerTest {
                 null
             )
         ).thenReturn(persistedRulesURL)
+
+        val rulesLoadResult = mock(RulesLoadResult::class.java)
+        `when`(rulesLoadResult.data).thenReturn(null)
         `when`(
-            mockCacheFileService.getCacheFile(
-                persistedRulesURL,
-                ConfigurationRulesManager.RULES_CACHE_FOLDER,
-                false
-            )
-        ).thenReturn(null)
+            mockRulesLoader.loadFromCache(persistedRulesURL)
+        ).thenReturn(rulesLoadResult)
 
         assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
-        verifyNoInteractions(mockLaunchRulesEvaluator)
-    }
-
-    @Test
-    fun `Apply Cached Rules - Cached rule directory for URL is not a directory`() {
-        val persistedRulesURL = "www.example.com/rules"
-        `when`(
-            mockNamedCollection.getString(
-                ConfigurationRulesManager.PERSISTED_RULES_URL,
-                null
-            )
-        ).thenReturn(persistedRulesURL)
-        `when`(mockDownloadedRulesDir.isDirectory).thenReturn(false)
-        `when`(
-            mockCacheFileService.getCacheFile(
-                persistedRulesURL,
-                ConfigurationRulesManager.RULES_CACHE_FOLDER,
-                false
-            )
-        ).thenReturn(mockDownloadedRulesDir)
-
-        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
-
-        verifyNoInteractions(mockLaunchRulesEvaluator)
-    }
-
-    @Test
-    fun `Apply Cached Rules - Cached rule directory has null content`() {
-        val persistedRulesURL = "www.example.com/rules"
-        `when`(
-            mockNamedCollection.getString(
-                ConfigurationRulesManager.PERSISTED_RULES_URL,
-                null
-            )
-        ).thenReturn(persistedRulesURL)
-        `when`(
-            mockCacheFileService.getCacheFile(
-                persistedRulesURL,
-                ConfigurationRulesManager.RULES_CACHE_FOLDER,
-                false
-            )
-        ).thenReturn(mockDownloadedRulesDir)
-
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(any()) }.thenReturn(null)
-
-        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
-
-        val fileCaptor: KArgumentCaptor<File> = argumentCaptor()
-        mockFileUtils.verify { FileUtils.readAsString(fileCaptor.capture()) }
-
-        assertEquals(
-            "${mockDownloadedRulesDir.path}${File.separator}${ConfigurationRulesManager.RULES_JSON_FILE_NAME}",
-            fileCaptor.firstValue.path
-        )
         verifyNoInteractions(mockLaunchRulesEvaluator)
     }
 
@@ -223,29 +161,16 @@ class ConfigurationRulesManagerTest {
                 null
             )
         ).thenReturn(persistedRulesURL)
-        `when`(
-            mockCacheFileService.getCacheFile(
-                persistedRulesURL,
-                ConfigurationRulesManager.RULES_CACHE_FOLDER,
-                false
-            )
-        ).thenReturn(mockDownloadedRulesDir)
 
-        mockFileUtils.`when`<Any> {
-            FileUtils.readAsString(any())
-        }.thenReturn(validRulesJson)
+        val rulesLoadResult = mock(RulesLoadResult::class.java)
+        `when`(rulesLoadResult.data).thenReturn(validRulesJson)
+        `when`(rulesLoadResult.reason).thenReturn(RulesLoadResult.Reason.SUCCESS)
+
+        `when`(
+            mockRulesLoader.loadFromCache(persistedRulesURL)
+        ).thenReturn(rulesLoadResult)
 
         assertTrue(configurationRulesManager.applyCachedRules(mockExtensionApi))
-
-        val fileCaptor: KArgumentCaptor<File> = argumentCaptor()
-
-        mockFileUtils.verify {
-            FileUtils.readAsString(fileCaptor.capture())
-        }
-        assertEquals(
-            "${mockDownloadedRulesDir.path}${File.separator}${ConfigurationRulesManager.RULES_JSON_FILE_NAME}",
-            fileCaptor.firstValue.path
-        )
 
         verify(mockLaunchRulesEvaluator, times(1)).replaceRules(any())
     }
@@ -260,27 +185,13 @@ class ConfigurationRulesManagerTest {
                 null
             )
         ).thenReturn(persistedRulesURL)
+
+        val rulesLoadResult = mock(RulesLoadResult::class.java)
+        `when`(rulesLoadResult.data).thenReturn(invalidRulesJson)
+
         `when`(
-            mockCacheFileService.getCacheFile(
-                persistedRulesURL,
-                ConfigurationRulesManager.RULES_CACHE_FOLDER,
-                false
-            )
-        ).thenReturn(mockDownloadedRulesDir)
-
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(any()) }.thenReturn(invalidRulesJson)
-
-        assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
-
-        val fileCaptor: KArgumentCaptor<File> = argumentCaptor()
-        mockFileUtils.verify {
-            FileUtils.readAsString(fileCaptor.capture())
-        }
-
-        assertEquals(
-            "${mockDownloadedRulesDir.path}${File.separator}${ConfigurationRulesManager.RULES_JSON_FILE_NAME}",
-            fileCaptor.firstValue.path
-        )
+            mockRulesLoader.loadFromCache(persistedRulesURL)
+        ).thenReturn(rulesLoadResult)
 
         verifyNoInteractions(mockLaunchRulesEvaluator)
     }
@@ -295,15 +206,14 @@ class ConfigurationRulesManagerTest {
             ConfigurationRulesManager.PERSISTED_RULES_URL,
             urlForRules
         )
-        verify(mockConfigurationRuleDownloader).download(
+        verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
-            eq(ConfigurationRulesManager.RULES_CACHE_FOLDER),
             any()
         )
     }
 
     @Test
-    fun `Apply Downloaded Rules - Downloaded rules directory is null`() {
+    fun `Apply Downloaded Rules - Downloaded rules are null`() {
         val urlForRules = "www.example.com/rules"
 
         configurationRulesManager.applyDownloadedRules(urlForRules, mockExtensionApi)
@@ -312,71 +222,24 @@ class ConfigurationRulesManagerTest {
             ConfigurationRulesManager.PERSISTED_RULES_URL,
             urlForRules
         )
-        val callbackCaptor: KArgumentCaptor<(file: File?) -> Unit> = argumentCaptor()
 
-        verify(mockConfigurationRuleDownloader).download(
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<RulesLoadResult>> = argumentCaptor()
+
+        verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
-            eq(ConfigurationRulesManager.RULES_CACHE_FOLDER),
             callbackCaptor.capture()
         )
 
         val capturedCallback = callbackCaptor.firstValue
 
         // Simulate callback invocation
-        capturedCallback.invoke(null)
-        verifyNoInteractions(mockLaunchRulesEvaluator)
-    }
-
-    @Test
-    fun `Apply Downloaded Rules - Downloaded rules directory is not a directory`() {
-        val urlForRules = "www.example.com/rules"
-        `when`(mockDownloadedRulesDir.isDirectory).thenReturn(false)
-
-        configurationRulesManager.applyDownloadedRules(urlForRules, mockExtensionApi)
-
-        verify(mockNamedCollection).setString(
-            ConfigurationRulesManager.PERSISTED_RULES_URL,
-            urlForRules
-        )
-        val callbackCaptor: KArgumentCaptor<(file: File?) -> Unit> = argumentCaptor()
-
-        verify(mockConfigurationRuleDownloader).download(
-            eq(urlForRules),
-            eq(ConfigurationRulesManager.RULES_CACHE_FOLDER),
-            callbackCaptor.capture()
+        capturedCallback.call(
+            RulesLoadResult(
+                null,
+                RulesLoadResult.Reason.SUCCESS
+            )
         )
 
-        val capturedCallback = callbackCaptor.firstValue
-
-        // Simulate callback invocation
-        capturedCallback.invoke(mockDownloadedRulesDir)
-        verifyNoInteractions(mockLaunchRulesEvaluator)
-    }
-
-    @Test
-    fun `Apply Downloaded Rules - Downloaded rules directory is does not have rules file`() {
-        val urlForRules = "www.example.com/rules"
-
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(any()) }.thenReturn(null)
-
-        configurationRulesManager.applyDownloadedRules(urlForRules, mockExtensionApi)
-
-        verify(mockNamedCollection).setString(
-            ConfigurationRulesManager.PERSISTED_RULES_URL,
-            urlForRules
-        )
-        val callbackCaptor: KArgumentCaptor<(file: File?) -> Unit> = argumentCaptor()
-
-        verify(mockConfigurationRuleDownloader).download(
-            eq(urlForRules),
-            eq(ConfigurationRulesManager.RULES_CACHE_FOLDER),
-            callbackCaptor.capture()
-        )
-
-        val capturedCallback = callbackCaptor.firstValue
-
-        // Simulate callback invocation
-        capturedCallback.invoke(mockDownloadedRulesDir)
         verifyNoInteractions(mockLaunchRulesEvaluator)
     }
 
@@ -385,24 +248,29 @@ class ConfigurationRulesManagerTest {
         val urlForRules = "www.example.com/rules"
         val invalidRulesJson = "{InvalidRulesJson}"
 
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(any()) }.thenReturn(invalidRulesJson)
-
         configurationRulesManager.applyDownloadedRules(urlForRules, mockExtensionApi)
 
         verify(mockNamedCollection).setString(
             ConfigurationRulesManager.PERSISTED_RULES_URL,
             urlForRules
         )
-        val callbackCaptor: KArgumentCaptor<(file: File?) -> Unit> = argumentCaptor()
 
-        verify(mockConfigurationRuleDownloader).download(
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<RulesLoadResult>> = argumentCaptor()
+
+        verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
-            eq(ConfigurationRulesManager.RULES_CACHE_FOLDER),
             callbackCaptor.capture()
         )
+
         val capturedCallback = callbackCaptor.firstValue
+
         // Simulate callback invocation
-        capturedCallback.invoke(mockDownloadedRulesDir)
+        capturedCallback.call(
+            RulesLoadResult(
+                invalidRulesJson, RulesLoadResult.Reason.SUCCESS
+            )
+        )
+
         verifyNoInteractions(mockLaunchRulesEvaluator)
     }
 
@@ -410,135 +278,90 @@ class ConfigurationRulesManagerTest {
     fun `Apply Downloaded Rules - Downloaded rules directory has valid rules`() {
         val urlForRules = "www.example.com/rules"
 
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(any()) }.thenReturn(validRulesJson)
-
         configurationRulesManager.applyDownloadedRules(urlForRules, mockExtensionApi)
 
         verify(mockNamedCollection).setString(
             ConfigurationRulesManager.PERSISTED_RULES_URL,
             urlForRules
         )
-        val callbackCaptor: KArgumentCaptor<(file: File?) -> Unit> = argumentCaptor()
 
-        verify(mockConfigurationRuleDownloader).download(
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<RulesLoadResult>> = argumentCaptor()
+
+        verify(mockRulesLoader).loadFromUrl(
             eq(urlForRules),
-            eq(ConfigurationRulesManager.RULES_CACHE_FOLDER),
             callbackCaptor.capture()
         )
+
         val capturedCallback = callbackCaptor.firstValue
+
         // Simulate callback invocation
-        capturedCallback.invoke(mockDownloadedRulesDir)
+        capturedCallback.call(
+            RulesLoadResult(
+                validRulesJson, RulesLoadResult.Reason.SUCCESS
+            )
+        )
 
         verify(mockLaunchRulesEvaluator, times(1)).replaceRules(any())
     }
 
     @Test
-    fun `Apply Bundled Rules - Application Cache Dir is null`() {
-        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(null)
+    fun `Apply Bundled Rules - bundled rules cannot be extracted`() {
+        `when`(mockRulesLoader.loadFromAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
+            RulesLoadResult(
+                null,
+                RulesLoadResult.Reason.ZIP_EXTRACTION_FAILED
+            )
+        )
 
-        assertFalse(configurationRulesManager.applyBundledRules(mockExtensionApi))
+        configurationRulesManager.applyBundledRules(mockExtensionApi)
+
         verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
     }
 
     @Test
-    fun `Apply Bundled Rules - Application Cache Dir cannot be created`() {
-        val mockApplicationCacheDir = mock(File::class.java)
-        val mockCacheDirPath = "/path/to/appCacheDir/"
-        `when`(mockApplicationCacheDir.absolutePath).thenReturn(mockCacheDirPath)
-        `when`(mockApplicationCacheDir.exists()).thenReturn(false)
-        `when`(mockApplicationCacheDir.mkdirs()).thenReturn(false)
-        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(mockApplicationCacheDir)
+    fun `Apply Bundled Rules - RulesDownloadResult has null data`() {
+        `when`(mockRulesLoader.loadFromAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
+            RulesLoadResult(
+                null,
+                RulesLoadResult.Reason.SUCCESS
+            )
+        )
 
-        assertFalse(configurationRulesManager.applyBundledRules(mockExtensionApi))
+        configurationRulesManager.applyBundledRules(mockExtensionApi)
+
         verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
     }
 
     @Test
-    fun `Apply Bundled Rules - Bundled Asset cannot be read`() {
-        val mockCacheDirPath = this::class.java.classLoader?.getResource("")?.path
-        val mockApplicationCacheDir = mock(File::class.java)
-        `when`(mockApplicationCacheDir.exists()).thenReturn(true)
-        `when`(mockApplicationCacheDir.mkdirs()).thenReturn(true)
-        `when`(mockApplicationCacheDir.absolutePath).thenReturn(mockCacheDirPath)
-
-        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(mockApplicationCacheDir)
-        val mockBundledRulesStream = mock(InputStream::class.java)
-        `when`(mockDeviceInfoService.getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME))
-            .thenReturn(mockBundledRulesStream)
-        mockFileUtils.`when`<Any> {
-            FileUtils.readInputStreamIntoFile(
-                any(),
-                eq(mockBundledRulesStream), eq(false)
+    fun `Apply Bundled Rules - temporary cache cannot be written into`() {
+        `when`(mockRulesLoader.loadFromAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
+            RulesLoadResult(
+                null,
+                RulesLoadResult.Reason.CANNOT_CREATE_TEMP_DIR
             )
-        }.thenReturn(false)
+        )
 
-        assertFalse(configurationRulesManager.applyBundledRules(mockExtensionApi))
+        configurationRulesManager.applyBundledRules(mockExtensionApi)
 
-        verify(mockDeviceInfoService).getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)
         verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
     }
 
     @Test
-    fun `Apply Bundled Rules - Bundled Asset cannot be extracted`() {
-        val mockCacheDirPath = this::class.java.classLoader?.getResource("")?.path
-        val mockApplicationCacheDir = mock(File::class.java)
-        `when`(mockApplicationCacheDir.exists()).thenReturn(true)
-        `when`(mockApplicationCacheDir.mkdirs()).thenReturn(true)
-        `when`(mockApplicationCacheDir.absolutePath).thenReturn(mockCacheDirPath)
-        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(mockApplicationCacheDir)
-        val mockBundledRulesStream = mock(InputStream::class.java)
-        `when`(mockDeviceInfoService.getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME))
-            .thenReturn(mockBundledRulesStream)
-        mockFileUtils.`when`<Any> {
-            FileUtils.readInputStreamIntoFile(
-                any(),
-                eq(mockBundledRulesStream), eq(false)
+    fun `Apply Bundled Rules - RulesDownloadResult has valid data`() {
+        `when`(mockRulesLoader.loadFromAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)).thenReturn(
+            RulesLoadResult(
+                validRulesJson,
+                RulesLoadResult.Reason.SUCCESS
             )
-        }.thenReturn(true)
-        mockFileUtils.`when`<Any> { FileUtils.extractFromZip(any(), any()) }.thenReturn(false)
+        )
 
-        assertFalse(configurationRulesManager.applyBundledRules(mockExtensionApi))
+        configurationRulesManager.applyBundledRules(mockExtensionApi)
 
-        verify(mockDeviceInfoService).getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)
-        mockFileUtils.verify {
-            FileUtils.extractFromZip(
-                any(),
-                eq(mockCacheDirPath + "adbdownloadcache")
-            )
-        }
-        verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
-    }
-
-    @Test
-    fun `Apply Bundled Rules - Bundled Asset is valid`() {
-        val mockCacheDirPath = this::class.java.classLoader?.getResource("")?.path
-        val bundledRulesPath = File(mockCacheDirPath, "adbdownloadcache/${ConfigurationRulesManager.BUNDLED_RULES_DIR}")
-        bundledRulesPath.mkdirs()
-        val mockApplicationCacheDir = mock(File::class.java)
-        `when`(mockApplicationCacheDir.absolutePath).thenReturn(mockCacheDirPath)
-        `when`(mockDeviceInfoService.applicationCacheDir).thenReturn(mockApplicationCacheDir)
-        val mockBundledRulesStream = mock(InputStream::class.java)
-        `when`(mockDeviceInfoService.getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME))
-            .thenReturn(mockBundledRulesStream)
-        mockFileUtils.`when`<Any> {
-            FileUtils.readInputStreamIntoFile(
-                any(),
-                eq(mockBundledRulesStream), eq(false)
-            )
-        }.thenReturn(true)
-        mockFileUtils.`when`<Any> { FileUtils.extractFromZip(any(), any()) }.thenReturn(true)
-        mockFileUtils.`when`<Any> { FileUtils.readAsString(any()) }.thenReturn(validRulesJson)
-
-        assertTrue(configurationRulesManager.applyBundledRules(mockExtensionApi))
-
-        verify(mockDeviceInfoService).getAsset(ConfigurationRulesManager.BUNDLED_RULES_FILE_NAME)
-        verify(mockLaunchRulesEvaluator).replaceRules(any())
-
-        bundledRulesPath.deleteRecursively()
+        verify(mockLaunchRulesEvaluator, times(1)).replaceRules(any())
     }
 
     @After
     fun teardown() {
-        mockFileUtils.close()
+        mockedStaticServiceProvider.close()
     }
 }

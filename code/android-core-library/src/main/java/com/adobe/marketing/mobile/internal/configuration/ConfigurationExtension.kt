@@ -18,13 +18,11 @@ import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResolver
-import com.adobe.marketing.mobile.internal.compatibility.CacheManager
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
-import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.DataReader
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -39,10 +37,10 @@ import java.util.concurrent.TimeUnit
 internal class ConfigurationExtension : Extension {
 
     companion object {
-        internal const val TAG = "ConfigurationExtension"
+        internal const val TAG = "Configuration"
         private const val EXTENSION_NAME = "com.adobe.module.configuration"
         private const val EXTENSION_FRIENDLY_NAME = "Configuration"
-        private const val EXTENSION_VERSION = "2.0.0"
+        private const val EXTENSION_VERSION = CoreConstants.VERSION
 
         internal const val CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID = "config.appId"
         internal const val CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH = "config.filePath"
@@ -70,9 +68,7 @@ internal class ConfigurationExtension : Extension {
         REMOTE
     }
 
-    private val serviceProvider: ServiceProvider
     private val appIdManager: AppIdManager
-    private val cacheFileService: CacheFileService
     private val launchRulesEvaluator: LaunchRulesEvaluator
     private val configurationStateManager: ConfigurationStateManager
     private val configurationRulesManager: ConfigurationRulesManager
@@ -80,18 +76,9 @@ internal class ConfigurationExtension : Extension {
     private var retryConfigurationCounter: Int = 0
     private var retryConfigTaskHandle: Future<*>? = null
 
-    constructor(extensionApi: ExtensionApi) : this(extensionApi, ServiceProvider.getInstance())
-
-    /**
-     * Exists only for cascading components for dependency injection.
-     */
-    private constructor(
-        extensionApi: ExtensionApi,
-        serviceProvider: ServiceProvider
-    ) : this(
-        extensionApi, serviceProvider,
-        AppIdManager(serviceProvider.dataStoreService, serviceProvider.deviceInfoService),
-        CacheManager(serviceProvider.deviceInfoService),
+    constructor(extensionApi: ExtensionApi) : this(
+        extensionApi,
+        AppIdManager(),
         LaunchRulesEvaluator("Configuration", LaunchRulesEngine(extensionApi), extensionApi),
         Executors.newSingleThreadScheduledExecutor()
     )
@@ -101,48 +88,28 @@ internal class ConfigurationExtension : Extension {
      */
     private constructor(
         extensionApi: ExtensionApi,
-        serviceProvider: ServiceProvider,
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
         launchRulesEvaluator: LaunchRulesEvaluator,
         retryWorker: ScheduledExecutorService
     ) : this(
         extensionApi,
-        serviceProvider,
         appIdManager,
-        cacheFileService,
         launchRulesEvaluator,
         retryWorker,
-        ConfigurationStateManager(
-            appIdManager,
-            cacheFileService,
-            serviceProvider.networkService,
-            serviceProvider.deviceInfoService,
-            serviceProvider.dataStoreService
-        ),
-        ConfigurationRulesManager(
-            launchRulesEvaluator,
-            serviceProvider.dataStoreService,
-            serviceProvider.deviceInfoService,
-            serviceProvider.networkService,
-            cacheFileService
-        )
+        ConfigurationStateManager(appIdManager),
+        ConfigurationRulesManager(launchRulesEvaluator)
     )
 
     @VisibleForTesting
     internal constructor(
         extensionApi: ExtensionApi,
-        serviceProvider: ServiceProvider,
         appIdManager: AppIdManager,
-        cacheFileService: CacheFileService,
         launchRulesEvaluator: LaunchRulesEvaluator,
         retryWorker: ScheduledExecutorService,
         configurationStateManager: ConfigurationStateManager,
         configurationRulesManager: ConfigurationRulesManager
     ) : super(extensionApi) {
-        this.serviceProvider = serviceProvider
         this.appIdManager = appIdManager
-        this.cacheFileService = cacheFileService
         this.launchRulesEvaluator = launchRulesEvaluator
         this.retryWorker = retryWorker
         this.configurationStateManager = configurationStateManager
@@ -173,7 +140,7 @@ internal class ConfigurationExtension : Extension {
         val initialConfig: Map<String, Any?> = this.configurationStateManager.loadInitialConfig()
 
         if (initialConfig.isNotEmpty()) {
-            applyConfigurationChanges(null, RulesSource.CACHE, null)
+            applyConfigurationChanges(RulesSource.CACHE, null)
         } else {
             Log.trace(
                 TAG,
@@ -195,7 +162,7 @@ internal class ConfigurationExtension : Extension {
         // registration completes.
         val initialConfigState = configurationStateManager.environmentAwareConfiguration
         if (initialConfigState.isNotEmpty()) {
-            publishConfigurationState(initialConfigState, null)
+            api.createSharedState(initialConfigState, null)
         }
 
         api.registerEventListener(
@@ -203,6 +170,13 @@ internal class ConfigurationExtension : Extension {
             EventSource.REQUEST_CONTENT
         ) {
             handleConfigurationRequestEvent(it)
+        }
+
+        api.registerEventListener(
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_IDENTITY
+        ) {
+            retrieveSDKIdentifiers(it)
         }
     }
 
@@ -240,7 +214,7 @@ internal class ConfigurationExtension : Extension {
                 updateConfiguration(event, api.createPendingSharedState(event))
             }
             event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG) -> {
-                clearUpdatedConfiguration(event, api.createPendingSharedState(event))
+                clearUpdatedConfiguration(api.createPendingSharedState(event))
             }
             event.eventData.containsKey(CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG) -> {
                 retrieveConfiguration(event)
@@ -282,7 +256,7 @@ internal class ConfigurationExtension : Extension {
         configurationStateManager.updateConfigWithAppId(appId) { config ->
             if (config != null) {
                 cancelConfigRetry()
-                applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+                applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
             } else {
                 Log.trace(
                     TAG,
@@ -325,7 +299,7 @@ internal class ConfigurationExtension : Extension {
 
         val result = configurationStateManager.updateConfigWithFilePath(filePath)
         if (result) {
-            applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+            applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
         } else {
             Log.debug(
                 TAG,
@@ -358,7 +332,7 @@ internal class ConfigurationExtension : Extension {
 
         val result = configurationStateManager.updateConfigWithFileAsset(fileAssetName)
         if (result) {
-            applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+            applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
         } else {
             Log.debug(
                 TAG,
@@ -395,18 +369,17 @@ internal class ConfigurationExtension : Extension {
         }
 
         configurationStateManager.updateProgrammaticConfig(programmaticConfig)
-        applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+        applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
     }
 
     /**
      * Clears any updates made to the configuration (more specifically the programmatic config)
      * maintained by the extension.
      *
-     * @param event an event requesting configuration to be cleared.
      */
-    private fun clearUpdatedConfiguration(event: Event, sharedStateResolver: SharedStateResolver) {
+    private fun clearUpdatedConfiguration(sharedStateResolver: SharedStateResolver) {
         configurationStateManager.clearProgrammaticConfig()
-        applyConfigurationChanges(event, RulesSource.REMOTE, sharedStateResolver)
+        applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
     }
 
     /**
@@ -420,6 +393,27 @@ internal class ConfigurationExtension : Extension {
             configurationStateManager.environmentAwareConfiguration,
             event
         )
+    }
+
+    /**
+     * Dispatches an event containing the current SDK Identifiers
+     *
+     * @param event the event to which the current SDK Identifiers should be
+     *        dispatched as a response
+     */
+    private fun retrieveSDKIdentifiers(event: Event) {
+        val eventData = mutableMapOf<String, Any?>()
+        MobileIdentitiesProvider.collectSdkIdentifiers(event, api).also { sdkIdentitiesJson ->
+            eventData[CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS] = sdkIdentitiesJson
+        }
+
+        val responseIdentityEvent = Event.Builder(
+            "Configuration Response Identity",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_IDENTITY
+        ).setEventData(eventData).inResponseToEvent(event).build()
+
+        api.dispatch(responseIdentityEvent)
     }
 
     /**
@@ -456,17 +450,15 @@ internal class ConfigurationExtension : Extension {
 
     /**
      * Does three things
-     *  - Publishes the current configuration as configuration state at [triggerEvent] per [publishState]
-     *  - Dispatches an event response to the [triggerEvent]
+     *  - Publishes the current configuration as configuration state
+     *  - Dispatches an event response broadly as a configuration response event
      *  - Replaces current rules and applies the new rules based on [rulesSource]
      *
-     *  @param triggerEvent the event that triggered the configuration change
      *  @param rulesSource the source of the rules that need to be applied
      *  @param sharedStateResolver resolver to be notified with current state.
      *         State will not be set if this is null.
      */
     private fun applyConfigurationChanges(
-        triggerEvent: Event?,
         rulesSource: RulesSource,
         sharedStateResolver: SharedStateResolver?
     ) {
@@ -474,9 +466,9 @@ internal class ConfigurationExtension : Extension {
 
         sharedStateResolver?.resolve(config)
 
-        dispatchConfigurationResponse(config, triggerEvent)
+        dispatchConfigurationResponse(config)
 
-        val rulesReplaced = replaceRules(config, rulesSource)
+        val rulesReplaced = replaceRules(rulesSource)
         if (rulesSource == RulesSource.CACHE && !rulesReplaced) {
             configurationRulesManager.applyBundledRules(api)
         }
@@ -488,7 +480,10 @@ internal class ConfigurationExtension : Extension {
      * @param eventData the content of the event data for the response event
      * @param triggerEvent the [Event] to which the response is being dispatched
      */
-    private fun dispatchConfigurationResponse(eventData: Map<String, Any?>, triggerEvent: Event?) {
+    private fun dispatchConfigurationResponse(
+        eventData: Map<String, Any?>,
+        triggerEvent: Event? = null
+    ) {
         val builder = Event.Builder(
             "Configuration Response Event",
             EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT
@@ -513,29 +508,11 @@ internal class ConfigurationExtension : Extension {
     }
 
     /**
-     * Publishes the state of [ConfigurationExtension] to [EventHub]
-     *
-     * @param state the configuration state that is to be published
-     * @param event the event (if any) to which the state is to be published as a response.
-     */
-    private fun publishConfigurationState(state: Map<String, Any?>, event: Event?) {
-        val successful = api.createSharedState(state, event)
-        if (!successful) {
-            Log.warning(
-                TAG,
-                TAG,
-                "Failed to update configuration state."
-            )
-        }
-    }
-
-    /**
      * Replaces the existing rules in the rules engine.
      *
-     * @param config the configuration from which the rules url is extracted
      * @param rulesSource the source of the rules that need to be applied
      */
-    private fun replaceRules(config: Map<String, Any?>, rulesSource: RulesSource): Boolean {
+    private fun replaceRules(rulesSource: RulesSource): Boolean {
         when (rulesSource) {
             RulesSource.CACHE -> {
                 return configurationRulesManager.applyCachedRules(api)
@@ -546,23 +523,19 @@ internal class ConfigurationExtension : Extension {
             }
 
             RulesSource.REMOTE -> {
+                val config = configurationStateManager.environmentAwareConfiguration
                 val rulesURL: String? = config[RULES_CONFIG_URL] as? String
                 return if (!rulesURL.isNullOrBlank()) {
                     configurationRulesManager.applyDownloadedRules(rulesURL, api)
                 } else {
-                    Log.warning(
+                    Log.debug(
                         TAG,
                         TAG,
-                        "Cannot load rules form rules URL: $rulesURL}"
+                        "Rules URL is empty or null"
                     )
                     false
                 }
             }
         }
-    }
-
-    private fun Set<*>.isAllString(): Boolean {
-        this.forEach { if (it !is String) return false }
-        return true
     }
 }

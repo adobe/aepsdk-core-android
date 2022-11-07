@@ -15,15 +15,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Transformer implements Transforming {
-	Map<String, TransformerBlock> transformations = new HashMap<>();
+	Map<String, TransformerBlock<?>> transformations = new HashMap<>();
 
-	public void register(final String name, final TransformerBlock transformerBlock) {
+	public void register(final String name, final TransformerBlock<?> transformerBlock) {
 		transformations.put(name, transformerBlock);
 	}
 
 	@Override
-	public Object transform(String name, Object parameter) {
-		TransformerBlock block = transformations.get(name);
+	public Object transform(final String name, final Object parameter) {
+		TransformerBlock<?> block = transformations.get(name);
 
 		if (block == null) {
 			return parameter;

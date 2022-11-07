@@ -11,10 +11,12 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
+import com.adobe.marketing.mobile.internal.CoreConstants
+
 internal object EventHubConstants {
     const val NAME = "com.adobe.module.eventhub"
     const val FRIENDLY_NAME = "EventHub"
-    const val VERSION_NUMBER = "2.0.0"
+    const val VERSION_NUMBER = CoreConstants.VERSION
     const val STATE_CHANGE = "Shared state change"
     const val XDM_STATE_CHANGE = "Shared state change (XDM)"
 
@@ -28,26 +30,6 @@ internal object EventHubConstants {
 
         object Configuration {
             const val EVENT_STATE_OWNER = "stateowner"
-        }
-    }
-
-    object Wrapper {
-        object Name {
-            const val REACT_NATIVE = "React Native"
-            const val FLUTTER = "Flutter"
-            const val CORDOVA = "Cordova"
-            const val UNITY = " Unity"
-            const val XAMARIN = "Xamarin"
-            const val NONE = "None"
-        }
-
-        object Type {
-            const val REACT_NATIVE = "R"
-            const val FLUTTER = "F"
-            const val CORDOVA = "C"
-            const val UNITY = "U"
-            const val XAMARIN = "X"
-            const val NONE = "N"
         }
     }
 }

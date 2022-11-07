@@ -35,7 +35,7 @@ public class OperandMustacheToken<T> implements Operand<T> {
 	 * @param tokenString string representing a mustache token operand
 	 * @param tClass string representing a mustache token operand
 	 */
-	public OperandMustacheToken(final String tokenString, Class<T> tClass) {
+	public OperandMustacheToken(final String tokenString, final Class<T> tClass) {
 		MustacheToken mustacheToken = null;
 		// Mustache token operands must have only one token, ignore others.
 		final List<Segment> segmentList = TemplateParser.parse(tokenString);
@@ -66,7 +66,6 @@ public class OperandMustacheToken<T> implements Operand<T> {
 		try {
 			return tClass.cast(resolvedValue);
 		} catch (ClassCastException ex) {
-			Log.debug(LOG_TAG, "resolve: Error casting value to type " + tClass);
 			return null;
 		}
 	}

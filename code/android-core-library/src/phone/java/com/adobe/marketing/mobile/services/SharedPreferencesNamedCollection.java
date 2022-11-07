@@ -14,9 +14,6 @@ package com.adobe.marketing.mobile.services;
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.HashMap;
@@ -117,7 +114,7 @@ class SharedPreferencesNamedCollection implements NamedCollection {
 			sharedPreferencesEditor.putString(key, jsonFromMap.toString());
 			sharedPreferenceCommit();
 		} catch (NullPointerException e) {
-			MobileCore.log(LoggingMode.ERROR, TAG, "Map contains null key.");
+			Log.error(ServiceConstants.LOG_TAG, TAG, "Map contains null key.");
 		}
 	}
 
@@ -140,12 +137,12 @@ class SharedPreferencesNamedCollection implements NamedCollection {
 				try {
 					map.put(keyName, jsonObject.getString(keyName));
 				} catch (JSONException jsonException) {
-					MobileCore.log(LoggingMode.WARNING, TAG, String.format("Unable to convert jsonObject key %s into map, %s", keyName,
+					Log.error(ServiceConstants.LOG_TAG, TAG, String.format("Unable to convert jsonObject key %s into map, %s", keyName,
 								   jsonException.getLocalizedMessage()));
 				}
 			}
 		} catch (Exception e) {
-			MobileCore.log(LoggingMode.ERROR, TAG, String.format("Failed to convert [%s] to String Map, %s", mapJsonString,
+			Log.error(ServiceConstants.LOG_TAG, TAG, String.format("Failed to convert [%s] to String Map, %s", mapJsonString,
 						   e.getLocalizedMessage()));
 			map = null;
 		}
@@ -172,7 +169,7 @@ class SharedPreferencesNamedCollection implements NamedCollection {
 
 	private void sharedPreferenceCommit() {
 		if (!sharedPreferencesEditor.commit()) {
-			MobileCore.log(LoggingMode.ERROR, TAG, "Android SharedPreference unable to commit the persisted data");
+			Log.error(ServiceConstants.LOG_TAG, TAG, "Android SharedPreference unable to commit the persisted data");
 		}
 	}
 }

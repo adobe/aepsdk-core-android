@@ -13,7 +13,9 @@ package com.adobe.marketing.mobile;
 
 import androidx.annotation.NonNull;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.util.MapExtensionsKt;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.EventDataUtils;
 
 import java.util.*;
@@ -111,7 +113,7 @@ public final class Event {
 			try {
 				event.data = EventDataUtils.immutableClone(data);
 			} catch (final Exception e) {
-				Log.warning("EventBuilder", "Event data couldn't be serialized, empty data was set instead %s", e);
+				Log.warning(CoreConstants.LOG_TAG, "EventBuilder", "Event data couldn't be serialized, empty data was set instead %s", e);
 			}
 
 			return this;
@@ -136,25 +138,6 @@ public final class Event {
 			}
 
 			return event;
-		}
-
-		/**
-		 * Sets the data associated with this {@code Event}
-		 *
-		 * @param data {@link EventData} for this event
-		 * @return this Event {@link Builder}
-		 * @throws UnsupportedOperationException if this method is called after {@link Builder#build()} was called
-		 */
-		@Deprecated
-		Builder setData(final EventData data) {
-			throwIfAlreadyBuilt();
-			// Todo - Remove this method once all EventData usage is removed from Core.
-			try {
-				event.data = EventDataUtils.immutableClone(data.toObjectMap());
-			} catch (Exception ex) {
-				Log.error("Error", ex.toString());
-			}
-			return this;
 		}
 
 		/**
@@ -319,7 +302,7 @@ public final class Event {
 	 *
 	 */
 	@Deprecated
-	void setResponseID(String responseID) {
+	void setResponseID(final String responseID) {
 		this.responseID = responseID;
 	}
 

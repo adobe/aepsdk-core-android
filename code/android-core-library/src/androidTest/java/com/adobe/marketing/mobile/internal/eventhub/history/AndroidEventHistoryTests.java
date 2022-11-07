@@ -15,18 +15,18 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import android.app.Activity;
 import android.content.Context;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventHistoryRequest;
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
-import com.adobe.marketing.mobile.internal.context.App;
+import com.adobe.marketing.mobile.TestUtils;
+import com.adobe.marketing.mobile.services.MockAppContextService;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,33 +39,16 @@ import java.util.concurrent.CountDownLatch;
 public class AndroidEventHistoryTests {
     private AndroidEventHistory androidEventHistory;
     private HashMap<String, Object> data;
-    private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
-
-    private static final AppContextProvider appContextProvider = new AppContextProvider();
-    private static class AppContextProvider implements App.AppContextProvider {
-
-        private Context context;
-
-        public void setContext(Context context) {
-            this.context = context;
-        }
-
-        @Override
-        public Context getAppContext() {
-            return this.context;
-        }
-
-        @Override
-        public Activity getCurrentActivity() {
-            return null;
-        }
-    }
 
     @Before
     public void beforeEach() {
-        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        appContextProvider.setContext(context);
-        App.getInstance().initializeApp(appContextProvider);
+        Context context = ApplicationProvider.getApplicationContext();
+
+        MockAppContextService mockAppContextService = new MockAppContextService();
+        mockAppContextService.appContext = context;
+        ServiceProviderModifier.setAppContextService(mockAppContextService);
+
+        TestUtils.deleteAllFilesInCacheDir(context);
 
         try {
             androidEventHistory = new AndroidEventHistory();
@@ -78,11 +61,6 @@ public class AndroidEventHistoryTests {
                 put("key", "value");
             }
         };
-    }
-
-    @After
-    public void cleanup() {
-        appContextProvider.getAppContext().getDatabasePath(DATABASE_NAME).delete();
     }
 
     @Test

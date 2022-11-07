@@ -12,11 +12,11 @@
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.internal.util.map
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.rulesengine.Evaluable
+import com.adobe.marketing.mobile.services.Log
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -44,8 +44,8 @@ internal class JSONRule private constructor(
             val condition = jsonObject.getJSONObject(KEY_CONDITION)
             val consequences = jsonObject.getJSONArray(KEY_CONSEQUENCES)
             if (condition !is JSONObject || consequences !is JSONArray) {
-                MobileCore.log(
-                    LoggingMode.ERROR,
+                Log.error(
+                    LaunchRulesEngineConstants.LOG_TAG,
                     LOG_TAG,
                     "Failed to extract [rule.condition] or [rule.consequences]."
                 )
@@ -64,8 +64,8 @@ internal class JSONRule private constructor(
     internal fun toLaunchRule(extensionApi: ExtensionApi): LaunchRule? {
         val evaluable = JSONCondition.build(condition, extensionApi)?.toEvaluable()
         if (evaluable !is Evaluable) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 LOG_TAG,
                 "Failed to build LaunchRule from JSON, the [rule.condition] can't be parsed to Evaluable."
             )

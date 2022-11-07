@@ -11,9 +11,6 @@
 
 package com.adobe.marketing.mobile.services;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.UnknownServiceException;
@@ -44,12 +41,12 @@ class HttpConnection implements HttpConnecting {
 		try {
 			return httpUrlConnection.getInputStream();
 		} catch (final UnknownServiceException e) {
-			MobileCore.log(LoggingMode.WARNING, TAG,
+			Log.warning(ServiceConstants.LOG_TAG, TAG,
 						   String.format("Could not get the input stream, protocol does not support input. (%s)", e));
 		} catch (final Exception e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not get the input stream. (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not get the input stream. (%s)", e));
 		} catch (final Error e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not get the input stream. (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not get the input stream. (%s)", e));
 		}
 
 		return null;
@@ -66,9 +63,9 @@ class HttpConnection implements HttpConnecting {
 		try {
 			return httpUrlConnection.getErrorStream();
 		} catch (final Exception e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not get the input stream. (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not get the input stream. (%s)", e));
 		} catch (final Error e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not get the input stream. (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not get the input stream. (%s)", e));
 		}
 
 		return null;
@@ -87,9 +84,9 @@ class HttpConnection implements HttpConnecting {
 		try {
 			return httpUrlConnection.getResponseCode();
 		} catch (final Exception e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not get response code. (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not get response code. (%s)", e));
 		} catch (final Error e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not get response code. (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not get response code. (%s)", e));
 		}
 
 		return -1;
@@ -108,9 +105,9 @@ class HttpConnection implements HttpConnecting {
 		try {
 			return httpUrlConnection.getResponseMessage();
 		} catch (final Exception e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not get the response message. (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not get the response message. (%s)", e));
 		} catch (final Error e) {
-			MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not get the response message. (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not get the response message. (%s)", e));
 		}
 
 		return null;
@@ -144,9 +141,9 @@ class HttpConnection implements HttpConnecting {
 			try {
 				inputStream.close();
 			} catch (final Exception e) {
-				MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not close the input stream. (%s)", e));
+				Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not close the input stream. (%s)", e));
 			} catch (Error e) {
-				MobileCore.log(LoggingMode.WARNING, TAG, String.format("Could not close the input stream. (%s)", e));
+				Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Could not close the input stream. (%s)", e));
 			}
 		}
 

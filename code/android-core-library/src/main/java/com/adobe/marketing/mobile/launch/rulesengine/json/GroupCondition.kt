@@ -11,10 +11,10 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.LogicalExpression
+import com.adobe.marketing.mobile.services.Log
 import java.util.Locale
 
 /**
@@ -35,8 +35,8 @@ internal class GroupCondition(private val definition: JSONDefinition) : JSONCond
         val logicalOperator = definition.logic.toLowerCase(Locale.ROOT)
 
         if (logicalOperator !in LOGICAL_OPERATORS) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
                 LOG_TAG,
                 "Unsupported logical operator: $logicalOperator"
             )

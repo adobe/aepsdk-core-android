@@ -61,9 +61,8 @@ public abstract class ExtensionApi {
      * @param state {@code Map<String, Object>} representing current state of this extension
      * @param event The {@link Event} for which the state is being set. Passing null will set the state for the next shared
      *              state version
-     * @return {@code boolean} indicating if the shared state was successfully set
      */
-    public abstract boolean createSharedState(@NonNull final Map<String, Object> state,
+    public abstract void createSharedState(@NonNull final Map<String, Object> state,
                                               @Nullable final Event event);
 
     /**
@@ -106,9 +105,8 @@ public abstract class ExtensionApi {
      * @param state {@code Map<String, Object>} representing current state of this extension
      * @param event The {@link Event} for which the state is being set. Passing null will set the state for the next shared
      *              state version
-     * @return {@code boolean} indicating if the shared state was successfully set
      */
-    public abstract boolean createXDMSharedState(@NonNull final Map<String, Object> state,
+    public abstract void createXDMSharedState(@NonNull final Map<String, Object> state,
                                                  @Nullable final Event event);
 
     /**

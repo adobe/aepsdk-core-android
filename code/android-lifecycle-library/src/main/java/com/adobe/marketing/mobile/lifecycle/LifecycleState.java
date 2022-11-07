@@ -14,7 +14,7 @@ import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
 
@@ -68,11 +68,11 @@ class LifecycleState {
      * @return Instance of {@code LifecycleSession.SessionInfo} having the previous session info if
      * it exists otherwise null
      */
-    LifecycleSession.SessionInfo start(long startTimestampInSeconds,
-                                       Map<String, String> additionalContextData,
-                                       String advertisingIdentifier,
-                                       long sessionTimeoutInSeconds,
-                                       boolean isInstall) {
+    LifecycleSession.SessionInfo start(final long startTimestampInSeconds,
+                                       final Map<String, String> additionalContextData,
+                                       final String advertisingIdentifier,
+                                       final long sessionTimeoutInSeconds,
+                                       final boolean isInstall) {
         String previousOsVersion = "";
         String previousAppId = "";
         if (namedCollection != null) {

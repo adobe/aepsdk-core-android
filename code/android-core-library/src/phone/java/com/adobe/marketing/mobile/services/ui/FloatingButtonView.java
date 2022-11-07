@@ -22,8 +22,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -57,17 +57,17 @@ public class FloatingButtonView extends Button implements View.OnTouchListener {
 		void onPositionChanged(float newX, float newY);
 	}
 
-	public FloatingButtonView(Context context) {
+	public FloatingButtonView(final Context context) {
 		super(context);
 		setBackgroundCompat();
 		setOnTouchListener(this);
 	}
 
-	public FloatingButtonView(Context context, AttributeSet attrs) {
+	public FloatingButtonView(final Context context, final AttributeSet attrs) {
 		super(context, attrs);
 	}
 
-	public FloatingButtonView(Context context, AttributeSet attrs, int defStyle) {
+	public FloatingButtonView(final Context context, final AttributeSet attrs, final int defStyle) {
 		super(context, attrs, defStyle);
 	}
 
@@ -86,23 +86,23 @@ public class FloatingButtonView extends Button implements View.OnTouchListener {
 		if (listener != null) {
 			setOnClickListener(new OnClickListener() {
 				@Override
-				public void onClick(View view) {
+				public void onClick(final View view) {
 					listener.onTapDetected();
 				}
 			});
 		}
 	}
 
-	void setOnPositionChangedListener(OnPositionChangedListener onPositionChangedListener) {
+	void setOnPositionChangedListener(final OnPositionChangedListener onPositionChangedListener) {
 		this.onPositionChangedListener = onPositionChangedListener;
 	}
 
-	void setBitmap(Bitmap bitmap) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+	void setBitmap(final Bitmap bitmap) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		if (bitmap == null) {
 			throw new IllegalArgumentException("Bitmap is null!");
 		}
 
-		if (Build.VERSION.SDK_INT >= 16) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) { //16
 			//Should be View.class
 			Class<?> classs = this.getClass().getSuperclass().getSuperclass().getSuperclass();
 			Method setBackgroundMethod = classs.getDeclaredMethod("setBackground", Drawable.class);
@@ -128,7 +128,7 @@ public class FloatingButtonView extends Button implements View.OnTouchListener {
 	}
 
 	@Override
-	public boolean onTouch(View v, MotionEvent me) {
+	public boolean onTouch(final View v, final MotionEvent me) {
 		if (me.getAction() == MotionEvent.ACTION_UP) {
 			if (maxButtonTouch < BUTTON_MOVEMENT_TOLERANCE) {
 				//Let the view handle the click.
@@ -161,7 +161,7 @@ public class FloatingButtonView extends Button implements View.OnTouchListener {
 	 * @param x X co-ordinate.
 	 * @param y Y co-ordinate.
 	 */
-	void setXYCompat(float x, float y) {
+	void setXYCompat(final float x, final float y) {
 		try {
 			Class<?> buttonClass = this.getClass();
 
@@ -181,7 +181,7 @@ public class FloatingButtonView extends Button implements View.OnTouchListener {
 				buttonListener.onPanDetected();
 			}
 		} catch (Exception e) {
-			MobileCore.log(LoggingMode.ERROR, TAG, String.format("Error while setting the position (%s)", e));
+			Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Error while setting the position (%s)", e));
 		}
 
 	}

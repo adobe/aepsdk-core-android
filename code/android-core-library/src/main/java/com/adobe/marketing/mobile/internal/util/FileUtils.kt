@@ -11,20 +11,17 @@
 
 package com.adobe.marketing.mobile.internal.util
 
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.services.Log
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.io.Reader
 import java.util.zip.ZipInputStream
 
-object FileUtils {
+internal object FileUtils {
     const val TAG = "FileUtils"
     private const val MAX_BUFFER_SIZE = 4096
 
@@ -50,7 +47,10 @@ object FileUtils {
     @JvmStatic
     fun readAsString(file: File?): String? {
         if (!isReadable(file)) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, "Failed to read file: ($file)")
+            Log.debug(
+                CoreConstants.LOG_TAG,
+                TAG, "Failed to read file: ($file)"
+            )
             return null
         }
 
@@ -63,8 +63,8 @@ object FileUtils {
                 }
             }
         } catch (e: Exception) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 TAG,
                 "Failed to read $file contents. $e"
             )
@@ -85,8 +85,8 @@ object FileUtils {
     fun isReadable(file: File?): Boolean {
         try {
             if (file == null || !file.exists() || !file.canRead() || !file.isFile) {
-                MobileCore.log(
-                    LoggingMode.WARNING,
+                Log.debug(
+                    CoreConstants.LOG_TAG,
                     TAG,
                     "File does not exist or does't have read permission $file"
                 )
@@ -94,7 +94,9 @@ object FileUtils {
             }
             return true
         } catch (e: SecurityException) {
-            MobileCore.log(LoggingMode.DEBUG, TAG, "Failed to read file ($e)")
+            Log.debug(
+                CoreConstants.LOG_TAG, TAG, "Failed to read file ($e)"
+            )
             return false
         }
     }
@@ -117,8 +119,8 @@ object FileUtils {
 
             true
         } catch (e: Exception) {
-            MobileCore.log(
-                LoggingMode.ERROR,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 TAG,
                 "Unexpected exception while attempting to write to file: ${file?.path} ($e)"
             )
@@ -140,8 +142,8 @@ object FileUtils {
 
         val folder = File(outputDirectoryPath)
         if (!folder.exists() && !folder.mkdir()) {
-            MobileCore.log(
-                LoggingMode.WARNING,
+            Log.debug(
+                CoreConstants.LOG_TAG,
                 TAG,
                 "Could not create the output directory $outputDirectoryPath"
             )
@@ -156,7 +158,9 @@ object FileUtils {
                 val outputFolderCanonicalPath = folder.canonicalPath
                 if (ze == null) {
                     // Invalid zip file!
-                    MobileCore.log(LoggingMode.WARNING, TAG, "Zip file was invalid")
+                    Log.debug(
+                        CoreConstants.LOG_TAG, TAG, "Zip file was invalid"
+                    )
                     return false
                 }
                 var entryProcessedSuccessfully = true
@@ -164,8 +168,8 @@ object FileUtils {
                     val fileName = ze.name
                     val newZipEntryFile = File(outputDirectoryPath + File.separator + fileName)
                     if (!newZipEntryFile.canonicalPath.startsWith(outputFolderCanonicalPath)) {
-                        MobileCore.log(
-                            LoggingMode.ERROR,
+                        Log.debug(
+                            CoreConstants.LOG_TAG,
                             TAG,
                             "The zip file contained an invalid path. Verify that your zip file is formatted correctly and has not been tampered with."
                         )
@@ -180,8 +184,8 @@ object FileUtils {
                         if (parentFolder != null && (parentFolder.exists() || parentFolder.mkdirs())) {
                             readInputStreamIntoFile(newZipEntryFile, zipInputStream, false)
                         } else {
-                            MobileCore.log(
-                                LoggingMode.WARNING,
+                            Log.debug(
+                                CoreConstants.LOG_TAG,
                                 TAG,
                                 "Could not extract the file ${newZipEntryFile.absolutePath}"
                             )
@@ -196,7 +200,9 @@ object FileUtils {
                 zipInputStream.closeEntry()
             }
         } catch (ex: Exception) {
-            MobileCore.log(LoggingMode.ERROR, TAG, "Extraction failed - $ex")
+            Log.debug(
+                CoreConstants.LOG_TAG, TAG, "Extraction failed - $ex"
+            )
             extractedSuccessfully = false
         }
 
@@ -237,61 +243,36 @@ object FileUtils {
     }
 
     /**
-     * Reads the JSONString from the provided file. Returns null if there is no file or it does not have read permissions.
+     * Move file from `src` to `dest`.
      *
-     * @param file [File] from which the contents are to be read
-     * @return The contents of the file in JSONString format. Returns null if file does not exist, when encounters IOException
-     * or if the file do not have read permission
+     * @param src [File] source file
+     * @param dest [File] destination to move the file
+     * @throws Exception if `src` is not present or it does not have read permissions
      */
     @JvmStatic
-    fun readStringFromFile(file: File?): String? {
-        try {
-            if (file == null || !file.exists() || !file.canRead() || !file.isFile) {
-                Log.warning(
-                    "MobileCore",
-                    TAG,
-                    "Write to file - File does not exist or don't have read permission"
-                )
-                return null
-            }
-        } catch (e: SecurityException) {
-            Log.debug("MobileCore", TAG, "Failed to read file (%s)", e)
-            return null
+    @Throws(Exception::class)
+    fun moveFile(src: File, dest: File) {
+        if (!dest.exists()) {
+            dest.createNewFile()
         }
-        var bufferedReader: BufferedReader? = null
-        var inStream: InputStream? = null
-        return try {
-            inStream = FileInputStream(file)
-            val reader: Reader = InputStreamReader(inStream, "UTF-8")
-            bufferedReader = BufferedReader(reader)
-            val builder = StringBuilder()
-            var line = bufferedReader.readLine()
-            while (line != null) {
-                builder.append(line)
-                line = bufferedReader.readLine()
-            }
-            builder.toString()
-        } catch (e: IOException) {
-            Log.debug("MobileCore", TAG, "Failed to close file (%s)", e)
-            null
-        } finally {
-            try {
-                inStream?.close()
-                bufferedReader?.close()
-            } catch (e: IOException) {
-                Log.debug("MobileCore", TAG, "Failed to close file (%s)", e)
-            }
-        }
+
+        copyFile(src, dest)
+        deleteFile(src, false)
     }
 
     /**
-     * Verifies if the `File` object represents a directory and the directory is writable.
+     * Deletes the file
      *
-     * @param directory [File] the directory to check for
-     * @return {code boolean} representing the directory validation result
+     * @param fileToDelete [File] which needs to be deleted
+     * @param recursive [Boolean] if true, delete this file with all its children.
+     * @throws SecurityException if it does not have permission to delete file
      */
     @JvmStatic
-    fun isValidDirectory(directory: File?): Boolean {
-        return directory != null && directory.isDirectory && directory.canWrite()
+    @Throws(SecurityException::class)
+    fun deleteFile(fileToDelete: File?, recursive: Boolean): Boolean {
+        if (fileToDelete == null) {
+            return false
+        }
+        return if (recursive) fileToDelete.deleteRecursively() else fileToDelete.delete()
     }
 }

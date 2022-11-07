@@ -22,15 +22,19 @@ import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
-import com.adobe.marketing.mobile.services.CacheFileService
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.caching.CacheService
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
+import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
@@ -59,7 +63,7 @@ class ConfigurationExtensionTest {
     private lateinit var mockAppIdManager: AppIdManager
 
     @Mock
-    private lateinit var mockCacheFileService: CacheFileService
+    private lateinit var mockCacheService: CacheService
 
     /**
      * Note that any values returned for [ConfigurationStateManager.environmentAwareConfiguration] in these tests
@@ -83,11 +87,20 @@ class ConfigurationExtensionTest {
     @Mock
     private lateinit var mockSharedStateResolver: SharedStateResolver
 
+    private lateinit var mockedStaticServiceProvider: MockedStatic<ServiceProvider>
+
     companion object {
         private const val SAMPLE_SERVER = "downloaded_server"
         private const val SAMPLE_RSID = "downloaded_rsid"
         private const val ANALYTICS_SERVER_KEY = "Analytics.server"
         private const val ANALYTICS_RSID_KEY = "Analytics.rsids"
+    }
+
+    @Before
+    fun setup() {
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
+        `when`(mockServiceProvider.cacheService).thenReturn(mockCacheService)
     }
 
     @Test
@@ -105,9 +118,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -162,9 +173,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -194,9 +203,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -225,9 +232,7 @@ class ConfigurationExtensionTest {
     fun `ConfigurationExtension - registers listener onRegistered`() {
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -241,15 +246,19 @@ class ConfigurationExtensionTest {
             eq(EventSource.REQUEST_CONTENT),
             any()
         )
+
+        verify(mockExtensionApi).registerEventListener(
+            eq(EventType.CONFIGURATION),
+            eq(EventSource.REQUEST_IDENTITY),
+            any()
+        )
     }
 
     @Test
     fun `Handle Configuration Request Event - event missing valid key`() {
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -290,9 +299,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -334,9 +341,12 @@ class ConfigurationExtensionTest {
         `when`(mockConfigStateManager.hasConfigExpired(anyString())).thenReturn(false)
 
         val configurationExtension = ConfigurationExtension(
-            mockExtensionApi, mockServiceProvider,
-            mockAppIdManager, mockCacheFileService, mockLaunchRulesEvaluator, mockExecutorService,
-            mockConfigStateManager, mockConfigurationRulesManager
+            mockExtensionApi,
+            mockAppIdManager,
+            mockLaunchRulesEvaluator,
+            mockExecutorService,
+            mockConfigStateManager,
+            mockConfigurationRulesManager
         )
 
         val event: Event = Event.Builder(
@@ -376,9 +386,12 @@ class ConfigurationExtensionTest {
         }
 
         val configurationExtension = ConfigurationExtension(
-            mockExtensionApi, mockServiceProvider,
-            mockAppIdManager, mockCacheFileService, mockLaunchRulesEvaluator, mockExecutorService,
-            mockConfigStateManager, mockConfigurationRulesManager
+            mockExtensionApi,
+            mockAppIdManager,
+            mockLaunchRulesEvaluator,
+            mockExecutorService,
+            mockConfigStateManager,
+            mockConfigurationRulesManager
         )
 
         val event: Event = Event.Builder(
@@ -425,7 +438,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT,
             config,
-            event
+            null
         )
     }
 
@@ -473,9 +486,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -560,9 +571,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -591,7 +600,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT,
             config,
-            event
+            null
         )
     }
 
@@ -601,9 +610,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -637,9 +644,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -673,9 +678,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -708,9 +711,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -744,9 +745,7 @@ class ConfigurationExtensionTest {
         val fileAssetName = "/some/asset"
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -789,9 +788,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -822,7 +819,7 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT,
             mockBundledConfig,
-            event
+            null
         )
     }
 
@@ -840,9 +837,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -884,9 +879,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -923,9 +916,7 @@ class ConfigurationExtensionTest {
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
-            mockServiceProvider,
             mockAppIdManager,
-            mockCacheFileService,
             mockLaunchRulesEvaluator,
             mockExecutorService,
             mockConfigStateManager,
@@ -957,8 +948,57 @@ class ConfigurationExtensionTest {
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT,
             mockUpdatedConfig,
+            null
+        )
+    }
+
+    @Test
+    fun `Retrieve configuration attaches responseId to dispatched response`() {
+        val mockBundledConfig = mutableMapOf<String, Any?>(
+            ANALYTICS_RSID_KEY to SAMPLE_RSID,
+            ANALYTICS_SERVER_KEY to SAMPLE_SERVER,
+            ConfigurationExtension.RULES_CONFIG_URL to "rules.url"
+        )
+
+        `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppID")
+        `when`(mockConfigStateManager.loadBundledConfig(anyString())).thenReturn(mockBundledConfig)
+        `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(mockBundledConfig)
+
+        val configurationExtension = ConfigurationExtension(
+            mockExtensionApi,
+            mockAppIdManager,
+            mockLaunchRulesEvaluator,
+            mockExecutorService,
+            mockConfigStateManager,
+            mockConfigurationRulesManager
+        )
+        reset(mockExtensionApi)
+
+        val event: Event = Event.Builder(
+            "Retrieve config",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
+        )
+            .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG to null))
+            .build()
+        `when`(mockExtensionApi.createPendingSharedState(event)).thenReturn(mockSharedStateResolver)
+
+        configurationExtension.handleConfigurationRequestEvent(event)
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockExtensionApi, times(1)).dispatch(eventCaptor.capture())
+        verifyDispatchedEvent(
+            eventCaptor.firstValue,
+            EventType.CONFIGURATION,
+            EventSource.RESPONSE_CONTENT,
+            mockBundledConfig,
             event
         )
+    }
+
+    @After
+    fun teardown() {
+        mockedStaticServiceProvider.close()
     }
 
     private fun verifyDispatchedEvent(

@@ -25,10 +25,10 @@ import android.webkit.WebSettings;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.context.App;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 
@@ -81,13 +81,13 @@ class MessageWebViewRunner implements Runnable {
     public void run() {
         try {
             if (StringUtils.isNullOrEmpty(message.getMessageHtml())) {
-                MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (message html), failed to show the message.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (message html), failed to show the message.");
                 message.cleanup();
                 return;
             }
 
             if (message.rootViewGroup == null) {
-                MobileCore.log(LoggingMode.DEBUG, TAG, UNEXPECTED_NULL_VALUE + " (root view group), failed to show the message.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (root view group), failed to show the message.");
                 message.cleanup();
                 return;
             }
@@ -97,15 +97,15 @@ class MessageWebViewRunner implements Runnable {
 
             // ensure the rootview has been measured before trying to display the message
             if (width == 0 || height == 0) {
-                MobileCore.log(LoggingMode.WARNING, TAG, "Failed to show the message, root view group has not been measured.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, root view group has not been measured.");
                 message.cleanup();
                 return;
             }
 
-            final Context context = App.getInstance().getAppContext();
+            final Context context = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
             if (context == null) {
-                MobileCore.log(LoggingMode.WARNING, TAG, "Failed to show the message, the app context is null.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, the app context is null.");
                 message.cleanup();
                 return;
             }
@@ -131,7 +131,7 @@ class MessageWebViewRunner implements Runnable {
             final MessageFragment messageFragment = message.getMessageFragment();
 
             if (messageFragment == null) {
-                MobileCore.log(LoggingMode.WARNING, TAG, "Failed to show the message, the message fragment is null.");
+                Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, the message fragment is null.");
                 message.cleanup();
                 return;
             }
@@ -147,7 +147,7 @@ class MessageWebViewRunner implements Runnable {
                 method.invoke(webviewSettings, false);
             }
 
-            final Context appContext = App.getInstance().getAppContext();
+            final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
             File cacheDirectory = null;
 
             if (appContext != null) {
@@ -169,7 +169,7 @@ class MessageWebViewRunner implements Runnable {
                 final Animation animation = setupDisplayAnimation();
 
                 if (animation == null) {
-                    MobileCore.log(LoggingMode.DEBUG, TAG,
+                    Log.debug(ServiceConstants.LOG_TAG, TAG,
                             UNEXPECTED_NULL_VALUE + " (MessageAnimation), failed to setup a display animation.");
                     return;
                 }
@@ -180,7 +180,7 @@ class MessageWebViewRunner implements Runnable {
             createMessageFrameAndAddMessageToRootView(messageSettings);
             message.viewed();
         } catch (Exception ex) {
-            MobileCore.log(LoggingMode.ERROR, TAG, "Failed to show the message " + ex.getMessage());
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message " + ex.getMessage());
         }
     }
 
@@ -196,7 +196,7 @@ class MessageWebViewRunner implements Runnable {
             return null;
         }
 
-        MobileCore.log(LoggingMode.VERBOSE, TAG, "Creating display animation for " + animation.name());
+        Log.trace(ServiceConstants.LOG_TAG, TAG, "Creating display animation for " + animation.name());
         final Animation displayAnimation;
 
         switch (animation) {
@@ -252,13 +252,14 @@ class MessageWebViewRunner implements Runnable {
         FrameLayout.LayoutParams params = generateLayoutParams(messageHeight, messageWidth, originX, originY);
 
         // if we have non fullscreen messages, fill the webview
-        if (settings.getHeight() != 100) {
+        final int fullScreenMessageHeight = 100;
+        if (settings.getHeight() != fullScreenMessageHeight) {
             webviewSettings.setLoadWithOverviewMode(true);
             webviewSettings.setUseWideViewPort(true);
         }
 
         // create a new view to apply a background dimming effect behind a displayed message
-        backdrop = new View(App.getInstance().getAppContext());
+        backdrop = new View(ServiceProvider.getInstance().getAppContextService().getApplicationContext());
         backdrop.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         backdrop.setBackgroundColor(Color.parseColor(settings.getBackdropColor()));
         backdrop.setAlpha(settings.getBackdropOpacity());
@@ -294,7 +295,8 @@ class MessageWebViewRunner implements Runnable {
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
-    private int getPixelValueForHeight(float percentage) {
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private int getPixelValueForHeight(final float percentage) {
         return (int) (message.baseRootViewHeight * (percentage / 100));
     }
 
@@ -304,7 +306,8 @@ class MessageWebViewRunner implements Runnable {
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
-    private int getPixelValueForWidth(float percentage) {
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private int getPixelValueForWidth(final float percentage) {
         return (int) (message.baseRootViewWidth * (percentage / 100));
     }
 

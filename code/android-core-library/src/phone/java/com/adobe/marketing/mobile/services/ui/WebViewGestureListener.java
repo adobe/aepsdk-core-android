@@ -16,9 +16,9 @@ import android.animation.ObjectAnimator;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.util.StringUtils;
+import com.adobe.marketing.mobile.util.StringUtils;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 
@@ -55,7 +55,7 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 	@Override
 	public boolean onDown(final MotionEvent motionEvent) {
 		// this listener only handles touches that occurred on the webview so we always want to consume the touch.
-		MobileCore.log(LoggingMode.VERBOSE, TAG, "onDown: " + motionEvent.toString());
+		Log.trace(ServiceConstants.LOG_TAG, TAG, "onDown: " + motionEvent.toString());
 		return true;
 	}
 
@@ -76,38 +76,30 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 		final float deltaX = motionEvent2.getX() - motionEvent.getX();
 		final float deltaY = motionEvent2.getY() - motionEvent.getY();
 
-		boolean result = false;
+		boolean isHorizontalSwipe = false;
+		boolean isVerticalSwipe = false;
 
-		// detect horizontal swipes
-		if (Math.abs(deltaX) > Math.abs(deltaY)) {
-			if (Math.abs(deltaX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD) {
-				if (deltaX > 0) {
-					MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected swipe right.");
-					handleGesture(MessageGesture.SWIPE_RIGHT);
-				} else {
-					MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected swipe left.");
-					handleGesture(MessageGesture.SWIPE_LEFT);
-				}
-
-				result = true;
+		if (Math.abs(deltaX) > Math.abs(deltaY)) { // detect horizontal swipe
+			isHorizontalSwipe = Math.abs(deltaX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD;
+			if (isHorizontalSwipe && deltaX > 0) {
+				Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected swipe right.");
+				handleGesture(MessageGesture.SWIPE_RIGHT);
+			} else if (isHorizontalSwipe && deltaX <= 0) {
+				Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected swipe left.");
+				handleGesture(MessageGesture.SWIPE_LEFT);
 			}
-
-			// we have a vertical swipe
-		} else {
-			if (Math.abs(deltaY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD) {
-				if (deltaY > 0) {
-					MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected swipe down.");
-					handleGesture(MessageGesture.SWIPE_DOWN);
-				} else {
-					MobileCore.log(LoggingMode.VERBOSE, TAG, "Detected swipe up.");
-					handleGesture(MessageGesture.SWIPE_UP);
-				}
-
-				result = true;
+		} else { // detect vertical swipe
+			isVerticalSwipe = Math.abs(deltaY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD;
+			if (isVerticalSwipe && deltaY > 0) {
+				Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected swipe down.");
+				handleGesture(MessageGesture.SWIPE_DOWN);
+			} else if (isVerticalSwipe && deltaY <= 0) {
+				Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected swipe up.");
+				handleGesture(MessageGesture.SWIPE_UP);
 			}
 		}
 
-		return result;
+		return isHorizontalSwipe || isVerticalSwipe;
 	}
 
 	/**
@@ -131,22 +123,22 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 		switch (gesture) {
 			case SWIPE_RIGHT:
 				animation = ObjectAnimator.ofFloat(parentFragment.message.webView, "x", parentFragment.message.webView.getX(),
-												   parentFragment.message.baseRootViewWidth);
+						parentFragment.message.baseRootViewWidth);
 				break;
 
 			case SWIPE_LEFT:
 				animation = ObjectAnimator.ofFloat(parentFragment.message.webView, "x", parentFragment.message.webView.getX(),
-												   -parentFragment.message.baseRootViewWidth);
+						-parentFragment.message.baseRootViewWidth);
 				break;
 
 			case SWIPE_UP:
 				animation = ObjectAnimator.ofFloat(parentFragment.message.webView, "y", parentFragment.message.webView.getTop(),
-												   -parentFragment.message.baseRootViewHeight);
+						-parentFragment.message.baseRootViewHeight);
 				break;
 
 			default: // default, dismiss to bottom if not a background tap
 				animation = ObjectAnimator.ofFloat(parentFragment.message.webView, "y", parentFragment.message.webView.getTop(),
-												   parentFragment.message.baseRootViewHeight);
+						parentFragment.message.baseRootViewHeight);
 				break;
 		}
 

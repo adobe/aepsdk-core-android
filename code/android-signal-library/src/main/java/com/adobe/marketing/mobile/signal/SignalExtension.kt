@@ -10,24 +10,30 @@
  */
 package com.adobe.marketing.mobile.signal
 
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.*
 import com.adobe.marketing.mobile.services.HitQueuing
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.signal.SignalConstants.LOG_TAG
 import com.adobe.marketing.mobile.util.DataReader
 
-class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
+class SignalExtension : Extension {
     private val hitQueue: HitQueuing
 
     companion object {
         private const val CLASS_NAME = "SignalExtension"
     }
 
-    init {
+    constructor(extensionApi: ExtensionApi) : super(extensionApi) {
         val dataQueue =
             ServiceProvider.getInstance().dataQueueService.getDataQueue(SignalConstants.EXTENSION_NAME)
         hitQueue = PersistentHitQueue(dataQueue, SignalHitProcessor())
+    }
+
+    @VisibleForTesting
+    constructor(extensionApi: ExtensionApi, hitQueue: HitQueuing) : super(extensionApi) {
+        this.hitQueue = hitQueue
     }
 
     override fun onRegistered() {
@@ -51,9 +57,10 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         return Signal.extensionVersion()
     }
 
-    private fun handleConfigurationResponse(event: Event) {
+    @VisibleForTesting
+    internal fun handleConfigurationResponse(event: Event) {
         val privacyStatus = try {
-            MobilePrivacyStatus.valueOf(
+            MobilePrivacyStatus.fromString(
                 DataReader.getString(
                     event.eventData,
                     SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
@@ -65,11 +72,16 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         }
         hitQueue.handlePrivacyChange(privacyStatus)
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            Log.debug(LOG_TAG, "Device has opted-out of tracking. Clearing the Signal queue.")
+            Log.debug(
+                SignalConstants.LOG_TAG,
+                CLASS_NAME,
+                "Device has opted-out of tracking. Clearing the Signal queue."
+            )
         }
     }
 
-    private fun handleRulesEngineResponse(event: Event) {
+    @VisibleForTesting
+    internal fun handleRulesEngineResponse(event: Event) {
         if (shouldIgnore(event)) {
             return
         }
@@ -89,37 +101,39 @@ class SignalExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         )?.status == SharedStateStatus.SET
     }
 
-    private fun handleOpenURL(event: Event) {
+    @VisibleForTesting
+    internal fun handleOpenURL(event: Event) {
         val url = event.urlToOpen() ?: run {
             Log.warning(
-                LOG_TAG,
+                SignalConstants.LOG_TAG,
+                CLASS_NAME,
                 "Unable to process OpenURL consequence - no URL was found in EventData."
             )
             return
         }
-        Log.debug(LOG_TAG, "Opening URL $url.")
+        Log.debug(SignalConstants.LOG_TAG, CLASS_NAME, "Opening URL $url.")
         ServiceProvider.getInstance().uiService.showUrl(url)
     }
 
-    private fun handlePostback(event: Event) {
+    @VisibleForTesting
+    internal fun handlePostback(event: Event) {
         val url = event.templateUrl() ?: run {
-            Log.warning(LOG_TAG, "Rule consequence Event for Signal doesn't contain url.")
+            Log.warning(
+                SignalConstants.LOG_TAG,
+                CLASS_NAME,
+                "Rule consequence Event for Signal doesn't contain url."
+            )
             return
         }
         if (event.isCollectPii() && !url.startsWith("https")) {
             Log.warning(
-                LOG_TAG,
+                SignalConstants.LOG_TAG,
+                CLASS_NAME,
                 "Rule consequence Event for Signal will not be processed, url must be https."
             )
             return
         }
-        val body = event.templateBody() ?: run {
-            Log.warning(
-                LOG_TAG,
-                "Rule consequence Event for Signal will not be processed, url must be https."
-            )
-            return
-        }
+        val body = event.templateBody() ?: ""
         val contentType = event.contentType()
         val timeout = event.timeout()
         val dataEntity = SignalHit(url, body, contentType, timeout).toDataEntity()

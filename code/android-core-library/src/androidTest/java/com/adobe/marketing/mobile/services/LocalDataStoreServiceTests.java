@@ -16,9 +16,9 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
-import android.content.Context;
-import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,11 +31,13 @@ import java.util.Map;
 public class LocalDataStoreServiceTests {
 
 	private NamedCollection sharedPreferencesNamedCollection;
-
+	private MockAppContextService mockAppContextService;
 	@Before
 	public void beforeEach() {
-		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		ServiceProvider.getInstance().setContext(context);
+		mockAppContextService = new MockAppContextService();
+		mockAppContextService.appContext = ApplicationProvider.getApplicationContext();
+		ServiceProviderModifier.setAppContextService(mockAppContextService);
+
 		this.sharedPreferencesNamedCollection = new
 		LocalDataStoreService().getNamedCollection("AndroidLocalStorageServiceTests");
 		this.sharedPreferencesNamedCollection.removeAll();
@@ -56,7 +58,7 @@ public class LocalDataStoreServiceTests {
 
 	@Test
 	public void testApplicationContextIsNotSet() {
-		ServiceProvider.getInstance().setContext(null);
+		mockAppContextService.appContext = null;
 		NamedCollection namedCollection = new LocalDataStoreService().getNamedCollection("AndroidLocalStorageServiceTests");
 		assertNull(namedCollection);
 	}

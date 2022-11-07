@@ -17,7 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.adobe.marketing.mobile.TestAppUIServices;
+import com.adobe.marketing.mobile.services.ui.TestAppUIServices;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 

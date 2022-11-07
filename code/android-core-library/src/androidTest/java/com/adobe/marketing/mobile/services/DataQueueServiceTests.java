@@ -17,8 +17,8 @@ import static junit.framework.TestCase.assertTrue;
 
 import android.content.Context;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -32,13 +32,16 @@ import java.io.IOException;
 @RunWith(AndroidJUnit4.class)
 public class DataQueueServiceTests {
 
-    Context context;
     private static final String TEST_DATABASE_NAME = "test.sqlite";
-
+    MockAppContextService mockAppContextService;
+    private Context context;
     @Before
     public void beforeEach() {
-        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        ServiceProvider.getInstance().setContext(context);
+        context = ApplicationProvider.getApplicationContext();
+        mockAppContextService = new MockAppContextService();
+        mockAppContextService.appContext = context;
+
+        ServiceProviderModifier.setAppContextService(mockAppContextService);
     }
 
     @After
@@ -57,8 +60,9 @@ public class DataQueueServiceTests {
 
     @Test
     public void testGetDataQueue_ApplicationContextIsNotSet() {
-        ServiceProvider.getInstance().setContext(null);
-        DataQueue dataQueue = new DataQueueService().getDataQueue(null);
+
+        mockAppContextService.appContext = null;
+        DataQueue dataQueue = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
         assertNull(dataQueue);
     }
 

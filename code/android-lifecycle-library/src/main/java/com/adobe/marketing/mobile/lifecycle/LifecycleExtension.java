@@ -123,10 +123,10 @@ public class LifecycleExtension extends Extension {
 	}
 
 	@Override
-	public boolean readyForEvent(Event event) {
+	public boolean readyForEvent(final Event event) {
 		if (event.getType().equalsIgnoreCase(EventType.GENERIC_LIFECYCLE) && event.getSource().equalsIgnoreCase(EventSource.REQUEST_CONTENT)) {
 			SharedStateResult configurationSharedState = getApi().getSharedState(LifecycleConstants.EventDataKeys.Configuration.MODULE_NAME, event, false, SharedStateResolution.ANY);
-			return configurationSharedState != null && configurationSharedState.status == SharedStateStatus.SET;
+			return configurationSharedState != null && configurationSharedState.getStatus() == SharedStateStatus.SET;
 		}
 		return true;
 	}
@@ -141,7 +141,7 @@ public class LifecycleExtension extends Extension {
 				false,
 				SharedStateResolution.ANY);
 
-		if (configurationSharedState == null ||  configurationSharedState.status == SharedStateStatus.PENDING) {
+		if (configurationSharedState == null ||  configurationSharedState.getStatus() == SharedStateStatus.PENDING) {
 			Log.trace(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Waiting for configuration to process lifecycle request event");
 			return;
 		}
@@ -158,7 +158,7 @@ public class LifecycleExtension extends Extension {
 
 		if (LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_START.equals(lifecycleAction)) {
 			Log.debug(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Starting lifecycle");
-			startApplicationLifecycle(event, configurationSharedState.value);
+			startApplicationLifecycle(event, configurationSharedState.getValue());
 		} else if (LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE.equals(lifecycleAction)) {
 			Log.debug(LifecycleConstants.LOG_TAG, SELF_LOG_TAG,"Pausing lifecycle");
 			pauseApplicationLifecycle(event);

@@ -12,9 +12,9 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
+import com.adobe.marketing.mobile.services.Log;
 
 public class Lifecycle {
-	private final static String TAG = Lifecycle.class.getSimpleName();
 	private final static String EXTENSION_VERSION = "2.0.0";
 
 	private Lifecycle() {
@@ -35,7 +35,7 @@ public class Lifecycle {
 	 */
 	public static void registerExtension() {
 		MobileCore.registerExtension(LifecycleExtension.class, extensionError -> {
-			Log.error(TAG, "There was an error when registering the Lifecycle extension: %s",
+			Log.error("Lifecycle", "Lifecycle", "There was an error when registering the Lifecycle extension: %s",
 					extensionError.getErrorName());
 		});
 	}

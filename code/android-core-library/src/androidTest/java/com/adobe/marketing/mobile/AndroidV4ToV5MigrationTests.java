@@ -8,12 +8,13 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
- 
+
 package com.adobe.marketing.mobile;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import androidx.test.platform.app.InstrumentationRegistry;
+
+import androidx.test.core.app.ApplicationProvider;
 
 import junit.framework.Assert;
 
@@ -29,8 +30,13 @@ import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
+
+import com.adobe.marketing.mobile.services.MockAppContextService;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
+import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.NamedCollection;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 public class AndroidV4ToV5MigrationTests {
 	private static class V4 {
@@ -221,13 +227,18 @@ public class AndroidV4ToV5MigrationTests {
 	private SharedPreferences v4DataStore;
 	private SharedPreferences.Editor v4DataStoreEditor;
 	private V4ToV5Migration migrationTool;
+	private MockAppContextService mockAppContextService;
 
 	@Before
 	public void setup() {
-		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		App.setAppContext(context.getApplicationContext());
+		Context context = ApplicationProvider.getApplicationContext();
+
+		mockAppContextService = new MockAppContextService();
+		mockAppContextService.appContext = context;
+		ServiceProviderModifier.setAppContextService(mockAppContextService);
+
 		migrationTool = new V4ToV5Migration();
-		v4DataStore = App.getAppContext().getSharedPreferences(V4.DATASTORE_NAME, 0);
+		v4DataStore = context.getSharedPreferences(V4.DATASTORE_NAME, 0);
 		v4DataStoreEditor = v4DataStore.edit();
 		v4DataStoreEditor.clear();
 		v4DataStoreEditor.commit();
@@ -245,11 +256,11 @@ public class AndroidV4ToV5MigrationTests {
 		stores.add(V5.MobileServices.DATASTORE_NAME);
 		stores.add(V5.Lifecycle.DATASTORE_NAME);
 
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-		LocalStorageService.DataStore dataStore;
+		NamedCollection dataStore;
 
 		for (String store : stores) {
-			dataStore = localStorageService.getDataStore(store);
+
+			dataStore = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(store);
 
 			if (dataStore != null) {
 				dataStore.removeAll();
@@ -368,41 +379,38 @@ public class AndroidV4ToV5MigrationTests {
 
 
 		// verify v5 data was set
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-		AndroidLocalStorageService.DataStore v5Acquisition = localStorageService.getDataStore(V5.Acquisition.DATASTORE_NAME);
+		NamedCollection v5Acquisition = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Acquisition.DATASTORE_NAME);
 		assertEquals("{\"acqkey\":\"acqvalue\"}", v5Acquisition.getString(V5.Acquisition.REFERRER_DATA, null));
 
-		AndroidLocalStorageService.DataStore v5Analytics = localStorageService.getDataStore(V5.Analytics.DATASTORE_NAME);
+        NamedCollection v5Analytics = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Analytics.DATASTORE_NAME);
 		assertEquals("aid", v5Analytics.getString(V5.Analytics.AID, null));
 		assertEquals("vid", v5Analytics.getString(V5.Analytics.VID, null));
 		assertEquals(true, v5Analytics.getBoolean(V5.Analytics.IGNORE_AID, false));
 
-		AndroidLocalStorageService.DataStore v5AudienceManager = localStorageService.getDataStore(
-					V5.AudienceManager.DATASTORE_NAME);
+        NamedCollection v5AudienceManager = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.AudienceManager.DATASTORE_NAME);
 		assertEquals("aamUserId", v5AudienceManager.getString(V5.AudienceManager.USER_ID, null));
 		assertEquals(null, v5AudienceManager.getString(V5.AudienceManager.USER_PROFILE, null));
 
-		AndroidLocalStorageService.DataStore v5Identity = localStorageService.getDataStore(V5.Identity.DATASTORE_NAME);
+        NamedCollection v5Identity = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Identity.DATASTORE_NAME);
 		assertEquals("identityMid", v5Identity.getString(V5.Identity.MID, null));
 		assertEquals("identityIds", v5Identity.getString(V5.Identity.VISITOR_IDS, null));
 		assertEquals("blob", v5Identity.getString(V5.Identity.BLOB, null));
 		assertEquals("hint", v5Identity.getString(V5.Identity.HINT, null));
 		assertEquals(true, v5Identity.getBoolean(V5.Identity.PUSH_ENABLED, false));
 
-		AndroidLocalStorageService.DataStore v5Lifecycle = localStorageService.getDataStore(V5.Lifecycle.DATASTORE_NAME);
+        NamedCollection v5Lifecycle = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Lifecycle.DATASTORE_NAME);
 		assertEquals(123, v5Lifecycle.getLong(V5.Lifecycle.INSTALL_DATE, 0));
 		assertEquals(552, v5Lifecycle.getInt(V5.Lifecycle.LAUNCHES, 0));
 		assertEquals("version", v5Lifecycle.getString(V5.Lifecycle.LAST_VERSION, null));
 		assertEquals(123, v5Lifecycle.getLong(V5.Lifecycle.LAST_USED_DATE, 0));
 		assertEquals(true, v5Lifecycle.getBoolean(V5.Lifecycle.SUCCESFUL_CLOSE, false));
 
-		AndroidLocalStorageService.DataStore v5Target = localStorageService.getDataStore(V5.Target.DATASTORE_NAME);
+        NamedCollection v5Target = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Target.DATASTORE_NAME);
 		assertEquals("tntid", v5Target.getString(V5.Target.TNT_ID, null));
 		assertEquals("3rdpartyid", v5Target.getString(V5.Target.THIRD_PARTY_ID, null));
 
 
-		AndroidLocalStorageService.DataStore v5MobileServices = localStorageService.getDataStore(
-					V5.MobileServices.DATASTORE_NAME);
+        NamedCollection v5MobileServices = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.MobileServices.DATASTORE_NAME);
 		assertEquals("utm_source", v5MobileServices.getString(V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_SOURCE, null));
 		assertEquals("utm_medium", v5MobileServices.getString(V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_MEDIUM, null));
 		assertEquals("utm_term", v5MobileServices.getString(V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_TERM, null));
@@ -412,8 +420,7 @@ public class AndroidV4ToV5MigrationTests {
 
 		assertEquals("blacklist", v5MobileServices.getString(V5.MobileServices.SHARED_PREFERENCES_BLACK_LIST, null));
 
-		AndroidLocalStorageService.DataStore v5Configuration = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
+        NamedCollection v5Configuration = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
 		assertEquals("{\"global.privacy\":\"optedout\"}",
 					 v5Configuration.getString(V5.Configuration.PERSISTED_OVERRIDDEN_CONFIG, null));
 
@@ -433,8 +440,7 @@ public class AndroidV4ToV5MigrationTests {
 
 	@Test
 	public void testDataMigration_DoesNotThrow_WhenNullContext() {
-		App.setAppContext(null);
-
+		mockAppContextService.appContext = null;
 		try {
 			migrationTool.migrate();
 		} catch (Throwable e) {
@@ -465,10 +471,7 @@ public class AndroidV4ToV5MigrationTests {
 		assertFalse(v4DataStore.contains(V4.Configuration.GLOBAL_PRIVACY_KEY));
 
 		// verify v5 data was set
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-
-		AndroidLocalStorageService.DataStore v5Configuration = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
+        NamedCollection v5Configuration = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
 		String actualOverriddenString = v5Configuration.getString(V5.Configuration.PERSISTED_OVERRIDDEN_CONFIG, null);
 		JSONObject actual = new JSONObject(actualOverriddenString);
 
@@ -476,7 +479,7 @@ public class AndroidV4ToV5MigrationTests {
 		assertEquals(1, actual.length());
 		assertEquals("optedout", actual.getString("global.privacy"));
 
-		AndroidLocalStorageService.DataStore v5Target = localStorageService.getDataStore(V5.Target.DATASTORE_NAME);
+        NamedCollection v5Target = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Target.DATASTORE_NAME);
 		assertFalse(v5Target.contains(V5.Target.TNT_ID));
 		assertFalse(v5Target.contains(V5.Target.THIRD_PARTY_ID));
 
@@ -486,10 +489,9 @@ public class AndroidV4ToV5MigrationTests {
 	public void testDataMigration_V5ConfigurationDataExistsWithoutPrivacyStatus() throws Exception {
 		// mock configuration data
 		v4DataStoreEditor.putInt(V4.Configuration.GLOBAL_PRIVACY_KEY, 1); // OptOut
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
 
-		AndroidLocalStorageService.DataStore v5Configuration = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
+        NamedCollection v5Configuration = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
+
 		// add existing config data
 		Map<String, Object> v5ConfigMap = new HashMap<>();
 		v5ConfigMap.put("global.ssl", true);
@@ -518,10 +520,8 @@ public class AndroidV4ToV5MigrationTests {
 	public void testDataMigration_V5ConfigurationDataExistsWithExistingPrivacyStatus() throws Exception {
 		// mock configuration data
 		v4DataStoreEditor.putInt(V4.Configuration.GLOBAL_PRIVACY_KEY, 1); // OptOut
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
 
-		AndroidLocalStorageService.DataStore v5Configuration = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
+        NamedCollection v5Configuration = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
 		// add existing config data
 		Map<String, Object> v5ConfigMap = new HashMap<>();
 		v5ConfigMap.put("global.ssl", true);
@@ -551,10 +551,8 @@ public class AndroidV4ToV5MigrationTests {
 	public void testDataMigration_V5ConfigurationDataIsNotValidJson_failsGracefully() {
 		// mock configuration data
 		v4DataStoreEditor.putInt(V4.Configuration.GLOBAL_PRIVACY_KEY, 1); // OptOut
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
 
-		AndroidLocalStorageService.DataStore v5Configuration = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
+        NamedCollection v5Configuration = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
 		// add existing config data which is not valid JSON
 		v5Configuration.setString(V5.Configuration.PERSISTED_OVERRIDDEN_CONFIG, "hello world");
 
@@ -576,10 +574,8 @@ public class AndroidV4ToV5MigrationTests {
 	public void testDataMigration_V4PrivacyKeyInvalid_V5ConfigurationMigrationFails() {
 		// mock configuration data
 		v4DataStoreEditor.putInt(V4.Configuration.GLOBAL_PRIVACY_KEY, -1); // Invalid
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
 
-		AndroidLocalStorageService.DataStore v5Configuration = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
+        NamedCollection v5Configuration = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
 
 		v4DataStoreEditor.commit();
 
@@ -598,11 +594,8 @@ public class AndroidV4ToV5MigrationTests {
 	public void testDataMigration_V4PrivacyKeyOptIn_V5ConfigurationMigrationOptIn() throws Exception {
 		// mock configuration data
 		v4DataStoreEditor.putInt(V4.Configuration.GLOBAL_PRIVACY_KEY, 0); // v4 OptIn
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
 
-		AndroidLocalStorageService.DataStore v5Configuration = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
-
+        NamedCollection v5Configuration = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
 		v4DataStoreEditor.commit();
 
 		// test, note, Lifecycle Install key does not exist in v4
@@ -623,11 +616,6 @@ public class AndroidV4ToV5MigrationTests {
 	public void testDataMigration_V4PrivacyKeyOptOut_V5ConfigurationMigrationOptOut() throws Exception {
 		// mock configuration data
 		v4DataStoreEditor.putInt(V4.Configuration.GLOBAL_PRIVACY_KEY, 1); // v4 OptOut
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-
-		AndroidLocalStorageService.DataStore v5Configuration = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
-
 		v4DataStoreEditor.commit();
 
 		// test, note, Lifecycle Install key does not exist in v4
@@ -636,23 +624,21 @@ public class AndroidV4ToV5MigrationTests {
 		// configuration data is migrated and removed
 		assertFalse(v4DataStore.contains(V4.Configuration.GLOBAL_PRIVACY_KEY));
 
+		NamedCollection v5Configuration = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
 		String actualOverriddenString = v5Configuration.getString(V5.Configuration.PERSISTED_OVERRIDDEN_CONFIG, null);
 		JSONObject actual = new JSONObject(actualOverriddenString);
 
 		// verify v5
 		assertEquals(1, actual.length());
 		assertEquals("optedout", actual.getString("global.privacy"));
-
 	}
 
 	@Test
 	public void testDataMigration_V4PrivacyKeyUnknown_V5ConfigurationMigrationUnknown() throws Exception {
 		// mock configuration data
 		v4DataStoreEditor.putInt(V4.Configuration.GLOBAL_PRIVACY_KEY, 2); // v4 Unknown
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
 
-		AndroidLocalStorageService.DataStore v5Configuration = localStorageService.getDataStore(
-					V5.Configuration.DATASTORE_NAME);
+        NamedCollection v5Configuration = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Configuration.DATASTORE_NAME);
 
 		v4DataStoreEditor.commit();
 
@@ -672,9 +658,8 @@ public class AndroidV4ToV5MigrationTests {
 
 	@Test
 	public void testDataMigration_V5VisitorIdFromIdentityToAnalytics() throws Exception {
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-		AndroidLocalStorageService.DataStore v5Identity = localStorageService.getDataStore(V5.Identity.DATASTORE_NAME);
-		AndroidLocalStorageService.DataStore v5Analytics = localStorageService.getDataStore(V5.Analytics.DATASTORE_NAME);
+        NamedCollection v5Identity = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Identity.DATASTORE_NAME);
+        NamedCollection v5Analytics = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Analytics.DATASTORE_NAME);
 
 		assertFalse(v5Analytics.contains(V5.Analytics.VID));
 		v5Identity.setString(V5.Identity.VISITOR_ID, "test-vid");
@@ -687,9 +672,8 @@ public class AndroidV4ToV5MigrationTests {
 
 	@Test
 	public void testDataMigration_V5VisitorIdNoMigrationFromIdentity() throws Exception {
-		AndroidLocalStorageService localStorageService = new AndroidLocalStorageService();
-		AndroidLocalStorageService.DataStore v5Identity = localStorageService.getDataStore(V5.Identity.DATASTORE_NAME);
-		AndroidLocalStorageService.DataStore v5Analytics = localStorageService.getDataStore(V5.Analytics.DATASTORE_NAME);
+        NamedCollection v5Identity = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Identity.DATASTORE_NAME);
+        NamedCollection v5Analytics = ServiceProvider.getInstance().getDataStoreService().getNamedCollection(V5.Analytics.DATASTORE_NAME);
 
 		v5Analytics.setString(V5.Analytics.VID, "existing-vid");
 		v5Identity.setString(V5.Identity.VISITOR_ID, "test-vid");

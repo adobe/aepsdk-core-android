@@ -15,30 +15,25 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.TestUtils;
-import com.adobe.marketing.mobile.internal.context.App;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
-import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.MockAppContextService;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
 
 @RunWith(AndroidJUnit4.class)
 public class AndroidEventHistoryDatabaseTests {
@@ -48,34 +43,17 @@ public class AndroidEventHistoryDatabaseTests {
 	private static final String COLUMN_HASH = "eventHash";
 	private static final String COLUMN_TIMESTAMP = "timestamp";
 	private EventHistoryDatabase androidEventHistoryDatabase;
-
-	private static final AppContextProvider appContextProvider = new AppContextProvider();
-
-	private static class AppContextProvider implements App.AppContextProvider {
-
-		private Context context;
-
-		public void setContext(Context context) {
-			this.context = context;
-		}
-
-		@Override
-		public Context getAppContext() {
-			return this.context;
-		}
-
-		@Override
-		public Activity getCurrentActivity() {
-			return null;
-		}
-	}
+	private Context context;
 
 	@Before
 	public void beforeEach() {
-		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		ServiceProvider.getInstance().setContext(context);
-		appContextProvider.setContext(context);
-		App.getInstance().initializeApp(appContextProvider);
+		context = ApplicationProvider.getApplicationContext();
+		MockAppContextService mockAppContextService = new MockAppContextService();
+		mockAppContextService.appContext = context;
+		ServiceProviderModifier.setAppContextService(mockAppContextService);
+
+		TestUtils.deleteAllFilesInCacheDir(context);
+
 		try {
 			androidEventHistoryDatabase = new AndroidEventHistoryDatabase();
 		} catch (EventHistoryDatabaseCreationException e) {
@@ -83,13 +61,8 @@ public class AndroidEventHistoryDatabaseTests {
 		}
 	}
 
-	@After
-	public void cleanup() {
-		appContextProvider.getAppContext().getDatabasePath(DATABASE_NAME).delete();
-	}
-
 	@Test
-	public void testInsertThenSelect_Happy() {
+	public void testInsertThenSelect_Happy(){
 		// test insert
 		long startTimestamp = System.currentTimeMillis();
 
@@ -112,7 +85,7 @@ public class AndroidEventHistoryDatabaseTests {
 	}
 
 	@Test
-	public void testInsertThenDelete_Happy() {
+	public void testInsertThenDelete_Happy(){
 		// test insert
 		long startTimestamp = System.currentTimeMillis();
 
@@ -124,9 +97,9 @@ public class AndroidEventHistoryDatabaseTests {
 			assertTrue(androidEventHistoryDatabase.insert(222222222));
 		}
 
-		String dbPath = appContextProvider.getAppContext().getDatabasePath(DATABASE_NAME).getPath();
+		String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
 		SQLiteDatabase database = SQLiteDatabaseHelper.openDatabase(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
-		long dbSize = DatabaseUtils.queryNumEntries(database, "Events");
+		long dbSize = DatabaseUtils.queryNumEntries(database,"Events");
 		SQLiteDatabaseHelper.closeDatabase(database);
 		assertEquals(25, dbSize);
 		// test delete
@@ -140,7 +113,10 @@ public class AndroidEventHistoryDatabaseTests {
 
 	@Test(expected = EventHistoryDatabaseCreationException.class)
 	public void testInsert_ApplicationContextIsNull() throws EventHistoryDatabaseCreationException {
-		App.getInstance().initializeApp(null);
+		MockAppContextService mockAppContextService = new MockAppContextService();
+		mockAppContextService.appContext = null;
+		ServiceProviderModifier.setAppContextService(mockAppContextService);
+
 		new AndroidEventHistoryDatabase().insert(1111111111);
 	}
 
@@ -151,14 +127,14 @@ public class AndroidEventHistoryDatabaseTests {
 			createEventHistoryDatabaseInCacheDirectory();
 
 			// delete any existing event history database
-			appContextProvider.getAppContext().getDatabasePath(DATABASE_NAME).delete();
+			context.getDatabasePath(DATABASE_NAME).delete();
 
 			// create new event history database
 			AndroidEventHistoryDatabase eventHistoryDatabase = new AndroidEventHistoryDatabase();
 			assertTrue(eventHistoryDatabase.insert(222222222));
 
 			// assert cache event history database content is copied to new event history database
-			String dbPath = appContextProvider.getAppContext().getDatabasePath(DATABASE_NAME).getPath();
+			String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
 			SQLiteDatabase database = SQLiteDatabaseHelper.openDatabase(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
 
 			long dbSize = DatabaseUtils.queryNumEntries(database, "Events");
@@ -187,7 +163,7 @@ public class AndroidEventHistoryDatabaseTests {
 			assertTrue(eventHistoryDatabase.insert(222222222));
 
 			// assert contents of event history database
-			String dbPath = appContextProvider.getAppContext().getDatabasePath(DATABASE_NAME).getPath();
+			String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
 			SQLiteDatabase database = SQLiteDatabaseHelper.openDatabase(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
 
 			long dbSize = DatabaseUtils.queryNumEntries(database, "Events");
@@ -206,7 +182,7 @@ public class AndroidEventHistoryDatabaseTests {
 	}
 
 	private void createEventHistoryDatabaseInCacheDirectory() throws Exception {
-		File cacheDatabaseFile = new File(appContextProvider.getAppContext().getCacheDir(), DATABASE_NAME);
+		File cacheDatabaseFile = new File(context.getCacheDir(), DATABASE_NAME);
 		cacheDatabaseFile.createNewFile();
 		SQLiteDatabase cacheDatabase = SQLiteDatabaseHelper.openDatabase(cacheDatabaseFile.getPath(), SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
 		final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +

@@ -15,13 +15,9 @@ import androidx.annotation.NonNull;
 import com.adobe.marketing.mobile.LoggingMode;
 
 /**
- *
  * Logging class to handle log levels and platform-specific log output
- *
  */
 public class Log {
-    //TODO: we should consider changing not to update loggingService variable after we allow logging service overriding.
-    private static final Logging loggingService = ServiceProvider.getInstance().getLoggingService();
     private static LoggingMode loggingMode = LoggingMode.ERROR;
 
     public static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
@@ -64,9 +60,10 @@ public class Log {
      * @see LoggingMode
      */
     public static void trace(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
+        Logging loggingService = ServiceProvider.getInstance().getLoggingService();
         if (loggingService != null && loggingMode.id >= LoggingMode.VERBOSE.id) {
             try {
-                loggingService.trace(extension + "-" + source, String.format(format, params));
+                loggingService.trace(extension + "/" + source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.trace(source, format);
             }
@@ -84,9 +81,10 @@ public class Log {
      * @see LoggingMode
      */
     public static void debug(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
+        Logging loggingService = ServiceProvider.getInstance().getLoggingService();
         if (loggingService != null && loggingMode.id >= LoggingMode.DEBUG.id) {
             try {
-                loggingService.debug(extension + "-" + source, String.format(format, params));
+                loggingService.debug(extension + "/" + source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.debug(source, format);
             }
@@ -106,9 +104,10 @@ public class Log {
      * @see LoggingMode
      */
     public static void warning(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
+        Logging loggingService = ServiceProvider.getInstance().getLoggingService();
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.WARNING.id) {
             try {
-                loggingService.warning(extension + "-" + source, String.format(format, params));
+                loggingService.warning(extension + "/" + source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.warning(source, format);
             }
@@ -126,12 +125,14 @@ public class Log {
      * @see LoggingMode
      */
     public static void error(@NonNull final String extension, @NonNull final String source, @NonNull final String format, final Object... params) {
+        Logging loggingService = ServiceProvider.getInstance().getLoggingService();
         if (loggingService != null && loggingMode.ordinal() >= LoggingMode.ERROR.id) {
             try {
-                loggingService.error(extension + "-" + source, String.format(format, params));
+                loggingService.error(extension + "/" + source, String.format(format, params));
             } catch (Exception e) {
                 loggingService.error(source, format);
             }
         }
     }
+
 }

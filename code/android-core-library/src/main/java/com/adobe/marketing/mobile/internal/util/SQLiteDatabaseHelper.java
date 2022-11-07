@@ -13,12 +13,11 @@ package com.adobe.marketing.mobile.internal.util;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDoneException;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
 
 /**
  * Helper class for performing atomic operation on SQLite Database.
@@ -45,7 +44,7 @@ public class SQLiteDatabaseHelper {
             database.execSQL(query);
             return true;
         } catch (final SQLiteException e) {
-            MobileCore.log(LoggingMode.WARNING, LOG_PREFIX,
+            Log.warning(CoreConstants.LOG_TAG, LOG_PREFIX,
                     String.format("createTableIfNotExists - Error in creating/accessing table. Error: (%s)", e.getMessage()));
             return false;
         } finally {
@@ -71,7 +70,7 @@ public class SQLiteDatabaseHelper {
             );
             return (int)selectStatement.simpleQueryForLong();
         } catch (final SQLiteException e) {
-            MobileCore.log(LoggingMode.WARNING, LOG_PREFIX,
+            Log.warning(CoreConstants.LOG_TAG, LOG_PREFIX,
                     String.format("getTableSize - Error in querying table(%s) size. Returning 0. Error: (%s)", tableName,
                             e.getMessage()));
             return 0;
@@ -95,7 +94,7 @@ public class SQLiteDatabaseHelper {
             database.delete(tableName, "1", null);
             return true;
         } catch (final SQLiteException e) {
-            MobileCore.log(LoggingMode.WARNING, LOG_PREFIX,
+            Log.warning(CoreConstants.LOG_TAG, LOG_PREFIX,
                     String.format("clearTable - Error in clearing table(%s). Returning false. Error: (%s)", tableName,
                             e.getMessage()));
             return false;
@@ -114,14 +113,14 @@ public class SQLiteDatabaseHelper {
      */
     public static SQLiteDatabase openDatabase(final String filePath, final DatabaseOpenMode dbOpenMode) throws SQLiteException {
         if (filePath == null || filePath.isEmpty()) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "openDatabase - Failed to open database - filepath is null or empty");
+            Log.debug(CoreConstants.LOG_TAG, LOG_PREFIX, "openDatabase - Failed to open database - filepath is null or empty");
             throw new SQLiteException("Invalid database path. Database path is null or empty.");
         }
 
         SQLiteDatabase database = SQLiteDatabase.openDatabase(filePath,
                 null,
                 SQLiteDatabase.NO_LOCALIZED_COLLATORS | SQLiteDatabase.CREATE_IF_NECESSARY | dbOpenMode.mode);
-        MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX,
+        Log.trace(CoreConstants.LOG_TAG, LOG_PREFIX,
                 String.format("openDatabase - Successfully opened the database at path (%s)", filePath));
         return database;
     }
@@ -133,12 +132,12 @@ public class SQLiteDatabaseHelper {
      */
     public static void closeDatabase(final SQLiteDatabase database) {
         if (database == null) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "closeDatabase - Unable to close database, database passed is null.");
+            Log.debug(CoreConstants.LOG_TAG, LOG_PREFIX, "closeDatabase - Unable to close database, database passed is null.");
             return;
         }
 
         database.close();
-        MobileCore.log(LoggingMode.VERBOSE, LOG_PREFIX, "closeDatabase - Successfully closed the database.");
+        Log.trace(CoreConstants.LOG_TAG, LOG_PREFIX, "closeDatabase - Successfully closed the database.");
     }
 
     /**
@@ -155,7 +154,7 @@ public class SQLiteDatabaseHelper {
             database = openDatabase(filePath, dbOpenMode);
             return databaseProcessing.execute(database);
         } catch (Exception e) {
-            MobileCore.log(LoggingMode.DEBUG, LOG_PREFIX, "Failed to open database -" + e.getLocalizedMessage());
+            Log.warning(CoreConstants.LOG_TAG, LOG_PREFIX, "Failed to open database -" + e.getLocalizedMessage());
             return false;
         } finally {
             if (database != null) {
@@ -173,7 +172,7 @@ public class SQLiteDatabaseHelper {
 
         final int mode;
 
-        DatabaseOpenMode(int mode) {
+        DatabaseOpenMode(final int mode) {
             this.mode = mode;
         }
     }

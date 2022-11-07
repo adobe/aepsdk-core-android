@@ -959,8 +959,7 @@ class IdentityFunctionalTests {
     }
 
 
-    //    @Test(timeout = 10000)
-    @Test
+    @Test(timeout = 10000)
     fun test_appendToUrl_verifyExperienceCloudIdentifierPresentInUrl() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",

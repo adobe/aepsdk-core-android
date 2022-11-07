@@ -236,7 +236,6 @@ final public class IdentityExtension extends Extension {
         loadPrivacyStatus(event); // attempt to load privacy status from Configuration state
 
         final Event forcedSyncEvent = createForcedSyncEvent();
-//        getApi().dispatch(forcedSyncEvent);
         processIdentityRequest(forcedSyncEvent);
         Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Added an Identity force sync event on boot.");
 
@@ -354,7 +353,6 @@ final public class IdentityExtension extends Extension {
                 .setEventData(syncData)
                 .build();
         getApi().dispatch(avidEvent);
-//        processIdentityRequest(avidEvent);
     }
 
     /**
@@ -429,7 +427,6 @@ final public class IdentityExtension extends Extension {
         // This will also create Identity shared state
         final Event forcedSyncEvent = createForcedSyncEvent();
         getApi().dispatch(forcedSyncEvent);
-//        processIdentityRequest(forcedSyncEvent);
         Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "handleIdentityRequestReset: Did reset identifiers and queued force sync event.");
     }
 
@@ -1548,7 +1545,6 @@ final public class IdentityExtension extends Extension {
             // Queue up a request to sync the new ID with the Identity Service
             Event syncEvent = createForcedSyncEvent();
             getApi().dispatch(syncEvent);
-//            processIdentityRequest(syncEvent);
         }
 
         initializeDatabaseWithCurrentPrivacyStatus();

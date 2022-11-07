@@ -37,12 +37,12 @@ public class SQLiteDatabaseHelperTests {
     private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
     private static final String TB_KEY_TIMESTAMP = "timestamp";
     private static final String TB_KEY_DATA = "data";
-    private File dbFile;
     private String dbPath;
 
     @Before
     public void setUp() {
-        dbFile =  ApplicationProvider.getApplicationContext().getDatabasePath("test.sqlite");
+        File dbFile = ApplicationProvider.getApplicationContext().getDatabasePath("test.sqlite");
+        dbFile.delete();
         dbPath = dbFile.getPath();
         createTable();
     }
@@ -50,7 +50,6 @@ public class SQLiteDatabaseHelperTests {
     @After
     public void dispose() {
         SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
-        dbFile.delete();
     }
 
     private void createTable() {

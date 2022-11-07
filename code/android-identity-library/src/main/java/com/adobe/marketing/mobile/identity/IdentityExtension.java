@@ -352,7 +352,7 @@ final public class IdentityExtension extends Extension {
                 EventSource.REQUEST_IDENTITY)
                 .setEventData(syncData)
                 .build();
-        processIdentityRequest(avidEvent);
+        getApi().dispatch(avidEvent);
     }
 
     /**
@@ -426,7 +426,7 @@ final public class IdentityExtension extends Extension {
         // Queue up a request to sync the new ID with the Identity Service
         // This will also create Identity shared state
         final Event forcedSyncEvent = createForcedSyncEvent();
-        processIdentityRequest(forcedSyncEvent);
+        getApi().dispatch(forcedSyncEvent);
         Log.debug(IdentityConstants.LOG_TAG, LOG_SOURCE, "handleIdentityRequestReset: Did reset identifiers and queued force sync event.");
     }
 
@@ -773,7 +773,11 @@ final public class IdentityExtension extends Extension {
 
         // Update share state and persistence here. Any state changes from the server response will be included in the next shared state
         // it's more important to not block other extensions with an IdentityExtension pending state
-        getApi().createSharedState(packageEventData(), event);
+        if (forceSync) {
+            getApi().createSharedState(packageEventData(), null);
+        } else {
+            getApi().createSharedState(packageEventData(), event);
+        }
         savePersistently();
 
         return true;
@@ -1540,7 +1544,7 @@ final public class IdentityExtension extends Extension {
             // When changing privacy status from optedout, need to generate new Experience Cloud ID for the user
             // Queue up a request to sync the new ID with the Identity Service
             Event syncEvent = createForcedSyncEvent();
-            processIdentityRequest(syncEvent);
+            getApi().dispatch(syncEvent);
         }
 
         initializeDatabaseWithCurrentPrivacyStatus();

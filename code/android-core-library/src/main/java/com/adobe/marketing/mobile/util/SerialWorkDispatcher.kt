@@ -120,36 +120,37 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      * before processing any items in the [workQueue] for the first time)
      */
     @Volatile
-    private var startupJob: Runnable? = null
+    private var initialJob: Runnable? = null
 
     /**
      * The initialization job that is to be executed immediately before the [SerialWorkDispatcher] shuts down.
      */
     @Volatile
-    private var teardownJob: Runnable? = null
+    private var finalJob: Runnable? = null
 
     /**
-     * Sets a job that is will be invoked immediately when the [SerialWorkDispatcher] starts and
-     * before processing the items in the queue.
+     * Sets a job that is will be invoked (on the thread that [SerialWorkDispatcher] maintains)
+     * immediately when the [SerialWorkDispatcher] starts and before processing the items in the queue.
      * Implementers are expected to perform any one-time setup operations before processing starts.
+     * The initial job will only be executed if set before start() is invoked.
      *
-     * @param startupJob the [Runnable] that is to be invoked immediately before the [SerialWorkDispatcher] starts
+     * @param initialJob the [Runnable] that is to be invoked immediately before the [SerialWorkDispatcher] starts
      *        processing work items
      */
-    fun setStartupJob(startupJob: Runnable) {
-        this.startupJob = startupJob
+    fun setInitialJob(initialJob: Runnable) {
+        this.initialJob = initialJob
     }
 
     /**
-     * Sets a job that will be invoked immediately before the [executorService] is shutdown as
-     * a result of [SerialWorkDispatcher.shutdown].
+     * Sets a job that will be invoked ((on the thread that [SerialWorkDispatcher] maintains)
+     * immediately before the [executorService] is shutdown as a result of [SerialWorkDispatcher.shutdown].
      * Implementers are expected to perform any cleanup operations when the [SerialWorkDispatcher]
-     * is shutdown.
+     * is shutdown. The final job will only be executed if set before shutdown() is invoked.
      *
-     * @param teardownJob the [Runnable] that is to be invoked immediately before the [SerialWorkDispatcher] shuts down
+     * @param finalJob the [Runnable] that is to be invoked immediately before the [SerialWorkDispatcher] shuts down
      */
-    fun setTeardownJob(teardownJob: Runnable) {
-        this.teardownJob = teardownJob
+    fun setFinalJob(finalJob: Runnable) {
+        this.finalJob = finalJob
     }
 
     /**
@@ -182,7 +183,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      * Invoked on the thread that calls [start]
      */
     private fun prepare() {
-        val initTask = this.startupJob ?: return
+        val initTask = this.initialJob ?: return
         executorService.submit(initTask)
     }
 
@@ -319,7 +320,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      * Invoked before the executor service maintained by this class is shutdown as a result of [shutdown].
      */
     private fun cleanup() {
-        val cleanupTask = teardownJob ?: return
+        val cleanupTask = finalJob ?: return
         executorService.submit(cleanupTask)
     }
 

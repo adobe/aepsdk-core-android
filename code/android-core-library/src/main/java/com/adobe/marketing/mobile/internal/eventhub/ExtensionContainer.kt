@@ -129,8 +129,8 @@ internal class ExtensionContainer constructor(
 
     init {
 
-        eventProcessor.setStartupJob(initJob)
-        eventProcessor.setTeardownJob(teardownJob)
+        eventProcessor.setInitialJob(initJob)
+        eventProcessor.setFinalJob(teardownJob)
         // Start event processor now as extensions can add event listeners onRegistered() callback
         eventProcessor.start()
 

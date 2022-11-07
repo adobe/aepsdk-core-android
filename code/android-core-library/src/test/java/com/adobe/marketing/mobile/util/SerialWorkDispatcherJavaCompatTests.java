@@ -68,8 +68,8 @@ public class SerialWorkDispatcherJavaCompatTests {
     @Before
     public void setup() {
         javaSerialWorkDispatcher.setExecutorService(mockExecutorService);
-        javaSerialWorkDispatcher.setStartupJob(javaSerialWorkDispatcher.setupJob);
-        javaSerialWorkDispatcher.setTeardownJob((javaSerialWorkDispatcher.teardownJob));
+        javaSerialWorkDispatcher.setInitialJob(javaSerialWorkDispatcher.setupJob);
+        javaSerialWorkDispatcher.setFinalJob((javaSerialWorkDispatcher.teardownJob));
 
         Mockito.doAnswer(new Answer() {
             @Override

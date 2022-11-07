@@ -67,6 +67,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
         }
     }
 
+    @SuppressWarnings("checkstyle:NestedIfDepth")
     private void openOrMigrateEventHistoryDatabaseFile() throws Exception {
         final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
         if(appContext == null) {
@@ -75,9 +76,14 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                     "Failed to create database (%s), the ApplicationContext is null", DATABASE_NAME);
             throw new EventHistoryDatabaseCreationException("ApplicationContext is null");
         }
+
         databaseFile = appContext.getDatabasePath(DATABASE_NAME);
+
+        // check if database file exists
         if (!databaseFile.exists()) {
+            // if database file does not exist, create new file
             if (databaseFile.createNewFile()) {
+                // If db exists in cache directory, migrate it to new path.
                 final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
                 if (applicationCacheDir != null) {
                     final String cacheDirCanonicalPath = applicationCacheDir.getCanonicalPath();

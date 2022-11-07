@@ -39,6 +39,7 @@ import java.util.concurrent.CountDownLatch;
 public class AndroidEventHistoryTests {
     private AndroidEventHistory androidEventHistory;
     private HashMap<String, Object> data;
+    private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
 
     @Before
     public void beforeEach() {
@@ -49,6 +50,7 @@ public class AndroidEventHistoryTests {
         ServiceProviderModifier.setAppContextService(mockAppContextService);
 
         TestUtils.deleteAllFilesInCacheDir(context);
+        context.getApplicationContext().getDatabasePath(DATABASE_NAME).delete();
 
         try {
             androidEventHistory = new AndroidEventHistory();

@@ -14,8 +14,8 @@ package com.adobe.marketing.mobile.internal.util;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.adobe.marketing.mobile.services.DataEntity;
 
@@ -42,7 +42,7 @@ public class SQLiteDatabaseHelperTests {
 
     @Before
     public void setUp() {
-        dbFile =  new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite");
+        dbFile =  ApplicationProvider.getApplicationContext().getDatabasePath("test.sqlite");
         dbPath = dbFile.getPath();
         createTable();
     }

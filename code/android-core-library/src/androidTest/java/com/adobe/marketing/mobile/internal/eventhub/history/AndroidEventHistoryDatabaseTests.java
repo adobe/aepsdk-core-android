@@ -29,6 +29,7 @@ import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.MockAppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +54,7 @@ public class AndroidEventHistoryDatabaseTests {
 		ServiceProviderModifier.setAppContextService(mockAppContextService);
 
 		TestUtils.deleteAllFilesInCacheDir(context);
+		context.getApplicationContext().getDatabasePath(DATABASE_NAME).delete();
 
 		try {
 			androidEventHistoryDatabase = new AndroidEventHistoryDatabase();

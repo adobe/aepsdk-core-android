@@ -70,7 +70,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
     @SuppressWarnings("checkstyle:NestedIfDepth")
     private void openOrMigrateEventHistoryDatabaseFile() throws Exception {
         final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
-        if(appContext == null) {
+        if (appContext == null) {
             Log.debug(CoreConstants.LOG_TAG, LOG_TAG,
                     LOG_TAG,
                     "Failed to create database (%s), the ApplicationContext is null", DATABASE_NAME);
@@ -79,21 +79,14 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
 
         databaseFile = appContext.getDatabasePath(DATABASE_NAME);
 
-        // check if database file exists
-        if (!databaseFile.exists()) {
-            // if database file does not exist, create new file
-            if (databaseFile.createNewFile()) {
-                // If db exists in cache directory, migrate it to new path.
-                final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-                if (applicationCacheDir != null) {
-                    final String cacheDirCanonicalPath = applicationCacheDir.getCanonicalPath();
-                    File cacheDirDatabaseFile = new File(cacheDirCanonicalPath + "/" + DATABASE_NAME);
-                    if (cacheDirDatabaseFile.exists()) {
-                        FileUtils.moveFile(cacheDirDatabaseFile, databaseFile);
-                        Log.warning(CoreConstants.LOG_TAG, LOG_TAG,
-                                "Successfully moved DataQueue for database (%s) from cache directory to database directory", DATABASE_NAME);
-                    }
-                }
+        // If db exists in cache directory, migrate it to new path.
+        final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+        if (applicationCacheDir != null) {
+            final File cacheDirDatabaseFile = new File(applicationCacheDir, DATABASE_NAME);
+            if (cacheDirDatabaseFile.exists()) {
+                FileUtils.moveFile(cacheDirDatabaseFile, databaseFile);
+                Log.warning(CoreConstants.LOG_TAG, LOG_TAG,
+                        "Successfully moved DataQueue for database (%s) from cache directory to database directory", DATABASE_NAME);
             }
         }
     }

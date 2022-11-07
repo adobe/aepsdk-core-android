@@ -78,26 +78,20 @@ public class DataQueueServiceTests {
     public void testGetDataQueue_DataQueueMigrationFromCacheDirectory() {
         assertFalse(context.getDatabasePath(TEST_DATABASE_NAME).exists());
         File cacheDatabaseFile = new File(context.getCacheDir(), TEST_DATABASE_NAME);
-        try {
-            cacheDatabaseFile.createNewFile();
-            DataQueue dataQueue = new SQLiteDataQueue(cacheDatabaseFile.getPath());
-            dataQueue.add(new DataEntity("test_data_1"));
-            DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
-            Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
-            assertFalse(cacheDatabaseFile.exists());
-        } catch (IOException e) { }
+        DataQueue dataQueue = new SQLiteDataQueue(cacheDatabaseFile.getPath());
+        dataQueue.add(new DataEntity("test_data_1"));
+        DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
+        Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
+        assertFalse(cacheDatabaseFile.exists());
     }
 
     @Test
     public void testGetDataQueue_DataQueueExistsInDatabaseDirectory() {
         File databaseFile = context.getDatabasePath(TEST_DATABASE_NAME);
-        try {
-            databaseFile.createNewFile();
-            DataQueue dataQueue = new SQLiteDataQueue(databaseFile.getPath());
-            dataQueue.add(new DataEntity("test_data_1"));
-            DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
-            Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
-        } catch (IOException e) { }
+        DataQueue dataQueue = new SQLiteDataQueue(databaseFile.getPath());
+        dataQueue.add(new DataEntity("test_data_1"));
+        DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
+        Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
     }
 
     @Test

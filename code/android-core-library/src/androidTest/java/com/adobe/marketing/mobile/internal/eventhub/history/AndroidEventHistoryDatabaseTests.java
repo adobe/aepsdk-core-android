@@ -185,7 +185,6 @@ public class AndroidEventHistoryDatabaseTests {
 
 	private void createEventHistoryDatabaseInCacheDirectory() throws Exception {
 		File cacheDatabaseFile = new File(context.getCacheDir(), DATABASE_NAME);
-		cacheDatabaseFile.createNewFile();
 		SQLiteDatabase cacheDatabase = SQLiteDatabaseHelper.openDatabase(cacheDatabaseFile.getPath(), SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
 		final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
 				" (eventHash INTEGER, timestamp INTEGER);";

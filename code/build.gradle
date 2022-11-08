@@ -8,17 +8,20 @@ buildscript {
             url "https://plugins.gradle.org/m2/"
         }
         mavenCentral()
-        
+
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.2.1'
         classpath "org.jacoco:org.jacoco.core:0.8.7"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31"
+        //TODO: the following kotlin-gradle-plugin 1.7.x is required by the benchmark plugin, switch versions when using microbenchmark project for performance testing
+//        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.21"
         classpath 'org.jetbrains.kotlinx:binary-compatibility-validator:0.11.1'
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
 
         // ktlint Functional Interface identification works only from 10.1.0 or later
         classpath "org.jlleitschuh.gradle:ktlint-gradle:10.1.0"
+        classpath 'androidx.benchmark:benchmark-gradle-plugin:1.2.0-alpha06'
     }
 }
 

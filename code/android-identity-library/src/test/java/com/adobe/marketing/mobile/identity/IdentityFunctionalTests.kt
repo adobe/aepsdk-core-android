@@ -19,6 +19,7 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
@@ -165,8 +166,23 @@ class IdentityFunctionalTests {
                 countDownLatch.countDown()
             }
         }
+
         identityExtension.readyForEvent(Event.Builder("event", "type", "source").build())
-//        countDownLatch.await()
+
+        val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
+        verify(mockedExtensionApi, atLeast(1)).dispatch(eventCaptor.capture())
+        eventCaptor.allValues.forEach { event ->
+            assertNotNull(event.eventData)
+            if (event.eventData.contains("forcesync") && event.eventData.contains("issyncevent") && event.eventData.contains(
+                    "issyncevent"
+                )
+            ) {
+                identityExtension.processIdentityRequest(event)
+            }
+        }
+
+
+        //        countDownLatch.await()
         assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
         reset(mockedHitQueue)
 
@@ -1674,19 +1690,24 @@ class IdentityFunctionalTests {
             configuration
         )
         val countDownLatchForOptedOut = CountDownLatch(2)
-        val countDownLatchForOptedIn = CountDownLatch(1)
-        counter = 0
         networkMonitor = { url ->
-            counter++
-            if (counter == 3) {
-                countDownLatchForOptedIn.countDown()
-            }
             if (url.contains("https://test.com/demoptout.jpg?")) {
                 assertTrue(url.contains("d_mid="))
                 assertTrue(url.contains("d_orgid=orgid"))
                 countDownLatchForOptedOut.countDown()
             }
         }
+        val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
+        doAnswer { invocation ->
+            val event = invocation.arguments[0] as? Event ?: return@doAnswer null
+            assertNotNull(event.eventData)
+            if (event.eventData.contains("forcesync") && event.eventData.contains("issyncevent")) {
+                identityExtension.processIdentityRequest(event)
+            }
+            return@doAnswer null
+        }.`when`(mockedExtensionApi).dispatch(any())
+        verify(mockedExtensionApi, atLeast(1)).dispatch(eventCaptor.capture())
+
 
         val optedoutEvent = Event.Builder(
             "event",
@@ -1713,10 +1734,10 @@ class IdentityFunctionalTests {
                 )
             ).build()
         )
+
         identityExtension.handleConfiguration(optedoutEvent)
 
         countDownLatchForOptedOut.await()
-        assertFalse(countDownLatchForOptedIn.await(1000, TimeUnit.MILLISECONDS))
     }
 
     @Test(timeout = 10000)
@@ -1861,6 +1882,7 @@ class IdentityFunctionalTests {
 
     @Test(timeout = 10000)
     fun test_testResetIdentities() {
+
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
             "experienceCloud.server" to "test.com",
@@ -1870,6 +1892,7 @@ class IdentityFunctionalTests {
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
+
         val oldMid = identityExtension.mid
         val countDownLatch = CountDownLatch(2)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
@@ -1903,6 +1926,16 @@ class IdentityFunctionalTests {
                 "com.adobe.eventSource.requestReset"
             ).build()
         )
+        val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
+        verify(mockedExtensionApi, atLeast(1)).dispatch(eventCaptor.capture())
+        val event = eventCaptor.value
+        assertNotNull(event.eventData)
+        assertTrue(event.eventData.contains("forcesync"))
+        assertTrue(event.eventData.contains("authenticationstate"))
+        assertTrue(event.eventData.contains("issyncevent"))
+
+        identityExtension.processIdentityRequest(event)
+
         countDownLatch.await()
     }
 

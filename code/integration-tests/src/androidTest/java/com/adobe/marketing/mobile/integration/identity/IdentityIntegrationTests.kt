@@ -307,7 +307,7 @@ class IdentityIntegrationTests {
             assertTrue(ecid.isNotEmpty())
             countDownLatch.countDown()
         }
-        assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
+        countDownLatch.await()
     }
 
     @Ignore

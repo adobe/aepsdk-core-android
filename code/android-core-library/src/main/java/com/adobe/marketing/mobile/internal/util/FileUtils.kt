@@ -88,7 +88,7 @@ internal object FileUtils {
                 Log.debug(
                     CoreConstants.LOG_TAG,
                     TAG,
-                    "File does not exist or does't have read permission $file"
+                    "File does not exist or doesn't have read permission $file"
                 )
                 return false
             }

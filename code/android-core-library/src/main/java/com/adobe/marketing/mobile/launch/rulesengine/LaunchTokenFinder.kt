@@ -73,7 +73,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
                     Log.debug(
                         LaunchRulesEngineConstants.LOG_TAG,
                         LOG_TAG,
-                        "Triggering event data is null, can not use it to generate an url query string"
+                        "Triggering event ${event.uniqueIdentifier} - Event data is null, can not use it to generate an url query string"
                     )
                     return EMPTY_STRING
                 }
@@ -85,7 +85,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
                     Log.debug(
                         LaunchRulesEngineConstants.LOG_TAG,
                         LOG_TAG,
-                        "Triggering event data is null, can not use it to generate a json string"
+                        "Triggering event ${event.uniqueIdentifier} - Event data is null, can not use it to generate a json string"
                     )
                     return EMPTY_STRING
                 }
@@ -95,7 +95,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
                     Log.debug(
                         LaunchRulesEngineConstants.LOG_TAG,
                         LOG_TAG,
-                        "Failed to generate a json string ${e.message}"
+                        "Triggering event ${event.uniqueIdentifier} - Failed to generate a json string ${e.message}"
                     )
                     return EMPTY_STRING
                 }
@@ -145,7 +145,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             Log.debug(
                 LaunchRulesEngineConstants.LOG_TAG,
                 LOG_TAG,
-                String.format("Unable to replace the token %s, triggering event data is null", key)
+                "Triggering event ${event.uniqueIdentifier} - Event data is null, unable to replace the token $key"
             )
             return EMPTY_STRING
         }

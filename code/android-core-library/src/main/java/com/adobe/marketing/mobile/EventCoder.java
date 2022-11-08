@@ -35,6 +35,8 @@ public class EventCoder {
     private static final String RESPONSE_ID = "responseId";
     private static final String MASK = "mask";
 
+    private EventCoder() {}
+
     /**
      * Decode an event from json string
      *

@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'org.jlleitschuh.gradle.ktlint'
 apply plugin: 'org.jetbrains.dokka'
 
-// Disable variants for binary compatiblity validation tasks.
+// Disable variants for binary compatibility validation tasks.
 apply plugin: 'binary-compatibility-validator'
 ext.disableVariants = project.gradle.startParameter.taskNames.any { taskName ->
     project.logger.debug(taskName)

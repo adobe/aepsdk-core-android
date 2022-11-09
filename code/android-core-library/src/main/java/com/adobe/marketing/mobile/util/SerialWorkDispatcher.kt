@@ -180,7 +180,6 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      * Invoked immediately before processing the items in the queue for the first time.
      * Implementers are expected to perform any one-time setup operations (bound by the activeness of
      * [SerialWorkDispatcher]) before processing starts.
-     * Invoked on the thread that calls [start]
      */
     private fun prepare() {
         val initTask = this.initialJob ?: return

@@ -61,11 +61,6 @@ internal class EventHub(val eventHistory: EventHistory?) {
     )
 
     /**
-     * Executor to initialize and shutdown extensions
-     */
-    private val extensionInitExecutor: ExecutorService by lazy { Executors.newCachedThreadPool() }
-
-    /**
      * Executor for eventhub callbacks and response listeners
      */
     private val scheduledExecutor: ScheduledExecutorService by lazy { Executors.newSingleThreadScheduledExecutor() }
@@ -310,7 +305,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
             }
 
             extensionPreRegistration(extensionClass)
-            val container = ExtensionContainer(extensionClass, extensionInitExecutor) { error ->
+            val container = ExtensionContainer(extensionClass) { error ->
                 eventHubExecutor.submit {
                     completion?.let { executeCompletionHandler { it(error) } }
                     extensionPostRegistration(extensionClass, error)

@@ -1035,13 +1035,13 @@ public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
 	public static final field LOG_TAG Ljava/lang/String;
 	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$WorkHandler;)V
 	protected fun canWork ()Z
-	protected fun cleanup ()V
 	public final fun getState ()Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
 	public final fun offer (Ljava/lang/Object;)Z
 	public final fun pause ()Z
-	protected fun prepare ()V
 	public final fun resume ()Z
 	public final fun setExecutorService (Ljava/util/concurrent/ExecutorService;)V
+	public final fun setFinalJob (Ljava/lang/Runnable;)V
+	public final fun setInitialJob (Ljava/lang/Runnable;)V
 	public final fun shutdown ()V
 	public final fun start ()Z
 }

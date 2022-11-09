@@ -41,16 +41,15 @@ class SerialWorkDispatcherTests {
     class TestSerialWorkDispatcher(name: String, workHandler: WorkHandler<Event>) :
         SerialWorkDispatcher<Event>(name, workHandler) {
         var processedEvents: ArrayList<Event>? = null
-
-        var blockWork: Boolean = false
-
-        override fun prepare() {
+        val initJob = Runnable {
             processedEvents = ArrayList()
         }
 
-        override fun cleanup() {
+        val teardownJob = Runnable {
             processedEvents = null
         }
+
+        var blockWork: Boolean = false
 
         override fun canWork(): Boolean {
             return !blockWork
@@ -72,6 +71,9 @@ class SerialWorkDispatcherTests {
     @Before
     fun setUp() {
         serialWorkDispatcher.setExecutorService(mockExecutorService)
+        serialWorkDispatcher.setInitialJob(serialWorkDispatcher.initJob)
+        serialWorkDispatcher.setFinalJob(serialWorkDispatcher.teardownJob)
+
         Mockito.doAnswer(
             Answer {
                 val runnable = it.getArgument<Runnable>(0)
@@ -82,13 +84,74 @@ class SerialWorkDispatcherTests {
     }
 
     @Test
-    fun `Prepare is called when dispatcher is started`() {
+    fun `Initial job is executed on start and before processing items when set`() {
         assertNull(serialWorkDispatcher.processedEvents)
 
+        serialWorkDispatcher.offer(Event.Builder("Event1", "Type", "Source").build())
         serialWorkDispatcher.start()
 
         assertEquals(SerialWorkDispatcher.State.ACTIVE, serialWorkDispatcher.getState())
         assertNotNull(serialWorkDispatcher.processedEvents)
+        assertEquals(1, serialWorkDispatcher.processedEvents?.size)
+    }
+
+    @Test
+    fun `Initial job is NOT invoked when set after start()`() {
+        val serialWorkDispatcher = TestSerialWorkDispatcher("TestImpl incorrect start", workHandler)
+        assertNull(serialWorkDispatcher.processedEvents)
+
+        serialWorkDispatcher.offer(Event.Builder("Event1", "Type", "Source").build())
+        serialWorkDispatcher.offer(Event.Builder("Event1", "Type", "Source").build())
+        serialWorkDispatcher.offer(Event.Builder("Event2", "Type", "Source").build())
+        serialWorkDispatcher.start()
+
+        // Set the initial job after start()
+        serialWorkDispatcher.setInitialJob(serialWorkDispatcher.initJob)
+
+        assertEquals(SerialWorkDispatcher.State.ACTIVE, serialWorkDispatcher.getState())
+        assertNull(serialWorkDispatcher.processedEvents)
+    }
+
+    @Test
+    fun `Final job is NOT invoked when set after shutdown()`() {
+        val serialWorkDispatcher = TestSerialWorkDispatcher("TestImpl incorrect start", workHandler)
+        assertNull(serialWorkDispatcher.processedEvents)
+
+        serialWorkDispatcher.setInitialJob(serialWorkDispatcher.initJob)
+        serialWorkDispatcher.offer(Event.Builder("Event1", "Type", "Source").build())
+        serialWorkDispatcher.offer(Event.Builder("Event1", "Type", "Source").build())
+        serialWorkDispatcher.offer(Event.Builder("Event2", "Type", "Source").build())
+        serialWorkDispatcher.start()
+        Thread.sleep(500L)
+        serialWorkDispatcher.shutdown()
+
+        // Set the initial job after shutdown()
+        serialWorkDispatcher.setFinalJob(serialWorkDispatcher.teardownJob)
+
+        assertEquals(SerialWorkDispatcher.State.SHUTDOWN, serialWorkDispatcher.getState())
+        assertNotNull(serialWorkDispatcher.initJob)
+    }
+
+    @Test
+    fun `Dispatcher without init job and teardown jobs`() {
+        val serialWorkDispatcher = TestSerialWorkDispatcher("TestImpl Without Init and teardown", workHandler)
+
+        assertNull(serialWorkDispatcher.processedEvents)
+
+        // Test start()
+        serialWorkDispatcher.offer(Event.Builder("Event1", "Type", "Source").build())
+        serialWorkDispatcher.offer(Event.Builder("Event2", "Type", "Source").build())
+        serialWorkDispatcher.offer(Event.Builder("Event3", "Type", "Source").build())
+        serialWorkDispatcher.start()
+
+        // Verify
+        assertEquals(SerialWorkDispatcher.State.ACTIVE, serialWorkDispatcher.getState())
+        assertNull(serialWorkDispatcher.processedEvents)
+
+        // Test shutdown()
+        serialWorkDispatcher.shutdown()
+        assertEquals(SerialWorkDispatcher.State.SHUTDOWN, serialWorkDispatcher.getState())
+        assertNull(serialWorkDispatcher.processedEvents)
     }
 
     @Test
@@ -149,6 +212,7 @@ class SerialWorkDispatcherTests {
         val event1: Event = Event.Builder("Event1", "Type", "Source").build()
         val event2: Event = Event.Builder("Event2", "Type", "Source").build()
         val event3: Event = Event.Builder("Event3", "Type", "Source").build()
+        val event4: Event = Event.Builder("Event4", "Type", "Source").build()
         //
         serialWorkDispatcher.offer(event1)
         serialWorkDispatcher.start()
@@ -159,9 +223,10 @@ class SerialWorkDispatcherTests {
         // Offer new events
         serialWorkDispatcher.offer(event2)
         serialWorkDispatcher.offer(event3)
+        serialWorkDispatcher.offer(event4)
 
         // Verify that the work is submitted only once.
-        verify(mockExecutorService, times(1)).submit(any(Runnable::class.java))
+        verify(mockExecutorService, times(2)).submit(any(Runnable::class.java))
         // verify that only event 1 is processed
         assertNotNull(serialWorkDispatcher.processedEvents)
         assertEquals(1, serialWorkDispatcher.processedEvents?.size)
@@ -252,7 +317,7 @@ class SerialWorkDispatcherTests {
         serialWorkDispatcher.shutdown()
 
         assertEquals(SerialWorkDispatcher.State.SHUTDOWN, serialWorkDispatcher.getState())
-        verify(mockExecutorService, times(1)).shutdownNow()
+        verify(mockExecutorService, times(1)).shutdown()
         assertNull(serialWorkDispatcher.processedEvents)
     }
 

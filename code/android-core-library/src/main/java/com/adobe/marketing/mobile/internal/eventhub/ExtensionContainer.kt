@@ -33,11 +33,9 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.ExecutorService
 
 internal class ExtensionContainer constructor(
     private val extensionClass: Class<out Extension>,
-    private val taskExecutor: ExecutorService,
     callback: (EventHubError) -> Unit
 ) : ExtensionApi() {
 
@@ -91,56 +89,59 @@ internal class ExtensionContainer constructor(
             return@WorkHandler true
         }
 
+    private val initJob = Runnable {
+        val extension = extensionClass.initWith(this)
+        if (extension == null) {
+            callback(EventHubError.ExtensionInitializationFailure)
+            return@Runnable
+        }
+
+        val extensionName = extension.extensionName
+        if (extensionName.isNullOrBlank()) {
+            callback(EventHubError.InvalidExtensionName)
+            extension.onExtensionUnexpectedError(ExtensionUnexpectedError(ExtensionError.BAD_NAME))
+            return@Runnable
+        }
+
+        this.extension = extension
+        sharedStateName = extensionName
+        friendlyName = extension.extensionFriendlyName
+        version = extension.extensionVersion
+        metadata = extension.extensionMetadata
+
+        sharedStateManagers = mapOf(
+            SharedStateType.XDM to SharedStateManager(extensionName),
+            SharedStateType.STANDARD to SharedStateManager(extensionName)
+        )
+
+        callback(EventHubError.None)
+
+        // Notify that the extension is registered
+        extension.onExtensionRegistered()
+    }
+
+    private val teardownJob = Runnable {
+        extension?.onExtensionUnregistered()
+    }
+
     val eventProcessor: SerialWorkDispatcher<Event> =
         SerialWorkDispatcher(extensionClass.extensionTypeName, dispatchJob)
 
     init {
-        taskExecutor.submit {
-            val extension = extensionClass.initWith(this)
-            if (extension == null) {
-                callback(EventHubError.ExtensionInitializationFailure)
-                return@submit
-            }
 
-            val extensionName = extension.extensionName
-            if (extensionName.isNullOrBlank()) {
-                callback(EventHubError.InvalidExtensionName)
-                extension.onExtensionUnexpectedError(ExtensionUnexpectedError(ExtensionError.BAD_NAME))
-                return@submit
-            }
+        eventProcessor.setInitialJob(initJob)
+        eventProcessor.setFinalJob(teardownJob)
+        eventProcessor.start()
 
-            this.extension = extension
-            sharedStateName = extensionName
-            friendlyName = extension.extensionFriendlyName
-            version = extension.extensionVersion
-            metadata = extension.extensionMetadata
-
-            sharedStateManagers = mapOf(
-                SharedStateType.XDM to SharedStateManager(extensionName),
-                SharedStateType.STANDARD to SharedStateManager(extensionName)
-            )
-
-            callback(EventHubError.None)
-
-            // Notify that the extension is registered
-            extension.onExtensionRegistered()
-
-            // Start event processor now as extensions can add event listeners onRegistered() callback
-            eventProcessor.start()
-
-            Log.debug(
-                CoreConstants.LOG_TAG,
-                getTag(),
-                "ExtensionContainer started processing events"
-            )
-        }
+        Log.debug(
+            CoreConstants.LOG_TAG,
+            getTag(),
+            "ExtensionContainer started processing events"
+        )
     }
 
     fun shutdown() {
-        taskExecutor.run {
-            eventProcessor.shutdown()
-            extension?.onExtensionUnregistered()
-        }
+        eventProcessor.shutdown()
     }
 
     /**

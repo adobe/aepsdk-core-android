@@ -14,8 +14,8 @@ package com.adobe.marketing.mobile.internal.util;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.adobe.marketing.mobile.services.DataEntity;
 
@@ -37,17 +37,20 @@ public class SQLiteDatabaseHelperTests {
     private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
     private static final String TB_KEY_TIMESTAMP = "timestamp";
     private static final String TB_KEY_DATA = "data";
+    private File dbFile;
     private String dbPath;
 
     @Before
     public void setUp() {
-        dbPath = new File(InstrumentationRegistry.getInstrumentation().getContext().getCacheDir(), "test.sqlite").getPath();
+        dbFile = ApplicationProvider.getApplicationContext().getDatabasePath("test.sqlite");
+        dbPath = dbFile.getPath();
         createTable();
     }
 
     @After
     public void dispose() {
         SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
+        dbFile.delete();
     }
 
     private void createTable() {

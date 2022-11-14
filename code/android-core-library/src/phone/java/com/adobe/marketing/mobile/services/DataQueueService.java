@@ -57,7 +57,7 @@ class DataQueueService implements DataQueuing {
 					if (databaseDirDataQueue == null) {
 						Log.warning(ServiceConstants.LOG_TAG,
 								LOG_TAG,
-								String.format("Failed to create DataQueue for database (%s).", databaseName));
+								"Failed to create DataQueue for database (%s).", databaseName);
 						return null;
 					}
 					dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath());
@@ -83,12 +83,13 @@ class DataQueueService implements DataQueuing {
 		if (appContext == null) {
 			Log.debug(ServiceConstants.LOG_TAG,
 					LOG_TAG,
-					String.format("Failed to create DataQueue for database (%s), the ApplicationContext is null", databaseName));
+					"Failed to create DataQueue for database (%s), the ApplicationContext is null", databaseName);
 			return null;
 		}
 
 		final String cleanedDatabaseName = FileUtils.removeRelativePath(databaseName);
 		final File databaseDirDataQueue = appContext.getDatabasePath(cleanedDatabaseName);
+
 		// Return the db which exists in database directory.
 		if (databaseDirDataQueue.exists()) {
 			return databaseDirDataQueue;
@@ -97,20 +98,21 @@ class DataQueueService implements DataQueuing {
 		// If db exists in cache directory, migrate it to new path.
 		try {
 			final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-			final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
-			if (cacheDirDataQueue.exists()) {
-				FileUtils.moveFile(cacheDirDataQueue, databaseDirDataQueue);
-				Log.debug(ServiceConstants.LOG_TAG,
-						LOG_TAG,
-						String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
+			if (cacheDir != null) {
+				final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
+				if (cacheDirDataQueue.exists()) {
+					FileUtils.moveFile(cacheDirDataQueue, databaseDirDataQueue);
+					Log.debug(ServiceConstants.LOG_TAG,
+							LOG_TAG,
+							"Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName);
+				}
 			}
 		} catch (Exception ex) {
 			Log.debug(ServiceConstants.LOG_TAG,
 					LOG_TAG,
-					String.format("Failed to move DataQueue for database (%s) from cache directory to database directory", databaseName));
+					"Failed to move DataQueue for database (%s) from cache directory to database directory", databaseName);
 		}
 
 		return databaseDirDataQueue;
 	}
 }
-

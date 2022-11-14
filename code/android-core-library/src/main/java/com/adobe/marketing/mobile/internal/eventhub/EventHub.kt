@@ -155,6 +155,14 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 it.eventProcessor.offer(processedEvent)
             }
 
+            if (Log.getLogLevel() >= LoggingMode.DEBUG) {
+                Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Dispatched Event #${getEventNumber(event)} to extensions after processing rules - ($event)"
+                )
+            }
+
             // Record event history
             processedEvent.mask?.let {
                 eventHistory?.recordEvent(processedEvent) { result ->
@@ -202,6 +210,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
                     }
 
                     _wrapperType = value
+                    Log.debug(
+                        CoreConstants.LOG_TAG,
+                        LOG_TAG,
+                        "Wrapper type set to $value"
+                    )
                 }
             ).get()
         }
@@ -277,11 +290,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
             )
         }
 
-        if (Log.getLogLevel() == LoggingMode.VERBOSE) {
-            Log.trace(
+        if (Log.getLogLevel() >= LoggingMode.DEBUG) {
+            Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Dispatched Event #$eventNumber - ($event)"
+                "Dispatching Event #$eventNumber - ($event)"
             )
         }
     }
@@ -333,11 +346,12 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * @param error Error denoting the status of registration
      */
     private fun extensionPostRegistration(extensionClass: Class<out Extension>, error: EventHubError) {
-        Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Registered extension $extensionClass with status $error")
 
         if (error != EventHubError.None) {
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registration failed with error $error")
             unregisterExtensionInternal(extensionClass)
         } else {
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registered successfully")
             shareEventHubSharedState()
         }
 
@@ -367,12 +381,14 @@ internal class EventHub(val eventHistory: EventHistory?) {
     ) {
         val extensionName = extensionClass.extensionTypeName
         val container = registeredExtensions.remove(extensionName)
-        var error: EventHubError? = null
+        val error: EventHubError
         if (container != null) {
             container.shutdown()
             shareEventHubSharedState()
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistered successfully")
             error = EventHubError.None
         } else {
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistration failed as extension was not registered")
             error = EventHubError.ExtensionNotRegistered
         }
 
@@ -510,12 +526,12 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
             )
         } else {
-            dispatchSharedStateEvent(sharedStateType, extensionName)
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Created $sharedStateType shared state for extension $extensionName with version $version and data ${state?.prettify()}"
             )
+            dispatchSharedStateEvent(sharedStateType, extensionName)
         }
 
         return didSet
@@ -616,12 +632,12 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 return@Callable
             }
 
-            dispatchSharedStateEvent(sharedStateType, extensionName)
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Resolved pending $sharedStateType shared state for $extensionName and version $version with data ${immutableState?.prettify()}"
             )
+            dispatchSharedStateEvent(sharedStateType, extensionName)
         }
         eventHubExecutor.submit(callable).get()
     }
@@ -647,8 +663,9 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Get $sharedStateType shared state for extension $extensionName and event ${event?.uniqueIdentifier} failed - ExtensionContainer is null"
+                    "Unable to retrieve $sharedStateType shared state for $extensionName. No such extension is registered."
                 )
+
                 return@Callable null
             }
 
@@ -656,7 +673,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Get $sharedStateType shared state for extension $extensionName and event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
+                    "Unable to retrieve $sharedStateType shared state for $extensionName. SharedStateManager is null"
                 )
                 return@Callable null
             }

@@ -20,6 +20,7 @@ package com.adobe.marketing.mobile;
  * @author Adobe Systems Incorporated
  * @version 5.0
  */
+@Deprecated
 public interface ExtensionErrorCallback<ExtensionError> {
 	void error(final ExtensionError errorCode);
 }

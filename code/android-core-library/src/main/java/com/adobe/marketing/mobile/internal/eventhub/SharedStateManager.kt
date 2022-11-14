@@ -111,11 +111,6 @@ internal class SharedStateManager(private val name: String) {
         // Return first state equal to or less than version
         val resolvedState = states.floorEntry(version)?.value
         if (resolvedState != null) {
-            Log.trace(
-                CoreConstants.LOG_TAG,
-                LOG_TAG,
-                "Resolving state($version) with version ${resolvedState.version} and data ${resolvedState.data}"
-            )
             return resolvedState.getResult()
         }
 
@@ -138,11 +133,6 @@ internal class SharedStateManager(private val name: String) {
         states.descendingMap().tailMap(version).forEach {
             val state = it.value
             if (state.status != SharedStateStatus.PENDING) {
-                Log.trace(
-                    CoreConstants.LOG_TAG,
-                    LOG_TAG,
-                    "Resolving lastSet state($version) with version ${state.version} and data ${state.data}"
-                )
                 return state.getResult()
             }
         }
@@ -182,7 +172,7 @@ internal class SharedStateManager(private val name: String) {
     private fun set(version: Int, state: SharedState): Boolean {
         // Check if there exists a state at a version equal to, or higher than the one provided.
         if (states.ceilingEntry(version) != null) {
-            Log.debug(
+            Log.trace(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
                 "Cannot create $name shared state at version $version. " +

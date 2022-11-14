@@ -155,7 +155,8 @@ internal class ExtensionContainer constructor(
         if (extension == null) {
             return LOG_TAG
         }
-        return "$sharedStateName($version)"
+
+        return "ExtensionContainer[$sharedStateName($version)]"
     }
 
     // Override ExtensionApi Methods

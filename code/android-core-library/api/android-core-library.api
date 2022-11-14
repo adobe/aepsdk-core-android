@@ -40,7 +40,6 @@ public class com/adobe/marketing/mobile/Event$Builder {
 }
 
 public class com/adobe/marketing/mobile/EventCoder {
-	public fun <init> ()V
 	public static fun decode (Ljava/lang/String;)Lcom/adobe/marketing/mobile/Event;
 	public static fun encode (Lcom/adobe/marketing/mobile/Event;)Ljava/lang/String;
 }
@@ -319,22 +318,6 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRule : co
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesConsequence {
-	public static final field Companion Lcom/adobe/marketing/mobile/launch/rulesengine/LaunchRulesConsequence$Companion;
-	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
-	public final fun evaluateRulesConsequence (Lcom/adobe/marketing/mobile/Event;Ljava/util/List;)Lcom/adobe/marketing/mobile/Event;
-}
-
-public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesConsequence$Companion {
-}
-
-public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesConsequenceKt {
-	public static final fun getEventData (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;)Ljava/util/Map;
-	public static final fun getEventDataAction (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;)Ljava/lang/String;
-	public static final fun getEventSource (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;)Ljava/lang/String;
-	public static final fun getEventType (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;)Ljava/lang/String;
-}
-
 public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
 	public fun process (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
@@ -343,7 +326,6 @@ public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 
 public final class com/adobe/marketing/mobile/launch/rulesengine/RuleConsequence {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/util/Map;
@@ -354,7 +336,6 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/RuleConsequence
 	public final fun getId ()Ljava/lang/String;
 	public final fun getType ()Ljava/lang/String;
 	public fun hashCode ()I
-	public final fun setDetail (Ljava/util/Map;)V
 	public fun toString ()Ljava/lang/String;
 }
 

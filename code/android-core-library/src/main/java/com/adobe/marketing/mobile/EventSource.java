@@ -37,5 +37,4 @@ public final class EventSource {
 	public static final String APPLICATION_CLOSE = "com.adobe.eventSource.applicationClose";
 	public static final String CONSENT_PREFERENCE = "consent:preferences";
 	public static final String UPDATE_CONSENT = "com.adobe.eventSource.updateConsent";
-	public static final String BOOTED = "com.adobe.eventSource.booted";
 }

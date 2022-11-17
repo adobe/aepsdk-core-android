@@ -1,16 +1,9 @@
-BRANCH_VERSION=$(shell git rev-parse --abbrev-ref HEAD | sed "s/dev-v//g")
-update-version:
-	echo $(BRANCH_VERSION)
-	sed -i '' "s/[0-9]*\.[0-9]*\.[0-9]/$(BRANCH_VERSION)/g" ./android-core-library/src/phone/java/com/adobe/marketing/mobile/ExtensionVersionManager.java
-	sed -i '' "s/\(coreExtensionVersion=\)[0-9]*\.[0-9]*\.[0-9]/\1$(BRANCH_VERSION)/g" ./gradle.properties
-	sed -i '' "s/\(mavenCoreVersion=\)[0-9]*\.[0-9]*\.[0-9]/\1$(BRANCH_VERSION)/g" ./gradle.properties
-	sed -i '' "s/\(coreLibraryMavenRootVersion=\)[0-9]*\.[0-9]*\.[0-9]/\1$(BRANCH_VERSION)/g" ./gradle.properties
 
 clean:
 	  (./code/gradlew -p code clean)
 
-checkstyle: core-checkstyle
-		
+checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-checkstyle
+
 check-format: core-check-format
 
 format: core-format
@@ -21,9 +14,9 @@ api-dump:
 api-check: 
 		(./code/gradlew -p code/android-core-library apiCheck)
 
-assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-phone
-	
-assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release
+assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-phone identity-assemble-phone
+
+assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release identity-assemble-phone-release
 
 javadoc: core-javadoc
 
@@ -31,9 +24,9 @@ unit-test: core-unit-test signal-unit-test lifecycle-unit-test
 
 unit-test-coverage: core-unit-test-coverage signal-unit-test-coverage lifecycle-unit-test-coverage
 
-functional-test: core-functional-test signal-functional-test lifecycle-functional-test
+functional-test: core-functional-test signal-functional-test lifecycle-functional-test identity-functional-test
 
-functional-test-coverage: core-functional-test-coverage signal-functional-test-coverage lifecycle-functional-test-coverage
+functional-test-coverage: core-functional-test-coverage signal-functional-test-coverage lifecycle-functional-test-coverage identity-functional-test-coverage
 
 integration-test: 
 		(./code/gradlew -p code/integration-tests uninstallDebugAndroidTest)
@@ -55,13 +48,13 @@ core-format:
 
 core-assemble-phone:
 		(./code/gradlew -p code/android-core-library assemblePhone)
-		
+
 core-assemble-phone-release:		
 		(./code/gradlew -p code/android-core-library assemblePhoneRelease)
-		
+
 core-unit-test:
 		(./code/gradlew -p code/android-core-library testPhoneDebugUnitTest)
-		
+
 core-unit-test-coverage:
 		(./code/gradlew -p code/android-core-library createPhoneDebugUnitTestCoverageReport)
 
@@ -79,7 +72,10 @@ core-publish:
 		(./code/gradlew -p code/android-core-library  publishReleasePublicationToSonatypeRepository)
 
 core-publish-maven-local:
-		(./code/gradlew -p code/android-core-library publishReleasePublicationToMavenLocal)		
+		(./code/gradlew -p code/android-core-library publishReleasePublicationToMavenLocal -x signReleasePublication)		
+
+core-publish-maven-local-jitpack:
+		(./code/gradlew -p code/android-core-library publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)		
 
 ### Signal 
 
@@ -94,13 +90,13 @@ signal-format:
 
 signal-assemble-phone:
 		(./code/gradlew -p code/android-signal-library assemblePhone)
-		
+
 signal-assemble-phone-release:		
 		(./code/gradlew -p code/android-signal-library assemblePhoneRelease)
-		
+
 signal-unit-test:
 		(./code/gradlew -p code/android-signal-library testPhoneDebugUnitTest)
-		
+
 signal-unit-test-coverage:
 		(./code/gradlew -p code/android-signal-library createPhoneDebugUnitTestCoverageReport)
 
@@ -112,10 +108,15 @@ signal-functional-test-coverage:
 		(./code/gradlew -p code/android-signal-library createPhoneDebugAndroidTestCoverageReport)
 
 signal-publish:
-		(./code/gradlew -p code/android-signal-library  publishReleasePublicationToSonatypeRepository)
+		(./code/gradlew -p code/android-signal-library  publishReleasePublicationToSonatypeRepository)	
 
 signal-publish-maven-local:
+		(./code/gradlew -p code/android-signal-library assemblePhone)
 		(./code/gradlew -p code/android-signal-library publishReleasePublicationToMavenLocal)		
+
+signal-publish-maven-local-jitpack:
+		(./code/gradlew -p code/android-signal-library assemblePhone)
+		(./code/gradlew -p code/android-signal-library publishReleasePublicationToMavenLocal -Pjitpack)		
 
 ### Lifecycle 
 
@@ -124,13 +125,13 @@ lifecycle-checkstyle:
 
 lifecycle-assemble-phone:
 		(./code/gradlew -p code/android-lifecycle-library assemblePhone)
-		
+
 lifecycle-assemble-phone-release:		
 		(./code/gradlew -p code/android-lifecycle-library assemblePhoneRelease)
-		
+
 lifecycle-unit-test:
 		(./code/gradlew -p code/android-lifecycle-library testPhoneDebugUnitTest)
-		
+
 lifecycle-unit-test-coverage:
 		(./code/gradlew -p code/android-lifecycle-library createPhoneDebugUnitTestCoverageReport)
 
@@ -145,6 +146,59 @@ lifecycle-publish:
 		(./code/gradlew -p code/android-lifecycle-library  publishReleasePublicationToSonatypeRepository)
 
 lifecycle-publish-maven-local:
-		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToMavenLocal)	
+		(./code/gradlew -p code/android-lifecycle-library assemblePhone)
+		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToMavenLocal)		
+
+lifecycle-publish-maven-local-jitpack:
+		(./code/gradlew -p code/android-lifecycle-library assemblePhone)
+		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToMavenLocal -Pjitpack)
 
 ### Identity 
+
+identity-checkstyle:
+		(./code/gradlew -p code/android-identity-library checkstyle)
+
+identity-assemble-phone:
+		(./code/gradlew -p code/android-identity-library assemblePhone)
+
+identity-assemble-phone-release:		
+		(./code/gradlew -p code/android-identity-library assemblePhoneRelease)
+
+identity-unit-test:
+		(./code/gradlew -p code/android-identity-library testPhoneDebugUnitTest)
+
+identity-unit-test-coverage:
+		(./code/gradlew -p code/android-identity-library createPhoneDebugUnitTestCoverageReport)
+
+identity-functional-test:
+		(./code/gradlew -p code/android-identity-library uninstallPhoneDebugAndroidTest)
+		(./code/gradlew -p code/android-identity-library connectedPhoneDebugAndroidTest)		
+
+identity-functional-test-coverage:		
+		(./code/gradlew -p code/android-identity-library createPhoneDebugAndroidTestCoverageReport)
+
+identity-publish:
+		(./code/gradlew -p code/android-identity-library  publishReleasePublicationToSonatypeRepository)
+
+identity-publish-maven-local:
+		(./code/gradlew -p code/android-identity-library assemblePhone)
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal)		
+
+identity-publish-maven-local-jitpack:
+		(./code/gradlew -p code/android-identity-library assemblePhone)
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal -Pjitpack)
+
+#compatibility
+compatibility-publish-maven-local:
+		(./code/gradlew -p code/android-core-compatiblity assemblePhone)
+		(./code/gradlew -p code/android-core-compatiblity publishReleasePublicationToMavenLocal)		
+
+compatibility-publish-maven-local-jitpack:
+		(./code/gradlew -p code/android-core-compatiblity assemblePhone)
+		(./code/gradlew -p code/android-core-compatiblity publishReleasePublicationToMavenLocal -Pjitpack)
+		
+# make bump-versions from='2\.0\.0' to=2.0.1
+bump-versions:
+	(LC_ALL=C find . -type f -name 'gradle.properties' -exec sed -i '' 's/$(from)/$(to)/' {} +)
+	(LC_ALL=C find . -type f -name '*.kt' -exec sed -i '' 's/$(from)/$(to)/' {} +)	
+	(LC_ALL=C find . -type f -name '*.java' -exec sed -i '' 's/$(from)/$(to)/' {} +)

@@ -17,6 +17,7 @@ package com.adobe.marketing.mobile;
  * @author Adobe Systems Incorporated
  * @version 5.0
  */
+@Deprecated
 public class ExtensionError extends AdobeError {
 	private static final long serialVersionUID = 1L;
 

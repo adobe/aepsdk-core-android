@@ -302,7 +302,7 @@ public final class Event {
 	 *
 	 */
 	@Deprecated
-	void setResponseID(String responseID) {
+	void setResponseID(final String responseID) {
 		this.responseID = responseID;
 	}
 
@@ -335,7 +335,7 @@ public final class Event {
 		sb.append("    type: ").append(type).append(COMMA).append(NEWLINE);
 		sb.append("    responseId: ").append(responseID).append(COMMA).append(NEWLINE);
 		sb.append("    timestamp: ").append(timestamp).append(COMMA).append(NEWLINE);
-		String dataAsStr = data == null ? "" : MapExtensionsKt.prettify(data);
+		String dataAsStr = data == null ? "{}" : MapExtensionsKt.prettify(data);
 		sb.append("    data: ").append(dataAsStr).append(COMMA).append(NEWLINE);
 		sb.append("    mask: ").append(Arrays.toString(mask)).append(COMMA).append(NEWLINE);
 		sb.append("}");

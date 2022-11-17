@@ -12,17 +12,15 @@
 package com.adobe.marketing.mobile.services.ui;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 
 import java.util.Map;
@@ -46,7 +44,7 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
      *
      * @param message the {@link AEPMessage} object which created this fragment
      */
-    public void setAEPMessage(AEPMessage message) {
+    public void setAEPMessage(final AEPMessage message) {
         this.message = message;
     }
 
@@ -111,14 +109,15 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
 
         // initialize the gesture detector and listener
         webViewGestureListener = new WebViewGestureListener(this);
-        gestureDetector = new GestureDetector(App.INSTANCE.getAppContext(), webViewGestureListener);
+        final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+        gestureDetector = new GestureDetector(appContext, webViewGestureListener);
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null || currentActivity.findViewById(message.frameLayoutResourceId) == null) {
             Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (frame layout), failed to show the message.");

@@ -12,18 +12,19 @@
 package com.adobe.marketing.mobile.internal.eventhub.history;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.internal.util.FileUtils;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import java.io.File;
-import java.io.IOException;
 
 class AndroidEventHistoryDatabase implements EventHistoryDatabase {
     private static final String LOG_TAG = "AndroidEventHistoryDatabase";
@@ -46,28 +47,54 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
      *                or database table.
      */
     AndroidEventHistoryDatabase() throws EventHistoryDatabaseCreationException {
-        try {
-            //TODO: we will create a utility method: Context.getDatabasePath(), we need to  refactor the following code after that.
-            final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-            if (applicationCacheDir != null) {
-                final String cacheDirCanonicalPath = applicationCacheDir.getCanonicalPath();
-                databaseFile = new File(cacheDirCanonicalPath + "/" + DATABASE_NAME);
-            }
-            final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
-                    " (eventHash INTEGER, timestamp INTEGER);";
-
-            synchronized (dbMutex) {
-                if (SQLiteDatabaseHelper.createTableIfNotExist(databaseFile.getCanonicalPath(), tableCreationQuery)) {
-                    Log.trace(CoreConstants.LOG_TAG, LOG_TAG,
-                            String.format("createTableIfNotExists - Successfully created/already existed table (%s) ", TABLE_NAME));
-                } else {
-                    throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table in the Android Event History database.");
-                }
-            }
-        } catch (final Exception e) {
-            throw new EventHistoryDatabaseCreationException(String.format("An error occurred while creating the \"Events\" table in the Android Event History database, error message: %s",
-                    (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
+        databaseFile = openOrMigrateEventHistoryDatabaseFile();
+        if (databaseFile == null) {
+            throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table" +
+                    "in the Android Event History database, error message: ApplicationContext is null");
         }
+        final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
+                " (eventHash INTEGER, timestamp INTEGER);";
+
+        synchronized (dbMutex) {
+            if (!SQLiteDatabaseHelper.createTableIfNotExist(databaseFile.getPath(), tableCreationQuery)) {
+                throw new EventHistoryDatabaseCreationException("An error occurred while creating the \"Events\" table in the Android Event History database.");
+            }
+        }
+    }
+
+    @SuppressWarnings("checkstyle:NestedIfDepth")
+    private File openOrMigrateEventHistoryDatabaseFile() {
+        final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+        if (appContext == null) {
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG,
+                    LOG_TAG,
+                    "Failed to create database (%s), the ApplicationContext is null", DATABASE_NAME);
+            return null;
+        }
+
+        File database = appContext.getDatabasePath(DATABASE_NAME);
+
+        if (database.exists()) {
+            return database;
+        }
+
+        // If db exists in cache directory, migrate it to new path.
+        final File applicationCacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+        if (applicationCacheDir != null) {
+            final File cacheDirDatabaseFile = new File(applicationCacheDir, DATABASE_NAME);
+            try {
+                if (cacheDirDatabaseFile.exists()) {
+                    FileUtils.moveFile(cacheDirDatabaseFile, database);
+                    Log.debug(CoreConstants.LOG_TAG, LOG_TAG,
+                            "Successfully moved database (%s) from cache directory to database directory", DATABASE_NAME);
+                }
+            } catch (Exception e) {
+                Log.debug(CoreConstants.LOG_TAG,
+                        LOG_TAG,
+                        "Failed to move database (%s) from cache directory to database directory", DATABASE_NAME);
+            }
+        }
+        return database;
     }
 
     /**
@@ -86,10 +113,10 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                 contentValues.put(COLUMN_HASH, hash);
                 contentValues.put(COLUMN_TIMESTAMP, System.currentTimeMillis());
                 result = database.insert(TABLE_NAME, null, contentValues) != -1;
-            } catch (final SQLException | IOException e) {
+            } catch (final SQLException e) {
                 Log.warning(CoreConstants.LOG_TAG, LOG_TAG,
-                        String.format("Failed to insert rows into the table (%s)",
-                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
+                        "Failed to insert rows into the table (%s)",
+                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage()));
                 return false;
             } finally {
                 closeDatabase();
@@ -98,8 +125,8 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
         }
     }
 
-    private void openDatabase() throws IOException {
-        database = SQLiteDatabaseHelper.openDatabase(databaseFile.getCanonicalPath(), SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
+    private void openDatabase() {
+        database = SQLiteDatabaseHelper.openDatabase(databaseFile.getPath(), SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
     }
 
     /**
@@ -139,10 +166,10 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                 cursor.moveToFirst();
 
                 return cursor;
-            } catch (final SQLException | IOException e) {
+            } catch (final SQLException e) {
                 Log.warning(CoreConstants.LOG_TAG, LOG_TAG,
-                        String.format("Failed to execute query (%s)",
-                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
+                        "Failed to execute query (%s)",
+                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage()));
             } finally {
                 closeDatabase();
             }
@@ -174,13 +201,13 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                                 + " AND " + COLUMN_TIMESTAMP + " <= ?",
                         whereArgs);
                 Log.trace(CoreConstants.LOG_TAG, LOG_TAG,
-                        String.format("Count of rows deleted in table %s are %d", TABLE_NAME, affectedRowsCount));
+                        "Count of rows deleted in table %s are %d", TABLE_NAME, affectedRowsCount);
 
                 return affectedRowsCount;
-            } catch (final SQLException | IOException e) {
+            } catch (final SQLException e) {
                 Log.debug(CoreConstants.LOG_TAG, LOG_TAG,
-                        String.format("Failed to delete table rows (%s)",
-                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage())));
+                        "Failed to delete table rows (%s)",
+                                (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage()));
             } finally {
                 closeDatabase();
             }

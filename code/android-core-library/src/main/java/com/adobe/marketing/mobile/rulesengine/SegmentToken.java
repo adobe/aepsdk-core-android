@@ -17,7 +17,7 @@ package com.adobe.marketing.mobile.rulesengine;
 public class SegmentToken implements Segment {
 	private final MustacheToken mustacheToken;
 
-	public SegmentToken(String mustacheString) {
+	public SegmentToken(final String mustacheString) {
 		this.mustacheToken = new MustacheToken(mustacheString);
 	}
 

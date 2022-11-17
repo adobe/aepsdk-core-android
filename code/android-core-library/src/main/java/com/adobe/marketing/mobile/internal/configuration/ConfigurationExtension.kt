@@ -171,6 +171,13 @@ internal class ConfigurationExtension : Extension {
         ) {
             handleConfigurationRequestEvent(it)
         }
+
+        api.registerEventListener(
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_IDENTITY
+        ) {
+            retrieveSDKIdentifiers(it)
+        }
     }
 
     override fun getName(): String {
@@ -386,6 +393,27 @@ internal class ConfigurationExtension : Extension {
             configurationStateManager.environmentAwareConfiguration,
             event
         )
+    }
+
+    /**
+     * Dispatches an event containing the current SDK Identifiers
+     *
+     * @param event the event to which the current SDK Identifiers should be
+     *        dispatched as a response
+     */
+    private fun retrieveSDKIdentifiers(event: Event) {
+        val eventData = mutableMapOf<String, Any?>()
+        MobileIdentitiesProvider.collectSdkIdentifiers(event, api).also { sdkIdentitiesJson ->
+            eventData[CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS] = sdkIdentitiesJson
+        }
+
+        val responseIdentityEvent = Event.Builder(
+            "Configuration Response Identity",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_IDENTITY
+        ).setEventData(eventData).inResponseToEvent(event).build()
+
+        api.dispatch(responseIdentityEvent)
     }
 
     /**

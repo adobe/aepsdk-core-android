@@ -27,11 +27,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
-
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.services.internal.context.App;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -266,7 +261,7 @@ class DeviceInfoService implements DeviceInforming {
     }
 
     @Override
-    public boolean registerOneTimeNetworkConnectionActiveListener(NetworkConnectionActiveListener listener) {
+    public boolean registerOneTimeNetworkConnectionActiveListener(final NetworkConnectionActiveListener listener) {
         return false;
     }
 
@@ -320,7 +315,7 @@ class DeviceInfoService implements DeviceInforming {
     }
 
     @Override
-    public InputStream getAsset(String fileName) {
+    public InputStream getAsset(final String fileName) {
         final Context context = getApplicationContext();
 
         if (isNullOrEmpty(fileName) || context == null) {
@@ -358,7 +353,7 @@ class DeviceInfoService implements DeviceInforming {
     }
 
     @Override
-    public String getPropertyFromManifest(String propertyKey) {
+    public String getPropertyFromManifest(final String propertyKey) {
         final Context context = getApplicationContext();
 
         if (isNullOrEmpty(propertyKey) || context == null) {
@@ -465,7 +460,7 @@ class DeviceInfoService implements DeviceInforming {
         final int buildVersion = Build.VERSION.SDK_INT;
         int versionCode = 0;
 
-        if (buildVersion >= 28) {
+        if (buildVersion >= Build.VERSION_CODES.P) { //28
             try {
                 Method method = packageInfo.getClass().getDeclaredMethod("getLongVersionCode");
                 long longVersion = (Long) method.invoke(packageInfo);
@@ -532,11 +527,11 @@ class DeviceInfoService implements DeviceInforming {
     }
 
     private Context getApplicationContext() {
-        return App.INSTANCE.getAppContext();
+        return ServiceProvider.getInstance().getAppContextService().getApplicationContext();
     }
 
     private Activity getCurrentActivity() {
-        return App.INSTANCE.getCurrentActivity();
+        return ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
     }
 
 

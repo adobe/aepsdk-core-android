@@ -17,7 +17,7 @@ package com.adobe.marketing.mobile.rulesengine;
 public class SegmentText implements Segment {
 	private final String content;
 
-	public SegmentText(String content) {
+	public SegmentText(final String content) {
 		this.content = content;
 	}
 

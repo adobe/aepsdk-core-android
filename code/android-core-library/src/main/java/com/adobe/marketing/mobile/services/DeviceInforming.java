@@ -11,9 +11,6 @@
 
 package com.adobe.marketing.mobile.services;
 
-
-import android.os.Build;
-
 import java.io.File;
 import java.io.InputStream;
 import java.util.Locale;

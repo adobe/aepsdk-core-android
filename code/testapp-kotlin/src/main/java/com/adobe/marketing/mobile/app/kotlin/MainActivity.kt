@@ -66,8 +66,16 @@ fun NavigationInit() {
             SignalView(navController = navController)
         }
 
+        composable(NavRoutes.IdentityView.route) {
+            IdentityView(navController = navController)
+        }
+
         composable(NavRoutes.LifecycleView.route) {
             LifecycleView(navController = navController)
+        }
+
+        composable(NavRoutes.PerformanceView.route) {
+            PerformanceView(navController = navController)
         }
     }
 }

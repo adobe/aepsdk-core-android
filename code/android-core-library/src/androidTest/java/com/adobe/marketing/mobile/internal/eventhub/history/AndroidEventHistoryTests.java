@@ -17,15 +17,15 @@ import static org.junit.Assert.fail;
 
 import android.content.Context;
 
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventHistoryRequest;
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.TestUtils;
-import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.MockAppContextService;
+import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,12 +39,18 @@ import java.util.concurrent.CountDownLatch;
 public class AndroidEventHistoryTests {
     private AndroidEventHistory androidEventHistory;
     private HashMap<String, Object> data;
+    private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
 
     @Before
     public void beforeEach() {
-        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        App.INSTANCE.setAppContext(context);
+        Context context = ApplicationProvider.getApplicationContext();
+
+        MockAppContextService mockAppContextService = new MockAppContextService();
+        mockAppContextService.appContext = context;
+        ServiceProviderModifier.setAppContextService(mockAppContextService);
+
         TestUtils.deleteAllFilesInCacheDir(context);
+        context.getApplicationContext().getDatabasePath(DATABASE_NAME).delete();
 
         try {
             androidEventHistory = new AndroidEventHistory();
@@ -52,7 +58,7 @@ public class AndroidEventHistoryTests {
             fail(e.getLocalizedMessage());
         }
 
-        data = new HashMap() {
+        data = new HashMap<String, Object>() {
             {
                 put("key", "value");
             }
@@ -64,12 +70,9 @@ public class AndroidEventHistoryTests {
         // setup
         final CountDownLatch latch = new CountDownLatch(1);
         final boolean[] result = new boolean[1];
-        EventHistoryResultHandler<Boolean> handler = new EventHistoryResultHandler<Boolean>() {
-            @Override
-            public void call(Boolean value) {
-                result[0] = value;
-                latch.countDown();
-            }
+        EventHistoryResultHandler<Boolean> handler = value -> {
+            result[0] = value;
+            latch.countDown();
         };
 
 
@@ -89,20 +92,13 @@ public class AndroidEventHistoryTests {
         final CountDownLatch latch = new CountDownLatch(5);
         final CountDownLatch latch2 = new CountDownLatch(1);
         final int[] result = new int[1];
-        EventHistoryResultHandler<Boolean> handler = new
-                EventHistoryResultHandler<Boolean>() {
-                    @Override
-                    public void call(Boolean result) {
-                        assertTrue(result);
-                        latch.countDown();
-                    }
-                };
-        EventHistoryResultHandler<Integer> handler2 = new EventHistoryResultHandler<Integer>() {
-            @Override
-            public void call(Integer value) {
-                result[0] = value;
-                latch2.countDown();
-            }
+        EventHistoryResultHandler<Boolean> handler = result1 -> {
+            assertTrue(result1);
+            latch.countDown();
+        };
+        EventHistoryResultHandler<Integer> handler2 = value -> {
+            result[0] = value;
+            latch2.countDown();
         };
 
         for (int i = 0; i < 5; i++) {
@@ -132,28 +128,17 @@ public class AndroidEventHistoryTests {
         final CountDownLatch latch2 = new CountDownLatch(10);
         final CountDownLatch latch3 = new CountDownLatch(1);
         final int[] result = new int[1];
-        EventHistoryResultHandler<Boolean> handler = new
-                EventHistoryResultHandler<Boolean>() {
-                    @Override
-                    public void call(Boolean result) {
-                        assertTrue(result);
-                        latch.countDown();
-                    }
-                };
-        EventHistoryResultHandler<Boolean> handler2 = new
-                EventHistoryResultHandler<Boolean>() {
-                    @Override
-                    public void call(Boolean result) {
-                        assertTrue(result);
-                        latch2.countDown();
-                    }
-                };
-        EventHistoryResultHandler<Integer> handler3 = new EventHistoryResultHandler<Integer>() {
-            @Override
-            public void call(Integer value) {
-                result[0] = value;
-                latch3.countDown();
-            }
+        EventHistoryResultHandler<Boolean> handler = result1 -> {
+            assertTrue(result1);
+            latch.countDown();
+        };
+        EventHistoryResultHandler<Boolean> handler2 = result12 -> {
+            assertTrue(result12);
+            latch2.countDown();
+        };
+        EventHistoryResultHandler<Integer> handler3 = value -> {
+            result[0] = value;
+            latch3.countDown();
         };
 
         for (int i = 0; i < 5; i++) {
@@ -164,7 +149,7 @@ public class AndroidEventHistoryTests {
         }
 
         latch.await();
-        Map<String, Object> data2 = new HashMap() {
+        Map<String, Object> data2 = new HashMap<String, Object>() {
             {
                 put("key2", "value2");
             }

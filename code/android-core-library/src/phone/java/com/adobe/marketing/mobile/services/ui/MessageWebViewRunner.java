@@ -27,7 +27,7 @@ import android.widget.LinearLayout;
 
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
@@ -102,7 +102,7 @@ class MessageWebViewRunner implements Runnable {
                 return;
             }
 
-            final Context context = App.INSTANCE.getAppContext();
+            final Context context = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
             if (context == null) {
                 Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, the app context is null.");
@@ -147,7 +147,7 @@ class MessageWebViewRunner implements Runnable {
                 method.invoke(webviewSettings, false);
             }
 
-            final Context appContext = App.INSTANCE.getAppContext();
+            final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
             File cacheDirectory = null;
 
             if (appContext != null) {
@@ -252,13 +252,14 @@ class MessageWebViewRunner implements Runnable {
         FrameLayout.LayoutParams params = generateLayoutParams(messageHeight, messageWidth, originX, originY);
 
         // if we have non fullscreen messages, fill the webview
-        if (settings.getHeight() != 100) {
+        final int fullScreenMessageHeight = 100;
+        if (settings.getHeight() != fullScreenMessageHeight) {
             webviewSettings.setLoadWithOverviewMode(true);
             webviewSettings.setUseWideViewPort(true);
         }
 
         // create a new view to apply a background dimming effect behind a displayed message
-        backdrop = new View(App.INSTANCE.getAppContext());
+        backdrop = new View(ServiceProvider.getInstance().getAppContextService().getApplicationContext());
         backdrop.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         backdrop.setBackgroundColor(Color.parseColor(settings.getBackdropColor()));
         backdrop.setAlpha(settings.getBackdropOpacity());
@@ -294,7 +295,8 @@ class MessageWebViewRunner implements Runnable {
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
-    private int getPixelValueForHeight(float percentage) {
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private int getPixelValueForHeight(final float percentage) {
         return (int) (message.baseRootViewHeight * (percentage / 100));
     }
 
@@ -304,7 +306,8 @@ class MessageWebViewRunner implements Runnable {
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
-    private int getPixelValueForWidth(float percentage) {
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private int getPixelValueForWidth(final float percentage) {
         return (int) (message.baseRootViewWidth * (percentage / 100));
     }
 

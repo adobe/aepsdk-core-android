@@ -40,7 +40,6 @@ public class com/adobe/marketing/mobile/Event$Builder {
 }
 
 public class com/adobe/marketing/mobile/EventCoder {
-	public fun <init> ()V
 	public static fun decode (Ljava/lang/String;)Lcom/adobe/marketing/mobile/Event;
 	public static fun encode (Lcom/adobe/marketing/mobile/Event;)Ljava/lang/String;
 }
@@ -63,6 +62,7 @@ public abstract interface class com/adobe/marketing/mobile/EventPreprocessor {
 public final class com/adobe/marketing/mobile/EventSource {
 	public static final field APPLICATION_CLOSE Ljava/lang/String;
 	public static final field APPLICATION_LAUNCH Ljava/lang/String;
+	public static final field CONSENT_PREFERENCE Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
 	public static final field REQUEST_CONTENT Ljava/lang/String;
@@ -73,6 +73,7 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field RESPONSE_IDENTITY Ljava/lang/String;
 	public static final field RESPONSE_PROFILE Ljava/lang/String;
 	public static final field SHARED_STATE Ljava/lang/String;
+	public static final field UPDATE_CONSENT Ljava/lang/String;
 	public static final field WILDCARD Ljava/lang/String;
 }
 
@@ -83,7 +84,9 @@ public final class com/adobe/marketing/mobile/EventType {
 	public static final field AUDIENCEMANAGER Ljava/lang/String;
 	public static final field CAMPAIGN Ljava/lang/String;
 	public static final field CONFIGURATION Ljava/lang/String;
+	public static final field CONSENT Ljava/lang/String;
 	public static final field CUSTOM Ljava/lang/String;
+	public static final field EDGE Ljava/lang/String;
 	public static final field GENERIC_DATA Ljava/lang/String;
 	public static final field GENERIC_IDENTITY Ljava/lang/String;
 	public static final field GENERIC_LIFECYCLE Ljava/lang/String;
@@ -218,7 +221,7 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun lifecyclePause ()V
 	public static fun lifecycleStart (Ljava/util/Map;)V
 	public static fun log (Lcom/adobe/marketing/mobile/LoggingMode;Ljava/lang/String;Ljava/lang/String;)V
-	public static fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallbackWithError;)V
+	public static fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun registerExtension (Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public static fun registerExtensions (Ljava/util/List;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun resetIdentities ()V
@@ -319,22 +322,6 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRule : co
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesConsequence {
-	public static final field Companion Lcom/adobe/marketing/mobile/launch/rulesengine/LaunchRulesConsequence$Companion;
-	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
-	public final fun evaluateRulesConsequence (Lcom/adobe/marketing/mobile/Event;Ljava/util/List;)Lcom/adobe/marketing/mobile/Event;
-}
-
-public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesConsequence$Companion {
-}
-
-public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesConsequenceKt {
-	public static final fun getEventData (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;)Ljava/util/Map;
-	public static final fun getEventDataAction (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;)Ljava/lang/String;
-	public static final fun getEventSource (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;)Ljava/lang/String;
-	public static final fun getEventType (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;)Ljava/lang/String;
-}
-
 public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
 	public fun process (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
@@ -343,7 +330,6 @@ public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 
 public final class com/adobe/marketing/mobile/launch/rulesengine/RuleConsequence {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/util/Map;
@@ -354,7 +340,6 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/RuleConsequence
 	public final fun getId ()Ljava/lang/String;
 	public final fun getType ()Ljava/lang/String;
 	public fun hashCode ()I
-	public final fun setDetail (Ljava/util/Map;)V
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -530,6 +515,22 @@ public class com/adobe/marketing/mobile/rulesengine/UnaryExpression : com/adobe/
 	public fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/Context;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
 }
 
+public abstract interface class com/adobe/marketing/mobile/services/AppContextService {
+	public abstract fun getAppState ()Lcom/adobe/marketing/mobile/services/AppState;
+	public abstract fun getApplication ()Landroid/app/Application;
+	public abstract fun getApplicationContext ()Landroid/content/Context;
+	public abstract fun getCurrentActivity ()Landroid/app/Activity;
+	public abstract fun setApplication (Landroid/app/Application;)V
+}
+
+public final class com/adobe/marketing/mobile/services/AppState : java/lang/Enum {
+	public static final field BACKGROUND Lcom/adobe/marketing/mobile/services/AppState;
+	public static final field FOREGROUND Lcom/adobe/marketing/mobile/services/AppState;
+	public static final field UNKNOWN Lcom/adobe/marketing/mobile/services/AppState;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/AppState;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/AppState;
+}
+
 public final class com/adobe/marketing/mobile/services/DataEntity {
 	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/util/Date;Ljava/lang/String;)V
@@ -616,8 +617,12 @@ public abstract interface class com/adobe/marketing/mobile/services/DeviceInform
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/HitProcessing {
-	public abstract fun processHit (Lcom/adobe/marketing/mobile/services/DataEntity;)Z
+	public abstract fun processHit (Lcom/adobe/marketing/mobile/services/DataEntity;Lcom/adobe/marketing/mobile/services/HitProcessingResult;)V
 	public abstract fun retryInterval (Lcom/adobe/marketing/mobile/services/DataEntity;)I
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/HitProcessingResult {
+	public abstract fun complete (Z)V
 }
 
 public abstract class com/adobe/marketing/mobile/services/HitQueuing {
@@ -704,6 +709,26 @@ public abstract interface class com/adobe/marketing/mobile/services/Networking {
 	public abstract fun connectAsync (Lcom/adobe/marketing/mobile/services/NetworkRequest;Lcom/adobe/marketing/mobile/services/NetworkCallback;)V
 }
 
+public class com/adobe/marketing/mobile/services/NetworkingConstants {
+	public static field RECOVERABLE_ERROR_CODES Ljava/util/ArrayList;
+}
+
+public class com/adobe/marketing/mobile/services/NetworkingConstants$HeaderValues {
+	public static final field ACCEPT_TEXT_HTML Ljava/lang/String;
+	public static final field CONTENT_TYPE_JSON_APPLICATION Ljava/lang/String;
+	public static final field CONTENT_TYPE_URL_ENCODED Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/services/NetworkingConstants$Headers {
+	public static final field ACCEPT Ljava/lang/String;
+	public static final field ACCEPT_LANGUAGE Ljava/lang/String;
+	public static final field CONTENT_TYPE Ljava/lang/String;
+	public static final field ETAG Ljava/lang/String;
+	public static final field IF_MODIFIED_SINCE Ljava/lang/String;
+	public static final field IF_NONE_MATCH Ljava/lang/String;
+	public static final field LAST_MODIFIED Ljava/lang/String;
+}
+
 public class com/adobe/marketing/mobile/services/PersistentHitQueue : com/adobe/marketing/mobile/services/HitQueuing {
 	public fun <init> (Lcom/adobe/marketing/mobile/services/DataQueue;Lcom/adobe/marketing/mobile/services/HitProcessing;)V
 	public fun beginProcessing ()V
@@ -715,7 +740,7 @@ public class com/adobe/marketing/mobile/services/PersistentHitQueue : com/adobe/
 }
 
 public class com/adobe/marketing/mobile/services/ServiceProvider {
-	public fun getApplicationContext ()Landroid/content/Context;
+	public fun getAppContextService ()Lcom/adobe/marketing/mobile/services/AppContextService;
 	public fun getCacheService ()Lcom/adobe/marketing/mobile/services/caching/CacheService;
 	public fun getDataQueueService ()Lcom/adobe/marketing/mobile/services/DataQueuing;
 	public fun getDataStoreService ()Lcom/adobe/marketing/mobile/services/DataStoring;
@@ -725,8 +750,6 @@ public class com/adobe/marketing/mobile/services/ServiceProvider {
 	public fun getMessageDelegate ()Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;
 	public fun getNetworkService ()Lcom/adobe/marketing/mobile/services/Networking;
 	public fun getUIService ()Lcom/adobe/marketing/mobile/services/ui/UIService;
-	public fun initializeApp (Landroid/app/Application;Lcom/adobe/marketing/mobile/services/internal/context/SimpleCallback;)V
-	protected fun setDeviceInfoService (Lcom/adobe/marketing/mobile/services/DeviceInforming;)V
 	public fun setLoggingService (Lcom/adobe/marketing/mobile/services/Logging;)V
 	public fun setMessageDelegate (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;)V
 	public fun setNetworkService (Lcom/adobe/marketing/mobile/services/Networking;)V
@@ -950,8 +973,6 @@ public abstract interface class com/adobe/marketing/mobile/services/ui/URIHandle
 }
 
 public class com/adobe/marketing/mobile/util/CloneFailedException : java/lang/Exception {
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/Exception;)V
 	public fun <init> (Ljava/lang/String;)V
 }
 
@@ -989,18 +1010,23 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 	public static fun immutableClone (Ljava/util/Map;)Ljava/util/Map;
 }
 
+public final class com/adobe/marketing/mobile/util/JSONUtils {
+	public static fun toList (Lorg/json/JSONArray;)Ljava/util/List;
+	public static fun toMap (Lorg/json/JSONObject;)Ljava/util/Map;
+}
+
 public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
 	public static final field Companion Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$Companion;
 	public static final field LOG_TAG Ljava/lang/String;
 	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$WorkHandler;)V
 	protected fun canWork ()Z
-	protected fun cleanup ()V
 	public final fun getState ()Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
 	public final fun offer (Ljava/lang/Object;)Z
 	public final fun pause ()Z
-	protected fun prepare ()V
 	public final fun resume ()Z
 	public final fun setExecutorService (Ljava/util/concurrent/ExecutorService;)V
+	public final fun setFinalJob (Ljava/lang/Runnable;)V
+	public final fun setInitialJob (Ljava/lang/Runnable;)V
 	public final fun shutdown ()V
 	public final fun start ()Z
 }

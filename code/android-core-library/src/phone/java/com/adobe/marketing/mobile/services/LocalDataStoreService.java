@@ -13,10 +13,6 @@ package com.adobe.marketing.mobile.services;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.services.internal.context.App;
-
 /**
  * Implementation of {@link DataStoring} service
  */
@@ -24,7 +20,7 @@ class LocalDataStoreService implements DataStoring {
     private static final String TAG = LocalDataStoreService.class.getSimpleName();
 
     @Override
-    public NamedCollection getNamedCollection(String collectionName) {
+    public NamedCollection getNamedCollection(final String collectionName) {
         if (collectionName == null || collectionName.isEmpty()) {
             Log.error(ServiceConstants.LOG_TAG, TAG,
                     String.format("Failed to create an instance of NamedCollection with name - %s: the collection name is null or empty.",
@@ -32,7 +28,7 @@ class LocalDataStoreService implements DataStoring {
             return null;
         }
 
-        Context appContext = App.INSTANCE.getAppContext();
+        Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
         if (appContext == null) {
             Log.error(ServiceConstants.LOG_TAG, TAG,

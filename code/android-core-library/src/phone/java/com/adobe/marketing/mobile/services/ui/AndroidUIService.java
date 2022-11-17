@@ -10,9 +10,6 @@
  */
 package com.adobe.marketing.mobile.services.ui;
 
-import static android.content.DialogInterface.BUTTON_NEGATIVE;
-import static android.content.DialogInterface.BUTTON_POSITIVE;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -24,11 +21,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 
 import java.lang.reflect.Field;
@@ -65,7 +60,7 @@ public class AndroidUIService implements UIService {
             return;
         }
 
-        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (current activity), unable to show alert",
@@ -117,7 +112,7 @@ public class AndroidUIService implements UIService {
     DialogInterface.OnShowListener getAlertDialogOnShowListener(final AlertListener alertListener) {
         return new DialogInterface.OnShowListener() {
             @Override
-            public void onShow(DialogInterface dialog) {
+            public void onShow(final DialogInterface dialog) {
                 if (alertListener != null) {
                     alertListener.onShow();
                 }
@@ -134,7 +129,7 @@ public class AndroidUIService implements UIService {
     DialogInterface.OnCancelListener getAlertDialogOnCancelListener(final AlertListener alertListener) {
         return new DialogInterface.OnCancelListener() {
             @Override
-            public void onCancel(DialogInterface dialogInterface) {
+            public void onCancel(final DialogInterface dialogInterface) {
                 messagesMonitor.dismissed();
 
                 if (alertListener != null) {
@@ -153,13 +148,13 @@ public class AndroidUIService implements UIService {
     DialogInterface.OnClickListener getAlertDialogOnClickListener(final AlertListener alertListener) {
         return new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public void onClick(final DialogInterface dialog, final int which) {
                 messagesMonitor.dismissed();
 
                 if (alertListener != null) {
-                    if (which == BUTTON_POSITIVE) {
+                    if (which == DialogInterface.BUTTON_POSITIVE) {
                         alertListener.onPositiveResponse();
-                    } else if (which == BUTTON_NEGATIVE) {
+                    } else if (which == DialogInterface.BUTTON_NEGATIVE) {
                         alertListener.onNegativeResponse();
                     }
                 }
@@ -170,7 +165,7 @@ public class AndroidUIService implements UIService {
     @SuppressLint("TrulyRandom")
     @Override
     public void showLocalNotification(final NotificationSetting notificationSetting) {
-        final Context appContext = App.INSTANCE.getAppContext();
+        final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
         if (appContext == null) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (application context), unable to show local notification",
@@ -209,7 +204,7 @@ public class AndroidUIService implements UIService {
         try {
             PendingIntent sender;
 
-            if (Build.VERSION.SDK_INT >= 23) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // 23
                 Class pendingIntentClass = PendingIntent.class;
                 Field immutableFlagField = pendingIntentClass.getField("FLAG_IMMUTABLE");
                 immutableFlagField.setAccessible(true);
@@ -234,7 +229,7 @@ public class AndroidUIService implements UIService {
 
     @Override
     public boolean showUrl(final String url) {
-        final Activity currentActivity = App.INSTANCE.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (current activity), could not open URL %s",
@@ -259,12 +254,12 @@ public class AndroidUIService implements UIService {
     }
 
     @Override
-    public void setURIHandler(URIHandler uriHandler) {
+    public void setURIHandler(final URIHandler uriHandler) {
         this.uriHandler = uriHandler;
     }
 
     @Override
-    public Intent getIntentWithURI(String uri) {
+    public Intent getIntentWithURI(final String uri) {
         URIHandler handler = this.uriHandler;
         Intent intent = null;
         if (handler != null) {
@@ -281,8 +276,8 @@ public class AndroidUIService implements UIService {
     }
 
     @Override
-    public FloatingButton createFloatingButton(FloatingButtonListener buttonListener) {
-        Activity currentActivity = App.INSTANCE.getCurrentActivity();
+    public FloatingButton createFloatingButton(final FloatingButtonListener buttonListener) {
+        Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
             Log.warning(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (current activity), no button created.",
@@ -312,7 +307,7 @@ public class AndroidUIService implements UIService {
         return message;
     }
 
-    FloatingButtonView createFloatingButtonView(Activity currentActivity) {
+    FloatingButtonView createFloatingButtonView(final Activity currentActivity) {
         FloatingButtonView floatingButtonView = new FloatingButtonView(currentActivity);
         floatingButtonView.setTag(FloatingButtonView.VIEW_TAG);
         return floatingButtonView;

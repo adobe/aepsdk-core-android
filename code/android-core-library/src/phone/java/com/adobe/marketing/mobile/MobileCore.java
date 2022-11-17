@@ -18,14 +18,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
+import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.util.DataReader;
 
 import java.util.ArrayList;
@@ -102,7 +103,7 @@ final public class MobileCore {
         }
 
         // AMSDK-8502
-        // workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
+        // Workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
         // https://issuetracker.google.com/issues/110848122
         try {
             new Date().toString();
@@ -112,7 +113,8 @@ final public class MobileCore {
             // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
         }
 
-        ServiceProvider.getInstance().initializeApp(application, MobileCore::collectLaunchInfo);
+        ServiceProvider.getInstance().getAppContextService().setApplication(application);
+        App.INSTANCE.registerActivityResumedListener(MobileCore::collectLaunchInfo);
 
         V4ToV5Migration migrationTool = new V4ToV5Migration();
         migrationTool.migrate();
@@ -130,9 +132,8 @@ final public class MobileCore {
      * the {@code Application} process was destroyed.
      */
     @Nullable
-    @Deprecated
     public static Application getApplication() {
-        return App.INSTANCE.getApplication();
+        return ServiceProvider.getInstance().getAppContextService().getApplication();
     }
 
     /**
@@ -140,7 +141,7 @@ final public class MobileCore {
      *
      * @param mode the logging mode. It should not be null.
      */
-    public static void setLogLevel(@NonNull LoggingMode mode) {
+    public static void setLogLevel(@NonNull final LoggingMode mode) {
         if (mode == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "setLogLevel failed - mode is null");
             return;
@@ -193,7 +194,15 @@ final public class MobileCore {
         }
     }
 
-    public static void registerExtensions(@NonNull final List<Class<? extends Extension>> extensions, final AdobeCallback<?> completionCallback) {
+    /**
+     * Registers all extensions with Core and starts event processing.
+     * <p>
+     * This method needs to be called after {@link MobileCore#setApplication(Application)} is called.
+     *
+     * @param extensions List of extension classes whose parent is {@link Extension}. It should not be null.
+     * @param completionCallback an optional {@link AdobeCallback} invoked after registrations are completed
+     */
+    public static void registerExtensions(@NonNull final List<Class<? extends Extension>> extensions, @Nullable final AdobeCallback<?> completionCallback) {
         if (!sdkInitializedWithContext.get()) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtensions - setApplication not called");
             return;
@@ -226,87 +235,15 @@ final public class MobileCore {
     }
 
     /**
-     * Registers an extension class which has {@code Extension} as parent.
-     * <p>
-     * In order to ensure that your extension receives all the internal events, this method needs
-     * to be called after {@link MobileCore#setApplication(Application)} is called, but before
-     * any other method in this class.
-     *
-     * @param extensionClass a class whose parent is {@link Extension}. It should not be null.
-     * @param errorCallback  an optional {@link ExtensionErrorCallback} for the eventuality of an error,
-     *                       called when this method returns false
-     * @return {@code boolean} indicating if the provided parameters are valid and no error occurs
-     */
-    public static boolean registerExtension(@NonNull final Class<? extends Extension> extensionClass,
-                                            @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
-
-        if (!sdkInitializedWithContext.get()) {
-            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - setApplication not called");
-            return false;
-        }
-
-        if (extensionClass == null) {
-            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - extensionClass is null");
-            return false;
-        }
-
-        EventHub.Companion.getShared().registerExtension(extensionClass, eventHubError -> {
-            if (eventHubError == EventHubError.None) {
-                return null;
-            }
-
-            ExtensionError error;
-            if (eventHubError == EventHubError.InvalidExtensionName) {
-                error = ExtensionError.BAD_NAME;
-            } else if (eventHubError == EventHubError.DuplicateExtensionName) {
-                error = ExtensionError.DUPLICATE_NAME;
-            } else {
-                error = ExtensionError.UNEXPECTED_ERROR;
-            }
-
-            if (errorCallback != null) {
-                errorCallback.error(error);
-            }
-
-            return null;
-        });
-
-        return true;
-    }
-
-    /**
-     * Start the Core processing. This should be called after the initial set of extensions have been registered.
-     * <p>
-     * This call will wait for any outstanding registrations to complete and then start event processing.
-     * You can use the callback to kickoff additional operations immediately after any operations kicked off during registration.
-     * You shouldn't call this method more than once in your app, if so, sdk will ignore it and print error log.
-     *
-     * @param completionCallback an optional {@link AdobeCallback} invoked after registrations are completed
-     */
-    public static void start(@Nullable final AdobeCallback<?> completionCallback) {
-        if (!sdkInitializedWithContext.get()) {
-            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - setApplication not called");
-            return;
-        }
-
-        EventHub.Companion.getShared().start(() -> {
-            if (completionCallback != null) {
-                completionCallback.call(null);
-            }
-            return null;
-        });
-    }
-
-    /**
      * Registers an event listener for the provided event type and source.
      *
      * @param eventType   the event type as a valid string. It should not be null or empty.
      * @param eventSource the event source as a valid string. It should not be null or empty.
-     * @param callback    the callback whose {@link AdobeCallbackWithError#call(Object)} will be called when the event is heard. It should not be null.
+     * @param callback    the callback whose {@link AdobeCallback#call(Object)} will be called when the event is heard. It should not be null.
      */
     public static void registerEventListener(@NonNull final String eventType,
                                              @NonNull final String eventSource,
-                                             @NonNull final AdobeCallbackWithError<Event> callback) {
+                                             @NonNull final AdobeCallback<Event> callback) {
         if (callback == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerEventListener - callback is null",
                     Log.UNEXPECTED_NULL_VALUE);
@@ -315,7 +252,6 @@ final public class MobileCore {
 
         if (eventType == null || eventSource == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerEventListener - event type/source is null");
-            callback.fail(AdobeError.UNEXPECTED_ERROR);
             return;
         }
 
@@ -349,7 +285,7 @@ final public class MobileCore {
      * @see MobileCore#dispatchResponseEvent(Event, Event, ExtensionErrorCallback)
      */
     public static void dispatchEventWithResponseCallback(@NonNull final Event event,
-                                                         long timeoutMS,
+                                                         final long timeoutMS,
                                                          @NonNull final AdobeCallbackWithError<Event> responseCallback) {
         if (responseCallback == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEventWithResponseCallback - callback is null");
@@ -372,7 +308,7 @@ final public class MobileCore {
      * @param resourceID the resource Id of the icon
      */
     public static void setSmallIconResourceID(final int resourceID) {
-        App.INSTANCE.setSmallIconResourceID(resourceID);
+        AppResourceStore.INSTANCE.setSmallIconResourceID(resourceID);
     }
 
     /**
@@ -381,7 +317,7 @@ final public class MobileCore {
      * @param resourceID the resource Id of the icon
      */
     public static void setLargeIconResourceID(final int resourceID) {
-        App.INSTANCE.setLargeIconResourceID(resourceID);
+        AppResourceStore.INSTANCE.setLargeIconResourceID(resourceID);
     }
 
     // ========================================================
@@ -501,7 +437,7 @@ final public class MobileCore {
         marshaller.marshal(activity);
         final Map<String, Object> marshalledData = marshaller.getData();
         if (marshalledData == null || marshalledData.isEmpty()) {
-            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
             return;
         }
 
@@ -693,7 +629,7 @@ final public class MobileCore {
 
         AdobeCallbackWithError<Event> callbackWithError = new AdobeCallbackWithError<Event>() {
             @Override
-            public void fail(AdobeError error) {
+            public void fail(final AdobeError error) {
                 if (callback instanceof AdobeCallbackWithError) {
                     ((AdobeCallbackWithError<?>) callback).fail(AdobeError.CALLBACK_TIMEOUT);
                 } else {
@@ -703,7 +639,7 @@ final public class MobileCore {
             }
 
             @Override
-            public void call(Event event) {
+            public void call(final Event event) {
                 String status = DataReader.optString(event.getEventData(),
                         CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY, null);
                 callback.call(MobilePrivacyStatus.fromString(status));
@@ -727,7 +663,7 @@ final public class MobileCore {
 
         AdobeCallbackWithError<Event> callbackWithError = new AdobeCallbackWithError<Event>() {
             @Override
-            public void fail(AdobeError error) {
+            public void fail(final AdobeError error) {
                 if (callback instanceof AdobeCallbackWithError) {
                     ((AdobeCallbackWithError<?>) callback).fail(AdobeError.CALLBACK_TIMEOUT);
                 } else {
@@ -736,7 +672,7 @@ final public class MobileCore {
             }
 
             @Override
-            public void call(Event event) {
+            public void call(final Event event) {
                 String value = DataReader.optString(event.getEventData(),
                         CoreConstants.EventDataKeys.Configuration.CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS, "{}");
                 callback.call(value);
@@ -860,6 +796,82 @@ final public class MobileCore {
     // ========================================================
 
     /**
+     * Registers an extension class which has {@code Extension} as parent.
+     * <p>
+     * In order to ensure that your extension receives all the internal events, this method needs
+     * to be called after {@link MobileCore#setApplication(Application)} is called, but before
+     * any other method in this class.
+     *
+     * @param extensionClass a class whose parent is {@link Extension}. It should not be null.
+     * @param errorCallback  an optional {@link ExtensionErrorCallback} for the eventuality of an error,
+     *                       called when this method returns false
+     * @return {@code boolean} indicating if the provided parameters are valid and no error occurs
+     */
+    @Deprecated
+    public static boolean registerExtension(@NonNull final Class<? extends Extension> extensionClass,
+                                            @Nullable final ExtensionErrorCallback<ExtensionError> errorCallback) {
+
+        if (!sdkInitializedWithContext.get()) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - setApplication not called");
+            return false;
+        }
+
+        if (extensionClass == null) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - extensionClass is null");
+            return false;
+        }
+
+        EventHub.Companion.getShared().registerExtension(extensionClass, eventHubError -> {
+            if (eventHubError == EventHubError.None) {
+                return null;
+            }
+
+            ExtensionError error;
+            if (eventHubError == EventHubError.InvalidExtensionName) {
+                error = ExtensionError.BAD_NAME;
+            } else if (eventHubError == EventHubError.DuplicateExtensionName) {
+                error = ExtensionError.DUPLICATE_NAME;
+            } else {
+                error = ExtensionError.UNEXPECTED_ERROR;
+            }
+
+            if (errorCallback != null) {
+                errorCallback.error(error);
+            }
+
+            return null;
+        });
+
+        return true;
+    }
+
+    /**
+     * Start the Core processing. This should be called after the initial set of extensions have been registered.
+     * <p>
+     * This call will wait for any outstanding registrations to complete and then start event processing.
+     * You can use the callback to kickoff additional operations immediately after any operations kicked off during registration.
+     * You shouldn't call this method more than once in your app, if so, sdk will ignore it and print error log.
+     *
+     * @param completionCallback an optional {@link AdobeCallback} invoked after registrations are completed
+     */
+    @Deprecated
+    public static void start(@Nullable final AdobeCallback<?> completionCallback) {
+        Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Use 'MobileCore.registerExtensions' method to initialize AEP SDK. Refer install instructions in Tags mobile property corresponding to this application.");
+
+        if (!sdkInitializedWithContext.get()) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to registerExtension - setApplication not called");
+            return;
+        }
+
+        EventHub.Companion.getShared().start(() -> {
+            if (completionCallback != null) {
+                completionCallback.call(null);
+            }
+            return null;
+        });
+    }
+
+    /**
      * This method will be used when the provided {@code Event} is used as a trigger and a response event
      * is expected in return.
      * <p>
@@ -941,7 +953,7 @@ final public class MobileCore {
 
         AdobeCallbackWithError<Event> callbackWithError = new AdobeCallbackWithError<Event>() {
             @Override
-            public void fail(AdobeError error) {
+            public void fail(final AdobeError error) {
                 if (responseCallback instanceof AdobeCallbackWithError) {
                     ((AdobeCallbackWithError<?>) responseCallback).fail(AdobeError.CALLBACK_TIMEOUT);
                 } else {
@@ -951,7 +963,7 @@ final public class MobileCore {
             }
 
             @Override
-            public void call(Event event) {
+            public void call(final Event event) {
                 responseCallback.call(event);
             }
         };

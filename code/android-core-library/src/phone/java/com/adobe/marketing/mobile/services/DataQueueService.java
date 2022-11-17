@@ -13,9 +13,10 @@ package com.adobe.marketing.mobile.services;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.internal.util.FileUtils;
-import com.adobe.marketing.mobile.services.internal.context.App;
 
 import java.io.File;
 import java.util.HashMap;
@@ -35,9 +36,10 @@ class DataQueueService implements DataQueuing {
 		dataQueueCache = new HashMap<>();
 	}
 
+	@SuppressWarnings("checkstyle:NestedIfDepth")
 	@Override
 	public DataQueue getDataQueue(final String databaseName) {
-		if(StringUtils.isNullOrEmpty(databaseName)) {
+		if (StringUtils.isNullOrEmpty(databaseName)) {
 			Log.warning(ServiceConstants.LOG_TAG,
 					LOG_TAG,
 					"Failed to create DataQueue, database name is null");
@@ -52,7 +54,10 @@ class DataQueueService implements DataQueuing {
 				if (dataQueue == null) {
 					final File databaseDirDataQueue = openOrMigrateExistingDataQueue(databaseName);
 
-					if(databaseDirDataQueue == null){
+					if (databaseDirDataQueue == null) {
+						Log.warning(ServiceConstants.LOG_TAG,
+								LOG_TAG,
+								"Failed to create DataQueue for database (%s).", databaseName);
 						return null;
 					}
 					dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath());
@@ -73,53 +78,41 @@ class DataQueueService implements DataQueuing {
 	 * @param databaseName name of the database to be migrated or opened
 	 * @return {@code File} representing the database in {@code Context#getDatabasePath(String)}
 	 */
-	private File openOrMigrateExistingDataQueue(String databaseName) {
+	private File openOrMigrateExistingDataQueue(@NonNull final String databaseName) {
+		Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+		if (appContext == null) {
+			Log.debug(ServiceConstants.LOG_TAG,
+					LOG_TAG,
+					"Failed to create DataQueue for database (%s), the ApplicationContext is null", databaseName);
+			return null;
+		}
+
 		final String cleanedDatabaseName = FileUtils.removeRelativePath(databaseName);
-
-		if(StringUtils.isNullOrEmpty(databaseName)) {
-			Log.warning(ServiceConstants.LOG_TAG,
-					LOG_TAG,
-					"Failed to create DataQueue, database name is null");
-			return null;
-		}
-
-		Context appContext = App.INSTANCE.getAppContext();
-
-		if(appContext == null) {
-			Log.warning(ServiceConstants.LOG_TAG,
-					LOG_TAG,
-					String.format("Failed to create DataQueue for database (%s), the ApplicationContext is null", databaseName));
-			return null;
-		}
-
 		final File databaseDirDataQueue = appContext.getDatabasePath(cleanedDatabaseName);
 
-		if (!databaseDirDataQueue.exists()) {
-				try {
-					if(databaseDirDataQueue.createNewFile()) {
-						final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-						if(cacheDir != null) {
-							final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
-							if (cacheDirDataQueue.exists()) {
-								FileUtils.copyFile(cacheDirDataQueue, databaseDirDataQueue);
-								Log.debug(ServiceConstants.LOG_TAG,
-										LOG_TAG,
-										String.format("Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName));
-								if (cacheDirDataQueue.delete()) {
-									Log.debug(ServiceConstants.LOG_TAG,
-											LOG_TAG,
-											String.format("Successfully delete DataQueue for database (%s) from cache directory", databaseName));
-								}
-							}
-						}
-					}
-				} catch (Exception e) {
-					Log.warning(ServiceConstants.LOG_TAG,
-							LOG_TAG,
-							String.format("Failed to move DataQueue for database (%s), could not create new file in database directory", databaseName));
-					return null;
-				}
+		// Return the db which exists in database directory.
+		if (databaseDirDataQueue.exists()) {
+			return databaseDirDataQueue;
 		}
+
+		// If db exists in cache directory, migrate it to new path.
+		try {
+			final File cacheDir = ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
+			if (cacheDir != null) {
+				final File cacheDirDataQueue = new File(cacheDir, cleanedDatabaseName);
+				if (cacheDirDataQueue.exists()) {
+					FileUtils.moveFile(cacheDirDataQueue, databaseDirDataQueue);
+					Log.debug(ServiceConstants.LOG_TAG,
+							LOG_TAG,
+							"Successfully moved DataQueue for database (%s) from cache directory to database directory", databaseName);
+				}
+			}
+		} catch (Exception ex) {
+			Log.debug(ServiceConstants.LOG_TAG,
+					LOG_TAG,
+					"Failed to move DataQueue for database (%s) from cache directory to database directory", databaseName);
+		}
+
 		return databaseDirDataQueue;
 	}
 }

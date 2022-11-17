@@ -21,22 +21,22 @@ class AndroidLoggingService implements Logging {
     private static final String TAG = "AdobeExperienceSDK";
 
     @Override
-    public void trace(String tag, String message) {
+    public void trace(final String tag,final String message) {
         Log.v(TAG, tag + " - " + message);
     }
 
     @Override
-    public void debug(String tag, String message) {
+    public void debug(final String tag, final String message) {
         Log.d(TAG, tag + " - " + message);
     }
 
     @Override
-    public void warning(String tag, String message) {
+    public void warning(final String tag, final String message) {
         Log.w(TAG, tag + " - " + message);
     }
 
     @Override
-    public void error(String tag, String message) {
+    public void error(final String tag, final String message) {
         Log.e(TAG, tag + " - " + message);
     }
 

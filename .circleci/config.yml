@@ -17,6 +17,10 @@ jobs:
           command: make check-format
 
       - run:
+          name: Check style
+          command: make checkstyle
+
+      - run:
           name: Assemble phone release
           command: make assemble-phone-release
       
@@ -27,6 +31,26 @@ jobs:
       - run:
           name: JavaDoc
           command: make javadoc
+
+      - run:
+          name: Install jitpack (core) to maven local
+          command: make core-publish-maven-local-jitpack
+
+      - run:
+          name: Install jitpack (signal) to maven local
+          command: make signal-publish-maven-local-jitpack
+
+      - run:
+          name: Install jitpack (lifecycle) to maven local
+          command: make lifecycle-publish-maven-local-jitpack
+
+      - run:
+          name: Install jitpack (identity) to maven local
+          command: make identity-publish-maven-local-jitpack
+          
+      - run:
+          name: Install jitpack (compatibility) to maven local
+          command: make compatibility-publish-maven-local-jitpack
 
       - run:
           name: Download Codecov Uploader
@@ -74,6 +98,18 @@ jobs:
           name: Upload Lifecycle coverage report
           command: |            
             bash ./codecov -v -X s3 -c -D "./code/android-lifecycle-library/build/reports/coverage/test/phone/debug" -F unit-tests
+
+      - run:
+          name: Run Identity unit tests
+          command: make identity-unit-test-coverage
+
+      - store_test_results:
+          path: code/android-identity-library/build/test-results/testPhoneDebugUnitTest
+
+      - run:
+          name: Upload Identity coverage report
+          command: |            
+            bash ./codecov -v -X s3 -c -D "./code/android-identity-library/build/reports/coverage/test/phone/debug" -F unit-tests
 
   functional-test:
       executor:
@@ -129,6 +165,8 @@ jobs:
             post-emulator-launch-assemble-command: make assemble-phone
             test-command: make integration-test
 
+        - store_test_results:
+            path: code/integration-tests/build/outputs/androidTest-results/connected
 
 workflows:
   version: 2

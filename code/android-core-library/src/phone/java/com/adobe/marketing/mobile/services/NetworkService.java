@@ -13,9 +13,6 @@ package com.adobe.marketing.mobile.services;
 
 import androidx.annotation.VisibleForTesting;
 
-import com.adobe.marketing.mobile.LoggingMode;
-import com.adobe.marketing.mobile.MobileCore;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -37,6 +34,7 @@ class NetworkService implements Networking {
 	private static final int THREAD_POOL_CORE_SIZE = 0;
 	private static final int THREAD_POOL_MAXIMUM_SIZE = 32;
 	private static final int THREAD_POOL_KEEP_ALIVE_TIME = 60;
+	private static final int SEC_TO_MS_MULTIPLIER = 1000;
 	private final ExecutorService executorService;
 
 	NetworkService() {
@@ -48,7 +46,7 @@ class NetworkService implements Networking {
 	}
 
 	@VisibleForTesting
-	NetworkService(ExecutorService executorService) {
+	NetworkService(final ExecutorService executorService) {
 		this.executorService = executorService;
 	}
 
@@ -116,17 +114,17 @@ class NetworkService implements Networking {
 			final String protocol = serverUrl.getProtocol();
 
 			/*
-			 * Only http and https are supported as of now.
+			 * Only https is supported as of now.
 			 * No special handling for https is supported for now.
 			 */
-			if (protocol != null &&  protocol.equalsIgnoreCase("https")) {
+			if (protocol != null &&  "https".equalsIgnoreCase(protocol)) {
 				try {
 					final HttpConnectionHandler httpConnectionHandler = new HttpConnectionHandler(serverUrl);
 
 					if (httpConnectionHandler.setCommand(request.getMethod())) {
 						httpConnectionHandler.setRequestProperty(headers);
-						httpConnectionHandler.setConnectTimeout(request.getConnectTimeout() * 1000);
-						httpConnectionHandler.setReadTimeout(request.getReadTimeout() * 1000);
+						httpConnectionHandler.setConnectTimeout(request.getConnectTimeout() * SEC_TO_MS_MULTIPLIER);
+						httpConnectionHandler.setReadTimeout(request.getReadTimeout() * SEC_TO_MS_MULTIPLIER);
 						connection = httpConnectionHandler.connect(request.getBody());
 					}
 				} catch (final IOException e) {

@@ -23,5 +23,5 @@ package com.adobe.marketing.mobile.launch.rulesengine
 data class RuleConsequence(
     val id: String,
     val type: String,
-    var detail: Map<String, Any?>? = null
+    val detail: Map<String, Any?>?
 )

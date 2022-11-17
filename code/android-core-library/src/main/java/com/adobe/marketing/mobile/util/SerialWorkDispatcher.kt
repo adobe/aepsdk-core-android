@@ -30,8 +30,8 @@ import java.util.concurrent.Future
  */
 open class SerialWorkDispatcher<T>(private val name: String, private val workHandler: WorkHandler<T>) {
 
-    companion object {
-        const val LOG_TAG = "SerialWorkDispatcher"
+    private companion object {
+        private const val LOG_TAG = "SerialWorkDispatcher"
     }
 
     /**

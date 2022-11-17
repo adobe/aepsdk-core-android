@@ -9,8 +9,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public final class StreamUtils {
-    public static final int STREAM_READ_BUFFER_SIZE = 1024;
-    public static final String TAG = "StreamUtils";
+    private static final int STREAM_READ_BUFFER_SIZE = 1024;
+    private static final String TAG = "StreamUtils";
 
     private StreamUtils() {}
 

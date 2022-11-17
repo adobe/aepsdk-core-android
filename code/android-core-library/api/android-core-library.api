@@ -1016,8 +1016,6 @@ public final class com/adobe/marketing/mobile/util/JSONUtils {
 }
 
 public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
-	public static final field Companion Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$Companion;
-	public static final field LOG_TAG Ljava/lang/String;
 	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$WorkHandler;)V
 	protected fun canWork ()Z
 	public final fun getState ()Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
@@ -1029,9 +1027,6 @@ public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
 	public final fun setInitialJob (Ljava/lang/Runnable;)V
 	public final fun shutdown ()V
 	public final fun start ()Z
-}
-
-public final class com/adobe/marketing/mobile/util/SerialWorkDispatcher$Companion {
 }
 
 public final class com/adobe/marketing/mobile/util/SerialWorkDispatcher$State : java/lang/Enum {
@@ -1048,8 +1043,6 @@ public abstract interface class com/adobe/marketing/mobile/util/SerialWorkDispat
 }
 
 public final class com/adobe/marketing/mobile/util/StreamUtils {
-	public static final field STREAM_READ_BUFFER_SIZE I
-	public static final field TAG Ljava/lang/String;
 	public static fun readAsString (Ljava/io/InputStream;)Ljava/lang/String;
 }
 

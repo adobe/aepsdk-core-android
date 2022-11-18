@@ -30,8 +30,8 @@ import java.util.concurrent.Future
  */
 open class SerialWorkDispatcher<T>(private val name: String, private val workHandler: WorkHandler<T>) {
 
-    companion object {
-        const val LOG_TAG = "SerialWorkDispatcher"
+    private companion object {
+        private const val LOG_TAG = "SerialWorkDispatcher"
     }
 
     /**
@@ -116,6 +116,44 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     private val activenessMutex: Any = Any()
 
     /**
+     * The initialization job that is to be executed when the [SerialWorkDispatcher] starts (i.e
+     * before processing any items in the [workQueue] for the first time)
+     */
+    @Volatile
+    private var initialJob: Runnable? = null
+
+    /**
+     * The initialization job that is to be executed immediately before the [SerialWorkDispatcher] shuts down.
+     */
+    @Volatile
+    private var finalJob: Runnable? = null
+
+    /**
+     * Sets a job that is will be invoked (on the thread that [SerialWorkDispatcher] maintains)
+     * immediately when the [SerialWorkDispatcher] starts and before processing the items in the queue.
+     * Implementers are expected to perform any one-time setup operations before processing starts.
+     * The initial job will only be executed if set before start() is invoked.
+     *
+     * @param initialJob the [Runnable] that is to be invoked immediately before the [SerialWorkDispatcher] starts
+     *        processing work items
+     */
+    fun setInitialJob(initialJob: Runnable) {
+        this.initialJob = initialJob
+    }
+
+    /**
+     * Sets a job that will be invoked ((on the thread that [SerialWorkDispatcher] maintains)
+     * immediately before the [executorService] is shutdown as a result of [SerialWorkDispatcher.shutdown].
+     * Implementers are expected to perform any cleanup operations when the [SerialWorkDispatcher]
+     * is shutdown. The final job will only be executed if set before shutdown() is invoked.
+     *
+     * @param finalJob the [Runnable] that is to be invoked immediately before the [SerialWorkDispatcher] shuts down
+     */
+    fun setFinalJob(finalJob: Runnable) {
+        this.finalJob = finalJob
+    }
+
+    /**
      * Enqueues an item to the end of the [workQueue]. Additionally,
      * resumes the queue processing if the [SerialWorkDispatcher] is active
      * (but processing was stopped earlier due to lack of work).
@@ -142,12 +180,10 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
      * Invoked immediately before processing the items in the queue for the first time.
      * Implementers are expected to perform any one-time setup operations (bound by the activeness of
      * [SerialWorkDispatcher]) before processing starts.
-     * Invoked on the thread that calls [start]
      */
-    protected open fun prepare() {
-        // no-op
-        // Intentionally non-abstract as most implementers
-        // may not need this.
+    private fun prepare() {
+        val initTask = this.initialJob ?: return
+        executorService.submit(initTask)
     }
 
     /**
@@ -280,15 +316,11 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     }
 
     /**
-     * Invoked immediately after stopping processing as a result of [shutdown].
-     * Implementers are expected to perform any cleanup operations as a result of
-     * the [SerialWorkDispatcher] being stopped.
-     * Invoked on the calling thread that invokes [shutdown]
+     * Invoked before the executor service maintained by this class is shutdown as a result of [shutdown].
      */
-    protected open fun cleanup() {
-        // no-op
-        // Intentionally non-abstract as most implementers
-        // may not need this.
+    private fun cleanup() {
+        val cleanupTask = finalJob ?: return
+        executorService.submit(cleanupTask)
     }
 
     /**
@@ -309,8 +341,15 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
             workQueue.clear()
         }
 
-        executorService.shutdownNow()
         cleanup()
+
+        // It is necessary and sufficient to call executorService.shutdown instead of executorService.shutdownNow()
+        // for the following reasons:
+        // - At this point, the state of the dispatcher is SHUTDOWN, and no new work can be submitted to the executorService
+        // - prepare() and cleanup() are serialized using [activenessMutex] and guarded by [state]. This prevents them from
+        //   executing out of order (therefore cleanup is always executed after prepare for a valid invocation).
+        // - executorService.shutdown() will allow [teardownJob] to execute before shutting down completely.
+        executorService.shutdown()
     }
 
     fun getState(): State {

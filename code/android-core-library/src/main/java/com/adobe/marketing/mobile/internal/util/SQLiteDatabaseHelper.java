@@ -14,6 +14,7 @@ package com.adobe.marketing.mobile.internal.util;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteStatement;
 
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
@@ -59,31 +60,21 @@ public class SQLiteDatabaseHelper {
      * @return number of rows in Table @tableName.
      */
     public static int getTableSize(final String dbPath, final String tableName) {
-        final String tableSizeQuery = "Select Count (*) from " + tableName;
         SQLiteDatabase database = null;
         Cursor cursor = null;
 
         try {
             database = openDatabase(dbPath, DatabaseOpenMode.READ_ONLY);
-            cursor = database.rawQuery(tableSizeQuery, null);
-
-            if (cursor.getCount() > 0 && cursor.moveToFirst()) {
-                return cursor.getInt(0);
-            } else {
-                Log.debug(CoreConstants.LOG_TAG, LOG_PREFIX,
-                        String.format("getTableSize - Error in querying table(%s) size. Returning 0.", tableName));
-                return 0;
-            }
+            SQLiteStatement selectStatement = database.compileStatement(
+                    "Select Count (*) from " + tableName
+            );
+            return (int)selectStatement.simpleQueryForLong();
         } catch (final SQLiteException e) {
             Log.warning(CoreConstants.LOG_TAG, LOG_PREFIX,
                     String.format("getTableSize - Error in querying table(%s) size. Returning 0. Error: (%s)", tableName,
                             e.getMessage()));
             return 0;
         } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-
             closeDatabase(database);
         }
     }

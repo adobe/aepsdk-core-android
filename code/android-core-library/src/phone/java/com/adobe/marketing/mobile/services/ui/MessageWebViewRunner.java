@@ -155,7 +155,6 @@ class MessageWebViewRunner implements Runnable {
             }
 
             if (cacheDirectory != null) {
-                webviewSettings.setDatabasePath(cacheDirectory.getPath());
                 webviewSettings.setDatabaseEnabled(true);
             }
 

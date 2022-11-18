@@ -126,6 +126,6 @@ public abstract class Extension {
 	 * @return a log tag for this extension
 	 */
 	private String getLogTag() {
-		return getName() + "(" + getVersion() + ")";
+		return "Extension[" + getName() + "(" + getVersion() + ")]";
 	}
 }

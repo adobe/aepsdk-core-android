@@ -1,10 +1,3 @@
-BRANCH_VERSION=$(shell git rev-parse --abbrev-ref HEAD | sed "s/dev-v//g")
-update-version:
-	echo $(BRANCH_VERSION)
-	sed -i '' "s/[0-9]*\.[0-9]*\.[0-9]/$(BRANCH_VERSION)/g" ./android-core-library/src/phone/java/com/adobe/marketing/mobile/ExtensionVersionManager.java
-	sed -i '' "s/\(coreExtensionVersion=\)[0-9]*\.[0-9]*\.[0-9]/\1$(BRANCH_VERSION)/g" ./gradle.properties
-	sed -i '' "s/\(mavenCoreVersion=\)[0-9]*\.[0-9]*\.[0-9]/\1$(BRANCH_VERSION)/g" ./gradle.properties
-	sed -i '' "s/\(coreLibraryMavenRootVersion=\)[0-9]*\.[0-9]*\.[0-9]/\1$(BRANCH_VERSION)/g" ./gradle.properties
 
 clean:
 	  (./code/gradlew -p code clean)
@@ -31,9 +24,9 @@ unit-test: core-unit-test signal-unit-test lifecycle-unit-test
 
 unit-test-coverage: core-unit-test-coverage signal-unit-test-coverage lifecycle-unit-test-coverage
 
-functional-test: core-functional-test signal-functional-test lifecycle-functional-test
+functional-test: core-functional-test signal-functional-test lifecycle-functional-test identity-functional-test
 
-functional-test-coverage: core-functional-test-coverage signal-functional-test-coverage lifecycle-functional-test-coverage
+functional-test-coverage: core-functional-test-coverage signal-functional-test-coverage lifecycle-functional-test-coverage identity-functional-test-coverage
 
 integration-test: 
 		(./code/gradlew -p code/integration-tests uninstallDebugAndroidTest)
@@ -177,12 +170,12 @@ identity-unit-test:
 identity-unit-test-coverage:
 		(./code/gradlew -p code/android-identity-library createPhoneDebugUnitTestCoverageReport)
 
-# identity-functional-test:
-# 		(./code/gradlew -p code/android-identity-library uninstallPhoneDebugAndroidTest)
-# 		(./code/gradlew -p code/android-identity-library connectedPhoneDebugAndroidTest)		
+identity-functional-test:
+		(./code/gradlew -p code/android-identity-library uninstallPhoneDebugAndroidTest)
+		(./code/gradlew -p code/android-identity-library connectedPhoneDebugAndroidTest)		
 
-# identity-functional-test-coverage:		
-# 		(./code/gradlew -p code/android-identity-library createPhoneDebugAndroidTestCoverageReport)
+identity-functional-test-coverage:		
+		(./code/gradlew -p code/android-identity-library createPhoneDebugAndroidTestCoverageReport)
 
 identity-publish:
 		(./code/gradlew -p code/android-identity-library  publishReleasePublicationToSonatypeRepository)
@@ -203,3 +196,9 @@ compatibility-publish-maven-local:
 compatibility-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-core-compatiblity assemblePhone)
 		(./code/gradlew -p code/android-core-compatiblity publishReleasePublicationToMavenLocal -Pjitpack)
+		
+# make bump-versions from='2\.0\.0' to=2.0.1
+bump-versions:
+	(LC_ALL=C find . -type f -name 'gradle.properties' -exec sed -i '' 's/$(from)/$(to)/' {} +)
+	(LC_ALL=C find . -type f -name '*.kt' -exec sed -i '' 's/$(from)/$(to)/' {} +)	
+	(LC_ALL=C find . -type f -name '*.java' -exec sed -i '' 's/$(from)/$(to)/' {} +)

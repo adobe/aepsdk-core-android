@@ -35,4 +35,6 @@ public final class EventSource {
 	public static final String WILDCARD = "com.adobe.eventSource._wildcard_";
 	public static final String APPLICATION_LAUNCH = "com.adobe.eventSource.applicationLaunch";
 	public static final String APPLICATION_CLOSE = "com.adobe.eventSource.applicationClose";
+	public static final String CONSENT_PREFERENCE = "consent:preferences";
+	public static final String UPDATE_CONSENT = "com.adobe.eventSource.updateConsent";
 }

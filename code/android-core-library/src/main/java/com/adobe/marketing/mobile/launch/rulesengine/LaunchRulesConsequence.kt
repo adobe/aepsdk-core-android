@@ -24,7 +24,7 @@ import com.adobe.marketing.mobile.rulesengine.TokenFinder
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.EventDataUtils
 
-class LaunchRulesConsequence(
+internal class LaunchRulesConsequence(
     private val extensionApi: ExtensionApi
 ) {
 
@@ -295,14 +295,14 @@ class LaunchRulesConsequence(
 }
 
 // Extend RuleConsequence with helper methods for processing consequence events.
-val RuleConsequence.eventData: Map<*, *>?
+private val RuleConsequence.eventData: Map<*, *>?
     get() = detail?.get("eventdata") as? Map<*, *>
 
-val RuleConsequence.eventSource: String?
+private val RuleConsequence.eventSource: String?
     get() = detail?.get("source") as? String
 
-val RuleConsequence.eventType: String?
+private val RuleConsequence.eventType: String?
     get() = detail?.get("type") as? String
 
-val RuleConsequence.eventDataAction: String?
+private val RuleConsequence.eventDataAction: String?
     get() = detail?.get("eventdataaction") as? String

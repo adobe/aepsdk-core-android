@@ -28,7 +28,6 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
-import java.util.concurrent.Executors
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -102,10 +101,7 @@ internal class ExtensionContainerTests {
     fun setup() {
         EventHub.shared = eventHub
 
-        container = ExtensionContainer(
-            TestExtension::class.java,
-            Executors.newSingleThreadExecutor()
-        ) {}
+        container = ExtensionContainer(TestExtension::class.java) {}
         Thread.sleep(100)
     }
 
@@ -287,8 +283,7 @@ internal class ExtensionContainerTests {
     fun testExtensionCallback_SuccessfulRegistration() {
         var error: EventHubError? = null
         container = ExtensionContainer(
-            TestExtension::class.java,
-            Executors.newSingleThreadExecutor()
+            TestExtension::class.java
         ) { error = it }
         Thread.sleep(100)
         assertTrue { (container?.extension as TestExtension).registerCalled }
@@ -299,8 +294,7 @@ internal class ExtensionContainerTests {
     fun testExtensionCallback_FailedRegistration_InitException() {
         var error: EventHubError? = null
         container = ExtensionContainer(
-            MockExtensions.MockExtensionInvalidConstructor::class.java,
-            Executors.newSingleThreadExecutor()
+            MockExtensions.MockExtensionInvalidConstructor::class.java
         ) { error = it }
         Thread.sleep(100)
         assertEquals(error, EventHubError.ExtensionInitializationFailure)
@@ -310,8 +304,7 @@ internal class ExtensionContainerTests {
     fun testExtensionCallback_FailedRegistration_InvalidConstructor() {
         var error: EventHubError? = null
         container = ExtensionContainer(
-            MockExtensions.MockExtensionInitFailure::class.java,
-            Executors.newSingleThreadExecutor()
+            MockExtensions.MockExtensionInitFailure::class.java
         ) { error = it }
         Thread.sleep(100)
         assertEquals(error, EventHubError.ExtensionInitializationFailure)
@@ -321,8 +314,7 @@ internal class ExtensionContainerTests {
     fun testExtensionCallback_FailedRegistration_EmptyName() {
         var error: EventHubError? = null
         container = ExtensionContainer(
-            TestExtensionNameError::class.java,
-            Executors.newSingleThreadExecutor()
+            TestExtensionNameError::class.java
         ) { error = it }
         Thread.sleep(100)
         assertEquals(EventHubError.InvalidExtensionName, error)

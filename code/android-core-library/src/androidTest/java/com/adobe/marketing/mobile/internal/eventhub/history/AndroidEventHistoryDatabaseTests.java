@@ -14,6 +14,8 @@ package com.adobe.marketing.mobile.internal.eventhub.history;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -21,28 +23,37 @@ import android.database.sqlite.SQLiteDatabase;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import com.adobe.marketing.mobile.TestUtils;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.MockAppContextService;
-import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+
 @RunWith(AndroidJUnit4.class)
 public class AndroidEventHistoryDatabaseTests {
+
+	private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
+	private static final String TABLE_NAME = "Events";
+	private static final String COLUMN_HASH = "eventHash";
+	private static final String COLUMN_TIMESTAMP = "timestamp";
 	private EventHistoryDatabase androidEventHistoryDatabase;
+	private Context context;
 
 	@Before
 	public void beforeEach() {
-		Context context = ApplicationProvider.getApplicationContext();
+		context = ApplicationProvider.getApplicationContext();
 		MockAppContextService mockAppContextService = new MockAppContextService();
 		mockAppContextService.appContext = context;
 		ServiceProviderModifier.setAppContextService(mockAppContextService);
 
 		TestUtils.deleteAllFilesInCacheDir(context);
+		context.getApplicationContext().getDatabasePath(DATABASE_NAME).delete();
 
 		try {
 			androidEventHistoryDatabase = new AndroidEventHistoryDatabase();
@@ -87,7 +98,7 @@ public class AndroidEventHistoryDatabaseTests {
 			assertTrue(androidEventHistoryDatabase.insert(222222222));
 		}
 
-		String dbPath = "/data/data/com.adobe.marketing.mobile.test/cache/com.adobe.marketing.db.eventhistory";
+		String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
 		SQLiteDatabase database = SQLiteDatabaseHelper.openDatabase(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
 		long dbSize = DatabaseUtils.queryNumEntries(database,"Events");
 		SQLiteDatabaseHelper.closeDatabase(database);
@@ -99,5 +110,87 @@ public class AndroidEventHistoryDatabaseTests {
 		SQLiteDatabaseHelper.closeDatabase(database);
 		assertEquals(15, deleteCount);
 		assertEquals(10, dbSize);
+	}
+
+	@Test(expected = EventHistoryDatabaseCreationException.class)
+	public void testInsert_ApplicationContextIsNull() throws EventHistoryDatabaseCreationException {
+		MockAppContextService mockAppContextService = new MockAppContextService();
+		mockAppContextService.appContext = null;
+		ServiceProviderModifier.setAppContextService(mockAppContextService);
+
+		new AndroidEventHistoryDatabase().insert(1111111111);
+	}
+
+	@Test
+	public void testInsert_EventHistoryDatabaseMigrationFromCacheDirectory() {
+		try {
+			// create event history database in cache directory
+			createEventHistoryDatabaseInCacheDirectory();
+
+			// delete any existing event history database
+			context.getDatabasePath(DATABASE_NAME).delete();
+
+			// create new event history database
+			AndroidEventHistoryDatabase eventHistoryDatabase = new AndroidEventHistoryDatabase();
+			assertTrue(eventHistoryDatabase.insert(222222222));
+
+			// assert cache event history database content is copied to new event history database
+			String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
+			SQLiteDatabase database = SQLiteDatabaseHelper.openDatabase(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
+
+			long dbSize = DatabaseUtils.queryNumEntries(database, "Events");
+			assertEquals(2, dbSize);
+
+			final Cursor cursor1 = eventHistoryDatabase.select(1111111111, 0, System.currentTimeMillis());
+			assertEquals("1", cursor1.getString(0));
+
+			final Cursor cursor2 = eventHistoryDatabase.select(222222222, 0, System.currentTimeMillis());
+			assertEquals("1", cursor2.getString(0));
+
+			SQLiteDatabaseHelper.closeDatabase(database);
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testInsert_EventHistoryDatabaseExists() {
+		try {
+			// insert into existing event history database
+			assertTrue(androidEventHistoryDatabase.insert(1111111111));
+
+			// create new event history database instance
+			AndroidEventHistoryDatabase eventHistoryDatabase = new AndroidEventHistoryDatabase();
+			assertTrue(eventHistoryDatabase.insert(222222222));
+
+			// assert contents of event history database
+			String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
+			SQLiteDatabase database = SQLiteDatabaseHelper.openDatabase(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
+
+			long dbSize = DatabaseUtils.queryNumEntries(database, "Events");
+			assertEquals(2, dbSize);
+
+			final Cursor cursor1 = eventHistoryDatabase.select(1111111111, 0, System.currentTimeMillis());
+			assertEquals("1", cursor1.getString(0));
+
+			final Cursor cursor2 = eventHistoryDatabase.select(222222222, 0, System.currentTimeMillis());
+			assertEquals("1", cursor2.getString(0));
+
+			SQLiteDatabaseHelper.closeDatabase(database);
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+	}
+
+	private void createEventHistoryDatabaseInCacheDirectory() throws Exception {
+		File cacheDatabaseFile = new File(context.getCacheDir(), DATABASE_NAME);
+		SQLiteDatabase cacheDatabase = SQLiteDatabaseHelper.openDatabase(cacheDatabaseFile.getPath(), SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
+		final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
+				" (eventHash INTEGER, timestamp INTEGER);";
+		SQLiteDatabaseHelper.createTableIfNotExist(cacheDatabaseFile.getCanonicalPath(), tableCreationQuery);
+		final ContentValues contentValues = new ContentValues();
+		contentValues.put(COLUMN_HASH, 1111111111);
+		contentValues.put(COLUMN_TIMESTAMP, System.currentTimeMillis());
+		cacheDatabase.insert(TABLE_NAME, null, contentValues);
 	}
 }

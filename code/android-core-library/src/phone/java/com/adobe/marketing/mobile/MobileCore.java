@@ -437,7 +437,7 @@ final public class MobileCore {
         marshaller.marshal(activity);
         final Map<String, Object> marshalledData = marshaller.getData();
         if (marshalledData == null || marshalledData.isEmpty()) {
-            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
+            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "collectData: Could not dispatch generic data event, data is null or empty.");
             return;
         }
 

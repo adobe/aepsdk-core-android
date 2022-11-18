@@ -17,6 +17,8 @@ import com.adobe.marketing.mobile.services.Log;
 public class Lifecycle {
 	private final static String EXTENSION_VERSION = "2.0.0";
 
+	public static final Class<? extends Extension> EXTENSION = LifecycleExtension.class;
+
 	private Lifecycle() {
 
 	}
@@ -33,6 +35,7 @@ public class Lifecycle {
 	/**
 	 * Registers the extension with the Mobile SDK. This method should be called only once in your application class.
 	 */
+	@Deprecated
 	public static void registerExtension() {
 		MobileCore.registerExtension(LifecycleExtension.class, extensionError -> {
 			Log.error("Lifecycle", "Lifecycle", "There was an error when registering the Lifecycle extension: %s",

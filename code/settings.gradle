@@ -18,3 +18,4 @@ include ':android-core-library',
         ':testapp',
         ':testapp-kotlin',
         ':macrobenchmark'
+include ':microbenchmark'

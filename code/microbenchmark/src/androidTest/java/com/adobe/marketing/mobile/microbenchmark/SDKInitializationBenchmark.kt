@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.microbenchmark
 import android.app.Application
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.adobe.marketing.mobile.LoggingMode
@@ -57,8 +58,7 @@ class SDKInitializationBenchmark {
 
     @Test
     fun startEventHubAndRegisterMultipleExtensions() {
-        val appContext =
-            InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as Application
+        val appContext = ApplicationProvider.getApplicationContext() as Application
         benchmarkRule.measureRepeated {
             val countDownLatch = CountDownLatch(1)
             MobileCore.setApplication(appContext)

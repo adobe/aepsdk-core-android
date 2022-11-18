@@ -282,6 +282,76 @@ public class DataReader {
     }
 
     /**
+     * Gets the value for {@code key} from {@code map} as a {@code List<Map<String, T>>}
+     *
+     * @param <T>    Custom type
+     * @param tClass Custom class
+     * @param map    {@code Map} map to fetch data
+     * @param key    {@code String} key to fetch
+     * @return {@code List<Map<String, T>>} List associated with {@code key} or null if {@code key} is not present in {@code map}
+     * @throws DataReaderException      if value is not gettable as a {@code List<Map<String, T>>}
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> List<Map<String, T>> getTypedListOfMap(final Class<T> tClass, final Map<String, ?> map, final String key) throws DataReaderException {
+        if (tClass == null) {
+            throw new DataReaderException("Class type is null");
+        }
+
+        if (map == null || key == null) {
+            throw new DataReaderException("Map or key is null");
+        }
+
+        Object value = map.get(key);
+        if (value == null) {
+            return null;
+        }
+
+        if (!(value instanceof List)) {
+            throw new DataReaderException("Value is not a list");
+        }
+
+        List<?> valueAsList = (List<?>) value;
+        for (Object obj : valueAsList) {
+            if (!(obj instanceof Map)) {
+                throw new DataReaderException("List entry is not of expected type");
+            }
+
+            Map<?, ?> objAsMap = (Map<?, ?>) obj;
+            for (Map.Entry<?, ?> kv : objAsMap.entrySet()) {
+                if (!(kv.getKey() instanceof String)) {
+                    throw new DataReaderException("Map entry is not of expected type");
+                }
+                if (kv.getValue() != null && !tClass.isInstance(kv.getValue())) {
+                    throw new DataReaderException("Map entry is not of expected type");
+                }
+            }
+        }
+
+        return (List<Map<String, T>>) valueAsList;
+    }
+
+    /**
+     * Gets the value for {@code key} from {@code map} as a {@code List<Map<String, T>>} or returns default value
+     *
+     * @param <T>      Custom type
+     * @param tClass   Custom class
+     * @param map      {@code Map} map to fetch data
+     * @param key      {@code String} key to fetch
+     * @param fallback {@code List<Map<String, T>>} value to return in case of failure. Can be null.
+     * @return {@code List<Map<String, T>>} List associated with {@code key}, or {@code fallback} if value is
+     * not gettable as a {@code List<Map<String, T>>}
+     */
+    public static <T> List<Map<String, T>> optTypedListOfMap(final Class<T> tClass, final Map<String, ?> map, final String key, final List<Map<String, T>> fallback) {
+        List<Map<String, T>> ret = null;
+        try {
+            ret = getTypedListOfMap(tClass, map, key);
+        } catch (DataReaderException ex) {
+        }
+        return ret != null ? ret : fallback;
+    }
+
+
+    /**
      * Gets the value for {@code key} from {@code map} as a {@code boolean}
      *
      * @param map {@code Map} map to fetch data

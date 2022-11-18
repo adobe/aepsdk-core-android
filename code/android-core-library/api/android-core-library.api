@@ -986,6 +986,7 @@ public class com/adobe/marketing/mobile/util/DataReader {
 	public static fun getStringList (Ljava/util/Map;Ljava/lang/String;)Ljava/util/List;
 	public static fun getStringMap (Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map;
 	public static fun getTypedList (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;)Ljava/util/List;
+	public static fun getTypedListOfMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;)Ljava/util/List;
 	public static fun getTypedMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map;
 	public static fun optBoolean (Ljava/util/Map;Ljava/lang/String;Z)Z
 	public static fun optDouble (Ljava/util/Map;Ljava/lang/String;D)D
@@ -996,6 +997,7 @@ public class com/adobe/marketing/mobile/util/DataReader {
 	public static fun optStringList (Ljava/util/Map;Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
 	public static fun optStringMap (Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;
 	public static fun optTypedList (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
+	public static fun optTypedListOfMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
 	public static fun optTypedMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;
 }
 

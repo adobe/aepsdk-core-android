@@ -63,6 +63,7 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field APPLICATION_CLOSE Ljava/lang/String;
 	public static final field APPLICATION_LAUNCH Ljava/lang/String;
 	public static final field CONSENT_PREFERENCE Ljava/lang/String;
+	public static final field ERROR_RESPONSE_CONTENT Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
 	public static final field REQUEST_CONTENT Ljava/lang/String;

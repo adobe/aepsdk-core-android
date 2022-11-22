@@ -69,11 +69,13 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field REQUEST_IDENTITY Ljava/lang/String;
 	public static final field REQUEST_PROFILE Ljava/lang/String;
 	public static final field REQUEST_RESET Ljava/lang/String;
+	public static final field RESET_COMPLETE Ljava/lang/String;
 	public static final field RESPONSE_CONTENT Ljava/lang/String;
 	public static final field RESPONSE_IDENTITY Ljava/lang/String;
 	public static final field RESPONSE_PROFILE Ljava/lang/String;
 	public static final field SHARED_STATE Ljava/lang/String;
 	public static final field UPDATE_CONSENT Ljava/lang/String;
+	public static final field UPDATE_IDENTITY Ljava/lang/String;
 	public static final field WILDCARD Ljava/lang/String;
 }
 
@@ -87,6 +89,7 @@ public final class com/adobe/marketing/mobile/EventType {
 	public static final field CONSENT Ljava/lang/String;
 	public static final field CUSTOM Ljava/lang/String;
 	public static final field EDGE Ljava/lang/String;
+	public static final field EDGE_IDENTITY Ljava/lang/String;
 	public static final field GENERIC_DATA Ljava/lang/String;
 	public static final field GENERIC_IDENTITY Ljava/lang/String;
 	public static final field GENERIC_LIFECYCLE Ljava/lang/String;

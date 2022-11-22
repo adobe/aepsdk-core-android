@@ -49,4 +49,6 @@ public final class EventType {
 	public static final String WILDCARD = "com.adobe.eventType._wildcard_";
 	public static final String CONSENT = "com.adobe.eventType.edgeConsent";
 	public static final String EDGE = "com.adobe.eventType.edge";
+	public static final String EDGE_IDENTITY = "com.adobe.eventType.edgeIdentity";
+
 }

@@ -147,7 +147,7 @@ class LifecycleIntegrationTests {
         }
 
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
 
         MobileCore.lifecyclePause()
         Thread.sleep(2000)
@@ -193,7 +193,7 @@ class LifecycleIntegrationTests {
 
         // test
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatchSecondLaunch.await(500, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
         countDownLatchSecondLifecycleStart.await()
     }
 
@@ -220,7 +220,7 @@ class LifecycleIntegrationTests {
         }
 
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
         Thread.sleep(2000)
 
         // restart
@@ -265,7 +265,7 @@ class LifecycleIntegrationTests {
 
         // test
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatchSecondLaunch.await(500, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
         countDownLatchSecondLifecycleStart.await()
     }
 
@@ -313,7 +313,7 @@ class LifecycleIntegrationTests {
         }
 
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
         MobileCore.lifecyclePause()
         Thread.sleep(2000)
 
@@ -356,8 +356,8 @@ class LifecycleIntegrationTests {
 
         // test
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatchSecondLaunch.await(500, TimeUnit.MILLISECONDS))
-        assertFalse(countDownLatchSecondLifecycleStart.await(500, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
+        assertFalse(countDownLatchSecondLifecycleStart.await(1, TimeUnit.SECONDS))
     }
 
     private fun configurationAwareness(callback: ConfigurationMonitor) {

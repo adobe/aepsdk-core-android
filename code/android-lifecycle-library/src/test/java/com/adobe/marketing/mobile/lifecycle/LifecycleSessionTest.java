@@ -84,7 +84,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void start_FirstLaunchSession() {
+	public void testStart_FirstLaunchSession() {
 		when(dataStore.getBoolean(eq(DATASTORE_KEY_SUCCESSFUL_CLOSE), anyBoolean())).thenReturn(true);
 		LifecycleSession.SessionInfo previousSessionInfo = session.start(currentTimestampInSeconds, sessionTimeoutInSeconds,
 				coreData);
@@ -106,7 +106,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void start_verifyAppIdAndOsVersion() {
+	public void testStart_verifyAppIdAndOsVersion() {
 		final String osVersion = "android 4.0";
 		final String appId = "app-id-1234";
 
@@ -127,7 +127,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void start_NullDataStore() {
+	public void testStart_NullDataStore() {
 		session = new LifecycleSession(null);
 		LifecycleSession.SessionInfo previousSessionInfo = session.start(currentTimestampInSeconds, sessionTimeoutInSeconds,
 				coreData);
@@ -137,7 +137,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void start_LifecycleHasAlreadyRun() {
+	public void testStart_LifecycleHasAlreadyRun() {
 		when(dataStore.getBoolean(eq(DATASTORE_KEY_SUCCESSFUL_CLOSE), anyBoolean())).thenReturn(true);
 		session.start(currentTimestampInSeconds, sessionTimeoutInSeconds, coreData);
 		LifecycleSession.SessionInfo previousSessionInfo = session.start(currentTimestampInSeconds + TimeUnit.MINUTES
@@ -163,7 +163,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void start_ResumeSession() {
+	public void testStart_ResumeSession() {
 		long previousSessionStartTimestamp = currentTimestampInSeconds;
 		long previousSessionPauseTimestamp = currentTimestampInSeconds + TimeUnit.MINUTES.toSeconds(2);
 		long newSessionStartTimestamp = currentTimestampInSeconds + TimeUnit.MINUTES.toSeconds(6);
@@ -190,7 +190,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void start_SessionExpired() {
+	public void testStart_SessionExpired() {
 		long previousSessionStartTimestamp = currentTimestampInSeconds;
 		long previousSessionPauseTimestamp = currentTimestampInSeconds + TimeUnit.MINUTES.toSeconds(2);
 		long newSessionStartTimestamp = previousSessionPauseTimestamp + TimeUnit.MINUTES.toSeconds(6);
@@ -223,7 +223,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void pause_Happy() {
+	public void testPause_Happy() {
 		session.pause(currentTimestampInSeconds);
 
 		ArgumentCaptor<Long> pauseDateCaptor = ArgumentCaptor.forClass(Long.class);
@@ -236,7 +236,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void pause_NullDataStore() {
+	public void testPause_NullDataStore() {
 		session = new LifecycleSession(null);
 		session.pause(currentTimestampInSeconds);
 
@@ -244,7 +244,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void getSessionData_NotANewSession() {
+	public void testGetSessionData_NotANewSession() {
 		session.start(currentTimestampInSeconds, sessionTimeoutInSeconds, coreData);
 
 		LifecycleSession.SessionInfo previousSessionInfo = new LifecycleSession.SessionInfo
@@ -258,7 +258,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void getSessionData_NullDataStore() {
+	public void testGetSessionData_NullDataStore() {
 		session = new LifecycleSession(null);
 		session.start(currentTimestampInSeconds, sessionTimeoutInSeconds, coreData);
 
@@ -273,7 +273,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void getSessionData_DroppedSession() {
+	public void testGetSessionData_DroppedSession() {
 		dataStore.setLong(DATA_STORE_KEY_LAST_KNOWN_TIMESTAMP, timestampTenMinEarlierInSeconds);
 		session.start(currentTimestampInSeconds, sessionTimeoutInSeconds, coreData);
 
@@ -293,7 +293,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void getSessionData_PreviousSessionValid() {
+	public void testGetSessionData_PreviousSessionValid() {
 		dataStore.setLong(DATA_STORE_KEY_LAST_KNOWN_TIMESTAMP, timestampTenMinEarlierInSeconds);
 		session.start(currentTimestampInSeconds, sessionTimeoutInSeconds, coreData);
 
@@ -313,7 +313,7 @@ public class LifecycleSessionTest {
 	}
 
 	@Test
-	public void getSessionData_PreviousSessionInfoNull() {
+	public void testGetSessionData_PreviousSessionInfoNull() {
 		session.start(currentTimestampInSeconds, sessionTimeoutInSeconds, coreData);
 
 		Map<String, String> sessionData = session.getSessionData(currentTimestampInSeconds, sessionTimeoutInSeconds, null);

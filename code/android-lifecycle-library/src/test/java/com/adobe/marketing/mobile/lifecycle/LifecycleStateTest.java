@@ -132,7 +132,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void computeBootData_Happy() {
+    public void testComputeBootData_Happy() {
         Map<String, String> actualContextData = lifecycleState.computeBootData();
         assertNotNull(actualContextData.get(CONTEXT_DATA_KEY_APPLICATION_IDENTIFIER));
         assertEquals("100x100", actualContextData.get(CONTEXT_DATA_KEY_DEVICE_RESOLUTION));
@@ -147,7 +147,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void computeBootDataWithPersistedData() {
+    public void testComputeBootDataWithPersistedData() {
         Map<String, String> testMap = new HashMap<>();
         testMap.put("updateContextDataTestKey", "updateContextDataTestValue");
         when(lifecycleDataStore.getMap(DATASTORE_KEY_LIFECYCLE_DATA)).thenReturn(testMap);
@@ -168,7 +168,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void start_Happy() {
+    public void testStart_Happy() {
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_PAUSE_DATE), anyLong())).thenReturn(timestampOneSecEarlierInSeconds);
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_START_DATE), anyLong())).thenReturn(timestampTenMinEarlierInSeconds);
         when(lifecycleDataStore.getString(eq(DATASTORE_KEY_LAST_VERSION), anyString())).thenReturn(mockAppVersion);
@@ -195,7 +195,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void start_PreviousSessionCrashed() {
+    public void testStart_PreviousSessionCrashed() {
         final String osVersion = "ios 10.2";
         final String appId = "app_id_123";
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_INSTALL_DATE), anyLong())).thenReturn(timestampOneDayEarlierSeconds);
@@ -241,7 +241,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void start_PreviousAppId() {
+    public void testStart_PreviousAppId() {
         final String osVersion = "ios 10.2";
         final String appId = "app_id_123";
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_INSTALL_DATE), anyLong())).thenReturn(timestampOneDayEarlierSeconds);
@@ -265,7 +265,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void start_AppResume_VersionUpgrade_NoLifecycleInMemory() {
+    public void testStart_AppResume_VersionUpgrade_NoLifecycleInMemory() {
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_PAUSE_DATE), anyLong())).thenReturn(timestampOneSecEarlierInSeconds);
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_START_DATE), anyLong())).thenReturn(timestampTenMinEarlierInSeconds);
         when(lifecycleDataStore.getString(eq(DATASTORE_KEY_LAST_VERSION), anyString())).thenReturn(mockAppVersion);
@@ -285,7 +285,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void start_AppResume_VersionUpgrade_LifecycleIsInMemory() {
+    public void testStart_AppResume_VersionUpgrade_LifecycleIsInMemory() {
         Map<String, String> mockLifecycleMap = new HashMap<>();
         mockLifecycleMap.put(CONTEXT_DATA_KEY_APPLICATION_IDENTIFIER, "A_DIFFERENT_APP_ID");
         lifecycleState.updateContextData(mockLifecycleMap);
@@ -323,7 +323,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void start_AppResume_VersionsAreSame() {
+    public void testStart_AppResume_VersionsAreSame() {
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_PAUSE_DATE), anyLong())).thenReturn(timestampOneSecEarlierInSeconds);
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_START_DATE), anyLong())).thenReturn(timestampTenMinEarlierInSeconds);
         when(lifecycleDataStore.getString(eq(DATASTORE_KEY_LAST_VERSION), anyString())).thenReturn(mockAppVersion);
@@ -343,7 +343,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void start_OverTimeout_AdditionalData() {
+    public void testStart_OverTimeout_AdditionalData() {
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_PAUSE_DATE), anyLong())).thenReturn(timestampTenMinEarlierInSeconds);
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_START_DATE), anyLong())).thenReturn(timestampOneHourEarlierInSeconds);
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_INSTALL_DATE), anyLong())).thenReturn(timestampOneDayEarlierSeconds);
@@ -403,7 +403,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void pause_Happy() {
+    public void testPause_Happy() {
         Event testEvent = createPauseEvent(currentTimestampInMilliSeconds);
 
         lifecycleState.pause(testEvent);
@@ -417,13 +417,13 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void checkForApplicationUpgrade_ContextDataNull() {
+    public void testCheckForApplicationUpgrade_ContextDataNull() {
         lifecycleState.checkForApplicationUpgrade("");
         assertTrue(lifecycleState.getContextData().isEmpty());
     }
 
     @Test
-    public void checkForApplicationUpgrade_ExistingLifecycleDataEmpty() {
+    public void testCheckForApplicationUpgrade_ExistingLifecycleDataEmpty() {
         Map<String, String> mockLifecycleData = new HashMap<>();
         lifecycleState.updateContextData(mockLifecycleData);
 
@@ -434,7 +434,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void checkForApplicationUpgrade_ExistingLifecycleDataInMemory() {
+    public void testCheckForApplicationUpgrade_ExistingLifecycleDataInMemory() {
         Map<String, String> mockLifecycleData = new HashMap<>();
         mockLifecycleData.put(CONTEXT_DATA_KEY_APPLICATION_IDENTIFIER, "NEW_APP_ID");
         lifecycleState.updateContextData(mockLifecycleData);
@@ -446,7 +446,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void checkForApplicationUpgrade_ExistingLifecycleDataPersisted() {
+    public void testCheckForApplicationUpgrade_ExistingLifecycleDataPersisted() {
         final Map<String, String> mockLifecycleMapJson = new HashMap<>();
         mockLifecycleMapJson.put(CONTEXT_DATA_KEY_APPLICATION_IDENTIFIER, "NEW_APP_ID");
         when(lifecycleDataStore.getMap(DATASTORE_KEY_LIFECYCLE_DATA)).thenReturn(mockLifecycleMapJson);
@@ -460,7 +460,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void checkForApplicationUpgrade_AppUpgrade_Happy() {
+    public void testCheckForApplicationUpgrade_AppUpgrade_Happy() {
         final Map<String, String> mockLifecycleMapJson = new HashMap<>();
         mockLifecycleMapJson.put(CONTEXT_DATA_KEY_APPLICATION_IDENTIFIER, "OLD_APP_ID");
         when(lifecycleDataStore.getMap(DATASTORE_KEY_LIFECYCLE_DATA)).thenReturn(mockLifecycleMapJson);
@@ -476,7 +476,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void getContextData_Happy() {
+    public void testGetContextData_Happy() {
         Map<String, String> testMap = new HashMap<>();
         testMap.put("updateContextDataTestKey", "updateContextDataTestValue");
         lifecycleState.updateContextData(testMap);
@@ -485,19 +485,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void getContextData_NullParameter() {
-        Map<String, String> testMap = new HashMap<>();
-        testMap.put("updateContextDataTestKey", "updateContextDataTestValue");
-        lifecycleState.updateContextData(testMap);
-
-        lifecycleState.updateContextData(null);
-
-        Map<String, String> returnData = lifecycleState.getContextData();
-        assertEquals(returnData.get("updateContextDataTestKey"), "updateContextDataTestValue");
-    }
-
-    @Test
-    public void removeContextData() {
+    public void testRemoveContextData() {
         Map<String, String> testMap = new HashMap<>();
         testMap.put("removeContextDataTestKey", "removeContextDataTestValue");
         lifecycleState.updateContextData(testMap);
@@ -509,7 +497,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void updateContextData_ContextDataExists_And_PreviousSessionExists() {
+    public void testUpdateContextData_ContextDataExists_And_PreviousSessionExists() {
         Map<String, String> testMap = new HashMap<>();
         testMap.put("updateContextDataTestKey", "updateContextDataTestValue");
         lifecycleState.updateContextData(testMap);
@@ -523,7 +511,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void updateContextData_ContextDataNull_And_PreviousSessionExists() {
+    public void testUpdateContextData_ContextDataNull_And_PreviousSessionExists() {
         Map<String, String> testMap2 = new HashMap<>();
         testMap2.put("updateContextDataTestKey1", "updateContextDataTestValue1");
         lifecycleState.updatePreviousSessionLifecycleContextData(testMap2);
@@ -533,7 +521,7 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void updateContextData_ContextDataNull_And_PreviousSessionNull_AndPersistedDataExists() {
+    public void testUpdateContextData_ContextDataNull_And_PreviousSessionNull_AndPersistedDataExists() {
         Map<String, String> testMap = new HashMap<>();
         testMap.put("updateContextDataTestKey", "updateContextDataTestValue");
         when(lifecycleDataStore.getMap(DATASTORE_KEY_LIFECYCLE_DATA)).thenReturn(testMap);
@@ -543,12 +531,12 @@ public class LifecycleStateTest {
     }
 
     @Test
-    public void getPersistedContextData_EmptyData() {
+    public void testGetPersistedContextData_EmptyData() {
         assertTrue(lifecycleState.getPersistedContextData().isEmpty());
     }
 
     @Test
-    public void getPersistedContextData() {
+    public void testGetPersistedContextData() {
         Map<String, String> testMap = new HashMap<>();
         testMap.put("updateContextDataTestKey", "updateContextDataTestValue");
         when(lifecycleDataStore.getMap(DATASTORE_KEY_LIFECYCLE_DATA)).thenReturn(testMap);

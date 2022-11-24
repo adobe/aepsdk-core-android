@@ -75,7 +75,7 @@ public class LifecycleV1ExtensionTest {
     }
 
     @Test
-    public void handleLifecycleRequestEvent_LifecycleStart_FirstLaunch() {
+    public void testHandleLifecycleRequestEvent_LifecycleStart_FirstLaunch() {
         Event lifecycleStartEvent = createStartEvent(null, currentTimestampInMilliSeconds);
 
         lifecycleV1Extension.start(lifecycleStartEvent, configurationSharedState, true);
@@ -99,7 +99,7 @@ public class LifecycleV1ExtensionTest {
     }
 
     @Test
-    public void handleLifecycleRequestEvent_LifecycleStart_SubsequentLaunch() {
+    public void testHandleLifecycleRequestEvent_LifecycleStart_SubsequentLaunch() {
         Event lifecycleStartEvent = createStartEvent(null, currentTimestampInMilliSeconds);
 
         lifecycleV1Extension.start(lifecycleStartEvent, configurationSharedState, false);
@@ -123,7 +123,7 @@ public class LifecycleV1ExtensionTest {
     }
 
     @Test
-    public void handleLifecycleRequestEvent_LifecycleStart_AdditionalData() {
+    public void testHandleLifecycleRequestEvent_LifecycleStart_AdditionalData() {
         Map<String, String> additionalData = new HashMap<>();
         additionalData.put("testKey", "testVal");
         Event lifecycleStartEvent = createStartEvent(additionalData, currentTimestampInMilliSeconds);
@@ -149,7 +149,7 @@ public class LifecycleV1ExtensionTest {
     }
 
     @Test
-    public void handleLifecycleRequestEvent_LifecycleStart_IdentitySharedStatePending() {
+    public void testHandleLifecycleRequestEvent_LifecycleStart_IdentitySharedStatePending() {
         when(extensionApi.getSharedState(
                 eq(IDENTITY_MODULE_NAME),
                 any(),
@@ -182,7 +182,7 @@ public class LifecycleV1ExtensionTest {
     }
 
     @Test
-    public void handleLifecycleRequestEvent_LifecycleStart_AdIdSet() {
+    public void testHandleLifecycleRequestEvent_LifecycleStart_AdIdSet() {
         Map<String, Object> identitySharedState = new HashMap<>();
         identitySharedState.put(ADVERTISING_IDENTIFIER, "testAdid");
         when(extensionApi.getSharedState(
@@ -217,7 +217,7 @@ public class LifecycleV1ExtensionTest {
     }
 
     @Test
-    public void handleLifecycleRequestEvent_LifecycleStart_SessionTimeoutNotSet() {
+    public void testHandleLifecycleRequestEvent_LifecycleStart_SessionTimeoutNotSet() {
         Event lifecycleStartEvent = createStartEvent(null, currentTimestampInMilliSeconds);
 
         lifecycleV1Extension.start(lifecycleStartEvent, new HashMap<>(), true);
@@ -241,7 +241,7 @@ public class LifecycleV1ExtensionTest {
     }
 
     @Test
-    public void processLifecycleExtensionRegistration() {
+    public void testProcessLifecycleExtensionRegistration() {
         lifecycleV1Extension.onRegistered();
 
         verify(mockLifecycleState, times(1)).computeBootData();

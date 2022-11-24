@@ -74,13 +74,9 @@ public class LifecycleV1Extension {
          final long startTimestampInSeconds = startEvent.getTimestampInSeconds();
 
          Map<String, Object> eventData = startEvent.getEventData();
-         Map<String, String> additionalContextData = null;
-
-         if (eventData != null) {
-             additionalContextData = DataReader.optStringMap(eventData,
+         Map<String, String> additionalContextData = DataReader.optStringMap(eventData,
                      LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA,
                      null);
-         }
 
          LifecycleSession.SessionInfo previousSessionInfo = lifecycleState.start(startTimestampInSeconds,
                  additionalContextData,

@@ -18,6 +18,7 @@ import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -170,8 +171,7 @@ class LifecycleV2Extension {
 		}
 
 		return deviceInfoService != null
-				&& previousAppVersion!=null
-				&& !previousAppVersion.isEmpty()
+				&& !StringUtils.isNullOrEmpty(previousAppVersion)
 				&& !previousAppVersion.equalsIgnoreCase(deviceInfoService.getApplicationVersion());
 	}
 

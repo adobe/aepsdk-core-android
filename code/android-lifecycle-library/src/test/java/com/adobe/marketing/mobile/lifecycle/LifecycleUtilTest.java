@@ -14,8 +14,10 @@ package com.adobe.marketing.mobile.lifecycle;
 import org.junit.Test;
 
 import java.util.Date;
+import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class LifecycleUtilTest {
 	private long timestamp = 1483889568301L; // GMT: Sunday, January 8, 2017 3:32:48.301 PM
@@ -30,5 +32,16 @@ public class LifecycleUtilTest {
 	public void testDateTimeISO8601String_onNull_returnsEmptyString() {
 		String serializedDate = LifecycleUtil.dateTimeISO8601String(null);
 		assertEquals("", serializedDate);
+	}
+
+	@Test
+	public void testFormatLocale_happy() {
+		String formattedLocale = LifecycleUtil.formatLocale(Locale.US);
+		assertEquals("en-US", formattedLocale);
+	}
+
+	@Test
+	public void testFormatLocale_null() {
+		assertNull(LifecycleUtil.formatLocale(null));
 	}
 }

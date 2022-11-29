@@ -10,6 +10,8 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
@@ -60,6 +62,7 @@ class LifecycleV2Extension {
 	 * @param deviceInfoService {@code DeviceInforming} instance
 	 * @param metricsBuilder XDM LifecycleMetricsBuilder instance. If null, a new instance will be created
 	 */
+	@VisibleForTesting
 	LifecycleV2Extension(final NamedCollection dataStore,
 						 final DeviceInforming deviceInfoService,
 						 final LifecycleV2MetricsBuilder metricsBuilder,

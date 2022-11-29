@@ -56,7 +56,6 @@ public class LifecycleV2ExtensionTest {
 	@Mock
 	private LifecycleV2MetricsBuilder mockBuilder;
 
-
     @Mock
     private NamedCollection lifecycleDataStore;
 

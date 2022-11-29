@@ -47,21 +47,6 @@ class LifecycleV1Extension {
     }
 
     /**
-     * This constructor is used for testing purposes only
-     *
-     * @param dataStore {@code NamedCollection} instance
-     * @param extensionApi {@code ExtensionApi} instance
-     * @param lifecycleState {@code LifecycleState} instance
-     */
-    LifecycleV1Extension(final NamedCollection dataStore,
-                                   final ExtensionApi extensionApi,
-                                   final LifecycleState lifecycleState) {
-        this.dataStore = dataStore;
-        this.extensionApi = extensionApi;
-        this.lifecycleState = lifecycleState;
-    }
-
-    /**
      * Start the lifecycle session for standard and XDM workflows
      *
      * @param startEvent current lifecycle event to be processed

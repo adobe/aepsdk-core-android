@@ -131,7 +131,7 @@ public class LifecycleExtensionTest {
 	}
 
 	@Test
-	public void readyForEvent_ConfigurationSharedStateNotSet() {
+	public void readyForEvent_ConfigurationSharedStateNull() {
 		// set config shared state to null
 		when(extensionApi.getSharedState(
 				eq(CONFIGURATION_MODULE_NAME),

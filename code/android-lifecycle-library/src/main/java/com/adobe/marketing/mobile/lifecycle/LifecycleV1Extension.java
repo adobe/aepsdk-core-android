@@ -24,7 +24,7 @@ import com.adobe.marketing.mobile.util.DataReader;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LifecycleV1Extension {
+class LifecycleV1Extension {
 
     private static final String SELF_LOG_TAG = "LifecycleV1Extension";
     private final NamedCollection dataStore;
@@ -53,7 +53,7 @@ public class LifecycleV1Extension {
      * @param extensionApi {@code ExtensionApi} instance
      * @param lifecycleState {@code LifecycleState} instance
      */
-    protected LifecycleV1Extension(final NamedCollection dataStore,
+    LifecycleV1Extension(final NamedCollection dataStore,
                                    final ExtensionApi extensionApi,
                                    final LifecycleState lifecycleState) {
         this.dataStore = dataStore;

@@ -43,7 +43,7 @@ public class ServiceProvider {
     private DeviceInforming overrideDeviceInfoService;
     private NetworkService defaultNetworkService;
     private Networking overrideNetworkService;
-    private DataQueueService dataQueueService;
+    private DataQueuing dataQueueService;
     private DataStoring defaultDataStoreService;
     private UIService defaultUIService;
     private FullscreenMessageDelegate messageDelegate;

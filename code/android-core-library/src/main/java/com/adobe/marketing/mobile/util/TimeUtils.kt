@@ -47,15 +47,21 @@ object TimeUtils {
     }
 
     /**
-     * Gets the the ISO 8601 formatted date `String` for the current date.
-     * TimeZone format used is ISO8601 using XXX formatting letters. ex: 9th July 2020 PDT will be formatted as 2020-07-09T15:09:18-07:00.
+     * Gets the the ISO 8601 formatted UTC(Z) millisecond precision date `String` for the provided date.
+     * Date format used is [ISO8601_FORMAT_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND]
+     * ex: Wed Nov 30 11:53:09.497 GMT-07:00 2022 -> 2022-11-30T18:53:09.497Z
+     *
+     * Note that ISO 8601 requires date strings terminating with 'Z' to be in the timezone UTC +0 (no offset).
+     *
      * AMSDK-10273 :: ExEdge requires time zone offset formatted in form [+-]HH:MM.
      *
-     * @return Iso8601 formatted date [String]
+     * @param date the [Date] to apply the formatting to; defaults to the current [Date]
+     * @return date [String] formatted as ISO 8601 timezone UTC(Z) millisecond precision
      */
     @JvmStatic
-    fun getIso8601DateTimeZoneISO8601(): String? {
-        return getIso8601Date(Date(), ISO8601_DATE_FORMATTER_TIMEZONE_UTC, TimeZone.getTimeZone("GMT"))
+    @JvmOverloads
+    fun getIso8601DateTimeZoneISO8601(date: Date? = Date()): String? {
+        return getIso8601Date(date, ISO8601_DATE_FORMATTER_TIMEZONE_UTC, TimeZone.getTimeZone("Etc/UTC"))
     }
 
     /**

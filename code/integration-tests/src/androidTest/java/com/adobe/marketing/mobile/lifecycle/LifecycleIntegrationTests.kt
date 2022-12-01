@@ -103,10 +103,11 @@ class LifecycleIntegrationTests {
     fun testInstall() {
         // setup
         val countDownLatch = CountDownLatch(1)
+        var postbackUrl = ""
         networkMonitor = { url ->
             if (url.startsWith("https://www.lifecycle.com")) {
+                postbackUrl = url
                 // verify
-                assertTrue(url.contains("installevent=InstallEvent"))
                 countDownLatch.countDown()
             }
         }
@@ -124,6 +125,7 @@ class LifecycleIntegrationTests {
         // test
         MobileCore.lifecycleStart(null)
         countDownLatch.await()
+        assertTrue(postbackUrl.contains("installevent=InstallEvent"))
     }
 
     @Test(timeout = 10000)
@@ -143,7 +145,6 @@ class LifecycleIntegrationTests {
 
         networkMonitor = { url ->
             if (url.startsWith("https://www.lifecycle.com")) {
-                assertTrue(url.contains("installevent=InstallEvent"))
                 countDownLatch.countDown()
             }
         }
@@ -162,11 +163,11 @@ class LifecycleIntegrationTests {
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatchSecondLifecycleStart = CountDownLatch(1)
+        var postbackUrl = ""
         networkMonitor = { url ->
             if (url.startsWith("https://www.lifecycle.com")) {
                 // verify
-                assertTrue(url.contains("installevent=&"))
-                assertTrue(url.contains("launchevent=LaunchEvent"))
+                postbackUrl = url
                 countDownLatchSecondLifecycleStart.countDown()
             }
         }
@@ -197,6 +198,8 @@ class LifecycleIntegrationTests {
         MobileCore.lifecycleStart(null)
         assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
         countDownLatchSecondLifecycleStart.await()
+        assertTrue(postbackUrl.contains("installevent=&"))
+        assertTrue(postbackUrl.contains("launchevent=LaunchEvent"))
     }
 
     @Test(timeout = 10000)
@@ -216,7 +219,6 @@ class LifecycleIntegrationTests {
 
         networkMonitor = { url ->
             if (url.startsWith("https://www.lifecycle.com")) {
-                assertTrue(url.contains("installevent=InstallEvent"))
                 countDownLatch.countDown()
             }
         }
@@ -232,12 +234,11 @@ class LifecycleIntegrationTests {
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatchSecondLifecycleStart = CountDownLatch(1)
+        var postbackUrl = ""
         networkMonitor = { url ->
             if (url.startsWith("https://www.lifecycle.com")) {
                 // verify
-                assertTrue(url.contains("installevent=&"))
-                assertTrue(url.contains("launchevent=LaunchEvent"))
-                assertTrue(url.contains("crashevent=CrashEvent"))
+                postbackUrl = url
                 countDownLatchSecondLifecycleStart.countDown()
             }
         }
@@ -268,14 +269,18 @@ class LifecycleIntegrationTests {
         MobileCore.lifecycleStart(null)
         assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
         countDownLatchSecondLifecycleStart.await()
+        assertTrue(postbackUrl.contains("installevent=&"))
+        assertTrue(postbackUrl.contains("launchevent=LaunchEvent"))
+        assertTrue(postbackUrl.contains("crashevent=CrashEvent"))
     }
 
     @Test(timeout = 10000)
     fun testAdditionalContextData() {
         val countDownLatch = CountDownLatch(1)
+        var postbackUrl = ""
         networkMonitor = { url ->
             if (url.startsWith("https://www.lifecycle.com")) {
-                assertTrue(url.contains("key=value"))
+                postbackUrl = url
                 countDownLatch.countDown()
             }
         }
@@ -292,6 +297,7 @@ class LifecycleIntegrationTests {
 
         MobileCore.lifecycleStart(mapOf("key" to "value"))
         countDownLatch.await()
+        assertTrue(postbackUrl.contains("key=value"))
     }
 
     @Test(timeout = 10000)
@@ -309,15 +315,18 @@ class LifecycleIntegrationTests {
         configurationAwareness { configurationLatch.countDown() }
         configurationLatch.await()
 
+        var postbackUrl = ""
         networkMonitor = { url ->
             if (url.startsWith("https://www.lifecycle.com")) {
-                assertTrue(url.contains("installevent=InstallEvent"))
+                postbackUrl = url
                 countDownLatch.countDown()
             }
         }
 
         MobileCore.lifecycleStart(null)
         assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
+        assertTrue(postbackUrl.contains("installevent=InstallEvent"))
+
         MobileCore.lifecyclePause()
         Thread.sleep(2000)
 

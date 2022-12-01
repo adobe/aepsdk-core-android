@@ -10,6 +10,7 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.Event;
@@ -219,7 +220,7 @@ class LifecycleState {
      * @param contextData  {@code Map<String, String>} context data to be updated
      */
     @VisibleForTesting
-    void updateContextData(final Map<String, String> contextData) {
+    void updateContextData(@NonNull final Map<String, String> contextData) {
         lifecycleContextData.putAll(contextData);
     }
 
@@ -231,7 +232,7 @@ class LifecycleState {
      * @param contextData  {@code Map<String, String>} context data to be updated
      */
     @VisibleForTesting
-    void updatePreviousSessionLifecycleContextData(final Map<String, String> contextData) {
+    void updatePreviousSessionLifecycleContextData(@NonNull final Map<String, String> contextData) {
         previousSessionLifecycleContextData.putAll(contextData);
     }
 

@@ -99,7 +99,7 @@ class LifecycleIntegrationTests {
         editor.commit()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun testInstall() {
         // setup
         val countDownLatch = CountDownLatch(1)
@@ -117,14 +117,16 @@ class LifecycleIntegrationTests {
                 "rules.url" to "https://adobe.com/rules_lifecycle.zip"
             )
         )
-        Thread.sleep(10)
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
 
         // test
         MobileCore.lifecycleStart(null)
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun testLaunch() {
         // setup
         val countDownLatch = CountDownLatch(1)
@@ -197,7 +199,7 @@ class LifecycleIntegrationTests {
         countDownLatchSecondLifecycleStart.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun testCrash() {
         // setup
         val countDownLatch = CountDownLatch(1)
@@ -221,7 +223,6 @@ class LifecycleIntegrationTests {
 
         MobileCore.lifecycleStart(null)
         assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
-        Thread.sleep(2000)
 
         // restart
         SDKHelper.resetSDK()
@@ -269,7 +270,7 @@ class LifecycleIntegrationTests {
         countDownLatchSecondLifecycleStart.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun testAdditionalContextData() {
         val countDownLatch = CountDownLatch(1)
         networkMonitor = { url ->
@@ -285,12 +286,15 @@ class LifecycleIntegrationTests {
                 "rules.url" to "https://adobe.com/rules_lifecycle.zip"
             )
         )
-        Thread.sleep(10)
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
+
         MobileCore.lifecycleStart(mapOf("key" to "value"))
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = 10000)
     fun testSessionContinue() {
         // setup
         val countDownLatch = CountDownLatch(1)

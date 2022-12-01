@@ -14,7 +14,10 @@ package com.adobe.marketing.mobile.util;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import static org.junit.Assert.*;
@@ -81,5 +84,18 @@ public class TimeUtilsTests {
 	public void testGetIso8601Date_TimeZone_ISO8601_returns_milliseconds_and_UTC() {
 		String formattedDate = TimeUtils.getIso8601DateTimeZoneISO8601();
 		assertTrue(formattedDate.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}T([0-9]{2}:){2}[0-9]{2}.[0-9]{3}Z"));
+	}
+
+	@Test
+	public void testGetIso8601Date_TimeZone_UTC_precision_milliseconds_when_ValidDate() throws ParseException {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", new Locale(Locale.US.getLanguage(), Locale.US.getCountry(), "POSIX"));
+		formatter.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
+
+		String dateInString = "2022-11-30T13:50:53.945Z";
+		Date testDate = formatter.parse(dateInString);
+
+		String formattedDate = TimeUtils.getIso8601DateTimeZoneISO8601(testDate);
+
+		assertTrue(formattedDate.matches(dateInString));
 	}
 }

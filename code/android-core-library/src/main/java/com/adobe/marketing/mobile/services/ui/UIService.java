@@ -71,4 +71,17 @@ public interface UIService {
 	 */
 	FullscreenMessage createFullscreenMessage(final String html, final FullscreenMessageDelegate listener,
 			final boolean isLocalImageUsed, final MessageSettings settings);
+
+	/**
+	 * Create a fullscreen message.
+	 * <p>
+	 * WARNING: This API consumes HTML/CSS/JS using an embedded browser control.
+	 * This means it is subject to all the risks of rendering untrusted web pages and running untrusted JS.
+	 * Treat all calls to this API with caution and make sure input is vetted for safety somewhere.
+	 *
+	 * @param html                 String html content to be displayed with the message
+	 * @param uiFullScreenListener UIFullScreenListener listener for fullscreen message events
+	 * @return UIFullScreenMessage object if the html is valid, null otherwise
+	 */
+	UIFullScreenMessage createFullscreenMessage(final String html, final UIFullScreenListener uiFullScreenListener);
 }

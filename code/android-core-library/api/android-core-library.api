@@ -63,17 +63,20 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field APPLICATION_CLOSE Ljava/lang/String;
 	public static final field APPLICATION_LAUNCH Ljava/lang/String;
 	public static final field CONSENT_PREFERENCE Ljava/lang/String;
+	public static final field ERROR_RESPONSE_CONTENT Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
 	public static final field REQUEST_CONTENT Ljava/lang/String;
 	public static final field REQUEST_IDENTITY Ljava/lang/String;
 	public static final field REQUEST_PROFILE Ljava/lang/String;
 	public static final field REQUEST_RESET Ljava/lang/String;
+	public static final field RESET_COMPLETE Ljava/lang/String;
 	public static final field RESPONSE_CONTENT Ljava/lang/String;
 	public static final field RESPONSE_IDENTITY Ljava/lang/String;
 	public static final field RESPONSE_PROFILE Ljava/lang/String;
 	public static final field SHARED_STATE Ljava/lang/String;
 	public static final field UPDATE_CONSENT Ljava/lang/String;
+	public static final field UPDATE_IDENTITY Ljava/lang/String;
 	public static final field WILDCARD Ljava/lang/String;
 }
 
@@ -87,6 +90,7 @@ public final class com/adobe/marketing/mobile/EventType {
 	public static final field CONSENT Ljava/lang/String;
 	public static final field CUSTOM Ljava/lang/String;
 	public static final field EDGE Ljava/lang/String;
+	public static final field EDGE_IDENTITY Ljava/lang/String;
 	public static final field GENERIC_DATA Ljava/lang/String;
 	public static final field GENERIC_IDENTITY Ljava/lang/String;
 	public static final field GENERIC_LIFECYCLE Ljava/lang/String;
@@ -986,6 +990,7 @@ public class com/adobe/marketing/mobile/util/DataReader {
 	public static fun getStringList (Ljava/util/Map;Ljava/lang/String;)Ljava/util/List;
 	public static fun getStringMap (Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map;
 	public static fun getTypedList (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;)Ljava/util/List;
+	public static fun getTypedListOfMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;)Ljava/util/List;
 	public static fun getTypedMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map;
 	public static fun optBoolean (Ljava/util/Map;Ljava/lang/String;Z)Z
 	public static fun optDouble (Ljava/util/Map;Ljava/lang/String;D)D
@@ -996,6 +1001,7 @@ public class com/adobe/marketing/mobile/util/DataReader {
 	public static fun optStringList (Ljava/util/Map;Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
 	public static fun optStringMap (Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;
 	public static fun optTypedList (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
+	public static fun optTypedListOfMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
 	public static fun optTypedMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;
 }
 
@@ -1016,8 +1022,6 @@ public final class com/adobe/marketing/mobile/util/JSONUtils {
 }
 
 public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
-	public static final field Companion Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$Companion;
-	public static final field LOG_TAG Ljava/lang/String;
 	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$WorkHandler;)V
 	protected fun canWork ()Z
 	public final fun getState ()Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
@@ -1029,9 +1033,6 @@ public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
 	public final fun setInitialJob (Ljava/lang/Runnable;)V
 	public final fun shutdown ()V
 	public final fun start ()Z
-}
-
-public final class com/adobe/marketing/mobile/util/SerialWorkDispatcher$Companion {
 }
 
 public final class com/adobe/marketing/mobile/util/SerialWorkDispatcher$State : java/lang/Enum {
@@ -1048,8 +1049,6 @@ public abstract interface class com/adobe/marketing/mobile/util/SerialWorkDispat
 }
 
 public final class com/adobe/marketing/mobile/util/StreamUtils {
-	public static final field STREAM_READ_BUFFER_SIZE I
-	public static final field TAG Ljava/lang/String;
 	public static fun readAsString (Ljava/io/InputStream;)Ljava/lang/String;
 }
 

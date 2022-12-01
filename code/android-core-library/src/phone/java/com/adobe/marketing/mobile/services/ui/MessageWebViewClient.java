@@ -22,13 +22,14 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.caching.CacheResult;
+import com.adobe.marketing.mobile.services.caching.CacheService;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.util.UrlUtils;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +42,7 @@ class MessageWebViewClient extends WebViewClient {
 	private static final String TAG = "MessageWebViewClient";
 	private final AEPMessage message;
 	private Map<String, String> assetMap = Collections.emptyMap();
+	private final CacheService cacheService;
 
 	/**
 	 * Constructor.
@@ -49,6 +51,7 @@ class MessageWebViewClient extends WebViewClient {
 	 */
 	public MessageWebViewClient(final AEPMessage message) {
 		this.message = message;
+		this.cacheService = ServiceProvider.getInstance().getCacheService();
 	}
 
 	@Override
@@ -97,29 +100,34 @@ class MessageWebViewClient extends WebViewClient {
 	}
 
 	/**
-	 * Returns an instance of {@link WebResourceResponse} containing an input stream from cached remote image.
+	 * Returns an instance of {@link WebResourceResponse} containing an input stream from a cached remote image.
 	 * Returns null in the following cases:
 	 * 1). If the url is not a http/https URL.
-	 * 2). If the cached image is not present for the remote image.
-	 * 3). If there is any {@link Exception} thrown in opening @{@link java.io.InputStream} from cached image.
+	 * 2). If the cache location in the asset map is null.
+	 * 3). If the cached image is not present for the remote image.
 	 *
-	 * @param url, a {@code String}, URL to remote resource.
+	 * @param url a {@code String} URL to a remote resource.
 	 * @return an instance of {@code WebResourceResponse}.
 	 */
 	private WebResourceResponse handleWebResourceRequest(final String url) {
-		if (UrlUtils.isValidUrl(url) && assetMap.get(url) != null) {
-			try {
-				final String cachedPath = assetMap.get(url);
-				final String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(
-											url));
-				return new WebResourceResponse(mimeType, null, new FileInputStream(cachedPath));
-			} catch (IOException e) {
-				Log.debug(ServiceConstants.LOG_TAG, TAG,
-							   "Unable to create WebResourceResponse for remote asset " + url + "and local asset " + assetMap.get(url));
-			}
+		if (!UrlUtils.isValidUrl(url)) {
+			Log.debug(ServiceConstants.LOG_TAG, TAG, "handleWebResourceRequest - cannot handle invalid url %s.", url);
+			return null;
 		}
 
-		return null;
+		final String cacheLocation = assetMap.get(url);
+		if (StringUtils.isNullOrEmpty(cacheLocation)) {
+			Log.debug(ServiceConstants.LOG_TAG, TAG, "handleWebResourceRequest - cannot retrieve asset for null cache location");
+			return null;
+		}
+
+		final CacheResult cachedAsset = cacheService.get(cacheLocation, url);
+		if (cachedAsset == null) {
+			Log.debug(ServiceConstants.LOG_TAG, TAG, "handleWebResourceRequest - cached asset not found for %s.", url);
+			return null;
+		}
+		final String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url));
+		return new WebResourceResponse(mimeType, null, cachedAsset.getData());
 	}
 
 	/**

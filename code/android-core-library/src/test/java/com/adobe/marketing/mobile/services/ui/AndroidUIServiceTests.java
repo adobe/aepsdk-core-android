@@ -31,7 +31,6 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNotSame;
-import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,8 +45,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.adobe.marketing.mobile.AndroidFullscreenMessage;
-import com.adobe.marketing.mobile.FullscreenMessageActivity;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
@@ -78,7 +75,7 @@ public class AndroidUIServiceTests {
 
     @After
     public void cleanup() {
-        FullscreenMessageActivity.message = null;
+
     }
 
     @Test
@@ -423,81 +420,6 @@ public class AndroidUIServiceTests {
         assertSame(specialIntent, intent);
         Intent defaultIntent = ServiceProvider.getInstance().getUIService().getIntentWithURI("xyz.com");
         assertNotSame(specialIntent, defaultIntent);
-    }
-
-    @Test
-    public void fullscreenMessageIsShown_When_NoOtherMessagesAreDisplayed() {
-        //setup
-        when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
-        androidUIService.messagesMonitor = mockMessagesMonitor;
-
-        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
-        //test
-        UIFullScreenMessage fullScreenMessage = androidUIService.createFullscreenMessage("", null);
-        fullScreenMessage.show();
-        //verify
-        verify(mockActivity).startActivity(any(Intent.class));
-        assertEquals(FullscreenMessageActivity.message, fullScreenMessage);
-
-    }
-
-    @Test
-    public void fullscreenMessageIsNotShown_When_OtherMessagesAreDisplayed() {
-        //setup
-        when(mockMessagesMonitor.isDisplayed()).thenReturn(true);
-        androidUIService.messagesMonitor = mockMessagesMonitor;
-
-        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
-        //test
-        UIFullScreenMessage fullScreenMessage = androidUIService.createFullscreenMessage("", null);
-        fullScreenMessage.show();
-        //verify
-        verify(mockActivity, times(0)).startActivity(any(Intent.class));
-        assertNull(FullscreenMessageActivity.message);
-
-    }
-
-    @Test
-    public void messageMonitorDismissedCalled_When_FullscreenMessageRemovedCalled() {
-        //Setup
-        androidUIService.messagesMonitor = mockMessagesMonitor;
-        UIFullScreenMessage uiFullScreenMessage =
-                androidUIService.createFullscreenMessage("", null);
-        //test
-        uiFullScreenMessage.remove();
-        //verify
-        verify(mockMessagesMonitor).dismissed();
-
-    }
-
-    @Test
-    public void messageMonitorDismissedCalled_When_FullscreenMessageDismissCalled() {
-        //Setup
-        androidUIService.messagesMonitor = mockMessagesMonitor;
-        UIFullScreenMessage uiFullScreenMessage =
-                androidUIService.createFullscreenMessage("", null);
-        //test
-        ((AndroidFullscreenMessage) uiFullScreenMessage).dismissed();
-        //verify
-        verify(mockMessagesMonitor).dismissed();
-
-    }
-
-    @Test
-    public void messageMonitorDisplayedCalled_When_FullscreenMessageShown() {
-        //Setup
-        when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
-        androidUIService.messagesMonitor = mockMessagesMonitor;
-
-        when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
-
-        UIFullScreenMessage uiFullScreenMessage =
-                androidUIService.createFullscreenMessage("", null);
-        //test
-        uiFullScreenMessage.show();
-        //verify
-        verify(mockMessagesMonitor).displayed();
-
     }
 
     private long getTriggerTimeForFireDate(long fireDate) {

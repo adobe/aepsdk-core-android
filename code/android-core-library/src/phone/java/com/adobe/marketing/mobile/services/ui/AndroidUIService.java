@@ -21,8 +21,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 
-import com.adobe.marketing.mobile.AndroidFullscreenMessage;
-import com.adobe.marketing.mobile.LocalNotificationHandler;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
@@ -192,7 +190,8 @@ public class AndroidUIService implements UIService {
         }
 
         final Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setClass(appContext, LocalNotificationHandler.class);
+        // Todo: Fix after refactoring LocalNotificationHandler
+        //intent.setClass(appContext, LocalNotificationHandler.class);
         intent.putExtra(NOTIFICATION_SENDER_CODE_KEY, NOTIFICATION_SENDER_CODE);
         intent.putExtra(NOTIFICATION_IDENTIFIER_KEY, notificationSetting.getIdentifier());
         intent.putExtra(NOTIFICATION_REQUEST_CODE_KEY, requestCode);
@@ -316,10 +315,5 @@ public class AndroidUIService implements UIService {
 
     private static boolean isNullOrEmpty(final String str) {
         return str == null || str.trim().isEmpty();
-    }
-
-    @Override
-    public UIFullScreenMessage createFullscreenMessage(final String html, final UIFullScreenListener fullscreenListener) {
-        return new AndroidFullscreenMessage(html, fullscreenListener, messagesMonitor);
     }
 }

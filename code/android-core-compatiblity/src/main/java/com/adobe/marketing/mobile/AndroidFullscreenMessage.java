@@ -36,11 +36,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.adobe.marketing.mobile.internal.CoreConstants;
-import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.ui.UIFullScreenListener;
-import com.adobe.marketing.mobile.services.ui.UIFullScreenMessage;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import com.adobe.marketing.mobile.util.UrlUtils;
 
@@ -54,12 +50,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The Android implementation for {@link UIFullScreenMessage}. It creates and starts a {@link FullscreenMessageActivity}
+ * The Android implementation for {@link UIService.UIFullScreenMessage}. It creates and starts a {@link FullscreenMessageActivity}
  * and adds a {@link WebView} to the activity as the container of the the fullscreen message.
  */
-public class AndroidFullscreenMessage implements UIFullScreenMessage {
+class AndroidFullscreenMessage implements UIService.UIFullScreenMessage {
 
-    private static final String SELF_TAG = "AndroidFullscreenMessage";
+    private static final String TAG = AndroidFullscreenMessage.class.getSimpleName();
     private static final String BASE_URL = "file:///android_asset/";
     private static final String MIME_TYPE = "text/html";
     private static final int ANIMATION_DURATION = 300;
@@ -70,22 +66,22 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
     Activity messageFullScreenActivity;
     ViewGroup rootViewGroup;
     private final String html;
-    private final UIFullScreenListener fullscreenListener;
+    private final UIService.UIFullScreenListener fullscreenListener;
     private int orientationWhenShown;
     private WebView webView;
     private boolean isVisible;
     private MessageFullScreenWebViewClient webViewClient;
-    private final MessagesMonitor messagesMonitor;
+    private MessagesMonitor messagesMonitor;
 
     /**
      * Constructor
      *
      * @param html               the html {@link String} payload
-     * @param fullscreenListener {@link UIFullScreenListener} for the message events
+     * @param fullscreenListener {@link UIService.UIFullScreenListener} for the message events
      * @param messagesMonitor    {@link MessagesMonitor} instance that tracks and provides the displayed status for a message
      */
-    public AndroidFullscreenMessage(final String html, final UIFullScreenListener fullscreenListener,
-                                    final MessagesMonitor messagesMonitor) {
+    AndroidFullscreenMessage(final String html, final UIService.UIFullScreenListener fullscreenListener,
+                             final MessagesMonitor messagesMonitor) {
         this.messagesMonitor = messagesMonitor;
         this.html = html;
         this.fullscreenListener = fullscreenListener;
@@ -101,14 +97,14 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
     public void show() {
 
         if (messagesMonitor != null && messagesMonitor.isDisplayed()) {
-            Log.debug(CoreConstants.LOG_TAG, SELF_TAG, "Full screen message couldn't be displayed, another message is displayed at this time");
+            Log.debug(TAG, "Full screen message couldn't be displayed, another message is displayed at this time");
             return;
         }
 
         final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
         if (currentActivity == null) {
-            Log.debug(CoreConstants.LOG_TAG, SELF_TAG, "%s (current activity), failed to show the fullscreen message.", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(TAG, "%s (current activity), failed to show the fullscreen message.", Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
@@ -123,7 +119,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
                 messagesMonitor.displayed();
             }
         } catch (ActivityNotFoundException ex) {
-            Log.error(CoreConstants.LOG_TAG, SELF_TAG, "Failed to show the fullscreen message, could not start the activity.");
+            Log.error(TAG, "Failed to show the fullscreen message, could not start the activity.");
         }
     }
 
@@ -141,7 +137,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
                 messageFullScreenActivity.startActivity(intent);
             }
         } catch (Exception ex) {
-            Log.warning(CoreConstants.LOG_TAG, SELF_TAG, "Could not open the url from the fullscreen message (%s)", ex.toString());
+            Log.warning(TAG, "Could not open the url from the fullscreen message (%s)", ex.toString());
         }
     }
 
@@ -163,7 +159,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
     @Override
     public void setLocalAssetsMap(final Map<String, String> assetMap) {
         if (assetMap != null && !assetMap.isEmpty()) {
-            this.assetMap = new HashMap<>(assetMap);
+            this.assetMap = new HashMap<String, String>(assetMap);
         }
     }
 
@@ -188,7 +184,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
      */
     private void removeFromRootViewGroup() {
         if (rootViewGroup == null) {
-            Log.debug(CoreConstants.LOG_TAG, SELF_TAG, "%s (root view group), failed to dismiss the fullscreen message.", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(TAG, "%s (root view group), failed to dismiss the fullscreen message.", Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
@@ -218,7 +214,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
     /**
      * Gets called when the back button is pressed.
      */
-    public void dismissed() {
+    void dismissed() {
         isVisible = false;
 
         if (fullscreenListener != null) {
@@ -290,7 +286,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
                 message.webView.loadDataWithBaseURL(BASE_URL, message.html, MIME_TYPE, String.valueOf(StandardCharsets.UTF_8), null);
 
                 if (message.rootViewGroup == null) {
-                    Log.debug(CoreConstants.LOG_TAG, SELF_TAG, "%s (root view group), failed to show the fullscreen message.", Log.UNEXPECTED_NULL_VALUE);
+                    Log.debug(TAG, "%s (root view group), failed to show the fullscreen message.", Log.UNEXPECTED_NULL_VALUE);
                     message.remove();
                     return;
                 }
@@ -300,7 +296,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
 
                 // problem now with trying to show the message when our rootview hasn't been measured yet
                 if (width == 0 || height == 0) {
-                    Log.warning(CoreConstants.LOG_TAG, SELF_TAG, "Failed to show the fullscreen message, root view group has not been measured.");
+                    Log.warning(TAG, "Failed to show the fullscreen message, root view group has not been measured.");
                     message.remove();
                     return;
                 }
@@ -320,7 +316,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
                 // update our visible flag
                 message.viewed();
             } catch (Exception ex) {
-                Log.error(CoreConstants.LOG_TAG, SELF_TAG, "Failed to show the full screen message (%s).", ex.toString());
+                Log.error(TAG, "Failed to show the full screen message (%s).", ex.toString());
             }
         }
     }
@@ -396,7 +392,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
                             url));
                     return new WebResourceResponse(mimeType, null, new FileInputStream(cachedPath));
                 } catch (IOException e) {
-                    Log.debug(CoreConstants.LOG_TAG, SELF_TAG, "Unable to create WebResourceResponse for remote asset %s and local asset %s", url,
+                    Log.debug(TAG, "Unable to create WebResourceResponse for remote asset %s and local asset %s", url,
                             message.assetMap.get(url));
                 }
             }
@@ -405,7 +401,7 @@ public class AndroidFullscreenMessage implements UIFullScreenMessage {
         }
 
         private boolean handleUrl(final String url) {
-            UIFullScreenListener fullscreenListener = message.fullscreenListener;
+            UIService.UIFullScreenListener fullscreenListener = message.fullscreenListener;
             return fullscreenListener == null || fullscreenListener.overrideUrlLoad(message, url);
         }
     }

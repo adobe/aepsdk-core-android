@@ -11,6 +11,11 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
+import android.annotation.SuppressLint;
+import android.os.Build;
+
+import androidx.annotation.VisibleForTesting;
+
 import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.text.SimpleDateFormat;
@@ -65,5 +70,44 @@ final class LifecycleUtil {
 	static String formatLocale(final Locale locale) {
 		return locale == null ? null : locale.toString().replace('_', '-');
 	}
+
+	/**
+	 * Format the locale to the string format used in XDM.
+	 * For Android API version >= Lollipop (21), returns {@link Locale#toLanguageTag()}.
+	 * For Android API version <= KitKat (19), returns a concatenation of {@link Locale#getLanguage()}
+	 * and {@link Locale#getCountry()}, separated by '-'.
+	 *
+	 * @param locale active Locale value
+	 * @return String representation of the locale
+	 */
+	@SuppressLint("NewApi")
+	static String formatLocaleXDM(final Locale locale) {
+		if (locale == null) {
+			return null;
+		}
+
+		if (isLollipopOrGreater.check()) {
+			return locale.toLanguageTag();
+		} else {
+			String language = locale.getLanguage();
+			String region = locale.getCountry();
+			if (StringUtils.isNullOrEmpty(language)) {
+				return null;
+			}
+			else if (!StringUtils.isNullOrEmpty(region)) {
+				return String.format("%s-%s", language, region);
+			} else {
+				return language;
+			}
+		}
+	}
+
+	interface BuildVersionCheck {
+		boolean check();
+	}
+
+	@VisibleForTesting
+	static BuildVersionCheck isLollipopOrGreater = () ->
+			Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
 
 }

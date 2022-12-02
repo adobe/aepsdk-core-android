@@ -64,7 +64,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
     private static final String NOTIFICATION_TITLE = "NOTIFICATION_TITLE";
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, final Intent intent) {
         // get message and request code from previous context
         Bundle bundle = intent.getExtras();
 
@@ -296,7 +296,7 @@ public class LocalNotificationHandler extends BroadcastReceiver {
                 android.R.drawable.sym_def_app_icon;
     }
 
-    private Bitmap getLargeIcon(Context appContext) throws NoSuchMethodException,
+    private Bitmap getLargeIcon(final Context appContext) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException {
         if (appContext == null) {
             return null;
@@ -319,23 +319,18 @@ public class LocalNotificationHandler extends BroadcastReceiver {
         else {
             ApplicationInfo applicationInfo = appContext.getApplicationInfo();
 
-            if (applicationInfo != null) {
+            if (applicationInfo != null && appContext.getPackageManager() != null) {
                 PackageManager packageManager = appContext.getPackageManager();
-
-                if (packageManager != null) {
-                    iconDrawable = packageManager.getApplicationIcon(applicationInfo);
-                }
+				iconDrawable = packageManager.getApplicationIcon(applicationInfo);
             }
         }
 
-        Bitmap icon = null;
+        Bitmap icon;
 
-        if (iconDrawable != null) {
-            if (iconDrawable instanceof BitmapDrawable) {
+        if (iconDrawable != null && iconDrawable instanceof BitmapDrawable) {
                 icon = ((BitmapDrawable) iconDrawable).getBitmap();
-            } else {
+		} else {
                 icon = getBitmapFromDrawable(iconDrawable);
-            }
         }
 
         return icon;

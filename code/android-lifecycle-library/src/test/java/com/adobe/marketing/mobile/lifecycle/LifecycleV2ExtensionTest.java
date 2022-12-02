@@ -56,7 +56,6 @@ public class LifecycleV2ExtensionTest {
 	@Mock
 	private LifecycleV2MetricsBuilder mockBuilder;
 
-
     @Mock
     private NamedCollection lifecycleDataStore;
 
@@ -106,7 +105,7 @@ public class LifecycleV2ExtensionTest {
 	// ------------ Test XDM related methods ------------
 
 	@Test
-	public void start_happy_regularLaunch() {
+	public void testStart_happy_regularLaunch() {
 		mockPersistence(timestampOneHourEarlierInMilliseconds, timestampTenMinEarlierInMilliseconds,
 						timestampTenMinEarlierInMilliseconds,
                 false);
@@ -146,7 +145,7 @@ public class LifecycleV2ExtensionTest {
 	}
 
 	@Test
-	public void start_consecutiveStartEvents_updatesOnlyFirstTime() {
+	public void testStart_consecutiveStartEvents_updatesOnlyFirstTime() {
 		mockPersistence(timestampOneHourEarlierInMilliseconds, timestampTenMinEarlierInMilliseconds,
 				timestampTenMinEarlierInMilliseconds,
 				true);
@@ -192,7 +191,7 @@ public class LifecycleV2ExtensionTest {
 	}
 
 	@Test
-	public void start_onInstall_doesNotBuildCloseEvent() {
+	public void testStart_onInstall_doesNotBuildCloseEvent() {
 		lifecycleV2 = new LifecycleV2Extension(lifecycleDataStore,
 				mockDeviceInfoService,
 				mockBuilder,
@@ -223,7 +222,7 @@ public class LifecycleV2ExtensionTest {
 	}
 
 	@Test
-	public void start_onCloseUnknown_missingPause_buildsCloseEvent() {
+	public void testStart_onCloseUnknown_missingPause_buildsCloseEvent() {
 		when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_APP_START_TIMESTAMP_MILLIS), anyLong())).thenReturn(timestampOneHourEarlierInMilliseconds);
 		when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_INSTALL_DATE), anyLong())).thenReturn(timestampOneDayEarlierMilliseconds);
 		when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_APP_CLOSE_TIMESTAMP_MILLIS), anyLong())).thenReturn(timestampTenMinEarlierInMilliseconds);
@@ -269,7 +268,7 @@ public class LifecycleV2ExtensionTest {
 	}
 
 	@Test
-	public void start_onCloseUnknown_missingStart_buildsCloseEvent() {
+	public void testStart_onCloseUnknown_missingStart_buildsCloseEvent() {
 		when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_APP_PAUSE_TIMESTAMP_MILLIS), anyLong())).thenReturn(timestampTenMinEarlierInMilliseconds);
 		when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_INSTALL_DATE), anyLong())).thenReturn(timestampOneDayEarlierMilliseconds);
 		when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_APP_CLOSE_TIMESTAMP_MILLIS), anyLong())).thenReturn(timestampTenMinEarlierInMilliseconds);
@@ -315,7 +314,7 @@ public class LifecycleV2ExtensionTest {
 	}
 
 	@Test
-	public void start_onCloseUnknown_startAfterPause_buildsCloseEvent() {
+	public void testStart_onCloseUnknown_startAfterPause_buildsCloseEvent() {
 		mockPersistence(timestampTenMinEarlierInMilliseconds, timestampOneHourEarlierInMilliseconds,
 						timestampTenMinEarlierInMilliseconds,
                 false);
@@ -361,7 +360,7 @@ public class LifecycleV2ExtensionTest {
 	}
 
 	@Test
-	public void pause_Happy() throws Exception {
+	public void testPause_Happy() throws Exception {
 		mockPersistence(timestampTenMinEarlierInMilliseconds, timestampTenMinEarlierInMilliseconds,
 						timestampOneDayEarlierMilliseconds,
                 false);
@@ -402,7 +401,7 @@ public class LifecycleV2ExtensionTest {
 	}
 
 	@Test
-	public void pause_consecutivePauseEvents_updatesLastTime() throws Exception {
+	public void testPause_consecutivePauseEvents_updatesLastTime() throws Exception {
 		mockPersistence(timestampTenMinEarlierInMilliseconds, timestampOneDayEarlierMilliseconds,
 						timestampOneDayEarlierMilliseconds,
                 false);

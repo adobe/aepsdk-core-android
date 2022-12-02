@@ -10,6 +10,7 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import com.adobe.marketing.mobile.Event;
@@ -117,14 +118,12 @@ class LifecycleState {
             Map<String, String> sessionContextData = lifecycleSession.getSessionData(startTimestampInSeconds,
                     sessionTimeoutInSeconds, previousSessionInfo);
 
-            if (sessionContextData != null) {
-                lifecycleData.putAll(sessionContextData);
-            }
+            lifecycleData.putAll(sessionContextData);
 
-            if (previousOsVersion != null && !previousOsVersion.isEmpty()) {
+            if (!StringUtils.isNullOrEmpty(previousOsVersion)) {
                 lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_OS_VERSION, previousOsVersion);
             }
-            if (previousAppId != null && !previousAppId.isEmpty()) {
+            if (!StringUtils.isNullOrEmpty(previousAppId)) {
                 lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_APP_ID, previousAppId);
             }
         }
@@ -157,7 +156,7 @@ class LifecycleState {
     }
 
     /**
-     * Updates the application identifier in the local lifecycle context data
+     * Updates the application identifier in the local lifecycle context data in case of upgrade
      *
      * @param applicationIdentifier the application identifier
      */
@@ -221,11 +220,7 @@ class LifecycleState {
      * @param contextData  {@code Map<String, String>} context data to be updated
      */
     @VisibleForTesting
-    void updateContextData(final Map<String, String> contextData) {
-        if (contextData == null) {
-            return;
-        }
-
+    void updateContextData(@NonNull final Map<String, String> contextData) {
         lifecycleContextData.putAll(contextData);
     }
 
@@ -237,11 +232,7 @@ class LifecycleState {
      * @param contextData  {@code Map<String, String>} context data to be updated
      */
     @VisibleForTesting
-    void updatePreviousSessionLifecycleContextData(final Map<String, String> contextData) {
-        if (contextData == null) {
-            return;
-        }
-
+    void updatePreviousSessionLifecycleContextData(@NonNull final Map<String, String> contextData) {
         previousSessionLifecycleContextData.putAll(contextData);
     }
 
@@ -253,16 +244,15 @@ class LifecycleState {
      */
     Map<String, String> getPersistedContextData() {
         // if we didn't have any lifecycle data, pull what was persisted last
-        if (namedCollection != null) {
-            Map<String, String> lifecycleData = namedCollection.getMap(LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA);
-            return lifecycleData != null ? lifecycleData : new HashMap<>();
-        } else {
+        if (namedCollection == null) {
             Log.warning(LifecycleConstants.LOG_TAG,
                     SELF_LOG_TAG,
                     "Failed to read lifecycle data from persistence %s (DataStore)",
                     Log.UNEXPECTED_NULL_VALUE);
             return new HashMap<>();
         }
+        Map<String, String> lifecycleData = namedCollection.getMap(LifecycleConstants.DataStoreKeys.LIFECYCLE_DATA);
+        return lifecycleData != null ? lifecycleData : new HashMap<>();
     }
 
     /**
@@ -278,8 +268,7 @@ class LifecycleState {
         }
 
         return deviceInfoService != null
-                && previousAppVersion != null
-                && !previousAppVersion.isEmpty()
+                && !StringUtils.isNullOrEmpty(previousAppVersion)
                 && !previousAppVersion.equalsIgnoreCase(deviceInfoService.getApplicationVersion());
     }
 

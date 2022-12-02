@@ -51,6 +51,11 @@ public class LifecycleV2DataConverterTest {
 
 	@Test
 	public void testToEnvironmentTypeEnum_whenNull_returnsNull() {
+		assertNull(LifecycleV2DataConverter.toEnvironmentTypeEnum(null));
+	}
+
+	@Test
+	public void testToEnvironmentTypeEnum_whenOther_returnsNull() {
 		assertNull(LifecycleV2DataConverter.toEnvironmentTypeEnum("other"));
 	}
 }

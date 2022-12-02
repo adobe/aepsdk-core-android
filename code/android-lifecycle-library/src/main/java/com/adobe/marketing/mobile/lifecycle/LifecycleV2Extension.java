@@ -10,6 +10,8 @@
  */
 package com.adobe.marketing.mobile.lifecycle;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
@@ -18,6 +20,7 @@ import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,6 +62,7 @@ class LifecycleV2Extension {
 	 * @param deviceInfoService {@code DeviceInforming} instance
 	 * @param metricsBuilder XDM LifecycleMetricsBuilder instance. If null, a new instance will be created
 	 */
+	@VisibleForTesting
 	LifecycleV2Extension(final NamedCollection dataStore,
 						 final DeviceInforming deviceInfoService,
 						 final LifecycleV2MetricsBuilder metricsBuilder,
@@ -170,8 +174,7 @@ class LifecycleV2Extension {
 		}
 
 		return deviceInfoService != null
-				&& previousAppVersion!=null
-				&& !previousAppVersion.isEmpty()
+				&& !StringUtils.isNullOrEmpty(previousAppVersion)
 				&& !previousAppVersion.equalsIgnoreCase(deviceInfoService.getApplicationVersion());
 	}
 

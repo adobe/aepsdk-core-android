@@ -60,10 +60,6 @@ public class LifecycleExtensionTest {
 	private final long currentTimestampInMilliSeconds = System.currentTimeMillis();
 	private LifecycleExtension lifecycle;
 
-	private static final String DATASTORE_KEY_INSTALL_DATE = "InstallDate";
-	private static final String DATASTORE_KEY_PAUSE_DATE = "PauseDate";
-	private static final String DATASTORE_KEY_SUCCESSFUL_CLOSE = "SuccessfulClose";
-
 	private static final String LIFECYCLE_ACTION_KEY = "action";
 
 	private static final String LIFECYCLE_CONFIG_SESSION_TIMEOUT = "lifecycle.sessionTimeout";
@@ -71,6 +67,7 @@ public class LifecycleExtensionTest {
 
 	private static final String EVENT_TYPE_GENERIC_LIFECYCLE = "com.adobe.eventType.generic.lifecycle";
 	private static final String EVENT_SOURCE_REQUEST_CONTENT = "com.adobe.eventSource.requestContent";
+	private static final String EVENT_TYPE_NON_GENERIC_LIFECYCLE = "com.adobe.eventType.non.generic.lifecycle";
 
 
 	@Before
@@ -91,6 +88,21 @@ public class LifecycleExtensionTest {
 	}
 
 	@Test
+	public void testGetName() {
+		assertEquals("com.adobe.module.lifecycle", lifecycle.getName());
+	}
+
+	@Test
+	public void testGetFriendlyName() {
+		assertEquals("Lifecycle", lifecycle.getFriendlyName());
+	}
+
+	@Test
+	public void testGetVersion() {
+		assertEquals("2.0.0", lifecycle.getVersion());
+	}
+
+	@Test
 	public void readyForEvent_ConfigurationSharedStateSet() {
 		Event event = new Event.Builder("Lifecycle_queueEvent_Happy",
 				EVENT_TYPE_GENERIC_LIFECYCLE,
@@ -101,7 +113,7 @@ public class LifecycleExtensionTest {
 	}
 
 	@Test
-	public void readyForEvent_ConfigurationSharedStateNotSet() {
+	public void readyForEvent_ConfigurationSharedStatePending() {
 		// set config shared state to pending
 		when(extensionApi.getSharedState(
 				eq(CONFIGURATION_MODULE_NAME),
@@ -116,6 +128,34 @@ public class LifecycleExtensionTest {
 				.build();
 
 		assertFalse(lifecycle.readyForEvent(event));
+	}
+
+	@Test
+	public void readyForEvent_ConfigurationSharedStateNull() {
+		// set config shared state to null
+		when(extensionApi.getSharedState(
+				eq(CONFIGURATION_MODULE_NAME),
+				any(),
+				eq(false),
+				eq(SharedStateResolution.ANY)
+		)).thenReturn(null);
+
+		Event event = new Event.Builder("Lifecycle_queueEvent_Happy",
+				EVENT_TYPE_GENERIC_LIFECYCLE,
+				EVENT_SOURCE_REQUEST_CONTENT)
+				.build();
+
+		assertFalse(lifecycle.readyForEvent(event));
+	}
+
+	@Test
+	public void readyForEvent_NotGenericLifecycleEvent() {
+		Event event = new Event.Builder("Non generic lifecycle event",
+				EVENT_TYPE_NON_GENERIC_LIFECYCLE,
+				EVENT_SOURCE_REQUEST_CONTENT)
+				.build();
+
+		assertTrue(lifecycle.readyForEvent(event));
 	}
 
 	@Test

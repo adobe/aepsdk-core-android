@@ -24,7 +24,7 @@ import com.adobe.marketing.mobile.util.DataReader;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LifecycleV1Extension {
+class LifecycleV1Extension {
 
     private static final String SELF_LOG_TAG = "LifecycleV1Extension";
     private final NamedCollection dataStore;
@@ -47,21 +47,6 @@ public class LifecycleV1Extension {
     }
 
     /**
-     * This constructor is used for testing purposes only
-     *
-     * @param dataStore {@code NamedCollection} instance
-     * @param extensionApi {@code ExtensionApi} instance
-     * @param lifecycleState {@code LifecycleState} instance
-     */
-    protected LifecycleV1Extension(final NamedCollection dataStore,
-                                   final ExtensionApi extensionApi,
-                                   final LifecycleState lifecycleState) {
-        this.dataStore = dataStore;
-        this.extensionApi = extensionApi;
-        this.lifecycleState = lifecycleState;
-    }
-
-    /**
      * Start the lifecycle session for standard and XDM workflows
      *
      * @param startEvent current lifecycle event to be processed
@@ -74,13 +59,9 @@ public class LifecycleV1Extension {
          final long startTimestampInSeconds = startEvent.getTimestampInSeconds();
 
          Map<String, Object> eventData = startEvent.getEventData();
-         Map<String, String> additionalContextData = null;
-
-         if (eventData != null) {
-             additionalContextData = DataReader.optStringMap(eventData,
+         Map<String, String> additionalContextData = DataReader.optStringMap(eventData,
                      LifecycleConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA,
                      null);
-         }
 
          LifecycleSession.SessionInfo previousSessionInfo = lifecycleState.start(startTimestampInSeconds,
                  additionalContextData,

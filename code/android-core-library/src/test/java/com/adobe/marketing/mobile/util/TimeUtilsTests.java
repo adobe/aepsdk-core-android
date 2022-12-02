@@ -50,39 +50,37 @@ public class TimeUtilsTests {
         }
     }
 
-    @Test
-    public void testGetUnixTime_returnTimestampInSeconds() {
-        long timestamp = TimeUtils.getUnixTimeInSeconds();
-        long currentTimestamp = System.currentTimeMillis() / 1000;
-        assertTrue(timestamp - currentTimestamp <= 0);
-    }
+	@Test
+	public void testGetIso8601Date_TimeZone_RFC822_when_ValidDate() {
+		long timestamp = 1526405606000L;
+		String formattedDate = TimeUtils.getFormattedDate(new Date(timestamp), TimeUtils.DatePattern.ISO8601_TIMEZONE_RFC822_PRECISION_SECOND);
+		assertEquals("2018-05-15T10:33:26-0700", formattedDate);
+	}
 
-    @Test
-    public void testGetIso8601Date_TimeZone_RFC822_when_ValidDate() {
-        long timestamp = 1526405606000L;
-        String formattedDate =
-                TimeUtils.getIso8601Date(new Date(timestamp), "yyyy-MM-dd'T'HH:mm:ssZZZ");
-        assertEquals("2018-05-15T10:33:26-0700", formattedDate);
-    }
+	@Test
+	public void testGetIso8601Date_TimeZone_RFC822_when_NullDate() {
+		String formattedDate = TimeUtils.getFormattedDate(null, TimeUtils.DatePattern.ISO8601_TIMEZONE_RFC822_PRECISION_SECOND);
+		assertNotNull(formattedDate);
+		assertTrue(formattedDate.matches(DATE_REGEX_TIMEZONE_RFC822));
+	}
 
-    @Test
-    public void testGetIso8601Date_TimeZone_RFC822_when_NullDate() {
-        String formattedDate = TimeUtils.getIso8601Date(null, "yyyy-MM-dd'T'HH:mm:ssZZZ");
-        assertNotNull(formattedDate);
-        assertTrue(formattedDate.matches(DATE_REGEX_TIMEZONE_RFC822));
-    }
+	@Test
+	public void testGetIso8601Date_TimeZone_ISO8601_when_ValidDate() {
+		long timestamp = 1526405606000L;
+		String formattedDate = TimeUtils.getFormattedDate(new Date(timestamp), TimeUtils.DatePattern.ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND);
+		assertEquals("2018-05-15T10:33:26-07:00", formattedDate);
+	}
 
-    @Test
-    public void testGetIso8601Date_TimeZone_ISO8601_when_ValidDate() {
-        long timestamp = 1526405606000L;
-        String formattedDate =
-                TimeUtils.getIso8601Date(new Date(timestamp), "yyyy-MM-dd'T'HH:mm:ssXXX");
-        assertEquals("2018-05-15T10:33:26-07:00", formattedDate);
-    }
+	@Test
+	public void testGetIso8601Date_TimeZone_ISO8601_when_NullDate() {
+		String formattedDate = TimeUtils.getFormattedDate(null, TimeUtils.DatePattern.ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND);
+		assertNotNull(formattedDate);
+		assertTrue(formattedDate.matches(DATE_REGEX_TIMEZONE_ISO8601));
+	}
 
 	@Test
 	public void testGetIso8601Date_TimeZone_ISO8601_returns_milliseconds_and_UTC() {
-		String formattedDate = TimeUtils.getIso8601DateTimeZoneISO8601();
+		String formattedDate = TimeUtils.getIso8601DateTimeZoneUTC();
 		assertTrue(formattedDate.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}T([0-9]{2}:){2}[0-9]{2}.[0-9]{3}Z"));
 	}
 
@@ -94,7 +92,7 @@ public class TimeUtilsTests {
 		String dateInString = "2022-11-30T13:50:53.945Z";
 		Date testDate = formatter.parse(dateInString);
 
-		String formattedDate = TimeUtils.getIso8601DateTimeZoneISO8601(testDate);
+		String formattedDate = TimeUtils.getIso8601DateTimeZoneUTC(testDate);
 
 		assertTrue(formattedDate.matches(dateInString));
 	}

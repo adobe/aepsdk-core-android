@@ -20,10 +20,10 @@ import java.util.TimeZone
 
 object TimeUtils {
     private const val MILLISECONDS_PER_SECOND = 1000L
-    private const val ISO8601_DATE_FORMATTER_TIMEZONE_RFC822 = "yyyy-MM-dd'T'HH:mm:ssZZZ"
-    private const val ISO8601_DATE_FORMATTER_TIMEZONE_ISO8601 = "yyyy-MM-dd'T'HH:mm:ssXXX"
+    private const val ISO8601_FORMAT_TIMEZONE_RFC822_OFFSET_PRECISION_SECOND = "yyyy-MM-dd'T'HH:mm:ssZ"
+    private const val ISO8601_FORMAT_TIMEZONE_ISO8601_OFFSET_PRECISION_SECOND = "yyyy-MM-dd'T'HH:mm:ssXXX"
     private const val RFC2822_DATE_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z"
-    private const val ISO8601_DATE_FORMATTER_TIMEZONE_UTC = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    private const val ISO8601_FORMAT_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
 
     /**
      * Gets current unix timestamp in seconds.
@@ -37,13 +37,13 @@ object TimeUtils {
 
     /**
      * Gets the the ISO 8601 formatted date `String` for the current date.
-     * TimeZone format used is RFC822 using ZZZ formatting letter. ex: 9th July 2020 PDT will be formatted as 2020-07-09T15:09:18-0700.
+     * Date format used is RFC822 using ZZZ formatting letter. ex: 9th July 2020 PDT will be formatted as 2020-07-09T15:09:18-0700.
      *
      * @return Iso8601 formatted date [String]
      */
     @JvmStatic
     fun getIso8601Date(): String? {
-        return getIso8601Date(Date(), ISO8601_DATE_FORMATTER_TIMEZONE_RFC822)
+        return getIso8601Date(Date(), ISO8601_FORMAT_TIMEZONE_RFC822_OFFSET_PRECISION_SECOND)
     }
 
     /**
@@ -61,7 +61,7 @@ object TimeUtils {
     @JvmStatic
     @JvmOverloads
     fun getIso8601DateTimeZoneISO8601(date: Date? = Date()): String? {
-        return getIso8601Date(date, ISO8601_DATE_FORMATTER_TIMEZONE_UTC, TimeZone.getTimeZone("Etc/UTC"))
+        return getIso8601Date(date, ISO8601_FORMAT_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND, TimeZone.getTimeZone("Etc/UTC"))
     }
 
     /**

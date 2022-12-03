@@ -321,16 +321,19 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 
             if (applicationInfo != null && appContext.getPackageManager() != null) {
                 PackageManager packageManager = appContext.getPackageManager();
-				iconDrawable = packageManager.getApplicationIcon(applicationInfo);
+                iconDrawable = packageManager.getApplicationIcon(applicationInfo);
             }
         }
 
-        Bitmap icon;
+        if (iconDrawable == null) {
+            return null;
+        }
 
-        if (iconDrawable != null && iconDrawable instanceof BitmapDrawable) {
-                icon = ((BitmapDrawable) iconDrawable).getBitmap();
-		} else {
-                icon = getBitmapFromDrawable(iconDrawable);
+        Bitmap icon = null;
+        if (iconDrawable instanceof BitmapDrawable) {
+            icon = ((BitmapDrawable) iconDrawable).getBitmap();
+        } else {
+            icon = getBitmapFromDrawable(iconDrawable);
         }
 
         return icon;

@@ -47,6 +47,7 @@ android {
 }
 
 apply from: '../checkstyle.gradle'
+apply from: '../codeformat.gradle'
 apply from: '../jacoco.gradle'
 
 def isJitPackBuild() {

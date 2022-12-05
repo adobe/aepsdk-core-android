@@ -7,26 +7,24 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.services;
 
 import androidx.annotation.VisibleForTesting;
-
 import com.adobe.marketing.mobile.services.caching.CacheService;
 import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
-
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 import com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate;
 import com.adobe.marketing.mobile.services.ui.UIService;
 import com.adobe.marketing.mobile.services.ui.URIHandler;
 
-/**
- * Maintains the current set of provided services and any potential service overrides
- */
+/** Maintains the current set of provided services and any potential service overrides */
 public class ServiceProvider {
 
     private static class ServiceProviderSingleton {
+
         private static final ServiceProvider INSTANCE = new ServiceProvider();
     }
 
@@ -76,12 +74,12 @@ public class ServiceProvider {
     /**
      * Overrides the {@link Logging} service.
      *
-     * @param loggingService the new {@link Logging} service which will override the default  {@link Logging} service
+     * @param loggingService the new {@link Logging} service which will override the default {@link
+     *     Logging} service
      */
     public void setLoggingService(final Logging loggingService) {
         overrideLoggingService = loggingService;
     }
-
 
     /**
      * Gets the {@link DataStoring} service
@@ -98,7 +96,9 @@ public class ServiceProvider {
      * @return the {@link DeviceInforming} service
      */
     public DeviceInforming getDeviceInfoService() {
-        return overrideDeviceInfoService != null ? overrideDeviceInfoService : defaultDeviceInfoService;
+        return overrideDeviceInfoService != null
+                ? overrideDeviceInfoService
+                : defaultDeviceInfoService;
     }
 
     /**
@@ -114,8 +114,8 @@ public class ServiceProvider {
     /**
      * Gets the current {@link Networking} service.
      *
-     * @return the override {@link Networking} service if it has been provided, otherwise the default
-     * {@link Networking} service is returned
+     * @return the override {@link Networking} service if it has been provided, otherwise the
+     *     default {@link Networking} service is returned
      */
     public Networking getNetworkService() {
         return overrideNetworkService != null ? overrideNetworkService : defaultNetworkService;
@@ -124,7 +124,8 @@ public class ServiceProvider {
     /**
      * Overrides the {@link Networking} service.
      *
-     * @param networkService the new {@link Networking} service which will override the default  {@link Networking} service
+     * @param networkService the new {@link Networking} service which will override the default
+     *     {@link Networking} service
      */
     public void setNetworkService(final Networking networkService) {
         overrideNetworkService = networkService;
@@ -162,7 +163,9 @@ public class ServiceProvider {
      *
      * @return the {@link AppContextService} service
      */
-    public AppContextService getAppContextService() { return overrideAppContextService != null ? overrideAppContextService : App.INSTANCE; }
+    public AppContextService getAppContextService() {
+        return overrideAppContextService != null ? overrideAppContextService : App.INSTANCE;
+    }
 
     /**
      * For testing purpose. Overrides the default {@link AppContextService} service
@@ -170,7 +173,9 @@ public class ServiceProvider {
      * @param appContextService new {@link AppContextService} service
      */
     @VisibleForTesting
-    void setAppContextService(final AppContextService appContextService) { overrideAppContextService = appContextService; }
+    void setAppContextService(final AppContextService appContextService) {
+        overrideAppContextService = appContextService;
+    }
 
     /**
      * Gets the custom {@link FullscreenMessageDelegate}.
@@ -184,7 +189,8 @@ public class ServiceProvider {
     /**
      * Sets a custom {@link FullscreenMessageDelegate}.
      *
-     * @param messageDelegate the custom {@code FullscreenMessageDelegate} to use for handling the display of Messaging extension in-app messages
+     * @param messageDelegate the custom {@code FullscreenMessageDelegate} to use for handling the
+     *     display of Messaging extension in-app messages
      */
     public void setMessageDelegate(final FullscreenMessageDelegate messageDelegate) {
         this.messageDelegate = messageDelegate;
@@ -193,15 +199,16 @@ public class ServiceProvider {
     /**
      * Provides an {@link URIHandler} to decide the destination of the given URI
      *
-     * @param uriHandler An {@link URIHandler} instance used to decide the Android link's destination
+     * @param uriHandler An {@link URIHandler} instance used to decide the Android link's
+     *     destination
      */
     public void setURIHandler(final URIHandler uriHandler) {
         this.getUIService().setURIHandler(uriHandler);
     }
 
     /**
-     * Reset the {@code ServiceProvider} to its default state.
-     * Any previously set services are reset to their default state.
+     * Reset the {@code ServiceProvider} to its default state. Any previously set services are reset
+     * to their default state.
      */
     void resetServices() {
         defaultDeviceInfoService = new DeviceInfoService();

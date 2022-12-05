@@ -7,21 +7,19 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
 import androidx.annotation.Nullable;
-
 import java.util.Map;
 
 /**
- *  A `SharedStateResolver` which is invoked to set pending the `SharedState` versioned at `Event`
+ * A `SharedStateResolver` which is invoked to set pending the `SharedState` versioned at `Event`
  */
 @FunctionalInterface
 public interface SharedStateResolver {
     /**
-     *
      * @param state A {@code Map<String, Object>} containing data to resolve pending shared state.
      */
     void resolve(@Nullable final Map<String, Object> state);

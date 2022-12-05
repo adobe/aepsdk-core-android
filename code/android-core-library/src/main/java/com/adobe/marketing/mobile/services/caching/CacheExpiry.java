@@ -7,19 +7,16 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services.caching;
 
 import java.util.Date;
 
-/**
- * Represents the expiry of a cached item.
- */
+/** Represents the expiry of a cached item. */
 public class CacheExpiry {
-    /**
-     * The date beyond which the cache item is deemed expired and invalid.
-     */
+
+    /** The date beyond which the cache item is deemed expired and invalid. */
     private final Date expiration;
 
     private CacheExpiry(final Date expiration) {
@@ -31,18 +28,16 @@ public class CacheExpiry {
     }
 
     /**
-     * Creates a {@code CacheExpiry} with {@code CacheExpiry.expiration} after {@code durationInMillis}
-     * from now.
+     * Creates a {@code CacheExpiry} with {@code CacheExpiry.expiration} after {@code
+     * durationInMillis} from now.
      *
-     * @param durationInMillis the milliseconds after current time that the
-     *                         {@code expiration} should be set to
-     * @return {@code CacheExpiry} with {@code expiration} after {@code durationInMillis}
-     * from now.
+     * @param durationInMillis the milliseconds after current time that the {@code expiration}
+     *     should be set to
+     * @return {@code CacheExpiry} with {@code expiration} after {@code durationInMillis} from now.
      */
     public static CacheExpiry after(final long durationInMillis) {
         return new CacheExpiry(new Date(System.currentTimeMillis() + durationInMillis));
     }
-
 
     /**
      * Creates a {@code CacheExpiry} with {@code expiration} at the date provided.

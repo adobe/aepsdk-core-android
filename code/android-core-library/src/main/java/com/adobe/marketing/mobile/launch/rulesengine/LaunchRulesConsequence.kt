@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
@@ -38,6 +39,7 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_TYPE_DISPATCH = "dispatch"
         private const val CONSEQUENCE_DETAIL_ACTION_COPY = "copy"
         private const val CONSEQUENCE_DETAIL_ACTION_NEW = "new"
+
         // Do not process Dispatch consequence if chained event count is greater than max
         private const val MAX_CHAINED_CONSEQUENCE_COUNT = 1
         private const val CONSEQUENCE_DISPATCH_EVENT_NAME = "Dispatch Consequence Result"
@@ -122,8 +124,9 @@ internal class LaunchRulesConsequence(
     }
 
     private fun replaceToken(detail: Map<String, Any?>?, tokenFinder: TokenFinder): Map<String, Any?>? {
-        if (detail.isNullOrEmpty())
+        if (detail.isNullOrEmpty()) {
             return null
+        }
         val mutableDetail = detail.toMutableMap()
         for ((key, value) in detail) {
             when (value) {

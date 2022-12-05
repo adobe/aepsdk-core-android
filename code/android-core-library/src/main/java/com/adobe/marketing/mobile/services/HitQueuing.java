@@ -7,13 +7,13 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services;
 
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
 
-//Provides the functionality for Queuing Hits.
+// Provides the functionality for Queuing Hits.
 public abstract class HitQueuing {
 
     /**
@@ -24,29 +24,19 @@ public abstract class HitQueuing {
      */
     public abstract boolean queue(DataEntity entity);
 
-    /**
-     * Puts the Queue in non-suspended state and begin processing hits
-     */
+    /** Puts the Queue in non-suspended state and begin processing hits */
     public abstract void beginProcessing();
 
-    /**
-     * Puts the Queue in suspended state and discontinue processing hits
-     */
+    /** Puts the Queue in suspended state and discontinue processing hits */
     public abstract void suspend();
 
-    /**
-     * Removes all the persisted hits from the queue
-     */
+    /** Removes all the persisted hits from the queue */
     public abstract void clear();
 
-    /**
-     * Returns the number of items in the queue
-     */
+    /** Returns the number of items in the queue */
     public abstract int count();
 
-    /**
-     * Close the current <code>HitQueuing</code>
-     */
+    /** Close the current <code>HitQueuing</code> */
     public abstract void close();
 
     public void handlePrivacyChange(final MobilePrivacyStatus privacyStatus) {

@@ -7,21 +7,18 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import java.util.Map;
 
-/**
- * Helper methods to access protected Extension methods from different packages
- */
-
+/** Helper methods to access protected Extension methods from different packages */
 public class ExtensionHelper {
-    public static @Nullable
-    String getName(@NonNull final Extension extension) {
+
+    public static @Nullable String getName(@NonNull final Extension extension) {
         try {
             return extension.getName();
         } catch (Exception e) {
@@ -29,8 +26,7 @@ public class ExtensionHelper {
         }
     }
 
-    public static @Nullable
-    String getFriendlyName(@NonNull final Extension extension) {
+    public static @Nullable String getFriendlyName(@NonNull final Extension extension) {
         try {
             return extension.getFriendlyName();
         } catch (Exception e) {
@@ -38,8 +34,7 @@ public class ExtensionHelper {
         }
     }
 
-    public static @Nullable
-    String getVersion(@NonNull final Extension extension) {
+    public static @Nullable String getVersion(@NonNull final Extension extension) {
         try {
             return extension.getVersion();
         } catch (Exception e) {
@@ -47,8 +42,7 @@ public class ExtensionHelper {
         }
     }
 
-    public static @Nullable
-    Map<String, String> getMetadata(@NonNull final Extension extension) {
+    public static @Nullable Map<String, String> getMetadata(@NonNull final Extension extension) {
         try {
             return extension.getMetadata();
         } catch (Exception e) {
@@ -70,7 +64,8 @@ public class ExtensionHelper {
         }
     }
 
-    public static void notifyError(@NonNull final Extension extension, @NonNull final ExtensionUnexpectedError error) {
+    public static void notifyError(
+            @NonNull final Extension extension, @NonNull final ExtensionUnexpectedError error) {
         try {
             extension.onUnexpectedError(error);
         } catch (Exception ignored) {

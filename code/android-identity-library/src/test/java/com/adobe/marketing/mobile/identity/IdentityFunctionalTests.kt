@@ -7,16 +7,30 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.identity
 
-import com.adobe.marketing.mobile.*
-import com.adobe.marketing.mobile.services.*
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.VisitorID
+import com.adobe.marketing.mobile.services.DataEntity
+import com.adobe.marketing.mobile.services.HitQueuing
+import com.adobe.marketing.mobile.services.HttpConnecting
+import com.adobe.marketing.mobile.services.NamedCollection
+import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 import org.json.JSONObject
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.BeforeClass
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
@@ -24,11 +38,14 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.atLeast
+import org.mockito.Mockito.times
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.never
+import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -85,7 +102,6 @@ class IdentityFunctionalTests {
                     }
 
                     override fun close() {}
-
                 })
             }
         }
@@ -130,7 +146,8 @@ class IdentityFunctionalTests {
             }
             if ("com.adobe.module.analytics" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "vid" to "fake_vid"
                     )
                 )
@@ -181,7 +198,6 @@ class IdentityFunctionalTests {
             }
         }
 
-
         //        countDownLatch.await()
         assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
         reset(mockedHitQueue)
@@ -200,7 +216,7 @@ class IdentityFunctionalTests {
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
-        //setup
+        // setup
         val countDownLatch = CountDownLatch(2)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
@@ -216,7 +232,6 @@ class IdentityFunctionalTests {
                 assertTrue(hit.url.contains("d_ver=2"))
                 assertTrue(hit.url.contains("d_orgid=orgid"))
                 IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
-
             }
             return@thenAnswer true
         }
@@ -232,7 +247,7 @@ class IdentityFunctionalTests {
             }
         }
 
-        //test
+        // test
         identityExtension.processIdentityRequest(
             Event.Builder(
                 "event",
@@ -263,7 +278,7 @@ class IdentityFunctionalTests {
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
-        //setup
+        // setup
         val countDownLatch = CountDownLatch(2)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
@@ -281,7 +296,6 @@ class IdentityFunctionalTests {
                 assertTrue(hit.url.contains("d_orgid=orgid"))
 //                assertTrue(hit.url.contains("d_blob=hmk_Lq6TPIBMW925SPhw3Q"))
                 IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
-
             }
             return@thenAnswer true
         }
@@ -299,7 +313,7 @@ class IdentityFunctionalTests {
             }
         }
 
-        //test
+        // test
         identityExtension.processIdentityRequest(
             Event.Builder(
                 "event",
@@ -323,7 +337,7 @@ class IdentityFunctionalTests {
 
     @Test(timeout = 10000)
     fun test_setAdvertisingIdentifier_validateIDFA_happy() {
-        //setup
+        // setup
         val rand = Random()
         val randomString = (rand.nextInt(10000000) + 1).toString()
         val testAdvertisingId = "TestAdvertisingID$randomString"
@@ -350,7 +364,6 @@ class IdentityFunctionalTests {
                 assertTrue(hit.url.contains("https://test.com/id?"))
                 assertTrue(hit.url.contains(testAdvertisingId))
                 IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
-
             }
             return@thenAnswer true
         }
@@ -379,7 +392,6 @@ class IdentityFunctionalTests {
 
     @Test(timeout = 10000)
     fun test_syncIdentifiers_nullAndEmptyIdTypeAndIdentifier_ValidateQueryParams() {
-
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
             "experienceCloud.server" to "test.com",
@@ -390,7 +402,7 @@ class IdentityFunctionalTests {
             configuration
         )
 
-        //setup
+        // setup
         val countDownLatch = CountDownLatch(2)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
@@ -409,7 +421,6 @@ class IdentityFunctionalTests {
                 assertFalse(hit.url.contains("keye"))
 //                assertTrue(hit.url.contains("d_blob=hmk_Lq6TPIBMW925SPhw3Q"))
                 IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
-
             }
             return@thenAnswer true
         }
@@ -427,7 +438,7 @@ class IdentityFunctionalTests {
             }
         }
 
-        //test
+        // test
         identityExtension.processIdentityRequest(
             Event.Builder(
                 "event",
@@ -454,7 +465,7 @@ class IdentityFunctionalTests {
 
     @Test(timeout = 10000)
     fun test_setAdvertisingIdentifier_valueChanged_syncCallsSentForValidValues() {
-        //setup
+        // setup
         val rand = Random()
         val testAdvertisingId1 = "TestAdvertisingID" + (rand.nextInt(10000000) + 1).toString()
         val testAdvertisingId2 = "TestAdvertisingID" + (rand.nextInt(10000000) + 1).toString()
@@ -484,19 +495,16 @@ class IdentityFunctionalTests {
                         assertTrue(hit.url.contains("https://test.com/id?"))
                         assertTrue(hit.url.contains(testAdvertisingId1))
                         IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
-
                     }
                     2 -> {
                         assertTrue(hit.url.contains("https://test.com/id?"))
                         assertTrue(hit.url.contains("DSID_20914&"))
                         IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
-
                     }
                     3 -> {
                         assertTrue(hit.url.contains("https://test.com/id?"))
                         assertTrue(hit.url.contains(testAdvertisingId2))
                         IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
-
                     }
                 }
             }
@@ -553,7 +561,7 @@ class IdentityFunctionalTests {
 
     @Test(timeout = 10000)
     fun test_setAdvertisingIdentifier_sameValueTwice_syncsOnlyOnce() {
-        //setup
+        // setup
         val rand = Random()
         val randomString = (rand.nextInt(10000000) + 1).toString()
         val testAdvertisingId = "TestAdvertisingID$randomString"
@@ -585,7 +593,6 @@ class IdentityFunctionalTests {
                         assertTrue(hit.url.contains("https://test.com/id?"))
                         assertTrue(hit.url.contains(testAdvertisingId))
                         IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch1.countDown() }
-
                     }
                 }
                 2 -> {
@@ -785,7 +792,6 @@ class IdentityFunctionalTests {
 
     @Test(timeout = 10000)
     fun test_getExperienceCloudId_verifyValidMidRetrieval_happy() {
-
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
             "experienceCloud.server" to "test.com",
@@ -825,7 +831,7 @@ class IdentityFunctionalTests {
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
-        //setup
+        // setup
         val countDownLatch = CountDownLatch(1)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
@@ -836,7 +842,6 @@ class IdentityFunctionalTests {
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
                 IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
-
             }
             return@thenAnswer true
         }
@@ -896,7 +901,7 @@ class IdentityFunctionalTests {
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
-        //setup
+        // setup
         val countDownLatch = CountDownLatch(1)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
@@ -957,7 +962,6 @@ class IdentityFunctionalTests {
         )
         countDownLatchGetter.await()
     }
-
 
     @Test(timeout = 10000)
     fun test_appendToUrl_verifyExperienceCloudIdentifierPresentInUrl() {
@@ -1167,7 +1171,6 @@ class IdentityFunctionalTests {
         )
 
         countDownLatch.await()
-
     }
 
     @Test(timeout = 10000)
@@ -1286,7 +1289,7 @@ class IdentityFunctionalTests {
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
-        //setup
+        // setup
         val countDownLatch = CountDownLatch(2)
         val countDownLatchSecond = CountDownLatch(1)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
@@ -1318,10 +1321,9 @@ class IdentityFunctionalTests {
                     countDownLatchSecond.countDown()
                 }
             }
-
         }
 
-        //test
+        // test
         identityExtension.processIdentityRequest(
             Event.Builder(
                 "event",
@@ -1369,7 +1371,7 @@ class IdentityFunctionalTests {
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
-        //setup
+        // setup
         val countDownLatch = CountDownLatch(2)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
             val entity: DataEntity? = invocation.arguments[0] as DataEntity?
@@ -1387,7 +1389,7 @@ class IdentityFunctionalTests {
             countDownLatch.countDown()
         }
 
-        //test
+        // test
         identityExtension.processIdentityRequest(
             Event.Builder(
                 "event",
@@ -1434,7 +1436,7 @@ class IdentityFunctionalTests {
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
-        //setup
+        // setup
         val countDownLatch = CountDownLatch(2)
         val countDownLatchSecond = CountDownLatch(1)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
@@ -1464,10 +1466,9 @@ class IdentityFunctionalTests {
                 }
                 2 -> countDownLatchSecond.countDown()
             }
-
         }
 
-        //test
+        // test
         identityExtension.processIdentityRequest(
             Event.Builder(
                 "event",
@@ -1515,7 +1516,7 @@ class IdentityFunctionalTests {
             FRESH_INSTALL_WITHOUT_CACHE,
             configuration
         )
-        //setup
+        // setup
         val countDownLatch = CountDownLatch(2)
         val countDownLatchSecond = CountDownLatch(1)
         `when`(mockedHitQueue.queue(any())).thenAnswer { invocation ->
@@ -1543,7 +1544,7 @@ class IdentityFunctionalTests {
             }
         }
 
-        //test
+        // test
         identityExtension.processIdentityRequest(
             Event.Builder(
                 "event",
@@ -1707,7 +1708,6 @@ class IdentityFunctionalTests {
             return@doAnswer null
         }.`when`(mockedExtensionApi).dispatch(any())
         verify(mockedExtensionApi, atLeast(1)).dispatch(eventCaptor.capture())
-
 
         val optedoutEvent = Event.Builder(
             "event",
@@ -1882,7 +1882,6 @@ class IdentityFunctionalTests {
 
     @Test(timeout = 10000)
     fun test_testResetIdentities() {
-
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
             "experienceCloud.server" to "test.com",
@@ -1904,7 +1903,6 @@ class IdentityFunctionalTests {
             val hit = IdentityHit.fromDataEntity(entity)
             if (hit != null) {
                 IdentityHitsProcessing(identityExtension).processHit(entity) { countDownLatch.countDown() }
-
             }
             return@thenAnswer true
         }
@@ -1938,5 +1936,4 @@ class IdentityFunctionalTests {
 
         countDownLatch.await()
     }
-
 }

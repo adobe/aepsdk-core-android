@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.extensions
 
 import com.adobe.marketing.mobile.AdobeCallbackWithError
@@ -24,7 +25,8 @@ object Sample2Kt {
         val e =
             Event.Builder("GetIdentifier", Sample2KtExtension.TYPE_REQUEST_IDENTIFIER, Sample2KtExtension.EVENT_SOURCE).build()
         MobileCore.dispatchEventWithResponseCallback(
-            e, 1000,
+            e,
+            1000,
             object : AdobeCallbackWithError<Event> {
                 override fun fail(error: AdobeError) {
                     callback.fail(error)
@@ -34,7 +36,8 @@ object Sample2Kt {
                     val identifier =
                         DataReader.optString(
                             value?.eventData,
-                            Sample2KtExtension.EVENT_DATA_IDENTIFIER, ""
+                            Sample2KtExtension.EVENT_DATA_IDENTIFIER,
+                            ""
                         )
                     callback.call(identifier)
                 }

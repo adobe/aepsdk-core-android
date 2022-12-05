@@ -7,13 +7,19 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.signal
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.services.*
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import com.adobe.marketing.mobile.services.DataEntity
+import com.adobe.marketing.mobile.services.HitProcessing
+import com.adobe.marketing.mobile.services.HitProcessingResult
+import com.adobe.marketing.mobile.services.HttpMethod
+import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.NetworkRequest
+import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 
 internal class SignalHitProcessor : HitProcessing {
     private val networkService: Networking
@@ -79,7 +85,6 @@ internal class SignalHitProcessor : HitProcessing {
                 }
             }
         }
-
     }
 
     private fun buildNetworkRequest(entity: DataEntity): NetworkRequest? {
@@ -99,10 +104,11 @@ internal class SignalHitProcessor : HitProcessing {
             if (postBody.isEmpty()) HttpMethod.GET else HttpMethod.POST
         val contentType = signalDataEntity.contentType
         val header =
-            if (contentType.isEmpty())
+            if (contentType.isEmpty()) {
                 emptyMap()
-            else
+            } else {
                 mapOf(SignalConstants.NETWORK_REQUEST_HEATER_CONTENT_TYPE to contentType)
+            }
         return NetworkRequest(
             signalDataEntity.url,
             httpMethod,

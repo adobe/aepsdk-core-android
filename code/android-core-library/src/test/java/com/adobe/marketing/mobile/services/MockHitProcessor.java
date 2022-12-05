@@ -7,19 +7,16 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services;
 
 import androidx.annotation.NonNull;
-
-import com.adobe.marketing.mobile.services.DataEntity;
-import com.adobe.marketing.mobile.services.HitProcessing;
-
 import java.util.ArrayList;
 import java.util.List;
 
 class MockHitProcessor implements HitProcessing {
+
     public int retryInterval = 1;
     public boolean hitResult = true;
     public List<DataEntity> processedHits = new ArrayList<>();
@@ -30,7 +27,8 @@ class MockHitProcessor implements HitProcessing {
     }
 
     @Override
-    public void processHit(@NonNull DataEntity entity, @NonNull HitProcessingResult processingResult) {
+    public void processHit(
+            @NonNull DataEntity entity, @NonNull HitProcessingResult processingResult) {
         processedHits.add(entity);
         processingResult.complete(hitResult);
     }

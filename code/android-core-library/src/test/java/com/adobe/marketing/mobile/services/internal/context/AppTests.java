@@ -7,10 +7,17 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services.internal.context;
 
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import android.app.Activity;
+import android.content.ComponentCallbacks2;
+import com.adobe.marketing.mobile.services.AppState;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,22 +25,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import android.app.Activity;
-import android.content.ComponentCallbacks2;
-
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
-
-import static org.junit.Assert.assertEquals;
-
-import com.adobe.marketing.mobile.services.AppState;
-
 @SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class AppTests {
 
-    @Mock
-    private Activity mockedActivity;
+    @Mock private Activity mockedActivity;
+
     private AppStateListener appStateListener;
     private boolean isOnForeground = false;
     private App app;
@@ -42,17 +39,18 @@ public class AppTests {
     public void beforeEach() {
         app = App.INSTANCE;
         isOnForeground = false;
-        app.registerListener(new AppStateListener() {
-            @Override
-            public void onForeground() {
-                isOnForeground = true;
-            }
+        app.registerListener(
+                new AppStateListener() {
+                    @Override
+                    public void onForeground() {
+                        isOnForeground = true;
+                    }
 
-            @Override
-            public void onBackground() {
-                isOnForeground = false;
-            }
-        });
+                    @Override
+                    public void onBackground() {
+                        isOnForeground = false;
+                    }
+                });
     }
 
     @After
@@ -101,5 +99,4 @@ public class AppTests {
         assertTrue(isOnForeground);
         assertEquals(AppState.FOREGROUND, app.getAppState());
     }
-
 }

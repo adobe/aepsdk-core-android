@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.services.ui;
 
 import java.util.Collections;
@@ -16,38 +17,38 @@ import java.util.Map;
 
 /**
  * The class defines the layout and behavior of an in-app message.
- * <p>
- * These settings are customizable in a Messaging extension message:
- * width: Width of the view in which the message is displayed. Represented in percentage of the total screen width.
- * height: Height of the view in which the message is displayed. Represented in percentage of the total screen height.
- * verticalAlign: Defines the vertical alignment of the message. The alignments can be seen in the MessageAlignment enum.
- * horizontalAlign: Defines the horizontal alignment of the message. The alignments can be seen in the MessageAlignment enum.
- * verticalInset: Defines the vertical inset respective to the verticalAlign. Represented in percentage of the total screen height.
- * horizontalInset: Defines the horizontal inset respective to the horizontalAlign. Represented in percentage of the total screen width.
- * uiTakeover: If true, a displayed message will prevent the user from other UI interactions.
- * displayAnimation: Defines the animation to be used when the message is displayed. The animations can be seen in the MessageAnimation enum.
- * dismissAnimation: Defines the animation to be used when the message is dismissed. The animations can be seen in the MessageAnimation enum.
- * backdropColor: Defines the color of the backdrop shown when a uiTakeover message is displayed.
- * backdropOpacity: Defines the opacity of the backdrop shown when a uiTakeover message is displayed.
- * cornerRadius: Defines the angle to use when rounding the message's webview.
- * gestures: A mapping of gestures and their associated behaviors. The gestures can be seen in the MessageGesture enum. The behavior string is
- * handled by the FullscreenMessageDelegate's overrideUrlLoad function.
+ *
+ * <p>These settings are customizable in a Messaging extension message: width: Width of the view in
+ * which the message is displayed. Represented in percentage of the total screen width. height:
+ * Height of the view in which the message is displayed. Represented in percentage of the total
+ * screen height. verticalAlign: Defines the vertical alignment of the message. The alignments can
+ * be seen in the MessageAlignment enum. horizontalAlign: Defines the horizontal alignment of the
+ * message. The alignments can be seen in the MessageAlignment enum. verticalInset: Defines the
+ * vertical inset respective to the verticalAlign. Represented in percentage of the total screen
+ * height. horizontalInset: Defines the horizontal inset respective to the horizontalAlign.
+ * Represented in percentage of the total screen width. uiTakeover: If true, a displayed message
+ * will prevent the user from other UI interactions. displayAnimation: Defines the animation to be
+ * used when the message is displayed. The animations can be seen in the MessageAnimation enum.
+ * dismissAnimation: Defines the animation to be used when the message is dismissed. The animations
+ * can be seen in the MessageAnimation enum. backdropColor: Defines the color of the backdrop shown
+ * when a uiTakeover message is displayed. backdropOpacity: Defines the opacity of the backdrop
+ * shown when a uiTakeover message is displayed. cornerRadius: Defines the angle to use when
+ * rounding the message's webview. gestures: A mapping of gestures and their associated behaviors.
+ * The gestures can be seen in the MessageGesture enum. The behavior string is handled by the
+ * FullscreenMessageDelegate's overrideUrlLoad function.
  */
 public class MessageSettings {
-    /**
-     * Enum representing Message alignment.
-     */
+
+    /** Enum representing Message alignment. */
     public enum MessageAlignment {
         CENTER,
         LEFT,
         RIGHT,
         TOP,
-        BOTTOM
+        BOTTOM,
     }
 
-    /**
-     * Enum representing Message animations.
-     */
+    /** Enum representing Message animations. */
     public enum MessageAnimation {
         NONE,
         LEFT,
@@ -55,12 +56,10 @@ public class MessageSettings {
         TOP,
         BOTTOM,
         CENTER,
-        FADE
+        FADE,
     }
 
-    /**
-     * Enum representing Message gestures.
-     */
+    /** Enum representing Message gestures. */
     public enum MessageGesture {
         SWIPE_UP("swipeUp"),
         SWIPE_DOWN("swipeDown"),
@@ -114,7 +113,8 @@ public class MessageSettings {
     /**
      * Returns the object that owns the message created using these settings.
      *
-     * @return an {@code Object} which owns the {@link FullscreenMessage} created using this {@link MessageSettings} object.
+     * @return an {@code Object} which owns the {@link FullscreenMessage} created using this {@link
+     *     MessageSettings} object.
      */
     public Object getParent() {
         return this.parent;
@@ -124,12 +124,12 @@ public class MessageSettings {
         this.parent = parent;
     }
 
-
     /**
-     * Returns the width of the view in which the message is displayed.
-     * Represented in percentage of the total screen width.
+     * Returns the width of the view in which the message is displayed. Represented in percentage of
+     * the total screen width.
      *
-     * @return An {@code int} containing the percentage width of the view in which the message is displayed
+     * @return An {@code int} containing the percentage width of the view in which the message is
+     *     displayed
      */
     public int getWidth() {
         return this.width;
@@ -140,8 +140,8 @@ public class MessageSettings {
     }
 
     /**
-     * Returns the height of the view in which the message is displayed.
-     * Represented in percentage of the total screen height.
+     * Returns the height of the view in which the message is displayed. Represented in percentage
+     * of the total screen height.
      *
      * @return An {@code int} containing the height of the view in which the message is displayed
      */
@@ -152,15 +152,15 @@ public class MessageSettings {
     /**
      * Sets the height of the view in which the message is displayed.
      *
-     * @param height An {@code int} containing the height of the view in which the message is displayed
+     * @param height An {@code int} containing the height of the view in which the message is
+     *     displayed
      */
     public void setHeight(final int height) {
         this.height = height;
     }
 
     /**
-     * Returns the vertical alignment of the message.
-     * See {@link MessageAlignment}.
+     * Returns the vertical alignment of the message. See {@link MessageAlignment}.
      *
      * @return A {@code MessageAlignment} value for the vertical alignment
      */
@@ -178,8 +178,7 @@ public class MessageSettings {
     }
 
     /**
-     * Returns the horizontal alignment of the message.
-     * See {@link MessageAlignment}.
+     * Returns the horizontal alignment of the message. See {@link MessageAlignment}.
      *
      * @return A {@code MessageAlignment} value for the horizontal alignment
      */
@@ -188,8 +187,7 @@ public class MessageSettings {
     }
 
     /**
-     * Sets the horizontal alignment of the message.
-     * See {@link MessageAlignment}.
+     * Sets the horizontal alignment of the message. See {@link MessageAlignment}.
      *
      * @param horizontalAlign A {@code MessageAlignment} value for the horizontal alignment
      */
@@ -198,8 +196,8 @@ public class MessageSettings {
     }
 
     /**
-     * Returns the vertical inset respective to the vertical alignment.
-     * Represented in percentage of the total screen height.
+     * Returns the vertical inset respective to the vertical alignment. Represented in percentage of
+     * the total screen height.
      *
      * @return An {@code int} containing the vertical inset percentage
      */
@@ -208,8 +206,8 @@ public class MessageSettings {
     }
 
     /**
-     * Sets the vertical inset respective to the vertical alignment.
-     * Represented in percentage of the total screen height.
+     * Sets the vertical inset respective to the vertical alignment. Represented in percentage of
+     * the total screen height.
      *
      * @param verticalInset An {@code int} containing the vertical inset percentage
      */
@@ -217,10 +215,9 @@ public class MessageSettings {
         this.verticalInset = verticalInset;
     }
 
-
     /**
-     * Returns the horizontal inset respective to the `horizontal alignment.
-     * Represented in percentage of the total screen width.
+     * Returns the horizontal inset respective to the `horizontal alignment. Represented in
+     * percentage of the total screen width.
      *
      * @return An {@code int} containing the horizontal inset percentage
      */
@@ -229,8 +226,8 @@ public class MessageSettings {
     }
 
     /**
-     * Sets the horizontal inset respective to the `horizontal alignment.
-     * Represented in percentage of the total screen width.
+     * Sets the horizontal inset respective to the `horizontal alignment. Represented in percentage
+     * of the total screen width.
      *
      * @param horizontalInset An {@code int} containing the horizontal inset percentage
      */
@@ -239,26 +236,29 @@ public class MessageSettings {
     }
 
     /**
-     * Returns a boolean which if true, will prevent the user from other UI interactions if a message is currently displayed.
+     * Returns a boolean which if true, will prevent the user from other UI interactions if a
+     * message is currently displayed.
      *
-     * @return A {@code boolean} value which if true, will prevent the user from other UI interactions if a message is currently displayed.
+     * @return A {@code boolean} value which if true, will prevent the user from other UI
+     *     interactions if a message is currently displayed.
      */
     public boolean getUITakeover() {
         return this.uiTakeover;
     }
 
     /**
-     * Sets a boolean which if true, will prevent the user from other UI interactions if a message is currently displayed.
+     * Sets a boolean which if true, will prevent the user from other UI interactions if a message
+     * is currently displayed.
      *
-     * @param uiTakeover A {@code boolean} value which if true, will prevent the user from other UI interactions if a message is currently displayed.
+     * @param uiTakeover A {@code boolean} value which if true, will prevent the user from other UI
+     *     interactions if a message is currently displayed.
      */
     public void setUiTakeover(final boolean uiTakeover) {
         this.uiTakeover = uiTakeover;
     }
 
     /**
-     * Returns the animation to be used when the message is displayed.
-     * See {@link MessageAnimation}.
+     * Returns the animation to be used when the message is displayed. See {@link MessageAnimation}.
      *
      * @return A {@code MessageAnimation} value for the display animation
      */
@@ -267,8 +267,7 @@ public class MessageSettings {
     }
 
     /**
-     * Sets the animation to be used when the message is displayed.
-     * See {@link MessageAnimation}.
+     * Sets the animation to be used when the message is displayed. See {@link MessageAnimation}.
      *
      * @param displayAnimation A {@code MessageAnimation} value for the display animation
      */
@@ -277,8 +276,7 @@ public class MessageSettings {
     }
 
     /**
-     * Returns the animation to be used when the message is dismissed.
-     * See {@link MessageAnimation}.
+     * Returns the animation to be used when the message is dismissed. See {@link MessageAnimation}.
      *
      * @return A {@code MessageAnimation} value for the dismiss animation
      */
@@ -287,8 +285,7 @@ public class MessageSettings {
     }
 
     /**
-     * Sets the animation to be used when the message is dismissed.
-     * See {@link MessageAnimation}.
+     * Sets the animation to be used when the message is dismissed. See {@link MessageAnimation}.
      *
      * @param dismissAnimation A {@code MessageAnimation} value for the dismiss animation
      */
@@ -308,7 +305,8 @@ public class MessageSettings {
     /**
      * Sets the color of the backdrop shown when a uiTakeover message is displayed.
      *
-     * @param backdropColor A {@code String} containing the HTML hex string color code to use for the backdrop
+     * @param backdropColor A {@code String} containing the HTML hex string color code to use for
+     *     the backdrop
      */
     public void setBackdropColor(final String backdropColor) {
         this.backdropColor = backdropColor;
@@ -317,8 +315,8 @@ public class MessageSettings {
     /**
      * Returns the opacity of the backdrop shown when a uiTakeover message is displayed.
      *
-     * @return A {@code float} containing the backdrop opacity percentage with 0.0 being fully transparent
-     * and 1.0 being fully opaque
+     * @return A {@code float} containing the backdrop opacity percentage with 0.0 being fully
+     *     transparent and 1.0 being fully opaque
      */
     public float getBackdropOpacity() {
         return this.backdropOpacity;
@@ -327,8 +325,8 @@ public class MessageSettings {
     /**
      * Sets the opacity of the backdrop shown when a uiTakeover message is displayed.
      *
-     * @param backdropOpacity A {@code float} containing the backdrop opacity percentage with 0.0 being fully transparent
-     *                        and 1.0 being fully opaque
+     * @param backdropOpacity A {@code float} containing the backdrop opacity percentage with 0.0
+     *     being fully transparent and 1.0 being fully opaque
      */
     public void setBackdropOpacity(final float backdropOpacity) {
         this.backdropColor = backdropColor;
@@ -337,7 +335,8 @@ public class MessageSettings {
     /**
      * Returns the angle to use when rounding the message's webview.
      *
-     * @return A {@code float} containing the corner radius angle to use when rounding the message corners
+     * @return A {@code float} containing the corner radius angle to use when rounding the message
+     *     corners
      */
     public float getCornerRadius() {
         return this.cornerRadius;
@@ -346,7 +345,8 @@ public class MessageSettings {
     /**
      * Sets the angle to use when rounding the message's webview.
      *
-     * @param cornerRadius A {@code float} containing the corner radius angle to use when rounding the message corners
+     * @param cornerRadius A {@code float} containing the corner radius angle to use when rounding
+     *     the message corners
      */
     public void setCornerRadius(final float cornerRadius) {
         this.cornerRadius = cornerRadius;
@@ -355,7 +355,8 @@ public class MessageSettings {
     /**
      * Returns a mapping of gestures and their associated behaviors.
      *
-     * @return A {@code Map<MessageGesture, String} containing gestures and their associated behaviors
+     * @return A {@code Map<MessageGesture, String} containing gestures and their associated
+     *     behaviors
      */
     public Map<MessageGesture, String> getGestures() {
         return this.gestures;
@@ -364,7 +365,8 @@ public class MessageSettings {
     /**
      * Sets a mapping of gestures and their associated behaviors.
      *
-     * @param gestures A {@code Map<MessageGesture, String} containing gestures and their associated behaviors
+     * @param gestures A {@code Map<MessageGesture, String} containing gestures and their associated
+     *     behaviors
      */
     public void setGestures(final Map<MessageGesture, String> gestures) {
         this.gestures = gestures;

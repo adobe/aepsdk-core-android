@@ -7,11 +7,11 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
 @FunctionalInterface
 public interface FunctionBlock<T> {
-	T execute(final Object... e);
+    T execute(final Object... e);
 }

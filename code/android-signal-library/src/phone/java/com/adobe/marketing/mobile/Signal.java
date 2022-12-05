@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.services.Log;
@@ -15,13 +16,13 @@ import com.adobe.marketing.mobile.signal.SignalConstants;
 import com.adobe.marketing.mobile.signal.SignalExtension;
 
 public class Signal {
-    private final static String EXTENSION_VERSION = "2.0.0";
+
+    private static final String EXTENSION_VERSION = "2.0.0";
     private static final String CLASS_NAME = "Signal";
 
     public static final Class<? extends Extension> EXTENSION = SignalExtension.class;
 
-    private Signal() {
-    }
+    private Signal() {}
 
     /**
      * Returns the version of the Signal extension.
@@ -33,14 +34,21 @@ public class Signal {
     }
 
     /**
-     * Registers the Signal extension with the Mobile Core.
-     * This method should be called before calling {@link MobileCore#start(AdobeCallback)}.
+     * Registers the Signal extension with the Mobile Core. This method should be called before
+     * calling {@link MobileCore#start(AdobeCallback)}.
      */
     @Deprecated
     public static void registerExtension() {
-        MobileCore.registerExtension(SignalExtension.class, extensionError -> {
-            Log.error(SignalConstants.LOG_TAG, CLASS_NAME, "%s - There was an error when registering the UserProfile extension: %s", CLASS_NAME,
-                    extensionError.getErrorName());
-        });
+        MobileCore.registerExtension(
+                SignalExtension.class,
+                extensionError -> {
+                    Log.error(
+                            SignalConstants.LOG_TAG,
+                            CLASS_NAME,
+                            "%s - There was an error when registering the UserProfile extension:"
+                                    + " %s",
+                            CLASS_NAME,
+                            extensionError.getErrorName());
+                });
     }
 }

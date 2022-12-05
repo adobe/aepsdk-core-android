@@ -7,19 +7,17 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services;
 
-/**
- * Represents the service for persisting key-value pairs
- */
+/** Represents the service for persisting key-value pairs */
 public interface DataStoring {
-	/**
-	 * Get a NamedCollection containing persistent key-value pairs
-	 *
-	 * @param collectionName name of the Collection
-	 * @return NamedCollection object containing persisted data for collectionName.
-	 */
-	NamedCollection getNamedCollection(String collectionName);
+    /**
+     * Get a NamedCollection containing persistent key-value pairs
+     *
+     * @param collectionName name of the Collection
+     * @return NamedCollection object containing persisted data for collectionName.
+     */
+    NamedCollection getNamedCollection(String collectionName);
 }

@@ -7,17 +7,16 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * RulesEngine to evaluate matching rules for given input data
- */
+/** RulesEngine to evaluate matching rules for given input data */
 public class RulesEngine<T extends Rule> {
+
     private final Object rulesEngineMutex = new Object();
     private final Evaluating evaluator;
     private final Transforming transformer;

@@ -194,6 +194,11 @@ public class com/adobe/marketing/mobile/InvalidInitException : java/lang/Runtime
 	public fun <init> ()V
 }
 
+public class com/adobe/marketing/mobile/LocalNotificationHandler : android/content/BroadcastReceiver {
+	public fun <init> ()V
+	public fun onReceive (Landroid/content/Context;Landroid/content/Intent;)V
+}
+
 public final class com/adobe/marketing/mobile/LoggingMode : java/lang/Enum {
 	public static final field DEBUG Lcom/adobe/marketing/mobile/LoggingMode;
 	public static final field ERROR Lcom/adobe/marketing/mobile/LoggingMode;
@@ -251,6 +256,11 @@ public final class com/adobe/marketing/mobile/MobilePrivacyStatus : java/lang/En
 	public fun getValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
 	public static fun values ()[Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
+}
+
+public final class com/adobe/marketing/mobile/NotificationDismissalHandler : android/content/BroadcastReceiver {
+	public fun <init> ()V
+	public fun onReceive (Landroid/content/Context;Landroid/content/Intent;)V
 }
 
 public final class com/adobe/marketing/mobile/SharedStateResolution : java/lang/Enum {

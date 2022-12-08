@@ -99,10 +99,7 @@ final class LifecycleUtil {
 			String region = locale.getCountry();
 
 			if (!StringUtils.isNullOrEmpty(language)) {
-				if (!StringUtils.isNullOrEmpty(region)) {
-					return String.format("%s-%s", language, region);
-				}
-					return language;
+					return !StringUtils.isNullOrEmpty(region) ? String.format("%s-%s", language, region) : language;
 			}
 
 			return null;

@@ -17,9 +17,13 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+
+import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.DataReaderException;
 
 @RunWith(Parameterized.class)
 public class XDMLifecycleEnvironmentLanguageTest {
@@ -132,14 +136,15 @@ public class XDMLifecycleEnvironmentLanguageTest {
 
     // Test various language tag strings and verify only valid language tags are returned in XDM mapping.
     @Test
-    public void testSerializeToXDM_and_isValidLanguageTag() {
+    public void testSerializeToXDM_and_isValidLanguageTag() throws DataReaderException {
         final XDMLifecycleEnvironment environment = new XDMLifecycleEnvironment();
         environment.setLanguage(languageTag);
         final Map<String, Object> result = environment.serializeToXdm();
 
         if (expected != null) {
             assertEquals(1, result.size());
-            assertEquals(expected, ((Map<String, Object>) result.get("_dc")).get("language"));
+            Map<String, Object> dublinCore = DataReader.getTypedMap(Object.class, result, "_dc");
+            assertEquals(expected, DataReader.getString(dublinCore, "language"));
         } else {
             assertEquals(0, result.size());
         }

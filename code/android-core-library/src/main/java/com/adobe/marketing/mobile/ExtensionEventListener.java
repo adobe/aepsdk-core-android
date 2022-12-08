@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,5 @@ import androidx.annotation.NonNull;
  */
 @FunctionalInterface
 public interface ExtensionEventListener {
-
     void hear(@NonNull final Event event);
 }

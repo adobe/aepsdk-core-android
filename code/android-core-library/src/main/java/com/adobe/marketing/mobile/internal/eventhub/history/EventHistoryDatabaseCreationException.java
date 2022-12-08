@@ -7,18 +7,19 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.eventhub.history;
 
 public class EventHistoryDatabaseCreationException extends Exception {
 
-	/**
-	 * Constructor.
-	 *
-	 * @param message a {@code String} containing the {@link EventHistoryDatabase} creation exception details.
-	 */
-	EventHistoryDatabaseCreationException(final String message) {
-		super(message);
-	}
+    /**
+     * Constructor.
+     *
+     * @param message a {@code String} containing the {@link EventHistoryDatabase} creation
+     *     exception details.
+     */
+    EventHistoryDatabaseCreationException(final String message) {
+        super(message);
+    }
 }

@@ -7,17 +7,13 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.util;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -29,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import org.junit.Test;
 
 public class EventDataUtilsTests {
 
@@ -69,7 +66,6 @@ public class EventDataUtilsTests {
 
         UUID uuid = UUID.randomUUID();
         values.put("uuid", uuid);
-
 
         Map<String, Object> clonedValues = EventDataUtils.clone(values);
         assertEquals(values, clonedValues);
@@ -122,24 +118,29 @@ public class EventDataUtilsTests {
 
     @Test
     public void testClone_Array() throws CloneFailedException {
-        String[] stringArray = new String[]{ "string1", "string2"};
+        String[] stringArray = new String[] {"string1", "string2"};
 
         Map<String, Object> data = new HashMap<>();
         data.put("stringArray", stringArray);
 
-        Map[] mapArray = new  Map[] {
-                new HashMap(),
-                new HashMap() {{
-                    put("k1" , "v1");
-                    put("k2" , "v2");
-                }},
-                new HashMap() {{
-                    put("integer", 1);
-                    put("float", 1f);
-                    put("double", 1d);
-                    put("string", "hello");
-                }}
-        };
+        Map[] mapArray =
+                new Map[] {
+                    new HashMap(),
+                    new HashMap() {
+                        {
+                            put("k1", "v1");
+                            put("k2", "v2");
+                        }
+                    },
+                    new HashMap() {
+                        {
+                            put("integer", 1);
+                            put("float", 1f);
+                            put("double", 1d);
+                            put("string", "hello");
+                        }
+                    },
+                };
         data.put("mapArray", mapArray);
 
         Map<String, Object> clonedData = EventDataUtils.clone(data);
@@ -155,9 +156,7 @@ public class EventDataUtilsTests {
         Map<String, Object> map = new HashMap<>();
         map.put("data", new Data());
 
-        Exception ex = assertThrows(
-                CloneFailedException.class,
-                () -> EventDataUtils.clone(map));
+        Exception ex = assertThrows(CloneFailedException.class, () -> EventDataUtils.clone(map));
 
         assertEquals(ex.getMessage(), "Object is of unsupported type");
     }
@@ -170,9 +169,7 @@ public class EventDataUtilsTests {
 
         map.put("list", list);
 
-        Exception ex = assertThrows(
-                CloneFailedException.class,
-                () -> EventDataUtils.clone(map));
+        Exception ex = assertThrows(CloneFailedException.class, () -> EventDataUtils.clone(map));
 
         assertEquals(ex.getMessage(), "Max depth reached");
     }
@@ -198,23 +195,22 @@ public class EventDataUtilsTests {
         Map<String, Object> clonedData = EventDataUtils.immutableClone(data);
 
         assertThrows(
-                UnsupportedOperationException.class,
-                () -> clonedData.put("newKey", "newValue"));
+                UnsupportedOperationException.class, () -> clonedData.put("newKey", "newValue"));
 
         assertThrows(
                 UnsupportedOperationException.class,
                 () -> {
-                    Map<String, Object> clonedNestedMap = (Map<String, Object>)clonedData.get("map");
+                    Map<String, Object> clonedNestedMap =
+                            (Map<String, Object>) clonedData.get("map");
                     clonedNestedMap.put("newKey", "newValue");
                 });
 
         assertThrows(
                 UnsupportedOperationException.class,
                 () -> {
-                    List<Object> clonedNestedList = (List<Object>)clonedData.get("list");
+                    List<Object> clonedNestedList = (List<Object>) clonedData.get("list");
                     clonedNestedList.add("value");
                 });
-
     }
 
     @Test
@@ -254,7 +250,6 @@ public class EventDataUtilsTests {
 
         UUID uuid = UUID.randomUUID();
         values.put("uuid", uuid);
-
 
         Map<String, Object> castMap = EventDataUtils.castFromGenericType(values);
         assertEquals(values, castMap);
@@ -299,24 +294,29 @@ public class EventDataUtilsTests {
 
     @Test
     public void testCastGenericType_Array() {
-        String[] stringArray = new String[]{ "string1", "string2"};
+        String[] stringArray = new String[] {"string1", "string2"};
 
         Map<String, Object> data = new HashMap<>();
         data.put("stringArray", stringArray);
 
-        Map[] mapArray = new  Map[] {
-                new HashMap(),
-                new HashMap() {{
-                    put("k1" , "v1");
-                    put("k2" , "v2");
-                }},
-                new HashMap() {{
-                    put("integer", 1);
-                    put("float", 1f);
-                    put("double", 1d);
-                    put("string", "hello");
-                }}
-        };
+        Map[] mapArray =
+                new Map[] {
+                    new HashMap(),
+                    new HashMap() {
+                        {
+                            put("k1", "v1");
+                            put("k2", "v2");
+                        }
+                    },
+                    new HashMap() {
+                        {
+                            put("integer", 1);
+                            put("float", 1f);
+                            put("double", 1d);
+                            put("string", "hello");
+                        }
+                    },
+                };
         data.put("mapArray", mapArray);
 
         Map<String, Object> castMap = EventDataUtils.castFromGenericType(data);

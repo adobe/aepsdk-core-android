@@ -7,29 +7,24 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.util;
 
 import androidx.annotation.Nullable;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-/**
- * Utility class for transforming json objects.
- */
+/** Utility class for transforming json objects. */
 public final class JSONUtils {
 
-    private JSONUtils() {
-    }
+    private JSONUtils() {}
 
     /**
      * Converts contents of a {@code JSONObject} into a {@code Map<String, Object>}
@@ -37,8 +32,8 @@ public final class JSONUtils {
      * @param jsonObject the {@code JSONObject} that is to be converted to Map
      * @return {@code Map<String, Object>} obtained after converting the {@code JSONObject}
      */
-    @Nullable
-    public static Map<String, Object> toMap(@Nullable final JSONObject jsonObject) throws JSONException {
+    @Nullable public static Map<String, Object> toMap(@Nullable final JSONObject jsonObject)
+            throws JSONException {
         if (jsonObject == null) {
             return null;
         }
@@ -61,8 +56,7 @@ public final class JSONUtils {
      * @param jsonArray the {@code JSONArray} that is to be converted to a List
      * @return {@code List<Object>} obtained after converting the {@code JSONObject}
      */
-    @Nullable
-    public static List<Object> toList(@Nullable final JSONArray jsonArray) throws JSONException {
+    @Nullable public static List<Object> toList(@Nullable final JSONArray jsonArray) throws JSONException {
         if (jsonArray == null) {
             return null;
         }

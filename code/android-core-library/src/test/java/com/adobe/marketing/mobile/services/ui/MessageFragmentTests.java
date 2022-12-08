@@ -7,65 +7,60 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services.ui;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
-
+import java.util.HashMap;
+import java.util.Random;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.HashMap;
-import java.util.Random;
-
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class MessageFragmentTests {
-    @Mock
-    private Bundle mockSavedInstanceState;
-    @Mock
-    private AEPMessage mockAEPMessage;
-    @Mock
-    private MessageSettings mockAEPMessageSettings;
-    @Mock
-    private Application mockApplication;
-    @Mock
-    private AppContextService mockAppContextService;
-    @Mock
-    private Activity mockActivity;
-    @Mock
-    private FrameLayout mockFrameLayout;
-    @Mock
-    private FullscreenMessageDelegate mockFullscreenMessageDelegate;
-    @Mock
-    private ViewGroup mockViewGroup;
-    @Mock
-    private MessageWebView mockWebView;
-    @Mock
-    private MotionEvent mockMotionEvent;
-    @Mock
-    private WebViewGestureListener mockWebViewGestureListener;
-    @Mock
-    private GestureDetector mockGestureDetector;
+
+    @Mock private Bundle mockSavedInstanceState;
+
+    @Mock private AEPMessage mockAEPMessage;
+
+    @Mock private MessageSettings mockAEPMessageSettings;
+
+    @Mock private Application mockApplication;
+
+    @Mock private AppContextService mockAppContextService;
+
+    @Mock private Activity mockActivity;
+
+    @Mock private FrameLayout mockFrameLayout;
+
+    @Mock private FullscreenMessageDelegate mockFullscreenMessageDelegate;
+
+    @Mock private ViewGroup mockViewGroup;
+
+    @Mock private MessageWebView mockWebView;
+
+    @Mock private MotionEvent mockMotionEvent;
+
+    @Mock private WebViewGestureListener mockWebViewGestureListener;
+
+    @Mock private GestureDetector mockGestureDetector;
 
     private MessageFragment messageFragment;
     private HashMap<MessageGesture, String> gestureMap = new HashMap<>();
@@ -122,12 +117,12 @@ public class MessageFragmentTests {
         messageFragment.gestureDetector = mockGestureDetector;
 
         Mockito.when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
-        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt())).thenReturn(mockFrameLayout);
+        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
+                .thenReturn(mockFrameLayout);
         // test
         messageFragment.onResume();
         // verify
         Mockito.verify(mockAEPMessage, Mockito.times(1)).showInRootViewGroup();
-
     }
 
     @Test
@@ -146,7 +141,8 @@ public class MessageFragmentTests {
     }
 
     @Test
-    public void testOnResume_NullActivityWhenRetrievingFrameLayout_ThenShowInRootViewGroupNotCalled() {
+    public void
+            testOnResume_NullActivityWhenRetrievingFrameLayout_ThenShowInRootViewGroupNotCalled() {
         // setup
         mockAEPMessage.frameLayoutResourceId = new Random().nextInt();
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
@@ -158,7 +154,6 @@ public class MessageFragmentTests {
         messageFragment.onResume();
         // verify
         Mockito.verify(mockAEPMessage, Mockito.times(0)).showInRootViewGroup();
-
     }
 
     @Test
@@ -170,13 +165,15 @@ public class MessageFragmentTests {
         // test
         boolean eventProcessed = messageFragment.onTouch(mockWebView, mockMotionEvent);
         // verify
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                ArgumentMatchers.anyString());
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0))
+                .overrideUrlLoad(
+                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
         Assert.assertTrue(eventProcessed);
     }
 
     @Test
-    public void testOnTouchListener_TouchOccurredOutsideWebview_And_UITakeoverFalse_ThenMessageDismissed() {
+    public void
+            testOnTouchListener_TouchOccurredOutsideWebview_And_UITakeoverFalse_ThenMessageDismissed() {
         // setup
         mockAEPMessage.webView = mockWebView;
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
@@ -189,14 +186,16 @@ public class MessageFragmentTests {
         // test
         boolean eventProcessed = messageFragment.onTouch(mockViewGroup, mockMotionEvent);
         // verify
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                ArgumentMatchers.anyString());
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                .overrideUrlLoad(
+                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
         // expect false because the touch event was handled by the rootview
         Assert.assertFalse(eventProcessed);
     }
 
     @Test
-    public void testOnTouchListener_TouchOccurredOutsideWebview_And_UITakeoverTrue_ThenMessageNotDismissed() {
+    public void
+            testOnTouchListener_TouchOccurredOutsideWebview_And_UITakeoverTrue_ThenMessageNotDismissed() {
         // setup
         mockAEPMessage.webView = mockWebView;
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
@@ -209,8 +208,9 @@ public class MessageFragmentTests {
         // test
         boolean eventProcessed = messageFragment.onTouch(mockViewGroup, mockMotionEvent);
         // verify
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                ArgumentMatchers.anyString());
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0))
+                .overrideUrlLoad(
+                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
         Assert.assertTrue(eventProcessed);
     }
 }

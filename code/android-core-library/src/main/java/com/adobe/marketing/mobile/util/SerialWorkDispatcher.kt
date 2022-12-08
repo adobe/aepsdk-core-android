@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.util
 
@@ -202,7 +202,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
 
             if (state != State.NOT_STARTED) {
                 Log.debug(
-                    CoreConstants.LOG_TAG, getTag(), "SerialWorkDispatcher ($name) has already started."
+                    CoreConstants.LOG_TAG,
+                    getTag(),
+                    "SerialWorkDispatcher ($name) has already started."
                 )
                 return false
             }
@@ -229,7 +231,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
 
             if (state != State.ACTIVE) {
                 Log.debug(
-                    CoreConstants.LOG_TAG, getTag(), "SerialWorkDispatcher ($name) is not active."
+                    CoreConstants.LOG_TAG,
+                    getTag(),
+                    "SerialWorkDispatcher ($name) is not active."
                 )
                 return false
             }
@@ -253,7 +257,9 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
 
             if (state == State.NOT_STARTED) {
                 Log.debug(
-                    CoreConstants.LOG_TAG, getTag(), "SerialWorkDispatcher ($name) has not started."
+                    CoreConstants.LOG_TAG,
+                    getTag(),
+                    "SerialWorkDispatcher ($name) has not started."
                 )
                 return false
             }

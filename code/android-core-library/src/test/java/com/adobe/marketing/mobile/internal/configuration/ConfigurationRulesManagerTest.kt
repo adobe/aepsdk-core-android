@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.configuration
 
@@ -29,10 +29,10 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.MockedStatic
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verifyNoInteractions
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.any
@@ -85,7 +85,6 @@ class ConfigurationRulesManagerTest {
 
     @Before
     fun setUp() {
-
         `when`(mockDataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)).thenReturn(
             mockNamedCollection
         )
@@ -267,7 +266,8 @@ class ConfigurationRulesManagerTest {
         // Simulate callback invocation
         capturedCallback.call(
             RulesLoadResult(
-                invalidRulesJson, RulesLoadResult.Reason.SUCCESS
+                invalidRulesJson,
+                RulesLoadResult.Reason.SUCCESS
             )
         )
 
@@ -297,7 +297,8 @@ class ConfigurationRulesManagerTest {
         // Simulate callback invocation
         capturedCallback.call(
             RulesLoadResult(
-                validRulesJson, RulesLoadResult.Reason.SUCCESS
+                validRulesJson,
+                RulesLoadResult.Reason.SUCCESS
             )
         )
 

@@ -7,32 +7,34 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
 public class UnaryExpression<A> implements Evaluable {
-	private final Operand<A> lhs;
-	private final String operationName;
 
-	public UnaryExpression(final Operand<A> lhs, final String operationName) {
-		this.lhs = lhs;
-		this.operationName = operationName;
-	}
+    private final Operand<A> lhs;
+    private final String operationName;
 
-	@Override
-	public RulesResult evaluate(final Context context) {
-		A resolvedLhs = null;
+    public UnaryExpression(final Operand<A> lhs, final String operationName) {
+        this.lhs = lhs;
+        this.operationName = operationName;
+    }
 
-		if (lhs != null) {
-			resolvedLhs = lhs.resolve(context);
-		}
+    @Override
+    public RulesResult evaluate(final Context context) {
+        A resolvedLhs = null;
 
-		if (operationName == null || operationName.isEmpty()) {
-			return new RulesResult(RulesResult.FailureType.INVALID_OPERAND, String.format("Evaluating %s %s returned false",
-								   resolvedLhs, operationName));
-		}
+        if (lhs != null) {
+            resolvedLhs = lhs.resolve(context);
+        }
 
-		return context.evaluator.evaluate(operationName, resolvedLhs);
-	}
+        if (operationName == null || operationName.isEmpty()) {
+            return new RulesResult(
+                    RulesResult.FailureType.INVALID_OPERAND,
+                    String.format("Evaluating %s %s returned false", resolvedLhs, operationName));
+        }
+
+        return context.evaluator.evaluate(operationName, resolvedLhs);
+    }
 }

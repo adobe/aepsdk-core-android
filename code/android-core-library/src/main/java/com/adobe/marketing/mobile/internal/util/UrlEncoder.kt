@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.util
 
@@ -71,45 +71,47 @@ internal object UrlEncoder {
         // bail fast
         return if (unencodedString == null) {
             null
-        } else try {
-            val stringBytes = unencodedString.toByteArray(charset("UTF-8"))
-            val len = stringBytes.size
-            var curIndex = 0
+        } else {
+            try {
+                val stringBytes = unencodedString.toByteArray(charset("UTF-8"))
+                val len = stringBytes.size
+                var curIndex = 0
 
-            // iterate looking for any characters that don't match our "safe" mask
-            while (curIndex < len && utf8Mask[stringBytes[curIndex].toInt() and ALL_BITS_ENABLED]) {
-                curIndex++
+                // iterate looking for any characters that don't match our "safe" mask
+                while (curIndex < len && utf8Mask[stringBytes[curIndex].toInt() and ALL_BITS_ENABLED]) {
+                    curIndex++
+                }
+
+                // if our iterator got all the way to the end of the string, no unsafe characters existed
+                // and it's safe to return the original value that was passed in
+                if (curIndex == len) {
+                    return unencodedString
+                }
+
+                // if we get here we know there's at least one character we need to encode
+                val encodedString = StringBuilder(stringBytes.size shl 1)
+
+                // if i > than 1 then we have some characters we can just "paste" in
+                if (curIndex > 0) {
+                    encodedString.append(String(stringBytes, 0, curIndex, StandardCharsets.UTF_8))
+                }
+
+                // rip through the rest of the string character by character
+                while (curIndex < len) {
+                    encodedString.append(encodedChars[stringBytes[curIndex].toInt() and ALL_BITS_ENABLED])
+                    curIndex++
+                }
+
+                // return the completed string
+                encodedString.toString()
+            } catch (e: UnsupportedEncodingException) {
+                Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to url encode string $unencodedString $e"
+                )
+                null
             }
-
-            // if our iterator got all the way to the end of the string, no unsafe characters existed
-            // and it's safe to return the original value that was passed in
-            if (curIndex == len) {
-                return unencodedString
-            }
-
-            // if we get here we know there's at least one character we need to encode
-            val encodedString = StringBuilder(stringBytes.size shl 1)
-
-            // if i > than 1 then we have some characters we can just "paste" in
-            if (curIndex > 0) {
-                encodedString.append(String(stringBytes, 0, curIndex, StandardCharsets.UTF_8))
-            }
-
-            // rip through the rest of the string character by character
-            while (curIndex < len) {
-                encodedString.append(encodedChars[stringBytes[curIndex].toInt() and ALL_BITS_ENABLED])
-                curIndex++
-            }
-
-            // return the completed string
-            encodedString.toString()
-        } catch (e: UnsupportedEncodingException) {
-            Log.debug(
-                CoreConstants.LOG_TAG,
-                LOG_TAG,
-                "Failed to url encode string $unencodedString $e"
-            )
-            null
         }
     }
 }

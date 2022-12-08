@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services.ui;
 
@@ -15,9 +15,8 @@ import static org.mockito.Mockito.doCallRealMethod;
 
 import android.animation.ObjectAnimator;
 import android.view.MotionEvent;
-
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
-
+import java.util.HashMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,24 +27,22 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.HashMap;
-
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class WebViewGestureListenerTests {
-    @Mock
-    private AEPMessage mockAEPMessage;
-    @Mock
-    private FullscreenMessageDelegate mockFullscreenMessageDelegate;
-    @Mock
-    private MessageWebView mockMessageWebView;
-    @Mock
-    private MotionEvent mockMotionEvent2;
-    @Mock
-    private MotionEvent mockMotionEvent;
-    @Mock
-    private MessageFragment mockMessageFragment;
-    @Mock
-    private ObjectAnimator mockObjectAnimator;
+
+    @Mock private AEPMessage mockAEPMessage;
+
+    @Mock private FullscreenMessageDelegate mockFullscreenMessageDelegate;
+
+    @Mock private MessageWebView mockMessageWebView;
+
+    @Mock private MotionEvent mockMotionEvent2;
+
+    @Mock private MotionEvent mockMotionEvent;
+
+    @Mock private MessageFragment mockMessageFragment;
+
+    @Mock private ObjectAnimator mockObjectAnimator;
 
     private WebViewGestureListener gestureListener;
     private HashMap<MessageGesture, String> gestureMap = new HashMap<>();
@@ -84,13 +81,18 @@ public class WebViewGestureListenerTests {
     }
 
     @Test
-    public void testOnFling_HorizontalSwipeLeft_And_FlingVelocityOverThreshold_Then_MessageDismissed() throws
-            InterruptedException {
+    public void
+            testOnFling_HorizontalSwipeLeft_And_FlingVelocityOverThreshold_Then_MessageDismissed()
+                    throws InterruptedException {
         try (MockedStatic<ObjectAnimator> staticMock = Mockito.mockStatic(ObjectAnimator.class)) {
             staticMock
-                    .when(() -> ObjectAnimator.ofFloat(ArgumentMatchers.any(MessageWebView.class),
-                            ArgumentMatchers.anyString(), ArgumentMatchers.anyFloat(),
-                            ArgumentMatchers.anyFloat()))
+                    .when(
+                            () ->
+                                    ObjectAnimator.ofFloat(
+                                            ArgumentMatchers.any(MessageWebView.class),
+                                            ArgumentMatchers.anyString(),
+                                            ArgumentMatchers.anyFloat(),
+                                            ArgumentMatchers.anyFloat()))
                     .thenReturn(mockObjectAnimator);
             // setup
             Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
@@ -103,20 +105,25 @@ public class WebViewGestureListenerTests {
             gestureListener.getAnimationListener().onAnimationEnd(mockObjectAnimator);
             // verify
             Assert.assertTrue(mockMessageFragment.isDismissedWithGesture());
-            Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                    ArgumentMatchers.anyString());
+            Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                    .overrideUrlLoad(
+                            ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
         }
-
     }
 
     @Test
-    public void testOnFling_HorizontalSwipeRight_And_FlingVelocityOverThreshold_Then_MessageDismissed() throws
-            InterruptedException {
+    public void
+            testOnFling_HorizontalSwipeRight_And_FlingVelocityOverThreshold_Then_MessageDismissed()
+                    throws InterruptedException {
         try (MockedStatic<ObjectAnimator> staticMock = Mockito.mockStatic(ObjectAnimator.class)) {
             staticMock
-                    .when(() -> ObjectAnimator.ofFloat(ArgumentMatchers.any(MessageWebView.class),
-                            ArgumentMatchers.anyString(), ArgumentMatchers.anyFloat(),
-                            ArgumentMatchers.anyFloat()))
+                    .when(
+                            () ->
+                                    ObjectAnimator.ofFloat(
+                                            ArgumentMatchers.any(MessageWebView.class),
+                                            ArgumentMatchers.anyString(),
+                                            ArgumentMatchers.anyFloat(),
+                                            ArgumentMatchers.anyFloat()))
                     .thenReturn(mockObjectAnimator);
             // setup
             Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
@@ -129,20 +136,24 @@ public class WebViewGestureListenerTests {
             gestureListener.getAnimationListener().onAnimationEnd(mockObjectAnimator);
             // verify
             Assert.assertTrue(mockMessageFragment.isDismissedWithGesture());
-            Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                    ArgumentMatchers.anyString());
+            Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                    .overrideUrlLoad(
+                            ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
         }
-
     }
 
     @Test
-    public void testOnFling_VerticalSwipeUp_And_FlingVelocityOverThreshold_Then_MessageDismissed() throws
-            InterruptedException {
+    public void testOnFling_VerticalSwipeUp_And_FlingVelocityOverThreshold_Then_MessageDismissed()
+            throws InterruptedException {
         try (MockedStatic<ObjectAnimator> staticMock = Mockito.mockStatic(ObjectAnimator.class)) {
             staticMock
-                    .when(() -> ObjectAnimator.ofFloat(ArgumentMatchers.any(MessageWebView.class),
-                            ArgumentMatchers.anyString(), ArgumentMatchers.anyFloat(),
-                            ArgumentMatchers.anyFloat()))
+                    .when(
+                            () ->
+                                    ObjectAnimator.ofFloat(
+                                            ArgumentMatchers.any(MessageWebView.class),
+                                            ArgumentMatchers.anyString(),
+                                            ArgumentMatchers.anyFloat(),
+                                            ArgumentMatchers.anyFloat()))
                     .thenReturn(mockObjectAnimator);
             // setup
             Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
@@ -155,20 +166,24 @@ public class WebViewGestureListenerTests {
             gestureListener.getAnimationListener().onAnimationEnd(mockObjectAnimator);
             // verify
             Assert.assertTrue(mockMessageFragment.isDismissedWithGesture());
-            Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                    ArgumentMatchers.anyString());
+            Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                    .overrideUrlLoad(
+                            ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
         }
-
     }
 
     @Test
-    public void testOnFling_VerticalSwipeDown_And_FlingVelocityOverThreshold_Then_MessageDismissed() throws
-            InterruptedException {
+    public void testOnFling_VerticalSwipeDown_And_FlingVelocityOverThreshold_Then_MessageDismissed()
+            throws InterruptedException {
         try (MockedStatic<ObjectAnimator> staticMock = Mockito.mockStatic(ObjectAnimator.class)) {
             staticMock
-                    .when(() -> ObjectAnimator.ofFloat(ArgumentMatchers.any(MessageWebView.class),
-                            ArgumentMatchers.anyString(), ArgumentMatchers.anyFloat(),
-                            ArgumentMatchers.anyFloat()))
+                    .when(
+                            () ->
+                                    ObjectAnimator.ofFloat(
+                                            ArgumentMatchers.any(MessageWebView.class),
+                                            ArgumentMatchers.anyString(),
+                                            ArgumentMatchers.anyFloat(),
+                                            ArgumentMatchers.anyFloat()))
                     .thenReturn(mockObjectAnimator);
             // setup
             Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
@@ -181,15 +196,16 @@ public class WebViewGestureListenerTests {
             gestureListener.getAnimationListener().onAnimationEnd(mockObjectAnimator);
             // verify
             Assert.assertTrue(mockMessageFragment.isDismissedWithGesture());
-            Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                    ArgumentMatchers.anyString());
+            Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                    .overrideUrlLoad(
+                            ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
         }
-
     }
 
     @Test
-    public void testOnFling_HorizontalSwipe_And_FlingVelocityUnderThreshold_Then_MessageNotDismissed() throws
-            InterruptedException {
+    public void
+            testOnFling_HorizontalSwipe_And_FlingVelocityUnderThreshold_Then_MessageNotDismissed()
+                    throws InterruptedException {
         // setup
         Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
         Mockito.when(mockMotionEvent2.getX()).thenReturn(-300.0f);
@@ -199,13 +215,14 @@ public class WebViewGestureListenerTests {
         gestureListener.onFling(mockMotionEvent, mockMotionEvent2, 290.0f, 0.0f);
         // verify
         Assert.assertFalse(mockMessageFragment.isDismissedWithGesture());
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                ArgumentMatchers.anyString());
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0))
+                .overrideUrlLoad(
+                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
     }
 
     @Test
-    public void testOnFling_VerticalSwipe_And_FlingVelocityUnderThreshold_Then_MessageNotDismissed() throws
-            InterruptedException {
+    public void testOnFling_VerticalSwipe_And_FlingVelocityUnderThreshold_Then_MessageNotDismissed()
+            throws InterruptedException {
         // setup
         Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
         Mockito.when(mockMotionEvent2.getX()).thenReturn(0f);
@@ -215,12 +232,14 @@ public class WebViewGestureListenerTests {
         gestureListener.onFling(mockMotionEvent, mockMotionEvent2, 0.0f, 290.0f);
         // verify
         Assert.assertFalse(mockMessageFragment.isDismissedWithGesture());
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                ArgumentMatchers.anyString());
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0))
+                .overrideUrlLoad(
+                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
     }
 
     @Test
-    public void testHandleGesture_BackgroundTap_Then_MessageDismissed() throws InterruptedException {
+    public void testHandleGesture_BackgroundTap_Then_MessageDismissed()
+            throws InterruptedException {
         // setup
         Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
         Mockito.when(mockMotionEvent2.getX()).thenReturn(0f);
@@ -230,7 +249,8 @@ public class WebViewGestureListenerTests {
         gestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
         // verify
         Assert.assertFalse(mockMessageFragment.isDismissedWithGesture());
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).overrideUrlLoad(ArgumentMatchers.any(AEPMessage.class),
-                ArgumentMatchers.anyString());
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                .overrideUrlLoad(
+                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
     }
 }

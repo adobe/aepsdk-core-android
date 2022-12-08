@@ -7,21 +7,20 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.identity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventCoder;
 import com.adobe.marketing.mobile.services.DataEntity;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 final class IdentityHit {
+
     private static final String URL = "URL";
     private static final String EVENT = "EVENT";
     private final String url;
@@ -40,8 +39,7 @@ final class IdentityHit {
         return event;
     }
 
-    @Nullable
-    DataEntity toDataEntity() {
+    @Nullable DataEntity toDataEntity() {
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put(URL, this.url);
@@ -52,8 +50,7 @@ final class IdentityHit {
         }
     }
 
-    @Nullable
-    static IdentityHit fromDataEntity(final DataEntity dataEntity) {
+    @Nullable static IdentityHit fromDataEntity(final DataEntity dataEntity) {
         if (dataEntity == null) {
             return null;
         }
@@ -68,5 +65,4 @@ final class IdentityHit {
             return null;
         }
     }
-
 }

@@ -7,23 +7,22 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.Test;
 
 public class JSONUtilsTest {
 
@@ -64,24 +63,62 @@ public class JSONUtilsTest {
 
     @Test
     public void testToList_ArrayOfLists() throws JSONException {
-        final List<Object> listWithLists = Arrays.asList(
-                Arrays.asList("One", "Two", "Three"),
-                Arrays.asList(1L, 2L, 3L),
-                Arrays.asList(1.1d, 2.1d, 3.1d, 4.1d),
-                Arrays.asList(true, false, false),
-                Arrays.asList(null, 1, 3.4d, "One")
-        );
+        final List<Object> listWithLists =
+                Arrays.asList(
+                        Arrays.asList("One", "Two", "Three"),
+                        Arrays.asList(1L, 2L, 3L),
+                        Arrays.asList(1.1d, 2.1d, 3.1d, 4.1d),
+                        Arrays.asList(true, false, false),
+                        Arrays.asList(null, 1, 3.4d, "One"));
         assertEquals(listWithLists, JSONUtils.toList(new JSONArray(listWithLists)));
     }
 
     @Test
     public void testToList_ArrayOfArraysAndMaps() throws JSONException {
-        final List<Object> listWithLists = Arrays.asList(
-                Arrays.asList("One", "Two", "Three"),
-                Arrays.asList(1L, 2L, 3L),
-                Arrays.asList(1.1d, 2.1d, 3.1d, 4.1d),
-                Arrays.asList(true, false, false),
-                Arrays.asList(null, 1, 3.4d, "One"),
+        final List<Object> listWithLists =
+                Arrays.asList(
+                        Arrays.asList("One", "Two", "Three"),
+                        Arrays.asList(1L, 2L, 3L),
+                        Arrays.asList(1.1d, 2.1d, 3.1d, 4.1d),
+                        Arrays.asList(true, false, false),
+                        Arrays.asList(null, 1, 3.4d, "One"),
+                        new HashMap<String, Object>() {
+                            {
+                                put("int", 3);
+                                put("double", 3.11d);
+                                put("long", Long.MAX_VALUE);
+                                put("String", "abcd");
+                                put("boolean", true);
+                                put("emptyList", Collections.EMPTY_LIST);
+                                put("listOfInts", Arrays.asList(1, 2, 3));
+                                put("listOfLong", Arrays.asList(Long.MIN_VALUE, Long.MAX_VALUE));
+                                put("listOfDouble", Arrays.asList(1.2d, 2.3d, 3.4d));
+                                put("listWithNull", Arrays.asList("NonNull", null));
+                                put("listOfBooleans", Arrays.asList(true, false));
+                                put(
+                                        "nestedMap",
+                                        new HashMap<String, Object>() {
+                                            {
+                                                put("int", 3);
+                                                put("double", 3.11d);
+                                                put("long", Long.MAX_VALUE);
+                                                put("String", "abcd");
+                                                put("boolean", true);
+                                            }
+                                        });
+                            }
+                        });
+        assertEquals(listWithLists, JSONUtils.toList(new JSONArray(listWithLists)));
+    }
+
+    @Test
+    public void testToMap_Null() throws JSONException {
+        assertNull(JSONUtils.toMap(null));
+    }
+
+    @Test
+    public void testToMap_AllValidTypes() throws JSONException {
+        final Map<String, Object> mapOfAllTypes =
                 new HashMap<String, Object>() {
                     {
                         put("int", 3);
@@ -95,59 +132,27 @@ public class JSONUtilsTest {
                         put("listOfDouble", Arrays.asList(1.2d, 2.3d, 3.4d));
                         put("listWithNull", Arrays.asList("NonNull", null));
                         put("listOfBooleans", Arrays.asList(true, false));
-                        put("nestedMap", new HashMap<String, Object>() {
-                            {
-                                put("int", 3);
-                                put("double", 3.11d);
-                                put("long", Long.MAX_VALUE);
-                                put("String", "abcd");
-                                put("boolean", true);
-                            }
-                        });
+                        put(
+                                "listOfLists",
+                                Arrays.asList(
+                                        Arrays.asList("One", "Two", "Three"),
+                                        Arrays.asList(1L, 2L, 3L),
+                                        Arrays.asList(1.1d, 2.1d, 3.1d, 4.1d),
+                                        Arrays.asList(true, false, false),
+                                        Arrays.asList(null, 1, 3.4d, "One")));
+                        put(
+                                "nestedMap",
+                                new HashMap<String, Object>() {
+                                    {
+                                        put("int", 3);
+                                        put("double", 3.11d);
+                                        put("long", Long.MAX_VALUE);
+                                        put("String", "abcd");
+                                        put("boolean", true);
+                                    }
+                                });
                     }
-                }
-        );
-        assertEquals(listWithLists, JSONUtils.toList(new JSONArray(listWithLists)));
-    }
-
-    @Test
-    public void testToMap_Null() throws JSONException {
-        assertNull(JSONUtils.toMap(null));
-    }
-
-    @Test
-    public void testToMap_AllValidTypes() throws JSONException {
-        final Map<String, Object> mapOfAllTypes = new HashMap<String, Object>() {
-            {
-                put("int", 3);
-                put("double", 3.11d);
-                put("long", Long.MAX_VALUE);
-                put("String", "abcd");
-                put("boolean", true);
-                put("emptyList", Collections.EMPTY_LIST);
-                put("listOfInts", Arrays.asList(1, 2, 3));
-                put("listOfLong", Arrays.asList(Long.MIN_VALUE, Long.MAX_VALUE));
-                put("listOfDouble", Arrays.asList(1.2d, 2.3d, 3.4d));
-                put("listWithNull", Arrays.asList("NonNull", null));
-                put("listOfBooleans", Arrays.asList(true, false));
-                put("listOfLists", Arrays.asList(
-                        Arrays.asList("One", "Two", "Three"),
-                        Arrays.asList(1L, 2L, 3L),
-                        Arrays.asList(1.1d, 2.1d, 3.1d, 4.1d),
-                        Arrays.asList(true, false, false),
-                        Arrays.asList(null, 1, 3.4d, "One")
-                ));
-                put("nestedMap", new HashMap<String, Object>() {
-                    {
-                        put("int", 3);
-                        put("double", 3.11d);
-                        put("long", Long.MAX_VALUE);
-                        put("String", "abcd");
-                        put("boolean", true);
-                    }
-                });
-            }
-        };
+                };
 
         assertEquals(mapOfAllTypes, JSONUtils.toMap(new JSONObject(mapOfAllTypes)));
     }

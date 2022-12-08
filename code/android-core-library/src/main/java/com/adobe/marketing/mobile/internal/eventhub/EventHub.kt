@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.eventhub
 
@@ -346,7 +346,6 @@ internal class EventHub(val eventHistory: EventHistory?) {
      * @param error Error denoting the status of registration
      */
     private fun extensionPostRegistration(extensionClass: Class<out Extension>, error: EventHubError) {
-
         if (error != EventHubError.None) {
             Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registration failed with error $error")
             unregisterExtensionInternal(extensionClass)
@@ -394,6 +393,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
 
         completion.let { executeCompletionHandler { it?.invoke(error) } }
     }
+
     /**
      * Registers an event listener which will be invoked when the response event to trigger event is dispatched
      * @param triggerEvent An [Event] which will trigger a response event
@@ -474,7 +474,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
         sharedStateType: SharedStateType,
         extensionName: String,
         state: MutableMap<String, Any?>?,
-        event: Event?,
+        event: Event?
     ): Boolean {
         val immutableState = try {
             EventDataUtils.immutableClone(state)
@@ -505,7 +505,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
         sharedStateType: SharedStateType,
         extensionName: String,
         state: MutableMap<String, Any?>?,
-        event: Event?,
+        event: Event?
     ): Boolean {
         val sharedStateManager = getSharedStateManager(sharedStateType, extensionName)
         sharedStateManager ?: run {
@@ -550,7 +550,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
     fun createPendingSharedState(
         sharedStateType: SharedStateType,
         extensionName: String,
-        event: Event?,
+        event: Event?
     ): SharedStateResolver? {
         val callable = Callable<SharedStateResolver?> {
             val sharedStateManager = getSharedStateManager(sharedStateType, extensionName)
@@ -656,7 +656,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
         extensionName: String,
         event: Event?,
         barrier: Boolean,
-        resolution: SharedStateResolution,
+        resolution: SharedStateResolution
     ): SharedStateResult? {
         val callable = Callable<SharedStateResult?> {
             val container = getExtensionContainer(extensionName) ?: run {
@@ -708,7 +708,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
      */
     fun clearSharedState(
         sharedStateType: SharedStateType,
-        extensionName: String,
+        extensionName: String
     ): Boolean {
         val callable = Callable {
             val sharedStateManager = getSharedStateManager(sharedStateType, extensionName) ?: run {
@@ -827,7 +827,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
      */
     private fun resolveSharedStateVersion(
         sharedStateManager: SharedStateManager,
-        event: Event?,
+        event: Event?
     ): Int {
         // 1) If event is not null, pull the version number from internal map
         // 2) If event is null, start with version 0 if shared state is empty.

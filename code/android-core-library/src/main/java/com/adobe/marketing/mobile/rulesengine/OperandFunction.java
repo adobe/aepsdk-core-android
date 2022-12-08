@@ -7,21 +7,22 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
 public class OperandFunction<T> implements Operand<T> {
-	private final FunctionBlock<T> block;
-	private final Object[] functionParameters;
 
-	public OperandFunction(final FunctionBlock<T> block, final Object... functionParameters) {
-		this.block = block;
-		this.functionParameters = functionParameters;
-	}
+    private final FunctionBlock<T> block;
+    private final Object[] functionParameters;
 
-	@Override
-	public T resolve(final Context context) {
-		return block.execute(functionParameters);
-	}
+    public OperandFunction(final FunctionBlock<T> block, final Object... functionParameters) {
+        this.block = block;
+        this.functionParameters = functionParameters;
+    }
+
+    @Override
+    public T resolve(final Context context) {
+        return block.execute(functionParameters);
+    }
 }

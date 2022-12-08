@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 @file:Suppress("DEPRECATION")
 
@@ -292,7 +292,7 @@ internal class ExtensionContainer constructor(
     override fun setSharedEventState(
         state: MutableMap<String, Any?>?,
         event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): Boolean {
         return setSharedEventStateCommon(
             SharedStateType.STANDARD,
@@ -307,7 +307,7 @@ internal class ExtensionContainer constructor(
     override fun setXDMSharedEventState(
         state: MutableMap<String, Any?>?,
         event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): Boolean {
         return setSharedEventStateCommon(
             SharedStateType.XDM,
@@ -361,7 +361,9 @@ internal class ExtensionContainer constructor(
             // If pending shared state was set earlier for this event, resolve using stored resolver.
             val resolver = if (event != null) {
                 eventResolverMap.remove(event.uniqueIdentifier)
-            } else null
+            } else {
+                null
+            }
 
             resolver?.let {
                 it.resolve(state)
@@ -382,7 +384,7 @@ internal class ExtensionContainer constructor(
     override fun getSharedEventState(
         stateName: String?,
         event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): MutableMap<String, Any>? {
         stateName?.let {
             return getSharedState(it, event, true, SharedStateResolution.ANY)?.value
@@ -396,7 +398,7 @@ internal class ExtensionContainer constructor(
     override fun getXDMSharedEventState(
         stateName: String?,
         event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): MutableMap<String, Any>? {
         stateName?.let {
             return getXDMSharedState(it, event, true, SharedStateResolution.ANY)?.value
@@ -437,7 +439,7 @@ internal class ExtensionContainer constructor(
         eventType: String?,
         eventSource: String?,
         extensionListenerClass: Class<T>?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): Boolean {
         val extensionListener = extensionListenerClass?.initWith(this, eventType, eventSource)
         if (extensionListener == null || eventType == null || eventSource == null) {
@@ -452,7 +454,7 @@ internal class ExtensionContainer constructor(
     @Deprecated("Deprecated in ExtensionAPI")
     override fun <T : ExtensionListener> registerWildcardListener(
         extensionListenerClass: Class<T>?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?,
+        errorCallback: ExtensionErrorCallback<ExtensionError>?
     ): Boolean {
         val extensionListener =
             extensionListenerClass?.initWith(this, EventType.WILDCARD, EventSource.WILDCARD)

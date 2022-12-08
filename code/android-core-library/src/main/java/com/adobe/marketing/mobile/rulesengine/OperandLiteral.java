@@ -7,19 +7,20 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
 public class OperandLiteral<T> implements Operand<T> {
-	private final T value;
-	public OperandLiteral(final T value) {
-		this.value = value;
-	}
 
-	@Override
-	public T resolve(final Context context) {
-		return this.value;
-	}
+    private final T value;
 
+    public OperandLiteral(final T value) {
+        this.value = value;
+    }
+
+    @Override
+    public T resolve(final Context context) {
+        return this.value;
+    }
 }

@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.eventhub
 
@@ -1034,7 +1034,7 @@ internal class EventHubTests {
         verifySharedState(
             SharedStateType.STANDARD,
             event2,
-            SharedStateResult(SharedStateStatus.SET, state2),
+            SharedStateResult(SharedStateStatus.SET, state2)
         )
 
         verifySharedState(
@@ -1102,7 +1102,7 @@ internal class EventHubTests {
             SharedStateResult(SharedStateStatus.PENDING, state1),
             SharedStateResolution.ANY,
             true,
-            TestExtension_Barrier.EXTENSION_NAME,
+            TestExtension_Barrier.EXTENSION_NAME
         )
     }
 
@@ -1320,7 +1320,7 @@ internal class EventHubTests {
                 TestExtension2.EXTENSION_NAME to mapOf(
                     EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension2.FRIENDLY_NAME,
                     EventHubConstants.EventDataKeys.VERSION to TestExtension2.VERSION,
-                    EventHubConstants.EventDataKeys.METADATA to TestExtension2.METADATA,
+                    EventHubConstants.EventDataKeys.METADATA to TestExtension2.METADATA
                 )
             )
         )
@@ -1396,7 +1396,7 @@ internal class EventHubTests {
                 TestExtension2.EXTENSION_NAME to mapOf(
                     EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension2.FRIENDLY_NAME,
                     EventHubConstants.EventDataKeys.VERSION to TestExtension2.VERSION,
-                    EventHubConstants.EventDataKeys.METADATA to TestExtension2.METADATA,
+                    EventHubConstants.EventDataKeys.METADATA to TestExtension2.METADATA
                 )
             )
         )
@@ -1523,7 +1523,8 @@ internal class EventHubTests {
 
         val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
         extensionContainer?.registerEventListener(
-            eventType, eventSource
+            eventType,
+            eventSource
         ) {
             assertTrue { it == testEvent }
             latch.countDown()
@@ -1682,7 +1683,8 @@ internal class EventHubTests {
         val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
 
         eventHub.registerResponseListener(
-            testEvent, 250,
+            testEvent,
+            250,
             object : AdobeCallbackWithError<Event> {
                 override fun call(value: Event?) {
                     capturedEvents.add(Pair(value, null))
@@ -1713,7 +1715,8 @@ internal class EventHubTests {
         val testResponseEvent = Event.Builder("Test response event", eventType, eventSource).inResponseToEvent(testEvent).build()
 
         eventHub.registerResponseListener(
-            testEvent, 5000,
+            testEvent,
+            5000,
             object : AdobeCallbackWithError<Event> {
                 override fun call(value: Event?) {
                     capturedEvents.add(Pair(value, null))
@@ -1745,7 +1748,8 @@ internal class EventHubTests {
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
 
         eventHub.registerResponseListener(
-            testEvent, 250,
+            testEvent,
+            250,
             object : AdobeCallbackWithError<Event> {
                 override fun call(value: Event?) {
                     capturedEvents.add(Pair(value, null))
@@ -1843,7 +1847,8 @@ internal class EventHubTests {
     @Test
     fun testDefaultWrapperType() {
         assertEquals(
-            eventHub.wrapperType, WrapperType.NONE
+            eventHub.wrapperType,
+            WrapperType.NONE
         )
     }
 
@@ -1851,17 +1856,20 @@ internal class EventHubTests {
     fun testUpdateWrapperTypeBeforeStart() {
         eventHub.wrapperType = WrapperType.FLUTTER
         assertEquals(
-            eventHub.wrapperType, WrapperType.FLUTTER
+            eventHub.wrapperType,
+            WrapperType.FLUTTER
         )
 
         eventHub.wrapperType = WrapperType.REACT_NATIVE
         assertEquals(
-            eventHub.wrapperType, WrapperType.REACT_NATIVE
+            eventHub.wrapperType,
+            WrapperType.REACT_NATIVE
         )
 
         eventHub.wrapperType = WrapperType.CORDOVA
         assertEquals(
-            eventHub.wrapperType, WrapperType.CORDOVA
+            eventHub.wrapperType,
+            WrapperType.CORDOVA
         )
     }
 
@@ -1869,7 +1877,8 @@ internal class EventHubTests {
     fun testUpdateWrapperTypeAfterStart() {
         eventHub.wrapperType = WrapperType.FLUTTER
         assertEquals(
-            eventHub.wrapperType, WrapperType.FLUTTER
+            eventHub.wrapperType,
+            WrapperType.FLUTTER
         )
 
         eventHub.start()
@@ -1877,12 +1886,14 @@ internal class EventHubTests {
         // Updates to wrapper type fail after start() call
         eventHub.wrapperType = WrapperType.REACT_NATIVE
         assertEquals(
-            eventHub.wrapperType, WrapperType.FLUTTER
+            eventHub.wrapperType,
+            WrapperType.FLUTTER
         )
 
         eventHub.wrapperType = WrapperType.CORDOVA
         assertEquals(
-            eventHub.wrapperType, WrapperType.FLUTTER
+            eventHub.wrapperType,
+            WrapperType.FLUTTER
         )
     }
 

@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.util
 
@@ -203,7 +203,8 @@ class FileUtilsTest {
         val tempDestination = folder.newFolder()
         assertTrue(
             FileUtils.extractFromZip(
-                zipSource!!, tempDestination.path
+                zipSource!!,
+                tempDestination.path
             )
         )
 
@@ -224,7 +225,8 @@ class FileUtilsTest {
         val tempDestination = folder.newFolder()
         assertTrue(
             FileUtils.extractFromZip(
-                zipSource!!, tempDestination.path
+                zipSource!!,
+                tempDestination.path
             )
         )
 
@@ -246,7 +248,8 @@ class FileUtilsTest {
         val tempDestination = folder.newFolder()
         assertFalse(
             FileUtils.extractFromZip(
-                zipSource!!, tempDestination.path
+                zipSource!!,
+                tempDestination.path
             )
         )
     }
@@ -259,7 +262,8 @@ class FileUtilsTest {
         val tempDestination = folder.newFolder()
         assertFalse(
             FileUtils.extractFromZip(
-                emptySourceFile, tempDestination.path
+                emptySourceFile,
+                tempDestination.path
             )
         )
     }
@@ -279,7 +283,8 @@ class FileUtilsTest {
         val destinationFolder = folder.newFolder()
         Assert.assertFalse(
             FileUtils.extractFromZip(
-                invalidSourceFile, destinationFolder.path
+                invalidSourceFile,
+                destinationFolder.path
             )
         )
     }

@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.util
 
@@ -49,7 +49,8 @@ internal object FileUtils {
         if (!isReadable(file)) {
             Log.debug(
                 CoreConstants.LOG_TAG,
-                TAG, "Failed to read file: ($file)"
+                TAG,
+                "Failed to read file: ($file)"
             )
             return null
         }
@@ -95,7 +96,9 @@ internal object FileUtils {
             return true
         } catch (e: SecurityException) {
             Log.debug(
-                CoreConstants.LOG_TAG, TAG, "Failed to read file ($e)"
+                CoreConstants.LOG_TAG,
+                TAG,
+                "Failed to read file ($e)"
             )
             return false
         }
@@ -159,7 +162,9 @@ internal object FileUtils {
                 if (ze == null) {
                     // Invalid zip file!
                     Log.debug(
-                        CoreConstants.LOG_TAG, TAG, "Zip file was invalid"
+                        CoreConstants.LOG_TAG,
+                        TAG,
+                        "Zip file was invalid"
                     )
                     return false
                 }
@@ -201,7 +206,9 @@ internal object FileUtils {
             }
         } catch (ex: Exception) {
             Log.debug(
-                CoreConstants.LOG_TAG, TAG, "Extraction failed - $ex"
+                CoreConstants.LOG_TAG,
+                TAG,
+                "Extraction failed - $ex"
             )
             extractedSuccessfully = false
         }

@@ -7,20 +7,14 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
-/**
- * Type representing the resolution of an extension's `SharedState`
- */
+/** Type representing the resolution of an extension's `SharedState` */
 public enum SharedStateResolution {
-    /**
-     * LAST_SET will resolve for the last set shared state
-     */
+    /** LAST_SET will resolve for the last set shared state */
     LAST_SET,
-    /**
-     *  ANY will resolve for the last shared state indiscriminately
-     */
-    ANY
+    /** ANY will resolve for the last shared state indiscriminately */
+    ANY,
 }

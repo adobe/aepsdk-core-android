@@ -7,29 +7,29 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class MobilePrivacyStatusTests {
 
-	@Test
-	public void testMobilePrivacyStatus_getValue() {
-		assertEquals("optedin", MobilePrivacyStatus.OPT_IN.getValue());
-		assertEquals("optedout", MobilePrivacyStatus.OPT_OUT.getValue());
-		assertEquals("optunknown", MobilePrivacyStatus.UNKNOWN.getValue());
-	}
+    @Test
+    public void testMobilePrivacyStatus_getValue() {
+        assertEquals("optedin", MobilePrivacyStatus.OPT_IN.getValue());
+        assertEquals("optedout", MobilePrivacyStatus.OPT_OUT.getValue());
+        assertEquals("optunknown", MobilePrivacyStatus.UNKNOWN.getValue());
+    }
 
-	@Test
-	public void testMobilePrivacyStatus_FromString() {
-		assertEquals(MobilePrivacyStatus.OPT_IN, MobilePrivacyStatus.fromString("optedin"));
-		assertEquals(MobilePrivacyStatus.OPT_OUT, MobilePrivacyStatus.fromString("optedout"));
-		assertEquals(MobilePrivacyStatus.UNKNOWN, MobilePrivacyStatus.fromString("optunknown"));
-		assertEquals(MobilePrivacyStatus.UNKNOWN, MobilePrivacyStatus.fromString(null));
-		assertEquals(MobilePrivacyStatus.UNKNOWN, MobilePrivacyStatus.fromString("something else"));
-	}
+    @Test
+    public void testMobilePrivacyStatus_FromString() {
+        assertEquals(MobilePrivacyStatus.OPT_IN, MobilePrivacyStatus.fromString("optedin"));
+        assertEquals(MobilePrivacyStatus.OPT_OUT, MobilePrivacyStatus.fromString("optedout"));
+        assertEquals(MobilePrivacyStatus.UNKNOWN, MobilePrivacyStatus.fromString("optunknown"));
+        assertEquals(MobilePrivacyStatus.UNKNOWN, MobilePrivacyStatus.fromString(null));
+        assertEquals(MobilePrivacyStatus.UNKNOWN, MobilePrivacyStatus.fromString("something else"));
+    }
 }

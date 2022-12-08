@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.extensions;
 
 import com.adobe.marketing.mobile.AdobeCallbackWithError;
@@ -17,7 +18,6 @@ import com.adobe.marketing.mobile.Extension;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.util.DataReader;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,22 +29,26 @@ public class Sample1 extends Extension {
     private static final String EVENT_SOURCE = "com.adobe.eventSource." + NAME;
     private static final String EVENT_DATA_IDENTIFIER = "trackingidentifier";
 
-
     // Public APIs
     public static void getTrackingIdentifier(AdobeCallbackWithError<String> callback) {
         Event e = new Event.Builder("GetIdentifier", TYPE_REQUEST_IDENTIFIER, EVENT_SOURCE).build();
-        MobileCore.dispatchEventWithResponseCallback(e, 1000, new AdobeCallbackWithError<Event>() {
-            @Override
-            public void fail(AdobeError error) {
-                callback.fail(error);
-            }
+        MobileCore.dispatchEventWithResponseCallback(
+                e,
+                1000,
+                new AdobeCallbackWithError<Event>() {
+                    @Override
+                    public void fail(AdobeError error) {
+                        callback.fail(error);
+                    }
 
-            @Override
-            public void call(Event value) {
-                String identifier = DataReader.optString(value.getEventData(), EVENT_DATA_IDENTIFIER, "");
-                callback.call(identifier);
-            }
-        });
+                    @Override
+                    public void call(Event value) {
+                        String identifier =
+                                DataReader.optString(
+                                        value.getEventData(), EVENT_DATA_IDENTIFIER, "");
+                        callback.call(identifier);
+                    }
+                });
     }
 
     // Extension methods
@@ -59,18 +63,19 @@ public class Sample1 extends Extension {
 
     @Override
     protected void onRegistered() {
-        getApi().registerEventListener(TYPE_REQUEST_IDENTIFIER , EVENT_SOURCE, this::handleGetIdentifier);
+        getApi().registerEventListener(
+                        TYPE_REQUEST_IDENTIFIER, EVENT_SOURCE, this::handleGetIdentifier);
     }
 
     private void handleGetIdentifier(Event e) {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(EVENT_DATA_IDENTIFIER, NAME + "_ID");
 
-        Event responseEvent = new Event.Builder("GetIdentifierResponse", TYPE_RESPONSE_IDENTIFIER, EVENT_SOURCE)
-                .inResponseToEvent(e)
-                .setEventData(eventData)
-                .build();
+        Event responseEvent =
+                new Event.Builder("GetIdentifierResponse", TYPE_RESPONSE_IDENTIFIER, EVENT_SOURCE)
+                        .inResponseToEvent(e)
+                        .setEventData(eventData)
+                        .build();
         getApi().dispatch(responseEvent);
     }
-
 }

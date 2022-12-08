@@ -7,28 +7,24 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.util;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
-
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import com.adobe.marketing.mobile.services.DataEntity;
-
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
 public class SQLiteDatabaseHelperTests {
@@ -54,27 +50,29 @@ public class SQLiteDatabaseHelperTests {
     }
 
     private void createTable() {
-        final String tableCreationQuery = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
-                " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, " +
-                "uniqueIdentifier TEXT NOT NULL UNIQUE, " +
-                "timestamp INTEGER NOT NULL, " +
-                "data TEXT);";
+        final String tableCreationQuery =
+                "CREATE TABLE IF NOT EXISTS "
+                        + TABLE_NAME
+                        + " (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "
+                        + "uniqueIdentifier TEXT NOT NULL UNIQUE, "
+                        + "timestamp INTEGER NOT NULL, "
+                        + "data TEXT);";
 
         SQLiteDatabaseHelper.createTableIfNotExist(dbPath, tableCreationQuery);
     }
 
     @Test
     public void testTableIsEmptyInitially() {
-        //Action
+        // Action
         int size = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
 
-        //Assert
+        // Assert
         Assert.assertEquals(size, 0);
     }
 
     @Test
     public void testGetTableSize_Success() {
-        //Prepare data
+        // Prepare data
         final String dataEntityName = "dataentity";
         DataEntity dataEntity = new DataEntity(dataEntityName);
         Map<String, Object> row = new HashMap<>();
@@ -82,21 +80,24 @@ public class SQLiteDatabaseHelperTests {
         row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
         row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
-        //Action
-        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
-            Assert.assertNotNull(database);
-            return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
-        });
+        // Action
+        SQLiteDatabaseHelper.process(
+                dbPath,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
+                database -> {
+                    Assert.assertNotNull(database);
+                    return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
+                });
 
         int tableSize = SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME);
 
-        //Assert
+        // Assert
         Assert.assertEquals(tableSize, 1);
     }
 
     @Test
     public void testGetTableSize_Failure() {
-        //Prepare data
+        // Prepare data
         final String dataEntityName = "dataentity";
         DataEntity dataEntity = new DataEntity(dataEntityName);
         Map<String, Object> row = new HashMap<>();
@@ -104,22 +105,24 @@ public class SQLiteDatabaseHelperTests {
         row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
         row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
-
         final String incorrectDbPath = "incorrect_database_path";
 
-        //Action
-        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
-            Assert.assertNotNull(database);
-            return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
-        });
+        // Action
+        SQLiteDatabaseHelper.process(
+                dbPath,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
+                database -> {
+                    Assert.assertNotNull(database);
+                    return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
+                });
 
-        //Action
+        // Action
         Assert.assertEquals(SQLiteDatabaseHelper.getTableSize(incorrectDbPath, TABLE_NAME), 0);
     }
 
     @Test
     public void testClearTable_Success() {
-        //Prepare data
+        // Prepare data
         final String dataEntityName = "dataentity";
         DataEntity dataEntity = new DataEntity(dataEntityName);
         Map<String, Object> row = new HashMap<>();
@@ -127,23 +130,26 @@ public class SQLiteDatabaseHelperTests {
         row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
         row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
-        //Action
-        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
-            Assert.assertNotNull(database);
-            return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
-        });
+        // Action
+        SQLiteDatabaseHelper.process(
+                dbPath,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
+                database -> {
+                    Assert.assertNotNull(database);
+                    return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
+                });
         Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
 
         SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME);
 
-        //Assert
+        // Assert
         Assert.assertTrue(SQLiteDatabaseHelper.clearTable(dbPath, TABLE_NAME));
         Assert.assertEquals(0, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
     }
 
     @Test
     public void testClearTable_Failure() {
-        //Prepare data
+        // Prepare data
         final String dataEntityName = "dataentity";
         DataEntity dataEntity = new DataEntity(dataEntityName);
         Map<String, Object> row = new HashMap<>();
@@ -151,17 +157,19 @@ public class SQLiteDatabaseHelperTests {
         row.put(TB_KEY_UNIQUE_IDENTIFIER, dataEntity.getUniqueIdentifier());
         row.put(TB_KEY_TIMESTAMP, dataEntity.getTimestamp().getTime());
 
-        //Action
-        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
-            Assert.assertNotNull(database);
-            return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
-        });
+        // Action
+        SQLiteDatabaseHelper.process(
+                dbPath,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
+                database -> {
+                    Assert.assertNotNull(database);
+                    return database.insert(TABLE_NAME, null, getContentValueFromMap(row)) > -1;
+                });
         Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
-
 
         String incorrectDBPath = "incorrect_database_path";
 
-        //Assert
+        // Assert
         Assert.assertFalse(SQLiteDatabaseHelper.clearTable(incorrectDBPath, TABLE_NAME));
         Assert.assertEquals(1, SQLiteDatabaseHelper.getTableSize(dbPath, TABLE_NAME));
     }
@@ -169,34 +177,44 @@ public class SQLiteDatabaseHelperTests {
     @Test
     public void testProcessShouldCloseDatabase() {
         final AtomicReference<SQLiteDatabase> processedDatabase = new AtomicReference<>(null);
-        SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
-            Assert.assertNotNull(database);
-            Assert.assertTrue(database.isOpen());
-            processedDatabase.set(database);
-            return true;
-        });
+        SQLiteDatabaseHelper.process(
+                dbPath,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
+                database -> {
+                    Assert.assertNotNull(database);
+                    Assert.assertTrue(database.isOpen());
+                    processedDatabase.set(database);
+                    return true;
+                });
         Assert.assertNotNull(processedDatabase.get());
         Assert.assertFalse(processedDatabase.get().isOpen());
     }
 
     @Test
     public void testProcessShouldCatchException_badDatabaseConnection() {
-        boolean result = SQLiteDatabaseHelper.process("xxx", SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
-            Assert.assertNull(database);
-            return false;
-        });
+        boolean result =
+                SQLiteDatabaseHelper.process(
+                        "xxx",
+                        SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
+                        database -> {
+                            Assert.assertNull(database);
+                            return false;
+                        });
         Assert.assertFalse(result);
     }
 
     @Test
     public void testProcessShouldCatchException_badDatabaseOperations() {
-        boolean result = SQLiteDatabaseHelper.process(dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE, (database) -> {
-            Assert.assertNotNull(database);
-            throw new RuntimeException("xxxx");
-        });
+        boolean result =
+                SQLiteDatabaseHelper.process(
+                        dbPath,
+                        SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
+                        database -> {
+                            Assert.assertNotNull(database);
+                            throw new RuntimeException("xxxx");
+                        });
         Assert.assertFalse(result);
     }
-
 
     private ContentValues getContentValueFromMap(final Map<String, Object> values) {
         ContentValues contentValues = new ContentValues();
@@ -230,5 +248,4 @@ public class SQLiteDatabaseHelperTests {
 
         return contentValues;
     }
-
 }

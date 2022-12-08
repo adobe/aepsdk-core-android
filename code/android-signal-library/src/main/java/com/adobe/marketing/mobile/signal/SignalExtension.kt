@@ -7,11 +7,20 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.signal
 
 import androidx.annotation.VisibleForTesting
-import com.adobe.marketing.mobile.*
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
+import com.adobe.marketing.mobile.Extension
+import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.MobilePrivacyStatus
+import com.adobe.marketing.mobile.SharedStateResolution
+import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.services.HitQueuing
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.PersistentHitQueue
@@ -66,7 +75,6 @@ class SignalExtension : Extension {
                     SignalConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY
                 )
             )
-
         } catch (e: Exception) {
             MobilePrivacyStatus.UNKNOWN
         }

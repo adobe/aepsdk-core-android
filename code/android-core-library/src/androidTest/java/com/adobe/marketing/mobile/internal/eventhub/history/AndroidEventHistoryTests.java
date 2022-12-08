@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.eventhub.history;
 
@@ -16,27 +16,24 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import android.content.Context;
-
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventHistoryRequest;
 import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.TestUtils;
 import com.adobe.marketing.mobile.services.MockAppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
-
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-
 @RunWith(AndroidJUnit4.class)
 public class AndroidEventHistoryTests {
+
     private AndroidEventHistory androidEventHistory;
     private HashMap<String, Object> data;
     private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
@@ -58,11 +55,12 @@ public class AndroidEventHistoryTests {
             fail(e.getLocalizedMessage());
         }
 
-        data = new HashMap<String, Object>() {
-            {
-                put("key", "value");
-            }
-        };
+        data =
+                new HashMap<String, Object>() {
+                    {
+                        put("key", "value");
+                    }
+                };
     }
 
     @Test
@@ -70,15 +68,13 @@ public class AndroidEventHistoryTests {
         // setup
         final CountDownLatch latch = new CountDownLatch(1);
         final boolean[] result = new boolean[1];
-        EventHistoryResultHandler<Boolean> handler = value -> {
-            result[0] = value;
-            latch.countDown();
-        };
+        EventHistoryResultHandler<Boolean> handler =
+                value -> {
+                    result[0] = value;
+                    latch.countDown();
+                };
 
-
-        Event event = new Event.Builder("name", "type", "source")
-                .setEventData(data)
-                .build();
+        Event event = new Event.Builder("name", "type", "source").setEventData(data).build();
         // test
         androidEventHistory.recordEvent(event, handler);
         latch.await();
@@ -92,19 +88,19 @@ public class AndroidEventHistoryTests {
         final CountDownLatch latch = new CountDownLatch(5);
         final CountDownLatch latch2 = new CountDownLatch(1);
         final int[] result = new int[1];
-        EventHistoryResultHandler<Boolean> handler = result1 -> {
-            assertTrue(result1);
-            latch.countDown();
-        };
-        EventHistoryResultHandler<Integer> handler2 = value -> {
-            result[0] = value;
-            latch2.countDown();
-        };
+        EventHistoryResultHandler<Boolean> handler =
+                result1 -> {
+                    assertTrue(result1);
+                    latch.countDown();
+                };
+        EventHistoryResultHandler<Integer> handler2 =
+                value -> {
+                    result[0] = value;
+                    latch2.countDown();
+                };
 
         for (int i = 0; i < 5; i++) {
-            Event event = new Event.Builder("name", "type", "source")
-                    .setEventData(data)
-                    .build();
+            Event event = new Event.Builder("name", "type", "source").setEventData(data).build();
             androidEventHistory.recordEvent(event, handler);
         }
 
@@ -128,37 +124,37 @@ public class AndroidEventHistoryTests {
         final CountDownLatch latch2 = new CountDownLatch(10);
         final CountDownLatch latch3 = new CountDownLatch(1);
         final int[] result = new int[1];
-        EventHistoryResultHandler<Boolean> handler = result1 -> {
-            assertTrue(result1);
-            latch.countDown();
-        };
-        EventHistoryResultHandler<Boolean> handler2 = result12 -> {
-            assertTrue(result12);
-            latch2.countDown();
-        };
-        EventHistoryResultHandler<Integer> handler3 = value -> {
-            result[0] = value;
-            latch3.countDown();
-        };
+        EventHistoryResultHandler<Boolean> handler =
+                result1 -> {
+                    assertTrue(result1);
+                    latch.countDown();
+                };
+        EventHistoryResultHandler<Boolean> handler2 =
+                result12 -> {
+                    assertTrue(result12);
+                    latch2.countDown();
+                };
+        EventHistoryResultHandler<Integer> handler3 =
+                value -> {
+                    result[0] = value;
+                    latch3.countDown();
+                };
 
         for (int i = 0; i < 5; i++) {
-            Event event = new Event.Builder("name", "type", "source")
-                    .setEventData(data)
-                    .build();
+            Event event = new Event.Builder("name", "type", "source").setEventData(data).build();
             androidEventHistory.recordEvent(event, handler);
         }
 
         latch.await();
-        Map<String, Object> data2 = new HashMap<String, Object>() {
-            {
-                put("key2", "value2");
-            }
-        };
+        Map<String, Object> data2 =
+                new HashMap<String, Object>() {
+                    {
+                        put("key2", "value2");
+                    }
+                };
 
         for (int i = 0; i < 10; i++) {
-            Event event = new Event.Builder("name", "type", "source")
-                    .setEventData(data2)
-                    .build();
+            Event event = new Event.Builder("name", "type", "source").setEventData(data2).build();
             androidEventHistory.recordEvent(event, handler2);
         }
 

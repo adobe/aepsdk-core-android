@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.eventhub
 
@@ -31,7 +31,8 @@ internal class EventListenerContainerTests {
     fun testResponseListener_MatchingTrigger() {
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
         val listener = ResponseListenerContainer(
-            testEvent.uniqueIdentifier, null,
+            testEvent.uniqueIdentifier,
+            null,
             object : AdobeCallbackWithError<Event> {
                 override fun call(value: Event?) {}
                 override fun fail(error: AdobeError?) {}
@@ -45,7 +46,8 @@ internal class EventListenerContainerTests {
     fun testResponseListener_ListenerException() {
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
         val listener = ResponseListenerContainer(
-            testEvent.uniqueIdentifier, null,
+            testEvent.uniqueIdentifier,
+            null,
             object : AdobeCallbackWithError<Event> {
                 override fun call(value: Event?) {
                     throw Exception()

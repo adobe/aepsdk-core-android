@@ -13,9 +13,7 @@ package com.adobe.marketing.mobile.lifecycle;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
-
 import androidx.annotation.VisibleForTesting;
-
 import com.adobe.marketing.mobile.util.StringUtils;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -54,66 +52,66 @@ final class LifecycleUtil {
             return "";
         }
 
-		final String timePattern =
-				StringUtils.isNullOrEmpty(timestampFormat) ? DATE_TIME_FORMAT : timestampFormat;
-		final Locale posixLocale =
-				new Locale(Locale.US.getLanguage(), Locale.US.getCountry(), "POSIX");
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(timePattern, posixLocale);
-		simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-		return simpleDateFormat.format(timestamp);
-	}
+        final String timePattern =
+                StringUtils.isNullOrEmpty(timestampFormat) ? DATE_TIME_FORMAT : timestampFormat;
+        final Locale posixLocale =
+                new Locale(Locale.US.getLanguage(), Locale.US.getCountry(), "POSIX");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(timePattern, posixLocale);
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return simpleDateFormat.format(timestamp);
+    }
 
-	/**
-	 * Formats the locale value by replacing '_' with '-'. Uses {@link Locale#toString()} to retrieve
-	 * the language tag.
-	 * <p>
-	 * Note. the use of {@code Locale#toString()} does not return a value formatted to BCP 47.
-	 * For example, script codes are appended to the locale as "-#scriptCode", as in "zh-HK-#Hant",
-	 * where BCP 47 requires the format as "zh-Hant-HK".
-	 *
-	 * @see #formatLocaleXDM(Locale) 
-	 * @param locale active locale value
-	 * @return string representation of the locale
-	 */
-	static String formatLocale(final Locale locale) {
-		return locale == null ? null : locale.toString().replace('_', '-');
-	}
+    /**
+     * Formats the locale value by replacing '_' with '-'. Uses {@link Locale#toString()} to
+     * retrieve the language tag.
+     *
+     * <p>Note. the use of {@code Locale#toString()} does not return a value formatted to BCP 47.
+     * For example, script codes are appended to the locale as "-#scriptCode", as in "zh-HK-#Hant",
+     * where BCP 47 requires the format as "zh-Hant-HK".
+     *
+     * @see #formatLocaleXDM(Locale)
+     * @param locale active locale value
+     * @return string representation of the locale
+     */
+    static String formatLocale(final Locale locale) {
+        return locale == null ? null : locale.toString().replace('_', '-');
+    }
 
-	/**
-	 * Format the locale to the string format used in XDM.
-	 * For Android API version >= Lollipop (21), returns {@link Locale#toLanguageTag()}.
-	 * For Android API version < 21, returns a concatenation of {@link Locale#getLanguage()}
-	 * and {@link Locale#getCountry()}, separated by '-'.
-	 *
-	 * @param locale active Locale value
-	 * @return String representation of the locale
-	 */
-	@SuppressLint("NewApi")
-	static String formatLocaleXDM(final Locale locale) {
-		if (locale == null) {
-			return null;
-		}
+    /**
+     * Format the locale to the string format used in XDM. For Android API version >= Lollipop (21),
+     * returns {@link Locale#toLanguageTag()}. For Android API version < 21, returns a concatenation
+     * of {@link Locale#getLanguage()} and {@link Locale#getCountry()}, separated by '-'.
+     *
+     * @param locale active Locale value
+     * @return String representation of the locale
+     */
+    @SuppressLint("NewApi")
+    static String formatLocaleXDM(final Locale locale) {
+        if (locale == null) {
+            return null;
+        }
 
-		if (isLollipopOrGreater.check()) {
-			return locale.toLanguageTag();
-		} else {
-			String language = locale.getLanguage();
-			String region = locale.getCountry();
+        if (isLollipopOrGreater.check()) {
+            return locale.toLanguageTag();
+        } else {
+            String language = locale.getLanguage();
+            String region = locale.getCountry();
 
-			if (!StringUtils.isNullOrEmpty(language)) {
-					return !StringUtils.isNullOrEmpty(region) ? String.format("%s-%s", language, region) : language;
-			}
+            if (!StringUtils.isNullOrEmpty(language)) {
+                return !StringUtils.isNullOrEmpty(region)
+                        ? String.format("%s-%s", language, region)
+                        : language;
+            }
 
-			return null;
-		}
-	}
+            return null;
+        }
+    }
 
-	interface BuildVersionCheck {
-		boolean check();
-	}
+    interface BuildVersionCheck {
+        boolean check();
+    }
 
-	@VisibleForTesting
-	static BuildVersionCheck isLollipopOrGreater = () ->
-			Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
-
+    @VisibleForTesting
+    static BuildVersionCheck isLollipopOrGreater =
+            () -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
 }

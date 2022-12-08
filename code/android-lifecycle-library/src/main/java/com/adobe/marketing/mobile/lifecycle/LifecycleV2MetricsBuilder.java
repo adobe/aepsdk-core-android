@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * </ul>
  */
 class LifecycleV2MetricsBuilder {
-	private static final String SELF_LOG_TAG = "LifecycleV2MetricsBuilder";
+    private static final String SELF_LOG_TAG = "LifecycleV2MetricsBuilder";
     private final DeviceInforming deviceInfoService;
     private XDMLifecycleDevice xdmDeviceInfo;
     private XDMLifecycleEnvironment xdmEnvironmentInfo;

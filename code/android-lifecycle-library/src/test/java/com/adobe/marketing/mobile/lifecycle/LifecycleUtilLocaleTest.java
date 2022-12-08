@@ -19,18 +19,13 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import android.os.Build;
 
 @RunWith(Parameterized.class)
 public class LifecycleUtilLocaleTest {
-    // Pattern used in XDM Environment._dc.language to validate language code
-    private final String languagePattern = "^(((([A-Za-z]{2,3}(-([A-Za-z]{3}(-[A-Za-z]{3}){0,2}))?)|[A-Za-z]{4}|[A-Za-z]{5,8})(-([A-Za-z]{4}))?(-([A-Za-z]{2}|[0-9]{3}))?(-([A-Za-z0-9]{5,8}|[0-9][A-Za-z0-9]{3}))*(-([0-9A-WY-Za-wy-z](-[A-Za-z0-9]{2,8})+))*(-(x(-[A-Za-z0-9]{1,8})+))?)|(x(-[A-Za-z0-9]{1,8})+)|((en-GB-oed|i-ami|i-bnn|i-default|i-enochian|i-hak|i-klingon|i-lux|i-mingo|i-navajo|i-pwn|i-tao|i-tay|i-tsu|sgn-BE-FR|sgn-BE-NL|sgn-CH-DE)|(art-lojban|cel-gaulish|no-bok|no-nyn|zh-guoyu|zh-hakka|zh-min|zh-min-nan|zh-xiang)))$";
 
     @After
     public void teardown() {
@@ -57,6 +52,14 @@ public class LifecycleUtilLocaleTest {
                 {
                         // Variant only
                         "Variant only", null, "und-POSIX", new Locale.Builder().setVariant("POSIX").build()
+                },
+                {
+                        // Undefined
+                        "Undefined Locale", null, "und", new Locale.Builder().build()
+                },
+                {
+                        // Null
+                        "Null Locale", null, null, null
                 },
                 {
                         // Language + Region
@@ -122,7 +125,6 @@ public class LifecycleUtilLocaleTest {
                         // English US with Buddhist Calendar
                         "en-US-ca-buddhist", "en-US", "en-US", Locale.forLanguageTag("en-US-ca-buddhist")
                 }
-
         });
     }
 
@@ -150,24 +152,5 @@ public class LifecycleUtilLocaleTest {
         LifecycleUtil.isLollipopOrGreater = () -> false;
         String result = LifecycleUtil.formatLocaleXDM(testLocale);
         assertEquals(expectedKitKat, result);
-    }
-
-    @Test
-    public void testFormattedLocaleConformsToXDMPatternLollipopSDK() {
-        LifecycleUtil.isLollipopOrGreater = () -> true;
-        String result = LifecycleUtil.formatLocaleXDM(testLocale);
-        assertTrue("Locale does not match pattern: " + result, Pattern.matches(languagePattern, result));
-    }
-
-    @Test
-    public void testFormattedLocaleConformsToXDMPatternKitKatSDKSDK() {
-        LifecycleUtil.isLollipopOrGreater = () -> false;
-        String result = LifecycleUtil.formatLocaleXDM(testLocale);
-        if (expectedKitKat == null) {
-            // If formatted result is null, then value is not added to XDM
-            assertNull(result);
-        } else {
-            assertTrue("Locale does not match pattern: " + result, Pattern.matches(languagePattern, result));
-        }
     }
 }

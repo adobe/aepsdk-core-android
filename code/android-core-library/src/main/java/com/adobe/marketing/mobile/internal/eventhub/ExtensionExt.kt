@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 @file:Suppress("DEPRECATION")
 
 package com.adobe.marketing.mobile.internal.eventhub
@@ -107,7 +108,9 @@ internal fun Class<out ExtensionListener>.initWith(extensionApi: ExtensionApi, t
         }
     } catch (ex: Exception) {
         Log.debug(
-            CoreConstants.LOG_TAG, "ExtensionExt", "Initializing Extension $this failed with $ex"
+            CoreConstants.LOG_TAG,
+            "ExtensionExt",
+            "Initializing Extension $this failed with $ex"
         )
     }
 

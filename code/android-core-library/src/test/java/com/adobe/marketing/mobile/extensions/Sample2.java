@@ -7,9 +7,9 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
-package com.adobe.marketing.mobile.extensions;
+*/
 
+package com.adobe.marketing.mobile.extensions;
 
 import static com.adobe.marketing.mobile.extensions.Sample2Constants.*;
 
@@ -20,20 +20,26 @@ import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.util.DataReader;
 
 public class Sample2 {
+
     // Public APIs
     public static void getTrackingIdentifier(AdobeCallbackWithError<String> callback) {
         Event e = new Event.Builder("GetIdentifier", TYPE_REQUEST_IDENTIFIER, EVENT_SOURCE).build();
-        MobileCore.dispatchEventWithResponseCallback(e, 1000, new AdobeCallbackWithError<Event>() {
-            @Override
-            public void fail(AdobeError error) {
-                callback.fail(error);
-            }
+        MobileCore.dispatchEventWithResponseCallback(
+                e,
+                1000,
+                new AdobeCallbackWithError<Event>() {
+                    @Override
+                    public void fail(AdobeError error) {
+                        callback.fail(error);
+                    }
 
-            @Override
-            public void call(Event value) {
-                String identifier = DataReader.optString(value.getEventData(), EVENT_DATA_IDENTIFIER, "");
-                callback.call(identifier);
-            }
-        });
+                    @Override
+                    public void call(Event value) {
+                        String identifier =
+                                DataReader.optString(
+                                        value.getEventData(), EVENT_DATA_IDENTIFIER, "");
+                        callback.call(identifier);
+                    }
+                });
     }
 }

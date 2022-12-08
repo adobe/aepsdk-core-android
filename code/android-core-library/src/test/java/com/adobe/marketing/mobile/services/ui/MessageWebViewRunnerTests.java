@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services.ui;
 
@@ -20,44 +20,38 @@ import android.content.Context;
 import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.widget.FrameLayout;
-
-import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
-import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
-import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
-
+import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
+import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
+import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.HashMap;
-
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class MessageWebViewRunnerTests {
-    @Mock
-    private AEPMessage mockAEPMessage;
-    @Mock
-    private MessageFragment mockMessageFragment;
-    @Mock
-    private ViewGroup mockViewGroup;
-    @Mock
-    private FrameLayout mockFrameLayout;
-    @Mock
-    private WebSettings mockWebSettings;
-    @Mock
-    private Context mockContext;
-    @Mock
-    private AppContextService mockAppContextService;
-    @Mock
-    private Application mockApp;
+
+    @Mock private AEPMessage mockAEPMessage;
+
+    @Mock private MessageFragment mockMessageFragment;
+
+    @Mock private ViewGroup mockViewGroup;
+
+    @Mock private FrameLayout mockFrameLayout;
+
+    @Mock private WebSettings mockWebSettings;
+
+    @Mock private Context mockContext;
+
+    @Mock private AppContextService mockAppContextService;
+
+    @Mock private Application mockApp;
 
     private MessageWebViewRunner messageFragmentRunner;
     private MessageSettings aepMessageSettings;
@@ -96,37 +90,40 @@ public class MessageWebViewRunnerTests {
         mockAEPMessage.rootViewGroup = mockViewGroup;
         mockAEPMessage.fragmentFrameLayout = mockFrameLayout;
         mockMessageWebview = null;
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_ThenMessageShown() {
-
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // test
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromTop_ThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+    public void
+            testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromTop_ThenMessageShown() {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.TOP);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -134,7 +131,8 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
@@ -143,12 +141,15 @@ public class MessageWebViewRunnerTests {
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromLeft_ThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+    public void
+            testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromLeft_ThenMessageShown() {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.LEFT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -156,22 +157,25 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromRight_ThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+    public void
+            testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromRight_ThenMessageShown() {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.RIGHT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -179,22 +183,25 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromBottom_ThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+    public void
+            testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromBottom_ThenMessageShown() {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.BOTTOM);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -202,22 +209,24 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageAnimationFadesIn_ThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.FADE);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -225,22 +234,24 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_NoMessageAnimation_ThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.NONE);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -248,22 +259,24 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_NonFullscreenMessage_ThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setHeight(50);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -271,22 +284,24 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignLeftThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setHorizontalAlign(MessageAlignment.LEFT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -294,22 +309,24 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignRightThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setHorizontalAlign(MessageAlignment.RIGHT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -317,22 +334,24 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageVerticalAlignBottomThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setVerticalAlign(MessageAlignment.BOTTOM);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -340,22 +359,24 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageVerticalAlignCenterThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             aepMessageSettings.setVerticalAlign(MessageAlignment.CENTER);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -363,43 +384,47 @@ public class MessageWebViewRunnerTests {
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_BuildVersionLessThanAPI17_ThenMessageShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
             // verify
-            Mockito.verify(mockMessageWebview, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
+            Mockito.verify(mockMessageWebview, Mockito.times(1))
+                    .setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockViewGroup, Mockito.times(1)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(1)).isMessageVisible();
             Mockito.verify(mockMessageWebview, Mockito.times(1)).getSettings();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
         }
-
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_NullRootViewGroup_ThenMessageNotShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             mockAEPMessage.rootViewGroup = null;
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -411,16 +436,18 @@ public class MessageWebViewRunnerTests {
             Mockito.verify(mockAEPMessage, Mockito.times(0)).isMessageVisible();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).cleanup();
         }
-
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_RootviewHasWidthEqualToZero_ThenMessageNotShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+    public void
+            testRunnable_WithValidAEPMessage_And_RootviewHasWidthEqualToZero_ThenMessageNotShown() {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             when(mockViewGroup.getWidth()).thenReturn(0);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -432,16 +459,18 @@ public class MessageWebViewRunnerTests {
             Mockito.verify(mockAEPMessage, Mockito.times(0)).isMessageVisible();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).cleanup();
         }
-
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_RootviewHasHeightEqualToZero_ThenMessageNotShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+    public void
+            testRunnable_WithValidAEPMessage_And_RootviewHasHeightEqualToZero_ThenMessageNotShown() {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             when(mockViewGroup.getHeight()).thenReturn(0);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -453,16 +482,17 @@ public class MessageWebViewRunnerTests {
             Mockito.verify(mockAEPMessage, Mockito.times(0)).isMessageVisible();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).cleanup();
         }
-
     }
 
     @Test
     public void testRunnable_WithInvalidAEPMessage_ThenMessageNotShown() {
-        try (MockedConstruction<MessageWebView> constructionMock = mockConstruction(MessageWebView.class,
-                (mock, context) -> {
-                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                    mockMessageWebview = mock;
-                })) {
+        try (MockedConstruction<MessageWebView> constructionMock =
+                mockConstruction(
+                        MessageWebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                            mockMessageWebview = mock;
+                        })) {
             // setup
             when(mockAEPMessage.getMessageHtml()).thenReturn(null);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -474,7 +504,5 @@ public class MessageWebViewRunnerTests {
             Mockito.verify(mockAEPMessage, Mockito.times(0)).isMessageVisible();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).cleanup();
         }
-
     }
 }
-

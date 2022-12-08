@@ -7,21 +7,22 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
 import java.util.HashMap;
 
 class FakeTokenFinder implements TokenFinder {
-	HashMap<String, Object> map;
 
-	public FakeTokenFinder(HashMap<String, Object> map) {
-		this.map = map;
-	}
+    HashMap<String, Object> map;
 
-	@Override
-	public Object get(String key) {
-		return map.get(key);
-	}
+    public FakeTokenFinder(HashMap<String, Object> map) {
+        this.map = map;
+    }
+
+    @Override
+    public Object get(String key) {
+        return map.get(key);
+    }
 }

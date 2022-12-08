@@ -7,12 +7,11 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
 @SuppressWarnings("unused")
-
 public interface AdobeCallback<T> {
-	void call(final T value);
+    void call(final T value);
 }

@@ -4,9 +4,9 @@ clean:
 
 checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-checkstyle
 
-check-format: core-check-format
+checkformat: core-checkformat signal-checkformat lifecycle-checkformat identity-checkformat
 
-format: core-format
+format: core-format signal-format lifecycle-format identity-format
 
 api-dump: 
 		(./code/gradlew -p code/android-core-library apiDump)
@@ -40,11 +40,11 @@ build-third-party-extension:
 core-checkstyle:
 		(./code/gradlew -p code/android-core-library checkstyle)
 
-core-check-format:
-		(./code/gradlew -p code/android-core-library ktlintCheck)
+core-checkformat:
+		(./code/gradlew -p code/android-core-library spotlessCheck)
 
 core-format:
-		(./code/gradlew -p code/android-core-library ktlintFormat)
+		(./code/gradlew -p code/android-core-library spotlessApply)
 
 core-assemble-phone:
 		(./code/gradlew -p code/android-core-library assemblePhone)
@@ -82,11 +82,11 @@ core-publish-maven-local-jitpack:
 signal-checkstyle:
 		(./code/gradlew -p code/android-signal-library checkstyle)
 
-signal-check-format:
-		(./code/gradlew -p code/android-signal-library ktlintCheck)
+signal-checkformat:
+		(./code/gradlew -p code/android-signal-library spotlessCheck)
 
 signal-format:
-		(./code/gradlew -p code/android-signal-library ktlintFormat)
+		(./code/gradlew -p code/android-signal-library spotlessApply)
 
 signal-assemble-phone:
 		(./code/gradlew -p code/android-signal-library assemblePhone)
@@ -123,6 +123,12 @@ signal-publish-maven-local-jitpack:
 lifecycle-checkstyle:
 		(./code/gradlew -p code/android-lifecycle-library checkstyle)
 
+lifecycle-checkformat:
+		(./code/gradlew -p code/android-lifecycle-library spotlessCheck)
+
+lifecycle-format:
+		(./code/gradlew -p code/android-lifecycle-library spotlessApply)
+
 lifecycle-assemble-phone:
 		(./code/gradlew -p code/android-lifecycle-library assemblePhone)
 
@@ -157,6 +163,12 @@ lifecycle-publish-maven-local-jitpack:
 
 identity-checkstyle:
 		(./code/gradlew -p code/android-identity-library checkstyle)
+
+identity-checkformat:
+		(./code/gradlew -p code/android-identity-library spotlessCheck)
+
+identity-format:
+		(./code/gradlew -p code/android-identity-library spotlessApply)
 
 identity-assemble-phone:
 		(./code/gradlew -p code/android-identity-library assemblePhone)

@@ -7,150 +7,156 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.lifecycle;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * This class is intended to be used by the {@link LifecycleV2Extension}.
- */
+/** This class is intended to be used by the {@link LifecycleV2Extension}. */
 @SuppressWarnings("unused")
 class XDMLifecycleMobileDetails {
-	private XDMLifecycleApplication application;
-	private XDMLifecycleDevice device;
-	private XDMLifecycleEnvironment environment;
-	private String eventType;
-	private java.util.Date timestamp;
 
-	XDMLifecycleMobileDetails() {}
+    private XDMLifecycleApplication application;
+    private XDMLifecycleDevice device;
+    private XDMLifecycleEnvironment environment;
+    private String eventType;
+    private java.util.Date timestamp;
 
-	Map<String, Object> serializeToXdm() {
-		Map<String, Object> map = new HashMap<String, Object>();
+    XDMLifecycleMobileDetails() {}
 
-		if (this.application != null) {
-			final Map<String, Object> applicationData = this.application.serializeToXdm();
+    Map<String, Object> serializeToXdm() {
+        Map<String, Object> map = new HashMap<String, Object>();
 
-			if (applicationData != null && !applicationData.isEmpty()) {
-				map.put("application", applicationData);
-			}
-		}
+        if (this.application != null) {
+            final Map<String, Object> applicationData = this.application.serializeToXdm();
 
-		if (this.device != null) {
-			final Map<String, Object> deviceData = this.device.serializeToXdm();
+            if (applicationData != null && !applicationData.isEmpty()) {
+                map.put("application", applicationData);
+            }
+        }
 
-			if (deviceData != null && !deviceData.isEmpty()) {
-				map.put("device", deviceData);
-			}
-		}
+        if (this.device != null) {
+            final Map<String, Object> deviceData = this.device.serializeToXdm();
 
-		if (this.environment != null) {
-			final Map<String, Object> environmentData = this.environment.serializeToXdm();
+            if (deviceData != null && !deviceData.isEmpty()) {
+                map.put("device", deviceData);
+            }
+        }
 
-			if (environmentData != null && !environmentData.isEmpty()) {
-				map.put("environment", environmentData);
-			}
-		}
+        if (this.environment != null) {
+            final Map<String, Object> environmentData = this.environment.serializeToXdm();
 
-		if (this.eventType != null) {
-			map.put("eventType", this.eventType);
-		}
+            if (environmentData != null && !environmentData.isEmpty()) {
+                map.put("environment", environmentData);
+            }
+        }
 
-		if (this.timestamp != null) {
-			map.put("timestamp", LifecycleUtil.dateTimeISO8601String(this.timestamp));
-		}
+        if (this.eventType != null) {
+            map.put("eventType", this.eventType);
+        }
 
-		return map;
-	}
+        if (this.timestamp != null) {
+            map.put("timestamp", LifecycleUtil.dateTimeISO8601String(this.timestamp));
+        }
 
-	/**
-	 * Returns the Application property
-	 *
-	 * @return {@link XDMLifecycleApplication} value or null if the property is not set
-	 */
-	XDMLifecycleApplication getApplication() {
-		return this.application;
-	}
+        return map;
+    }
 
-	/**
-	 * Sets the Application property
-	 *
-	 * @param newValue the new Application value
-	 */
-	void setApplication(final XDMLifecycleApplication newValue) {
-		this.application = newValue;
-	}
-	/**
-	 * Returns the Device property
-	 * An identified device, application or device browser instance that is trackable across sessions, normally by cookies.
-	 * @return {@link XDMLifecycleDevice} value or null if the property is not set
-	 */
-	XDMLifecycleDevice getDevice() {
-		return this.device;
-	}
+    /**
+     * Returns the Application property
+     *
+     * @return {@link XDMLifecycleApplication} value or null if the property is not set
+     */
+    XDMLifecycleApplication getApplication() {
+        return this.application;
+    }
 
-	/**
-	 * Sets the Device property
-	 * An identified device, application or device browser instance that is trackable across sessions, normally by cookies.
-	 * @param newValue the new Device value
-	 */
-	void setDevice(final XDMLifecycleDevice newValue) {
-		this.device = newValue;
-	}
-	/**
-	 * Returns the Environment property
-	 * Information about the surrounding situation the event observation occurred in, specifically detailing transitory information such as the network or software versions.
-	 * @return {@link XDMLifecycleEnvironment} value or null if the property is not set
-	 */
-	XDMLifecycleEnvironment getEnvironment() {
-		return this.environment;
-	}
+    /**
+     * Sets the Application property
+     *
+     * @param newValue the new Application value
+     */
+    void setApplication(final XDMLifecycleApplication newValue) {
+        this.application = newValue;
+    }
 
-	/**
-	 * Sets the Environment property
-	 * Information about the surrounding situation the event observation occurred in, specifically detailing transitory information such as the network or software versions.
-	 * @param newValue the new Environment value
-	 */
-	void setEnvironment(final XDMLifecycleEnvironment newValue) {
-		this.environment = newValue;
-	}
+    /**
+     * Returns the Device property An identified device, application or device browser instance that
+     * is trackable across sessions, normally by cookies.
+     *
+     * @return {@link XDMLifecycleDevice} value or null if the property is not set
+     */
+    XDMLifecycleDevice getDevice() {
+        return this.device;
+    }
 
-	/**
-	 * Returns the Event Type property
-	 * The primary event type for this time-series record.
-	 * @return {@link String} value or null if the property is not set
-	 */
-	String getEventType() {
-		return this.eventType;
-	}
+    /**
+     * Sets the Device property An identified device, application or device browser instance that is
+     * trackable across sessions, normally by cookies.
+     *
+     * @param newValue the new Device value
+     */
+    void setDevice(final XDMLifecycleDevice newValue) {
+        this.device = newValue;
+    }
 
-	/**
-	 * Sets the Event Type property
-	 * The primary event type for this time-series record.
-	 * @param newValue the new Event Type value
-	 */
-	void setEventType(final String newValue) {
-		this.eventType = newValue;
-	}
+    /**
+     * Returns the Environment property Information about the surrounding situation the event
+     * observation occurred in, specifically detailing transitory information such as the network or
+     * software versions.
+     *
+     * @return {@link XDMLifecycleEnvironment} value or null if the property is not set
+     */
+    XDMLifecycleEnvironment getEnvironment() {
+        return this.environment;
+    }
 
-	/**
-	 * Returns the Timestamp property
-	 * The time when an event or observation occurred.
-	 * @return {@link java.util.Date} value or null if the property is not set
-	 */
-	java.util.Date getTimestamp() {
-		return this.timestamp;
-	}
+    /**
+     * Sets the Environment property Information about the surrounding situation the event
+     * observation occurred in, specifically detailing transitory information such as the network or
+     * software versions.
+     *
+     * @param newValue the new Environment value
+     */
+    void setEnvironment(final XDMLifecycleEnvironment newValue) {
+        this.environment = newValue;
+    }
 
-	/**
-	 * Sets the Timestamp property
-	 * The time when an event or observation occurred.
-	 * @param newValue the new Timestamp value
-	 */
-	void setTimestamp(final java.util.Date newValue) {
-		this.timestamp = newValue;
-	}
+    /**
+     * Returns the Event Type property The primary event type for this time-series record.
+     *
+     * @return {@link String} value or null if the property is not set
+     */
+    String getEventType() {
+        return this.eventType;
+    }
+
+    /**
+     * Sets the Event Type property The primary event type for this time-series record.
+     *
+     * @param newValue the new Event Type value
+     */
+    void setEventType(final String newValue) {
+        this.eventType = newValue;
+    }
+
+    /**
+     * Returns the Timestamp property The time when an event or observation occurred.
+     *
+     * @return {@link java.util.Date} value or null if the property is not set
+     */
+    java.util.Date getTimestamp() {
+        return this.timestamp;
+    }
+
+    /**
+     * Sets the Timestamp property The time when an event or observation occurred.
+     *
+     * @param newValue the new Timestamp value
+     */
+    void setTimestamp(final java.util.Date newValue) {
+        this.timestamp = newValue;
+    }
 }
-

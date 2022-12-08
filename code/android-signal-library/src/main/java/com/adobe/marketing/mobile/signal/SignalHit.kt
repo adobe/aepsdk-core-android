@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.signal
 
 import com.adobe.marketing.mobile.services.DataEntity
@@ -55,7 +56,6 @@ internal class SignalHit(
                 jsonObject.optInt(TIME_OUT, 0)
             )
         }
-
     }
 
     @JvmSynthetic
@@ -63,6 +63,3 @@ internal class SignalHit(
         return if (timeout > 0) timeout else default
     }
 }
-
-
-

@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.configuration
 
@@ -262,7 +262,9 @@ class ConfigurationDownloaderTest {
         val networkRequestCaptor: KArgumentCaptor<NetworkRequest> = argumentCaptor()
         verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any())
         val expectedNetworkRequest = NetworkRequest(
-            SAMPLE_URL, HttpMethod.GET, null,
+            SAMPLE_URL,
+            HttpMethod.GET,
+            null,
             mapOf(
                 ConfigurationDownloader.HTTP_HEADER_IF_NONE_MATCH to "someETag",
                 ConfigurationDownloader.HTTP_HEADER_IF_MODIFIED_SINCE to TimeUtils.getRFC2822Date(
@@ -271,7 +273,8 @@ class ConfigurationDownloaderTest {
                     Locale.US
                 )
             ),
-            10000, 10000
+            10000,
+            10000
         )
         verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.firstValue)
 
@@ -307,7 +310,6 @@ class ConfigurationDownloaderTest {
         responseStream: InputStream?,
         metadata: Map<String, String>
     ): HttpConnecting {
-
         val mockResponse = Mockito.mock(HttpConnecting::class.java)
         `when`(mockResponse.responseCode).thenReturn(responseCode)
         `when`(mockResponse.inputStream).thenReturn(responseStream)

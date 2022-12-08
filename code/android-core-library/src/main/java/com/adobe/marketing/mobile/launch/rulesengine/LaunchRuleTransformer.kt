@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
@@ -40,7 +40,9 @@ internal object LaunchRuleTransformer {
         transformer.register(LaunchRulesEngineConstants.Transform.URL_ENCODING_FUNCTION) { value ->
             if (value is String) {
                 UrlEncoder.urlEncode(value)
-            } else value
+            } else {
+                value
+            }
         }
     }
 

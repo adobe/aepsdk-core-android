@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services;
 
@@ -19,7 +19,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,22 +29,16 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 @RunWith(MockitoJUnitRunner.class)
 public class PersistentHitQueueTests {
 
-    @Mock
-    DataQueue dataQueue;
+    @Mock DataQueue dataQueue;
 
-    @Mock
-    HitProcessing processor;
+    @Mock HitProcessing processor;
 
     @Test
     public void testIllegalArguementExceptionIsThrownWhenPassNullToConstructor() {
-        //Setup
+        // Setup
         boolean isExceptionThrown = false;
 
         try {
@@ -51,84 +47,87 @@ public class PersistentHitQueueTests {
             isExceptionThrown = true;
         }
 
-        //Assert
+        // Assert
         Assert.assertTrue(isExceptionThrown);
     }
 
     @Test
     public void testDataEntityQueuingShouldReturnTrue() {
-        //Setup
+        // Setup
         DataEntity dataEntity = new DataEntity("");
         Mockito.when(dataQueue.add(dataEntity)).thenReturn(true);
 
         PersistentHitQueue persistentHitQueue = new PersistentHitQueue(dataQueue, processor);
 
-        //Action
+        // Action
         boolean result = persistentHitQueue.queue(dataEntity);
 
-        //Assert
+        // Assert
         Assert.assertTrue(result);
     }
 
     @Test
     public void testClearShouldCallDataQueueClear() {
-
-        //Setup
+        // Setup
         Mockito.when(dataQueue.clear()).thenReturn(true);
         PersistentHitQueue persistentHitQueue = new PersistentHitQueue(dataQueue, processor);
 
-        //Action
+        // Action
         persistentHitQueue.clear();
 
-        //Assert
+        // Assert
         Mockito.verify(dataQueue, Mockito.times(1)).clear();
-
     }
 
     @Test
     public void testCountShouldCallDataQueueCount() {
-
-        //Setup
+        // Setup
         Mockito.when(dataQueue.count()).thenReturn(1);
         PersistentHitQueue persistentHitQueue = new PersistentHitQueue(dataQueue, processor);
 
-        //Action
+        // Action
         int count = persistentHitQueue.count();
 
-        //Assert
+        // Assert
         Mockito.verify(dataQueue, Mockito.times(1)).count();
         assertEquals(count, 1);
     }
 
     @Test
     public void testCloseShouldCallDataQueueClose() {
-
-        //Setup
+        // Setup
         PersistentHitQueue persistentHitQueue = new PersistentHitQueue(dataQueue, processor);
 
-        //Action
+        // Action
         persistentHitQueue.close();
 
-        //Assert
+        // Assert
         Mockito.verify(dataQueue, Mockito.times(1)).close();
     }
 
     @Test
     public void testBeginProcessingCallsProcess() {
-        //Setup
+        // Setup
         DataEntity dataEntity1 = new DataEntity("dataEntity1");
         DataEntity dataEntity2 = new DataEntity("dataEntity2");
 
         PersistentHitQueue persistentHitQueue = new PersistentHitQueue(dataQueue, processor);
-        Mockito.when(dataQueue.peek()).thenReturn(dataEntity1).thenReturn(dataEntity2).thenReturn(null);
-        Mockito.doAnswer(invocation -> {
-            HitProcessingResult callback = (HitProcessingResult) invocation.getArguments()[1];
-            callback.complete(true);
-            return null;
-        }).when(processor).processHit(any(), any());
+        Mockito.when(dataQueue.peek())
+                .thenReturn(dataEntity1)
+                .thenReturn(dataEntity2)
+                .thenReturn(null);
+        Mockito.doAnswer(
+                        invocation -> {
+                            HitProcessingResult callback =
+                                    (HitProcessingResult) invocation.getArguments()[1];
+                            callback.complete(true);
+                            return null;
+                        })
+                .when(processor)
+                .processHit(any(), any());
         Mockito.when(dataQueue.remove()).thenReturn(true).thenReturn(true);
 
-        //Action
+        // Action
         persistentHitQueue.beginProcessing();
 
         try {
@@ -137,7 +136,7 @@ public class PersistentHitQueueTests {
             e.printStackTrace();
         }
 
-        //Assert
+        // Assert
         Mockito.verify(dataQueue, Mockito.times(3)).peek();
         Mockito.verify(dataQueue, Mockito.times(2)).remove();
         Mockito.verify(processor, Mockito.times(2)).processHit(any(), any());
@@ -145,29 +144,36 @@ public class PersistentHitQueueTests {
 
     @Test
     public void testBeginProcessingCallsProcessWithTimeInterval() {
-        //Setup
+        // Setup
         DataEntity dataEntity = new DataEntity("dataEntity1");
 
         PersistentHitQueue persistentHitQueue = new PersistentHitQueue(dataQueue, processor);
-        Mockito.when(dataQueue.peek()).thenReturn(dataEntity).thenReturn(dataEntity).thenReturn(null);
+        Mockito.when(dataQueue.peek())
+                .thenReturn(dataEntity)
+                .thenReturn(dataEntity)
+                .thenReturn(null);
 
         AtomicBoolean firstCall = new AtomicBoolean(true);
-        Mockito.doAnswer(invocation -> {
-            HitProcessingResult callback = (HitProcessingResult) invocation.getArguments()[1];
-            if (firstCall.get()) {
-                callback.complete(false);
-                firstCall.set(false);
-            } else {
-                callback.complete(true);
-            }
+        Mockito.doAnswer(
+                        invocation -> {
+                            HitProcessingResult callback =
+                                    (HitProcessingResult) invocation.getArguments()[1];
+                            if (firstCall.get()) {
+                                callback.complete(false);
+                                firstCall.set(false);
+                            } else {
+                                callback.complete(true);
+                            }
 
-            return null;
-        }).when(processor).processHit(any(), any());
+                            return null;
+                        })
+                .when(processor)
+                .processHit(any(), any());
         Mockito.when(dataQueue.remove()).thenReturn(true);
 
         Mockito.when(processor.retryInterval(dataEntity)).thenReturn(1);
 
-        //Action
+        // Action
         persistentHitQueue.beginProcessing();
 
         try {
@@ -176,7 +182,7 @@ public class PersistentHitQueueTests {
             e.printStackTrace();
         }
 
-        //Assert
+        // Assert
         Mockito.verify(dataQueue, Mockito.times(3)).peek();
         Mockito.verify(dataQueue, Mockito.times(1)).remove();
         Mockito.verify(processor, Mockito.times(2)).processHit(any(), any());
@@ -188,7 +194,8 @@ public class PersistentHitQueueTests {
         DataEntity dataEntity2 = new DataEntity("dataEntity2");
         DataEntity dataEntity3 = new DataEntity("dataEntity3");
 
-        // Mockito sets the ordering of expected events too nicely, so use mocked objects here instead.
+        // Mockito sets the ordering of expected events too nicely, so use mocked objects here
+        // instead.
         SimpleDataQueue queue = new SimpleDataQueue();
         MockHitProcessor processor = new MockHitProcessor();
         processor.hitResult = false; // retry hits
@@ -199,22 +206,25 @@ public class PersistentHitQueueTests {
         persistentHitQueue.queue(dataEntity2);
         persistentHitQueue.queue(dataEntity3);
 
-        // Sleep 0.1 seconds, which is less than the retry interval of 1 sec, then set hit result to success
+        // Sleep 0.1 seconds, which is less than the retry interval of 1 sec, then set hit result to
+        // success
         Thread.sleep(100);
         processor.hitResult = true; // set hit result to success (no retry)
 
         // Wait to allow retry interval to pass and data queue to get processed and emptied
         queue.waitUntilEmpty(2000);
 
-        // Verify queuing multiple hits does not process hits when the first hit is scheduled to be retried
-        List<DataEntity> expectedHitOrder = new ArrayList<DataEntity>() {
-            {
-                add(dataEntity1);
-                add(dataEntity1);
-                add(dataEntity2);
-                add(dataEntity3);
-            }
-        };
+        // Verify queuing multiple hits does not process hits when the first hit is scheduled to be
+        // retried
+        List<DataEntity> expectedHitOrder =
+                new ArrayList<DataEntity>() {
+                    {
+                        add(dataEntity1);
+                        add(dataEntity1);
+                        add(dataEntity2);
+                        add(dataEntity3);
+                    }
+                };
 
         Assert.assertEquals(0, queue.count());
         Assert.assertEquals(expectedHitOrder, processor.processedHits);
@@ -226,7 +236,8 @@ public class PersistentHitQueueTests {
         DataEntity dataEntity2 = new DataEntity("dataEntity2");
         DataEntity dataEntity3 = new DataEntity("dataEntity3");
 
-        // Mockito sets the ordering of expected events too nicely, so use mocked objects here instead.
+        // Mockito sets the ordering of expected events too nicely, so use mocked objects here
+        // instead.
         SimpleDataQueue queue = new SimpleDataQueue();
         MockHitProcessor processor = new MockHitProcessor();
         processor.hitResult = true; // hits successful
@@ -243,13 +254,14 @@ public class PersistentHitQueueTests {
         queue.waitUntilEmpty(1000);
 
         // Verify entities are processed as expected
-        List<DataEntity> expectedHitOrder = new ArrayList<DataEntity>() {
-            {
-                add(dataEntity1);
-                add(dataEntity2);
-                add(dataEntity3);
-            }
-        };
+        List<DataEntity> expectedHitOrder =
+                new ArrayList<DataEntity>() {
+                    {
+                        add(dataEntity1);
+                        add(dataEntity2);
+                        add(dataEntity3);
+                    }
+                };
 
         Assert.assertEquals(0, queue.count());
         Assert.assertEquals(expectedHitOrder, processor.processedHits);
@@ -281,5 +293,4 @@ public class PersistentHitQueueTests {
         verify(spiedHitQueue, times(1)).suspend();
         verify(spiedHitQueue, never()).clear();
     }
-
 }

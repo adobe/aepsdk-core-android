@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.eventhub
 
@@ -45,6 +45,7 @@ internal enum class SharedStateType {
 internal class SharedStateManager(private val name: String) {
 
     private val LOG_TAG = "SharedStateManager($name)"
+
     /**
      * A mapping between the version of the state to the state.
      */

@@ -7,32 +7,41 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.services;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
-/**
- * Implementation of {@link DataStoring} service
- */
+/** Implementation of {@link DataStoring} service */
 class LocalDataStoreService implements DataStoring {
+
     private static final String TAG = LocalDataStoreService.class.getSimpleName();
 
     @Override
     public NamedCollection getNamedCollection(final String collectionName) {
         if (collectionName == null || collectionName.isEmpty()) {
-            Log.error(ServiceConstants.LOG_TAG, TAG,
-                    String.format("Failed to create an instance of NamedCollection with name - %s: the collection name is null or empty.",
+            Log.error(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    String.format(
+                            "Failed to create an instance of NamedCollection with name - %s: the"
+                                    + " collection name is null or empty.",
                             collectionName));
             return null;
         }
 
-        Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+        Context appContext =
+                ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
         if (appContext == null) {
-            Log.error(ServiceConstants.LOG_TAG, TAG,
-                    String.format("Failed to create an instance of NamedCollection with name - %s: the ApplicationContext is null",
+            Log.error(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    String.format(
+                            "Failed to create an instance of NamedCollection with name - %s: the"
+                                    + " ApplicationContext is null",
                             collectionName));
             return null;
         }
@@ -45,8 +54,11 @@ class LocalDataStoreService implements DataStoring {
         }
 
         if (sharedPreferences == null || sharedPreferencesEditor == null) {
-            Log.error(ServiceConstants.LOG_TAG, TAG,
-                    "Failed to create a valid SharedPreferences object or SharedPreferences.Editor object");
+            Log.error(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Failed to create a valid SharedPreferences object or SharedPreferences.Editor"
+                            + " object");
             return null;
         }
 

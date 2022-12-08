@@ -7,21 +7,19 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services;
 
 import android.util.Log;
 
-/**
- * The Android implementation for for {@link Logging}.
- */
+/** The Android implementation for for {@link Logging}. */
 class AndroidLoggingService implements Logging {
 
     private static final String TAG = "AdobeExperienceSDK";
 
     @Override
-    public void trace(final String tag,final String message) {
+    public void trace(final String tag, final String message) {
         Log.v(TAG, tag + " - " + message);
     }
 
@@ -39,5 +37,4 @@ class AndroidLoggingService implements Logging {
     public void error(final String tag, final String message) {
         Log.e(TAG, tag + " - " + message);
     }
-
 }

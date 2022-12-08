@@ -7,19 +7,14 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.services.ui;
 
-/**
-	 * UI service interface defining a floating button.
-	 */
+/** UI service interface defining a floating button. */
 public interface FloatingButton {
-	/**
-	 * Display the floating button on the screen.
-	 */
-	void display();
-	/**
-	 * Remove the floating button.
-	 */
-	void remove();
+    /** Display the floating button on the screen. */
+    void display();
+    /** Remove the floating button. */
+    void remove();
 }

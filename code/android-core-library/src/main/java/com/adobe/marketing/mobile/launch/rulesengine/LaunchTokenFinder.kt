@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
@@ -103,7 +103,9 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             else -> {
                 if (key.startsWith(KEY_SHARED_STATE)) {
                     getValueFromSharedState(key)
-                } else getValueFromEvent(key)
+                } else {
+                    getValueFromEvent(key)
+                }
             }
         }
     }

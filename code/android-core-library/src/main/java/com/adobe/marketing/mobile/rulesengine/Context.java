@@ -7,20 +7,22 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
-
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
 public class Context {
-	public final TokenFinder tokenFinder;
-	public final Evaluating evaluator;
-	public final Transforming transformer;
 
-	public Context(final TokenFinder tokenFinder, final  Evaluating evaluator, final Transforming transformer) {
-		this.tokenFinder = tokenFinder;
-		this.evaluator = evaluator;
-		this.transformer = transformer;
-	}
+    public final TokenFinder tokenFinder;
+    public final Evaluating evaluator;
+    public final Transforming transformer;
 
+    public Context(
+            final TokenFinder tokenFinder,
+            final Evaluating evaluator,
+            final Transforming transformer) {
+        this.tokenFinder = tokenFinder;
+        this.evaluator = evaluator;
+        this.transformer = transformer;
+    }
 }

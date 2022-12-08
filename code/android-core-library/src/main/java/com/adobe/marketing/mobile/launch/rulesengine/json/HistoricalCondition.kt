@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
 import com.adobe.marketing.mobile.EventHistoryRequest
@@ -63,7 +64,8 @@ internal class HistoricalCondition(
                         0
                     }
                 },
-                requestEvents, searchType
+                requestEvents,
+                searchType
             ),
             operationName,
             OperandLiteral(valueAsInt)

@@ -7,17 +7,16 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 import com.adobe.marketing.mobile.services.Log;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 public class VisitorIDTests {
 
@@ -28,10 +27,18 @@ public class VisitorIDTests {
 
     @Test
     public void testVisitorIDAuthenticationState_FromInteger() {
-        assertEquals(VisitorID.AuthenticationState.UNKNOWN, VisitorID.AuthenticationState.fromInteger(0));
-        assertEquals(VisitorID.AuthenticationState.AUTHENTICATED, VisitorID.AuthenticationState.fromInteger(1));
-        assertEquals(VisitorID.AuthenticationState.LOGGED_OUT, VisitorID.AuthenticationState.fromInteger(2));
-        assertEquals(VisitorID.AuthenticationState.UNKNOWN, VisitorID.AuthenticationState.fromInteger(100));
+        assertEquals(
+                VisitorID.AuthenticationState.UNKNOWN,
+                VisitorID.AuthenticationState.fromInteger(0));
+        assertEquals(
+                VisitorID.AuthenticationState.AUTHENTICATED,
+                VisitorID.AuthenticationState.fromInteger(1));
+        assertEquals(
+                VisitorID.AuthenticationState.LOGGED_OUT,
+                VisitorID.AuthenticationState.fromInteger(2));
+        assertEquals(
+                VisitorID.AuthenticationState.UNKNOWN,
+                VisitorID.AuthenticationState.fromInteger(100));
     }
 
     @Test
@@ -43,23 +50,35 @@ public class VisitorIDTests {
 
     @Test
     public void testVisitorIdConstructor_Happy() {
-        VisitorID visitorID = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.AUTHENTICATED);
+        VisitorID visitorID =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.AUTHENTICATED);
         assertEquals("testId", visitorID.getId());
         assertEquals("testOrigin", visitorID.getIdOrigin());
         assertEquals("testType", visitorID.getIdType());
-        assertEquals(VisitorID.AuthenticationState.AUTHENTICATED, visitorID.getAuthenticationState());
+        assertEquals(
+                VisitorID.AuthenticationState.AUTHENTICATED, visitorID.getAuthenticationState());
     }
 
-    //TODO: cleanContextDataKey logic will be moved to Analytics extension https://github.com/adobe/aepsdk-core-android/issues/217
+    // TODO: cleanContextDataKey logic will be moved to Analytics extension
+    // https://github.com/adobe/aepsdk-core-android/issues/217
     @Ignore
     @Test
     public void testVisitorIdConstructor_When_IdTypeContainsNotAllowedCharacters() {
-        VisitorID visitorID = new VisitorID("testOrigin", "test+_Type().is*#Awesome$@&^", "testId",
-                VisitorID.AuthenticationState.AUTHENTICATED);
+        VisitorID visitorID =
+                new VisitorID(
+                        "testOrigin",
+                        "test+_Type().is*#Awesome$@&^",
+                        "testId",
+                        VisitorID.AuthenticationState.AUTHENTICATED);
         assertEquals("testId", visitorID.getId());
         assertEquals("testOrigin", visitorID.getIdOrigin());
         assertEquals("test_Type.isAwesome", visitorID.getIdType());
-        assertEquals(VisitorID.AuthenticationState.AUTHENTICATED, visitorID.getAuthenticationState());
+        assertEquals(
+                VisitorID.AuthenticationState.AUTHENTICATED, visitorID.getAuthenticationState());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -74,70 +93,142 @@ public class VisitorIDTests {
 
     @Test
     public void testVisitorId_WithANullObject_NotEqual() {
-        VisitorID visitorID1 = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
         VisitorID visitorID2 = null;
         assertFalse(visitorID1.equals(visitorID2));
     }
 
     @Test
     public void testVisitorId_TwoIds_Equal() {
-        VisitorID visitorID1 = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
-        VisitorID visitorID2 = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID2 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
         assertTrue(visitorID1.equals(visitorID2));
     }
 
     @Test
     public void testVisitorId_TwoOrigins_Equal() {
-        VisitorID visitorID1 = new VisitorID("testOriginOne", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
-        VisitorID visitorID2 = new VisitorID("testOriginTwo", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOriginOne",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID2 =
+                new VisitorID(
+                        "testOriginTwo",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
         assertTrue(visitorID1.equals(visitorID2));
     }
 
-
     @Test
     public void testVisitorId_TwoIds_SameInstance_Equal() {
-        VisitorID visitorID1 = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
         assertTrue(visitorID1.equals(visitorID1));
     }
 
     @Test
     public void testVisitorId_TwoIdTypes_NotEqual() {
-        VisitorID visitorID1 = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
-        VisitorID visitorID2 = new VisitorID("testOrigin", "otherType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID2 =
+                new VisitorID(
+                        "testOrigin",
+                        "otherType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
         assertFalse(visitorID1.equals(visitorID2));
     }
 
     @Test
     public void testVisitorId_OneId_AnotherObject_NotEqual() {
-        VisitorID visitorID1 = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
         assertFalse(visitorID1.equals("someTesting"));
     }
 
     @Test
     public void testVisitorId_TwoDifferentIds_NotEqual() {
-        VisitorID visitorID1 = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
-        VisitorID visitorID2 = new VisitorID("testOrigin", "testType", "otherTestId", VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID2 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "otherTestId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
         assertFalse(visitorID1.equals(visitorID2));
     }
 
     @Test
     public void testVisitorId_TwoNullIds_Equal() {
-        VisitorID visitorID1 = new VisitorID("testOrigin", "testType", null, VisitorID.AuthenticationState.LOGGED_OUT);
-        VisitorID visitorID2 = new VisitorID("testOrigin", "testType", null, VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOrigin", "testType", null, VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID2 =
+                new VisitorID(
+                        "testOrigin", "testType", null, VisitorID.AuthenticationState.LOGGED_OUT);
         assertTrue(visitorID1.equals(visitorID2));
     }
 
     @Test
     public void testVisitorId_TwoIds_FirstOneNullId_NotEqual() {
-        VisitorID visitorID1 = new VisitorID("testOrigin", "testType", null, VisitorID.AuthenticationState.LOGGED_OUT);
-        VisitorID visitorID2 = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOrigin", "testType", null, VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID2 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
         assertFalse(visitorID1.equals(visitorID2));
     }
 
     @Test
     public void testVisitorId_TwoIds_SecondOneNullId_NotEqual() {
-        VisitorID visitorID1 = new VisitorID("testOrigin", "testType", "testId", VisitorID.AuthenticationState.LOGGED_OUT);
-        VisitorID visitorID2 = new VisitorID("testOrigin", "testType", null, VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID1 =
+                new VisitorID(
+                        "testOrigin",
+                        "testType",
+                        "testId",
+                        VisitorID.AuthenticationState.LOGGED_OUT);
+        VisitorID visitorID2 =
+                new VisitorID(
+                        "testOrigin", "testType", null, VisitorID.AuthenticationState.LOGGED_OUT);
         assertFalse(visitorID1.equals(visitorID2));
     }
 }

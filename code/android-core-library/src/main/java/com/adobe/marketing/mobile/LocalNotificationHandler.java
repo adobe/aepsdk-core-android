@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
@@ -30,14 +30,6 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.security.SecureRandom;
-import java.util.HashMap;
-
 import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.DeviceInforming;
@@ -45,6 +37,12 @@ import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.util.StringUtils;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.SecureRandom;
+import java.util.HashMap;
 
 @SuppressWarnings("unchecked")
 public class LocalNotificationHandler extends BroadcastReceiver {
@@ -52,7 +50,8 @@ public class LocalNotificationHandler extends BroadcastReceiver {
     private static final String SELF_TAG = "LocalNotificationHandler";
     private static final String NOTIFICATION_CHANNEL_NAME = "ADOBE_EXPERIENCE_PLATFORM_SDK";
     private static final String NOTIFICATION_CHANNEL_ID = "ADOBE_EXPERIENCE_PLATFORM_SDK";
-    private static final String NOTIFICATION_CHANNEL_DESCRIPTION = "Adobe Experience Platform SDK Notifications";
+    private static final String NOTIFICATION_CHANNEL_DESCRIPTION =
+            "Adobe Experience Platform SDK Notifications";
     private static final String NOTIFICATION_CONTENT_KEY = "NOTIFICATION_CONTENT";
     private static final String NOTIFICATION_USER_INFO_KEY = "NOTIFICATION_USER_INFO";
     private static final String NOTIFICATION_IDENTIFIER_KEY = "NOTIFICATION_IDENTIFIER";
@@ -69,7 +68,10 @@ public class LocalNotificationHandler extends BroadcastReceiver {
         Bundle bundle = intent.getExtras();
 
         if (bundle == null) {
-            Log.debug(CoreConstants.LOG_TAG, SELF_TAG, "Failed to load extras from local notification intent");
+            Log.debug(
+                    CoreConstants.LOG_TAG,
+                    SELF_TAG,
+                    "Failed to load extras from local notification intent");
             return;
         }
 
@@ -104,14 +106,20 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 
         // if our message is null, we still don't care
         if (message == null) {
-            Log.debug(CoreConstants.LOG_TAG, SELF_TAG, "%s (local notification message)", Log.UNEXPECTED_NULL_VALUE);
+            Log.debug(
+                    CoreConstants.LOG_TAG,
+                    SELF_TAG,
+                    "%s (local notification message)",
+                    Log.UNEXPECTED_NULL_VALUE);
             return;
         }
 
-        Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        Activity currentActivity =
+                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
         Intent resumeIntent;
 
-        // if we have a deep link, we need to create a new Intent because the old intents are using setClass (overrides opening a deeplink)
+        // if we have a deep link, we need to create a new Intent because the old intents are using
+        // setClass (overrides opening a deeplink)
         if (deeplink != null && !deeplink.isEmpty()) {
             resumeIntent = new Intent(Intent.ACTION_VIEW);
             resumeIntent.setData(Uri.parse(deeplink));
@@ -126,8 +134,8 @@ public class LocalNotificationHandler extends BroadcastReceiver {
         resumeIntent.putExtra(NOTIFICATION_USER_INFO_KEY, userInfo);
 
         final int buildVersion = Build.VERSION.SDK_INT;
-        NotificationManager notificationManager = (NotificationManager) appContext.getSystemService(
-                Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager =
+                (NotificationManager) appContext.getSystemService(Context.NOTIFICATION_SERVICE);
 
         try {
             // if we have an activity for this notification, use it
@@ -138,25 +146,34 @@ public class LocalNotificationHandler extends BroadcastReceiver {
                 Field immutableFlagField = pendingIntentClass.getField("FLAG_IMMUTABLE");
                 immutableFlagField.setAccessible(true);
                 int immutableFlagValue = (Integer) immutableFlagField.get(null);
-                sender = PendingIntent.getActivity(appContext,
-                        senderCode,
-                        resumeIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT | immutableFlagValue);
+                sender =
+                        PendingIntent.getActivity(
+                                appContext,
+                                senderCode,
+                                resumeIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT | immutableFlagValue);
             } else {
-                sender = PendingIntent.getActivity(appContext,
-                        senderCode,
-                        resumeIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT);
+                sender =
+                        PendingIntent.getActivity(
+                                appContext,
+                                senderCode,
+                                resumeIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT);
             }
 
             if (sender == null) {
-                Log.debug(CoreConstants.LOG_TAG, SELF_TAG, "Failed to retrieve sender from broadcast, unable to post notification");
+                Log.debug(
+                        CoreConstants.LOG_TAG,
+                        SELF_TAG,
+                        "Failed to retrieve sender from broadcast, unable to post notification");
                 return;
             }
 
-            // Todo: This seems redundant as the App is first launched before handling Broadcast intent
+            // Todo: This seems redundant as the App is first launched before handling Broadcast
+            // intent
             App.INSTANCE.setAppContext(context.getApplicationContext());
-            DeviceInforming systemInfoService = ServiceProvider.getInstance().getDeviceInfoService();
+            DeviceInforming systemInfoService =
+                    ServiceProvider.getInstance().getDeviceInfoService();
             String appName = systemInfoService.getApplicationName();
             Object notification;
             Object notificationBuilder;
@@ -165,67 +182,100 @@ public class LocalNotificationHandler extends BroadcastReceiver {
             // notification channels are required if api level is 26 or higher
             if (buildVersion >= Build.VERSION_CODES.O) {
                 ClassLoader classLoader = LocalNotificationHandler.class.getClassLoader();
-                Class<?> notificationChannelClass = classLoader.loadClass("android.app.NotificationChannel");
-                Constructor<?> notificationChannelConstructor = notificationChannelClass.getConstructor(String.class,
-                        CharSequence.class, int.class);
+                Class<?> notificationChannelClass =
+                        classLoader.loadClass("android.app.NotificationChannel");
+                Constructor<?> notificationChannelConstructor =
+                        notificationChannelClass.getConstructor(
+                                String.class, CharSequence.class, int.class);
                 notificationChannelConstructor.setAccessible(true);
 
-                // create notification channel object. high importance is used to allow a heads up notification to be displayed.
-                Object notificationChannel = notificationChannelConstructor.newInstance(NOTIFICATION_CHANNEL_ID,
-                        NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
+                // create notification channel object. high importance is used to allow a heads up
+                // notification to be displayed.
+                Object notificationChannel =
+                        notificationChannelConstructor.newInstance(
+                                NOTIFICATION_CHANNEL_ID,
+                                NOTIFICATION_CHANNEL_NAME,
+                                NotificationManager.IMPORTANCE_HIGH);
 
                 // set notification channel description
-                Method setDescription = notificationChannelClass.getMethod("setDescription", String.class);
+                Method setDescription =
+                        notificationChannelClass.getMethod("setDescription", String.class);
                 setDescription.invoke(notificationChannel, NOTIFICATION_CHANNEL_DESCRIPTION);
 
                 // TODO: handle setting of sound...the previous method got deprecated in API 26
 
                 // create the notification channel
-                notificationManager.createNotificationChannel((NotificationChannel) notificationChannel);
+                notificationManager.createNotificationChannel(
+                        (NotificationChannel) notificationChannel);
 
                 // specify the notification channel id when creating the notification compat builder
-                notificationBuilderClass = classLoader.loadClass("androidx.core.app.NotificationCompat$Builder");
-                Constructor<?> notificationConstructor = notificationBuilderClass.getConstructor(Context.class, NOTIFICATION_CHANNEL_ID.getClass());
+                notificationBuilderClass =
+                        classLoader.loadClass("androidx.core.app.NotificationCompat$Builder");
+                Constructor<?> notificationConstructor =
+                        notificationBuilderClass.getConstructor(
+                                Context.class, NOTIFICATION_CHANNEL_ID.getClass());
                 notificationConstructor.setAccessible(true);
-                notificationBuilder = notificationConstructor.newInstance(context.getApplicationContext(), NOTIFICATION_CHANNEL_ID);
+                notificationBuilder =
+                        notificationConstructor.newInstance(
+                                context.getApplicationContext(), NOTIFICATION_CHANNEL_ID);
 
-                final Method methodSetStyle = notificationBuilderClass.getDeclaredMethod("setStyle",
-                        classLoader.loadClass("androidx.core.app.NotificationCompat$Style"));
-                methodSetStyle.invoke(notificationBuilder, getBigTextStyle(buildVersion, classLoader, message));
+                final Method methodSetStyle =
+                        notificationBuilderClass.getDeclaredMethod(
+                                "setStyle",
+                                classLoader.loadClass(
+                                        "androidx.core.app.NotificationCompat$Style"));
+                methodSetStyle.invoke(
+                        notificationBuilder, getBigTextStyle(buildVersion, classLoader, message));
 
             } else {
-                // if android api level is < 26 / Android O, setup the notification using notification builder
+                // if android api level is < 26 / Android O, setup the notification using
+                // notification builder
                 ClassLoader classLoader = BroadcastHandler.class.getClassLoader();
-                notificationBuilderClass = classLoader.loadClass("android.app.Notification$Builder");
-                Constructor<?> notificationConstructor = notificationBuilderClass.getConstructor(Context.class);
+                notificationBuilderClass =
+                        classLoader.loadClass("android.app.Notification$Builder");
+                Constructor<?> notificationConstructor =
+                        notificationBuilderClass.getConstructor(Context.class);
                 notificationConstructor.setAccessible(true);
-                notificationBuilder = notificationConstructor.newInstance(context.getApplicationContext());
+                notificationBuilder =
+                        notificationConstructor.newInstance(context.getApplicationContext());
 
                 Method setSound = notificationBuilderClass.getDeclaredMethod("setSound", Uri.class);
-                setSound.invoke(notificationBuilder, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
+                setSound.invoke(
+                        notificationBuilder,
+                        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
 
                 // set priority to high to allow a heads up notification to be displayed
-                Method setPriority = notificationBuilderClass.getDeclaredMethod("setPriority", int.class);
+                Method setPriority =
+                        notificationBuilderClass.getDeclaredMethod("setPriority", int.class);
                 setPriority.invoke(notificationBuilder, Notification.PRIORITY_HIGH);
 
-                final Method methodSetStyle = notificationBuilderClass.getDeclaredMethod("setStyle", classLoader.loadClass("android.app.Notification$Style"));
-                methodSetStyle.invoke(notificationBuilder, getBigTextStyle(buildVersion, classLoader, message));
+                final Method methodSetStyle =
+                        notificationBuilderClass.getDeclaredMethod(
+                                "setStyle",
+                                classLoader.loadClass("android.app.Notification$Style"));
+                methodSetStyle.invoke(
+                        notificationBuilder, getBigTextStyle(buildVersion, classLoader, message));
             }
 
-            // set all the notification properties (small icon, content title, and content text are all required)
+            // set all the notification properties (small icon, content title, and content text are
+            // all required)
             // small icon shows up in the status bar
-            Method setSmallIcon = notificationBuilderClass.getDeclaredMethod("setSmallIcon", int.class);
+            Method setSmallIcon =
+                    notificationBuilderClass.getDeclaredMethod("setSmallIcon", int.class);
             setSmallIcon.invoke(notificationBuilder, getSmallIcon());
             // large icon shows up on the left side of the open notifications
             Bitmap largeIcon = getLargeIcon(context);
 
             if (largeIcon != null) {
-                Method setLargeIcon = notificationBuilderClass.getDeclaredMethod("setLargeIcon", Bitmap.class);
+                Method setLargeIcon =
+                        notificationBuilderClass.getDeclaredMethod("setLargeIcon", Bitmap.class);
                 setLargeIcon.invoke(notificationBuilder, largeIcon);
             }
 
             // Bolded title of the notification
-            Method setContentTitle = notificationBuilderClass.getDeclaredMethod("setContentTitle", CharSequence.class);
+            Method setContentTitle =
+                    notificationBuilderClass.getDeclaredMethod(
+                            "setContentTitle", CharSequence.class);
 
             if (!StringUtils.isNullOrEmpty(title)) {
                 setContentTitle.invoke(notificationBuilder, title);
@@ -235,31 +285,48 @@ public class LocalNotificationHandler extends BroadcastReceiver {
             }
 
             // subtext of notification
-            Method setContentText = notificationBuilderClass.getDeclaredMethod("setContentText", CharSequence.class);
+            Method setContentText =
+                    notificationBuilderClass.getDeclaredMethod(
+                            "setContentText", CharSequence.class);
             setContentText.invoke(notificationBuilder, message);
             // intent that will be launched when the notification is touched
-            Method setContentIntent = notificationBuilderClass.getDeclaredMethod("setContentIntent", PendingIntent.class);
+            Method setContentIntent =
+                    notificationBuilderClass.getDeclaredMethod(
+                            "setContentIntent", PendingIntent.class);
             setContentIntent.invoke(notificationBuilder, sender);
 
             // Setting the delete intent for tracking click on deletion.
             Intent deleteIntent = new Intent(appContext, NotificationDismissalHandler.class);
             deleteIntent.putExtra(NOTIFICATION_USER_INFO_KEY, userInfo);
-            Method setDeleteIntent = notificationBuilderClass.getDeclaredMethod("setDeleteIntent", PendingIntent.class);
+            Method setDeleteIntent =
+                    notificationBuilderClass.getDeclaredMethod(
+                            "setDeleteIntent", PendingIntent.class);
 
             if (buildVersion >= Build.VERSION_CODES.M) {
                 Class pendingIntentClass = PendingIntent.class;
                 Field immutableFlagField = pendingIntentClass.getField("FLAG_IMMUTABLE");
                 immutableFlagField.setAccessible(true);
                 int immutableFlagValue = (Integer) immutableFlagField.get(null);
-                setDeleteIntent.invoke(notificationBuilder, PendingIntent.getBroadcast(appContext, senderCode, deleteIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT | immutableFlagValue));
+                setDeleteIntent.invoke(
+                        notificationBuilder,
+                        PendingIntent.getBroadcast(
+                                appContext,
+                                senderCode,
+                                deleteIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT | immutableFlagValue));
             } else {
-                setDeleteIntent.invoke(notificationBuilder, PendingIntent.getBroadcast(appContext, senderCode, deleteIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT));
+                setDeleteIntent.invoke(
+                        notificationBuilder,
+                        PendingIntent.getBroadcast(
+                                appContext,
+                                senderCode,
+                                deleteIntent,
+                                PendingIntent.FLAG_UPDATE_CURRENT));
             }
 
             // this causes the notification to automatically go away when it is touched
-            Method setAutoCancel = notificationBuilderClass.getDeclaredMethod("setAutoCancel", boolean.class);
+            Method setAutoCancel =
+                    notificationBuilderClass.getDeclaredMethod("setAutoCancel", boolean.class);
             setAutoCancel.invoke(notificationBuilder, true);
 
             // show it
@@ -272,32 +339,40 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 
             notificationManager.notify(new SecureRandom().nextInt(), (Notification) notification);
         } catch (Exception e) {
-            Log.warning(CoreConstants.LOG_TAG, SELF_TAG, "unexpected error posting notification (%s)", e);
+            Log.warning(
+                    CoreConstants.LOG_TAG,
+                    SELF_TAG,
+                    "unexpected error posting notification (%s)",
+                    e);
         }
     }
 
     // This method returns an instance of BigTextStyle to set expandable style on Notifications.
-    private static Object getBigTextStyle(final int buildVersion, final ClassLoader classLoader,
-                                          final String contentText) throws Exception {
+    private static Object getBigTextStyle(
+            final int buildVersion, final ClassLoader classLoader, final String contentText)
+            throws Exception {
 
         Object bigTextStyle;
-        Class<?> classBigTextStyle = classLoader.loadClass(buildVersion >= Build.VERSION_CODES.O ?
-                "androidx.core.app.NotificationCompat$BigTextStyle" : "android.app.Notification$BigTextStyle");
+        Class<?> classBigTextStyle =
+                classLoader.loadClass(
+                        buildVersion >= Build.VERSION_CODES.O
+                                ? "androidx.core.app.NotificationCompat$BigTextStyle"
+                                : "android.app.Notification$BigTextStyle");
         Constructor<?> bigTextStyleConstructor = classBigTextStyle.getConstructor();
         bigTextStyle = bigTextStyleConstructor.newInstance();
         Method methodBigText = classBigTextStyle.getDeclaredMethod("bigText", CharSequence.class);
         methodBigText.invoke(bigTextStyle, contentText);
         return bigTextStyle;
-
     }
 
     private int getSmallIcon() {
-        return AppResourceStore.INSTANCE.getSmallIconResourceID() != -1 ? AppResourceStore.INSTANCE.getSmallIconResourceID() :
-                android.R.drawable.sym_def_app_icon;
+        return AppResourceStore.INSTANCE.getSmallIconResourceID() != -1
+                ? AppResourceStore.INSTANCE.getSmallIconResourceID()
+                : android.R.drawable.sym_def_app_icon;
     }
 
-    private Bitmap getLargeIcon(final Context appContext) throws NoSuchMethodException,
-            IllegalAccessException, InvocationTargetException {
+    private Bitmap getLargeIcon(final Context appContext)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         if (appContext == null) {
             return null;
         }
@@ -308,11 +383,20 @@ public class LocalNotificationHandler extends BroadcastReceiver {
 
         if (largeIconResourceId != -1) {
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT_WATCH) {
-                Method getDrawable = Resources.class.getDeclaredMethod("getDrawable", int.class, Resources.Theme.class);
-                iconDrawable = (Drawable) getDrawable.invoke(appContext.getResources(), largeIconResourceId, appContext.getTheme());
+                Method getDrawable =
+                        Resources.class.getDeclaredMethod(
+                                "getDrawable", int.class, Resources.Theme.class);
+                iconDrawable =
+                        (Drawable)
+                                getDrawable.invoke(
+                                        appContext.getResources(),
+                                        largeIconResourceId,
+                                        appContext.getTheme());
             } else {
                 Method getDrawable = Resources.class.getDeclaredMethod("getDrawable", int.class);
-                iconDrawable = (Drawable) getDrawable.invoke(appContext.getResources(), largeIconResourceId);
+                iconDrawable =
+                        (Drawable)
+                                getDrawable.invoke(appContext.getResources(), largeIconResourceId);
             }
         }
         // no user defined icon, try to get one from package manager
@@ -346,8 +430,11 @@ public class LocalNotificationHandler extends BroadcastReceiver {
      * @return The Bitmap drawn from the drawable.
      */
     private Bitmap getBitmapFromDrawable(final Drawable drawable) {
-        final Bitmap bmp = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(),
-                Bitmap.Config.ARGB_8888);
+        final Bitmap bmp =
+                Bitmap.createBitmap(
+                        drawable.getIntrinsicWidth(),
+                        drawable.getIntrinsicHeight(),
+                        Bitmap.Config.ARGB_8888);
         final Canvas canvas = new Canvas(bmp);
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         drawable.draw(canvas);

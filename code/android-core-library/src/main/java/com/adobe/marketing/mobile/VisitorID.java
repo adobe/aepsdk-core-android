@@ -7,18 +7,17 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.internal.CoreConstants;
-import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.util.StringUtils;
 
-/**
- * An identifier to be used with the Adobe Experience Cloud Visitor ID Service
- */
+/** An identifier to be used with the Adobe Experience Cloud Visitor ID Service */
 public class VisitorID {
+
     private static final int RANDOM_HASH_BASE = 17;
     private static final int RANDOM_HASH_PADDING = 31;
 
@@ -63,9 +62,7 @@ public class VisitorID {
         return idType;
     }
 
-    /**
-     * Used to indicate the authentication state for the current {@link VisitorID}
-     */
+    /** Used to indicate the authentication state for the current {@link VisitorID} */
     public enum AuthenticationState {
         UNKNOWN(0),
         AUTHENTICATED(1),
@@ -93,18 +90,26 @@ public class VisitorID {
     }
 
     /**
-     * Constructor initializes {@link #id}, {@link #idOrigin}, {@link #idType} and {@link #authenticationState}.
+     * Constructor initializes {@link #id}, {@link #idOrigin}, {@link #idType} and {@link
+     * #authenticationState}.
      *
-     * @param idOrigin            {@link String} containing the ID Origin for the {@link VisitorID}
-     * @param idType              {@code String} containing the ID Type for the {@code VisitorID}; it should not be null/empty
-     * @param id                  {@code String} containing the ID for the {@code VisitorID}; it should not be null/empty
-     * @param authenticationState {@link AuthenticationState} containing the authentication state for the {@code VisitorID}
+     * @param idOrigin {@link String} containing the ID Origin for the {@link VisitorID}
+     * @param idType {@code String} containing the ID Type for the {@code VisitorID}; it should not
+     *     be null/empty
+     * @param id {@code String} containing the ID for the {@code VisitorID}; it should not be
+     *     null/empty
+     * @param authenticationState {@link AuthenticationState} containing the authentication state
+     *     for the {@code VisitorID}
      * @throws IllegalStateException if the provided {@code idType} is null or empty
      */
-    public VisitorID(final String idOrigin, final String idType, final String id,
-                     final AuthenticationState authenticationState) {
-        //TODO: cleanContextDataKey logic will be moved to Analytics extension https://github.com/adobe/aepsdk-core-android/issues/217
-//		final String cleanIdType = ContextDataUtil.cleanContextDataKey(idType);
+    public VisitorID(
+            final String idOrigin,
+            final String idType,
+            final String id,
+            final AuthenticationState authenticationState) {
+        // TODO: cleanContextDataKey logic will be moved to Analytics extension
+        // https://github.com/adobe/aepsdk-core-android/issues/217
+        //		final String cleanIdType = ContextDataUtil.cleanContextDataKey(idType);
 
         // idType cannot be null/empty
         if (StringUtils.isNullOrEmpty(idType)) {
@@ -114,7 +119,11 @@ public class VisitorID {
         // id cannot be null/empty
         // Do not throw IllegalStateException to maintain backwards compatibility
         if (StringUtils.isNullOrEmpty(id)) {
-            Log.debug(CoreConstants.LOG_TAG, "VisitorID", "The custom VisitorID should not have null/empty id, this VisitorID will be ignored");
+            Log.debug(
+                    CoreConstants.LOG_TAG,
+                    "VisitorID",
+                    "The custom VisitorID should not have null/empty id, this VisitorID will be"
+                            + " ignored");
         }
 
         this.idOrigin = idOrigin;
@@ -125,12 +134,14 @@ public class VisitorID {
 
     /**
      * Compares the provided {@link VisitorID} object with this and determines if they are equal.
-     * <p>
-     * The comparison checks that the provided {@link Object} parameter is a {@code VisitorID} instance.
-     * If it is, then checks the equality of the {@link #idType} and {@link #id} fields between the two objects.
+     *
+     * <p>The comparison checks that the provided {@link Object} parameter is a {@code VisitorID}
+     * instance. If it is, then checks the equality of the {@link #idType} and {@link #id} fields
+     * between the two objects.
      *
      * @param o {@code VisitorID} object to compare against
-     * @return {@code boolean} indicating whether the provided {@code VisitorID} object is equal to this
+     * @return {@code boolean} indicating whether the provided {@code VisitorID} object is equal to
+     *     this
      */
     @Override
     public boolean equals(final Object o) {

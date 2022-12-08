@@ -7,16 +7,15 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.identity;
 
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
 
-/**
- * Holds all the constant values to be used by various classes in the {@link IdentityExtension}
- */
+/** Holds all the constant values to be used by various classes in the {@link IdentityExtension} */
 final class IdentityConstants {
+
     static final String LOG_TAG = "Identity";
     static final String FRIENDLY_NAME = "Identity";
     static final String EXTENSION_NAME = "com.adobe.module.identity";
@@ -24,6 +23,7 @@ final class IdentityConstants {
     static final String ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME = "AnalyticsForIdentityRequest";
 
     static final class Defaults {
+
         static final long DEFAULT_TTL_VALUE = 600;
         static final String SERVER = "dpm.demdex.net";
         static final String CID_DELIMITER = "%01";
@@ -33,8 +33,7 @@ final class IdentityConstants {
         static final MobilePrivacyStatus DEFAULT_MOBILE_PRIVACY = MobilePrivacyStatus.UNKNOWN;
         static final String ZERO_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000";
 
-        private Defaults() {
-        }
+        private Defaults() {}
     }
 
     static final int ID_INFO_SIZE = 3;
@@ -45,6 +44,7 @@ final class IdentityConstants {
     static final String JSON_EXPERIENCE_CLOUD_SERVER_KEY = "experienceCloud.server";
 
     static class DataStoreKeys {
+
         static final String IDENTITY_PROPERTIES_DATA_STORE_NAME = "visitorIDServiceDataStore";
         static final String VISITOR_IDS_STRING = "ADOBEMOBILE_VISITORID_IDS";
         static final String MARKETING_CLOUD_ID = "ADOBEMOBILE_PERSISTED_MID";
@@ -58,11 +58,11 @@ final class IdentityConstants {
         static final String ANALYTICS_PUSH_SYNC = "ADOBEMOBILE_ANALYTICS_PUSH_SYNC";
         static final String AID_SYNCED_KEY = "ADOBEMOBILE_AID_SYNCED";
 
-        private DataStoreKeys() {
-        }
+        private DataStoreKeys() {}
     }
 
     static class UrlKeys {
+
         // Constants for preparing sync network call
         static final String MID = "d_mid";
         static final String ORGID = "d_orgid";
@@ -84,28 +84,27 @@ final class IdentityConstants {
         static final String ADB_ANALYTICS_PAYLOAD_KEY = "adobe_aa_vid";
         static final String ADB_VISITOR_PAYLOAD_ANALYTICS_ID_KEY = "MCAID";
 
-        private UrlKeys() {
-        }
+        private UrlKeys() {}
     }
 
-    private IdentityConstants() {
-    }
+    private IdentityConstants() {}
 
     static final class EventDataKeys {
+
         static final String STATE_OWNER = "stateowner";
 
-        private EventDataKeys() {
-        }
+        private EventDataKeys() {}
 
         static final class EventHub {
+
             static final String MODULE_NAME = "com.adobe.module.eventhub";
             static final String EXTENSIONS_KEY = "extensions";
 
-            private EventHub() {
-            }
+            private EventHub() {}
         }
 
         static final class Analytics {
+
             static final String MODULE_NAME = "com.adobe.module.analytics";
             static final String ANALYTICS_ID = "aid";
             static final String VISITOR_IDENTIFIER = "vid";
@@ -113,65 +112,74 @@ final class IdentityConstants {
             static final String TRACK_ACTION = "action";
             static final String CONTEXT_DATA = "contextdata";
 
-            private Analytics() {
-            }
+            private Analytics() {}
         }
 
         static final class Configuration {
+
             static final String MODULE_NAME = "com.adobe.module.configuration";
             static final String GLOBAL_CONFIG_PRIVACY = "global.privacy";
             static final String CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG = "config.update";
             static final String CONFIG_EXPERIENCE_CLOUD_ORGID_KEY = "experienceCloud.org";
             static final String AAM_CONFIG_SERVER = "audience.server";
 
-            private Configuration() {
-            }
+            private Configuration() {}
         }
 
         static final class Audience {
-            //opted out response key
+
+            // opted out response key
             static final String OPTED_OUT_HIT_SENT = "optedouthitsent";
 
-            private Audience() {
-            }
+            private Audience() {}
         }
 
         static final class Identity {
+
             static final String MODULE_NAME = "com.adobe.module.identity";
             static final String MCPNS_DPID = "20919";
             static final String ADID_DSID = "DSID_20914";
 
-            //Event Data key for fetching marketing cloud id from the IdentityExtension Response Event.
+            // Event Data key for fetching marketing cloud id from the IdentityExtension Response
+            // Event.
             public static final String VISITOR_ID_MID = "mid";
 
-            //Event Data key for fetching blob from the IdentityExtension Response Event.
+            // Event Data key for fetching blob from the IdentityExtension Response Event.
             static final String VISITOR_ID_BLOB = "blob";
 
-            //Event Data key for fetching location hint from the IdentityExtension Response Event.
+            // Event Data key for fetching location hint from the IdentityExtension Response Event.
             static final String VISITOR_ID_LOCATION_HINT = "locationhint";
 
-            //Event Data key for fetching last sync long value from the IdentityExtension Response Event.
+            // Event Data key for fetching last sync long value from the IdentityExtension Response
+            // Event.
             static final String VISITOR_IDS_LAST_SYNC = "lastsync";
 
-            //Event Data key for reading a list of maps, with each map representing a visitor id,from Response IdentityExtension event dispatched by the module.
+            // Event Data key for reading a list of maps, with each map representing a visitor
+            // id,from Response IdentityExtension event dispatched by the module.
             public static final String VISITOR_IDS_LIST = "visitoridslist";
 
-            //Event Data key for reading the updated url in the event received by the one time event listener as a response to setting BASE_URL in Requent IdentityExtension event.
+            // Event Data key for reading the updated url in the event received by the one time
+            // event listener as a response to setting BASE_URL in Requent IdentityExtension event.
             public static final String UPDATED_URL = "updatedurl";
 
-            //Event Data key for url variable string when creating a Request or receiving a Response for getUrlVariables()
+            // Event Data key for url variable string when creating a Request or receiving a
+            // Response for getUrlVariables()
             public static final String URL_VARIABLES = "urlvariables";
 
-            //Event Data key for base URL for appending visitor data to, when creating Request IdentityExtension event for appendToURL()
+            // Event Data key for base URL for appending visitor data to, when creating Request
+            // IdentityExtension event for appendToURL()
             public static final String BASE_URL = "baseurl";
 
-            //Event Data key for forcing syncing of identifiers, when creating Request IdentityExtension event for syncIdenfiers()
+            // Event Data key for forcing syncing of identifiers, when creating Request
+            // IdentityExtension event for syncIdenfiers()
             public static final String FORCE_SYNC = "forcesync";
 
-            //Event Data key for setting <String,String> map of identifiers, when creating Request IdentityExtension event for syncIdenfiers()
+            // Event Data key for setting <String,String> map of identifiers, when creating Request
+            // IdentityExtension event for syncIdenfiers()
             public static final String IDENTIFIERS = "visitoridentifiers";
 
-            //Event Data key for setting "dpids" when creating Request IdentityExtension event for syncIdenfiers()
+            // Event Data key for setting "dpids" when creating Request IdentityExtension event for
+            // syncIdenfiers()
             static final String DPIDS = "dpids";
 
             /*
@@ -198,20 +206,21 @@ final class IdentityConstants {
              * */
             public static final String AUTHENTICATION_STATE = "authenticationstate";
 
-            // Event Data Key for setting Analytics ID in 'visitoridentifiers' map when sending to Identity Service
+            // Event Data Key for setting Analytics ID in 'visitoridentifiers' map when sending to
+            // Identity Service
             static final String ANALYTICS_ID = "AVID";
 
-            // Event Data Key for indicating that a shared state update with current data is required
+            // Event Data Key for indicating that a shared state update with current data is
+            // required
             static final String UPDATE_SHARED_STATE = "updatesharedstate";
 
-            //***********************************************************
+            // ***********************************************************
             // Key constants in reading IdentityExtension Analytics Internal Event
-            //***********************************************************
+            // ***********************************************************
             static final String EVENT_PUSH_STATUS = "a.push.optin";
             static final String PUSH_ID_ENABLED_ACTION_NAME = "Push";
 
-            private Identity() {
-            }
+            private Identity() {}
         }
     }
 }

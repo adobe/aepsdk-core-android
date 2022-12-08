@@ -1,3 +1,14 @@
+/*
+  Copyright 2022 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+*/
+
 package com.adobe.marketing.mobile.util;
 
 import static org.junit.Assert.assertEquals;
@@ -7,13 +18,12 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.Test;
 
 interface CheckedBiConsumer {
     void accept(Map<String, Object> map, String data) throws Exception;
@@ -23,8 +33,8 @@ interface CheckedConsumer {
     void accept(String data) throws Exception;
 }
 
-
 public class DataReaderTests {
+
     final String NULL_KEY_ERROR_MSG = "Map or key is null";
     final String NULL_VALUE_ERROR_MSG = "Map contains null value for key";
     final String OVERFLOW_ERROR_MSG = "Value overflows type ";
@@ -59,33 +69,57 @@ public class DataReaderTests {
         data.put("EMPTY_MAP", new HashMap<>());
         data.put("EMPTY_LIST", new ArrayList<>());
 
-        data.put("INT_MAP", new HashMap<String, Integer>() {{
-            put("a", 1);
-            put("b", 2);
-        }});
+        data.put(
+                "INT_MAP",
+                new HashMap<String, Integer>() {
+                    {
+                        put("a", 1);
+                        put("b", 2);
+                    }
+                });
         data.put("INT_LIST", Arrays.asList(1, 2));
 
-        data.put("STRING_MAP", new HashMap<String, String>() {{
-            put("a", "a");
-            put("b", "b");
-        }});
+        data.put(
+                "STRING_MAP",
+                new HashMap<String, String>() {
+                    {
+                        put("a", "a");
+                        put("b", "b");
+                    }
+                });
         data.put("STRING_LIST", Arrays.asList("a", "b"));
 
-        data.put("STRINGMAP_LIST", Arrays.asList(new HashMap<String, String>() {{
-            put("a", "a");
-            put("b", "b");
-        }}, new HashMap<String, String>() {{
-            put("c", "c");
-            put("d", "d");
-        }}));
+        data.put(
+                "STRINGMAP_LIST",
+                Arrays.asList(
+                        new HashMap<String, String>() {
+                            {
+                                put("a", "a");
+                                put("b", "b");
+                            }
+                        },
+                        new HashMap<String, String>() {
+                            {
+                                put("c", "c");
+                                put("d", "d");
+                            }
+                        }));
 
-        data.put("INTMAP_LIST",  Arrays.asList(new HashMap<String, Integer>() {{
-            put("a", 1);
-            put("b", 2);
-        }}, new HashMap<String, Integer>() {{
-            put("c", 3);
-            put("d", 4);
-        }}));
+        data.put(
+                "INTMAP_LIST",
+                Arrays.asList(
+                        new HashMap<String, Integer>() {
+                            {
+                                put("a", 1);
+                                put("b", 2);
+                            }
+                        },
+                        new HashMap<String, Integer>() {
+                            {
+                                put("c", 3);
+                                put("d", 4);
+                            }
+                        }));
     }
 
     void checkNullArguments(CheckedBiConsumer fn) {
@@ -98,21 +132,23 @@ public class DataReaderTests {
     }
 
     void checkCastException(CheckedConsumer fn, List<String> keys) {
-        keys.forEach((key) -> {
-            Exception ex = assertThrows(DataReaderException.class, () -> fn.accept(key));
-            if (ex != null && ex.getCause() != null) {
-                assertEquals(ClassCastException.class, ex.getCause().getClass());
-            } else {
-                fail();
-            }
-        });
+        keys.forEach(
+                key -> {
+                    Exception ex = assertThrows(DataReaderException.class, () -> fn.accept(key));
+                    if (ex != null && ex.getCause() != null) {
+                        assertEquals(ClassCastException.class, ex.getCause().getClass());
+                    } else {
+                        fail();
+                    }
+                });
     }
 
     void checkExceptionMessage(CheckedConsumer fn, List<String> keys, String errorMessage) {
-        keys.forEach((key) -> {
-            Exception ex = assertThrows(DataReaderException.class, () -> fn.accept(key));
-            assertEquals(ex.getMessage(), errorMessage);
-        });
+        keys.forEach(
+                key -> {
+                    Exception ex = assertThrows(DataReaderException.class, () -> fn.accept(key));
+                    assertEquals(ex.getMessage(), errorMessage);
+                });
     }
 
     @Test
@@ -121,8 +157,13 @@ public class DataReaderTests {
         assertFalse(DataReader.getBoolean(data, "BOOL_FALSE"));
 
         checkNullArguments(DataReader::getBoolean);
-        checkExceptionMessage((key) -> DataReader.getBoolean(data, key), Arrays.asList("NULL", "INVALID"), NULL_VALUE_ERROR_MSG);
-        checkCastException((key) -> DataReader.getBoolean(data, key), Arrays.asList("FLOAT", "BYTE", "INT", "DOUBLE", "LONG", "STRING"));
+        checkExceptionMessage(
+                key -> DataReader.getBoolean(data, key),
+                Arrays.asList("NULL", "INVALID"),
+                NULL_VALUE_ERROR_MSG);
+        checkCastException(
+                key -> DataReader.getBoolean(data, key),
+                Arrays.asList("FLOAT", "BYTE", "INT", "DOUBLE", "LONG", "STRING"));
     }
 
     @Test
@@ -154,12 +195,20 @@ public class DataReaderTests {
         assertEquals(6, DataReader.getInt(data, "DOUBLE"));
 
         checkNullArguments(DataReader::getInt);
-        checkExceptionMessage((key) -> DataReader.getInt(data, key), Arrays.asList("NULL", "INVALID"), NULL_VALUE_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getInt(data, key),
+                Arrays.asList("NULL", "INVALID"),
+                NULL_VALUE_ERROR_MSG);
 
         String errorMessage = OVERFLOW_ERROR_MSG + Integer.class;
-        checkExceptionMessage((key) -> DataReader.getInt(data, key), Arrays.asList("LONG_MAX", "FLOAT_MAX", "DOUBLE_MAX"), errorMessage);
+        checkExceptionMessage(
+                key -> DataReader.getInt(data, key),
+                Arrays.asList("LONG_MAX", "FLOAT_MAX", "DOUBLE_MAX"),
+                errorMessage);
 
-        checkCastException((key) -> DataReader.getInt(data, key), Arrays.asList("STRING", "STRING_MAP", "STRING_LIST"));
+        checkCastException(
+                key -> DataReader.getInt(data, key),
+                Arrays.asList("STRING", "STRING_MAP", "STRING_LIST"));
     }
 
     @Test
@@ -201,12 +250,20 @@ public class DataReaderTests {
         assertEquals(6, DataReader.getLong(data, "DOUBLE"));
 
         checkNullArguments(DataReader::getLong);
-        checkExceptionMessage((key) -> DataReader.getLong(data, key), Arrays.asList("NULL", "INVALID"), NULL_VALUE_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getLong(data, key),
+                Arrays.asList("NULL", "INVALID"),
+                NULL_VALUE_ERROR_MSG);
 
         String errorMessage = OVERFLOW_ERROR_MSG + Long.class;
-        checkExceptionMessage((key) -> DataReader.getLong(data, key), Arrays.asList("FLOAT_MAX", "DOUBLE_MAX"), errorMessage);
+        checkExceptionMessage(
+                key -> DataReader.getLong(data, key),
+                Arrays.asList("FLOAT_MAX", "DOUBLE_MAX"),
+                errorMessage);
 
-        checkCastException((key) -> DataReader.getLong(data, key), Arrays.asList("STRING", "STRING_MAP", "STRING_LIST"));
+        checkCastException(
+                key -> DataReader.getLong(data, key),
+                Arrays.asList("STRING", "STRING_MAP", "STRING_LIST"));
     }
 
     @Test
@@ -249,12 +306,18 @@ public class DataReaderTests {
         assertEquals(6.6, DataReader.getFloat(data, "DOUBLE"), DELTA);
 
         checkNullArguments(DataReader::getFloat);
-        checkExceptionMessage((key) -> DataReader.getFloat(data, key), Arrays.asList("NULL", "INVALID"), NULL_VALUE_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getFloat(data, key),
+                Arrays.asList("NULL", "INVALID"),
+                NULL_VALUE_ERROR_MSG);
 
         String errorMessage = OVERFLOW_ERROR_MSG + Float.class;
-        checkExceptionMessage((key) -> DataReader.getFloat(data, key), Arrays.asList("DOUBLE_MAX"), errorMessage);
+        checkExceptionMessage(
+                key -> DataReader.getFloat(data, key), Arrays.asList("DOUBLE_MAX"), errorMessage);
 
-        checkCastException((key) -> DataReader.getFloat(data, key), Arrays.asList("STRING", "STRING_MAP", "STRING_LIST"));
+        checkCastException(
+                key -> DataReader.getFloat(data, key),
+                Arrays.asList("STRING", "STRING_MAP", "STRING_LIST"));
     }
 
     @Test
@@ -298,8 +361,11 @@ public class DataReaderTests {
         assertEquals(6.6, DataReader.getDouble(data, "DOUBLE"), DELTA);
 
         checkNullArguments(DataReader::getDouble);
-        checkExceptionMessage((key) -> DataReader.getDouble(data, key), Arrays.asList("NULL", "INVALID"), NULL_VALUE_ERROR_MSG);
-        checkCastException((key) -> DataReader.getDouble(data, key), Arrays.asList("STRING"));
+        checkExceptionMessage(
+                key -> DataReader.getDouble(data, key),
+                Arrays.asList("NULL", "INVALID"),
+                NULL_VALUE_ERROR_MSG);
+        checkCastException(key -> DataReader.getDouble(data, key), Arrays.asList("STRING"));
     }
 
     @Test
@@ -328,8 +394,13 @@ public class DataReaderTests {
 
     @Test
     public void testReadString() throws Exception {
-        checkCastException((key) -> DataReader.getString(data, key), Arrays.asList("FLOAT", "BYTE", "INT", "DOUBLE"));
-        checkCastException((key) -> DataReader.getString(data, key), Arrays.asList("LONG_MAX", "INT_MAX", "SHORT_MAX", "BYTE_MAX", "FLOAT_MAX", "DOUBLE_MAX"));
+        checkCastException(
+                key -> DataReader.getString(data, key),
+                Arrays.asList("FLOAT", "BYTE", "INT", "DOUBLE"));
+        checkCastException(
+                key -> DataReader.getString(data, key),
+                Arrays.asList(
+                        "LONG_MAX", "INT_MAX", "SHORT_MAX", "BYTE_MAX", "FLOAT_MAX", "DOUBLE_MAX"));
         assertEquals("STRING", DataReader.getString(data, "STRING"));
         assertNull(DataReader.getString(data, "NULL"));
         assertNull(DataReader.getString(data, "INVALID"));
@@ -360,32 +431,49 @@ public class DataReaderTests {
         assertEquals(map, new HashMap<>());
 
         map = DataReader.getStringMap(data, "STRING_MAP");
-        assertEquals(map, new HashMap<String, String>() {{
-            put("a", "a");
-            put("b", "b");
-        }});
+        assertEquals(
+                map,
+                new HashMap<String, String>() {
+                    {
+                        put("a", "a");
+                        put("b", "b");
+                    }
+                });
 
-        checkExceptionMessage((key) -> DataReader.getStringMap(data, key), Arrays.asList("STRING", "INT", "STRING_LIST"), MAP_ERROR_MSG);
-        checkExceptionMessage((key) -> DataReader.getStringMap(data, key), Arrays.asList("INT_MAP"), MAP_ENTRY_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getStringMap(data, key),
+                Arrays.asList("STRING", "INT", "STRING_LIST"),
+                MAP_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getStringMap(data, key),
+                Arrays.asList("INT_MAP"),
+                MAP_ENTRY_ERROR_MSG);
         checkNullArguments(DataReader::getStringMap);
     }
 
     @Test
     public void testOptStringMap() {
-        Map<String, String> defaultMap = new HashMap<String, String>() {{
-            put("c", "c");
-            put("d", "d");
-        }};
+        Map<String, String> defaultMap =
+                new HashMap<String, String>() {
+                    {
+                        put("c", "c");
+                        put("d", "d");
+                    }
+                };
 
         Map<String, String> map;
         map = DataReader.optStringMap(data, "EMPTY_MAP", defaultMap);
         assertEquals(map, new HashMap<>());
 
         map = DataReader.optStringMap(data, "STRING_MAP", defaultMap);
-        assertEquals(map, new HashMap<String, String>() {{
-            put("a", "a");
-            put("b", "b");
-        }});
+        assertEquals(
+                map,
+                new HashMap<String, String>() {
+                    {
+                        put("a", "a");
+                        put("b", "b");
+                    }
+                });
 
         map = DataReader.optStringMap(data, "INT_MAP", defaultMap);
         assertEquals(map, defaultMap);
@@ -410,8 +498,14 @@ public class DataReaderTests {
         list = DataReader.getStringList(data, "STRING_LIST");
         assertEquals(list, Arrays.asList("a", "b"));
 
-        checkExceptionMessage((key) -> DataReader.getStringList(data, key), Arrays.asList("STRING", "INT", "STRING_MAP"), LIST_ERROR_MSG);
-        checkExceptionMessage((key) -> DataReader.getStringList(data, key), Arrays.asList("INT_LIST"), LIST_ENTRY_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getStringList(data, key),
+                Arrays.asList("STRING", "INT", "STRING_MAP"),
+                LIST_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getStringList(data, key),
+                Arrays.asList("INT_LIST"),
+                LIST_ENTRY_ERROR_MSG);
         checkNullArguments(DataReader::getStringList);
     }
 
@@ -442,47 +536,72 @@ public class DataReaderTests {
     @Test
     public void testGetTypedMap() throws Exception {
         Map<String, Integer> map = DataReader.getTypedMap(Integer.class, data, "INT_MAP");
-        assertEquals(map, new HashMap<String, Integer>() {{
-            put("a", 1);
-            put("b", 2);
-        }});
+        assertEquals(
+                map,
+                new HashMap<String, Integer>() {
+                    {
+                        put("a", 1);
+                        put("b", 2);
+                    }
+                });
 
-        checkExceptionMessage((key) -> DataReader.getTypedMap(Integer.class, data, key), Arrays.asList("STRING", "INT", "STRING_LIST"), MAP_ERROR_MSG);
-        checkExceptionMessage((key) -> DataReader.getTypedMap(Integer.class, data, key), Arrays.asList("STRING_MAP"), MAP_ENTRY_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getTypedMap(Integer.class, data, key),
+                Arrays.asList("STRING", "INT", "STRING_LIST"),
+                MAP_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getTypedMap(Integer.class, data, key),
+                Arrays.asList("STRING_MAP"),
+                MAP_ENTRY_ERROR_MSG);
         checkNullArguments((m, k) -> DataReader.getTypedMap(Integer.class, m, k));
     }
 
     @Test
     public void testGetTypedMapWithNullValue() throws Exception {
-        Map<String, Object> data = new HashMap<String, Object>() {
-            {
-                put("INT_MAP", new HashMap<String, Object>() {
+        Map<String, Object> data =
+                new HashMap<String, Object>() {
+                    {
+                        put(
+                                "INT_MAP",
+                                new HashMap<String, Object>() {
+                                    {
+                                        put("a", 1);
+                                        put("b", null);
+                                    }
+                                });
+                    }
+                };
+        Map<String, Integer> map = DataReader.getTypedMap(Integer.class, data, "INT_MAP");
+        assertEquals(
+                map,
+                new HashMap<String, Integer>() {
                     {
                         put("a", 1);
                         put("b", null);
                     }
                 });
-            }
-        };
-        Map<String, Integer> map = DataReader.getTypedMap(Integer.class, data, "INT_MAP");
-        assertEquals(map, new HashMap<String, Integer>() {{
-            put("a", 1);
-            put("b", null);
-        }});
     }
 
     @Test
     public void testOptTypedMap() {
-        Map<String, Integer> defaultMap = new HashMap<String, Integer>() {{
-            put("c", 3);
-            put("d", 4);
-        }};
+        Map<String, Integer> defaultMap =
+                new HashMap<String, Integer>() {
+                    {
+                        put("c", 3);
+                        put("d", 4);
+                    }
+                };
 
-        Map<String, Integer> map = DataReader.optTypedMap(Integer.class, data, "INT_MAP", defaultMap);
-        assertEquals(map, new HashMap<String, Integer>() {{
-            put("a", 1);
-            put("b", 2);
-        }});
+        Map<String, Integer> map =
+                DataReader.optTypedMap(Integer.class, data, "INT_MAP", defaultMap);
+        assertEquals(
+                map,
+                new HashMap<String, Integer>() {
+                    {
+                        put("a", 1);
+                        put("b", 2);
+                    }
+                });
 
         map = DataReader.optTypedMap(Integer.class, data, "STRING", defaultMap);
         assertEquals(map, defaultMap);
@@ -502,8 +621,14 @@ public class DataReaderTests {
         List<Integer> list = DataReader.getTypedList(Integer.class, data, "INT_LIST");
         assertEquals(list, Arrays.asList(1, 2));
 
-        checkExceptionMessage((key) -> DataReader.getTypedList(Integer.class, data, key), Arrays.asList("STRING", "INT", "STRING_MAP"), LIST_ERROR_MSG);
-        checkExceptionMessage((key) -> DataReader.getTypedList(Integer.class, data, key), Arrays.asList("STRING_LIST"), LIST_ENTRY_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getTypedList(Integer.class, data, key),
+                Arrays.asList("STRING", "INT", "STRING_MAP"),
+                LIST_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getTypedList(Integer.class, data, key),
+                Arrays.asList("STRING_LIST"),
+                LIST_ENTRY_ERROR_MSG);
         checkNullArguments((m, k) -> DataReader.getTypedList(Integer.class, m, k));
     }
 
@@ -542,18 +667,36 @@ public class DataReaderTests {
 
     @Test
     public void testGetTypedListOfMap() throws Exception {
-        List<Map<String, Integer>> list = DataReader.getTypedListOfMap(Integer.class, data, "INTMAP_LIST");
-        assertEquals(list,  Arrays.asList(new HashMap<String, Integer>() {{
-            put("a", 1);
-            put("b", 2);
-        }}, new HashMap<String, Integer>() {{
-            put("c", 3);
-            put("d", 4);
-        }}));
+        List<Map<String, Integer>> list =
+                DataReader.getTypedListOfMap(Integer.class, data, "INTMAP_LIST");
+        assertEquals(
+                list,
+                Arrays.asList(
+                        new HashMap<String, Integer>() {
+                            {
+                                put("a", 1);
+                                put("b", 2);
+                            }
+                        },
+                        new HashMap<String, Integer>() {
+                            {
+                                put("c", 3);
+                                put("d", 4);
+                            }
+                        }));
 
-        checkExceptionMessage((key) -> DataReader.getTypedListOfMap(Integer.class, data, key), Arrays.asList("STRING", "INT", "STRING_MAP"), LIST_ERROR_MSG);
-        checkExceptionMessage((key) -> DataReader.getTypedListOfMap(Integer.class, data, key), Arrays.asList("STRING_LIST"), LIST_ENTRY_ERROR_MSG);
-        checkExceptionMessage((key) -> DataReader.getTypedListOfMap(Integer.class, data, key), Arrays.asList("STRINGMAP_LIST"), MAP_ENTRY_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getTypedListOfMap(Integer.class, data, key),
+                Arrays.asList("STRING", "INT", "STRING_MAP"),
+                LIST_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getTypedListOfMap(Integer.class, data, key),
+                Arrays.asList("STRING_LIST"),
+                LIST_ENTRY_ERROR_MSG);
+        checkExceptionMessage(
+                key -> DataReader.getTypedListOfMap(Integer.class, data, key),
+                Arrays.asList("STRINGMAP_LIST"),
+                MAP_ENTRY_ERROR_MSG);
         checkNullArguments((m, k) -> DataReader.getTypedList(Integer.class, m, k));
     }
 
@@ -563,13 +706,21 @@ public class DataReaderTests {
 
         List<Map<String, Integer>> list;
         list = DataReader.optTypedListOfMap(Integer.class, data, "INTMAP_LIST", defaultList);
-        assertEquals(list, Arrays.asList(new HashMap<String, Integer>() {{
-            put("a", 1);
-            put("b", 2);
-        }}, new HashMap<String, Integer>() {{
-            put("c", 3);
-            put("d", 4);
-        }}));
+        assertEquals(
+                list,
+                Arrays.asList(
+                        new HashMap<String, Integer>() {
+                            {
+                                put("a", 1);
+                                put("b", 2);
+                            }
+                        },
+                        new HashMap<String, Integer>() {
+                            {
+                                put("c", 3);
+                                put("d", 4);
+                            }
+                        }));
 
         list = DataReader.optTypedListOfMap(Integer.class, data, "STRING", defaultList);
         assertEquals(list, defaultList);

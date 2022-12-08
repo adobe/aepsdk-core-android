@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services.ui;
 
@@ -24,14 +24,12 @@ import android.view.animation.TranslateAnimation;
 import android.webkit.WebSettings;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
-
+import com.adobe.marketing.mobile.util.StringUtils;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -40,9 +38,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The {@link Runnable} object running on the main thread that creates the webview and adds it to the root view.
+ * The {@link Runnable} object running on the main thread that creates the webview and adds it to
+ * the root view.
  */
 class MessageWebViewRunner implements Runnable {
+
     private static final String TAG = "MessageWebViewRunner";
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
     private static final int ANIMATION_DURATION = 300;
@@ -74,20 +74,27 @@ class MessageWebViewRunner implements Runnable {
     }
 
     /**
-     * Validates the message passed in the constructor. If valid, the webview is created and an attempt is made to show the message.
+     * Validates the message passed in the constructor. If valid, the webview is created and an
+     * attempt is made to show the message.
      */
     @SuppressWarnings("SetJavaScriptEnabled")
     @Override
     public void run() {
         try {
             if (StringUtils.isNullOrEmpty(message.getMessageHtml())) {
-                Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (message html), failed to show the message.");
+                Log.warning(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        UNEXPECTED_NULL_VALUE + " (message html), failed to show the message.");
                 message.cleanup();
                 return;
             }
 
             if (message.rootViewGroup == null) {
-                Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (root view group), failed to show the message.");
+                Log.warning(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        UNEXPECTED_NULL_VALUE + " (root view group), failed to show the message.");
                 message.cleanup();
                 return;
             }
@@ -97,21 +104,30 @@ class MessageWebViewRunner implements Runnable {
 
             // ensure the rootview has been measured before trying to display the message
             if (width == 0 || height == 0) {
-                Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, root view group has not been measured.");
+                Log.warning(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        "Failed to show the message, root view group has not been measured.");
                 message.cleanup();
                 return;
             }
 
-            final Context context = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+            final Context context =
+                    ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
             if (context == null) {
-                Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, the app context is null.");
+                Log.warning(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        "Failed to show the message, the app context is null.");
                 message.cleanup();
                 return;
             }
 
             // create the webview and configure the settings
-            webView = new MessageWebView(context, settings.getCornerRadius(), 0, 0, messageWidth, messageHeight);
+            webView =
+                    new MessageWebView(
+                            context, settings.getCornerRadius(), 0, 0, messageWidth, messageHeight);
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
             webView.setBackgroundColor(Color.TRANSPARENT);
@@ -127,11 +143,15 @@ class MessageWebViewRunner implements Runnable {
             message.webView = webView;
 
             // setup onTouchListeners for the webview and the rootview.
-            // the rootview touch listener is added to handle dismissing messages via tapping outside the IAM.
+            // the rootview touch listener is added to handle dismissing messages via tapping
+            // outside the IAM.
             final MessageFragment messageFragment = message.getMessageFragment();
 
             if (messageFragment == null) {
-                Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message, the message fragment is null.");
+                Log.warning(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        "Failed to show the message, the message fragment is null.");
                 message.cleanup();
                 return;
             }
@@ -142,12 +162,16 @@ class MessageWebViewRunner implements Runnable {
 
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR1) {
                 // Disallow need for a user gesture to play media. Works on API 17 and above.
-                final Method method = webviewSettings.getClass().getMethod("setMediaPlaybackRequiresUserGesture", Boolean.TYPE);
+                final Method method =
+                        webviewSettings
+                                .getClass()
+                                .getMethod("setMediaPlaybackRequiresUserGesture", Boolean.TYPE);
                 method.setAccessible(true);
                 method.invoke(webviewSettings, false);
             }
 
-            final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+            final Context appContext =
+                    ServiceProvider.getInstance().getAppContextService().getApplicationContext();
             File cacheDirectory = null;
 
             if (appContext != null) {
@@ -159,7 +183,12 @@ class MessageWebViewRunner implements Runnable {
             }
 
             webviewSettings.setDefaultTextEncodingName(StandardCharsets.UTF_8.name());
-            webView.loadDataWithBaseURL(BASE_URL, message.getMessageHtml(), MIME_TYPE, StandardCharsets.UTF_8.name(), null);
+            webView.loadDataWithBaseURL(
+                    BASE_URL,
+                    message.getMessageHtml(),
+                    MIME_TYPE,
+                    StandardCharsets.UTF_8.name(),
+                    null);
 
             // if we are re-showing after an orientation change, no need to animate
             final MessageSettings messageSettings = message.getSettings();
@@ -168,8 +197,11 @@ class MessageWebViewRunner implements Runnable {
                 final Animation animation = setupDisplayAnimation();
 
                 if (animation == null) {
-                    Log.debug(ServiceConstants.LOG_TAG, TAG,
-                            UNEXPECTED_NULL_VALUE + " (MessageAnimation), failed to setup a display animation.");
+                    Log.debug(
+                            ServiceConstants.LOG_TAG,
+                            TAG,
+                            UNEXPECTED_NULL_VALUE
+                                    + " (MessageAnimation), failed to setup a display animation.");
                     return;
                 }
 
@@ -179,14 +211,16 @@ class MessageWebViewRunner implements Runnable {
             createMessageFrameAndAddMessageToRootView(messageSettings);
             message.viewed();
         } catch (Exception ex) {
-            Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to show the message " + ex.getMessage());
+            Log.warning(
+                    ServiceConstants.LOG_TAG, TAG, "Failed to show the message " + ex.getMessage());
         }
     }
 
     /**
      * Create a message display {@link Animation}.
      *
-     * @return {@code Animation} object defining the animation that will be performed when the message is displayed.
+     * @return {@code Animation} object defining the animation that will be performed when the
+     *     message is displayed.
      */
     private Animation setupDisplayAnimation() {
         final MessageAnimation animation = message.getSettings().getDisplayAnimation();
@@ -195,36 +229,37 @@ class MessageWebViewRunner implements Runnable {
             return null;
         }
 
-        Log.trace(ServiceConstants.LOG_TAG, TAG, "Creating display animation for " + animation.name());
+        Log.trace(
+                ServiceConstants.LOG_TAG,
+                TAG,
+                "Creating display animation for " + animation.name());
         final Animation displayAnimation;
 
         switch (animation) {
             case TOP:
                 displayAnimation = new TranslateAnimation(0, 0, -message.baseRootViewHeight, 0);
                 break;
-
             case FADE:
                 // fade in from 0% to 100%
                 displayAnimation = new AlphaAnimation(0, 1);
                 displayAnimation.setInterpolator(new DecelerateInterpolator());
                 break;
-
             case LEFT:
                 displayAnimation = new TranslateAnimation(-message.baseRootViewWidth, 0, 0, 0);
                 break;
-
             case RIGHT:
                 displayAnimation = new TranslateAnimation(message.baseRootViewWidth, 0, 0, 0);
                 break;
-
             case BOTTOM:
-                displayAnimation = new TranslateAnimation(0, 0, message.baseRootViewHeight * 2, message.webView.getTop());
+                displayAnimation =
+                        new TranslateAnimation(
+                                0, 0, message.baseRootViewHeight * 2, message.webView.getTop());
                 break;
-
             case CENTER:
-                displayAnimation = new TranslateAnimation(message.baseRootViewWidth, 0, message.baseRootViewHeight, 0);
+                displayAnimation =
+                        new TranslateAnimation(
+                                message.baseRootViewWidth, 0, message.baseRootViewHeight, 0);
                 break;
-
             default:
                 // no animation
                 displayAnimation = new TranslateAnimation(0, 0, 0, 0);
@@ -243,12 +278,15 @@ class MessageWebViewRunner implements Runnable {
     }
 
     /**
-     * Creates a {@link MessageWebView} and a {@link LinearLayout} backdrop and adds them to the root view.
+     * Creates a {@link MessageWebView} and a {@link LinearLayout} backdrop and adds them to the
+     * root view.
      *
-     * @param settings The {@link MessageSettings} object containing customization settings for the {@link AEPMessage}.
+     * @param settings The {@link MessageSettings} object containing customization settings for the
+     *     {@link AEPMessage}.
      */
     private void createMessageFrameAndAddMessageToRootView(final MessageSettings settings) {
-        FrameLayout.LayoutParams params = generateLayoutParams(messageHeight, messageWidth, originX, originY);
+        FrameLayout.LayoutParams params =
+                generateLayoutParams(messageHeight, messageWidth, originX, originY);
 
         // if we have non fullscreen messages, fill the webview
         final int fullScreenMessageHeight = 100;
@@ -258,30 +296,36 @@ class MessageWebViewRunner implements Runnable {
         }
 
         // create a new view to apply a background dimming effect behind a displayed message
-        backdrop = new View(ServiceProvider.getInstance().getAppContextService().getApplicationContext());
-        backdrop.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        backdrop =
+                new View(
+                        ServiceProvider.getInstance()
+                                .getAppContextService()
+                                .getApplicationContext());
+        backdrop.setLayoutParams(
+                new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         backdrop.setBackgroundColor(Color.parseColor(settings.getBackdropColor()));
         backdrop.setAlpha(settings.getBackdropOpacity());
 
         // add the webview overlaid on the backdrop
-        message.rootViewGroup.addView(backdrop, message.baseRootViewWidth, message.baseRootViewHeight);
+        message.rootViewGroup.addView(
+                backdrop, message.baseRootViewWidth, message.baseRootViewHeight);
         message.rootViewGroup.addView(webView, params);
     }
 
     /**
-     * Generates {@link FrameLayout.LayoutParams} for the {@link MessageWebView} given the provided message height, width, origin x, and origin y.
+     * Generates {@link FrameLayout.LayoutParams} for the {@link MessageWebView} given the provided
+     * message height, width, origin x, and origin y.
      *
      * @param messageHeight a {@code int} specifying the height of the webview.
-     * @param messageWidth  a {@code int} specifying the width of the webview.
-     * @param originX       a {@code int} specifying the x origin of the webview.
-     * @param originY       a {@code int} specifying the y origin of the webview.
+     * @param messageWidth a {@code int} specifying the width of the webview.
+     * @param originX a {@code int} specifying the x origin of the webview.
+     * @param originY a {@code int} specifying the y origin of the webview.
      * @return the generated {@code FrameLayout.LayoutParams} object.
      */
-    private FrameLayout.LayoutParams generateLayoutParams(final int messageHeight,
-                                                          final int messageWidth,
-                                                          final int originX,
-                                                          final int originY) {
-        final FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(messageWidth, messageHeight, Gravity.NO_GRAVITY);
+    private FrameLayout.LayoutParams generateLayoutParams(
+            final int messageHeight, final int messageWidth, final int originX, final int originY) {
+        final FrameLayout.LayoutParams params =
+                new FrameLayout.LayoutParams(messageWidth, messageHeight, Gravity.NO_GRAVITY);
         params.topMargin = originY;
         params.leftMargin = originX;
 
@@ -313,14 +357,14 @@ class MessageWebViewRunner implements Runnable {
     /**
      * Calculates the left most point of the {@link MessageWebView}.
      *
-     * <p>
-     * The x origin is calculated by the settings values of horizontal alignment and horizontal inset.
-     * If the horizontal alignment is center, horizontal inset is ignored and x is calculated so that the message will be
-     * centered according to its width.
-     * If horizontal alignment is left or right, the inset will be calculated as a percentage width from the respective
-     * alignment origin
+     * <p>The x origin is calculated by the settings values of horizontal alignment and horizontal
+     * inset. If the horizontal alignment is center, horizontal inset is ignored and x is calculated
+     * so that the message will be centered according to its width. If horizontal alignment is left
+     * or right, the inset will be calculated as a percentage width from the respective alignment
+     * origin
      *
-     * @param settings The {@link MessageSettings} object containing customization settings for the {@link AEPMessage}.
+     * @param settings The {@link MessageSettings} object containing customization settings for the
+     *     {@link AEPMessage}.
      * @return a {@code int} containing the left most point of the {@code MessageWebView}
      */
     private int getOriginX(final MessageSettings settings) {
@@ -343,8 +387,11 @@ class MessageWebViewRunner implements Runnable {
         } else if (settings.getHorizontalAlign().equals(MessageAlignment.RIGHT)) {
             // check for an inset
             if (settings.getHorizontalInset() != 0) {
-                // x alignment here is screen width - message width - inset value converted from percentage to pixels
-                return screenWidth - getPixelValueForWidth(settings.getWidth()) - getPixelValueForWidth(settings.getHorizontalInset());
+                // x alignment here is screen width - message width - inset value converted from
+                // percentage to pixels
+                return (screenWidth
+                        - getPixelValueForWidth(settings.getWidth())
+                        - getPixelValueForWidth(settings.getHorizontalInset()));
             } else {
                 // no inset, right x alignment means screen width - message width
                 return screenWidth - getPixelValueForWidth(settings.getWidth());
@@ -358,14 +405,13 @@ class MessageWebViewRunner implements Runnable {
     /**
      * Calculates the top most point of the {@link MessageWebView}.
      *
-     * <p>
-     * The y origin is calculated by the settings values of vertical alignment and vertical inset.
-     * If vertical alignment is center, vertical inset is ignored and y is calculated so that the message will be
-     * centered according to its height.
-     * If vertical alignment is top or bottom, the inset will be calculated as a percentage height from the respective
-     * alignment origin.
+     * <p>The y origin is calculated by the settings values of vertical alignment and vertical
+     * inset. If vertical alignment is center, vertical inset is ignored and y is calculated so that
+     * the message will be centered according to its height. If vertical alignment is top or bottom,
+     * the inset will be calculated as a percentage height from the respective alignment origin.
      *
-     * @param settings The {@link MessageSettings} object containing customization settings for the {@link AEPMessage}.
+     * @param settings The {@link MessageSettings} object containing customization settings for the
+     *     {@link AEPMessage}.
      * @return a {@code int} containing the top most point of the {@code MessageWebView}
      */
     private int getOriginY(final MessageSettings settings) {
@@ -388,9 +434,11 @@ class MessageWebViewRunner implements Runnable {
         } else if (settings.getVerticalAlign().equals(MessageAlignment.BOTTOM)) {
             // check for an inset
             if (settings.getVerticalInset() != 0) {
-                // y alignment here is screen height - message height - inset value converted from percentage to pixels
-                return screenHeight - getPixelValueForHeight(settings.getHeight()) - getPixelValueForHeight(
-                        settings.getVerticalInset());
+                // y alignment here is screen height - message height - inset value converted from
+                // percentage to pixels
+                return (screenHeight
+                        - getPixelValueForHeight(settings.getHeight())
+                        - getPixelValueForHeight(settings.getVerticalInset()));
             } else {
                 // no inset, bottom y alignment means screen height - message height
                 return screenHeight - getPixelValueForHeight(settings.getHeight());
@@ -406,7 +454,7 @@ class MessageWebViewRunner implements Runnable {
      * cached location.
      *
      * @param assetMap The {@code Map<String, String} object containing the mapping between a remote
-     *                 asset url and its cached location.
+     *     asset url and its cached location.
      */
     void setLocalAssetsMap(final Map<String, String> assetMap) {
         if (assetMap != null && !assetMap.isEmpty()) {

@@ -7,23 +7,18 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
 import androidx.annotation.Nullable;
-
 import com.adobe.marketing.mobile.util.JSONUtils;
-
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Map;
-
-/**
- * The helper methods used to encode/decode an Event to/from json String
- */
+/** The helper methods used to encode/decode an Event to/from json String */
 public class EventCoder {
 
     private static final String NAME = "name";
@@ -64,12 +59,13 @@ public class EventCoder {
                 mask = JSONUtils.toList(maskJsonArray).toArray(new String[0]);
             }
 
-            final Event ret = new Event.Builder(name, type, source, mask)
-                    .setUniqueIdentifier(uniqueIdentifier)
-                    .setTimestamp(timestamp)
-                    .setEventData(data)
-                    .setResponseId(responseId)
-                    .build();
+            final Event ret =
+                    new Event.Builder(name, type, source, mask)
+                            .setUniqueIdentifier(uniqueIdentifier)
+                            .setTimestamp(timestamp)
+                            .setEventData(data)
+                            .setResponseId(responseId)
+                            .build();
             return ret;
         } catch (JSONException e) {
             return null;
@@ -80,7 +76,8 @@ public class EventCoder {
      * Encode an event to a json string
      *
      * @param event the event to encode
-     * @return json string represents all the fields of the event, otherwise returns null if the event is null or there is json error
+     * @return json string represents all the fields of the event, otherwise returns null if the
+     *     event is null or there is json error
      */
     public static String encode(final Event event) {
         if (event == null) {
@@ -105,18 +102,17 @@ public class EventCoder {
     }
 
     /**
-     * Returns the value mapped by {@code key} if it exists, or the {@code fallback}
-     * if no such mapping exists.
-     * Exists because {@code JSONObject#optString} does not allow a null fallback.
+     * Returns the value mapped by {@code key} if it exists, or the {@code fallback} if no such
+     * mapping exists. Exists because {@code JSONObject#optString} does not allow a null fallback.
      *
      * @param jsonObject the json from which the key is to be fetched
      * @param key the key that is to be fetched
      * @param fallback the fallback value if the key does not exist in {@code jsonObject}
-     *
      * @return value mapped by {@code key} if it exists in {@code jsonObject}, or {@code fallback}
-     * if no such mapping exists.
+     *     if no such mapping exists.
      */
-    private static String optString(final JSONObject jsonObject, final String key, @Nullable final String fallback) {
+    private static String optString(
+            final JSONObject jsonObject, final String key, @Nullable final String fallback) {
         try {
             return jsonObject.getString(key);
         } catch (final JSONException e) {

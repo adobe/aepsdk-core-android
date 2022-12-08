@@ -16,9 +16,9 @@ buildscript {
         classpath "org.jacoco:org.jacoco.core:0.8.7"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20"
         classpath 'org.jetbrains.kotlinx:binary-compatibility-validator:0.11.1'
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
-        classpath "org.jlleitschuh.gradle:ktlint-gradle:10.1.0"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"        
         classpath 'androidx.benchmark:benchmark-gradle-plugin:1.2.0-alpha06'
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:6.12.0"
     }
 }
 

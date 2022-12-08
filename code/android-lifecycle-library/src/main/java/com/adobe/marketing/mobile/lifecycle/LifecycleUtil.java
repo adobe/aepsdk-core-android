@@ -62,8 +62,14 @@ final class LifecycleUtil {
 	}
 
 	/**
-	 * Formats the locale value from SystemInfoService and replaces '_' with '-'
+	 * Formats the locale value by replacing '_' with '-'. Uses {@link Locale#toString()} to retrieve
+	 * the language tag.
+	 * <p>
+	 * Note. the use of {@code Locale#toString()} does not return a value formatted to BCP 47.
+	 * For example, script codes are appended to the locale as "-#scriptCode", as in "zh-HK-#Hant",
+	 * where BCP 47 requires the format as "zh-Hant-HK".
 	 *
+	 * @see #formatLocaleXDM(Locale) 
 	 * @param locale active locale value
 	 * @return string representation of the locale
 	 */
@@ -74,7 +80,7 @@ final class LifecycleUtil {
 	/**
 	 * Format the locale to the string format used in XDM.
 	 * For Android API version >= Lollipop (21), returns {@link Locale#toLanguageTag()}.
-	 * For Android API version <= KitKat (19), returns a concatenation of {@link Locale#getLanguage()}
+	 * For Android API version < 21, returns a concatenation of {@link Locale#getLanguage()}
 	 * and {@link Locale#getCountry()}, separated by '-'.
 	 *
 	 * @param locale active Locale value

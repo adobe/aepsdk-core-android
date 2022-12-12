@@ -54,7 +54,6 @@ object TimeUtils {
         return getFormattedDate(date, DatePattern.ISO8601_TIMEZONE_RFC822_PRECISION_SECOND)
     }
 
-
     /**
      * Gets the ISO 8601 formatted with UTC(Z) time zone, millisecond precision date `String` for the
      * provided date using the UTC +0 time zone.

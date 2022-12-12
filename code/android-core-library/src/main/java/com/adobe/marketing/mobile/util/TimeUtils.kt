@@ -83,9 +83,7 @@ object TimeUtils {
      * @param timeZone the [TimeZone] to evaluate the formatted date from; defaults to device time zone if not specified
      * @return the formatted date [String]
      */
-    @JvmStatic
-    @JvmOverloads
-    fun getFormattedDate(date: Date?, datePattern: DatePattern, timeZone: TimeZone? = null): String? {
+    private fun getFormattedDate(date: Date?, datePattern: DatePattern, timeZone: TimeZone? = null): String? {
         // AMSDK-8374 -
         // we should explicitly ignore the device's locale when formatting an ISO 8601 timestamp
         val posixLocale = Locale(Locale.US.language, Locale.US.country, "POSIX")

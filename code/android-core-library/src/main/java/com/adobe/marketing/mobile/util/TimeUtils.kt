@@ -71,8 +71,8 @@ object TimeUtils {
      */
     @JvmStatic
     @JvmOverloads
-    fun getIso8601DateTimeZoneUTC(date: Date? = Date()): String? {
-        return getFormattedDate(date, DatePattern.ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND, TimeZone.getTimeZone("Etc/UTC"))
+    fun getISO8601UTCDateWithMilliseconds(date: Date? = Date()): String? {
+        return getFormattedDate(date, DatePattern.ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND)
     }
 
     /**

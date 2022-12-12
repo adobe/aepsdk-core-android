@@ -82,7 +82,7 @@ public class TimeUtilsTests {
 
 	@Test
 	public void testGetIso8601Date_TimeZone_ISO8601_returns_milliseconds_and_UTC() {
-		String formattedDate = TimeUtils.getIso8601DateTimeZoneUTC();
+		String formattedDate = TimeUtils.getISO8601UTCDateWithMilliseconds();
 		assertTrue(formattedDate.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}T([0-9]{2}:){2}[0-9]{2}.[0-9]{3}Z"));
 	}
 
@@ -94,7 +94,7 @@ public class TimeUtilsTests {
 		String dateInString = "2022-11-30T13:50:53.945Z";
 		Date testDate = formatter.parse(dateInString);
 
-		String formattedDate = TimeUtils.getIso8601DateTimeZoneUTC(testDate);
+		String formattedDate = TimeUtils.getISO8601UTCDateWithMilliseconds(testDate);
 
 		assertTrue(formattedDate.matches(dateInString));
 	}

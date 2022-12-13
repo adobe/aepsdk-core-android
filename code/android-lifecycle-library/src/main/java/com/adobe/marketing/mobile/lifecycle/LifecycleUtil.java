@@ -93,18 +93,18 @@ final class LifecycleUtil {
 
         if (isLollipopOrGreater.check()) {
             return locale.toLanguageTag();
-        } else {
-            String language = locale.getLanguage();
-            String region = locale.getCountry();
+        }
 
-            if (!StringUtils.isNullOrEmpty(language)) {
-                return !StringUtils.isNullOrEmpty(region)
-                        ? String.format("%s-%s", language, region)
-                        : language;
-            }
+        String language = locale.getLanguage();
+        String region = locale.getCountry();
 
+        if (StringUtils.isNullOrEmpty(language)) {
             return null;
         }
+
+        return StringUtils.isNullOrEmpty(region)
+                ? language
+                : String.format("%s-%s", language, region);
     }
 
     interface BuildVersionCheck {

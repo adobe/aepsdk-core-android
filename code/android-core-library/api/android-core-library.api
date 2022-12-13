@@ -66,6 +66,7 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field ERROR_RESPONSE_CONTENT Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
+	public static final field REMOVE_IDENTITY Ljava/lang/String;
 	public static final field REQUEST_CONTENT Ljava/lang/String;
 	public static final field REQUEST_IDENTITY Ljava/lang/String;
 	public static final field REQUEST_PROFILE Ljava/lang/String;

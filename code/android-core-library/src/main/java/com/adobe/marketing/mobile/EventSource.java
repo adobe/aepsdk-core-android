@@ -40,6 +40,7 @@ public final class EventSource {
     public static final String UPDATE_CONSENT = "com.adobe.eventSource.updateConsent";
     public static final String RESET_COMPLETE = "com.adobe.eventSource.resetComplete";
     public static final String UPDATE_IDENTITY = "com.adobe.eventSource.updateIdentity";
+    public static final String REMOVE_IDENTITY = "com.adobe.eventSource.removeIdentity";
     public static final String ERROR_RESPONSE_CONTENT =
             "com.adobe.eventSource.errorResponseContent";
 }

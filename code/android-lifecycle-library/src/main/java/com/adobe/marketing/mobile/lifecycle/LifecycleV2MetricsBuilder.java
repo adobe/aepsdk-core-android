@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
  * </ul>
  */
 class LifecycleV2MetricsBuilder {
-
     private static final String SELF_LOG_TAG = "LifecycleV2MetricsBuilder";
     private final DeviceInforming deviceInfoService;
     private XDMLifecycleDevice xdmDeviceInfo;
@@ -195,7 +194,7 @@ class LifecycleV2MetricsBuilder {
         xdmEnvironmentInfo.setOperatingSystem(deviceInfoService.getOperatingSystemName());
         xdmEnvironmentInfo.setOperatingSystemVersion(deviceInfoService.getOperatingSystemVersion());
         xdmEnvironmentInfo.setLanguage(
-                LifecycleUtil.formatLocale(deviceInfoService.getActiveLocale()));
+                LifecycleUtil.formatLocaleXDM(deviceInfoService.getActiveLocale()));
 
         return xdmEnvironmentInfo;
     }

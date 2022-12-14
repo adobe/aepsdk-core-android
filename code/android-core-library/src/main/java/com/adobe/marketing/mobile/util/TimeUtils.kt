@@ -20,13 +20,9 @@ import java.util.TimeZone
 
 object TimeUtils {
     private const val MILLISECONDS_PER_SECOND = 1000L
-
-    enum class DatePattern(val pattern: String) {
-        ISO8601_TIMEZONE_RFC822_PRECISION_SECOND("yyyy-MM-dd'T'HH:mm:ssZ"),
-        ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND("yyyy-MM-dd'T'HH:mm:ssXXX"),
-        RFC2822_DATE_PATTERN("EEE, dd MMM yyyy HH:mm:ss z"),
-        ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    }
+    private const val ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    private const val ISO8601_TIMEZONE_RFC822_PRECISION_SECOND = "yyyy-MM-dd'T'HH:mm:ssZ"
+    private const val RFC2822_DATE_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z"
 
     /**
      * Gets current unix timestamp in seconds.
@@ -41,7 +37,7 @@ object TimeUtils {
     /**
      * Gets the ISO 8601 formatted with RFC 822 time zone, second precision date `String` for the provided
      * date using the current device time zone.
-     * Date pattern used is [DatePattern.ISO8601_TIMEZONE_RFC822_PRECISION_SECOND]
+     * Date pattern used is [ISO8601_TIMEZONE_RFC822_PRECISION_SECOND]
      * which has timezone RFC 822 'Z' pattern, which gives a timezone of ex: "-0700" ("+0000" for UTC +0)
      * Ex (device in time zone "America/Los_Angeles"): Wed Nov 30 11:53:09.497 GMT-07:00 2022 -> 2022-11-30T11:53:09-0700
      *
@@ -50,14 +46,14 @@ object TimeUtils {
      */
     @JvmStatic
     @JvmOverloads
-    fun getIso8601DateTimeZoneRFC822(date: Date? = Date()): String? {
-        return getFormattedDate(date, DatePattern.ISO8601_TIMEZONE_RFC822_PRECISION_SECOND)
+    fun getIso8601DateTimeZoneRFC822(date: Date = Date()): String {
+        return getFormattedDate(date, ISO8601_TIMEZONE_RFC822_PRECISION_SECOND) ?: ""
     }
 
     /**
      * Gets the ISO 8601 formatted with UTC(Z) time zone, millisecond precision date `String` for the
      * provided date using the UTC +0 time zone.
-     * Date pattern used is [DatePattern.ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND]
+     * Date pattern used is [ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND]
      * which has timezone ISO 8601 'Z' char terminator, which gives a timezone of 'Z'.
      * Ex: Wed Nov 30 11:53:09.497 GMT-07:00 2022 -> 2022-11-30T18:53:09.497Z (notice the hour shift because the date must be evaluated from UTC +0)
      *
@@ -70,33 +66,26 @@ object TimeUtils {
      */
     @JvmStatic
     @JvmOverloads
-    fun getISO8601UTCDateWithMilliseconds(date: Date? = Date()): String? {
-        return getFormattedDate(date, DatePattern.ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND)
+    fun getISO8601UTCDateWithMilliseconds(date: Date = Date()): String {
+        return getFormattedDate(date, ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND, TimeZone.getTimeZone("GMT")) ?: ""
     }
 
     /**
      * Gets the formatted date `String` for the passed in date; if no date passed in, uses current `Date()`
      *
      * @param date the [Date] to apply the formatting to; defaults to the current [Date]
-     * @param datePattern the [DatePattern] to use to format the date [String]
+     * @param pattern the pattern [String] to use to format the date
      * @param timeZone the [TimeZone] to evaluate the formatted date from; defaults to device time zone if not specified
-     * @return the formatted date [String]
+     * @return the formatted date [String], null if formatting fails
      */
-    private fun getFormattedDate(date: Date?, datePattern: DatePattern, timeZone: TimeZone? = null): String? {
+    private fun getFormattedDate(date: Date?, pattern: String, timeZone: TimeZone? = null): String? {
         // AMSDK-8374 -
         // we should explicitly ignore the device's locale when formatting an ISO 8601 timestamp
         val posixLocale = Locale(Locale.US.language, Locale.US.country, "POSIX")
-        val dateFormat: DateFormat = SimpleDateFormat(datePattern.pattern, posixLocale)
+        val dateFormat: DateFormat = SimpleDateFormat(pattern, posixLocale)
 
-        // Handle special cases/requirements based on DatePattern provided
-        when (datePattern) {
-            // This format hardcodes the terminating 'Z' character, which under ISO 8601 requires timezone UTC +0
-            DatePattern.ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND -> dateFormat.timeZone = TimeZone.getTimeZone("Etc/UTC")
-            else -> {
-                if (timeZone != null) {
-                    dateFormat.timeZone = timeZone
-                }
-            }
+        if (timeZone != null) {
+            dateFormat.timeZone = timeZone
         }
         return dateFormat.format(date ?: Date())
     }
@@ -111,7 +100,7 @@ object TimeUtils {
     @JvmStatic
     fun parseRFC2822Date(rfc2822Date: String?, timeZone: TimeZone, locale: Locale): Date? {
         if (rfc2822Date == null) return null
-        val rfc2822formatter: DateFormat = SimpleDateFormat(DatePattern.RFC2822_DATE_PATTERN.pattern, locale)
+        val rfc2822formatter: DateFormat = SimpleDateFormat(RFC2822_DATE_PATTERN, locale)
         rfc2822formatter.timeZone = timeZone
         return try {
             rfc2822formatter.parse(rfc2822Date) ?: Date()
@@ -129,7 +118,7 @@ object TimeUtils {
      */
     @JvmStatic
     fun getRFC2822Date(epoch: Long, timeZone: TimeZone, locale: Locale): String {
-        val rfc2822formatter: DateFormat = SimpleDateFormat(DatePattern.RFC2822_DATE_PATTERN.pattern, locale)
+        val rfc2822formatter: DateFormat = SimpleDateFormat(RFC2822_DATE_PATTERN, locale)
         rfc2822formatter.timeZone = timeZone
         return rfc2822formatter.format(epoch)
     }

@@ -275,7 +275,9 @@ public final class IdentityExtension extends Extension {
     private void boot() {
         loadVariablesFromPersistentData();
         initializeDatabaseWithCurrentPrivacyStatus();
-        getApi().createSharedState(packageEventData(), null);
+        if(!StringUtils.isNullOrEmpty(mid)){
+            getApi().createSharedState(packageEventData(), null);
+        }
     }
 
     /**

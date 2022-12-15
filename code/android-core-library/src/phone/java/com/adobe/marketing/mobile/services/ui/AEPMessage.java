@@ -26,9 +26,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
-
 import androidx.annotation.Nullable;
-
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
@@ -111,17 +109,14 @@ class AEPMessage implements FullscreenMessage {
     }
 
     @Override
-    @Nullable
-    public WebView getWebView(){
+    @Nullable public WebView getWebView() {
         return this.webView;
     }
 
     @Override
-    @Nullable
-    public MessageSettings getMessageSettings(){
+    @Nullable public MessageSettings getMessageSettings() {
         return this.settings;
     }
-
 
     /**
      * Starts the {@link MessageFragment}.

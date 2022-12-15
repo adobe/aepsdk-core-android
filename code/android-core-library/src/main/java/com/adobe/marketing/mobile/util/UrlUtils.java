@@ -51,9 +51,10 @@ public final class UrlUtils {
     public static String urlEncode(final String unencodedString) {
         return UrlEncoder.urlEncode(unencodedString);
     }
-    
+
     /**
      * Extra URL parameters and return as a {@code Map}
+     *
      * @param queryString the {@code String} of the URL parameter section
      * @return a {@code Map} of URL parameters
      */
@@ -73,8 +74,8 @@ public final class UrlUtils {
 
             final String[] currentParamArray = currentParam.split("=", 2);
 
-            if (currentParamArray.length != 2 ||
-                    (currentParamArray[0].isEmpty() || currentParamArray[1].isEmpty())) {
+            if (currentParamArray.length != 2
+                    || (currentParamArray[0].isEmpty() || currentParamArray[1].isEmpty())) {
                 continue;
             }
 

@@ -14,6 +14,8 @@ package com.adobe.marketing.mobile.util;
 import com.adobe.marketing.mobile.internal.util.UrlEncoder;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class UrlUtils {
 
@@ -48,5 +50,39 @@ public final class UrlUtils {
      */
     public static String urlEncode(final String unencodedString) {
         return UrlEncoder.urlEncode(unencodedString);
+    }
+    
+    /**
+     * Extra URL parameters and return as a {@code Map}
+     * @param queryString the {@code String} of the URL parameter section
+     * @return a {@code Map} of URL parameters
+     */
+    public static Map<String, String> extractQueryParameters(final String queryString) {
+        if (StringUtils.isNullOrEmpty(queryString)) {
+            return null;
+        }
+
+        final Map<String, String> parameters = new HashMap<String, String>();
+        final String[] paramArray = queryString.split("&");
+
+        for (String currentParam : paramArray) {
+            // quick out in case this entry is null or empty string
+            if (StringUtils.isNullOrEmpty(currentParam)) {
+                continue;
+            }
+
+            final String[] currentParamArray = currentParam.split("=", 2);
+
+            if (currentParamArray.length != 2 ||
+                    (currentParamArray[0].isEmpty() || currentParamArray[1].isEmpty())) {
+                continue;
+            }
+
+            final String key = currentParamArray[0];
+            final String value = currentParamArray[1];
+            parameters.put(key, value);
+        }
+
+        return parameters;
     }
 }

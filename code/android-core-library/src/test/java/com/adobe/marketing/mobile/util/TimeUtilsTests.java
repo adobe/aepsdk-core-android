@@ -25,15 +25,48 @@ import static org.junit.Assert.*;
 import com.adobe.marketing.mobile.TestHelper;
 
 public class TimeUtilsTests {
-	private static final String DATE_REGEX_TIMEZONE_RFC822 =
-		"^((19|2[0-9])[0-9]{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T{1}[0-2][0-9]:[0-5][0-9]:[0-5][0-9][-+][0-9]{4}$";
+	private static final String DATE_REGEX_ISO8601_TIMEZONE_ISO8601_2X_PRECISION_SECOND =
+		"^((19|2[0-9])[0-9]{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T[0-2][0-9]:[0-5][0-9]:[0-5][0-9][-+][0-9]{4}$";
 
-	private static final String DATE_REGEX_TIMEZONE_ISO8601 =
-		"^((19|2[0-9])[0-9]{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T{1}[0-2][0-9]:[0-5][0-9]:[0-5][0-9][-+][0-9]{2}:[0-9]{2}$";
+	private static final String DATE_REGEX_ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND =
+		"^((19|2[0-9])[0-9]{2})-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T[0-2][0-9]:[0-5][0-9]:[0-5][0-9][-+][0-9]{2}:[0-9]{2}$";
+
+	private static final String DATE_REGEX_ISO8601_FULL_DATE =
+			"^[0-9]{4}-[0-9]{2}-[0-9]{2}$";
+
+	private static final String DATE_REGEX_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND =
+			"^[0-9]{4}-[0-9]{2}-[0-9]{2}T([0-9]{2}:){2}[0-9]{2}.[0-9]{3}Z$";
+
+	private Date defaultDate;
+	private Date defaultDateNoMilli;
+
+	private String expectedString_ISO8601_FULL_DATE;
+	private String expectedString_ISO8601_TIMEZONE_ISO8601_2X_PRECISION_SECOND;
+	private String expectedString_ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND;
+	private String expectedString_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND;
+
+	private String expectedString_RFC2822_DATE_PATTERN_GMT;
+
+	private Long defaultEpochMilli;
+	private Locale defaultLocale;
 
 	@Before
-	public void setup() {
+	public void setup() throws ParseException {
 		TimeZone.setDefault(TimeZone.getTimeZone("GMT-7"));
+		defaultLocale = new Locale(Locale.US.getLanguage(), Locale.US.getCountry(), "POSIX");
+		// Setup static date whose expected formats are well-known
+		expectedString_ISO8601_FULL_DATE = "2022-11-30";
+		expectedString_ISO8601_TIMEZONE_ISO8601_2X_PRECISION_SECOND = "2022-11-30T06:50:53-0700";
+		expectedString_ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND = "2022-11-30T06:50:53-07:00";
+		expectedString_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND = "2022-11-30T13:50:53.945Z";
+		expectedString_RFC2822_DATE_PATTERN_GMT = "Wed, 30 Nov 2022 13:50:53 GMT";
+
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", defaultLocale);
+		formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+		defaultDate = formatter.parse(expectedString_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND);
+		formatter.applyPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		defaultDateNoMilli = formatter.parse("2022-11-30T13:50:53Z");
+		defaultEpochMilli = defaultDate.toInstant().toEpochMilli();
 	}
 
 	@Test
@@ -52,50 +85,66 @@ public class TimeUtilsTests {
 		assertTrue(timestamp - currentTimestamp <= 0);
 	}
 
+	// Testing each API with a well-known date and corresponding formatting result
 	@Test
-	public void testGetIso8601Date_TimeZone_RFC822_when_ValidDate() {
-		long timestamp = 1526405606000L;
-		String formattedDate = TimeUtils.getFormattedDate(new Date(timestamp), TimeUtils.DatePattern.ISO8601_TIMEZONE_RFC822_PRECISION_SECOND);
-		assertEquals("2018-05-15T10:33:26-0700", formattedDate);
+	public void testGetISO8601Date_when_validDate() {
+		String formattedDate = TimeUtils.getISO8601Date(defaultDate);
+		assertEquals(expectedString_ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND, formattedDate);
 	}
 
 	@Test
-	public void testGetIso8601Date_TimeZone_RFC822_when_NullDate() {
-		String formattedDate = TimeUtils.getFormattedDate(null, TimeUtils.DatePattern.ISO8601_TIMEZONE_RFC822_PRECISION_SECOND);
-		assertNotNull(formattedDate);
-		assertTrue(formattedDate.matches(DATE_REGEX_TIMEZONE_RFC822));
+	public void testGetISO8601DateNoColon_when_validDate() {
+		String formattedDate = TimeUtils.getISO8601DateNoColon(defaultDate);
+		assertEquals(expectedString_ISO8601_TIMEZONE_ISO8601_2X_PRECISION_SECOND, formattedDate);
 	}
 
 	@Test
-	public void testGetIso8601Date_TimeZone_ISO8601_when_ValidDate() {
-		long timestamp = 1526405606000L;
-		String formattedDate = TimeUtils.getFormattedDate(new Date(timestamp), TimeUtils.DatePattern.ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND);
-		assertEquals("2018-05-15T10:33:26-07:00", formattedDate);
+	public void testGetISO8601UTCDateWithMilliseconds_when_validDate() {
+		String formattedDate = TimeUtils.getISO8601UTCDateWithMilliseconds(defaultDate);
+		assertEquals(expectedString_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND, formattedDate);
 	}
 
 	@Test
-	public void testGetIso8601Date_TimeZone_ISO8601_when_NullDate() {
-		String formattedDate = TimeUtils.getFormattedDate(null, TimeUtils.DatePattern.ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND);
-		assertNotNull(formattedDate);
-		assertTrue(formattedDate.matches(DATE_REGEX_TIMEZONE_ISO8601));
+	public void testGetISO8601FullDate_when_validDate() {
+		String formattedDate = TimeUtils.getISO8601FullDate(defaultDate);
+		assertEquals(expectedString_ISO8601_FULL_DATE, formattedDate);
 	}
 
 	@Test
-	public void testGetIso8601Date_TimeZone_ISO8601_returns_milliseconds_and_UTC() {
+	public void testGetRFC2822Date_when_validEpoch_timeZoneGMT_localeUsPosix() {
+		String formattedDate = TimeUtils.getRFC2822Date(defaultEpochMilli, TimeZone.getTimeZone("GMT"), defaultLocale);
+		assertEquals(expectedString_RFC2822_DATE_PATTERN_GMT, formattedDate);
+	}
+
+	@Test
+	public void testParseRFC2822Date_when_validDateString() {
+		Date parsedDate = TimeUtils.parseRFC2822Date(expectedString_RFC2822_DATE_PATTERN_GMT, TimeZone.getTimeZone("GMT"), defaultLocale);
+		assertEquals(defaultDateNoMilli, parsedDate);
+	}
+
+	// Testing each API with a new Date instance and verifying output using regex
+	@Test
+	public void testGetISO8601Date_returns_correctFormat() {
+		String formattedDate = TimeUtils.getISO8601Date();
+		assertTrue(formattedDate.matches(DATE_REGEX_ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND));
+	}
+
+	@Test
+	public void testGetISO8601DateNoColon_returns_correctFormat() {
+		String formattedDate = TimeUtils.getISO8601DateNoColon();
+		assertTrue(formattedDate.matches(DATE_REGEX_ISO8601_TIMEZONE_ISO8601_2X_PRECISION_SECOND));
+	}
+
+	@Test
+	public void testGetISO8601FullDate_returns_correctFormat() {
+		String formattedDate = TimeUtils.getISO8601FullDate();
+		assertTrue(formattedDate.matches(DATE_REGEX_ISO8601_FULL_DATE));
+	}
+
+	@Test
+	public void testGetISO8601UTCDateWithMilliseconds_returns_correctFormat() {
 		String formattedDate = TimeUtils.getISO8601UTCDateWithMilliseconds();
-		assertTrue(formattedDate.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}T([0-9]{2}:){2}[0-9]{2}.[0-9]{3}Z"));
+		assertTrue(formattedDate.matches(DATE_REGEX_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND));
 	}
 
-	@Test
-	public void testGetIso8601Date_TimeZone_UTC_precision_milliseconds_when_ValidDate() throws ParseException {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", new Locale(Locale.US.getLanguage(), Locale.US.getCountry(), "POSIX"));
-		formatter.setTimeZone(TimeZone.getTimeZone("Etc/UTC"));
-
-		String dateInString = "2022-11-30T13:50:53.945Z";
-		Date testDate = formatter.parse(dateInString);
-
-		String formattedDate = TimeUtils.getISO8601UTCDateWithMilliseconds(testDate);
-
-		assertTrue(formattedDate.matches(dateInString));
-	}
 }

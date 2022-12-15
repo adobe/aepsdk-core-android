@@ -64,7 +64,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             KEY_EVENT_TYPE -> event.type
             KEY_EVENT_SOURCE -> event.source
             KEY_TIMESTAMP_UNIX -> TimeUtils.getUnixTimeInSeconds().toString()
-            KEY_TIMESTAMP_ISO8601 -> TimeUtils.getIso8601DateTimeZoneRFC822()
+            KEY_TIMESTAMP_ISO8601 -> TimeUtils.getISO8601DateNoColon()
             KEY_TIMESTAMP_PLATFORM -> TimeUtils.getISO8601UTCDateWithMilliseconds()
             KEY_SDK_VERSION -> MobileCore.extensionVersion()
             KEY_CACHEBUST -> SecureRandom().nextInt(RANDOM_INT_BOUNDARY).toString()

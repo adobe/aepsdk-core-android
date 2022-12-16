@@ -853,7 +853,9 @@ public class com/adobe/marketing/mobile/services/ui/FloatingButtonView : android
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessage {
 	public abstract fun dismiss ()V
+	public abstract fun getMessageSettings ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings;
 	public abstract fun getParent ()Ljava/lang/Object;
+	public abstract fun getWebView ()Landroid/webkit/WebView;
 	public abstract fun openUrl (Ljava/lang/String;)V
 	public abstract fun setLocalAssetsMap (Ljava/util/Map;)V
 	public abstract fun setMessageSetting (Lcom/adobe/marketing/mobile/services/ui/MessageSettings;)V
@@ -1100,6 +1102,7 @@ public final class com/adobe/marketing/mobile/util/URLBuilder$EncodeType : java/
 }
 
 public final class com/adobe/marketing/mobile/util/UrlUtils {
+	public static fun extractQueryParameters (Ljava/lang/String;)Ljava/util/Map;
 	public static fun isValidUrl (Ljava/lang/String;)Z
 	public static fun urlEncode (Ljava/lang/String;)Ljava/lang/String;
 }

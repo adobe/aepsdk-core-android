@@ -11,9 +11,12 @@
 
 package com.adobe.marketing.mobile.util;
 
+import android.net.Uri;
 import com.adobe.marketing.mobile.internal.util.UrlEncoder;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class UrlUtils {
 
@@ -48,5 +51,24 @@ public final class UrlUtils {
      */
     public static String urlEncode(final String unencodedString) {
         return UrlEncoder.urlEncode(unencodedString);
+    }
+
+    /**
+     * Extras query parameters as a {@code Map}
+     *
+     * @param uri the URI string to extract parameters
+     * @return a {@code Map} of query parameters
+     */
+    public static Map<String, String> extractQueryParameters(final String uri) {
+        try {
+            Map<String, String> map = new HashMap<>();
+            Uri uriObject = Uri.parse(uri);
+            for (String name : uriObject.getQueryParameterNames()) {
+                map.put(name, uriObject.getQueryParameter(name));
+            }
+            return map;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

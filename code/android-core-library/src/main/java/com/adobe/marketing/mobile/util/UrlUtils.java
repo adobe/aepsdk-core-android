@@ -11,7 +11,11 @@
 
 package com.adobe.marketing.mobile.util;
 
+import android.net.Uri;
+import android.webkit.URLUtil;
+
 import com.adobe.marketing.mobile.internal.util.UrlEncoder;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -19,7 +23,8 @@ import java.util.Map;
 
 public final class UrlUtils {
 
-    private UrlUtils() {}
+    private UrlUtils() {
+    }
 
     /**
      * Check if the given {@code String} is a valid URL.
@@ -53,37 +58,22 @@ public final class UrlUtils {
     }
 
     /**
-     * Extra URL parameters and return as a {@code Map}
+     * Extras query parameters as a {@code Map}
      *
-     * @param queryString the {@code String} of the URL parameter section
-     * @return a {@code Map} of URL parameters
+     * @param uri the URI string to extract parameters
+     * @return a {@code Map} of query parameters
      */
-    public static Map<String, String> extractQueryParameters(final String queryString) {
-        if (StringUtils.isNullOrEmpty(queryString)) {
+    public static Map<String, String> extractQueryParameters(final String uri) {
+        try {
+            Map<String, String> map = new HashMap<>();
+            Uri uriObject = Uri.parse(uri);
+            for (String name : uriObject.getQueryParameterNames()) {
+                map.put(name, uriObject.getQueryParameter(name));
+            }
+            return map;
+        } catch (Exception e) {
             return null;
         }
-
-        final Map<String, String> parameters = new HashMap<String, String>();
-        final String[] paramArray = queryString.split("&");
-
-        for (String currentParam : paramArray) {
-            // quick out in case this entry is null or empty string
-            if (StringUtils.isNullOrEmpty(currentParam)) {
-                continue;
-            }
-
-            final String[] currentParamArray = currentParam.split("=", 2);
-
-            if (currentParamArray.length != 2
-                    || (currentParamArray[0].isEmpty() || currentParamArray[1].isEmpty())) {
-                continue;
-            }
-
-            final String key = currentParamArray[0];
-            final String value = currentParamArray[1];
-            parameters.put(key, value);
-        }
-
-        return parameters;
     }
+
 }

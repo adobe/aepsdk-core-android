@@ -54,12 +54,12 @@ public interface FullscreenMessage {
      *
      * @return an instance of {@link WebView}
      */
-    @Nullable WebView getWebView();
+    WebView getWebView();
 
     /**
      * Return an instance of {@link MessageSettings} setup for the current {@link FullscreenMessage}
      *
      * @return an instance of {@link MessageSettings}
      */
-    @Nullable MessageSettings getMessageSettings();
+    MessageSettings getMessageSettings();
 }

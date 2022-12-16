@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.services.ui;
 
 import android.webkit.WebView;
-import androidx.annotation.Nullable;
 import java.util.Map;
 
 /** Interface defining a Messaging extension in-app message. */

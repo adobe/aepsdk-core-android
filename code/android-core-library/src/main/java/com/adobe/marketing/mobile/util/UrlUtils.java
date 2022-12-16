@@ -12,10 +12,7 @@
 package com.adobe.marketing.mobile.util;
 
 import android.net.Uri;
-import android.webkit.URLUtil;
-
 import com.adobe.marketing.mobile.internal.util.UrlEncoder;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -23,8 +20,7 @@ import java.util.Map;
 
 public final class UrlUtils {
 
-    private UrlUtils() {
-    }
+    private UrlUtils() {}
 
     /**
      * Check if the given {@code String} is a valid URL.
@@ -75,5 +71,4 @@ public final class UrlUtils {
             return null;
         }
     }
-
 }

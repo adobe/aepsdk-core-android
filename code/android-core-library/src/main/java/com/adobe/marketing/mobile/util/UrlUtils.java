@@ -64,7 +64,10 @@ public final class UrlUtils {
             Map<String, String> map = new HashMap<>();
             Uri uriObject = Uri.parse(uri);
             for (String name : uriObject.getQueryParameterNames()) {
-                map.put(name, uriObject.getQueryParameter(name));
+                String value = uriObject.getQueryParameter(name);
+                if (!StringUtils.isNullOrEmpty(name) && !StringUtils.isNullOrEmpty(value)) {
+                    map.put(name, value);
+                }
             }
             return map;
         } catch (Exception e) {

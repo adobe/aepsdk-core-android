@@ -7,23 +7,19 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.services.ui;
 
+import android.webkit.WebView;
 import java.util.Map;
 
-/**
- * Interface defining a Messaging extension in-app message.
- */
+/** Interface defining a Messaging extension in-app message. */
 public interface FullscreenMessage {
-    /**
-     * Display the fullscreen message.
-     */
+    /** Display the fullscreen message. */
     void show();
 
-    /**
-     * Remove the fullscreen message from view.
-     */
+    /** Remove the fullscreen message from view. */
     void dismiss();
 
     /**
@@ -33,23 +29,36 @@ public interface FullscreenMessage {
      */
     void openUrl(final String url);
 
-    /**
-     * Returns the object that created this message.
-     */
+    /** Returns the object that created this message. */
     Object getParent();
 
     /**
      * The asset map contains the mapping between a remote image asset url and it's cached location.
      *
      * @param assetMap The {@code Map<String, String} object containing the mapping between a remote
-     *                 asset url and its cached location.
+     *     asset url and its cached location.
      */
     void setLocalAssetsMap(final Map<String, String> assetMap);
 
     /**
      * Sets or updates the {@link MessageSettings} for the current fullscreen message.
      *
-     * @param messageSettings {@link MessageSettings} object defining layout and behavior of the new message.
+     * @param messageSettings {@link MessageSettings} object defining layout and behavior of the new
+     *     message.
      */
     void setMessageSetting(final MessageSettings messageSettings);
+
+    /**
+     * Return an instance of {@link WebView} setup for the current {@link FullscreenMessage}
+     *
+     * @return an instance of {@link WebView}
+     */
+    WebView getWebView();
+
+    /**
+     * Return an instance of {@link MessageSettings} setup for the current {@link FullscreenMessage}
+     *
+     * @return an instance of {@link MessageSettings}
+     */
+    MessageSettings getMessageSettings();
 }

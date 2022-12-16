@@ -7,17 +7,21 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.identity
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventCoder
 import com.adobe.marketing.mobile.services.DataEntity
-import com.adobe.marketing.mobile.services.HitProcessingResult
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
 import org.json.JSONObject
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,7 +36,6 @@ import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import java.io.InputStream
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class IdentityHitsProcessingTests {
@@ -45,7 +48,6 @@ class IdentityHitsProcessingTests {
 
     private val event = Event.Builder("event", "type", "source").build()
 
-
     @Before
     fun setup() {
         Mockito.reset(mockedIdentityExtension)
@@ -53,7 +55,6 @@ class IdentityHitsProcessingTests {
     }
 
     private fun initializeIdentityHitsProcessing(): IdentityHitsProcessing {
-
         return IdentityHitsProcessing(mockedIdentityExtension)
     }
 
@@ -224,7 +225,7 @@ class IdentityHitsProcessingTests {
                                 "subdomain":"obumobile5",
                                 "tid":"d47JfAKTTsU="
                             }
-                        """.trimIndent()
+                    """.trimIndent()
                     return json.byteInputStream(Charsets.UTF_8)
                 }
             })
@@ -271,7 +272,7 @@ class IdentityHitsProcessingTests {
                                 "subdomain":"obumobile5",
                                 "tid":"d47JfAKTTsU="
                             }
-                        """.trimIndent()
+                    """.trimIndent()
                     return json.byteInputStream(Charsets.UTF_8)
                 }
             })
@@ -317,7 +318,7 @@ class IdentityHitsProcessingTests {
                                 "subdomain":"obumobile5",
                                 "tid":"d47JfAKTTsU="
                             }
-                        """.trimIndent()
+                    """.trimIndent()
                     return json.byteInputStream(Charsets.UTF_8)
                 }
             })
@@ -330,7 +331,4 @@ class IdentityHitsProcessingTests {
         countDownLatch.await()
         verify(mockedIdentityExtension, never()).networkResponseLoaded(any(), any())
     }
-
 }
-
-

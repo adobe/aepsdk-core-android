@@ -7,26 +7,23 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
-
 
 /**
  * Interface for Operands.
  *
- * The classes that implements {@link Operand} are
- * {@link OperandLiteral}
- * {@link OperandMustacheToken}
- * {@link OperandFunction}
+ * <p>The classes that implements {@link Operand} are {@link OperandLiteral} {@link
+ * OperandMustacheToken} {@link OperandFunction}
  */
 public interface Operand<T> {
-
-	/**
-	 * All operand's must implement this to retrieve its resolved value.
-	 *
-	 * @param context The context contains details for token swapping and transforming the operand if required.
-	 * @return the resolved operand value
-	 */
-	T resolve(final Context context);
+    /**
+     * All operand's must implement this to retrieve its resolved value.
+     *
+     * @param context The context contains details for token swapping and transforming the operand
+     *     if required.
+     * @return the resolved operand value
+     */
+    T resolve(final Context context);
 }

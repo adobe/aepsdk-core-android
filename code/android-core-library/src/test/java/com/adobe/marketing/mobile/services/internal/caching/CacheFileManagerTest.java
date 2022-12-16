@@ -7,34 +7,20 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services.internal.caching;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
+import com.adobe.marketing.mobile.internal.util.StringEncoder;
+import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.caching.CacheEntry;
 import com.adobe.marketing.mobile.services.caching.CacheExpiry;
-import com.adobe.marketing.mobile.services.internal.caching.CacheFileManager;
-import com.adobe.marketing.mobile.services.internal.caching.FileCacheResult;
-import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
 import com.adobe.marketing.mobile.test.util.FileTestHelper;
 import com.adobe.marketing.mobile.util.StreamUtils;
-import com.adobe.marketing.mobile.internal.util.StringEncoder;
-import com.adobe.marketing.mobile.services.DeviceInforming;
-
-import org.json.JSONObject;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,14 +31,21 @@ import java.nio.file.Files;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import org.json.JSONObject;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 public class CacheFileManagerTest {
 
-    @Mock
-    private DeviceInforming mockDeviceInfoService;
+    @Mock private DeviceInforming mockDeviceInfoService;
 
-    @Mock
-    private ServiceProvider mockServiceProvider;
+    @Mock private ServiceProvider mockServiceProvider;
 
     private MockedStatic<ServiceProvider> mockedStaticServiceProvider;
     private File mockCacheDir;
@@ -67,12 +60,17 @@ public class CacheFileManagerTest {
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
-        mockCacheDir = new File(this.getClass().getClassLoader().getResource("").getPath()
-                + File.separator + "TestFolder");
+        mockCacheDir =
+                new File(
+                        this.getClass().getClassLoader().getResource("").getPath()
+                                + File.separator
+                                + "TestFolder");
         mockCacheDir.mkdirs();
 
         mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider.class);
-        mockedStaticServiceProvider.when(ServiceProvider::getInstance).thenReturn(mockServiceProvider);
+        mockedStaticServiceProvider
+                .when(ServiceProvider::getInstance)
+                .thenReturn(mockServiceProvider);
 
         when(mockDeviceInfoService.getApplicationCacheDir()).thenReturn(mockCacheDir);
         when(mockServiceProvider.getDeviceInfoService()).thenReturn(mockDeviceInfoService);
@@ -85,27 +83,34 @@ public class CacheFileManagerTest {
     public void testCreateCacheFile_Success() throws FileNotFoundException {
         final HashMap<String, String> metadata = new HashMap<>();
         metadata.put("One", "1");
-        final CacheEntry cacheEntry = new CacheEntry(
-                new ByteArrayInputStream(TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
-                CacheExpiry.at(new Date(500L)),
-                metadata);
+        final CacheEntry cacheEntry =
+                new CacheEntry(
+                        new ByteArrayInputStream(
+                                TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
+                        CacheExpiry.at(new Date(500L)),
+                        metadata);
 
         final HashMap<String, String> expectedCacheMetadata = new HashMap<>();
         expectedCacheMetadata.put(FileCacheResult.METADATA_KEY_EXPIRY_IN_MILLIS, "500");
-        expectedCacheMetadata.put(FileCacheResult.METADATA_KEY_PATH_TO_FILE, cacheFileManager.getCacheLocation(
-                TEST_CACHE_NAME, TEST_CACHE_KEY));
+        expectedCacheMetadata.put(
+                FileCacheResult.METADATA_KEY_PATH_TO_FILE,
+                cacheFileManager.getCacheLocation(TEST_CACHE_NAME, TEST_CACHE_KEY));
 
         expectedCacheMetadata.putAll(metadata);
-        final String expectedCacheFileLocation = mockCacheBucket.getPath() +
-                File.separator + StringEncoder.sha2hash(TEST_CACHE_KEY);
+        final String expectedCacheFileLocation =
+                mockCacheBucket.getPath() + File.separator + StringEncoder.sha2hash(TEST_CACHE_KEY);
         final String expectedCacheMetadataPath = expectedCacheFileLocation + "_metadata.txt";
 
-        Assert.assertTrue(cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
+        Assert.assertTrue(
+                cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
 
         assertTrue(new File(expectedCacheFileLocation).exists());
         assertTrue(new File(expectedCacheMetadataPath).exists());
-        assertEquals(TEST_CACHE_CONTENT, StreamUtils.readAsString(new FileInputStream(expectedCacheFileLocation)));
-        assertEquals(new JSONObject(expectedCacheMetadata).toString(),
+        assertEquals(
+                TEST_CACHE_CONTENT,
+                StreamUtils.readAsString(new FileInputStream(expectedCacheFileLocation)));
+        assertEquals(
+                new JSONObject(expectedCacheMetadata).toString(),
                 StreamUtils.readAsString(new FileInputStream(expectedCacheMetadataPath)));
     }
 
@@ -113,10 +118,12 @@ public class CacheFileManagerTest {
     public void testCreateCacheFile_EmptyCacheName() {
         final HashMap<String, String> metadata = new HashMap<>();
         metadata.put("One", "1");
-        final CacheEntry cacheEntry = new CacheEntry(
-                new ByteArrayInputStream(TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
-                CacheExpiry.at(new Date(500L)),
-                metadata);
+        final CacheEntry cacheEntry =
+                new CacheEntry(
+                        new ByteArrayInputStream(
+                                TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
+                        CacheExpiry.at(new Date(500L)),
+                        metadata);
 
         Assert.assertFalse(cacheFileManager.createCacheFile("", TEST_CACHE_KEY, cacheEntry));
     }
@@ -125,10 +132,12 @@ public class CacheFileManagerTest {
     public void testCreateCacheFile_EmptyCacheKey() {
         final HashMap<String, String> metadata = new HashMap<>();
         metadata.put("One", "1");
-        final CacheEntry cacheEntry = new CacheEntry(
-                new ByteArrayInputStream(TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
-                CacheExpiry.at(new Date(500L)),
-                metadata);
+        final CacheEntry cacheEntry =
+                new CacheEntry(
+                        new ByteArrayInputStream(
+                                TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
+                        CacheExpiry.at(new Date(500L)),
+                        metadata);
 
         Assert.assertFalse(cacheFileManager.createCacheFile(TEST_CACHE_NAME, " ", cacheEntry));
     }
@@ -137,20 +146,23 @@ public class CacheFileManagerTest {
     public void testCreateCacheFile_MetadataSaveFails() throws IOException {
         final HashMap<String, String> metadata = new HashMap<>();
         metadata.put("One", "1");
-        final CacheEntry cacheEntry = new CacheEntry(
-                new ByteArrayInputStream(TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
-                CacheExpiry.at(new Date(500L)),
-                metadata);
+        final CacheEntry cacheEntry =
+                new CacheEntry(
+                        new ByteArrayInputStream(
+                                TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
+                        CacheExpiry.at(new Date(500L)),
+                        metadata);
 
         // Simulate metadata file not being writable.
-        final String expectedCacheFileLocation = mockCacheBucket.getPath() +
-                File.separator + StringEncoder.sha2hash(TEST_CACHE_KEY);
+        final String expectedCacheFileLocation =
+                mockCacheBucket.getPath() + File.separator + StringEncoder.sha2hash(TEST_CACHE_KEY);
         final File expectedMetadataFile = new File(expectedCacheFileLocation + "_metadata.txt");
         Files.write(expectedMetadataFile.toPath(), "".getBytes(StandardCharsets.UTF_8));
         expectedMetadataFile.setWritable(false);
 
         // Test
-        Assert.assertFalse(cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
+        Assert.assertFalse(
+                cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
 
         // Verify that the cache file is also deleted.
         Assert.assertFalse(new File(expectedCacheFileLocation).exists());
@@ -175,21 +187,28 @@ public class CacheFileManagerTest {
     public void testGetCacheFile_EntryExists() throws FileNotFoundException {
         final HashMap<String, String> metadata = new HashMap<>();
         metadata.put("One", "1");
-        final CacheEntry cacheEntry = new CacheEntry(
-                new ByteArrayInputStream(TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
-                CacheExpiry.at(new Date(500L)),
-                metadata);
+        final CacheEntry cacheEntry =
+                new CacheEntry(
+                        new ByteArrayInputStream(
+                                TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
+                        CacheExpiry.at(new Date(500L)),
+                        metadata);
         metadata.put("One", "1");
-        Assert.assertTrue(cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
+        Assert.assertTrue(
+                cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
 
-        final File fetchedCacheFile = cacheFileManager.getCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY);
+        final File fetchedCacheFile =
+                cacheFileManager.getCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY);
         Assert.assertNotNull(fetchedCacheFile);
-        Assert.assertEquals(TEST_CACHE_CONTENT, StreamUtils.readAsString(new FileInputStream(fetchedCacheFile)));
+        Assert.assertEquals(
+                TEST_CACHE_CONTENT,
+                StreamUtils.readAsString(new FileInputStream(fetchedCacheFile)));
     }
 
     @Test
     public void testGetCacheFile_EntryDoesNotExist() {
-        final File fetchedCacheFile = cacheFileManager.getCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY);
+        final File fetchedCacheFile =
+                cacheFileManager.getCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY);
         Assert.assertNull(fetchedCacheFile);
     }
 
@@ -207,7 +226,8 @@ public class CacheFileManagerTest {
 
     @Test
     public void testGetMetadata_NoMetadataFile() {
-        final Map<String, String> metadata = cacheFileManager.getCacheMetadata(TEST_CACHE_NAME, TEST_CACHE_KEY);
+        final Map<String, String> metadata =
+                cacheFileManager.getCacheMetadata(TEST_CACHE_NAME, TEST_CACHE_KEY);
         assertNull(metadata);
     }
 
@@ -216,16 +236,25 @@ public class CacheFileManagerTest {
         // Add an entry to create metadata.
         final HashMap<String, String> metadata = new HashMap<>();
         metadata.put("One", "1");
-        final CacheEntry cacheEntry = new CacheEntry(
-                new ByteArrayInputStream(TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
-                CacheExpiry.at(new Date(500L)),
-                metadata);
-        Assert.assertTrue(cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
+        final CacheEntry cacheEntry =
+                new CacheEntry(
+                        new ByteArrayInputStream(
+                                TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
+                        CacheExpiry.at(new Date(500L)),
+                        metadata);
+        Assert.assertTrue(
+                cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
 
-        final File expectedMetadataFile = new File(mockCacheBucket.getPath() +
-                File.separator + StringEncoder.sha2hash(TEST_CACHE_KEY) + "_metadata.txt");
+        final File expectedMetadataFile =
+                new File(
+                        mockCacheBucket.getPath()
+                                + File.separator
+                                + StringEncoder.sha2hash(TEST_CACHE_KEY)
+                                + "_metadata.txt");
         // Overwrite with corrupt metadata
-        Files.write(expectedMetadataFile.toPath(), "Some content that is not json".getBytes(StandardCharsets.UTF_8));
+        Files.write(
+                expectedMetadataFile.toPath(),
+                "Some content that is not json".getBytes(StandardCharsets.UTF_8));
 
         // Test
         final Map<String, String> retrievedMetadata =
@@ -239,10 +268,12 @@ public class CacheFileManagerTest {
         // Add an entry to create metadata.
         final HashMap<String, String> metadata = new HashMap<>();
         metadata.put("One", "1");
-        final CacheEntry cacheEntry = new CacheEntry(
-                new ByteArrayInputStream(TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
-                CacheExpiry.at(new Date(500L)),
-                metadata);
+        final CacheEntry cacheEntry =
+                new CacheEntry(
+                        new ByteArrayInputStream(
+                                TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
+                        CacheExpiry.at(new Date(500L)),
+                        metadata);
         assertTrue(cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
 
         // Test
@@ -268,12 +299,17 @@ public class CacheFileManagerTest {
         // Prepare - Add a cache entry.
         final HashMap<String, String> metadata = new HashMap<>();
         metadata.put("One", "1");
-        final CacheEntry cacheEntry = new CacheEntry(
-                new ByteArrayInputStream(TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
-                CacheExpiry.at(new Date(500L)),
-                metadata);
-        final File expectedCacheLocation = new File(mockCacheBucket.getPath() + File.separator +
-                StringEncoder.sha2hash(TEST_CACHE_KEY));
+        final CacheEntry cacheEntry =
+                new CacheEntry(
+                        new ByteArrayInputStream(
+                                TEST_CACHE_CONTENT.getBytes(StandardCharsets.UTF_8)),
+                        CacheExpiry.at(new Date(500L)),
+                        metadata);
+        final File expectedCacheLocation =
+                new File(
+                        mockCacheBucket.getPath()
+                                + File.separator
+                                + StringEncoder.sha2hash(TEST_CACHE_KEY));
         assertTrue(cacheFileManager.createCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY, cacheEntry));
         assertNotNull(cacheFileManager.getCacheFile(TEST_CACHE_NAME, TEST_CACHE_KEY));
         assertTrue(expectedCacheLocation.exists());
@@ -302,9 +338,13 @@ public class CacheFileManagerTest {
     }
 
     private File createCacheBucket(final String cacheRoot, final String cacheName) {
-        File cacheBucket = new File(mockCacheDir.getPath() +
-                File.separator + cacheRoot +
-                File.separator + cacheName);
+        File cacheBucket =
+                new File(
+                        mockCacheDir.getPath()
+                                + File.separator
+                                + cacheRoot
+                                + File.separator
+                                + cacheName);
         cacheBucket.mkdirs();
         return cacheBucket;
     }

@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LogicalExpression implements Evaluable {
+
     public final List<Evaluable> operands;
     public final String operationName;
 
@@ -28,7 +29,9 @@ public class LogicalExpression implements Evaluable {
         ArrayList<RulesResult> resolvedOperands = new ArrayList<>();
 
         if (operationName == null || operationName.isEmpty()) {
-            return new RulesResult(RulesResult.FailureType.MISSING_OPERATOR, "Null or empty operator for logical expression");
+            return new RulesResult(
+                    RulesResult.FailureType.MISSING_OPERATOR,
+                    "Null or empty operator for logical expression");
         }
 
         if (operands != null) {
@@ -42,20 +45,20 @@ public class LogicalExpression implements Evaluable {
         switch (operationName) {
             case "and":
                 return performAndOperation(resolvedOperands);
-
             case "or":
                 return performOrOperation(resolvedOperands);
-
             default:
-                return new RulesResult(RulesResult.FailureType.MISSING_OPERATOR, String.format("Unknown conjunction operator - %s.",
-                        operationName));
+                return new RulesResult(
+                        RulesResult.FailureType.MISSING_OPERATOR,
+                        String.format("Unknown conjunction operator - %s.", operationName));
         }
     }
 
     private RulesResult performAndOperation(final List<RulesResult> resolvedOperands) {
         for (RulesResult rulesResult : resolvedOperands) {
             if (!rulesResult.isSuccess()) {
-                return new RulesResult(RulesResult.FailureType.CONDITION_FAILED, "AND operation returned false.");
+                return new RulesResult(
+                        RulesResult.FailureType.CONDITION_FAILED, "AND operation returned false.");
             }
         }
 
@@ -69,6 +72,7 @@ public class LogicalExpression implements Evaluable {
             }
         }
 
-        return new RulesResult(RulesResult.FailureType.CONDITION_FAILED, "OR operation returned false.");
+        return new RulesResult(
+                RulesResult.FailureType.CONDITION_FAILED, "OR operation returned false.");
     }
 }

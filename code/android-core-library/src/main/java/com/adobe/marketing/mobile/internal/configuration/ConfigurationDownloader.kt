@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.configuration
 
@@ -66,7 +66,6 @@ internal class ConfigurationDownloader {
         url: String,
         completionCallback: (Map<String, Any?>?) -> Unit
     ) {
-
         if (!UrlUtils.isValidUrl(url)) {
             completionCallback.invoke(null)
             return
@@ -94,7 +93,8 @@ internal class ConfigurationDownloader {
 
             val ifModifiedSince = getRFC2822Date(
                 lastModifiedEpoch,
-                TimeZone.getTimeZone("GMT"), Locale.US
+                TimeZone.getTimeZone("GMT"),
+                Locale.US
             )
             headers[HTTP_HEADER_IF_MODIFIED_SINCE] = ifModifiedSince
         }

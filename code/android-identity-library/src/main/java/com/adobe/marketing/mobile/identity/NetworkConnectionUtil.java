@@ -7,28 +7,28 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.identity;
 
 import com.adobe.marketing.mobile.util.StringUtils;
-
 import java.net.HttpURLConnection;
 import java.util.*;
 
 final class NetworkConnectionUtil {
+
     static final String HTTP_HEADER_KEY_CONTENT_TYPE = "Content-Type";
     static final String HTTP_HEADER_CONTENT_TYPE_WWW_FORM_URLENCODED =
             "application/x-www-form-urlencoded";
 
-    private NetworkConnectionUtil() {
-    }
+    private NetworkConnectionUtil() {}
 
-    static ArrayList<Integer> recoverableNetworkErrorCodes = new ArrayList<Integer>(Arrays.asList(
-            HttpURLConnection.HTTP_CLIENT_TIMEOUT,
-            HttpURLConnection.HTTP_GATEWAY_TIMEOUT,
-            HttpURLConnection.HTTP_UNAVAILABLE
-    ));
+    static ArrayList<Integer> recoverableNetworkErrorCodes =
+            new ArrayList<Integer>(
+                    Arrays.asList(
+                            HttpURLConnection.HTTP_CLIENT_TIMEOUT,
+                            HttpURLConnection.HTTP_GATEWAY_TIMEOUT,
+                            HttpURLConnection.HTTP_UNAVAILABLE));
 
     /**
      * Returns the default headers for connection: Content-Type and connection
@@ -43,7 +43,7 @@ final class NetworkConnectionUtil {
     /**
      * Returns the default headers for connection: Content-Type and connection
      *
-     * @param ssl         {@code boolean} indicating if https is enabled
+     * @param ssl {@code boolean} indicating if https is enabled
      * @param contentType the custom content type {@code String}
      * @return {@code Map<String, String>} with the specified keys and values
      */
@@ -54,9 +54,11 @@ final class NetworkConnectionUtil {
             headers.put("connection", "close");
         }
 
-        headers.put(HTTP_HEADER_KEY_CONTENT_TYPE, StringUtils.isNullOrEmpty(contentType) ?
-                HTTP_HEADER_CONTENT_TYPE_WWW_FORM_URLENCODED : contentType);
+        headers.put(
+                HTTP_HEADER_KEY_CONTENT_TYPE,
+                StringUtils.isNullOrEmpty(contentType)
+                        ? HTTP_HEADER_CONTENT_TYPE_WWW_FORM_URLENCODED
+                        : contentType);
         return headers;
     }
-
 }

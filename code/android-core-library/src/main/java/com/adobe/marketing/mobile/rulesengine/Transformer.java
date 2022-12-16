@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
@@ -15,20 +15,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Transformer implements Transforming {
-	Map<String, TransformerBlock<?>> transformations = new HashMap<>();
 
-	public void register(final String name, final TransformerBlock<?> transformerBlock) {
-		transformations.put(name, transformerBlock);
-	}
+    Map<String, TransformerBlock<?>> transformations = new HashMap<>();
 
-	@Override
-	public Object transform(final String name, final Object parameter) {
-		TransformerBlock<?> block = transformations.get(name);
+    public void register(final String name, final TransformerBlock<?> transformerBlock) {
+        transformations.put(name, transformerBlock);
+    }
 
-		if (block == null) {
-			return parameter;
-		}
+    @Override
+    public Object transform(final String name, final Object parameter) {
+        TransformerBlock<?> block = transformations.get(name);
 
-		return block.transform(parameter);
-	}
+        if (block == null) {
+            return parameter;
+        }
+
+        return block.transform(parameter);
+    }
 }

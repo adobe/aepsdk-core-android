@@ -66,6 +66,7 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field ERROR_RESPONSE_CONTENT Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
+	public static final field REMOVE_IDENTITY Ljava/lang/String;
 	public static final field REQUEST_CONTENT Ljava/lang/String;
 	public static final field REQUEST_IDENTITY Ljava/lang/String;
 	public static final field REQUEST_PROFILE Ljava/lang/String;
@@ -194,6 +195,11 @@ public class com/adobe/marketing/mobile/InvalidInitException : java/lang/Runtime
 	public fun <init> ()V
 }
 
+public class com/adobe/marketing/mobile/LocalNotificationHandler : android/content/BroadcastReceiver {
+	public fun <init> ()V
+	public fun onReceive (Landroid/content/Context;Landroid/content/Intent;)V
+}
+
 public final class com/adobe/marketing/mobile/LoggingMode : java/lang/Enum {
 	public static final field DEBUG Lcom/adobe/marketing/mobile/LoggingMode;
 	public static final field ERROR Lcom/adobe/marketing/mobile/LoggingMode;
@@ -251,6 +257,11 @@ public final class com/adobe/marketing/mobile/MobilePrivacyStatus : java/lang/En
 	public fun getValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
 	public static fun values ()[Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
+}
+
+public final class com/adobe/marketing/mobile/NotificationDismissalHandler : android/content/BroadcastReceiver {
+	public fun <init> ()V
+	public fun onReceive (Landroid/content/Context;Landroid/content/Intent;)V
 }
 
 public final class com/adobe/marketing/mobile/SharedStateResolution : java/lang/Enum {
@@ -842,7 +853,9 @@ public class com/adobe/marketing/mobile/services/ui/FloatingButtonView : android
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessage {
 	public abstract fun dismiss ()V
+	public abstract fun getMessageSettings ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings;
 	public abstract fun getParent ()Ljava/lang/Object;
+	public abstract fun getWebView ()Landroid/webkit/WebView;
 	public abstract fun openUrl (Ljava/lang/String;)V
 	public abstract fun setLocalAssetsMap (Ljava/util/Map;)V
 	public abstract fun setMessageSetting (Lcom/adobe/marketing/mobile/services/ui/MessageSettings;)V
@@ -1096,6 +1109,7 @@ public final class com/adobe/marketing/mobile/util/URLBuilder$EncodeType : java/
 }
 
 public final class com/adobe/marketing/mobile/util/UrlUtils {
+	public static fun extractQueryParameters (Ljava/lang/String;)Ljava/util/Map;
 	public static fun isValidUrl (Ljava/lang/String;)Z
 	public static fun urlEncode (Ljava/lang/String;)Ljava/lang/String;
 }

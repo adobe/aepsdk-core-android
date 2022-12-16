@@ -7,28 +7,16 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.lifecycle;
 
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createLifecycleEvent;
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createPauseEvent;
 import static com.adobe.marketing.mobile.LifecycleEventGeneratorTestHelper.createStartEvent;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -39,156 +27,210 @@ import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.SharedStateResolution;
 import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
-import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.NamedCollection;
+import java.util.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class LifecycleExtensionTest {
 
-	@Mock
-	ExtensionApi extensionApi;
+    @Mock ExtensionApi extensionApi;
 
-	@Mock
-	NamedCollection lifecycleDataStore;
+    @Mock NamedCollection lifecycleDataStore;
 
-	@Mock
-    LifecycleV1Extension mockLifecycleV1Extension;
+    @Mock LifecycleV1Extension mockLifecycleV1Extension;
 
-	@Mock
-    LifecycleV2Extension mockLifecycleV2Extension;
+    @Mock LifecycleV2Extension mockLifecycleV2Extension;
 
-	private final long currentTimestampInMilliSeconds = System.currentTimeMillis();
-	private LifecycleExtension lifecycle;
+    private final long currentTimestampInMilliSeconds = System.currentTimeMillis();
+    private LifecycleExtension lifecycle;
 
-	private static final String DATASTORE_KEY_INSTALL_DATE = "InstallDate";
-	private static final String DATASTORE_KEY_PAUSE_DATE = "PauseDate";
-	private static final String DATASTORE_KEY_SUCCESSFUL_CLOSE = "SuccessfulClose";
+    private static final String LIFECYCLE_ACTION_KEY = "action";
 
-	private static final String LIFECYCLE_ACTION_KEY = "action";
+    private static final String LIFECYCLE_CONFIG_SESSION_TIMEOUT = "lifecycle.sessionTimeout";
+    private static final String CONFIGURATION_MODULE_NAME = "com.adobe.module.configuration";
 
-	private static final String LIFECYCLE_CONFIG_SESSION_TIMEOUT = "lifecycle.sessionTimeout";
-	private static final String CONFIGURATION_MODULE_NAME = "com.adobe.module.configuration";
+    private static final String EVENT_TYPE_GENERIC_LIFECYCLE =
+            "com.adobe.eventType.generic.lifecycle";
+    private static final String EVENT_SOURCE_REQUEST_CONTENT =
+            "com.adobe.eventSource.requestContent";
+    private static final String EVENT_TYPE_NON_GENERIC_LIFECYCLE =
+            "com.adobe.eventType.non.generic.lifecycle";
 
-	private static final String EVENT_TYPE_GENERIC_LIFECYCLE = "com.adobe.eventType.generic.lifecycle";
-	private static final String EVENT_SOURCE_REQUEST_CONTENT = "com.adobe.eventSource.requestContent";
+    @Before
+    public void beforeEach() {
+        Map<String, Object> configurationSharedState = new HashMap<>();
+        configurationSharedState.put(LIFECYCLE_CONFIG_SESSION_TIMEOUT, 200L);
+        when(extensionApi.getSharedState(
+                        eq(CONFIGURATION_MODULE_NAME),
+                        any(),
+                        eq(false),
+                        eq(SharedStateResolution.ANY)))
+                .thenReturn(new SharedStateResult(SharedStateStatus.SET, configurationSharedState));
 
+        lifecycle =
+                new LifecycleExtension(
+                        extensionApi,
+                        lifecycleDataStore,
+                        mockLifecycleV1Extension,
+                        mockLifecycleV2Extension);
+    }
 
-	@Before
-	public void beforeEach() {
-		Map<String, Object> configurationSharedState = new HashMap<>();
-		configurationSharedState.put(LIFECYCLE_CONFIG_SESSION_TIMEOUT, 200L);
-		when(extensionApi.getSharedState(
-				eq(CONFIGURATION_MODULE_NAME),
-				any(),
-				eq(false),
-				eq(SharedStateResolution.ANY)
-		)).thenReturn(new SharedStateResult(SharedStateStatus.SET, configurationSharedState));
+    @Test
+    public void testGetName() {
+        assertEquals("com.adobe.module.lifecycle", lifecycle.getName());
+    }
 
-		lifecycle = new LifecycleExtension(extensionApi,
-				lifecycleDataStore,
-				mockLifecycleV1Extension,
-				mockLifecycleV2Extension);
-	}
+    @Test
+    public void testGetFriendlyName() {
+        assertEquals("Lifecycle", lifecycle.getFriendlyName());
+    }
 
-	@Test
-	public void readyForEvent_ConfigurationSharedStateSet() {
-		Event event = new Event.Builder("Lifecycle_queueEvent_Happy",
-				EVENT_TYPE_GENERIC_LIFECYCLE,
-				EVENT_SOURCE_REQUEST_CONTENT)
-				.build();
+    @Test
+    public void testGetVersion() {
+        assertEquals("2.0.0", lifecycle.getVersion());
+    }
 
-		assertTrue(lifecycle.readyForEvent(event));
-	}
+    @Test
+    public void readyForEvent_ConfigurationSharedStateSet() {
+        Event event =
+                new Event.Builder(
+                                "Lifecycle_queueEvent_Happy",
+                                EVENT_TYPE_GENERIC_LIFECYCLE,
+                                EVENT_SOURCE_REQUEST_CONTENT)
+                        .build();
 
-	@Test
-	public void readyForEvent_ConfigurationSharedStateNotSet() {
-		// set config shared state to pending
-		when(extensionApi.getSharedState(
-				eq(CONFIGURATION_MODULE_NAME),
-				any(),
-				eq(false),
-				eq(SharedStateResolution.ANY)
-		)).thenReturn(new SharedStateResult(SharedStateStatus.PENDING, new HashMap<>()));
+        assertTrue(lifecycle.readyForEvent(event));
+    }
 
-		Event event = new Event.Builder("Lifecycle_queueEvent_Happy",
-				EVENT_TYPE_GENERIC_LIFECYCLE,
-				EVENT_SOURCE_REQUEST_CONTENT)
-				.build();
+    @Test
+    public void readyForEvent_ConfigurationSharedStatePending() {
+        // set config shared state to pending
+        when(extensionApi.getSharedState(
+                        eq(CONFIGURATION_MODULE_NAME),
+                        any(),
+                        eq(false),
+                        eq(SharedStateResolution.ANY)))
+                .thenReturn(new SharedStateResult(SharedStateStatus.PENDING, new HashMap<>()));
 
-		assertFalse(lifecycle.readyForEvent(event));
-	}
+        Event event =
+                new Event.Builder(
+                                "Lifecycle_queueEvent_Happy",
+                                EVENT_TYPE_GENERIC_LIFECYCLE,
+                                EVENT_SOURCE_REQUEST_CONTENT)
+                        .build();
 
-	@Test
-	public void handleLifecycleRequestEvent_ConfigurationSharedStateNull() {
-		when(extensionApi.getSharedState(
-				eq(CONFIGURATION_MODULE_NAME),
-				any(),
-				eq(false),
-				eq(SharedStateResolution.ANY)
-		)).thenReturn(null);
+        assertFalse(lifecycle.readyForEvent(event));
+    }
 
-		lifecycle.handleLifecycleRequestEvent(createStartEvent(null, currentTimestampInMilliSeconds));
+    @Test
+    public void readyForEvent_ConfigurationSharedStateNull() {
+        // set config shared state to null
+        when(extensionApi.getSharedState(
+                        eq(CONFIGURATION_MODULE_NAME),
+                        any(),
+                        eq(false),
+                        eq(SharedStateResolution.ANY)))
+                .thenReturn(null);
 
-		verifyNoInteractions(mockLifecycleV1Extension);
-	}
+        Event event =
+                new Event.Builder(
+                                "Lifecycle_queueEvent_Happy",
+                                EVENT_TYPE_GENERIC_LIFECYCLE,
+                                EVENT_SOURCE_REQUEST_CONTENT)
+                        .build();
 
-	@Test
-	public void handleLifecycleRequestEvent_ConfigurationSharedStatePending() {
-		when(extensionApi.getSharedState(
-				eq(CONFIGURATION_MODULE_NAME),
-				any(),
-				eq(false),
-				eq(SharedStateResolution.ANY)
-		)).thenReturn(new SharedStateResult(SharedStateStatus.PENDING, new HashMap<>()));
+        assertFalse(lifecycle.readyForEvent(event));
+    }
 
-		lifecycle.handleLifecycleRequestEvent(createStartEvent(null, currentTimestampInMilliSeconds));
+    @Test
+    public void readyForEvent_NotGenericLifecycleEvent() {
+        Event event =
+                new Event.Builder(
+                                "Non generic lifecycle event",
+                                EVENT_TYPE_NON_GENERIC_LIFECYCLE,
+                                EVENT_SOURCE_REQUEST_CONTENT)
+                        .build();
 
-		verifyNoInteractions(mockLifecycleV1Extension);
-	}
+        assertTrue(lifecycle.readyForEvent(event));
+    }
 
-	@Test
-	public void handleLifecycleRequestEvent_EventDataEmpty() {
-		Event lifecycleEvent = createLifecycleEvent(null, currentTimestampInMilliSeconds);
+    @Test
+    public void handleLifecycleRequestEvent_ConfigurationSharedStateNull() {
+        when(extensionApi.getSharedState(
+                        eq(CONFIGURATION_MODULE_NAME),
+                        any(),
+                        eq(false),
+                        eq(SharedStateResolution.ANY)))
+                .thenReturn(null);
 
-		lifecycle.handleLifecycleRequestEvent(lifecycleEvent);
+        lifecycle.handleLifecycleRequestEvent(
+                createStartEvent(null, currentTimestampInMilliSeconds));
 
-		verifyNoInteractions(mockLifecycleV1Extension);
-	}
+        verifyNoInteractions(mockLifecycleV1Extension);
+    }
 
-	@Test
-	public void handleLifecycleRequestEvent_LifecyclePause() {
-		Event lifecyclePauseEvent = createPauseEvent(currentTimestampInMilliSeconds);
+    @Test
+    public void handleLifecycleRequestEvent_ConfigurationSharedStatePending() {
+        when(extensionApi.getSharedState(
+                        eq(CONFIGURATION_MODULE_NAME),
+                        any(),
+                        eq(false),
+                        eq(SharedStateResolution.ANY)))
+                .thenReturn(new SharedStateResult(SharedStateStatus.PENDING, new HashMap<>()));
 
-		lifecycle.handleLifecycleRequestEvent(lifecyclePauseEvent);
+        lifecycle.handleLifecycleRequestEvent(
+                createStartEvent(null, currentTimestampInMilliSeconds));
 
-		verify(mockLifecycleV1Extension, times(1)).pause(lifecyclePauseEvent);
-		verify(mockLifecycleV2Extension, times(1)).pause(lifecyclePauseEvent);
-	}
+        verifyNoInteractions(mockLifecycleV1Extension);
+    }
 
+    @Test
+    public void handleLifecycleRequestEvent_EventDataEmpty() {
+        Event lifecycleEvent = createLifecycleEvent(null, currentTimestampInMilliSeconds);
 
-	@Test
-	public void handleLifecycleRequestEvent_InvalidEventData() {
-		Map<String, Object> eventData = new HashMap<>();
-		eventData.put(LIFECYCLE_ACTION_KEY, "invalid_action");
-		Event lifecycleRequestEvent = createLifecycleEvent(eventData, currentTimestampInMilliSeconds);
-		lifecycle.handleLifecycleRequestEvent(lifecycleRequestEvent);
+        lifecycle.handleLifecycleRequestEvent(lifecycleEvent);
 
-		verifyNoInteractions(mockLifecycleV1Extension);
-	}
+        verifyNoInteractions(mockLifecycleV1Extension);
+    }
 
-	@Test
-	public void handleLifecycleRequestEvent_EmptyEventData() {
-		Event lifecycleRequestEvent = createLifecycleEvent(null, currentTimestampInMilliSeconds);
-		lifecycle.handleLifecycleRequestEvent(lifecycleRequestEvent);
+    @Test
+    public void handleLifecycleRequestEvent_LifecyclePause() {
+        Event lifecyclePauseEvent = createPauseEvent(currentTimestampInMilliSeconds);
 
-		verifyNoInteractions(mockLifecycleV1Extension);
-	}
+        lifecycle.handleLifecycleRequestEvent(lifecyclePauseEvent);
 
+        verify(mockLifecycleV1Extension, times(1)).pause(lifecyclePauseEvent);
+        verify(mockLifecycleV2Extension, times(1)).pause(lifecyclePauseEvent);
+    }
 
-	@Test
-	public void handleUpdateLastKnownTimestamp() {
-		Event lifecycleRequestEvent = createLifecycleEvent(null, currentTimestampInMilliSeconds);
-		lifecycle.updateLastKnownTimestamp(lifecycleRequestEvent);
-		verify(mockLifecycleV2Extension, times(1)).updateLastKnownTimestamp(lifecycleRequestEvent);
-	}
+    @Test
+    public void handleLifecycleRequestEvent_InvalidEventData() {
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(LIFECYCLE_ACTION_KEY, "invalid_action");
+        Event lifecycleRequestEvent =
+                createLifecycleEvent(eventData, currentTimestampInMilliSeconds);
+        lifecycle.handleLifecycleRequestEvent(lifecycleRequestEvent);
+
+        verifyNoInteractions(mockLifecycleV1Extension);
+    }
+
+    @Test
+    public void handleLifecycleRequestEvent_EmptyEventData() {
+        Event lifecycleRequestEvent = createLifecycleEvent(null, currentTimestampInMilliSeconds);
+        lifecycle.handleLifecycleRequestEvent(lifecycleRequestEvent);
+
+        verifyNoInteractions(mockLifecycleV1Extension);
+    }
+
+    @Test
+    public void handleUpdateLastKnownTimestamp() {
+        Event lifecycleRequestEvent = createLifecycleEvent(null, currentTimestampInMilliSeconds);
+        lifecycle.updateLastKnownTimestamp(lifecycleRequestEvent);
+        verify(mockLifecycleV2Extension, times(1)).updateLastKnownTimestamp(lifecycleRequestEvent);
+    }
 }

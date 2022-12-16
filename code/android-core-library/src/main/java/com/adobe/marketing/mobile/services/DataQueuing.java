@@ -7,19 +7,19 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services;
 
-/**
- * Creates and return instances of {@link DataQueue}.
- */
+/** Creates and return instances of {@link DataQueue}. */
 public interface DataQueuing {
-
-	/**
-	 * Creates an instance of {@link DataQueue} if it was not previously cached, otherwise the cached instance is returned.
-	 * @param databaseName {@link String}: name of the database, to be created for {@link DataEntity} persistence.
-	 * @return instance of DataQueue.
-	 */
-	DataQueue getDataQueue(final String databaseName);
+    /**
+     * Creates an instance of {@link DataQueue} if it was not previously cached, otherwise the
+     * cached instance is returned.
+     *
+     * @param databaseName {@link String}: name of the database, to be created for {@link
+     *     DataEntity} persistence.
+     * @return instance of DataQueue.
+     */
+    DataQueue getDataQueue(final String databaseName);
 }

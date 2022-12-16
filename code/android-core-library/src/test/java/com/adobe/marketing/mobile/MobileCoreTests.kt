@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile
 
 import android.app.Application
@@ -376,7 +377,8 @@ class MobileCoreTests {
         val latch1 = CountDownLatch(2)
         val capturedEvents1 = mutableListOf<Event>()
         MobileCore.registerEventListener(
-            "analytics", "requestContent"
+            "analytics",
+            "requestContent"
         ) {
             capturedEvents1.add(it)
             latch1.countDown()
@@ -385,7 +387,8 @@ class MobileCoreTests {
         val latch2 = CountDownLatch(2)
         val capturedEvents2 = mutableListOf<Event>()
         MobileCore.registerEventListener(
-            "analytics", "requestContent"
+            "analytics",
+            "requestContent"
         ) {
             capturedEvents2.add(it)
             latch2.countDown()
@@ -992,7 +995,7 @@ class MobileCoreTests {
 
         val expectedData = mapOf(
             CoreConstants.EventDataKeys.Analytics.TRACK_ACTION to action,
-            CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA to contextData,
+            CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA to contextData
         )
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
@@ -1023,7 +1026,7 @@ class MobileCoreTests {
 
         val expectedData = mapOf(
             CoreConstants.EventDataKeys.Analytics.TRACK_STATE to state,
-            CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA to contextData,
+            CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA to contextData
         )
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
@@ -1054,7 +1057,7 @@ class MobileCoreTests {
 
         val expectedData = mapOf(
             CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY to CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START,
-            CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA to contextData,
+            CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA to contextData
         )
         assertEquals(expectedData, capturedEvents[0].eventData)
     }
@@ -1083,7 +1086,7 @@ class MobileCoreTests {
         }
 
         val expectedData = mapOf(
-            CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY to CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE,
+            CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY to CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE
         )
         assertEquals(expectedData, capturedEvents[0].eventData)
     }

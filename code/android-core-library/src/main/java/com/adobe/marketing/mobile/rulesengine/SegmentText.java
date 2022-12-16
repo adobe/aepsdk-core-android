@@ -7,22 +7,21 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.rulesengine;
 
-/**
- * SegmentText represents plain text.
- */
+/** SegmentText represents plain text. */
 public class SegmentText implements Segment {
-	private final String content;
 
-	public SegmentText(final String content) {
-		this.content = content;
-	}
+    private final String content;
 
-	@Override
-	public String getContent(final TokenFinder tokenFinder, final Transforming transformer) {
-		return content;
-	}
+    public SegmentText(final String content) {
+        this.content = content;
+    }
+
+    @Override
+    public String getContent(final TokenFinder tokenFinder, final Transforming transformer) {
+        return content;
+    }
 }

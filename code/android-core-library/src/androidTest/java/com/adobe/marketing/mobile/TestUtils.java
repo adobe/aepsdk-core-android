@@ -7,42 +7,40 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
- 
+*/
+
 package com.adobe.marketing.mobile;
 
 import android.content.Context;
-
 import java.io.File;
 
 @SuppressWarnings("all")
 public class TestUtils {
 
-	public static void deleteAllFilesInCacheDir(Context appContext) {
-		if (appContext == null) {
-			return;
-		}
+    public static void deleteAllFilesInCacheDir(Context appContext) {
+        if (appContext == null) {
+            return;
+        }
 
-		File cacheDir = appContext.getCacheDir();
-		File[] files = cacheDir.listFiles();
+        File cacheDir = appContext.getCacheDir();
+        File[] files = cacheDir.listFiles();
 
-		if (files != null) {
-			for (File file : files) {
-				file.delete();
-			}
-		}
-	}
+        if (files != null) {
+            for (File file : files) {
+                file.delete();
+            }
+        }
+    }
 
-	public static String getCacheDir(Context appContext) {
-		if (appContext == null) {
-			return null;
-		}
+    public static String getCacheDir(Context appContext) {
+        if (appContext == null) {
+            return null;
+        }
 
-		return appContext.getCacheDir().getPath();
-	}
+        return appContext.getCacheDir().getPath();
+    }
 
-	public static boolean almostEqual(long actual, long expected, long tolerance) {
-		return Math.abs(actual - expected) < tolerance;
-	}
-
+    public static boolean almostEqual(long actual, long expected, long tolerance) {
+        return Math.abs(actual - expected) < tolerance;
+    }
 }

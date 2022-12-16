@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.configuration
 
@@ -57,7 +57,7 @@ internal object MobileIdentitiesProvider {
         SharedStateKeys.Audience.EXTENSION_NAME,
         SharedStateKeys.Configuration.EXTENSION_NAME,
         SharedStateKeys.Target.EXTENSION_NAME,
-        SharedStateKeys.Identity.EXTENSION_NAME,
+        SharedStateKeys.Identity.EXTENSION_NAME
     )
 
     @VisibleForTesting
@@ -156,9 +156,8 @@ internal object MobileIdentitiesProvider {
      */
     private fun getVisitorIdentifiers(
         event: Event,
-        extensionApi: ExtensionApi,
+        extensionApi: ExtensionApi
     ): List<ID> {
-
         val visitorIdentifiers = mutableListOf<ID>()
 
         val identitySharedState =
@@ -226,7 +225,7 @@ internal object MobileIdentitiesProvider {
      */
     private fun getAnalyticsIdentifiers(
         event: Event,
-        extensionApi: ExtensionApi,
+        extensionApi: ExtensionApi
     ): List<ID> {
         val analyticsSharedState =
             getSharedState(SharedStateKeys.Analytics.EXTENSION_NAME, event, extensionApi)
@@ -305,7 +304,7 @@ internal object MobileIdentitiesProvider {
         // Audience unique user id
         DataReader.optString(audienceSharedState?.value, SharedStateKeys.Audience.UUID, null)
             ?.also { uuid ->
-                if (uuid.isNotEmpty())
+                if (uuid.isNotEmpty()) {
                     audienceIdentifiers.add(
                         ID(
                             JSON_VALUE_NAMESPACE_AUDIENCE_UUID,
@@ -313,6 +312,7 @@ internal object MobileIdentitiesProvider {
                             JSON_VALUE_TYPE_NAMESPACE_ID
                         )
                     )
+                }
             }
 
         return audienceIdentifiers

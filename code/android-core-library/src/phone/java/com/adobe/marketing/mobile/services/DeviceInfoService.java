@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services;
 
@@ -33,9 +33,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
-/**
- * Implementation of {@link DeviceInforming} service
- */
+/** Implementation of {@link DeviceInforming} service */
 class DeviceInfoService implements DeviceInforming {
 
     private static final String LOG_TAG = "DeviceInfoService";
@@ -44,8 +42,7 @@ class DeviceInfoService implements DeviceInforming {
 
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
 
-    DeviceInfoService() {
-    }
+    DeviceInfoService() {}
 
     /**
      * Returns the currently selected / active locale value (as set by the user on the system).
@@ -100,7 +97,7 @@ class DeviceInfoService implements DeviceInforming {
         Activity currentActivity = getCurrentActivity();
 
         if (currentActivity == null) {
-            return 0; //neither landscape nor portrait
+            return 0; // neither landscape nor portrait
         }
 
         return currentActivity.getResources().getConfiguration().orientation;
@@ -193,12 +190,15 @@ class DeviceInfoService implements DeviceInforming {
         final float xInches = displayMetrics.widthPixels / displayMetrics.xdpi;
         final double diagonalInches = Math.sqrt(xInches * xInches + yInches * yInches);
 
-        return diagonalInches >= MIN_TABLET_INCHES ? DeviceInforming.DeviceType.TABLET : DeviceInforming.DeviceType.PHONE;
+        return diagonalInches >= MIN_TABLET_INCHES
+                ? DeviceInforming.DeviceType.TABLET
+                : DeviceInforming.DeviceType.PHONE;
     }
 
     /**
      * Returns a string that identifies a particular device OS build. This value may be present on
-     * Android devices, with a value like "M4-rc20". The value is platform dependent and platform specific.
+     * Android devices, with a value like "M4-rc20". The value is platform dependent and platform
+     * specific.
      *
      * @return {@link String} Build ID string if available. null otherwise.
      */
@@ -214,7 +214,8 @@ class DeviceInfoService implements DeviceInforming {
             return null;
         }
 
-        TelephonyManager telephonyManager = ((TelephonyManager) context.getSystemService(Application.TELEPHONY_SERVICE));
+        TelephonyManager telephonyManager =
+                ((TelephonyManager) context.getSystemService(Application.TELEPHONY_SERVICE));
         return telephonyManager != null ? telephonyManager.getNetworkOperatorName() : null;
     }
 
@@ -228,40 +229,68 @@ class DeviceInfoService implements DeviceInforming {
 
         try {
             // We have a context so ask the system for an instance of ConnectivityManager
-            ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            ConnectivityManager connectivityManager =
+                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
             if (connectivityManager != null) {
-                // We have an instance of ConnectivityManager so now we can ask for the active network info
+                // We have an instance of ConnectivityManager so now we can ask for the active
+                // network info
                 NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
 
                 if (activeNetworkInfo != null) {
-                    // At this point we have everything that we need to accurately determine the current connectivity status
-                    return activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected() ?
-                            DeviceInfoService.ConnectionStatus.CONNECTED : DeviceInfoService.ConnectionStatus.DISCONNECTED;
+                    // At this point we have everything that we need to accurately determine the
+                    // current connectivity status
+                    return activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()
+                            ? DeviceInfoService.ConnectionStatus.CONNECTED
+                            : DeviceInfoService.ConnectionStatus.DISCONNECTED;
                 } else {
-                    // Per Android documentation getActiveNetworkInfo() will return null if no default network is currently active.
-                    // If no default network is currently active we can assume that we don't have connectivity.
-                    Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Unable to determine connectivity status due to there being no default network currently active");
+                    // Per Android documentation getActiveNetworkInfo() will return null if no
+                    // default network is currently active.
+                    // If no default network is currently active we can assume that we don't have
+                    // connectivity.
+                    Log.debug(
+                            ServiceConstants.LOG_TAG,
+                            LOG_TAG,
+                            "Unable to determine connectivity status due to there being no default"
+                                    + " network currently active");
                 }
             } else {
-                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Unable to determine connectivity status due to the system service requested being unrecognized");
+                Log.debug(
+                        ServiceConstants.LOG_TAG,
+                        LOG_TAG,
+                        "Unable to determine connectivity status due to the system service"
+                                + " requested being unrecognized");
             }
         } catch (NullPointerException e) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
-                    String.format("Unable to determine connectivity status due to an unexpected error (%s)", e.getLocalizedMessage()));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "Unable to determine connectivity status due to an unexpected error"
+                                    + " (%s)",
+                            e.getLocalizedMessage()));
         } catch (SecurityException e) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
-                    String.format("Unable to access connectivity status due to a security error (%s)", e.getLocalizedMessage()));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "Unable to access connectivity status due to a security error (%s)",
+                            e.getLocalizedMessage()));
         } catch (Exception e) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
-                    String.format("Unable to access connectivity status due to an unexpected error (%s)", e.getLocalizedMessage()));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "Unable to access connectivity status due to an unexpected error (%s)",
+                            e.getLocalizedMessage()));
         }
 
         return DeviceInfoService.ConnectionStatus.UNKNOWN;
     }
 
     @Override
-    public boolean registerOneTimeNetworkConnectionActiveListener(final NetworkConnectionActiveListener listener) {
+    public boolean registerOneTimeNetworkConnectionActiveListener(
+            final NetworkConnectionActiveListener listener) {
         return false;
     }
 
@@ -278,7 +307,6 @@ class DeviceInfoService implements DeviceInforming {
             return null;
         }
 
-
         return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 
@@ -290,17 +318,22 @@ class DeviceInfoService implements DeviceInforming {
     @Override
     public String getDefaultUserAgent() {
         final String unknown = "unknown";
-        final String operatingSystemNameWithVersion = this.getOperatingSystemName() + " " + this.getOperatingSystemVersion();
-        final String operatingSystem = isNullOrEmpty(operatingSystemNameWithVersion) ? unknown :
-                operatingSystemNameWithVersion;
+        final String operatingSystemNameWithVersion =
+                this.getOperatingSystemName() + " " + this.getOperatingSystemVersion();
+        final String operatingSystem =
+                isNullOrEmpty(operatingSystemNameWithVersion)
+                        ? unknown
+                        : operatingSystemNameWithVersion;
         final String locale = getLocaleString();
         final String localeString = isNullOrEmpty(locale) ? unknown : locale;
-        final String deviceName = isNullOrEmpty(this.getDeviceName()) ? unknown : this.getDeviceName();
-        final String deviceBuildId = isNullOrEmpty(this.getDeviceBuildId()) ? unknown : this.getDeviceBuildId();
+        final String deviceName =
+                isNullOrEmpty(this.getDeviceName()) ? unknown : this.getDeviceName();
+        final String deviceBuildId =
+                isNullOrEmpty(this.getDeviceBuildId()) ? unknown : this.getDeviceBuildId();
 
-        return String.format("Mozilla/5.0 (Linux; U; %s; %s; %s Build/%s)", operatingSystem,
-                localeString, deviceName, deviceBuildId);
-
+        return String.format(
+                "Mozilla/5.0 (Linux; U; %s; %s; %s Build/%s)",
+                operatingSystem, localeString, deviceName, deviceBuildId);
     }
 
     @Override
@@ -327,26 +360,35 @@ class DeviceInfoService implements DeviceInforming {
         Resources resources = context.getResources();
 
         if (resources == null) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
-                    String.format("%s (Resources), unable to read (%s) from the the assets folder.", UNEXPECTED_NULL_VALUE,
-                            fileName));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "%s (Resources), unable to read (%s) from the the assets folder.",
+                            UNEXPECTED_NULL_VALUE, fileName));
             return null;
         }
 
         AssetManager assetManager = resources.getAssets();
 
         if (assetManager == null) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
-                    String.format("%s (AssetManager), unable to read (%s) from the the assets folder.", UNEXPECTED_NULL_VALUE,
-                            fileName));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "%s (AssetManager), unable to read (%s) from the the assets folder.",
+                            UNEXPECTED_NULL_VALUE, fileName));
             return null;
         }
 
         try {
             inputStream = assetManager.open(fileName);
         } catch (IOException e) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Unable to read (%s) from the the assets folder. (%s)",
-                    fileName, e));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "Unable to read (%s) from the the assets folder. (%s)", fileName, e));
         }
 
         return inputStream;
@@ -365,36 +407,52 @@ class DeviceInfoService implements DeviceInforming {
         PackageManager packageManager = context.getPackageManager();
 
         if (packageManager == null) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Package Manager), unable to read property for key (%s).",
-                    UNEXPECTED_NULL_VALUE, propertyKey));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "%s (Package Manager), unable to read property for key (%s).",
+                            UNEXPECTED_NULL_VALUE, propertyKey));
             return null;
         }
 
         try {
-            ApplicationInfo ai = packageManager.getApplicationInfo(context.getPackageName(),
-                    PackageManager.GET_META_DATA);
+            ApplicationInfo ai =
+                    packageManager.getApplicationInfo(
+                            context.getPackageName(), PackageManager.GET_META_DATA);
 
             if (ai == null) {
-                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("%s (Application info), unable to read property for key (%s).",
-                        UNEXPECTED_NULL_VALUE,
-                        propertyKey));
+                Log.debug(
+                        ServiceConstants.LOG_TAG,
+                        LOG_TAG,
+                        String.format(
+                                "%s (Application info), unable to read property for key (%s).",
+                                UNEXPECTED_NULL_VALUE, propertyKey));
                 return null;
             }
 
             Bundle bundle = ai.metaData;
 
             if (bundle == null) {
-                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG,
-                        String.format("%s (ApplicationInfo's metaData), unable to read property for key (%s).", UNEXPECTED_NULL_VALUE,
-                                propertyKey));
+                Log.debug(
+                        ServiceConstants.LOG_TAG,
+                        LOG_TAG,
+                        String.format(
+                                "%s (ApplicationInfo's metaData), unable to read property for key"
+                                        + " (%s).",
+                                UNEXPECTED_NULL_VALUE, propertyKey));
                 return null;
             }
 
             propertyValue = bundle.getString(propertyKey);
         } catch (Exception e) {
             // In rare cases, package manager throws run time exception.
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Unable to read property for key (%s). Exception - (%s)",
-                    propertyKey, e));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "Unable to read property for key (%s). Exception - (%s)",
+                            propertyKey, e));
         }
 
         return propertyValue;
@@ -417,14 +475,18 @@ class DeviceInfoService implements DeviceInforming {
                 return null;
             }
 
-            ApplicationInfo applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
+            ApplicationInfo applicationInfo =
+                    packageManager.getApplicationInfo(context.getPackageName(), 0);
 
             if (applicationInfo != null) {
                 appName = (String) packageManager.getApplicationLabel(applicationInfo);
             }
         } catch (Exception e) {
             // In rare cases, package manager throws run time exception.
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("PackageManager couldn't find application name (%s)", e));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format("PackageManager couldn't find application name (%s)", e));
         }
 
         return appName;
@@ -460,7 +522,7 @@ class DeviceInfoService implements DeviceInforming {
         final int buildVersion = Build.VERSION.SDK_INT;
         int versionCode = 0;
 
-        if (buildVersion >= Build.VERSION_CODES.P) { //28
+        if (buildVersion >= Build.VERSION_CODES.P) { // 28
             try {
                 Method method = packageInfo.getClass().getDeclaredMethod("getLongVersionCode");
                 long longVersion = (Long) method.invoke(packageInfo);
@@ -468,7 +530,10 @@ class DeviceInfoService implements DeviceInforming {
                 // in the higher 32 bits. Casting to int will give us the lower 32 bits.
                 versionCode = (int) longVersion;
             } catch (Exception e) {
-                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("Failed to get app version code, (%s)", e));
+                Log.debug(
+                        ServiceConstants.LOG_TAG,
+                        LOG_TAG,
+                        String.format("Failed to get app version code, (%s)", e));
             }
         } else {
             versionCode = packageInfo.versionCode;
@@ -534,7 +599,6 @@ class DeviceInfoService implements DeviceInforming {
         return ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
     }
 
-
     private PackageInfo getPackageInfo() {
         final Context context = getApplicationContext();
 
@@ -552,10 +616,13 @@ class DeviceInfoService implements DeviceInforming {
             return packageManager.getPackageInfo(context.getPackageName(), 0);
         } catch (Exception e) {
             // In rare cases, package manager throws run time exception.
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, String.format("PackageManager couldn't find application version (%s)",
-                    e.getLocalizedMessage()));
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "PackageManager couldn't find application version (%s)",
+                            e.getLocalizedMessage()));
             return null;
         }
     }
-
 }

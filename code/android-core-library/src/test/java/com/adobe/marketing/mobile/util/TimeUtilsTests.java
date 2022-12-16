@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.util;
 
@@ -23,6 +23,10 @@ import java.util.TimeZone;
 import static org.junit.Assert.*;
 
 import com.adobe.marketing.mobile.TestHelper;
+import java.util.Date;
+import java.util.TimeZone;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TimeUtilsTests {
 	private static final String DATE_REGEX_ISO8601_TIMEZONE_ISO8601_2X_PRECISION_SECOND =
@@ -69,21 +73,19 @@ public class TimeUtilsTests {
 		defaultEpochMilli = defaultDate.toInstant().toEpochMilli();
 	}
 
-	@Test
-	public void testClassIsWellDefined() {
-		try {
-			TestHelper.assertUtilityClassWellDefined(TimeUtils.class);
-		} catch (Exception e) {
-			fail("TimeUtil class is not well defined, throwing exception " + e);
-		}
-	}
+    @Before
+    public void setup() {
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT-7"));
+    }
 
-	@Test
-	public void testGetUnixTime_returnTimestampInSeconds() {
-		long timestamp = TimeUtils.getUnixTimeInSeconds();
-		long currentTimestamp = System.currentTimeMillis() / 1000;
-		assertTrue(timestamp - currentTimestamp <= 0);
-	}
+    @Test
+    public void testClassIsWellDefined() {
+        try {
+            TestHelper.assertUtilityClassWellDefined(TimeUtils.class);
+        } catch (Exception e) {
+            fail("TimeUtil class is not well defined, throwing exception " + e);
+        }
+    }
 
 	// Testing each API with a well-known date and corresponding formatting result
 	@Test

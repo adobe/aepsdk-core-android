@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services.ui;
 
@@ -17,18 +17,18 @@ import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
-
 import java.util.Map;
 
 /**
- * An extension of {@link android.app.Fragment} used to display in-app messages with custom locations and dimensions.
+ * An extension of {@link android.app.Fragment} used to display in-app messages with custom
+ * locations and dimensions.
  */
 public class MessageFragment extends android.app.Fragment implements View.OnTouchListener {
+
     private static final String TAG = "MessageFragment";
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
 
@@ -51,8 +51,12 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
     @Override
     public boolean onTouch(final View view, final MotionEvent motionEvent) {
         if (message == null) {
-            Log.debug(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (message), unable to handle the touch event on " +
-                    view.getClass().getSimpleName());
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    UNEXPECTED_NULL_VALUE
+                            + " (message), unable to handle the touch event on "
+                            + view.getClass().getSimpleName());
             return true;
         }
 
@@ -60,15 +64,21 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
 
         // determine if the tap occurred outside the webview
         if ((motionEventAction == MotionEvent.ACTION_DOWN
-                || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
+                        || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
                 && view.getId() != message.webView.getId()) {
-            Log.trace(ServiceConstants.LOG_TAG, TAG, "Detected tap on " + view.getClass().getSimpleName());
+            Log.trace(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Detected tap on " + view.getClass().getSimpleName());
 
             final boolean uiTakeoverEnabled = message.getSettings().getUITakeover();
 
             // if ui takeover is false, dismiss the message
             if (!uiTakeoverEnabled) {
-                Log.trace(ServiceConstants.LOG_TAG, TAG, "UI takeover is false, dismissing the message.");
+                Log.trace(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        "UI takeover is false, dismissing the message.");
                 webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
                 // perform the tap to allow interaction with ui elements outside the webview
                 return view.onTouchEvent(motionEvent);
@@ -81,7 +91,8 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
 
         // determine if the tapped view is the webview
         if (view.getId() == message.webView.getId()) {
-            // pass the event to the gesture detector to determine if a motion event occurred on the webview.
+            // pass the event to the gesture detector to determine if a motion event occurred on the
+            // webview.
             gestureDetector.onTouchEvent(motionEvent);
             // perform the tap to allow interaction with buttons within the webview
             return view.onTouchEvent(motionEvent);
@@ -96,7 +107,10 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
 
         // make sure we have a valid message before trying to proceed
         if (message == null) {
-            Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (message), failed to show the message.");
+            Log.warning(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    UNEXPECTED_NULL_VALUE + " (message), failed to show the message.");
             return;
         }
 
@@ -109,7 +123,8 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
 
         // initialize the gesture detector and listener
         webViewGestureListener = new WebViewGestureListener(this);
-        final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+        final Context appContext =
+                ServiceProvider.getInstance().getAppContextService().getApplicationContext();
         gestureDetector = new GestureDetector(appContext, webViewGestureListener);
     }
 
@@ -117,10 +132,15 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
     public void onResume() {
         super.onResume();
 
-        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        final Activity currentActivity =
+                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
 
-        if (currentActivity == null || currentActivity.findViewById(message.frameLayoutResourceId) == null) {
-            Log.warning(ServiceConstants.LOG_TAG, TAG, UNEXPECTED_NULL_VALUE + " (frame layout), failed to show the message.");
+        if (currentActivity == null
+                || currentActivity.findViewById(message.frameLayoutResourceId) == null) {
+            Log.warning(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    UNEXPECTED_NULL_VALUE + " (frame layout), failed to show the message.");
             return;
         }
 

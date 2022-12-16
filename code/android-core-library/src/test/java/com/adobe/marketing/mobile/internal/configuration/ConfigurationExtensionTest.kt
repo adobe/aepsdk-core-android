@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.internal.configuration
 
@@ -36,13 +36,13 @@ import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.MockedStatic
 import org.mockito.Mockito
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.any
@@ -146,7 +146,8 @@ class ConfigurationExtensionTest {
             eventCaptor.secondValue,
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT,
-            config, null
+            config,
+            null
         )
 
         // Verify that launch rule evaluator is registered and configured correctly
@@ -309,7 +310,8 @@ class ConfigurationExtensionTest {
 
         val event: Event = Event.Builder(
             "Configure with appId",
-            EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
         )
             .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to null))
             .build()
@@ -351,7 +353,8 @@ class ConfigurationExtensionTest {
 
         val event: Event = Event.Builder(
             "Configure with appId",
-            EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
         )
             .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to ""))
             .build()
@@ -396,7 +399,8 @@ class ConfigurationExtensionTest {
 
         val event: Event = Event.Builder(
             "Configure with appId",
-            EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
         )
             .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
             .build()
@@ -500,7 +504,8 @@ class ConfigurationExtensionTest {
 
         val event: Event = Event.Builder(
             "Configure with appId",
-            EventType.CONFIGURATION, EventSource.REQUEST_CONTENT
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_CONTENT
         )
             .setEventData(mapOf(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to newAppID))
             .build()
@@ -639,7 +644,6 @@ class ConfigurationExtensionTest {
 
     @Test
     fun `Configure with file path - Null file path`() {
-
         `when`(mockConfigStateManager.getConfigFromFile(anyString())).thenReturn(null)
 
         val configurationExtension = ConfigurationExtension(
@@ -673,7 +677,6 @@ class ConfigurationExtensionTest {
 
     @Test
     fun `Configure with file path - Empty file path`() {
-
         `when`(mockConfigStateManager.getConfigFromFile(anyString())).thenReturn(null)
 
         val configurationExtension = ConfigurationExtension(
@@ -1006,7 +1009,7 @@ class ConfigurationExtensionTest {
         expectedEventType: String,
         expectedEventSource: String,
         expectedEventData: Map<String, Any?>?,
-        triggerEvent: Event?,
+        triggerEvent: Event?
     ) {
         assertEquals(expectedEventType, capturedEvent.type)
         assertEquals(expectedEventSource, capturedEvent.source)

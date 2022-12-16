@@ -7,11 +7,15 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.signal
 
-import com.adobe.marketing.mobile.services.*
-import org.junit.Assert.*
+import com.adobe.marketing.mobile.services.DataEntity
+import com.adobe.marketing.mobile.services.HttpConnecting
+import com.adobe.marketing.mobile.services.HttpMethod
+import com.adobe.marketing.mobile.services.NetworkRequest
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -56,7 +60,7 @@ class SignalHitProcessorTests {
               "url": "",
               "timeout": 4
             }
-        """.trimIndent()
+            """.trimIndent()
         )
 
         val countDownLatch = CountDownLatch(1)
@@ -78,7 +82,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": 4
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         var requestRecorder: NetworkRequest? = null
         signalHitProcessor = SignalHitProcessor { request, callback ->
@@ -90,7 +94,6 @@ class SignalHitProcessorTests {
 
         countDownLatch.await()
         assertEquals(HttpMethod.GET, requestRecorder?.method)
-
     }
 
     @Test
@@ -103,7 +106,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": 4
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         var requestRecorder: NetworkRequest? = null
         signalHitProcessor = SignalHitProcessor { request, callback ->
@@ -127,7 +130,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": -1
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         var requestRecorder: NetworkRequest? = null
         signalHitProcessor = SignalHitProcessor { request, callback ->
@@ -148,7 +151,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": 0
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         var requestRecorder: NetworkRequest? = null
         signalHitProcessor = SignalHitProcessor { request, callback ->
@@ -169,7 +172,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": 2
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         var requestRecorder: NetworkRequest? = null
         signalHitProcessor = SignalHitProcessor { request, callback ->
@@ -191,7 +194,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": 2
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         var requestRecorder: NetworkRequest? = null
         signalHitProcessor = SignalHitProcessor { request, callback ->
@@ -213,7 +216,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": 2
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         signalHitProcessor = SignalHitProcessor { _, callback ->
             callback.call(null)
@@ -234,7 +237,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": 2
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         `when`(httpResponseConnection.responseCode).thenReturn(200)
         signalHitProcessor = SignalHitProcessor { _, callback ->
@@ -256,7 +259,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": 2
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         `when`(httpResponseConnection.responseCode).thenReturn(408)
         signalHitProcessor = SignalHitProcessor { _, callback ->
@@ -278,7 +281,7 @@ class SignalHitProcessorTests {
               "url": "https://www.postback.com",
               "timeout": 2
             }
-        """.trimIndent()
+            """.trimIndent()
         )
         `when`(httpResponseConnection.responseCode).thenReturn(300)
         signalHitProcessor = SignalHitProcessor { _, callback ->
@@ -289,5 +292,4 @@ class SignalHitProcessorTests {
 
         countDownLatch.await()
     }
-
 }

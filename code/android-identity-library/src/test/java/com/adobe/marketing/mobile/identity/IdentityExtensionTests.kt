@@ -7,13 +7,27 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.identity
 
-import com.adobe.marketing.mobile.*
-import com.adobe.marketing.mobile.services.*
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.MobilePrivacyStatus
+import com.adobe.marketing.mobile.SharedStateResult
+import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.VisitorID
+import com.adobe.marketing.mobile.services.HitQueuing
+import com.adobe.marketing.mobile.services.HttpConnecting
+import com.adobe.marketing.mobile.services.NamedCollection
+import com.adobe.marketing.mobile.services.Networking
+import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.DataReader
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -21,13 +35,20 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.Mockito.never
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.*
-import java.io.*
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.doAnswer
+import java.io.BufferedReader
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.net.URL
-import java.util.*
 import java.util.concurrent.CountDownLatch
-
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class IdentityExtensionTests {
@@ -142,7 +163,8 @@ class IdentityExtensionTests {
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "experienceCloud.org" to "orgid"
                     )
                 )
@@ -183,7 +205,8 @@ class IdentityExtensionTests {
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "experienceCloud.org" to "orgid"
                     )
                 )
@@ -216,7 +239,8 @@ class IdentityExtensionTests {
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "experienceCloud.org" to "orgid"
                     )
                 )
@@ -244,7 +268,8 @@ class IdentityExtensionTests {
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "invalid key - experienceCloud.org" to "orgid"
                     )
                 )
@@ -272,14 +297,16 @@ class IdentityExtensionTests {
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "invalid key - experienceCloud.org" to "orgid"
                     )
                 )
             }
             if ("com.adobe.module.analytics" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "vid" to "fake_vid"
                     )
                 )
@@ -307,7 +334,8 @@ class IdentityExtensionTests {
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "invalid key - experienceCloud.org" to "orgid"
                     )
                 )
@@ -335,14 +363,16 @@ class IdentityExtensionTests {
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "invalid key - experienceCloud.org" to "orgid"
                     )
                 )
             }
             if ("com.adobe.module.analytics" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "vid" to "fake_vid"
                     )
                 )
@@ -370,7 +400,8 @@ class IdentityExtensionTests {
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "invalid key - experienceCloud.org" to "orgid"
                     )
                 )
@@ -460,7 +491,6 @@ class IdentityExtensionTests {
     // ==============================================================================================================
     // 	void handleAnalyticsResponseIdentity()
     // ==============================================================================================================
-
 
     @Test
     fun `handleAnalyticsResponseIdentity() - event is null`() {
@@ -604,7 +634,6 @@ class IdentityExtensionTests {
         assertTrue(event.eventData.contains("issyncevent"))
     }
 
-
     @Test
     fun `processAudienceResponse() - event is null`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
@@ -712,7 +741,8 @@ class IdentityExtensionTests {
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET, mapOf(
+                    SharedStateStatus.SET,
+                    mapOf(
                         "global.privacy" to "optedout"
                     )
                 )
@@ -807,7 +837,8 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         assertTrue(
             spiedIdentityExtension.handleSyncIdentifiers(
-                Event.Builder("event", "type", "source").build(), null
+                Event.Builder("event", "type", "source").build(),
+                null
             )
         )
         verify(spiedIdentityExtension, never()).extractIdentifiers(any())
@@ -820,7 +851,8 @@ class IdentityExtensionTests {
         val state = ConfigurationSharedStateIdentity()
         assertTrue(
             spiedIdentityExtension.handleSyncIdentifiers(
-                Event.Builder("event", "type", "source").build(), state
+                Event.Builder("event", "type", "source").build(),
+                state
             )
         )
 
@@ -840,7 +872,8 @@ class IdentityExtensionTests {
         )
         assertTrue(
             spiedIdentityExtension.handleSyncIdentifiers(
-                Event.Builder("event", "type", "source").build(), state
+                Event.Builder("event", "type", "source").build(),
+                state
             )
         )
 
@@ -976,14 +1009,12 @@ class IdentityExtensionTests {
 
     @Test
     fun testNetworkResponseLoaded_WhenChangedBlob_setUpdateSharedStateTrue() {
-
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         spiedIdentityExtension.mid = "1234567890"
         spiedIdentityExtension.lastSync = 0
         spiedIdentityExtension.setBlob("beforeBlob")
         spiedIdentityExtension.setLocationHint("9")
         spiedIdentityExtension.setPrivacyStatus(MobilePrivacyStatus.OPT_IN)
-
 
         val responseObject = IdentityResponseObject()
         responseObject.blob = "afterBlob"
@@ -1055,7 +1086,6 @@ class IdentityExtensionTests {
 
     @Test
     fun testNetworkResponseLoaded_WhenChangedLocationHintFromNull_setUpdateSharedStateTrue() {
-
         val responseObject = IdentityResponseObject()
         responseObject.blob = "blob"
         responseObject.hint = "9"
@@ -1094,7 +1124,6 @@ class IdentityExtensionTests {
 
     @Test
     fun testNetworkResponseLoaded_WhenChangedBlobFromNull_setUpdateSharedStateTrue() {
-
         val responseObject = IdentityResponseObject()
         responseObject.blob = "afterBlob"
         responseObject.hint = "9"
@@ -1133,7 +1162,6 @@ class IdentityExtensionTests {
 
     @Test
     fun testNetworkResponseLoaded_WhenChangedLocationHintToNull_setUpdateSharedStateTrue() {
-
         val responseObject = IdentityResponseObject()
         responseObject.blob = "blob"
         responseObject.hint = null
@@ -1172,7 +1200,6 @@ class IdentityExtensionTests {
 
     @Test
     fun testNetworkResponseLoaded_WhenChangedBlobToNull_setUpdateSharedStateTrue() {
-
         val responseObject = IdentityResponseObject()
         responseObject.blob = null
         responseObject.hint = "9"
@@ -1381,22 +1408,30 @@ class IdentityExtensionTests {
     fun convertVisitorIdsStringToVisitorIDObjects_ConvertStringToVisitorIDsCorrectly() {
         val visitorIdString =
             "d_cid_ic=loginidhash%0197717%010&d_cid_ic=xboxlivehash%011629158955%011&d_cid_ic" +
-                    "=psnidhash%011144032295%012&d_cid=pushid%01testPushId%011"
+                "=psnidhash%011144032295%012&d_cid=pushid%01testPushId%011"
         val visitorIDList = listOf(
             VisitorID(
-                "d_cid_ic", "loginidhash", "97717",
+                "d_cid_ic",
+                "loginidhash",
+                "97717",
                 VisitorID.AuthenticationState.UNKNOWN
             ),
             VisitorID(
-                "d_cid_ic", "xboxlivehash", "1629158955",
+                "d_cid_ic",
+                "xboxlivehash",
+                "1629158955",
                 VisitorID.AuthenticationState.AUTHENTICATED
             ),
             VisitorID(
-                "d_cid_ic", "psnidhash", "1144032295",
+                "d_cid_ic",
+                "psnidhash",
+                "1144032295",
                 VisitorID.AuthenticationState.LOGGED_OUT
             ),
             VisitorID(
-                "d_cid", "pushid", "testPushId",
+                "d_cid",
+                "pushid",
+                "testPushId",
                 VisitorID.AuthenticationState.AUTHENTICATED
             )
         )
@@ -1446,7 +1481,9 @@ class IdentityExtensionTests {
         // setup
         val visitorIds = listOf(
             VisitorID(
-                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "customIdValue",
+                IdentityTestConstants.UrlKeys.VISITOR_ID,
+                "customIdType",
+                "customIdValue",
                 VisitorID.AuthenticationState.AUTHENTICATED
             )
         )
@@ -1467,11 +1504,15 @@ class IdentityExtensionTests {
         // setup
         val visitorIds = listOf(
             VisitorID(
-                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "customIdValue",
+                IdentityTestConstants.UrlKeys.VISITOR_ID,
+                "customIdType",
+                "customIdValue",
                 VisitorID.AuthenticationState.AUTHENTICATED
             ),
             VisitorID(
-                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType2", "customIdValue2",
+                IdentityTestConstants.UrlKeys.VISITOR_ID,
+                "customIdType2",
+                "customIdValue2",
                 VisitorID.AuthenticationState.UNKNOWN
             )
         )
@@ -1492,8 +1533,10 @@ class IdentityExtensionTests {
         // setup
         val visitorIds = listOf(
             VisitorID(
-                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType",
-                "customIdValue==withEquals", VisitorID.AuthenticationState.AUTHENTICATED
+                IdentityTestConstants.UrlKeys.VISITOR_ID,
+                "customIdType",
+                "customIdValue==withEquals",
+                VisitorID.AuthenticationState.AUTHENTICATED
             )
         )
         val visitorIdsString = stringFromVisitorIdList(visitorIds)
@@ -1513,11 +1556,15 @@ class IdentityExtensionTests {
         // setup
         val visitorIds = listOf(
             VisitorID(
-                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "value1",
+                IdentityTestConstants.UrlKeys.VISITOR_ID,
+                "customIdType",
+                "value1",
                 VisitorID.AuthenticationState.AUTHENTICATED
             ),
             VisitorID(
-                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "",
+                IdentityTestConstants.UrlKeys.VISITOR_ID,
+                "customIdType",
+                "",
                 VisitorID.AuthenticationState.LOGGED_OUT
             )
         )
@@ -1543,11 +1590,15 @@ class IdentityExtensionTests {
         // setup
         val visitorIds = listOf(
             VisitorID(
-                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "value1",
+                IdentityTestConstants.UrlKeys.VISITOR_ID,
+                "customIdType",
+                "value1",
                 VisitorID.AuthenticationState.AUTHENTICATED
             ),
             VisitorID(
-                IdentityTestConstants.UrlKeys.VISITOR_ID, "customIdType", "value2",
+                IdentityTestConstants.UrlKeys.VISITOR_ID,
+                "customIdType",
+                "value2",
                 VisitorID.AuthenticationState.LOGGED_OUT
             )
         )
@@ -1656,5 +1707,4 @@ class IdentityExtensionTests {
         }
         return customerIdString.toString()
     }
-
 }

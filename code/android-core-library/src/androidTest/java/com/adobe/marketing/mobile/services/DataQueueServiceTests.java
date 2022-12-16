@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.services;
 
 import static junit.framework.TestCase.assertFalse;
@@ -16,18 +17,14 @@ import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 
 import android.content.Context;
-
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-
+import java.io.File;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.io.IOException;
 
 @RunWith(AndroidJUnit4.class)
 public class DataQueueServiceTests {
@@ -35,6 +32,7 @@ public class DataQueueServiceTests {
     private static final String TEST_DATABASE_NAME = "test.sqlite";
     MockAppContextService mockAppContextService;
     private Context context;
+
     @Before
     public void beforeEach() {
         context = ApplicationProvider.getApplicationContext();
@@ -60,7 +58,6 @@ public class DataQueueServiceTests {
 
     @Test
     public void testGetDataQueue_ApplicationContextIsNotSet() {
-
         mockAppContextService.appContext = null;
         DataQueue dataQueue = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
         assertNull(dataQueue);

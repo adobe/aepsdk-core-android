@@ -7,10 +7,14 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import com.adobe.marketing.mobile.util.StringUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,133 +22,144 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import com.adobe.marketing.mobile.util.StringUtils;
-
 public class FileTestHelper {
-	static final String CACHE_DIRECTORY 	= "adbdownloadcache";
-	static final String FILE_DIRECTORY = "adbdownloadfile";
-	static final String MOCK_FILE_NAME		=
-		"c0a6221b2b55775b6bc5761fdb1ac0c965cc823c55e8db0b3f903b24f82fcb90.1484711165000_someETag";
-	static final String MOCK_CONFIG_JSON 	= "{'someJsonKey':'someJsonValue'}";
 
-	List<String> getFilesInDirectory(final String directory) {
-		File cacheDir = getCacheDirectory(directory);
-		String[] files = cacheDir.list();
+    static final String CACHE_DIRECTORY = "adbdownloadcache";
+    static final String FILE_DIRECTORY = "adbdownloadfile";
+    static final String MOCK_FILE_NAME =
+            "c0a6221b2b55775b6bc5761fdb1ac0c965cc823c55e8db0b3f903b24f82fcb90.1484711165000_someETag";
+    static final String MOCK_CONFIG_JSON = "{'someJsonKey':'someJsonValue'}";
 
-		if (files == null || files.length <= 0) {
-			return null;
-		}
+    List<String> getFilesInDirectory(final String directory) {
+        File cacheDir = getCacheDirectory(directory);
+        String[] files = cacheDir.list();
 
-		return new ArrayList<String>(Arrays.asList(files));
-	}
+        if (files == null || files.length <= 0) {
+            return null;
+        }
 
-	File getCacheDirectory(final String cacheDirOverride) {
-		final String directory = StringUtils.isNullOrEmpty(cacheDirOverride) ? CACHE_DIRECTORY : cacheDirOverride;
-		File cacheDirectory = new File(getClass().getResource("").getPath(),  directory);
+        return new ArrayList<String>(Arrays.asList(files));
+    }
 
-		if (!cacheDirectory.exists()) {
-			assertTrue("Could not create test cache directory - " + this.getClass().getResource("").getPath() + directory
-					   , cacheDirectory.mkdirs());
-		}
+    File getCacheDirectory(final String cacheDirOverride) {
+        final String directory =
+                StringUtils.isNullOrEmpty(cacheDirOverride) ? CACHE_DIRECTORY : cacheDirOverride;
+        File cacheDirectory = new File(getClass().getResource("").getPath(), directory);
 
-		return cacheDirectory;
-	}
+        if (!cacheDirectory.exists()) {
+            assertTrue(
+                    "Could not create test cache directory - "
+                            + this.getClass().getResource("").getPath()
+                            + directory,
+                    cacheDirectory.mkdirs());
+        }
 
-	File getCacheDirectory() {
-		return getCacheDirectory(null);
-	}
+        return cacheDirectory;
+    }
 
-	File sampleApplicationBaseDir() {
-		return new File(this.getClass().getResource("").getPath());
-	}
+    File getCacheDirectory() {
+        return getCacheDirectory(null);
+    }
 
-	void deleteTempCacheDirectory() {
-		deleteTempCacheDirectory(null);
-	}
+    File sampleApplicationBaseDir() {
+        return new File(this.getClass().getResource("").getPath());
+    }
 
-	/**
-	 * Removes the cache directory recursively
-	 */
-	void deleteTempCacheDirectory(final String dirName) {
-		File cacheDirectory = getCacheDirectory(dirName);
-		String[]files = cacheDirectory.list();
+    void deleteTempCacheDirectory() {
+        deleteTempCacheDirectory(null);
+    }
 
-		if (files != null) {
-			for (String file : files) {
-				File currentFile = new File(cacheDirectory.getPath(), file);
+    /** Removes the cache directory recursively */
+    void deleteTempCacheDirectory(final String dirName) {
+        File cacheDirectory = getCacheDirectory(dirName);
+        String[] files = cacheDirectory.list();
 
-				if (currentFile.isDirectory()) {
-					deleteTempCacheDirectory(File.separator + (StringUtils.isNullOrEmpty(dirName) ? CACHE_DIRECTORY : dirName) +
-											 File.separator + file);
-				} else {
-					currentFile.delete();
-				}
-			}
-		}
+        if (files != null) {
+            for (String file : files) {
+                File currentFile = new File(cacheDirectory.getPath(), file);
 
-		cacheDirectory.delete();
-	}
+                if (currentFile.isDirectory()) {
+                    deleteTempCacheDirectory(
+                            File.separator
+                                    + (StringUtils.isNullOrEmpty(dirName)
+                                            ? CACHE_DIRECTORY
+                                            : dirName)
+                                    + File.separator
+                                    + file);
+                } else {
+                    currentFile.delete();
+                }
+            }
+        }
 
-	File placeSampleCacheFile() {
-		return createFile(MOCK_FILE_NAME);
-	}
+        cacheDirectory.delete();
+    }
 
-	void placeSampleCacheFile(final String dirName) {
-		createFile(dirName, MOCK_FILE_NAME);
-	}
+    File placeSampleCacheFile() {
+        return createFile(MOCK_FILE_NAME);
+    }
 
-	void placeOtherCacheFile() {
-		createFile("somethingElse.1484711165000_someETag");
-	}
+    void placeSampleCacheFile(final String dirName) {
+        createFile(dirName, MOCK_FILE_NAME);
+    }
 
-	void placeOtherCacheFile(final String dirName) {
-		createFile(dirName, "somethingElse.1484711165000_someETag");
-	}
+    void placeOtherCacheFile() {
+        createFile("somethingElse.1484711165000_someETag");
+    }
 
-	File placePartiallyDownloadedCacheFile() {
-		return createFile(MOCK_FILE_NAME + "_partial");
-	}
+    void placeOtherCacheFile(final String dirName) {
+        createFile(dirName, "somethingElse.1484711165000_someETag");
+    }
 
-	void placeInvalidCacheFile(final String dirName) {
-		createFile(dirName, "1484711165000-1484711165000-1484711165000");
-	}
+    File placePartiallyDownloadedCacheFile() {
+        return createFile(MOCK_FILE_NAME + "_partial");
+    }
 
-	File placeSampleCacheDirectory(final String dirName, final String fileName) {
-		File cacheDirectory = new File(getCacheDirectory(CACHE_DIRECTORY) + File.separator + dirName);
-		cacheDirectory.mkdir();
-		File file = new File(getCacheDirectory(CACHE_DIRECTORY) + File.separator + dirName + File.separator + fileName);
+    void placeInvalidCacheFile(final String dirName) {
+        createFile(dirName, "1484711165000-1484711165000-1484711165000");
+    }
 
-		try {
-			file.createNewFile();
-			FileWriter fileWriter = new FileWriter(file);
-			fileWriter.write(MOCK_CONFIG_JSON);
-			fileWriter.flush();
-			fileWriter.close();
-		} catch (IOException ex) {
-			fail("Could not create test directory and files " + ex);
-		}
+    File placeSampleCacheDirectory(final String dirName, final String fileName) {
+        File cacheDirectory =
+                new File(getCacheDirectory(CACHE_DIRECTORY) + File.separator + dirName);
+        cacheDirectory.mkdir();
+        File file =
+                new File(
+                        getCacheDirectory(CACHE_DIRECTORY)
+                                + File.separator
+                                + dirName
+                                + File.separator
+                                + fileName);
 
-		return cacheDirectory;
-	}
+        try {
+            file.createNewFile();
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(MOCK_CONFIG_JSON);
+            fileWriter.flush();
+            fileWriter.close();
+        } catch (IOException ex) {
+            fail("Could not create test directory and files " + ex);
+        }
 
-	private File createFile(final String fileName) {
-		return createFile(null, fileName);
-	}
+        return cacheDirectory;
+    }
 
-	private File createFile(final String directoryName, final String fileName) {
-		File cacheFile = new File(getCacheDirectory(directoryName) + File.separator + fileName);
+    private File createFile(final String fileName) {
+        return createFile(null, fileName);
+    }
 
-		try {
-			cacheFile.createNewFile();
-			FileWriter fileWriter = new FileWriter(cacheFile);
-			fileWriter.write(MOCK_CONFIG_JSON);
-			fileWriter.flush();
-			fileWriter.close();
-		} catch (IOException ex) {}
+    private File createFile(final String directoryName, final String fileName) {
+        File cacheFile = new File(getCacheDirectory(directoryName) + File.separator + fileName);
 
-		return cacheFile;
-	}
+        try {
+            cacheFile.createNewFile();
+            FileWriter fileWriter = new FileWriter(cacheFile);
+            fileWriter.write(MOCK_CONFIG_JSON);
+            fileWriter.flush();
+            fileWriter.close();
+        } catch (IOException ex) {
+        }
+
+        return cacheFile;
+    }
 }

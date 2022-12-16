@@ -7,15 +7,13 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services.ui;
 
 import android.content.Intent;
 
-/**
- * Interface for handling Android links
- */
+/** Interface for handling Android links */
 public interface URIHandler {
     /**
      * Returns a destination of the given URI.

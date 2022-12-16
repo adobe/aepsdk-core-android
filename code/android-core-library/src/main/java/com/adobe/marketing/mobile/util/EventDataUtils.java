@@ -7,7 +7,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.util;
 
@@ -25,19 +25,21 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Utility to clone event data which is represented as {@code Map<String, Object>}.
- * Currently supports cloning values which are Boolean, Byte, Short, Integer, Long, Float, Double,
- * BigDecimal, BigInteger, Character, String, UUID, Maps and Collections.
+ * Utility to clone event data which is represented as {@code Map<String, Object>}. Currently
+ * supports cloning values which are Boolean, Byte, Short, Integer, Long, Float, Double, BigDecimal,
+ * BigInteger, Character, String, UUID, Maps and Collections.
  */
 public class EventDataUtils {
+
     private static final int MAX_DEPTH = 256;
 
     private enum CloneMode {
         ImmutableContainer,
-        MutableContainer
+        MutableContainer,
     }
 
     private static final Set<Class<?>> immutableClasses;
+
     static {
         immutableClasses = new HashSet<>();
         immutableClasses.add(Boolean.class);
@@ -54,9 +56,10 @@ public class EventDataUtils {
         immutableClasses.add(UUID.class);
     }
 
-    private EventDataUtils(){}
+    private EventDataUtils() {}
 
-    private static Object cloneObject(final Object obj, final CloneMode mode, final int depth) throws CloneFailedException {
+    private static Object cloneObject(final Object obj, final CloneMode mode, final int depth)
+            throws CloneFailedException {
         if (obj == null) {
             return null;
         }
@@ -70,33 +73,35 @@ public class EventDataUtils {
         }
 
         if (obj instanceof Map) {
-            return cloneMap((Map<?, ?>) obj, mode ,depth);
+            return cloneMap((Map<?, ?>) obj, mode, depth);
         } else if (obj instanceof Collection) {
             return cloneCollection((Collection<?>) obj, mode, depth);
         } else if (obj.getClass().isArray()) {
             return cloneArray(obj, mode, depth);
-        }
-        else {
+        } else {
             throw new CloneFailedException("Object is of unsupported type");
         }
     }
 
-    private static Map<String, Object> cloneMap(final Map<?, ?> map, final CloneMode mode, final int depth) throws CloneFailedException {
+    private static Map<String, Object> cloneMap(
+            final Map<?, ?> map, final CloneMode mode, final int depth)
+            throws CloneFailedException {
         if (map == null) return null;
 
         Map<String, Object> ret = new HashMap<>();
         for (Map.Entry<?, ?> kv : map.entrySet()) {
-
             Object key = kv.getKey();
             if (key != null && key instanceof String) {
                 Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
                 ret.put(key.toString(), clonedValue);
             }
         }
-        return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableMap(ret): ret;
+        return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableMap(ret) : ret;
     }
 
-    private static Collection<Object> cloneCollection(final Collection<?> collection, final CloneMode mode, final int depth) throws CloneFailedException {
+    private static Collection<Object> cloneCollection(
+            final Collection<?> collection, final CloneMode mode, final int depth)
+            throws CloneFailedException {
         if (collection == null) return null;
 
         List<Object> ret = new ArrayList<>();
@@ -104,11 +109,12 @@ public class EventDataUtils {
             Object clonedElement = cloneObject(element, mode, depth + 1);
             ret.add(clonedElement);
         }
-        return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret): ret;
+        return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret) : ret;
     }
 
-    private static Collection<Object> cloneArray(final Object array, final CloneMode mode, final int depth) throws CloneFailedException {
-        if (array == null) return  null;
+    private static Collection<Object> cloneArray(
+            final Object array, final CloneMode mode, final int depth) throws CloneFailedException {
+        if (array == null) return null;
 
         List<Object> ret = new ArrayList<>();
 
@@ -117,60 +123,71 @@ public class EventDataUtils {
             ret.add(cloneObject(Array.get(array, i), mode, depth + 1));
         }
 
-        return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret): ret;
+        return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret) : ret;
     }
 
     /**
-     * Deep clones the provided map. Support cloning values which are basic types, maps and collections.
-     * <br>
+     * Deep clones the provided map. Support cloning values which are basic types, maps and
+     * collections. <br>
      * Values which are {@code Map<?, ?>} are cloned as {@code HashMap<String, Object>}.
+     *
      * <ul>
-     *     <li> Entry with null key is dropped. </li>
-     *     <li> Entry with non {@code String} key is converted to entry with {@code String} key by calling {@link Object#toString()} method. </li>
+     *   <li>Entry with null key is dropped.
+     *   <li>Entry with non {@code String} key is converted to entry with {@code String} key by
+     *       calling {@link Object#toString()} method.
      * </ul>
+     *
      * Values which are {@code Collection<?>} are cloned as {@code ArrayList<Object>}.
      *
      * @param map map to be cloned
      * @return Cloned map
-     * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or contains unsupported type.
+     * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or
+     *     contains unsupported type.
      */
     public static Map<String, Object> clone(final Map<String, ?> map) throws CloneFailedException {
         return cloneMap(map, CloneMode.MutableContainer, 0);
     }
 
     /**
-     * Deep clones the provided map. Support cloning values which are basic types, maps and collections.
-     * <br>
-     * Values which are {@code Map<?, ?>} are cloned as unmodifiable {@code HashMap<String, Object>}.
+     * Deep clones the provided map. Support cloning values which are basic types, maps and
+     * collections. <br>
+     * Values which are {@code Map<?, ?>} are cloned as unmodifiable {@code HashMap<String,
+     * Object>}.
+     *
      * <ul>
-     *     <li> Entry with null key is dropped. </li>
-     *     <li> Entry with non {@code String} key is converted to entry with {@code String} key by calling {@link Object#toString()} method. </li>
+     *   <li>Entry with null key is dropped.
+     *   <li>Entry with non {@code String} key is converted to entry with {@code String} key by
+     *       calling {@link Object#toString()} method.
      * </ul>
+     *
      * Values which are {@code Collection<?>} are cloned as unmodifiable {@code ArrayList<Object>}.
      *
      * @param map map to be cloned
      * @return Cloned immutable map
-     * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or contains unsupported type.
+     * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or
+     *     contains unsupported type.
      */
-    public static Map<String, Object> immutableClone(final Map<String, ?> map) throws CloneFailedException {
+    public static Map<String, Object> immutableClone(final Map<String, ?> map)
+            throws CloneFailedException {
         return cloneMap(map, CloneMode.ImmutableContainer, 0);
     }
 
     /**
      * Casts generic map {@code Map<?, ?>} to {@code HashMap<String, Object>}
+     *
      * <ul>
-     *     <li> Entry with null and non {@code String} key is dropped. </li>
-     *     <li> Entry withnon {@code String} key is dropped </li>
+     *   <li>Entry with null and non {@code String} key is dropped.
+     *   <li>Entry withnon {@code String} key is dropped
      * </ul>
+     *
      * @param map map to be cast
      * @return map cast to type {@code Map<String, Object>}
-     *
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> castFromGenericType(final Map<?, ?> map) {
         if (map == null) return null;
 
-        for(Map.Entry<?, ?> entry : map.entrySet()) {
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
             if (!(entry.getKey() instanceof String)) {
                 return null;
             }

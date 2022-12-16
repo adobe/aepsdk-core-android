@@ -1,15 +1,14 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'org.jlleitschuh.gradle.ktlint'
 apply plugin: 'org.jetbrains.dokka'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion rootProject.ext.targetSdkVersion
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion rootProject.ext.minSdkVersion
         //noinspection OldTargetApi
-        targetSdkVersion 31
+        targetSdkVersion rootProject.ext.targetSdkVersion
         //Include the Proguard rules for Core Extension in the aar
         consumerProguardFiles 'lib-proguard-rules.pro'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -42,16 +41,19 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility rootProject.ext.sourceCompatibility
+        targetCompatibility rootProject.ext.targetCompatibility
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = rootProject.ext.kotlinJvmTarget
+        languageVersion = rootProject.ext.kotlinLanguageVersion
+        apiVersion = rootProject.ext.kotlinApiVersion
     }
 }
 
 apply from: '../checkstyle.gradle'
+apply from: '../codeformat.gradle'
 apply from: '../jacoco.gradle'
 
 def isJitPackBuild() {

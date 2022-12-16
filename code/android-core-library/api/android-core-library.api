@@ -1071,11 +1071,18 @@ public final class com/adobe/marketing/mobile/util/StringUtils {
 
 public final class com/adobe/marketing/mobile/util/TimeUtils {
 	public static final field INSTANCE Lcom/adobe/marketing/mobile/util/TimeUtils;
-	public static final fun getIso8601Date ()Ljava/lang/String;
-	public static final fun getIso8601Date (Ljava/util/Date;Ljava/lang/String;)Ljava/lang/String;
-	public static final fun getIso8601Date (Ljava/util/Date;Ljava/lang/String;Ljava/util/TimeZone;)Ljava/lang/String;
-	public static synthetic fun getIso8601Date$default (Ljava/util/Date;Ljava/lang/String;Ljava/util/TimeZone;ILjava/lang/Object;)Ljava/lang/String;
-	public static final fun getIso8601DateTimeZoneISO8601 ()Ljava/lang/String;
+	public static final fun getISO8601Date ()Ljava/lang/String;
+	public static final fun getISO8601Date (Ljava/util/Date;)Ljava/lang/String;
+	public static synthetic fun getISO8601Date$default (Ljava/util/Date;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun getISO8601DateNoColon ()Ljava/lang/String;
+	public static final fun getISO8601DateNoColon (Ljava/util/Date;)Ljava/lang/String;
+	public static synthetic fun getISO8601DateNoColon$default (Ljava/util/Date;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun getISO8601FullDate ()Ljava/lang/String;
+	public static final fun getISO8601FullDate (Ljava/util/Date;)Ljava/lang/String;
+	public static synthetic fun getISO8601FullDate$default (Ljava/util/Date;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun getISO8601UTCDateWithMilliseconds ()Ljava/lang/String;
+	public static final fun getISO8601UTCDateWithMilliseconds (Ljava/util/Date;)Ljava/lang/String;
+	public static synthetic fun getISO8601UTCDateWithMilliseconds$default (Ljava/util/Date;ILjava/lang/Object;)Ljava/lang/String;
 	public static final fun getRFC2822Date (JLjava/util/TimeZone;Ljava/util/Locale;)Ljava/lang/String;
 	public static final fun getUnixTimeInSeconds ()J
 	public static final fun parseRFC2822Date (Ljava/lang/String;Ljava/util/TimeZone;Ljava/util/Locale;)Ljava/util/Date;

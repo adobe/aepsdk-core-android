@@ -14,7 +14,7 @@ package com.adobe.marketing.mobile.launch.rulesengine.download;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.AdobeCallback;
-import com.adobe.marketing.mobile.internal.util.TimeUtils;
+import com.adobe.marketing.mobile.internal.util.RFC2822DateUtil;
 import com.adobe.marketing.mobile.services.HttpConnecting;
 import com.adobe.marketing.mobile.services.HttpMethod;
 import com.adobe.marketing.mobile.services.Log;
@@ -258,7 +258,7 @@ public class RulesLoader {
         final String lastModifiedProp =
                 response.getResponsePropertyValue(HTTP_HEADER_LAST_MODIFIED);
         final Date lastModifiedDate =
-                TimeUtils.parseRFC2822Date(
+                RFC2822DateUtil.parseRFC2822Date(
                         lastModifiedProp, TimeZone.getTimeZone("GMT"), Locale.US);
         final String lastModifiedMetadata =
                 lastModifiedDate == null
@@ -302,7 +302,7 @@ public class RulesLoader {
         }
 
         final String ifModifiedSince =
-                TimeUtils.getRFC2822Date(lastModifiedEpoch, TimeZone.getTimeZone("GMT"), Locale.US);
+                RFC2822DateUtil.getRFC2822Date(lastModifiedEpoch, TimeZone.getTimeZone("GMT"), Locale.US);
         headers.put(HTTP_HEADER_IF_MODIFIED_SINCE, ifModifiedSince);
         return headers;
     }

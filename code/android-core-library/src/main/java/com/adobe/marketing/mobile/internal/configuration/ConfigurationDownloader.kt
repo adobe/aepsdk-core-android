@@ -11,8 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.internal.util.TimeUtils.getRFC2822Date
-import com.adobe.marketing.mobile.internal.util.TimeUtils.parseRFC2822Date
+import com.adobe.marketing.mobile.internal.util.RFC2822DateUtil.getRFC2822Date
+import com.adobe.marketing.mobile.internal.util.RFC2822DateUtil.parseRFC2822Date
 import com.adobe.marketing.mobile.internal.util.toMap
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.HttpMethod

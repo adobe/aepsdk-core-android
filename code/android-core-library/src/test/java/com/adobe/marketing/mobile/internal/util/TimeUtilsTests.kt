@@ -27,31 +27,31 @@ class TimeUtilsTests {
 
     @Test
     fun testGetRFC2822Date_localeUS() {
-        val rfc2822Date: String = TimeUtils.getRFC2822Date(TEST_EPOCH, TimeZone.getTimeZone("GMT"), Locale.US)
+        val rfc2822Date: String = RFC2822DateUtil.getRFC2822Date(TEST_EPOCH, TimeZone.getTimeZone("GMT"), Locale.US)
         assertEquals(RFC2822_DATE_GMT, rfc2822Date)
     }
 
     @Test
     fun testGetRFC2822Date_localePST() {
-        val rfc2822Date: String = TimeUtils.getRFC2822Date(TEST_EPOCH, TimeZone.getTimeZone("PST"), Locale.US)
+        val rfc2822Date: String = RFC2822DateUtil.getRFC2822Date(TEST_EPOCH, TimeZone.getTimeZone("PST"), Locale.US)
         assertEquals(RFC2822_DATE_PST, rfc2822Date)
     }
 
     @Test
     fun testParseRFC2822Date_localeGMT() {
-        val rfc2822Date: Date? = TimeUtils.parseRFC2822Date(RFC2822_DATE_GMT, TimeZone.getTimeZone("GMT"), Locale.US)
+        val rfc2822Date: Date? = RFC2822DateUtil.parseRFC2822Date(RFC2822_DATE_GMT, TimeZone.getTimeZone("GMT"), Locale.US)
         assertEquals(Date(TEST_EPOCH).toInstant().epochSecond, rfc2822Date?.toInstant()?.epochSecond)
     }
 
     @Test
     fun testParseRFC2822Date_localePST() {
-        val rfc2822Date: Date? = TimeUtils.parseRFC2822Date(RFC2822_DATE_PST, TimeZone.getTimeZone("PST"), Locale.US)
+        val rfc2822Date: Date? = RFC2822DateUtil.parseRFC2822Date(RFC2822_DATE_PST, TimeZone.getTimeZone("PST"), Locale.US)
         assertEquals(Date(TEST_EPOCH).toInstant().epochSecond, rfc2822Date?.toInstant()?.epochSecond)
     }
 
     @Test
     fun testParseRFC2822Date_nullRFC2822Date() {
-        val rfc2822Date: Date? = TimeUtils.parseRFC2822Date(null, TimeZone.getTimeZone("PST"), Locale.US)
+        val rfc2822Date: Date? = RFC2822DateUtil.parseRFC2822Date(null, TimeZone.getTimeZone("PST"), Locale.US)
         assertNull(rfc2822Date)
     }
 }

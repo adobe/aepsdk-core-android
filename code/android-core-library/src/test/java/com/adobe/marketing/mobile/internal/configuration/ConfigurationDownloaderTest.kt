@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.internal.util.TimeUtils
+import com.adobe.marketing.mobile.internal.util.RFC2822DateUtil
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.HttpMethod
 import com.adobe.marketing.mobile.services.NetworkCallback
@@ -267,7 +267,7 @@ class ConfigurationDownloaderTest {
             null,
             mapOf(
                 ConfigurationDownloader.HTTP_HEADER_IF_NONE_MATCH to "someETag",
-                ConfigurationDownloader.HTTP_HEADER_IF_MODIFIED_SINCE to TimeUtils.getRFC2822Date(
+                ConfigurationDownloader.HTTP_HEADER_IF_MODIFIED_SINCE to RFC2822DateUtil.getRFC2822Date(
                     500L,
                     TimeZone.getTimeZone("GMT"),
                     Locale.US

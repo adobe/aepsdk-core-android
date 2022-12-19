@@ -16,7 +16,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import com.adobe.marketing.mobile.AdobeCallback;
-import com.adobe.marketing.mobile.internal.util.TimeUtils;
+import com.adobe.marketing.mobile.internal.util.RFC2822DateUtil;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.HttpConnecting;
 import com.adobe.marketing.mobile.services.HttpMethod;
@@ -56,7 +56,7 @@ public class RulesLoaderTest {
 
     private static final long SAMPLE_LAST_MODIFIED_MS = 50000L;
     private static final String SAMPLE_LAST_MODIFIED_RFC2822 =
-            TimeUtils.getRFC2822Date(
+            RFC2822DateUtil.getRFC2822Date(
                     SAMPLE_LAST_MODIFIED_MS, TimeZone.getTimeZone("GMT"), Locale.US);
 
     private RulesLoader rulesLoader;
@@ -132,7 +132,7 @@ public class RulesLoaderTest {
                 .thenReturn(SAMPLE_ETAG);
         when(mockResponse.getResponsePropertyValue(RulesLoader.HTTP_HEADER_LAST_MODIFIED))
                 .thenReturn(
-                        TimeUtils.getRFC2822Date(
+                        RFC2822DateUtil.getRFC2822Date(
                                 SAMPLE_LAST_MODIFIED_MS, TimeZone.getTimeZone("GMT"), Locale.US));
 
         doAnswer(

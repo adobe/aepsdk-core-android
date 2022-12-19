@@ -22,7 +22,7 @@ import java.util.TimeZone
  * Internal utility class for components requiring date time manipulations.
  * This needs to be public because of it being accessed in other internal java classes from a different package.
  */
-object TimeUtils {
+object RFC2822DateUtil {
     private const val RFC2822_DATE_PATTERN = "EEE, dd MMM yyyy HH:mm:ss z"
 
     /**

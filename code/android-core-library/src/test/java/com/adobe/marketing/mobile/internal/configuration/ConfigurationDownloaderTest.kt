@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
+import com.adobe.marketing.mobile.internal.util.TimeUtils
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.HttpMethod
 import com.adobe.marketing.mobile.services.NetworkCallback
@@ -20,7 +21,6 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheExpiry
 import com.adobe.marketing.mobile.services.caching.CacheResult
 import com.adobe.marketing.mobile.services.caching.CacheService
-import com.adobe.marketing.mobile.util.TimeUtils
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before

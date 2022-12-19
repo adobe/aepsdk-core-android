@@ -16,6 +16,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import com.adobe.marketing.mobile.AdobeCallback;
+import com.adobe.marketing.mobile.internal.util.TimeUtils;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.HttpConnecting;
 import com.adobe.marketing.mobile.services.HttpMethod;
@@ -29,7 +30,6 @@ import com.adobe.marketing.mobile.services.caching.CacheResult;
 import com.adobe.marketing.mobile.services.caching.CacheService;
 import com.adobe.marketing.mobile.test.util.FileTestHelper;
 import com.adobe.marketing.mobile.util.StreamUtils;
-import com.adobe.marketing.mobile.util.TimeUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

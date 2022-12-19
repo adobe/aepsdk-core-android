@@ -104,24 +104,6 @@ public class TimeUtilsTests {
         assertEquals(expectedString_ISO8601_FULL_DATE, formattedDate);
     }
 
-    @Test
-    public void testGetRFC2822Date_when_validEpoch_timeZoneGMT_localeUsPosix() {
-        String formattedDate =
-                TimeUtils.getRFC2822Date(
-                        defaultEpochMilli, TimeZone.getTimeZone("GMT"), defaultLocale);
-        assertEquals(expectedString_RFC2822_DATE_PATTERN_GMT, formattedDate);
-    }
-
-    @Test
-    public void testParseRFC2822Date_when_validDateString() {
-        Date parsedDate =
-                TimeUtils.parseRFC2822Date(
-                        expectedString_RFC2822_DATE_PATTERN_GMT,
-                        TimeZone.getTimeZone("GMT"),
-                        defaultLocale);
-        assertEquals(defaultDateNoMilli, parsedDate);
-    }
-
     // Testing each API with a new Date instance and verifying output using regex
     @Test
     public void testGetISO8601Date_returns_correctFormat() {

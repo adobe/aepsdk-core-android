@@ -7,23 +7,45 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.util.MapUtilsKt;
 import java.util.Map;
 
-/**
- * This object is used to make select or delete queries with the {@link EventHistoryDatabase}.
- */
-final class EventHistoryRequest {
-	Map<String, Variant> mask;
-	long fromDate;
-	long toDate;
+public class EventHistoryRequest {
 
-	EventHistoryRequest(final Map<String, Variant> mask, final long fromDate, final long toDate) {
-		this.mask = mask;
-		this.fromDate = fromDate;
-		this.toDate = toDate;
-	}
+    private final Map<String, Object> map;
+    private final long fromDate;
+    private final long toDate;
+
+    /**
+     * Used for selecting or deleting Events from Event History.
+     *
+     * @param map Key-value pairs that will be used to generate the hash when looking up an Event.
+     * @param fromDate Date that represents the lower bounds of the date range used when looking up
+     *     an Event. If not provided, the lookup will use the beginning of Event History as the
+     *     lower bounds.
+     * @param toDate Date that represents the upper bounds of the date range used when looking up an
+     *     Event. If not provided, there will be no upper bound on the date range.
+     */
+    public EventHistoryRequest(
+            final Map<String, Object> map, final long fromDate, final long toDate) {
+        this.map = map;
+        this.fromDate = fromDate;
+        this.toDate = toDate;
+    }
+
+    public long getMaskAsDecimalHash() {
+        return MapUtilsKt.convertMapToFnv1aHash(map, null);
+    }
+
+    public long getFromDate() {
+        return fromDate;
+    }
+
+    public long getToDate() {
+        return toDate;
+    }
 }

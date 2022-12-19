@@ -1,56 +1,28 @@
 apply plugin: 'signing'
-if (project.hasProperty("signKeyLoc") && project.hasProperty("signKeyId") && project.hasProperty("signPass")) {
-    ext["signing.secretKeyRingFile"] = "$signKeyLoc"
-    ext["signing.keyId"] = "$signKeyId"
-    ext["signing.password"] = "$signPass"
+apply plugin: 'maven-publish'
+
+def isJitPackBuild() {
+    return hasProperty('jitpack')
 }
-
-task javadoc(type: Javadoc) {
-    source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
-//    ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
-//    classpath += files(ext.androidJar)
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    options.encoding = 'UTF-8'
-    exclude "**/BuildConfig.java"
-    exclude "**/R.java"
-    options {
-        links "https://developer.android.com/reference"
-        noDeprecated true
-//        linksOffline "https://developer.android.com/reference", "file:///${android.sdkDirectory}/docs/reference"
-    }
-
-}
-
-afterEvaluate {
-    javadoc.classpath += files(android.libraryVariants.collect { variant ->
-        variant.javaCompileProvider.get().classpath.files
-    })
-}
-
-task javadocPublish(type: Jar) {
-    from javadoc
-    classifier = 'javadoc'
-}
-
 def isReleaseBuild() {
     return hasProperty('release')
 }
+
+def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
 
 version = isReleaseBuild() ? rootProject.coreExtensionVersion : rootProject.coreExtensionVersion+"-SNAPSHOT"
 
 publishing {
     publications {
         release(MavenPublication) {
-            groupId = 'com.adobe.marketing.mobile'
+            groupId = groupIdForPublish
             artifactId = rootProject.coreExtensionName
             version = version
             artifact("$buildDir/outputs/aar/${rootProject.coreExtensionAARName}")
-            artifact javadocPublish
-
             pom {
                 name = rootProject.mavenRepoName
                 description = rootProject.mavenRepoDescription
-                url = 'https://aep-sdks.gitbook.io'
+                url = 'https://developer.adobe.com/client-sdks'
                 licenses {
                     license {
                         name = 'Adobe Proprietary'
@@ -64,9 +36,17 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:github.com//Adobe-Marketing-Cloud/acp-sdks.git'
-                    developerConnection = 'scm:git:ssh://github.com//Adobe-Marketing-Cloud/acp-sdks.git'
-                    url = 'https://github.com/Adobe-Marketing-Cloud/acp-sdks'
+                    connection = 'scm:git:github.com//adobe/aepsdk-core-android.git'
+                    developerConnection = 'scm:git:ssh://github.com//adobe/aepsdk-core-android.git'
+                    url = 'https://github.com/adobe/aepsdk-core-android'
+                }
+                withXml {
+                    def dependenciesNode = asNode().appendNode('dependencies')
+
+                    def coreDependencyNode = dependenciesNode.appendNode('dependency')
+                    coreDependencyNode.appendNode('groupId', 'org.jetbrains.kotlin')
+                    coreDependencyNode.appendNode('artifactId', 'kotlin-stdlib-jdk8')
+                    coreDependencyNode.appendNode('version', rootProject.kotlin_version)
                 }
             }
         }
@@ -76,22 +56,27 @@ publishing {
             name = "sonatype"
             url = version.endsWith('SNAPSHOT') ? "https://oss.sonatype.org/content/repositories/snapshots/" : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
             credentials {
-                username ossrhUsername
-                password ossrhPassword
+                username = System.getenv("SONATYPE_USERNAME")
+                password = System.getenv("SONATYPE_PASSWORD")
             }
         }
     }
 }
+tasks.withType(Javadoc).all { enabled = false }
+publishToMavenLocal.dependsOn('assemblePhone')
+publishReleasePublicationToMavenLocal.dependsOn('assemblePhone')
+publish.dependsOn('assemblePhone')
 
-tasks.withType(Test) {
-    testLogging {
-        showStandardStreams = true
-    }
-}
+ext."signing.gnupg.executable"="gpg"
+ext."signing.gnupg.keyName"=System.getenv("GPG_KEY_ID")
+ext."signing.gnupg.passphrase"=System.getenv("GPG_PASSPHRASE")
 
 signing {
-    required { isReleaseBuild() && gradle.taskGraph.hasTask("publishReleasePublicationToSonatypeRepository") }
-    sign publishing.publications.release
+    useGpgCmd()
+    required {
+        tasks.withType(PublishToMavenRepository).find {
+            gradle.taskGraph.hasTask it
+        }
+    }
+    sign publishing.publications
 }
-
-publishReleasePublicationToSonatypeRepository.dependsOn('assemblePhone')

@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+ *//*
+
 
 package com.adobe.testapp;
 
@@ -23,6 +24,8 @@ import android.app.Application;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
+
+import androidx.lifecycle.Lifecycle;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -86,30 +89,31 @@ public class TestApp extends Application {
 		//					}
 		//				}).start();
 
-		try {
-
-
-			PackageInfo packageInfo = this.getApplicationContext().getPackageManager().getPackageInfo(
-										  this.getApplicationContext().getPackageName(), 0);
-			Method method = packageInfo.getClass().getDeclaredMethod("getLongVersionCode");
-			Long reflectVer = (Long)method.invoke(packageInfo);
-			Log.d("X", "********" + (reflectVer & 0x00000000ffffffff));
-
-			long version = this.getApplicationContext().getPackageManager().getPackageInfo(
-							   this.getApplicationContext().getPackageName(), 0).getLongVersionCode();
-			int versionCodeMajor = (int)(version >> 32);
-			int versionCode = (int)version;
-			Log.d("X", "-----" + this.getApplicationContext().getPackageManager().getPackageInfo(
-					  this.getApplicationContext().getPackageName(), 0).versionCode);
-			Log.d("X", "!!!!!!!!" + (version >> 32));
-			Log.d("X", "++++++" + (version & 0x00000000ffffffff));
-
-		} catch (PackageManager.NameNotFoundException | NoSuchMethodException | IllegalAccessException |
-					 InvocationTargetException e) {
-			e.printStackTrace();
-		}
+//		try {
+//
+//
+//			PackageInfo packageInfo = this.getApplicationContext().getPackageManager().getPackageInfo(
+//										  this.getApplicationContext().getPackageName(), 0);
+//			Method method = packageInfo.getClass().getDeclaredMethod("getLongVersionCode");
+//			Long reflectVer = (Long)method.invoke(packageInfo);
+//			Log.d("X", "********" + (reflectVer & 0x00000000ffffffff));
+//
+//			long version = this.getApplicationContext().getPackageManager().getPackageInfo(
+//							   this.getApplicationContext().getPackageName(), 0).getLongVersionCode();
+//			int versionCodeMajor = (int)(version >> 32);
+//			int versionCode = (int)version;
+//			Log.d("X", "-----" + this.getApplicationContext().getPackageManager().getPackageInfo(
+//					  this.getApplicationContext().getPackageName(), 0).versionCode);
+//			Log.d("X", "!!!!!!!!" + (version >> 32));
+//			Log.d("X", "++++++" + (version & 0x00000000ffffffff));
+//
+//		} catch (PackageManager.NameNotFoundException | NoSuchMethodException | IllegalAccessException |
+//					 InvocationTargetException e) {
+//			e.printStackTrace();
+//		}
 
 
 
 	}
 }
+*/

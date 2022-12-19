@@ -7,42 +7,49 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile.services;
 
-//Provides the functionality for Queuing Hits.
-public interface HitQueuing {
+import com.adobe.marketing.mobile.MobilePrivacyStatus;
 
-	/**
-	 * Queues a {@link DataEntity} to be processed
-	 * @param entity the entity to be processed
-	 * @return a boolean indication whether queuing the entity was successful or not
-	 */
-	boolean queue(DataEntity entity);
+// Provides the functionality for Queuing Hits.
+public abstract class HitQueuing {
 
-	/**
-	 * Puts the Queue in non-suspended state and begin processing hits
-	 */
-	void beginProcessing();
+    /**
+     * Queues a {@link DataEntity} to be processed
+     *
+     * @param entity the entity to be processed
+     * @return a boolean indication whether queuing the entity was successful or not
+     */
+    public abstract boolean queue(DataEntity entity);
 
-	/**
-	 * Puts the Queue in suspended state and discontinue processing hits
-	 */
-	void suspend();
+    /** Puts the Queue in non-suspended state and begin processing hits */
+    public abstract void beginProcessing();
 
-	/**
-	 * Removes all the persisted hits from the queue
-	 */
-	void clear();
+    /** Puts the Queue in suspended state and discontinue processing hits */
+    public abstract void suspend();
 
-	/**
-	 * Returns the number of items in the queue
-	 */
-	int count();
+    /** Removes all the persisted hits from the queue */
+    public abstract void clear();
 
-	/**
-	 * Close the current <code>HitQueuing</code>
-	 */
-	void close();
+    /** Returns the number of items in the queue */
+    public abstract int count();
+
+    /** Close the current <code>HitQueuing</code> */
+    public abstract void close();
+
+    public void handlePrivacyChange(final MobilePrivacyStatus privacyStatus) {
+        switch (privacyStatus) {
+            case OPT_IN:
+                beginProcessing();
+                break;
+            case OPT_OUT:
+                suspend();
+                clear();
+                break;
+            default:
+                suspend();
+        }
+    }
 }

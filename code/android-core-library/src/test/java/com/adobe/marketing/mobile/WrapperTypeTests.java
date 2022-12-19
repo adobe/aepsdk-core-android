@@ -7,30 +7,40 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
-import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 public class WrapperTypeTests {
 
-	@Test
-	public void wrapperFromString() {
-		assertEquals(WrapperType.FLUTTER, WrapperType.fromString("F"));
-		assertEquals(WrapperType.REACT_NATIVE, WrapperType.fromString("R"));
-		assertEquals(WrapperType.UNITY, WrapperType.fromString("U"));
-		assertEquals(WrapperType.CORDOVA, WrapperType.fromString("C"));
-		assertEquals(WrapperType.XAMARIN, WrapperType.fromString("X"));
-		assertEquals(WrapperType.NONE, WrapperType.fromString("N"));
-	}
+    @Test
+    public void wrapperFromString() {
+        assertEquals(WrapperType.FLUTTER, WrapperType.fromString("F"));
+        assertEquals(WrapperType.REACT_NATIVE, WrapperType.fromString("R"));
+        assertEquals(WrapperType.UNITY, WrapperType.fromString("U"));
+        assertEquals(WrapperType.CORDOVA, WrapperType.fromString("C"));
+        assertEquals(WrapperType.XAMARIN, WrapperType.fromString("X"));
+        assertEquals(WrapperType.NONE, WrapperType.fromString("N"));
+    }
 
-	@Test
-	public void wrapperFromString_defaultNone() {
-		assertEquals(WrapperType.NONE, WrapperType.fromString("Invalid"));
-		assertEquals(WrapperType.NONE, WrapperType.fromString(""));
-		assertEquals(WrapperType.NONE, WrapperType.fromString(null));
-	}
+    @Test
+    public void wrapperFriendlyName() {
+        assertEquals(WrapperType.FLUTTER.getFriendlyName(), "Flutter");
+        assertEquals(WrapperType.REACT_NATIVE.getFriendlyName(), "React Native");
+        assertEquals(WrapperType.UNITY.getFriendlyName(), "Unity");
+        assertEquals(WrapperType.CORDOVA.getFriendlyName(), "Cordova");
+        assertEquals(WrapperType.XAMARIN.getFriendlyName(), "Xamarin");
+        assertEquals(WrapperType.NONE.getFriendlyName(), "None");
+    }
 
+    @Test
+    public void wrapperFromString_defaultNone() {
+        assertEquals(WrapperType.NONE, WrapperType.fromString("Invalid"));
+        assertEquals(WrapperType.NONE, WrapperType.fromString(""));
+        assertEquals(WrapperType.NONE, WrapperType.fromString(null));
+    }
 }

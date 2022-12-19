@@ -7,64 +7,61 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
 
 package com.adobe.marketing.mobile;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+
 public enum WrapperType {
-	NONE(EventHubConstants.Wrapper.Type.NONE),
-	REACT_NATIVE(EventHubConstants.Wrapper.Type.REACT_NATIVE),
-	FLUTTER(EventHubConstants.Wrapper.Type.FLUTTER),
-	CORDOVA(EventHubConstants.Wrapper.Type.CORDOVA),
-	UNITY(EventHubConstants.Wrapper.Type.UNITY),
-	XAMARIN(EventHubConstants.Wrapper.Type.XAMARIN);
+    NONE(CoreConstants.Wrapper.Type.NONE),
+    REACT_NATIVE(CoreConstants.Wrapper.Type.REACT_NATIVE),
+    FLUTTER(CoreConstants.Wrapper.Type.FLUTTER),
+    CORDOVA(CoreConstants.Wrapper.Type.CORDOVA),
+    UNITY(CoreConstants.Wrapper.Type.UNITY),
+    XAMARIN(CoreConstants.Wrapper.Type.XAMARIN);
 
-	private String wrapperTag;
+    private final String wrapperTag;
 
-	WrapperType(final String wrapperTag) {
-		this.wrapperTag = wrapperTag;
-	}
+    WrapperType(final String wrapperTag) {
+        this.wrapperTag = wrapperTag;
+    }
 
-	public String getWrapperTag() {
-		return this.wrapperTag;
-	}
+    public String getWrapperTag() {
+        return this.wrapperTag;
+    }
 
-	public static WrapperType fromString(final String wrapperTag) {
-		if (EventHubConstants.Wrapper.Type.REACT_NATIVE.equals(wrapperTag)) {
-			return REACT_NATIVE;
-		} else if (EventHubConstants.Wrapper.Type.FLUTTER.equals(wrapperTag)) {
-			return FLUTTER;
-		} else if (EventHubConstants.Wrapper.Type.CORDOVA.equals(wrapperTag)) {
-			return CORDOVA;
-		} else if (EventHubConstants.Wrapper.Type.UNITY.equals(wrapperTag)) {
-			return UNITY;
-		} else if (EventHubConstants.Wrapper.Type.XAMARIN.equals(wrapperTag)) {
-			return XAMARIN;
-		}
+    public static WrapperType fromString(final String wrapperTag) {
+        if (CoreConstants.Wrapper.Type.REACT_NATIVE.equals(wrapperTag)) {
+            return REACT_NATIVE;
+        } else if (CoreConstants.Wrapper.Type.FLUTTER.equals(wrapperTag)) {
+            return FLUTTER;
+        } else if (CoreConstants.Wrapper.Type.CORDOVA.equals(wrapperTag)) {
+            return CORDOVA;
+        } else if (CoreConstants.Wrapper.Type.UNITY.equals(wrapperTag)) {
+            return UNITY;
+        } else if (CoreConstants.Wrapper.Type.XAMARIN.equals(wrapperTag)) {
+            return XAMARIN;
+        }
 
-		return NONE;
-	}
+        return NONE;
+    }
 
-	public String getFriendlyName() {
-		switch (this) {
-			case REACT_NATIVE:
-				return EventHubConstants.Wrapper.Name.REACT_NATIVE;
-
-			case FLUTTER:
-				return EventHubConstants.Wrapper.Name.FLUTTER;
-
-			case CORDOVA:
-				return EventHubConstants.Wrapper.Name.CORDOVA;
-
-			case UNITY:
-				return EventHubConstants.Wrapper.Name.UNITY;
-
-			case XAMARIN:
-				return EventHubConstants.Wrapper.Name.XAMARIN;
-
-			case NONE:
-			default:
-				return EventHubConstants.Wrapper.Name.NONE;
-		}
-	}
+    public String getFriendlyName() {
+        switch (this) {
+            case REACT_NATIVE:
+                return CoreConstants.Wrapper.Name.REACT_NATIVE;
+            case FLUTTER:
+                return CoreConstants.Wrapper.Name.FLUTTER;
+            case CORDOVA:
+                return CoreConstants.Wrapper.Name.CORDOVA;
+            case UNITY:
+                return CoreConstants.Wrapper.Name.UNITY;
+            case XAMARIN:
+                return CoreConstants.Wrapper.Name.XAMARIN;
+            case NONE:
+            default:
+                return CoreConstants.Wrapper.Name.NONE;
+        }
+    }
 }

@@ -7,7 +7,8 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.services.ui;
 
 import java.util.Collections;
@@ -15,211 +16,359 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Interface defining a MessageSettings object which defines the layout and behavior of an in-app message.
+ * The class defines the layout and behavior of an in-app message.
  *
- * These settings are customizable in a Messaging extension message:
- * width: Width of the view in which the message is displayed. Represented in percentage of the total screen width.
- * height: Height of the view in which the message is displayed. Represented in percentage of the total screen height.
- * verticalAlign: Defines the vertical alignment of the message. The alignments can be seen in the MessageAlignment enum.
- * horizontalAlign: Defines the horizontal alignment of the message. The alignments can be seen in the MessageAlignment enum.
- * verticalInset: Defines the vertical inset respective to the verticalAlign. Represented in percentage of the total screen height.
- * horizontalInset: Defines the horizontal inset respective to the horizontalAlign. Represented in percentage of the total screen width.
- * uiTakeover: If true, a displayed message will prevent the user from other UI interactions.
- * displayAnimation: Defines the animation to be used when the message is displayed. The animations can be seen in the MessageAnimation enum.
- * dismissAnimation: Defines the animation to be used when the message is dismissed. The animations can be seen in the MessageAnimation enum.
- * backdropColor: Defines the color of the backdrop shown when a uiTakeover message is displayed.
- * backdropOpacity: Defines the opacity of the backdrop shown when a uiTakeover message is displayed.
- * cornerRadius: Defines the angle to use when rounding the message's webview.
- * gestures: A mapping of gestures and their associated behaviors. The gestures can be seen in the MessageGesture enum. The behavior string is
- * 			 handled by the FullscreenMessageDelegate's overrideUrlLoad function.
+ * <p>These settings are customizable in a Messaging extension message: width: Width of the view in
+ * which the message is displayed. Represented in percentage of the total screen width. height:
+ * Height of the view in which the message is displayed. Represented in percentage of the total
+ * screen height. verticalAlign: Defines the vertical alignment of the message. The alignments can
+ * be seen in the MessageAlignment enum. horizontalAlign: Defines the horizontal alignment of the
+ * message. The alignments can be seen in the MessageAlignment enum. verticalInset: Defines the
+ * vertical inset respective to the verticalAlign. Represented in percentage of the total screen
+ * height. horizontalInset: Defines the horizontal inset respective to the horizontalAlign.
+ * Represented in percentage of the total screen width. uiTakeover: If true, a displayed message
+ * will prevent the user from other UI interactions. displayAnimation: Defines the animation to be
+ * used when the message is displayed. The animations can be seen in the MessageAnimation enum.
+ * dismissAnimation: Defines the animation to be used when the message is dismissed. The animations
+ * can be seen in the MessageAnimation enum. backdropColor: Defines the color of the backdrop shown
+ * when a uiTakeover message is displayed. backdropOpacity: Defines the opacity of the backdrop
+ * shown when a uiTakeover message is displayed. cornerRadius: Defines the angle to use when
+ * rounding the message's webview. gestures: A mapping of gestures and their associated behaviors.
+ * The gestures can be seen in the MessageGesture enum. The behavior string is handled by the
+ * FullscreenMessageDelegate's overrideUrlLoad function.
  */
-public interface MessageSettings {
-	/**
-	 * Enum representing Message alignment.
-	 */
-	enum MessageAlignment {
-		CENTER,
-		LEFT,
-		RIGHT,
-		TOP,
-		BOTTOM
-	}
+public class MessageSettings {
 
-	/**
-	 * Enum representing Message animations.
-	 */
-	enum MessageAnimation {
-		NONE,
-		LEFT,
-		RIGHT,
-		TOP,
-		BOTTOM,
-		CENTER,
-		FADE
-	}
+    /** Enum representing Message alignment. */
+    public enum MessageAlignment {
+        CENTER,
+        LEFT,
+        RIGHT,
+        TOP,
+        BOTTOM,
+    }
 
-	/**
-	 * Enum representing Message gestures.
-	 */
-	enum MessageGesture {
-		SWIPE_UP("swipeUp"),
-		SWIPE_DOWN("swipeDown"),
-		SWIPE_LEFT("swipeLeft"),
-		SWIPE_RIGHT("swipeRight"),
-		BACKGROUND_TAP("backgroundTap");
+    /** Enum representing Message animations. */
+    public enum MessageAnimation {
+        NONE,
+        LEFT,
+        RIGHT,
+        TOP,
+        BOTTOM,
+        CENTER,
+        FADE,
+    }
 
-		private String name;
-		private static final Map<String, MessageGesture> gestureStringToGestureEnumMap;
+    /** Enum representing Message gestures. */
+    public enum MessageGesture {
+        SWIPE_UP("swipeUp"),
+        SWIPE_DOWN("swipeDown"),
+        SWIPE_LEFT("swipeLeft"),
+        SWIPE_RIGHT("swipeRight"),
+        BACKGROUND_TAP("backgroundTap");
 
-		// initialize the string to gesture map
-		static {
-			final Map<String, MessageGesture> map = new HashMap<String, MessageGesture>();
+        private String name;
+        private static final Map<String, MessageGesture> gestureStringToGestureEnumMap;
 
-			for (MessageGesture gesture : MessageGesture.values()) {
-				map.put(gesture.toString(), gesture);
-			}
+        // initialize the string to gesture map
+        static {
+            final Map<String, MessageGesture> map = new HashMap<String, MessageGesture>();
 
-			gestureStringToGestureEnumMap = Collections.unmodifiableMap(map);
-		}
+            for (MessageGesture gesture : MessageGesture.values()) {
+                map.put(gesture.toString(), gesture);
+            }
 
-		MessageGesture(final String name) {
-			this.name = name;
-		}
+            gestureStringToGestureEnumMap = Collections.unmodifiableMap(map);
+        }
 
-		@Override
-		public String toString() {
-			return name;
-		}
+        MessageGesture(final String name) {
+            this.name = name;
+        }
 
-		public static MessageGesture get(final String name) {
-			return gestureStringToGestureEnumMap.get(name);
-		}
-	}
+        @Override
+        public String toString() {
+            return name;
+        }
 
-	/**
-	 * Returns the object that owns the message created using these settings.
-	 * @return an {@code Object} which owns the {@link FullscreenMessage} created using this {@link MessageSettings} object.
-	 */
-	Object getParent();
+        public static MessageGesture get(final String name) {
+            return gestureStringToGestureEnumMap.get(name);
+        }
+    }
 
-	/**
-	 * Returns the width of the view in which the message is displayed.
-	 * Represented in percentage of the total screen width.
-	 * @return An {@code int} containing the percentage width of the view in which the message is displayed
-	 */
-	int getWidth();
+    private Object parent;
+    private int width;
+    private int height;
+    private MessageAlignment verticalAlign;
+    private MessageAlignment horizontalAlign;
+    private int verticalInset;
+    private int horizontalInset;
+    private boolean uiTakeover;
+    private MessageAnimation displayAnimation;
+    private MessageAnimation dismissAnimation;
+    private String backdropColor;
+    private float backdropOpacity;
+    private float cornerRadius;
+    private Map<MessageGesture, String> gestures;
 
-	/**
-	 * Returns the height of the view in which the message is displayed.
-	 * Represented in percentage of the total screen height.
-	 * @return An {@code int} containing the height of the view in which the message is displayed
-	 */
-	int getHeight();
+    /**
+     * Returns the object that owns the message created using these settings.
+     *
+     * @return an {@code Object} which owns the {@link FullscreenMessage} created using this {@link
+     *     MessageSettings} object.
+     */
+    public Object getParent() {
+        return this.parent;
+    }
 
-	/**
-	 * Returns the vertical alignment of the message.
-	 * See {@link MessageAlignment}.
-	 * @return A {@code MessageAlignment} value for the vertical alignment
-	 */
-	MessageAlignment getVerticalAlign();
+    public void setParent(final Object parent) {
+        this.parent = parent;
+    }
 
-	/**
-	 * Returns the horizontal alignment of the message.
-	 * See {@link MessageAlignment}.
-	 * @return A {@code MessageAlignment} value for the horizontal alignment
-	 */
-	MessageAlignment getHorizontalAlign();
+    /**
+     * Returns the width of the view in which the message is displayed. Represented in percentage of
+     * the total screen width.
+     *
+     * @return An {@code int} containing the percentage width of the view in which the message is
+     *     displayed
+     */
+    public int getWidth() {
+        return this.width;
+    }
 
-	/**
-	 * Returns the vertical inset respective to the vertical alignment.
-	 * Represented in percentage of the total screen height.
-	 * @return An {@code int} containing the vertical inset percentage
-	 */
-	int getVerticalInset();
+    public void setWidth(final int width) {
+        this.width = width;
+    }
 
-	/**
-	 * Returns the horizontal inset respective to the `horizontal alignment.
-	 * Represented in percentage of the total screen width.
-	 * @return An {@code int} containing the horizontal inset percentage
-	 */
-	int getHorizontalInset();
+    /**
+     * Returns the height of the view in which the message is displayed. Represented in percentage
+     * of the total screen height.
+     *
+     * @return An {@code int} containing the height of the view in which the message is displayed
+     */
+    public int getHeight() {
+        return this.height;
+    }
 
-	/**
-	 * Returns a boolean which if true, will prevent the user from other UI interactions if a message is currently displayed.
-	 * @return A {@code boolean} value which if true, will prevent the user from other UI interactions if a message is currently displayed.
-	 */
-	boolean getUITakeover();
+    /**
+     * Sets the height of the view in which the message is displayed.
+     *
+     * @param height An {@code int} containing the height of the view in which the message is
+     *     displayed
+     */
+    public void setHeight(final int height) {
+        this.height = height;
+    }
 
-	/**
-	 * Returns the animation to be used when the message is displayed.
-	 * See {@link MessageAnimation}.
-	 * @return A {@code MessageAnimation} value for the display animation
-	 */
-	MessageAnimation getDisplayAnimation();
+    /**
+     * Returns the vertical alignment of the message. See {@link MessageAlignment}.
+     *
+     * @return A {@code MessageAlignment} value for the vertical alignment
+     */
+    public MessageAlignment getVerticalAlign() {
+        return this.verticalAlign;
+    }
 
-	/**
-	 * Returns the animation to be used when the message is dismissed.
-	 * See {@link MessageAnimation}.
-	 * @return A {@code MessageAnimation} value for the dismiss animation
-	 */
-	MessageAnimation getDismissAnimation();
+    /**
+     * Sets the vertical alignment of the message.
+     *
+     * @param verticalAlign A {@code MessageAlignment} value for the vertical alignment
+     */
+    public void setVerticalAlign(final MessageAlignment verticalAlign) {
+        this.verticalAlign = verticalAlign;
+    }
 
-	/**
-	 * Returns the color of the backdrop shown when a uiTakeover message is displayed.
-	 * @return A {@code String} containing the HTML hex string color code to use for the backdrop
-	 */
-	String getBackdropColor();
+    /**
+     * Returns the horizontal alignment of the message. See {@link MessageAlignment}.
+     *
+     * @return A {@code MessageAlignment} value for the horizontal alignment
+     */
+    public MessageAlignment getHorizontalAlign() {
+        return this.horizontalAlign;
+    }
 
-	/**
-	 * Returns the opacity of the backdrop shown when a uiTakeover message is displayed.
-	 * @return A {@code float} containing the backdrop opacity percentage with 0.0 being fully transparent
-	 * and 1.0 being fully opaque
-	 */
-	float getBackdropOpacity();
+    /**
+     * Sets the horizontal alignment of the message. See {@link MessageAlignment}.
+     *
+     * @param horizontalAlign A {@code MessageAlignment} value for the horizontal alignment
+     */
+    public void setHorizontalAlign(final MessageAlignment horizontalAlign) {
+        this.horizontalAlign = horizontalAlign;
+    }
 
-	/**
-	 * Returns the angle to use when rounding the message's webview.
-	 * @return A {@code float} containing the corner radius angle to use when rounding the message corners
-	 */
-	float getCornerRadius();
+    /**
+     * Returns the vertical inset respective to the vertical alignment. Represented in percentage of
+     * the total screen height.
+     *
+     * @return An {@code int} containing the vertical inset percentage
+     */
+    public int getVerticalInset() {
+        return this.verticalInset;
+    }
 
-	/**
-	 * Returns a mapping of gestures and their associated behaviors.
-	 * @return A {@code Map<MessageGesture, String} containing gestures and their associated behaviors
-	 */
-	Map<MessageGesture, String> getGestures();
+    /**
+     * Sets the vertical inset respective to the vertical alignment. Represented in percentage of
+     * the total screen height.
+     *
+     * @param verticalInset An {@code int} containing the vertical inset percentage
+     */
+    public void setVerticalInset(final int verticalInset) {
+        this.verticalInset = verticalInset;
+    }
 
-	/**
-	 * Interface defining a MessageSettingsBuilder which is used for creating new MessageSettings objects.
-	 * The parent can only be set in the constructor of the MessageSettingsBuilder implementation.
-	 */
-	interface MessageSettingsBuilder {
-		MessageSettingsBuilder setWidth(final int width);
+    /**
+     * Returns the horizontal inset respective to the `horizontal alignment. Represented in
+     * percentage of the total screen width.
+     *
+     * @return An {@code int} containing the horizontal inset percentage
+     */
+    public int getHorizontalInset() {
+        return this.horizontalInset;
+    }
 
-		MessageSettingsBuilder setHeight(final int height);
+    /**
+     * Sets the horizontal inset respective to the `horizontal alignment. Represented in percentage
+     * of the total screen width.
+     *
+     * @param horizontalInset An {@code int} containing the horizontal inset percentage
+     */
+    public void setHorizontalInset(final int horizontalInset) {
+        this.horizontalInset = horizontalInset;
+    }
 
-		MessageSettingsBuilder setVerticalAlign(final MessageAlignment verticalAlign);
+    /**
+     * Returns a boolean which if true, will prevent the user from other UI interactions if a
+     * message is currently displayed.
+     *
+     * @return A {@code boolean} value which if true, will prevent the user from other UI
+     *     interactions if a message is currently displayed.
+     */
+    public boolean getUITakeover() {
+        return this.uiTakeover;
+    }
 
-		MessageSettingsBuilder setHorizontalAlign(final MessageAlignment horizontalAlign);
+    /**
+     * Sets a boolean which if true, will prevent the user from other UI interactions if a message
+     * is currently displayed.
+     *
+     * @param uiTakeover A {@code boolean} value which if true, will prevent the user from other UI
+     *     interactions if a message is currently displayed.
+     */
+    public void setUiTakeover(final boolean uiTakeover) {
+        this.uiTakeover = uiTakeover;
+    }
 
-		MessageSettingsBuilder setVerticalInset(final int verticalInset);
+    /**
+     * Returns the animation to be used when the message is displayed. See {@link MessageAnimation}.
+     *
+     * @return A {@code MessageAnimation} value for the display animation
+     */
+    public MessageAnimation getDisplayAnimation() {
+        return this.displayAnimation;
+    }
 
-		MessageSettingsBuilder setHorizontalInset(final int horizontalInset);
+    /**
+     * Sets the animation to be used when the message is displayed. See {@link MessageAnimation}.
+     *
+     * @param displayAnimation A {@code MessageAnimation} value for the display animation
+     */
+    public void setDisplayAnimation(final MessageAnimation displayAnimation) {
+        this.displayAnimation = displayAnimation;
+    }
 
-		MessageSettingsBuilder setUiTakeover(final boolean uiTakeover);
+    /**
+     * Returns the animation to be used when the message is dismissed. See {@link MessageAnimation}.
+     *
+     * @return A {@code MessageAnimation} value for the dismiss animation
+     */
+    public MessageAnimation getDismissAnimation() {
+        return this.dismissAnimation;
+    }
 
-		MessageSettingsBuilder setDisplayAnimation(final MessageAnimation animation);
+    /**
+     * Sets the animation to be used when the message is dismissed. See {@link MessageAnimation}.
+     *
+     * @param dismissAnimation A {@code MessageAnimation} value for the dismiss animation
+     */
+    public void setDismissAnimation(final MessageAnimation dismissAnimation) {
+        this.dismissAnimation = dismissAnimation;
+    }
 
-		MessageSettingsBuilder setDismissAnimation(final MessageAnimation animation);
+    /**
+     * Returns the color of the backdrop shown when a uiTakeover message is displayed.
+     *
+     * @return A {@code String} containing the HTML hex string color code to use for the backdrop
+     */
+    public String getBackdropColor() {
+        return this.backdropColor;
+    }
 
-		MessageSettingsBuilder setBackdropColor(final String color);
+    /**
+     * Sets the color of the backdrop shown when a uiTakeover message is displayed.
+     *
+     * @param backdropColor A {@code String} containing the HTML hex string color code to use for
+     *     the backdrop
+     */
+    public void setBackdropColor(final String backdropColor) {
+        this.backdropColor = backdropColor;
+    }
 
-		MessageSettingsBuilder setBackdropOpacity(final float opacity);
+    /**
+     * Returns the opacity of the backdrop shown when a uiTakeover message is displayed.
+     *
+     * @return A {@code float} containing the backdrop opacity percentage with 0.0 being fully
+     *     transparent and 1.0 being fully opaque
+     */
+    public float getBackdropOpacity() {
+        return this.backdropOpacity;
+    }
 
-		MessageSettingsBuilder setCornerRadius(final float cornerRadius);
+    /**
+     * Sets the opacity of the backdrop shown when a uiTakeover message is displayed.
+     *
+     * @param backdropOpacity A {@code float} containing the backdrop opacity percentage with 0.0
+     *     being fully transparent and 1.0 being fully opaque
+     */
+    public void setBackdropOpacity(final float backdropOpacity) {
+        this.backdropColor = backdropColor;
+    }
 
-		MessageSettingsBuilder setGestures(final Map <MessageGesture, String> gestures);
+    /**
+     * Returns the angle to use when rounding the message's webview.
+     *
+     * @return A {@code float} containing the corner radius angle to use when rounding the message
+     *     corners
+     */
+    public float getCornerRadius() {
+        return this.cornerRadius;
+    }
 
-		MessageSettings build();
-	}
+    /**
+     * Sets the angle to use when rounding the message's webview.
+     *
+     * @param cornerRadius A {@code float} containing the corner radius angle to use when rounding
+     *     the message corners
+     */
+    public void setCornerRadius(final float cornerRadius) {
+        this.cornerRadius = cornerRadius;
+    }
+
+    /**
+     * Returns a mapping of gestures and their associated behaviors.
+     *
+     * @return A {@code Map<MessageGesture, String} containing gestures and their associated
+     *     behaviors
+     */
+    public Map<MessageGesture, String> getGestures() {
+        return this.gestures;
+    }
+
+    /**
+     * Sets a mapping of gestures and their associated behaviors.
+     *
+     * @param gestures A {@code Map<MessageGesture, String} containing gestures and their associated
+     *     behaviors
+     */
+    public void setGestures(final Map<MessageGesture, String> gestures) {
+        this.gestures = gestures;
+    }
 }

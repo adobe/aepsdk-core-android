@@ -68,8 +68,11 @@ core-functional-test-coverage:
 core-javadoc:
 		(./code/gradlew -p code/android-core-library dokkaJavadoc)
 
-core-publish:
-		(./code/gradlew -p code/android-core-library  publishReleasePublicationToSonatypeRepository)
+core-publish-staging: clean core-assemble-phone-release
+		(./code/gradlew -p code/android-core-library publishReleasePublicationToSonatypeRepository --stacktrace)
+
+core-publish-main: clean core-assemble-phone-release
+		(./code/gradlew -p code/android-core-library publishReleasePublicationToSonatypeRepository -Prelease)
 
 core-publish-maven-local:
 		(./code/gradlew -p code/android-core-library publishReleasePublicationToMavenLocal -x signReleasePublication)		
@@ -107,8 +110,11 @@ signal-functional-test:
 signal-functional-test-coverage:		
 		(./code/gradlew -p code/android-signal-library createPhoneDebugAndroidTestCoverageReport)
 
-signal-publish:
-		(./code/gradlew -p code/android-signal-library  publishReleasePublicationToSonatypeRepository)	
+signal-publish-staging: clean signal-assemble-phone-release
+		(./code/gradlew -p code/android-signal-library publishReleasePublicationToSonatypeRepository --stacktrace)
+
+signal-publish-main: clean signal-assemble-phone-release
+		(./code/gradlew -p code/android-signal-library publishReleasePublicationToSonatypeRepository -Prelease)
 
 signal-publish-maven-local:
 		(./code/gradlew -p code/android-signal-library assemblePhone)
@@ -116,7 +122,7 @@ signal-publish-maven-local:
 
 signal-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-signal-library assemblePhone)
-		(./code/gradlew -p code/android-signal-library publishReleasePublicationToMavenLocal -Pjitpack)		
+		(./code/gradlew -p code/android-signal-library publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)		
 
 ### Lifecycle 
 
@@ -148,8 +154,11 @@ lifecycle-functional-test:
 lifecycle-functional-test-coverage:		
 		(./code/gradlew -p code/android-lifecycle-library createPhoneDebugAndroidTestCoverageReport)
 
-lifecycle-publish:
-		(./code/gradlew -p code/android-lifecycle-library  publishReleasePublicationToSonatypeRepository)
+lifecycle-publish-staging: clean lifecycle-assemble-phone-release
+		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToSonatypeRepository --stacktrace)
+
+lifecycle-publish-main: clean lifecycle-assemble-phone-release
+		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToSonatypeRepository -Prelease)
 
 lifecycle-publish-maven-local:
 		(./code/gradlew -p code/android-lifecycle-library assemblePhone)
@@ -157,7 +166,7 @@ lifecycle-publish-maven-local:
 
 lifecycle-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-lifecycle-library assemblePhone)
-		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToMavenLocal -Pjitpack)
+		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
 
 ### Identity 
 
@@ -186,19 +195,22 @@ identity-functional-test:
 		(./code/gradlew -p code/android-identity-library uninstallPhoneDebugAndroidTest)
 		(./code/gradlew -p code/android-identity-library connectedPhoneDebugAndroidTest)		
 
-identity-functional-test-coverage:		
+identity-functional-test-coverage:
 		(./code/gradlew -p code/android-identity-library createPhoneDebugAndroidTestCoverageReport)
 
-identity-publish:
-		(./code/gradlew -p code/android-identity-library  publishReleasePublicationToSonatypeRepository)
+identity-publish-staging: clean identity-assemble-phone-release
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToSonatypeRepository --stacktrace)
+
+identity-publish-main: clean identity-assemble-phone-release
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToSonatypeRepository -Prelease)
 
 identity-publish-maven-local:
 		(./code/gradlew -p code/android-identity-library assemblePhone)
-		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal)		
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal)
 
 identity-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-identity-library assemblePhone)
-		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal -Pjitpack)
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
 
 #compatibility
 compatibility-publish-maven-local:

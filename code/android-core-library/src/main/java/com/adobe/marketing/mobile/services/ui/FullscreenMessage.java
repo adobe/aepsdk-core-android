@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
+import android.webkit.WebView;
 import java.util.Map;
 
 /** Interface defining a Messaging extension in-app message. */
@@ -46,4 +47,18 @@ public interface FullscreenMessage {
      *     message.
      */
     void setMessageSetting(final MessageSettings messageSettings);
+
+    /**
+     * Return an instance of {@link WebView} setup for the current {@link FullscreenMessage}
+     *
+     * @return an instance of {@link WebView}
+     */
+    WebView getWebView();
+
+    /**
+     * Return an instance of {@link MessageSettings} setup for the current {@link FullscreenMessage}
+     *
+     * @return an instance of {@link MessageSettings}
+     */
+    MessageSettings getMessageSettings();
 }

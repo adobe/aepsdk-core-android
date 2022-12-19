@@ -68,8 +68,13 @@ core-functional-test-coverage:
 core-javadoc:
 		(./code/gradlew -p code/android-core-library dokkaJavadoc)
 
-core-publish:
-		(./code/gradlew -p code/android-core-library  publishReleasePublicationToSonatypeRepository)
+core-publish-staging: clean
+		(./code/gradlew -p code/android-core-library assemblePhoneRelease)
+		(./code/gradlew -p code/android-core-library publishReleasePublicationToSonatypeRepository --stacktrace)
+
+core-publish-main: clean
+		(./code/gradlew -p code/android-core-library assemblePhoneRelease)
+		(./code/gradlew -p code/android-core-library publishReleasePublicationToSonatypeRepository -Prelease)
 
 core-publish-maven-local:
 		(./code/gradlew -p code/android-core-library publishReleasePublicationToMavenLocal -x signReleasePublication)		
@@ -107,8 +112,13 @@ signal-functional-test:
 signal-functional-test-coverage:		
 		(./code/gradlew -p code/android-signal-library createPhoneDebugAndroidTestCoverageReport)
 
-signal-publish:
-		(./code/gradlew -p code/android-signal-library  publishReleasePublicationToSonatypeRepository)	
+signal-publish-staging: clean
+		(./code/gradlew -p code/android-signal-library assemblePhoneRelease)
+		(./code/gradlew -p code/android-signal-library publishReleasePublicationToSonatypeRepository --stacktrace)
+
+signal-publish-main: clean
+		(./code/gradlew -p code/android-signal-library assemblePhoneRelease)
+		(./code/gradlew -p code/android-signal-library publishReleasePublicationToSonatypeRepository -Prelease)
 
 signal-publish-maven-local:
 		(./code/gradlew -p code/android-signal-library assemblePhone)
@@ -148,8 +158,13 @@ lifecycle-functional-test:
 lifecycle-functional-test-coverage:		
 		(./code/gradlew -p code/android-lifecycle-library createPhoneDebugAndroidTestCoverageReport)
 
-lifecycle-publish:
-		(./code/gradlew -p code/android-lifecycle-library  publishReleasePublicationToSonatypeRepository)
+lifecycle-publish-staging: clean
+		(./code/gradlew -p code/android-lifecycle-library assemblePhoneRelease)
+		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToSonatypeRepository --stacktrace)
+
+lifecycle-publish-main: clean
+		(./code/gradlew -p code/android-lifecycle-library assemblePhoneRelease)
+		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToSonatypeRepository -Prelease)
 
 lifecycle-publish-maven-local:
 		(./code/gradlew -p code/android-lifecycle-library assemblePhone)
@@ -186,15 +201,21 @@ identity-functional-test:
 		(./code/gradlew -p code/android-identity-library uninstallPhoneDebugAndroidTest)
 		(./code/gradlew -p code/android-identity-library connectedPhoneDebugAndroidTest)		
 
-identity-functional-test-coverage:		
+identity-functional-test-coverage:	
+		(./code/gradlew -p code/android-identity-library assemblePhoneRelease)	
 		(./code/gradlew -p code/android-identity-library createPhoneDebugAndroidTestCoverageReport)
 
-identity-publish:
-		(./code/gradlew -p code/android-identity-library  publishReleasePublicationToSonatypeRepository)
+identity-publish-staging: clean
+		(./code/gradlew -p code/android-identity-library assemblePhoneRelease)
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToSonatypeRepository --stacktrace)
+
+identity-publish-main: clean
+		(./code/gradlew -p code/android-identity-library assemblePhoneRelease)
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToSonatypeRepository -Prelease)
 
 identity-publish-maven-local:
 		(./code/gradlew -p code/android-identity-library assemblePhone)
-		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal)		
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal)
 
 identity-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-identity-library assemblePhone)

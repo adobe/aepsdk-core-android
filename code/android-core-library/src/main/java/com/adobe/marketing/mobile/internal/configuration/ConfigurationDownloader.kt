@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
+import com.adobe.marketing.mobile.internal.util.RFC2822DateUtil.getRFC2822Date
+import com.adobe.marketing.mobile.internal.util.RFC2822DateUtil.parseRFC2822Date
 import com.adobe.marketing.mobile.internal.util.toMap
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.HttpMethod
@@ -22,8 +24,6 @@ import com.adobe.marketing.mobile.services.caching.CacheEntry
 import com.adobe.marketing.mobile.services.caching.CacheExpiry
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.util.StreamUtils
-import com.adobe.marketing.mobile.util.TimeUtils.getRFC2822Date
-import com.adobe.marketing.mobile.util.TimeUtils.parseRFC2822Date
 import com.adobe.marketing.mobile.util.UrlUtils
 import org.json.JSONException
 import org.json.JSONObject

@@ -74,7 +74,7 @@ publishing {
         release(MavenPublication) {
             groupId = groupIdForPublish
             artifactId = rootProject.signalExtensionName
-            version = rootProject.signalExtensionVersion
+            version = version
             artifact("$buildDir/outputs/aar/${rootProject.signalExtensionAARName}")
 
             pom {

@@ -126,7 +126,7 @@ signal-publish-maven-local:
 
 signal-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-signal-library assemblePhone)
-		(./code/gradlew -p code/android-signal-library publishReleasePublicationToMavenLocal -Pjitpack)		
+		(./code/gradlew -p code/android-signal-library publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)		
 
 ### Lifecycle 
 
@@ -172,7 +172,7 @@ lifecycle-publish-maven-local:
 
 lifecycle-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-lifecycle-library assemblePhone)
-		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToMavenLocal -Pjitpack)
+		(./code/gradlew -p code/android-lifecycle-library publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
 
 ### Identity 
 
@@ -201,8 +201,7 @@ identity-functional-test:
 		(./code/gradlew -p code/android-identity-library uninstallPhoneDebugAndroidTest)
 		(./code/gradlew -p code/android-identity-library connectedPhoneDebugAndroidTest)		
 
-identity-functional-test-coverage:	
-		(./code/gradlew -p code/android-identity-library assemblePhoneRelease)	
+identity-functional-test-coverage:
 		(./code/gradlew -p code/android-identity-library createPhoneDebugAndroidTestCoverageReport)
 
 identity-publish-staging: clean
@@ -219,7 +218,7 @@ identity-publish-maven-local:
 
 identity-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-identity-library assemblePhone)
-		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal -Pjitpack)
+		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
 
 #compatibility
 compatibility-publish-maven-local:

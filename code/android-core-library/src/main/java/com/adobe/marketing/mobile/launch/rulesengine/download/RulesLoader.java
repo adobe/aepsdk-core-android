@@ -302,7 +302,8 @@ public class RulesLoader {
         }
 
         final String ifModifiedSince =
-                RFC2822DateUtil.getRFC2822Date(lastModifiedEpoch, TimeZone.getTimeZone("GMT"), Locale.US);
+                RFC2822DateUtil.getRFC2822Date(
+                        lastModifiedEpoch, TimeZone.getTimeZone("GMT"), Locale.US);
         headers.put(HTTP_HEADER_IF_MODIFIED_SINCE, ifModifiedSince);
         return headers;
     }

@@ -34,17 +34,17 @@ public class TimeUtilsTests {
     private static final String DATE_REGEX_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND =
             "^[0-9]{4}-[0-9]{2}-[0-9]{2}T([0-9]{2}:){2}[0-9]{2}.[0-9]{3}Z$";
 
+    private static final String RFC2822_DATE_GMT = "Mon, 19 Dec 2022 16:56:23 GMT";
+    private static final String RFC2822_DATE_PST = "Mon, 19 Dec 2022 08:56:23 PST";
+    private static final long TEST_EPOCH = 1671468983756L;
+
     private Date defaultDate;
-    private Date defaultDateNoMilli;
 
     private String expectedString_ISO8601_FULL_DATE;
     private String expectedString_ISO8601_TIMEZONE_ISO8601_2X_PRECISION_SECOND;
     private String expectedString_ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND;
     private String expectedString_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND;
 
-    private String expectedString_RFC2822_DATE_PATTERN_GMT;
-
-    private Long defaultEpochMilli;
     private Locale defaultLocale;
 
     @Before
@@ -57,7 +57,6 @@ public class TimeUtilsTests {
         expectedString_ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND = "2022-11-30T06:50:53-07:00";
         expectedString_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND =
                 "2022-11-30T13:50:53.945Z";
-        expectedString_RFC2822_DATE_PATTERN_GMT = "Wed, 30 Nov 2022 13:50:53 GMT";
 
         SimpleDateFormat formatter =
                 new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", defaultLocale);
@@ -65,8 +64,6 @@ public class TimeUtilsTests {
         defaultDate =
                 formatter.parse(expectedString_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND);
         formatter.applyPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        defaultDateNoMilli = formatter.parse("2022-11-30T13:50:53Z");
-        defaultEpochMilli = defaultDate.toInstant().toEpochMilli();
     }
 
     @Test
@@ -129,5 +126,46 @@ public class TimeUtilsTests {
         assertTrue(
                 formattedDate.matches(
                         DATE_REGEX_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND));
+    }
+
+    @Test
+    public void testGetRFC2822Date_localeUS() {
+        final String rfc2822Date =
+                TimeUtils.getRFC2822Date(TEST_EPOCH, TimeZone.getTimeZone("GMT"), Locale.US);
+        assertEquals(RFC2822_DATE_GMT, rfc2822Date);
+    }
+
+    @Test
+    public void testGetRFC2822Date_localePST() {
+        final String rfc2822Date =
+                TimeUtils.getRFC2822Date(TEST_EPOCH, TimeZone.getTimeZone("PST"), Locale.US);
+        assertEquals(RFC2822_DATE_PST, rfc2822Date);
+    }
+
+    @Test
+    public void testParseRFC2822Date_localeGMT() {
+        final Date rfc2822Date =
+                TimeUtils.parseRFC2822Date(
+                        RFC2822_DATE_GMT, TimeZone.getTimeZone("GMT"), Locale.US);
+        assertEquals(
+                new Date(TEST_EPOCH).toInstant().getEpochSecond(),
+                rfc2822Date.toInstant().getEpochSecond());
+    }
+
+    @Test
+    public void testParseRFC2822Date_localePST() {
+        final Date rfc2822Date =
+                TimeUtils.parseRFC2822Date(
+                        RFC2822_DATE_PST, TimeZone.getTimeZone("PST"), Locale.US);
+        assertEquals(
+                new Date(TEST_EPOCH).toInstant().getEpochSecond(),
+                rfc2822Date.toInstant().getEpochSecond());
+    }
+
+    @Test
+    public void testParseRFC2822Date_nullRFC2822Date() {
+        final Date rfc2822Date =
+                TimeUtils.parseRFC2822Date(null, TimeZone.getTimeZone("PST"), Locale.US);
+        assertNull(rfc2822Date);
     }
 }

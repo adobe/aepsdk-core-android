@@ -1083,7 +1083,9 @@ public final class com/adobe/marketing/mobile/util/TimeUtils {
 	public static final fun getISO8601UTCDateWithMilliseconds ()Ljava/lang/String;
 	public static final fun getISO8601UTCDateWithMilliseconds (Ljava/util/Date;)Ljava/lang/String;
 	public static synthetic fun getISO8601UTCDateWithMilliseconds$default (Ljava/util/Date;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun getRFC2822Date (JLjava/util/TimeZone;Ljava/util/Locale;)Ljava/lang/String;
 	public static final fun getUnixTimeInSeconds ()J
+	public static final fun parseRFC2822Date (Ljava/lang/String;Ljava/util/TimeZone;Ljava/util/Locale;)Ljava/util/Date;
 }
 
 public class com/adobe/marketing/mobile/util/URLBuilder {

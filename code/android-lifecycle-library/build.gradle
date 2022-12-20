@@ -60,7 +60,7 @@ def isReleaseBuild() {
     return hasProperty('release')
 }
 
-version = isReleaseBuild() ? rootProject.lifecycleExtensionName : rootProject.lifecycleExtensionName+"-SNAPSHOT"
+version = isReleaseBuild() ? rootProject.lifecycleExtensionVersion : rootProject.lifecycleExtensionVersion+"-SNAPSHOT"
 
 def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
 publishing {

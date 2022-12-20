@@ -11,8 +11,6 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
-import com.adobe.marketing.mobile.internal.util.RFC2822DateUtil.getRFC2822Date
-import com.adobe.marketing.mobile.internal.util.RFC2822DateUtil.parseRFC2822Date
 import com.adobe.marketing.mobile.internal.util.toMap
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.HttpMethod
@@ -24,6 +22,7 @@ import com.adobe.marketing.mobile.services.caching.CacheEntry
 import com.adobe.marketing.mobile.services.caching.CacheExpiry
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.util.StreamUtils
+import com.adobe.marketing.mobile.util.TimeUtils
 import com.adobe.marketing.mobile.util.UrlUtils
 import org.json.JSONException
 import org.json.JSONObject
@@ -91,7 +90,7 @@ internal class ConfigurationDownloader {
                 0L
             }
 
-            val ifModifiedSince = getRFC2822Date(
+            val ifModifiedSince = TimeUtils.getRFC2822Date(
                 lastModifiedEpoch,
                 TimeZone.getTimeZone("GMT"),
                 Locale.US
@@ -129,7 +128,7 @@ internal class ConfigurationDownloader {
             HttpURLConnection.HTTP_OK -> {
                 val metadata = mutableMapOf<String, String>()
                 val lastModifiedProp = response.getResponsePropertyValue(HTTP_HEADER_LAST_MODIFIED)
-                val lastModifiedDate = parseRFC2822Date(lastModifiedProp, TimeZone.getTimeZone("GMT"), Locale.US) ?: Date(0L)
+                val lastModifiedDate = TimeUtils.parseRFC2822Date(lastModifiedProp, TimeZone.getTimeZone("GMT"), Locale.US) ?: Date(0L)
                 val lastModifiedMetadata = lastModifiedDate.time.toString()
                 metadata[HTTP_HEADER_LAST_MODIFIED] = lastModifiedMetadata
 

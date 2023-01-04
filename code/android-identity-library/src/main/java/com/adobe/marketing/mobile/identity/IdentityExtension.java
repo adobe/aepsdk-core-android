@@ -14,7 +14,6 @@ package com.adobe.marketing.mobile.identity;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
 import com.adobe.marketing.mobile.EventType;
@@ -43,7 +42,6 @@ import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.TimeUtils;
 import com.adobe.marketing.mobile.util.URLBuilder;
 import com.adobe.marketing.mobile.util.UrlUtils;
-
 import java.net.HttpURLConnection;
 import java.util.*;
 
@@ -120,20 +118,17 @@ public final class IdentityExtension extends Extension {
         this.hitQueue = hitQueue;
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
     protected String getName() {
         return IdentityConstants.EXTENSION_NAME;
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
     protected String getFriendlyName() {
         return IdentityConstants.FRIENDLY_NAME;
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
     protected String getVersion() {
         return Identity.extensionVersion();
     }
@@ -142,36 +137,36 @@ public final class IdentityExtension extends Extension {
     protected void onRegistered() {
         // listen to Identity requests
         getApi().registerEventListener(
-                EventType.IDENTITY,
-                EventSource.REQUEST_IDENTITY,
-                this::processIdentityRequest);
+                        EventType.IDENTITY,
+                        EventSource.REQUEST_IDENTITY,
+                        this::processIdentityRequest);
         getApi().registerEventListener(
-                EventType.IDENTITY,
-                EventSource.RESPONSE_IDENTITY,
-                this::handleIdentityResponseIdentityForSharedState);
+                        EventType.IDENTITY,
+                        EventSource.RESPONSE_IDENTITY,
+                        this::handleIdentityResponseIdentityForSharedState);
         getApi().registerEventListener(
-                EventType.GENERIC_IDENTITY,
-                EventSource.REQUEST_CONTENT,
-                this::processIdentityRequest);
+                        EventType.GENERIC_IDENTITY,
+                        EventSource.REQUEST_CONTENT,
+                        this::processIdentityRequest);
         getApi().registerEventListener(
-                EventType.GENERIC_IDENTITY,
-                EventSource.REQUEST_RESET,
-                this::processIdentityRequest);
+                        EventType.GENERIC_IDENTITY,
+                        EventSource.REQUEST_RESET,
+                        this::processIdentityRequest);
         // listen to Analytics response
         getApi().registerEventListener(
-                EventType.ANALYTICS,
-                EventSource.RESPONSE_IDENTITY,
-                this::handleAnalyticsResponseIdentity);
+                        EventType.ANALYTICS,
+                        EventSource.RESPONSE_IDENTITY,
+                        this::handleAnalyticsResponseIdentity);
         // listen to AudienceManager response
         getApi().registerEventListener(
-                EventType.AUDIENCEMANAGER,
-                EventSource.RESPONSE_CONTENT,
-                this::processAudienceResponse);
+                        EventType.AUDIENCEMANAGER,
+                        EventSource.RESPONSE_CONTENT,
+                        this::processAudienceResponse);
         // listen to Configuration response
         getApi().registerEventListener(
-                EventType.CONFIGURATION,
-                EventSource.RESPONSE_CONTENT,
-                this::handleConfiguration);
+                        EventType.CONFIGURATION,
+                        EventSource.RESPONSE_CONTENT,
+                        this::handleConfiguration);
         boot();
     }
 
@@ -183,14 +178,18 @@ public final class IdentityExtension extends Extension {
     @Override
     public boolean readyForEvent(@NonNull final Event event) {
 
-        if (!hasSynced && hasValidSharedState(IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
+        if (!hasSynced
+                && hasValidSharedState(
+                        IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
             forceSyncIdentifiers(event);
             hitQueue.handlePrivacyChange(privacyStatus);
             hasSynced = true;
         }
 
-        //Returns true if the event is either getExperienceCloudId event or getIdentifiers event
-        if (event.getType().equals(EventType.IDENTITY) && event.getSource().equals(EventSource.REQUEST_IDENTITY) && event.getEventData().isEmpty()) {
+        // Returns true if the event is either getExperienceCloudId event or getIdentifiers event
+        if (event.getType().equals(EventType.IDENTITY)
+                && event.getSource().equals(EventSource.REQUEST_IDENTITY)
+                && event.getEventData().isEmpty()) {
             return true;
         }
 
@@ -204,7 +203,9 @@ public final class IdentityExtension extends Extension {
                 Log.trace(
                         IdentityConstants.LOG_TAG,
                         LOG_SOURCE,
-                        "Waiting for the Analytics shared state to get required configuration" + " fields before processing [event: %s].", event.getName());
+                        "Waiting for the Analytics shared state to get required configuration"
+                                + " fields before processing [event: %s].",
+                        event.getName());
                 return false;
             }
         }
@@ -214,7 +215,9 @@ public final class IdentityExtension extends Extension {
             Log.trace(
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
-                    "Waiting for the Configuration shared state to get required configuration" + " fields before processing [event: %s].", event.getName());
+                    "Waiting for the Configuration shared state to get required configuration"
+                            + " fields before processing [event: %s].",
+                    event.getName());
             return false;
         } else {
             return true;
@@ -242,7 +245,7 @@ public final class IdentityExtension extends Extension {
     private boolean hasValidSharedState(final String extensionName, final Event event) {
         SharedStateResult result =
                 getApi().getSharedState(
-                        extensionName, event, false, SharedStateResolution.LAST_SET);
+                                extensionName, event, false, SharedStateResolution.LAST_SET);
         if (result == null) {
             return false;
         }
@@ -337,7 +340,7 @@ public final class IdentityExtension extends Extension {
      * Extracts the Analytics ID from the {@code event} and adds a sync event to the event queue.
      *
      * @param event {@link Event} containing the {@link
-     *              IdentityConstants.EventDataKeys.Analytics#ANALYTICS_ID}
+     *     IdentityConstants.EventDataKeys.Analytics#ANALYTICS_ID}
      */
     void handleAnalyticsResponseIdentity(final Event event) {
         if (event == null) {
@@ -390,7 +393,7 @@ public final class IdentityExtension extends Extension {
      * Creates a new shared state with latest in-memory data.
      *
      * @param event the Identity ResponseIdentity event that indicates if a shared state update is
-     *              required. The event number will be used for shared state update.
+     *     required. The event number will be used for shared state update.
      */
     void handleIdentityResponseIdentityForSharedState(final Event event) {
         if (event == null) {
@@ -401,9 +404,9 @@ public final class IdentityExtension extends Extension {
 
         if (data == null
                 || !DataReader.optBoolean(
-                data,
-                IdentityConstants.EventDataKeys.Identity.UPDATE_SHARED_STATE,
-                false)) {
+                        data,
+                        IdentityConstants.EventDataKeys.Identity.UPDATE_SHARED_STATE,
+                        false)) {
             return;
         }
         getApi().createSharedState(packageEventData(), event);
@@ -515,10 +518,10 @@ public final class IdentityExtension extends Extension {
             // IdentityExtension needs to send the hit since AAM did not
             SharedStateResult identitySharedState =
                     getApi().getSharedState(
-                            IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                            audienceEvent,
-                            false,
-                            SharedStateResolution.ANY);
+                                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                                    audienceEvent,
+                                    false,
+                                    SharedStateResolution.ANY);
 
             if (identitySharedState == null
                     || identitySharedState.getStatus() != SharedStateStatus.SET) {
@@ -526,7 +529,7 @@ public final class IdentityExtension extends Extension {
                         IdentityConstants.LOG_TAG,
                         LOG_SOURCE,
                         "processAudienceResponse : Unable to process the Identity events in the"
-                                + " event queue because the configuration shared state is pending.");
+                            + " event queue because the configuration shared state is pending.");
                 return;
             }
 
@@ -663,9 +666,9 @@ public final class IdentityExtension extends Extension {
     @VisibleForTesting
     boolean isSyncEvent(@NonNull final Event event) {
         return (DataReader.optBoolean(
-                event.getEventData(),
-                IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT,
-                false)
+                        event.getEventData(),
+                        IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT,
+                        false)
                 || event.getType().equals(EventType.GENERIC_IDENTITY));
     }
 
@@ -678,7 +681,7 @@ public final class IdentityExtension extends Extension {
     boolean isAppendUrlEvent(@NonNull final Event event) {
         return (event.getEventData() != null
                 && event.getEventData()
-                .containsKey(IdentityConstants.EventDataKeys.Identity.BASE_URL));
+                        .containsKey(IdentityConstants.EventDataKeys.Identity.BASE_URL));
     }
 
     @VisibleForTesting
@@ -697,10 +700,10 @@ public final class IdentityExtension extends Extension {
     void processIdentityRequest(@NonNull final Event event) {
         SharedStateResult result =
                 getApi().getSharedState(
-                        IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                        event,
-                        false,
-                        SharedStateResolution.LAST_SET);
+                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                                event,
+                                false,
+                                SharedStateResolution.LAST_SET);
         if (result == null) {
             return;
         }
@@ -724,16 +727,16 @@ public final class IdentityExtension extends Extension {
                         IdentityConstants.LOG_TAG,
                         LOG_SOURCE,
                         "ProcessEvent : Configuration is missing a valid experienceCloud.org which"
-                                + " is needed to process Identity events. Processing will resume once"
-                                + " a valid configuration is obtained.");
+                            + " is needed to process Identity events. Processing will resume once"
+                            + " a valid configuration is obtained.");
             }
         } else if (isAppendUrlEvent(event)) {
             SharedStateResult sharedStateResult =
                     getApi().getSharedState(
-                            IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
-                            event,
-                            false,
-                            SharedStateResolution.LAST_SET);
+                                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
+                                    event,
+                                    false,
+                                    SharedStateResolution.LAST_SET);
             Map<String, Object> analyticsSharedState = null;
             if (sharedStateResult != null) {
                 analyticsSharedState = sharedStateResult.getValue();
@@ -742,10 +745,10 @@ public final class IdentityExtension extends Extension {
         } else if (isGetUrlVarsEvent(event)) {
             SharedStateResult sharedStateResult =
                     getApi().getSharedState(
-                            IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
-                            event,
-                            false,
-                            SharedStateResolution.LAST_SET);
+                                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
+                                    event,
+                                    false,
+                                    SharedStateResolution.LAST_SET);
             Map<String, Object> analyticsSharedState = null;
             if (sharedStateResult != null) {
                 analyticsSharedState = sharedStateResult.getValue();
@@ -780,10 +783,10 @@ public final class IdentityExtension extends Extension {
      * <p>Calling this method will result in a Visitor ID Sync call being queued in the Identity
      * database
      *
-     * @param event             {@code Event} containing identifiers that need to be synced
+     * @param event {@code Event} containing identifiers that need to be synced
      * @param configSharedState {@code ConfigurationSharedStateIdentity} valid for this event
      * @return true if the {@code event} was successfully processed, false if the {@code event}
-     * could not be processed at this time
+     *     could not be processed at this time
      */
     @VisibleForTesting
     boolean handleSyncIdentifiers(
@@ -958,7 +961,7 @@ public final class IdentityExtension extends Extension {
      *
      * @param eventData {@code EventData} containing sync identifiers
      * @return a map containing the identifiers or an empty map if event data is null or does not
-     * contain an any identifiers
+     *     contain an any identifiers
      */
     @VisibleForTesting
     Map<String, String> extractIdentifiers(final Map<String, Object> eventData) {
@@ -991,9 +994,9 @@ public final class IdentityExtension extends Extension {
      *
      * @param eventData to be processed
      * @return a {@link IdentityGenericPair} with the first element being the new ADID value
-     * extracted from the eventData or null if the eventData is null/empty or it does not
-     * contain an ADID, and the second element being a Boolean with value true if the ADID value
-     * changed to or from a null/empty value.
+     *     extracted from the eventData or null if the eventData is null/empty or it does not
+     *     contain an ADID, and the second element being a Boolean with value true if the ADID value
+     *     changed to or from a null/empty value.
      */
     IdentityGenericPair<VisitorID, Boolean> extractAndUpdateAdid(
             final Map<String, Object> eventData) {
@@ -1002,7 +1005,7 @@ public final class IdentityExtension extends Extension {
 
         if (eventData == null
                 || !eventData.containsKey(
-                IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER)) {
+                        IdentityConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER)) {
             return new IdentityGenericPair<>(adidAsVisitorId, didConsentChange);
         }
 
@@ -1061,7 +1064,7 @@ public final class IdentityExtension extends Extension {
      * Appends IdentityExtension data to the provided URL and returns it for use in Hybrid app web
      * views
      *
-     * @param event             {@code Event} that contains the base URL
+     * @param event {@code Event} that contains the base URL
      * @param configSharedState the Identity Configuration shared state object
      */
     void handleAppendURL(
@@ -1104,8 +1107,8 @@ public final class IdentityExtension extends Extension {
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
                     "updatePushIdentifier : Ignored a push token (%s) as it matches with an"
-                            + " existing token, and the push notification status will not be re-sent"
-                            + " to Analytics.",
+                        + " existing token, and the push notification status will not be re-sent"
+                        + " to Analytics.",
                     pushId);
             return;
         }
@@ -1176,10 +1179,10 @@ public final class IdentityExtension extends Extension {
      * Adds IdentityExtension variables to the provided {@code baseURL} and dispatches an {@link
      * Event} for the one-time listener
      *
-     * @param baseURL              {@code String } containing the base URL to which identifiers need to be
-     *                             appended
-     * @param event                {@code String} event pair id for one-time listener
-     * @param configSharedState    the Identity Configuration shared state object
+     * @param baseURL {@code String } containing the base URL to which identifiers need to be
+     *     appended
+     * @param event {@code String} event pair id for one-time listener
+     * @param configSharedState the Identity Configuration shared state object
      * @param analyticsSharedState the Analytics shared state
      */
     void appendVisitorInfoForURL(
@@ -1293,7 +1296,7 @@ public final class IdentityExtension extends Extension {
      *
      * <p>Returns an empty list if {@code identifiers} param is null or empty
      *
-     * @param identifiers         map containing identifiers
+     * @param identifiers map containing identifiers
      * @param authenticationState authentication state
      * @return {@code List<VisitorID>} list of generated {@code VisitorID}s
      */
@@ -1385,7 +1388,7 @@ public final class IdentityExtension extends Extension {
      *
      * @param idString {@link String} to be parsed for valid {@code VisitorID} objects
      * @return {@code List<VisitorID>} containing the objects represented in the {@code idString},
-     * deduplicated by idTypes
+     *     deduplicated by idTypes
      */
     static List<VisitorID> convertVisitorIdsStringToVisitorIDObjects(final String idString) {
         if (StringUtils.isNullOrEmpty(idString)) {
@@ -1433,7 +1436,7 @@ public final class IdentityExtension extends Extension {
      * id from the config shared state and the analytics id and visitor identifier from the
      * analytics shared state, if available.
      *
-     * @param configSharedState    the Identity Configuration shared state object
+     * @param configSharedState the Identity Configuration shared state object
      * @param analyticsSharedState the Analytics shared state
      * @return {@link StringBuilder} containing the ECID payload for the URL
      */
@@ -1517,10 +1520,10 @@ public final class IdentityExtension extends Extension {
      * function.
      *
      * @param originalString {@link String} to append the key and value to
-     * @param key            key to append
-     * @param value          value to append
+     * @param key key to append
+     * @param value value to append
      * @return a new string with the key and value appended, or {@code originalString} if {@code
-     * key} or {@code value} are null or empty
+     *     key} or {@code value} are null or empty
      */
     String appendKVPToVisitorIdString(
             final String originalString, final String key, final String value) {
@@ -1598,7 +1601,7 @@ public final class IdentityExtension extends Extension {
      * triggered by a paired event, a paired event is also dispatched.
      *
      * @param result {@code HashMap<String, String>} containing the network response result
-     * @param event  the trigger event
+     * @param event the trigger event
      */
     void networkResponseLoaded(final IdentityResponseObject result, final Event event) {
         boolean requiresSharedStateUpdate = false;
@@ -1705,9 +1708,9 @@ public final class IdentityExtension extends Extension {
 
         final Event analyticsForMessageEvent =
                 new Event.Builder(
-                        IdentityConstants.ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME,
-                        EventType.ANALYTICS,
-                        EventSource.REQUEST_CONTENT)
+                                IdentityConstants.ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME,
+                                EventType.ANALYTICS,
+                                EventSource.REQUEST_CONTENT)
                         .setEventData(analyticsData)
                         .build();
 
@@ -1770,7 +1773,7 @@ public final class IdentityExtension extends Extension {
     /**
      * @param eventName to be used to create the event object to be dispatched
      * @param eventData to be used to create the event object to be dispatched
-     * @param event     for one time callback listener
+     * @param event for one time callback listener
      */
     private void handleIdentityResponseEvent(
             final String eventName, final Map<String, Object> eventData, final Event event) {
@@ -1796,16 +1799,14 @@ public final class IdentityExtension extends Extension {
                 newEvent.toString());
     }
 
-    /**
-     * @param eventData to be used to create the event object to be dispatched.
-     */
+    /** @param eventData to be used to create the event object to be dispatched. */
     @VisibleForTesting
     void handleIdentityConfigurationUpdateEvent(final Map<String, Object> eventData) {
         final Event event =
                 new Event.Builder(
-                        "Configuration Update From IdentityExtension",
-                        EventType.CONFIGURATION,
-                        EventSource.REQUEST_CONTENT)
+                                "Configuration Update From IdentityExtension",
+                                EventType.CONFIGURATION,
+                                EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
 
@@ -1826,7 +1827,7 @@ public final class IdentityExtension extends Extension {
      * a new Experience Cloud ID (MID) is generated, the new ID is saved to local storage, a shared
      * state is created, and the ID synced with the remote Identity Service.
      *
-     * @param event     the {@link Event} for the {@code Configuration} change
+     * @param event the {@link Event} for the {@code Configuration} change
      * @param eventData the updated {@code Configuration} event data
      */
     void processPrivacyChange(final Event event, final Map<String, Object> eventData) {
@@ -1920,7 +1921,7 @@ public final class IdentityExtension extends Extension {
      * Helper to set or remove String from DataStore.
      *
      * @param store {@link NamedCollection}
-     * @param key   {@link String} key in {@code DataStore}
+     * @param key {@link String} key in {@code DataStore}
      * @param value {@link String} value for {@code key} in {@code store}
      */
     private static void storeOrRemovePersistentString(
@@ -1935,11 +1936,11 @@ public final class IdentityExtension extends Extension {
     /**
      * Builds a URL string used for the sync call with the ECID Service
      *
-     * @param customerIds       list of custom VisitorIDs that need to be synced
-     * @param dpids             {@code Map<String, String>} of DPIDs used to generate internal identifiers
+     * @param customerIds list of custom VisitorIDs that need to be synced
+     * @param dpids {@code Map<String, String>} of DPIDs used to generate internal identifiers
      * @param configSharedState {@code ConfigurationSharedStateIdentity} configuration valid for
-     *                          this event
-     * @param addConsentFlag    whether to add device consent flag to query parameters
+     *     this event
+     * @param addConsentFlag whether to add device consent flag to query parameters
      * @return {@code String} containing a URL to be sent to the ECID Service
      */
     private String buildURLString(
@@ -2038,11 +2039,11 @@ public final class IdentityExtension extends Extension {
     /**
      * Determines whether or not an ID Sync is necessary
      *
-     * @param identifiers   {@code List<VisitorID>} for the current sync call
-     * @param dpids         {@code Map<String, String>} of DPIDs for the current sync call
-     * @param forceResync   {@code boolean} allowing an override to force the sync call
+     * @param identifiers {@code List<VisitorID>} for the current sync call
+     * @param dpids {@code Map<String, String>} of DPIDs for the current sync call
+     * @param forceResync {@code boolean} allowing an override to force the sync call
      * @param configuration {@code ConfigurationSharedStateIdentity} configuration valid for this
-     *                      event
+     *     event
      * @return whether identifiers should be synced to the server
      */
     private boolean shouldSync(
@@ -2307,7 +2308,7 @@ public final class IdentityExtension extends Extension {
      *
      * @param identityResponseObject representing the parsed JSON response
      * @return {@code boolean} indicating if there is a change in the local properties (mid, blob,
-     * locationHint)
+     *     locationHint)
      */
     @VisibleForTesting
     boolean handleNetworkResponseMap(final IdentityResponseObject identityResponseObject) {
@@ -2367,16 +2368,16 @@ public final class IdentityExtension extends Extension {
                 && identityResponseObject.mid.equals(mid)) {
             try {
                 if ((identityResponseObject.blob != null
-                        && !identityResponseObject.blob.equals(blob))
+                                && !identityResponseObject.blob.equals(blob))
                         || (StringUtils.isNullOrEmpty(identityResponseObject.blob)
-                        && !StringUtils.isNullOrEmpty(blob))) {
+                                && !StringUtils.isNullOrEmpty(blob))) {
                     requiresSharedStateUpdate = true;
                 }
 
                 if ((identityResponseObject.hint != null
-                        && !identityResponseObject.hint.equals(locationHint))
+                                && !identityResponseObject.hint.equals(locationHint))
                         || (StringUtils.isNullOrEmpty(identityResponseObject.hint)
-                        && !StringUtils.isNullOrEmpty(locationHint))) {
+                                && !StringUtils.isNullOrEmpty(locationHint))) {
                     requiresSharedStateUpdate = true;
                 }
 
@@ -2414,9 +2415,9 @@ public final class IdentityExtension extends Extension {
                 VisitorID.AuthenticationState.UNKNOWN.getValue());
 
         return new Event.Builder(
-                "id-construct-forced-sync",
-                EventType.IDENTITY,
-                EventSource.REQUEST_IDENTITY)
+                        "id-construct-forced-sync",
+                        EventType.IDENTITY,
+                        EventSource.REQUEST_IDENTITY)
                 .setEventData(eventData)
                 .build();
     }
@@ -2452,10 +2453,10 @@ public final class IdentityExtension extends Extension {
     private void loadPrivacyStatusIfConfigurationSateValid(final Event event) {
         SharedStateResult result =
                 getApi().getSharedState(
-                        IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                        event,
-                        false,
-                        SharedStateResolution.LAST_SET);
+                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                                event,
+                                false,
+                                SharedStateResolution.LAST_SET);
         if (result == null) {
             return;
         }

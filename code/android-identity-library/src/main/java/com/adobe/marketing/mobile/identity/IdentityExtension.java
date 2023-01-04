@@ -189,7 +189,7 @@ public final class IdentityExtension extends Extension {
         // Returns true if the event is either getExperienceCloudId event or getIdentifiers event
         if (event.getType().equals(EventType.IDENTITY)
                 && event.getSource().equals(EventSource.REQUEST_IDENTITY)
-                && event.getEventData().isEmpty()) {
+                && (event.getEventData() == null || event.getEventData().isEmpty())) {
             return true;
         }
 

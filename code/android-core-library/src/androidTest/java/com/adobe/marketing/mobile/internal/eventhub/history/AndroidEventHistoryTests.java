@@ -36,7 +36,7 @@ public class AndroidEventHistoryTests {
 
     private AndroidEventHistory androidEventHistory;
     private HashMap<String, Object> data;
-    private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
+    private static final String DATABASE_NAME = "com.adobe.module.core.eventhistory";
 
     @Before
     public void beforeEach() {

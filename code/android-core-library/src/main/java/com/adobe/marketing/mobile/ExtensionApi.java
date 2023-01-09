@@ -82,7 +82,8 @@ public abstract class ExtensionApi {
      * @return {@link SharedStateResolver} that should be called with the shared state data when it
      *     is ready
      */
-    public abstract @Nullable SharedStateResolver createPendingSharedState(@Nullable final Event event);
+    public abstract @Nullable SharedStateResolver createPendingSharedState(
+            @Nullable final Event event);
 
     /**
      * Gets the shared state data for a specified extension.
@@ -139,7 +140,8 @@ public abstract class ExtensionApi {
      * @return {@link SharedStateResolver} that should be called with the shared state data when it
      *     is ready
      */
-    public abstract @Nullable SharedStateResolver createPendingXDMSharedState(@Nullable final Event event);
+    public abstract @Nullable SharedStateResolver createPendingXDMSharedState(
+            @Nullable final Event event);
 
     /**
      * Gets the XDM shared state data for a specified extension. If the stateName extension

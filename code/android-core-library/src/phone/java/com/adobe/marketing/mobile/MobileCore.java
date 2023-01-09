@@ -97,7 +97,10 @@ public final class MobileCore {
         }
 
         if (sdkInitializedWithContext.getAndSet(true)) {
-            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Ignoring as setApplication was already called.");
+            Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Ignoring as setApplication was already called.");
             return;
         }
 
@@ -948,7 +951,8 @@ public final class MobileCore {
      * @param mode the {@link LoggingMode} used to print the message. It should not be null.
      * @param tag used to identify the source of the log message
      * @param message the message to log
-     * @deprecated Use logging methods exposed in {@link com.adobe.marketing.mobile.services.Log} class.
+     * @deprecated Use logging methods exposed in {@link com.adobe.marketing.mobile.services.Log}
+     *     class.
      */
     @Deprecated
     public static void log(

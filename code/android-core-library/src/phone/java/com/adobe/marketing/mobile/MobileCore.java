@@ -97,7 +97,10 @@ public final class MobileCore {
         }
 
         if (sdkInitializedWithContext.getAndSet(true)) {
-            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "setApplication already called.");
+            Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Ignoring as setApplication was already called.");
             return;
         }
 
@@ -155,38 +158,6 @@ public final class MobileCore {
      */
     @NonNull public static LoggingMode getLogLevel() {
         return com.adobe.marketing.mobile.services.Log.getLogLevel();
-    }
-
-    /**
-     * Sends a log message of the given {@code LoggingMode}. If the specified {@code mode} is more
-     * verbose than the current {@link LoggingMode} set from {@link #setLogLevel(LoggingMode)} then
-     * the message is not printed.
-     *
-     * @param mode the {@link LoggingMode} used to print the message. It should not be null.
-     * @param tag used to identify the source of the log message
-     * @param message the message to log
-     */
-    @Deprecated
-    public static void log(
-            @NonNull final LoggingMode mode, final String tag, final String message) {
-        if (mode == null) {
-            return;
-        }
-
-        switch (mode) {
-            case ERROR:
-                com.adobe.marketing.mobile.services.Log.error("", tag, message);
-                break;
-            case WARNING:
-                com.adobe.marketing.mobile.services.Log.warning("", tag, message);
-                break;
-            case DEBUG:
-                com.adobe.marketing.mobile.services.Log.debug("", tag, message);
-                break;
-            case VERBOSE:
-                com.adobe.marketing.mobile.services.Log.trace("", tag, message);
-                break;
-        }
     }
 
     /**
@@ -973,6 +944,40 @@ public final class MobileCore {
     // ========================================================
 
     /**
+     * Sends a log message of the given {@code LoggingMode}. If the specified {@code mode} is more
+     * verbose than the current {@link LoggingMode} set from {@link #setLogLevel(LoggingMode)} then
+     * the message is not printed.
+     *
+     * @param mode the {@link LoggingMode} used to print the message. It should not be null.
+     * @param tag used to identify the source of the log message
+     * @param message the message to log
+     * @deprecated Use logging methods exposed in {@link com.adobe.marketing.mobile.services.Log}
+     *     class.
+     */
+    @Deprecated
+    public static void log(
+            @NonNull final LoggingMode mode, final String tag, final String message) {
+        if (mode == null) {
+            return;
+        }
+
+        switch (mode) {
+            case ERROR:
+                com.adobe.marketing.mobile.services.Log.error("", tag, message);
+                break;
+            case WARNING:
+                com.adobe.marketing.mobile.services.Log.warning("", tag, message);
+                break;
+            case DEBUG:
+                com.adobe.marketing.mobile.services.Log.debug("", tag, message);
+                break;
+            case VERBOSE:
+                com.adobe.marketing.mobile.services.Log.trace("", tag, message);
+                break;
+        }
+    }
+
+    /**
      * Registers an extension class which has {@code Extension} as parent.
      *
      * <p>In order to ensure that your extension receives all the internal events, this method needs
@@ -983,6 +988,7 @@ public final class MobileCore {
      * @param errorCallback an optional {@link ExtensionErrorCallback} for the eventuality of an
      *     error, called when this method returns false
      * @return {@code boolean} indicating if the provided parameters are valid and no error occurs
+     * @deprecated Use {@link MobileCore#registerExtensions(List, AdobeCallback)} instead.
      */
     @Deprecated
     public static boolean registerExtension(
@@ -1042,6 +1048,7 @@ public final class MobileCore {
      *
      * @param completionCallback an optional {@link AdobeCallback} invoked after registrations are
      *     completed
+     * @deprecated Use {@link MobileCore#registerExtensions(List, AdobeCallback)} instead.
      */
     @Deprecated
     public static void start(@Nullable final AdobeCallback<?> completionCallback) {
@@ -1082,7 +1089,7 @@ public final class MobileCore {
      * @param responseCallback the callback whose {@link AdobeCallbackWithError#call(Object)} will
      *     be called when the response event is heard. It should not be null.
      * @deprecated Use {@link MobileCore#dispatchEventWithResponseCallback(Event, long,
-     *     AdobeCallbackWithError)} instead by explicitly specifing timeout.
+     *     AdobeCallbackWithError)} instead by explicitly specifying timeout.
      */
     @Deprecated
     public static void dispatchEventWithResponseCallback(
@@ -1208,6 +1215,7 @@ public final class MobileCore {
      * @param errorCallback optional {@link ExtensionErrorCallback} which will be called if an error
      *     occurred during dispatching
      * @return {@code boolean} indicating if the the event dispatching operation succeeded
+     * @deprecated Use {@link Event.Builder#inResponseToEvent(Event)} to create a response event.
      */
     @Deprecated
     public static boolean dispatchResponseEvent(

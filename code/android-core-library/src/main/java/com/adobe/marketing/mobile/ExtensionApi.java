@@ -82,7 +82,7 @@ public abstract class ExtensionApi {
      * @return {@link SharedStateResolver} that should be called with the shared state data when it
      *     is ready
      */
-    public abstract SharedStateResolver createPendingSharedState(@Nullable final Event event);
+    public abstract @Nullable SharedStateResolver createPendingSharedState(@Nullable final Event event);
 
     /**
      * Gets the shared state data for a specified extension.
@@ -96,7 +96,7 @@ public abstract class ExtensionApi {
      * @param resolution the {@link SharedStateResolution} to resolve for return {@code
      *     SharedStateResult} for the requested extensionName and event
      */
-    public abstract SharedStateResult getSharedState(
+    public abstract @Nullable SharedStateResult getSharedState(
             @NonNull final String extensionName,
             @Nullable final Event event,
             final boolean barrier,
@@ -139,7 +139,7 @@ public abstract class ExtensionApi {
      * @return {@link SharedStateResolver} that should be called with the shared state data when it
      *     is ready
      */
-    public abstract SharedStateResolver createPendingXDMSharedState(@Nullable final Event event);
+    public abstract @Nullable SharedStateResolver createPendingXDMSharedState(@Nullable final Event event);
 
     /**
      * Gets the XDM shared state data for a specified extension. If the stateName extension
@@ -155,7 +155,7 @@ public abstract class ExtensionApi {
      * @param resolution the {@link SharedStateResolution} to resolve for return {@code
      *     SharedStateResult} for the requested extensionName and event
      */
-    public abstract SharedStateResult getXDMSharedState(
+    public abstract @Nullable SharedStateResult getXDMSharedState(
             @NonNull final String extensionName,
             @Nullable final Event event,
             final boolean barrier,

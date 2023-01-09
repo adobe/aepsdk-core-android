@@ -62,6 +62,20 @@ dependencies {
 
     implementation project(path: ':android-core-library')
     implementation project(path: ':android-identity-library')
+    implementation project(path: ':android-lifecycle-library')
+    implementation project(path: ':android-signal-library')
+
+    /* Uncomment the following line when testing with analytics extension */
+    //implementation 'com.adobe.marketing.mobile:analytics:2.0.0', withoutCore
+
+    /* Uncomment the following line when testing with assurance extension */
+    //implementation 'com.adobe.marketing.mobile:assurance:2.0.0', withoutCore
+
+    /* Uncomment the following line when testing with local test-third-party-extension changes */
+    //implementation project(':test-third-party-extension')
+
+    /* Uncomment the following line when testing with test-third-party-extension from artifactory */
+    //implementation 'com.example.victory:test-third-party-extension:2.0.0-SNAPSHOT'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

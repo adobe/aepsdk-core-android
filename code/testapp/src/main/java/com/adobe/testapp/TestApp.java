@@ -49,29 +49,6 @@ public class TestApp extends Application {
 				});
 		});
 
-		//				new Thread(new Runnable() {
-		//					@Override
-		//					public void run() {
-		//						while(true){
-		//							try {
-		//								Thread.sleep(10);
-		//							} catch (InterruptedException e) {
-		//								e.printStackTrace();
-		//							}
-		//							ServiceProvider.getInstance().getNetworkService().connectAsync(new NetworkRequest("https://google.com", HttpMethod.GET, null, null, 3, 3), new NetworkCallback() {
-		//								@Override
-		//								public void call(HttpConnecting connection) {
-		//									if(connection == null) {
-		//										MobileCore.log(LoggingMode.ERROR, "Test Network", "Failed!!!!!");
-		//									} else{
-		//										MobileCore.log(LoggingMode.DEBUG, "Test Network", "Success!!!!!");
-		//									}
-		//								}
-		//							});
-		//						}
-		//					}
-		//				}).start();
-
 	}
 }
 

@@ -27,7 +27,8 @@ import java.io.File;
 class AndroidEventHistoryDatabase implements EventHistoryDatabase {
 
     private static final String LOG_TAG = "AndroidEventHistoryDatabase";
-    private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
+    private static final String DATABASE_NAME = "com.adobe.module.core.eventhistory";
+    private static final String DATABASE_NAME_1X = "com.adobe.marketing.db.eventhistory";
     private static final String TABLE_NAME = "Events";
     private static final String COLUMN_HASH = "eventHash";
     private static final String COLUMN_TIMESTAMP = "timestamp";
@@ -91,7 +92,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
         final File applicationCacheDir =
                 ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
         if (applicationCacheDir != null) {
-            final File cacheDirDatabaseFile = new File(applicationCacheDir, DATABASE_NAME);
+            final File cacheDirDatabaseFile = new File(applicationCacheDir, DATABASE_NAME_1X);
             try {
                 if (cacheDirDatabaseFile.exists()) {
                     FileUtils.moveFile(cacheDirDatabaseFile, database);
@@ -100,14 +101,14 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
                             LOG_TAG,
                             "Successfully moved database (%s) from cache directory to database"
                                     + " directory",
-                            DATABASE_NAME);
+                            DATABASE_NAME_1X);
                 }
             } catch (Exception e) {
                 Log.debug(
                         CoreConstants.LOG_TAG,
                         LOG_TAG,
                         "Failed to move database (%s) from cache directory to database directory",
-                        DATABASE_NAME);
+                        DATABASE_NAME_1X);
             }
         }
         return database;

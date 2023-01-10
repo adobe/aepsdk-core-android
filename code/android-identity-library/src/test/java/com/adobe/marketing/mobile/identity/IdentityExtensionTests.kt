@@ -152,6 +152,27 @@ class IdentityExtensionTests {
         )
     }
 
+    @Test
+    fun `readyForEvent() - handle getExperienceCloudId or getIdentifiers event without valid configuration`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onRegistered()
+
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(SharedStateStatus.SET, emptyMap())
+            }
+            return@thenAnswer null
+        }
+        assertTrue(
+            identityExtension.readyForEvent(
+                Event.Builder("event", "com.adobe.eventType.identity", "com.adobe.eventSource.requestIdentity").build()
+            )
+        )
+    }
+
     @Test(timeout = 10000)
     fun `readyForEvent() should return false for appendUrl and urlVars events if Analytics extension is not registered`() {
         val identityExtension = initializeSpiedIdentityExtension()

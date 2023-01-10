@@ -34,7 +34,8 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class AndroidEventHistoryDatabaseTests {
 
-    private static final String DATABASE_NAME = "com.adobe.marketing.db.eventhistory";
+    private static final String DATABASE_NAME = "com.adobe.module.core.eventhistory";
+    private static final String DATABASE_NAME_1X = "com.adobe.marketing.db.eventhistory";
     private static final String TABLE_NAME = "Events";
     private static final String COLUMN_HASH = "eventHash";
     private static final String COLUMN_TIMESTAMP = "timestamp";
@@ -193,7 +194,7 @@ public class AndroidEventHistoryDatabaseTests {
     }
 
     private void createEventHistoryDatabaseInCacheDirectory() throws Exception {
-        File cacheDatabaseFile = new File(context.getCacheDir(), DATABASE_NAME);
+        File cacheDatabaseFile = new File(context.getCacheDir(), DATABASE_NAME_1X);
         SQLiteDatabase cacheDatabase =
                 SQLiteDatabaseHelper.openDatabase(
                         cacheDatabaseFile.getPath(),

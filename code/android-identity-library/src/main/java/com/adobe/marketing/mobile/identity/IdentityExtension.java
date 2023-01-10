@@ -79,7 +79,7 @@ public final class IdentityExtension extends Extension {
     private static final String LOG_SOURCE = "IdentityExtension";
     private HitQueuing hitQueue;
     private static boolean pushEnabled = false;
-    private static final Object _pushEnabledMutex = new Object();
+    private static final Object pushEnabledMutex = new Object();
     private ConfigurationSharedStateIdentity latestValidConfig;
     private final NamedCollection namedCollection;
 
@@ -177,21 +177,20 @@ public final class IdentityExtension extends Extension {
 
     @Override
     public boolean readyForEvent(@NonNull final Event event) {
-        if (!hasValidSharedState(
-                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
-            Log.trace(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "Waiting for the Configuration shared state to get required configuration"
-                            + " fields before processing [event: %s].",
-                    event.getName());
-            return false;
-        }
 
-        if (!hasSynced) {
+        if (!hasSynced
+                && hasValidSharedState(
+                        IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
             forceSyncIdentifiers(event);
             hitQueue.handlePrivacyChange(privacyStatus);
             hasSynced = true;
+        }
+
+        // Returns true if the event is either getExperienceCloudId event or getIdentifiers event
+        if (event.getType().equals(EventType.IDENTITY)
+                && event.getSource().equals(EventSource.REQUEST_IDENTITY)
+                && (event.getEventData() == null || event.getEventData().isEmpty())) {
+            return true;
         }
 
         if (isSyncEvent(event)) {
@@ -211,7 +210,18 @@ public final class IdentityExtension extends Extension {
             }
         }
 
-        return true;
+        if (!hasValidSharedState(
+                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
+            Log.trace(
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Waiting for the Configuration shared state to get required configuration"
+                            + " fields before processing [event: %s].",
+                    event.getName());
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @VisibleForTesting
@@ -245,11 +255,7 @@ public final class IdentityExtension extends Extension {
 
     @VisibleForTesting
     void forceSyncIdentifiers(@NonNull final Event event) {
-        Log.trace(IdentityConstants.LOG_TAG, LOG_SOURCE, "bootup : Processing BOOTED event.");
-
-        // The database is created when the privacy status changes or on the first sync event
-        // which is why it is not created in bootup.
-        loadPrivacyStatus(event); // attempt to load privacy status from Configuration state
+        loadPrivacyStatusIfConfigurationSateValid(event);
 
         final Event forcedSyncEvent = createForcedSyncEvent();
         processIdentityRequest(forcedSyncEvent);
@@ -257,11 +263,6 @@ public final class IdentityExtension extends Extension {
                 IdentityConstants.LOG_TAG,
                 LOG_SOURCE,
                 "bootup : Added an Identity force sync event on boot.");
-
-        // Identity should always share its state
-        // However, don't create a shared state twice, which will log an error
-        // The force sync event processed above will create a shared state if the privacy is not
-        // opt-out
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             Log.trace(
                     IdentityConstants.LOG_TAG,
@@ -274,7 +275,7 @@ public final class IdentityExtension extends Extension {
 
     private void boot() {
         loadVariablesFromPersistentData();
-        initializeDatabaseWithCurrentPrivacyStatus();
+        initializeHitQueueDatabase();
         if (!StringUtils.isNullOrEmpty(mid)) {
             getApi().createSharedState(packageEventData(), null);
         }
@@ -284,7 +285,7 @@ public final class IdentityExtension extends Extension {
      * This method creates an instance of the database if one does not exist already and sets this
      * IdentityExtension's {@code MobilePrivacyStatus}
      */
-    private void initializeDatabaseWithCurrentPrivacyStatus() {
+    private void initializeHitQueueDatabase() {
         if (hitQueue == null) {
             DataQueue dataQueue =
                     ServiceProvider.getInstance()
@@ -697,6 +698,15 @@ public final class IdentityExtension extends Extension {
      * @param event {@code Event} to be marshaled
      */
     void processIdentityRequest(@NonNull final Event event) {
+
+        if (event.getType().equals(EventType.IDENTITY)
+                && event.getSource().equals(EventSource.REQUEST_IDENTITY)
+                && (event.getEventData() == null || event.getEventData().isEmpty())) {
+            handleIdentityResponseEvent(
+                    "IDENTITY_RESPONSE_CONTENT_ONE_TIME", packageEventData(), event);
+            return;
+        }
+
         SharedStateResult result =
                 getApi().getSharedState(
                                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
@@ -754,9 +764,6 @@ public final class IdentityExtension extends Extension {
             }
 
             handleGetUrlVariables(event, configSharedState, analyticsSharedState);
-        } else {
-            handleIdentityResponseEvent(
-                    "IDENTITY_RESPONSE_CONTENT_ONE_TIME", packageEventData(), event);
         }
     }
 
@@ -1727,7 +1734,7 @@ public final class IdentityExtension extends Extension {
      * @return boolean indicating whether the user is opted in to receive push notifications
      */
     private boolean isPushEnabled() {
-        synchronized (_pushEnabledMutex) {
+        synchronized (pushEnabledMutex) {
             if (namedCollection == null) {
                 Log.trace(
                         IdentityConstants.LOG_TAG,
@@ -1749,7 +1756,7 @@ public final class IdentityExtension extends Extension {
      * @param enabled new push status value to be updated
      */
     private void setPushStatus(final boolean enabled) {
-        synchronized (_pushEnabledMutex) {
+        synchronized (pushEnabledMutex) {
             if (namedCollection != null) {
                 namedCollection.setBoolean(DataStoreKeys.PUSH_ENABLED, enabled);
             } else {
@@ -1877,7 +1884,7 @@ public final class IdentityExtension extends Extension {
             getApi().dispatch(syncEvent);
         }
 
-        initializeDatabaseWithCurrentPrivacyStatus();
+        initializeHitQueueDatabase();
     }
 
     /**
@@ -2449,7 +2456,7 @@ public final class IdentityExtension extends Extension {
      *
      * @param event the {@link Event} used to retrieve the {@code Configuration} state
      */
-    private void loadPrivacyStatus(final Event event) {
+    private void loadPrivacyStatusIfConfigurationSateValid(final Event event) {
         SharedStateResult result =
                 getApi().getSharedState(
                                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,

@@ -698,6 +698,15 @@ public final class IdentityExtension extends Extension {
      * @param event {@code Event} to be marshaled
      */
     void processIdentityRequest(@NonNull final Event event) {
+
+        if (event.getType().equals(EventType.IDENTITY)
+                && event.getSource().equals(EventSource.REQUEST_IDENTITY)
+                && (event.getEventData() == null || event.getEventData().isEmpty())) {
+            handleIdentityResponseEvent(
+                    "IDENTITY_RESPONSE_CONTENT_ONE_TIME", packageEventData(), event);
+            return;
+        }
+
         SharedStateResult result =
                 getApi().getSharedState(
                                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
@@ -755,9 +764,6 @@ public final class IdentityExtension extends Extension {
             }
 
             handleGetUrlVariables(event, configSharedState, analyticsSharedState);
-        } else {
-            handleIdentityResponseEvent(
-                    "IDENTITY_RESPONSE_CONTENT_ONE_TIME", packageEventData(), event);
         }
     }
 

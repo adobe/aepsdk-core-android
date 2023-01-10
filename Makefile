@@ -211,15 +211,6 @@ identity-publish-maven-local:
 identity-publish-maven-local-jitpack:
 		(./code/gradlew -p code/android-identity-library assemblePhone)
 		(./code/gradlew -p code/android-identity-library publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
-
-#compatibility
-compatibility-publish-maven-local:
-		(./code/gradlew -p code/android-core-compatiblity assemblePhone)
-		(./code/gradlew -p code/android-core-compatiblity publishReleasePublicationToMavenLocal)		
-
-compatibility-publish-maven-local-jitpack:
-		(./code/gradlew -p code/android-core-compatiblity assemblePhone)
-		(./code/gradlew -p code/android-core-compatiblity publishReleasePublicationToMavenLocal -Pjitpack)
 		
 # make bump-versions from='2\.0\.0' to=2.0.1
 bump-versions:

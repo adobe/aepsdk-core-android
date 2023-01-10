@@ -102,6 +102,7 @@ public final class com/adobe/marketing/mobile/EventType {
 	public static final field LIFECYCLE Ljava/lang/String;
 	public static final field LOCATION Ljava/lang/String;
 	public static final field MEDIA Ljava/lang/String;
+	public static final field MESSAGING Ljava/lang/String;
 	public static final field PII Ljava/lang/String;
 	public static final field PLACES Ljava/lang/String;
 	public static final field RULES_ENGINE Ljava/lang/String;

@@ -229,7 +229,7 @@ internal class ConfigurationExtension : Extension {
      * @param event the event requesting/triggering an update to configuration with appId.
      * @param sharedStateResolver the resolver should be used for resolving the current state
      */
-    private fun configureWithAppID(event: Event, sharedStateResolver: SharedStateResolver) {
+    private fun configureWithAppID(event: Event, sharedStateResolver: SharedStateResolver?) {
         val appId =
             event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID) as? String
 
@@ -241,12 +241,12 @@ internal class ConfigurationExtension : Extension {
             )
 
             appIdManager.removeAppIdFromPersistence()
-            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
+            sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
         if (!configurationStateManager.hasConfigExpired(appId)) {
-            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
+            sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
@@ -265,7 +265,7 @@ internal class ConfigurationExtension : Extension {
                 )
 
                 // If the configuration download fails, publish current configuration and retry download again.
-                sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
+                sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
 
                 retryConfigTaskHandle = retryConfigDownload(appId)
             }
@@ -283,7 +283,7 @@ internal class ConfigurationExtension : Extension {
      *              requesting a configuration change
      * @param sharedStateResolver the resolver should be used for resolving the current state
      */
-    private fun configureWithFilePath(event: Event, sharedStateResolver: SharedStateResolver) {
+    private fun configureWithFilePath(event: Event, sharedStateResolver: SharedStateResolver?) {
         val filePath =
             event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH) as String?
 
@@ -293,7 +293,7 @@ internal class ConfigurationExtension : Extension {
                 TAG,
                 "Unable to read config from provided file (filePath: $filePath is invalid)"
             )
-            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
+            sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
@@ -306,7 +306,7 @@ internal class ConfigurationExtension : Extension {
                 TAG,
                 "Could not update configuration from file path: $filePath"
             )
-            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
+            sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
         }
     }
 
@@ -316,7 +316,7 @@ internal class ConfigurationExtension : Extension {
      * @param event which contains [CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE] as part of its event data
      * @param sharedStateResolver the resolver should be used for resolving the current state
      */
-    private fun configureWithFileAsset(event: Event, sharedStateResolver: SharedStateResolver) {
+    private fun configureWithFileAsset(event: Event, sharedStateResolver: SharedStateResolver?) {
         val fileAssetName =
             event.eventData?.get(CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE) as String?
 
@@ -326,7 +326,7 @@ internal class ConfigurationExtension : Extension {
                 TAG,
                 "Asset file name for configuration is null or empty."
             )
-            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
+            sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
@@ -339,7 +339,7 @@ internal class ConfigurationExtension : Extension {
                 TAG,
                 "Could not update configuration from file asset: $fileAssetName"
             )
-            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
+            sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
         }
     }
 
@@ -350,7 +350,7 @@ internal class ConfigurationExtension : Extension {
      *              current configuration
      * @param sharedStateResolver the resolver should be used for resolving the current state
      */
-    private fun updateConfiguration(event: Event, sharedStateResolver: SharedStateResolver) {
+    private fun updateConfiguration(event: Event, sharedStateResolver: SharedStateResolver?) {
         val programmaticConfig: Map<String, Any?>? = DataReader.optTypedMap(
             Any::class.java,
             event.eventData,
@@ -364,7 +364,7 @@ internal class ConfigurationExtension : Extension {
                 TAG,
                 "Invalid configuration. Provided configuration is null or contains non string keys."
             )
-            sharedStateResolver.resolve(configurationStateManager.environmentAwareConfiguration)
+            sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
 
@@ -377,7 +377,7 @@ internal class ConfigurationExtension : Extension {
      * maintained by the extension.
      *
      */
-    private fun clearUpdatedConfiguration(sharedStateResolver: SharedStateResolver) {
+    private fun clearUpdatedConfiguration(sharedStateResolver: SharedStateResolver?) {
         configurationStateManager.clearProgrammaticConfig()
         applyConfigurationChanges(RulesSource.REMOTE, sharedStateResolver)
     }

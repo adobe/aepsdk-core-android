@@ -154,7 +154,7 @@ class SignalExtension : Extension {
             event,
             false,
             SharedStateResolution.ANY
-        ).value ?: return true
+        )?.value ?: return true
         val privacyStatus = try {
             DataReader.getString(
                 configuration,

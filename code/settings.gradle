@@ -11,11 +11,12 @@ rootProject.name = 'aepsdk-core-android'
 include ':android-core-library',
         ':android-lifecycle-library',
         ':android-identity-library',
-        ':android-signal-library',
-        ':android-core-compatiblity',
-        ':integration-tests',
+        ':android-signal-library'
+
+include ':testapp',
+        ':testapp-kotlin'
+
+include ':integration-tests',
         ':test-third-party-extension',
-        ':testapp',
-        ':testapp-kotlin',
-        ':macrobenchmark'
-include ':microbenchmark'
+        ':macrobenchmark',
+        ':microbenchmark'

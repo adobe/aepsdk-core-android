@@ -47,10 +47,6 @@ jobs:
       - run:
           name: Install jitpack (identity) to maven local
           command: make identity-publish-maven-local-jitpack
-          
-      - run:
-          name: Install jitpack (compatibility) to maven local
-          command: make compatibility-publish-maven-local-jitpack
 
       - run:
           name: Download Codecov Uploader

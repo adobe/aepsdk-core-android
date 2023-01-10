@@ -8,6 +8,5 @@ install:
    - make signal-publish-maven-local-jitpack
    - make lifecycle-publish-maven-local-jitpack
    - make identity-publish-maven-local-jitpack
-   - make compatibility-publish-maven-local-jitpack
 # env:
 #    MYVAR: "custom environment variable"

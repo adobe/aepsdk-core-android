@@ -205,6 +205,38 @@ class IdentityFunctionalTests {
         return identityExtension
     }
 
+    private fun initializeIdentityExtensionWithoutValidConfiguration(cachedData: Map<String, Any>): IdentityExtension {
+        `when`(
+            mockedExtensionApi.getSharedState(
+                any(),
+                any(),
+                anyOrNull(),
+                any()
+            )
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer null
+            }
+            return@thenAnswer null
+        }
+
+        mockedPersistentData = cachedData
+        `when`(mockedNamedCollection.getString(any(), any())).thenAnswer { invocation ->
+            val key = invocation.arguments[0] as? String
+            return@thenAnswer mockedPersistentData[key]
+        }
+
+        val identityExtension =
+            IdentityExtension(mockedExtensionApi, mockedNamedCollection, mockedHitQueue)
+        identityExtension.onRegistered()
+
+        identityExtension.readyForEvent(Event.Builder("event", "type", "source").build())
+        reset(mockedHitQueue)
+
+        return identityExtension
+    }
+
     @Test(timeout = 10000)
     fun test_syncIdentifier_validateQueryParams_happy() {
         val configuration = mapOf(
@@ -808,6 +840,29 @@ class IdentityFunctionalTests {
             val eventData = event?.eventData
             assertNotNull(eventData)
             assertTrue(eventData?.get("mid").toString().isNotEmpty())
+            countDownLatchGetter.countDown()
+        }.`when`(mockedExtensionApi).dispatch(any())
+        identityExtension.processIdentityRequest(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.identity",
+                "com.adobe.eventSource.requestIdentity"
+            ).build()
+        )
+        countDownLatchGetter.await()
+    }
+
+    @Test(timeout = 10000)
+    fun test_getExperienceCloudId_withoutValidConfiguration() {
+        val identityExtension =
+            initializeIdentityExtensionWithoutValidConfiguration(mapOf("ADOBEMOBILE_PERSISTED_MID" to "mid_1"))
+
+        val countDownLatchGetter = CountDownLatch(1)
+        doAnswer { invocation ->
+            val event: Event? = invocation.arguments[0] as Event?
+            val eventData = event?.eventData
+            assertNotNull(eventData)
+            assertEquals("mid_1", eventData?.get("mid").toString())
             countDownLatchGetter.countDown()
         }.`when`(mockedExtensionApi).dispatch(any())
         identityExtension.processIdentityRequest(

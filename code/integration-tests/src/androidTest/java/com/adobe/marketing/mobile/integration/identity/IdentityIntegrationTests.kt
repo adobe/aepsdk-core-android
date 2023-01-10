@@ -463,6 +463,7 @@ class IdentityIntegrationTests {
         }
         MobileCore.resetIdentities()
         countDownLatchSecondNetworkMonitor.await()
+        Thread.sleep(20)
         val secondMid = loadStoreMid()
         assertNotEquals("", secondMid)
     }

@@ -517,7 +517,7 @@ class ConfigurationExtensionTest {
         val completionCallbackCaptor: KArgumentCaptor<(Map<String, Any?>?) -> Unit> =
             argumentCaptor()
 
-        // Should invoke update on state manager 2 times for retry and 3 time for success
+        // Should invoke update on state manager 2 times for retry and 3rd time for success
         verify(mockConfigStateManager, times(3)).updateConfigWithAppId(
             appIdCaptor.capture(),
             completionCallbackCaptor.capture()
@@ -526,14 +526,14 @@ class ConfigurationExtensionTest {
         // Verify first retry scheduling
         verify(mockExecutorService).schedule(
             Mockito.any(Runnable::class.java),
-            eq(5L),
+            eq(500L),
             eq(TimeUnit.SECONDS)
         )
 
         // Verify second retry scheduling
         verify(mockExecutorService).schedule(
             Mockito.any(Runnable::class.java),
-            eq(10L),
+            eq(1000L),
             eq(TimeUnit.SECONDS)
         )
 

@@ -33,7 +33,7 @@ import java.util.Date
 internal class ConfigurationStateManager {
     companion object {
         private const val LOG_TAG = "ConfigurationStateManager"
-        private const val CONFIGURATION_TTL = 15L
+        private const val CONFIGURATION_TTL = 15000L
         private const val BUILD_ENVIRONMENT = "build.environment"
         private const val ENVIRONMENT_PREFIX_DELIMITER = "__"
         private const val CONFIGURATION_URL_BASE = "https://assets.adobedtm.com/%s.json"

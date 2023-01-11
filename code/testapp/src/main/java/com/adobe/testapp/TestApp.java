@@ -16,8 +16,17 @@ import com.adobe.marketing.mobile.Identity;
 import com.adobe.marketing.mobile.Lifecycle;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.Signal;
+import com.adobe.marketing.mobile.services.DataEntity;
+import com.adobe.marketing.mobile.services.DataQueue;
+import com.adobe.marketing.mobile.services.HttpConnecting;
+import com.adobe.marketing.mobile.services.Logging;
+import com.adobe.marketing.mobile.services.NamedCollection;
+import com.adobe.marketing.mobile.services.NetworkCallback;
+import com.adobe.marketing.mobile.services.NetworkRequest;
+import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import android.app.Application;
+import android.util.Log;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,30 +34,50 @@ import java.util.List;
 
 public class TestApp extends Application {
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		MobileCore.setApplication(this);
-		MobileCore.setLogLevel(com.adobe.marketing.mobile.LoggingMode.VERBOSE);
-		MobileCore.configureWithAppID("YOUR_APP_ID");
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        MobileCore.setApplication(this);
+        MobileCore.setLogLevel(com.adobe.marketing.mobile.LoggingMode.VERBOSE);
+        MobileCore.configureWithAppID("YOUR_APP_ID");
 
-		List<Class<? extends Extension>> extensions = Arrays.asList(
-				Identity.EXTENSION,
-				Signal.EXTENSION,
-				Lifecycle.EXTENSION
-		);
+        List<Class<? extends Extension>> extensions = Arrays.asList(
+                Identity.EXTENSION,
+                Signal.EXTENSION,
+                Lifecycle.EXTENSION
+        );
 
-		MobileCore.registerExtensions(extensions, value -> {
-				MobileCore.collectPii(new HashMap<String, String>() {
-					{
-						put("triggerKey", "collectPIIIOS");
-						put("cusFirstName", "aa");
-						put("cusLastName", "bb");
-						put("cusEmail", "aa.bb@gmail.com");
-					}
-				});
-		});
+        MobileCore.registerExtensions(extensions, value -> {
+            MobileCore.collectPii(new HashMap<String, String>() {
+                {
+                    put("triggerKey", "collectPIIIOS");
+                    put("cusFirstName", "aa");
+                    put("cusLastName", "bb");
+                    put("cusEmail", "aa.bb@gmail.com");
+                }
+            });
+        });
+		NetworkRequest request = null;
+        Locale local = ServiceProvider.getInstance().getDeviceInfoService().getActiveLocale();
+    }
+}
 
-	}
+class ErrorLogger implements Logging {
+    @Override
+    public void trace(String tag, String message) {
+    }
+
+    @Override
+    public void debug(String tag, String message) {
+    }
+
+    @Override
+    public void warning(String tag, String message) {
+    }
+
+    @Override
+    public void error(String tag, String message) {
+        Log.e("ErrorLogger", tag + " - " + message);
+    }
 }
 

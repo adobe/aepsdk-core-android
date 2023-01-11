@@ -40,7 +40,7 @@ public class PersistentHitQueueTests {
     @Mock ScheduledExecutorService scheduledExecutorService;
 
     @Test
-    public void testIllegalArguementExceptionIsThrownWhenPassNullToConstructor() {
+    public void testIllegalArgumentExceptionIsThrownWhenPassNullToConstructor() {
         // Setup
         boolean isExceptionThrown = false;
 

@@ -16,17 +16,8 @@ import com.adobe.marketing.mobile.Identity;
 import com.adobe.marketing.mobile.Lifecycle;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.Signal;
-import com.adobe.marketing.mobile.services.DataEntity;
-import com.adobe.marketing.mobile.services.DataQueue;
-import com.adobe.marketing.mobile.services.HttpConnecting;
-import com.adobe.marketing.mobile.services.Logging;
-import com.adobe.marketing.mobile.services.NamedCollection;
-import com.adobe.marketing.mobile.services.NetworkCallback;
-import com.adobe.marketing.mobile.services.NetworkRequest;
-import com.adobe.marketing.mobile.services.ServiceProvider;
 
 import android.app.Application;
-import android.util.Log;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -57,27 +48,6 @@ public class TestApp extends Application {
                 }
             });
         });
-		NetworkRequest request = null;
-        Locale local = ServiceProvider.getInstance().getDeviceInfoService().getActiveLocale();
+
     }
 }
-
-class ErrorLogger implements Logging {
-    @Override
-    public void trace(String tag, String message) {
-    }
-
-    @Override
-    public void debug(String tag, String message) {
-    }
-
-    @Override
-    public void warning(String tag, String message) {
-    }
-
-    @Override
-    public void error(String tag, String message) {
-        Log.e("ErrorLogger", tag + " - " + message);
-    }
-}
-

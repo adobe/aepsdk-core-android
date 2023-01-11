@@ -11,12 +11,12 @@
 package com.adobe.marketing.mobile.app.kotlin
 
 import android.app.Application
-import com.adobe.marketing.mobile.*
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.Identity
+import com.adobe.marketing.mobile.Lifecycle
+import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.app.kotlin.extension.PerfExtension
-import com.adobe.marketing.mobile.services.HttpConnecting
-import com.adobe.marketing.mobile.services.NetworkRequest
-import com.adobe.marketing.mobile.services.ServiceProvider
-
 
 class MyApp : Application() {
 
@@ -29,21 +29,6 @@ class MyApp : Application() {
         MobileCore.registerExtensions(extensions) {
 
         }
-
-        val namedCollection =
-            ServiceProvider.getInstance().dataStoreService.getNamedCollection("name")
-        namedCollection.setString("key", "value")
-        val value = namedCollection.getString("key", "default_value")
-
-        val request: NetworkRequest? = null
-        ServiceProvider.getInstance().networkService.connectAsync(
-            request
-        ) { connection: HttpConnecting? ->
-            // cc
-        }
-        val local = ServiceProvider.getInstance().deviceInfoService.activeLocale
     }
 
 }
-
-

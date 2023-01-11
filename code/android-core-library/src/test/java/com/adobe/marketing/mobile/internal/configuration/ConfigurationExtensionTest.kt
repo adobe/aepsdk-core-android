@@ -526,14 +526,14 @@ class ConfigurationExtensionTest {
         // Verify first retry scheduling
         verify(mockExecutorService).schedule(
             Mockito.any(Runnable::class.java),
-            eq(500L),
+            eq(5000L),
             eq(TimeUnit.SECONDS)
         )
 
         // Verify second retry scheduling
         verify(mockExecutorService).schedule(
             Mockito.any(Runnable::class.java),
-            eq(1000L),
+            eq(10000L),
             eq(TimeUnit.SECONDS)
         )
 

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,6 +36,8 @@ public class PersistentHitQueueTests {
     @Mock DataQueue dataQueue;
 
     @Mock HitProcessing processor;
+
+    @Mock ScheduledExecutorService scheduledExecutorService;
 
     @Test
     public void testIllegalArguementExceptionIsThrownWhenPassNullToConstructor() {
@@ -94,15 +97,17 @@ public class PersistentHitQueueTests {
     }
 
     @Test
-    public void testCloseShouldCallDataQueueClose() {
+    public void testCloseShouldCallDataQueueCloseAndShutdownExecutor() {
         // Setup
-        PersistentHitQueue persistentHitQueue = new PersistentHitQueue(dataQueue, processor);
+        PersistentHitQueue persistentHitQueue =
+                new PersistentHitQueue(dataQueue, processor, scheduledExecutorService);
 
         // Action
         persistentHitQueue.close();
 
         // Assert
         Mockito.verify(dataQueue, Mockito.times(1)).close();
+        Mockito.verify(scheduledExecutorService, Mockito.times(1)).shutdown();
     }
 
     @Test

@@ -130,7 +130,7 @@ private void receiveConfigurationRequest(Event event) {
 api.registerEventListener(EventType.CONFIGURATION, EventSource.REQUEST_CONTENT, this::receiveConfigurationRequest);
 
 // Can also be implemented with a closure
-private fun handleGetIdentifier(e: Event) {
+private fun receiveConfigurationRequest(e: Event) {
    // handle event
 }
 ```

@@ -1,27 +1,13 @@
 # Identity API Usage
 
-This document details the APIs provided by Identity extension, along with sample code snippets on how to properly use the APIs.
+This document lists the APIs provided by Identity extension, along with sample code snippets on how to properly use the APIs.
 
 For more in-depth information about the Identity extension, visit the [official SDK documentation on Identity](https://developer.adobe.com/client-sdks/documentation/mobile-core/identity/).
 
-#### Getting Identity extension version
-
-##### Java
-
-```java
-final String identityExtensionVersion = Identity.extensionVersion();
-```
-
-##### Kotlin
-
-```kotlin
-val identityExtensionVersion: String = Identity.extensionVersion()
-```
-
 
 #### Registering Identity extension
-`Identity.EXTENSION` represents a reference to the IdentityExtension class that can be used to register
-Identity extension can be registered with `MobileCore` via its `registerExtensions` api.
+
+`Identity.EXTENSION` represents a reference to the `IdentityExtension` class that can be registered with `MobileCore` via its `registerExtensions` api.
 
 ##### Java
 
@@ -43,6 +29,20 @@ MobileCore.registerExtensions(Arrays.asList(Identity.EXTENSION, ...)){
 }
 ```
 
+
+#### Getting Identity extension version
+
+##### Java
+
+```java
+final String identityExtensionVersion = Identity.extensionVersion();
+```
+
+##### Kotlin
+
+```kotlin
+val identityExtensionVersion: String = Identity.extensionVersion()
+```
 
 #### Append visitor data to a URL
 

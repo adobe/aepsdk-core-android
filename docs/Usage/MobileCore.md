@@ -1,6 +1,6 @@
 # Mobile Core API Usage
 
-This document details the APIs provided by MobileCore, along with sample code snippets on how to properly use the APIs.
+This document lists the APIs provided by MobileCore, along with sample code snippets on how to properly use the APIs.
 
 For more in-depth information about the Mobile Core, visit the [official SDK documentation on Mobile Core](https://developer.adobe.com/client-sdks/documentation/mobile-core/).
 
@@ -31,55 +31,6 @@ final String coreVersion = MobileCore.extensionVersion();
 
 ```kotlin
 val coreVersion: String = MobileCore.extensionVersion()
-```
-
-
-#### Registering your Application with the MobileCore
-
-Use the `setApplication` api to pass the Android Application instance to SDK. This allows the SDK to monitor the lifecycle of your Android application.
-
-##### Java
-
-```java
-public class YourApp extends Application {
-
-   @Override
-   public void onCreate() {
-      super.onCreate();
-
-      MobileCore.setApplication(this);
-   }
-}
-```
-
-##### Kotlin
-
-```kotlin
-class YourApp : Application() {
-    override fun onCreate() {
-        super.onCreate()
-
-        MobileCore.setApplication(this)
-    }
-}
-```
-
-
-#### Retrieving the registered Application
-
-You can use the `getApplication()` api to get the Android Application instance that was previously set via `MobileCore.setApplication()`
-
-
-##### Java
-
-```java
-final Application app = MobileCore.getApplication();
-```
-
-##### Kotlin
-
-```kotlin
-val app = MobileCore.getApplication()
 ```
 
 
@@ -128,6 +79,55 @@ MobileCore.setWrapperType(WrapperType.REACT_NATIVE);
 
 ```kotlin
 MobileCore.setWrapperType(WrapperType.REACT_NATIVE)
+```
+
+
+#### Initializing MobileCore with Android Application instance
+
+Use the `setApplication` api to pass the Android Application instance to SDK. This allows the SDK to monitor the lifecycle of your Android application.
+
+##### Java
+
+```java
+public class YourApp extends Application {
+
+   @Override
+   public void onCreate() {
+      super.onCreate();
+
+      MobileCore.setApplication(this);
+   }
+}
+```
+
+##### Kotlin
+
+```kotlin
+class YourApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        MobileCore.setApplication(this)
+    }
+}
+```
+
+
+#### Retrieving the registered Application
+
+You can use the `getApplication()` api to get the Android Application instance that was previously set via `MobileCore.setApplication()`
+
+
+##### Java
+
+```java
+final Application app = MobileCore.getApplication();
+```
+
+##### Kotlin
+
+```kotlin
+val app = MobileCore.getApplication()
 ```
 
 

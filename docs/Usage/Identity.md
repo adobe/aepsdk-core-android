@@ -26,6 +26,8 @@ Identity extension can be registered with `MobileCore` via its `registerExtensio
 ##### Java
 
 ```java
+import com.adobe.marketing.mobile.Identity;
+
 MobileCore.registerExtensions(Arrays.asList(Identity.EXTENSION, ...), new AdobeCallback<Object>() {
     // handle callback
 });
@@ -151,7 +153,7 @@ Identity.syncIdentifier("idType", "idValue", VisitorID.AuthenticationState.AUTHE
 ##### Java
 
 ```java
-final Map<String, String> identifiers = new HashMap<String, String>();
+final Map<String, String> identifiers = new HashMap<>();
 identifiers.put("idType1", "idValue1");
 identifiers.put("idType2", "idValue2");
 identifiers.put("idType3", "idValue3");
@@ -175,7 +177,7 @@ Identity.syncIdentifiers(identifiers);
 ##### Java
 
 ```java
-final Map<String, String> identifiers = new HashMap<String, String>();
+final Map<String, String> identifiers = new HashMap<>();
 identifiers.put("idType1", "idValue1");
 identifiers.put("idType2", "idValue2");
 identifiers.put("idType3", "idValue3");

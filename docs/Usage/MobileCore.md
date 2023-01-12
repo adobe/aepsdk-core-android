@@ -9,7 +9,7 @@ For more in-depth information about the Mobile Core, visit the [official SDK doc
 ##### Java
 
 ```java
-import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.MobileCore;
 ```
 
 ##### Kotlin
@@ -238,7 +238,7 @@ Keys that are not found on the current configuration are added when this method 
 ##### Java
 
 ```java
-Map<String, Object> data = new HashMap<String, Object>();
+Map<String, Object> data = new HashMap<>();
 data.put("global.privacy", "optedout");
 
 MobileCore.updateConfiguration(data);
@@ -247,7 +247,7 @@ MobileCore.updateConfiguration(data);
 ##### Kotlin
 
 ```kotlin
-val data = mapOf<String, Any?>(
+val data: Map<String, Any?> = mapOf(
     "global.privacy" to "optedout",
     "sampleKey" to "sampleValue"
 )
@@ -291,9 +291,7 @@ MobileCore.dispatchEvent(sampleEvent);
 ##### Kotlin
 
 ```kotlin
-val eventData: Map<String, Any?> = mapOf<String, Any?>(
-    "sampleKey" to "sampleValue"
-)
+val eventData: Map<String, Any?> = mapOf("sampleKey" to "sampleValue")
 
 val sampleEvent = Event.Builder("Sample Event Name", "Sample EventType", "Sample Event Source")
                   .setEventData(eventData)
@@ -323,10 +321,7 @@ MobileCore.dispatchEventWithResponseCallback(sampleEvent, 5000L, new AdobeCallba
 ##### Kotlin
 
 ```kotlin
-val eventData: Map<String, Any?> = mapOf<String, Any?>(
-    "sampleKey" to "sampleValue"
-)
-
+val eventData: Map<String, Any?> = mapOf("sampleKey" to "sampleValue")
 val sampleEvent = Event.Builder("SampleEventName", "SampleEventType", "SampleEventSource")
                        .setEventData(eventData)
                        .build()
@@ -381,7 +376,7 @@ MobileCore.collectPii(piiData);
 ##### Kotlin
 
 ```kotlin
-val piiData: Map<String, Any?> = mapOf<String, Any?>("piiDataKey" to "sampleValue")
+val piiData: Map<String, Any?> = mapOf("piiDataKey" to "sampleValue")
 MobileCore.collectPii(piiData)
 ```
 
@@ -400,9 +395,7 @@ MobileCore.collectMessageInfo(messageInfo);
 ##### Kotlin
 
 ```kotlin
-val messageInfo: Map<String, Any?> = mapOf(
-    "sampleKey" to "sampleValue"
-)
+val messageInfo: Map<String, Any?> = mapOf("sampleKey" to "sampleValue")
 
 MobileCore.collectMessageInfo(messageInfo)
 ```
@@ -498,10 +491,7 @@ MobileCore.trackAction("SampleActionName", sampleContextData);
 ##### Kotlin
 
 ```kotlin
-val sampleContextData: Map<String, String?> = mapOf<String, String?>(
-    "sampleKey" to "sampleValue"
-)
-
+val sampleContextData: Map<String, String?> = mapOf("sampleKey" to "sampleValue")
 MobileCore.trackAction("SampleActionName", sampleContextData)
 ```
 
@@ -520,10 +510,7 @@ MobileCore.trackState("SampleState", sampleContextData);
 ##### Kotlin
 
 ```kotlin
-val sampleContextData: Map<String, String?> = mapOf<String, String?>(
-    "sampleKey" to "sampleValue"
-)
-
+val sampleContextData: Map<String, String?> = mapOf("sampleKey" to "sampleValue")
 MobileCore.trackAction("SampleState", sampleContextData)
 ```
 
@@ -542,10 +529,7 @@ MobileCore.lifecycleStart(sampleContextData);
 ##### Kotlin
 
 ```kotlin
-val sampleContextData: Map<String, String?> = mapOf<String, String?>(
-    "sampleKey" to "sampleValue"
-)
-
+val sampleContextData: Map<String, String?> = mapOf("sampleKey" to "sampleValue")
 MobileCore.lifecycleStart(sampleContextData)
 ```
 

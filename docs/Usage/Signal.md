@@ -42,3 +42,4 @@ final String signalExtensionVersion = Signal.extensionVersion();
 
 ```kotlin
 val signalExtensionVersion: String = Signal.extensionVersion()
+```

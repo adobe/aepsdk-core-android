@@ -42,3 +42,4 @@ final String lifecycleExtensionVersion = Lifecycle.extensionVersion();
 
 ```kotlin
 val lifecycleExtensionVersion: String = Lifecycle.extensionVersion()
+```

@@ -1,4 +1,4 @@
-# Event Hub Events
+# Event Hub Event
 
 This document outlines the specification for an Event Hub `Event`. These events are dispatched from the Event Hub and received by listeners that are registered with the Event Hub.
 

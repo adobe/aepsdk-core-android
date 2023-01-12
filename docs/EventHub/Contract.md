@@ -12,8 +12,8 @@ E1 → E2 → E3 → .... → EN1 → EN2 → EN3 → EN4 → .......
 
 ### Extension:
 
-- Extension owns a dispatch queue.
-- All the listeners from the same extension are running on the same dispatch queue.
+- Extension owns a SerialWorkDispatcher.
+- All the listeners from the same extension are running on the same SerialWorkDispatcher.
 - It is impossible that two listeners from the same extension can be running simultaneously.
 
 ### Extension Registration:
@@ -31,9 +31,9 @@ E1 → E2 → E3 → .... → EN1 → EN2 → EN3 → EN4 → .......
 - Each extension has its own XDM shared state, identified by the extensions's name.
 - An extension can set the shared state for EN2 after setting shared state for EN1.
 - Once an extension has set the shared state for EN2, it will not be allowed to set the shared state for EN1.
-- `nil` is returned when getting a shared state for an extension which is not registered.
-- `.none` status returned when getting a shared state for an extension when it has not set any shared state yet.
-- If the last shared state ExtensionA has been set is for EN1 with ShareStateEN1 (no matter `.set` or `.pending`), ShareStateEN1 is returned when getting shared state of ExtensionA for EN1, or EN2 or any events after.
+- `null` is returned when getting a shared state for an extension which is not registered.
+- `SharedStateStatus.NONE` status returned when getting a shared state for an extension when it has not set any shared state yet.
+- If the last shared state ExtensionA has been set is for EN1 with ShareStateEN1 (no matter `SharedStateStatus.SET` or `SharedStateStatus.PENDING`), ShareStateEN1 is returned when getting shared state of ExtensionA for EN1, or EN2 or any events after.
 - If ExtensionA has set shared state for EN1 with ShareStateEN1 and for EN2 with ShareStateEN2, ShareStateEN1 is returned when getting shared state  of ExtensionA for EN1.
 - If ExtensionA has set shared state for EN1 with ShareStateEN1 and for EN4 with ShareStateEN4, ShareStateEN1 is returned when getting shared state  of ExtensionA for EN1, EN2 and EN3.
 - If the first shared state set by ExtensionA is for EN1 with ShareStateEN1, ShareStateEN1 is returned when getting shared state of ExtensionA for E1, E2 E3 and any event triggered before EN1.

@@ -8,7 +8,7 @@ Reviewing the [Definition of Terms](EventHub/DefinitionOfTerms.md) is recommende
 
 ## Event Streaming
 
-![Events stream](https://app.lucidchart.com/publicSegments/view/e720c862-bb1d-4aab-b663-7fe5ae1aa53a/image.png)
+![Events stream](./assets/eventstreaming.png)
 
 An Event is the start of a process. It can represent any action, and must be run inside of the event loop to maintain event order integrity. Events can originate from many locations. For example, the developer providing data to the SDK via a public API, or an SDK extension publishing its data that other extensions may find useful.
 
@@ -18,7 +18,7 @@ The **Event Hub** is the controller of the SDK. The Event Hub is responsible for
 
 This diagram illustrates how Extension Containers work as an intermediator between the Event Hub and Extensions.
 
-![Extension Container](https://app.lucidchart.com/publicSegments/view/488c0d86-8134-4952-ab38-4a9d7a244cb8/image.png)
+![Extension Container](./assets/eventhub.png)
 
 There are four main responsibilities of the Extension Container:
 
@@ -29,7 +29,7 @@ There are four main responsibilities of the Extension Container:
 
 ## Module Layers
 
-![Module Layers](https://app.lucidchart.com/publicSegments/view/3677075f-e932-49e9-96c1-1b16cc66fb8c/image.png)
+![Module Layers](./assets/module.png)
 
 #### Extensions
 

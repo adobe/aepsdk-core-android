@@ -16,12 +16,12 @@ import androidx.benchmark.junit4.measureRepeated
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.adobe.marketing.mobile.Identity
+import com.adobe.marketing.mobile.Lifecycle
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SDKHelper
-import com.adobe.marketing.mobile.identity.IdentityExtension
-import com.adobe.marketing.mobile.lifecycle.LifecycleExtension
-import com.adobe.marketing.mobile.signal.SignalExtension
+import com.adobe.marketing.mobile.Signal
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,9 +65,9 @@ class SDKInitializationBenchmark {
             MobileCore.setLogLevel(LoggingMode.VERBOSE)
             MobileCore.registerExtensions(
                 listOf(
-                    LifecycleExtension::class.java,
-                    SignalExtension::class.java,
-                    IdentityExtension::class.java
+                    Lifecycle.EXTENSION,
+                    Signal.EXTENSION,
+                    Identity.EXTENSION
                 )
             ) {
                 countDownLatch.countDown()

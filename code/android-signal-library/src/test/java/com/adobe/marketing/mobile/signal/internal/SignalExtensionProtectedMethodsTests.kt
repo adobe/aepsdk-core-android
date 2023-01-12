@@ -9,10 +9,14 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile
+package com.adobe.marketing.mobile.signal.internal
 
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.Extension
+import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.ExtensionEventListener
+import com.adobe.marketing.mobile.ExtensionHelper
 import com.adobe.marketing.mobile.services.PersistentHitQueue
-import com.adobe.marketing.mobile.signal.SignalExtension
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -51,7 +55,7 @@ class SignalExtensionProtectedMethodsTests {
 
     @Test
     fun `Test SignalExtension registration`() {
-        signalExtension.onRegistered()
+        ExtensionHelper.notifyRegistered(signalExtension)
 
         val eventTypeCaptor = ArgumentCaptor.forClass(
             String::class.java
@@ -78,17 +82,17 @@ class SignalExtensionProtectedMethodsTests {
 
     @Test
     fun `Test getName() `() {
-        assertEquals("com.adobe.module.signal", signalExtension.name)
+        assertEquals("com.adobe.module.signal", ExtensionHelper.getName(signalExtension))
     }
 
     @Test
     fun `Test getFriendlyName() `() {
-        assertEquals("Signal", signalExtension.friendlyName)
+        assertEquals("Signal", ExtensionHelper.getFriendlyName(signalExtension))
     }
 
     @Test
     fun `Test getVersion() `() {
-        assertEquals("2.0.0", signalExtension.version)
+        assertEquals("2.0.0", ExtensionHelper.getVersion(signalExtension))
     }
 
     @Test

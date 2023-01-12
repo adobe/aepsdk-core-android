@@ -25,6 +25,7 @@ buildscript {
 allprojects {
     repositories {
         mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         google()
     }
     apply plugin: 'maven-publish'

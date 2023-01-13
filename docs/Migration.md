@@ -8,13 +8,15 @@ This document describes how existing Android SDK 1.x customers can upgrade to th
 
 To upgrade, update the Gradle dependency references to `Android SDK 2.0` in the Android app's `build.gradle`:
 
+> The following 2.x.x should be replaced with the latest version numbers.
+
 ```diff
 - implementation 'com.adobe.marketing.mobile:sdk-core:1.+'
 
-+ implementation 'com.adobe.marketing.mobile:core:2.0.0'
-+ implementation 'com.adobe.marketing.mobile:identity:2.0.0'
-+ implementation 'com.adobe.marketing.mobile:lifecycle:2.0.0'
-+ implementation 'com.adobe.marketing.mobile:signal:2.0.0'
++ implementation 'com.adobe.marketing.mobile:core:2.x.x'
++ implementation 'com.adobe.marketing.mobile:identity:2.x.x'
++ implementation 'com.adobe.marketing.mobile:lifecycle:2.x.x'
++ implementation 'com.adobe.marketing.mobile:signal:2.x.x'
 ```
 
 Then `sync project with the gradle files` and build the project.

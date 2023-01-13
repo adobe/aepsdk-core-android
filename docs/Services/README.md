@@ -96,6 +96,8 @@ As we saw above, implementing the `Logging` interface was quite simple, but how 
 
 We can do this by setting the `loggingService` on the shared `ServiceProvider`, used by the entire SDK.
 
+> Services overriding should be done before the Android SDK is initiated, then the SDK can switch to use the overridden services.
+
 ### Java
 
 ```java

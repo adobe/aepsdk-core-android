@@ -4,3 +4,5 @@ The following documents provide sample code snippets for using the public APIs p
 
 - [MobileCore](./MobileCore.md)
 - [Identity](./Identity.md)
+- [Lifecycle](./Lifecycle.md)
+- [Signal](./Signal.md)

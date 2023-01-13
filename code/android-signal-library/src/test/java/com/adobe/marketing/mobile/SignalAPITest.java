@@ -14,7 +14,7 @@ package com.adobe.marketing.mobile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import com.adobe.marketing.mobile.signal.SignalExtension;
+import com.adobe.marketing.mobile.signal.internal.SignalExtension;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;

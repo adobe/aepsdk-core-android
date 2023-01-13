@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.signal
+package com.adobe.marketing.mobile.signal.internal
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi

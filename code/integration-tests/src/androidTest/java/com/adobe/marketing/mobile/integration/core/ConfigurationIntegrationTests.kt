@@ -11,18 +11,16 @@
 
 package com.adobe.marketing.mobile.integration.core
 
-import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.SDKHelper
+import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.integration.MockNetworkResponse
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.signal.SignalExtension
 import java.net.HttpURLConnection
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -256,7 +254,7 @@ class ConfigurationIntegrationTests {
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        MobileCore.registerExtensions(listOf(SignalExtension::class.java)) {
+        MobileCore.registerExtensions(listOf(Signal.EXTENSION)) {
             initializationLatch.countDown()
         }
 

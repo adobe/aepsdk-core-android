@@ -17,10 +17,10 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SDKHelper
+import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.signal.SignalExtension
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.BeforeClass
@@ -69,7 +69,7 @@ class SignalExtensionIntegrationTests {
 
             MobileCore.setApplication(appContext)
             MobileCore.setLogLevel(LoggingMode.VERBOSE)
-            MobileCore.registerExtensions(listOf(SignalExtension::class.java)) {
+            MobileCore.registerExtensions(listOf(Signal.EXTENSION)) {
                 countDownLatch.countDown()
             }
             countDownLatch.await(100, TimeUnit.MILLISECONDS)

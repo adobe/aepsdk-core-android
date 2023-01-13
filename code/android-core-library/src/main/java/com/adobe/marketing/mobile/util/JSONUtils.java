@@ -21,10 +21,30 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/** Utility class for transforming json objects. */
+/** Utility class for JSON objects. */
 public final class JSONUtils {
 
     private JSONUtils() {}
+
+    /**
+     * Checks if the provided {@code JSONObject} is null or it has no element
+     *
+     * @param jsonObject the {@code JSONObject} to be verified
+     * @return true if null or empty, false otherwise
+     */
+    public static boolean isNullOrEmpty(@Nullable final JSONObject jsonObject) {
+        return jsonObject == null || jsonObject.length() == 0;
+    }
+
+    /**
+     * Checks if the provided {@code JSONArray} is null or it has no element
+     *
+     * @param jsonArray the {@code JSONArray} to be verified
+     * @return true if null or empty, false otherwise
+     */
+    public static boolean isNullOrEmpty(@Nullable final JSONArray jsonArray) {
+        return jsonArray == null || jsonArray.length() == 0;
+    }
 
     /**
      * Converts contents of a {@code JSONObject} into a {@code Map<String, Object>}

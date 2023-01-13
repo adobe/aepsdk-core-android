@@ -1031,8 +1031,16 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 }
 
 public final class com/adobe/marketing/mobile/util/JSONUtils {
+	public static fun isNullOrEmpty (Lorg/json/JSONArray;)Z
+	public static fun isNullOrEmpty (Lorg/json/JSONObject;)Z
 	public static fun toList (Lorg/json/JSONArray;)Ljava/util/List;
 	public static fun toMap (Lorg/json/JSONObject;)Ljava/util/Map;
+}
+
+public final class com/adobe/marketing/mobile/util/MapUtils {
+	public static fun isNullOrEmpty (Ljava/util/Map;)Z
+	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)V
+	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;)V
 }
 
 public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {

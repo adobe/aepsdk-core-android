@@ -16,12 +16,14 @@ If you cannot access the Mobile Install Instructions dialog box in the Data Coll
 
 1. Each extension needs to be added as a dependency to the mobile application project. The following examples will add the Mobile Core, Lifecycle, Identity, Signal and Profile extensions.
 
+> The following 2.x.x should be replaced with the latest version numbers.
+
 ```java
-implementation 'com.adobe.marketing.mobile:userprofile:2.0'
-implementation 'com.adobe.marketing.mobile:core:2.0'
-implementation 'com.adobe.marketing.mobile:identity:2.0'
-implementation 'com.adobe.marketing.mobile:signal:2.0'
-implementation 'com.adobe.marketing.mobile:lifecycle:2.0'
+implementation 'com.adobe.marketing.mobile:userprofile:2.x.x'
+implementation 'com.adobe.marketing.mobile:core:2.x.x'
+implementation 'com.adobe.marketing.mobile:identity:2.x.x'
+implementation 'com.adobe.marketing.mobile:signal:2.x.x'
+implementation 'com.adobe.marketing.mobile:lifecycle:2.x.x'
 ```
 
 2. Next you'll need to import SDK libraries into your project and register them for initialization. Extensions are registered with Mobile Core so that they can dispatch and listen for events.
@@ -30,7 +32,7 @@ implementation 'com.adobe.marketing.mobile:lifecycle:2.0'
 
 ```java
 public class MainApp extends Application {
-    private static final String APP_ID = "";
+    private static final String APP_ID = "YOUR_APP_ID";
 
     @Override
     public void onCreate() {
@@ -43,8 +45,8 @@ public class MainApp extends Application {
         List<Class<? extends Extension>> extensions = new ArrayList<>();
         extensions.add(Lifecycle.EXTENSION);
         extensions.add(Signal.EXTENSION);
-        extensions.add(UserProfile.EXTENSION);
         extensions.add(Identity.EXTENSION);
+        extensions.add(UserProfile.EXTENSION);
         MobileCore.registerExtensions(extensions, o -> {
             Log.d(LOG_TAG, "AEP Mobile SDK is initialized");
         });
@@ -63,7 +65,7 @@ class MyApp : Application() {
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         MobileCore.configureWithAppID("YOUR_APP_ID")
 
-        val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, UserProfile.EXTENSION)
+        val extensions = listOf(Lifecycle.EXTENSION, Signal.EXTENSION, Identity.EXTENSION, UserProfile.EXTENSION)
         MobileCore.registerExtensions(extensions) {
             Log.d(LOG_TAG, "AEP Mobile SDK is initialized")
         }
@@ -76,7 +78,7 @@ class MyApp : Application() {
 
 Lifecycle metrics is an optional, yet valuable feature provided by the Adobe Experience Platform SDK. It offers out-of-the-box, application lifecycle information about an app user. These metrics contain information on the app user's engagement lifecycle, such as device information, install or upgrade information, session start and pause times, and more.
 
-Withint the `Activity.onResume()` function, start Lifecycle data collection:
+Within the `Activity.onResume()` function, start Lifecycle data collection:
 
 ### Java
 
@@ -99,8 +101,8 @@ override fun onResume() {
 }
 ```
 
-Setting the application is only necessary on activities that are entry points for your application. However, setting the application on each Activity has no negative impact and ensures that the SDK always has the necessary reference to your application. As a result, you should call setApplication on each of your activities.
-You can use the onPause function to pause the lifecycle data collection:
+Setting the application is only necessary on activities that are entry points for your application. However, setting the application on each Activity has no negative impact and ensures that the SDK always has the necessary reference to your application. As a result, you should call `setApplication` on each of your activities.
+You can use the `onPause` function to pause the lifecycle data collection:
 To ensure accurate session and crash reporting, this call must be added to every Activity.
 
 ### Java

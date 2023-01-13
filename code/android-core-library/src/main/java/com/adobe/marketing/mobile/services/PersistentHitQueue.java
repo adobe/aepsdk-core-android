@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services;
 
+import androidx.annotation.VisibleForTesting;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,8 +26,7 @@ public class PersistentHitQueue extends HitQueuing {
     private final DataQueue queue;
     private final HitProcessing processor;
     private AtomicBoolean suspended = new AtomicBoolean(true);
-    private final ScheduledExecutorService scheduledExecutorService =
-            Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService scheduledExecutorService;
     private final AtomicBoolean isTaskScheduled = new AtomicBoolean(false);
 
     /**
@@ -38,6 +38,14 @@ public class PersistentHitQueue extends HitQueuing {
      */
     public PersistentHitQueue(final DataQueue queue, final HitProcessing processor)
             throws IllegalArgumentException {
+        this(queue, processor, Executors.newSingleThreadScheduledExecutor());
+    }
+
+    @VisibleForTesting
+    PersistentHitQueue(
+            final DataQueue queue,
+            final HitProcessing processor,
+            final ScheduledExecutorService executorService) {
         if (queue == null || processor == null) {
             throw new IllegalArgumentException(
                     "Null value is not allowed in PersistentHitQueue Constructor.");
@@ -45,6 +53,7 @@ public class PersistentHitQueue extends HitQueuing {
 
         this.queue = queue;
         this.processor = processor;
+        this.scheduledExecutorService = executorService;
     }
 
     @Override
@@ -79,6 +88,7 @@ public class PersistentHitQueue extends HitQueuing {
     public void close() {
         suspend();
         queue.close();
+        scheduledExecutorService.shutdown();
     }
 
     /**

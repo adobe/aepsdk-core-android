@@ -53,7 +53,7 @@ internal class ConfigurationExtension : Extension {
             "config.isinternalevent"
         internal const val DATASTORE_KEY = "AdobeMobile_ConfigState"
         internal const val RULES_CONFIG_URL = "rules.url"
-        internal const val CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS = 5L
+        internal const val CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS = 5000L
         internal const val CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS = "config.allIdentifiers"
         internal const val EVENT_STATE_OWNER = "stateowner"
         internal const val GLOBAL_CONFIG_PRIVACY = "global.privacy"

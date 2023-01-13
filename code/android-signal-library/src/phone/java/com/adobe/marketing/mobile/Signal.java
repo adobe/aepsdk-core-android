@@ -12,8 +12,8 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.signal.SignalConstants;
-import com.adobe.marketing.mobile.signal.SignalExtension;
+import com.adobe.marketing.mobile.signal.internal.SignalConstants;
+import com.adobe.marketing.mobile.signal.internal.SignalExtension;
 
 public class Signal {
 

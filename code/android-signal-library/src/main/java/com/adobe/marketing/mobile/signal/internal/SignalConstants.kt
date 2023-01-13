@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.signal
+package com.adobe.marketing.mobile.signal.internal
 
 internal object SignalConstants {
     const val EXTENSION_NAME = "com.adobe.module.signal"

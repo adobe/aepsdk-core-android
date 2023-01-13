@@ -12,7 +12,9 @@
 package com.adobe.marketing.mobile.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,6 +27,40 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 public class JSONUtilsTest {
+
+    @Test
+    public void testIsNullOrEmpty_withJSONObject_whenNull() {
+        assertTrue(JSONUtils.isNullOrEmpty((JSONObject) null));
+    }
+
+    @Test
+    public void testIsNullOrEmpty_withJSONObject_whenEmpty() {
+        assertTrue(JSONUtils.isNullOrEmpty(new JSONObject()));
+    }
+
+    @Test
+    public void testIsNullOrEmpty_withJSONObject_whenNonEmpty() throws JSONException {
+        JSONObject test = new JSONObject();
+        test.put("key", "value");
+        assertFalse(JSONUtils.isNullOrEmpty(test));
+    }
+
+    @Test
+    public void testIsNullOrEmpty_withJSONArray_whenNull() {
+        assertTrue(JSONUtils.isNullOrEmpty((JSONArray) null));
+    }
+
+    @Test
+    public void testIsNullOrEmpty_withJSONArray_whenEmpty() {
+        assertTrue(JSONUtils.isNullOrEmpty(new JSONArray()));
+    }
+
+    @Test
+    public void testIsNullOrEmpty_withJSONArray_whenNonEmpty() {
+        JSONArray test = new JSONArray();
+        test.put("test");
+        assertFalse(JSONUtils.isNullOrEmpty(test));
+    }
 
     @Test
     public void testToList_Null() throws JSONException {

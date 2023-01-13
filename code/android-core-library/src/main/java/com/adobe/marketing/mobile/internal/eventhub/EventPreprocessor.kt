@@ -9,11 +9,10 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile;
+package com.adobe.marketing.mobile.internal.eventhub
 
-import androidx.annotation.NonNull;
+import com.adobe.marketing.mobile.Event
 
-@FunctionalInterface
-public interface EventPreprocessor {
-    @NonNull Event process(@NonNull final Event event);
+fun interface EventPreprocessor {
+    fun process(event: Event): Event
 }

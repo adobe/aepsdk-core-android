@@ -14,7 +14,6 @@ package com.adobe.marketing.mobile.internal.eventhub
 import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
-import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
@@ -1903,7 +1902,8 @@ internal class EventHubTests {
         val event = Event.Builder("evt1", "type", "source").build()
         val processedEvent = Event.Builder("evt2", "processedtype", "processedsource").build()
 
-        val processor = object : EventPreprocessor {
+        val processor = object :
+            EventPreprocessor {
             override fun process(it: Event): Event {
                 if (it == event) {
                     return processedEvent
@@ -1941,7 +1941,8 @@ internal class EventHubTests {
         val processedEvent1 = Event.Builder("evt2", "processedtype", "processedsource").build()
         val processedEvent2 = Event.Builder("evt3", "processedtype2", "processedsource2").build()
 
-        val processor1 = object : EventPreprocessor {
+        val processor1 = object :
+            EventPreprocessor {
             override fun process(it: Event): Event {
                 if (it == event) {
                     return processedEvent1
@@ -1951,7 +1952,8 @@ internal class EventHubTests {
             }
         }
 
-        val processor2 = object : EventPreprocessor {
+        val processor2 = object :
+            EventPreprocessor {
             override fun process(it: Event): Event {
                 if (it == processedEvent1) {
                     return processedEvent2
@@ -1987,7 +1989,8 @@ internal class EventHubTests {
         val processedEvent1 = Event.Builder("evt1", "processedtype", "processedsource").build()
         val processedEvent2 = Event.Builder("evt2", "processedtype2", "processedsource2").build()
 
-        val processor = object : EventPreprocessor {
+        val processor = object :
+            EventPreprocessor {
             override fun process(it: Event): Event {
                 if (it == event) {
                     return processedEvent1

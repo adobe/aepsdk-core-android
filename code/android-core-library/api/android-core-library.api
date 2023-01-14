@@ -55,10 +55,6 @@ public abstract interface class com/adobe/marketing/mobile/EventHistoryResultHan
 	public abstract fun call (Ljava/lang/Object;)V
 }
 
-public abstract interface class com/adobe/marketing/mobile/EventPreprocessor {
-	public abstract fun process (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event;
-}
-
 public final class com/adobe/marketing/mobile/EventSource {
 	public static final field APPLICATION_CLOSE Ljava/lang/String;
 	public static final field APPLICATION_LAUNCH Ljava/lang/String;
@@ -170,7 +166,6 @@ public abstract interface class com/adobe/marketing/mobile/ExtensionEventListene
 }
 
 public class com/adobe/marketing/mobile/ExtensionHelper {
-	public fun <init> ()V
 	public static fun getFriendlyName (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;
 	public static fun getMetadata (Lcom/adobe/marketing/mobile/Extension;)Ljava/util/Map;
 	public static fun getName (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;

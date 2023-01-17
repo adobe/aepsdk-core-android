@@ -1989,7 +1989,6 @@ public final class IdentityExtension extends Extension {
 
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
-                .enableSSL(Defaults.DEFAULT_SSL)
                 .addPath("id")
                 .setServer(configSharedState.marketingCloudServer)
                 .addQueryParameters(queryParameters);
@@ -2034,7 +2033,6 @@ public final class IdentityExtension extends Extension {
 
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
-                .enableSSL(Defaults.DEFAULT_SSL)
                 .addPath(IdentityConstants.UrlKeys.PATH_OPTOUT)
                 .setServer(configSharedState.marketingCloudServer)
                 .addQueryParameters(queryParameters);

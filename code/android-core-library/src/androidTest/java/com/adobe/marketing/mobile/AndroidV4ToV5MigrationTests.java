@@ -85,6 +85,8 @@ public class AndroidV4ToV5MigrationTests {
             private static final String THIRD_PARTY_ID = "ADBMOBILE_TARGET_3RD_PARTY_ID";
             private static final String TNT_ID = "ADBMOBILE_TARGET_TNT_ID";
             private static final String LAST_TIMESTAMP = "ADBMOBILE_TARGET_LAST_TIMESTAMP";
+            private static final String SESSION_ID = "ADBMOBILE_TARGET_SESSION_ID";
+            private static final String EDGE_HOST = "ADBMOBILE_TARGET_EDGE_HOST";
             private static final String COOKIE_EXPIRES = "mboxPC_Expires";
             private static final String COOKIE_VALUE = "mboxPC_Value";
 
@@ -177,6 +179,8 @@ public class AndroidV4ToV5MigrationTests {
             private static final String DATASTORE_NAME = "ADOBEMOBILE_TARGET";
             private static final String THIRD_PARTY_ID = "THIRD_PARTY_ID";
             private static final String TNT_ID = "TNT_ID";
+            private static final String SESSION_ID = "SESSION_ID";
+            private static final String EDGE_HOST = "EDGE_HOST";
 
             private Target() {}
         }
@@ -342,6 +346,8 @@ public class AndroidV4ToV5MigrationTests {
         v4DataStoreEditor.putLong(V4.Target.LAST_TIMESTAMP, 123456);
         v4DataStoreEditor.putLong(V4.Target.COOKIE_EXPIRES, 123456);
         v4DataStoreEditor.putString(V4.Target.COOKIE_VALUE, "cookie");
+        v4DataStoreEditor.putString(V4.Target.SESSION_ID, "sessionid");
+        v4DataStoreEditor.putString(V4.Target.EDGE_HOST, "edgehost");
 
         // mock configuration data
         v4DataStoreEditor.putInt(V4.Configuration.GLOBAL_PRIVACY_KEY, 1); // OptOut
@@ -385,6 +391,8 @@ public class AndroidV4ToV5MigrationTests {
         assertFalse(v4DataStore.contains(V4.Target.LAST_TIMESTAMP));
         assertFalse(v4DataStore.contains(V4.Target.COOKIE_EXPIRES));
         assertFalse(v4DataStore.contains(V4.Target.COOKIE_VALUE));
+        assertFalse(v4DataStore.contains(V4.Target.SESSION_ID));
+        assertFalse(v4DataStore.contains(V4.Target.EDGE_HOST));
         assertFalse(v4DataStore.contains(V4.Acquisition.REFERRER_DATA));
         assertFalse(v4DataStore.contains(V4.Acquisition.DEFAULTS_KEY_REFERRER_UTM_SOURCE));
         assertFalse(v4DataStore.contains(V4.Acquisition.DEFAULTS_KEY_REFERRER_UTM_MEDIUM));
@@ -513,6 +521,8 @@ public class AndroidV4ToV5MigrationTests {
         // mock target data
         v4DataStoreEditor.putString(V4.Target.TNT_ID, "tntid");
         v4DataStoreEditor.putString(V4.Target.THIRD_PARTY_ID, "3rdpartyid");
+        v4DataStoreEditor.putString(V4.Target.SESSION_ID, "sessionid");
+        v4DataStoreEditor.putString(V4.Target.EDGE_HOST, "edgehost");
 
         // mock configuration data
         v4DataStoreEditor.putInt(V4.Configuration.GLOBAL_PRIVACY_KEY, 1); // OptOut
@@ -524,6 +534,8 @@ public class AndroidV4ToV5MigrationTests {
 
         // Target data should not get migrated or removed
         assertTrue(v4DataStore.contains(V4.Target.TNT_ID));
+        assertTrue(v4DataStore.contains(V4.Target.THIRD_PARTY_ID));
+        assertTrue(v4DataStore.contains(V4.Target.SESSION_ID));
         assertTrue(v4DataStore.contains(V4.Target.THIRD_PARTY_ID));
 
         // configuration data is migrated and removed

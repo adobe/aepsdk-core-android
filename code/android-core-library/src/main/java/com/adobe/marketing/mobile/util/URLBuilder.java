@@ -30,7 +30,7 @@ public class URLBuilder {
         }
     }
 
-    private boolean sslEnabled = false;
+    private boolean sslEnabled = true;
     private String path;
     private String server;
     private String query;

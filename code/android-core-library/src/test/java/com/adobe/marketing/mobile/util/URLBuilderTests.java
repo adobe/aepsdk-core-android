@@ -96,6 +96,12 @@ public class URLBuilderTests {
     }
 
     @Test
+    public void usingHttp_whenSSLIsDisabled() {
+        String url = new URLBuilder().setServer("server").addPath("path").addQuery("query").enableSSL(false).build();
+        Assert.assertEquals("http://server/path?query", url);
+    }
+
+    @Test
     public void encodePath_When_PathContainsSpecialCharacter() {
         String url = new URLBuilder().setServer("server").addPath(ascii).build();
         Assert.assertEquals(

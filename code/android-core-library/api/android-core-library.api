@@ -1100,6 +1100,7 @@ public class com/adobe/marketing/mobile/util/URLBuilder {
 	public fun addQueryParameter (Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
 	public fun addQueryParameters (Ljava/util/Map;)Lcom/adobe/marketing/mobile/util/URLBuilder;
 	public fun build ()Ljava/lang/String;
+	public fun enableSSL (Z)Lcom/adobe/marketing/mobile/util/URLBuilder;
 	public fun setServer (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
 }
 

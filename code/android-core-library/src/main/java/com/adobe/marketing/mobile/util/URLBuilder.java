@@ -30,6 +30,7 @@ public class URLBuilder {
         }
     }
 
+    private boolean sslEnabled = true;
     private String path;
     private String server;
     private String query;
@@ -39,6 +40,17 @@ public class URLBuilder {
         this.path = "";
         this.query = "";
         this.server = "";
+    }
+
+    /**
+     * set whether SSL is enabled
+     *
+     * @param sslEnabled the boolean flag to indicated whether SSL is enabled
+     * @return this
+     */
+    public URLBuilder enableSSL(final boolean sslEnabled) {
+        this.sslEnabled = sslEnabled;
+        return this;
     }
 
     /**
@@ -154,8 +166,12 @@ public class URLBuilder {
         boolean hasQuery = this.query != null && this.query.length() > 0;
         final String urlString =
                 String.format(
-                        "https://%s%s%s%s",
-                        this.server, this.path, hasQuery ? "?" : "", this.query);
+                        "%s://%s%s%s%s",
+                        this.sslEnabled ? "https" : "http",
+                        this.server,
+                        this.path,
+                        hasQuery ? "?" : "",
+                        this.query);
 
         try {
             new URL(urlString).toURI();

@@ -97,7 +97,13 @@ public class URLBuilderTests {
 
     @Test
     public void usingHttp_whenSSLIsDisabled() {
-        String url = new URLBuilder().setServer("server").addPath("path").addQuery("query").enableSSL(false).build();
+        String url =
+                new URLBuilder()
+                        .setServer("server")
+                        .addPath("path")
+                        .addQuery("query")
+                        .enableSSL(false)
+                        .build();
         Assert.assertEquals("http://server/path?query", url);
     }
 

@@ -30,7 +30,7 @@ public class TestApp extends Application {
 		super.onCreate();
 		MobileCore.setApplication(this);
 		MobileCore.setLogLevel(com.adobe.marketing.mobile.LoggingMode.VERBOSE);
-		MobileCore.configureWithAppID("YOUR_APP_ID");
+		// MobileCore.configureWithAppID("YOUR_APP_ID")
 
 		List<Class<? extends Extension>> extensions = Arrays.asList(
 				Identity.EXTENSION,

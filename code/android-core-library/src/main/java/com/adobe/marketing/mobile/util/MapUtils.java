@@ -11,8 +11,9 @@
 
 package com.adobe.marketing.mobile.util;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import java.util.Collection;
 import java.util.Map;
 
 /** Utility class for Maps */
@@ -26,46 +27,40 @@ public final class MapUtils {
      * @param map the {@code map} to be verified
      * @return true if null or empty, false otherwise
      */
-    public static boolean isNullOrEmpty(@Nullable final Map<String, Object> map) {
+    public static boolean isNullOrEmpty(@Nullable final Map<?, ?> map) {
         return map == null || map.isEmpty();
     }
 
     /**
-     * Adds {@code key}/{@code values} to {@code map} if {@code values} is not null or an empty
-     * collection.
+     * Adds {@code key}/{@code values} to {@code map} if {@code value} is not null or an empty string,
+     * map or collection.
      *
      * @param map collection to put {@code values} mapped to {@code key} if {@code values} is
      *     non-null and contains at least one entry
-     * @param key key used to map {@code values} in {@code map}
-     * @param values a map to add to {@code map} if not null or empty
-     */
-    public static void putIfNotEmpty(
-            @NonNull final Map<String, Object> map,
-            @Nullable final String key,
-            @Nullable final Map<String, Object> values) {
-        boolean addValues = map != null && key != null && !isNullOrEmpty(values);
-
-        if (addValues) {
-            map.put(key, values);
-        }
-    }
-
-    /**
-     * Adds {@code key}/{@code value} to {@code map} if {@code value} is not null or empty.
-     *
-     * @param map collection to put {@code value} mapped to {@code key} if {@code value} is non-null
-     *     and not empty
      * @param key key used to map {@code value} in {@code map}
-     * @param value a String to add to {@code map} if not null or empty
+     * @param value an object to add to {@code map} if not null or empty
      */
     public static void putIfNotEmpty(
-            @NonNull final Map<String, Object> map,
+            @Nullable final Map<String, Object> map,
             @Nullable final String key,
-            @Nullable final String value) {
-        boolean addValues = map != null && key != null && !StringUtils.isNullOrEmpty(value);
+            @Nullable final Object value) {
 
-        if (addValues) {
+        if (map == null || key == null || value == null) {
+            return;
+        }
+
+        boolean isEmpty = false;
+        if (value instanceof String) {
+            isEmpty = ((String) value).isEmpty();
+        } else if (value instanceof Map<?, ?>) {
+            isEmpty = ((Map<?, ?>) value).isEmpty();
+        } else if (value instanceof Collection<?>) {
+            isEmpty = ((Collection<?>) value).isEmpty();
+        }
+
+        if (!isEmpty) {
             map.put(key, value);
         }
     }
+
 }

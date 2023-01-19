@@ -45,10 +45,8 @@ implementation 'com.adobe.marketing.mobile:lifecycle:2.x.x'
 | Project                                                      | Description                                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | [AEP SDK Sample App for Android](https://github.com/adobe/aepsdk-sample-app-android) | Contains Android sample app for the AEP SDK. |
-| [AEP Edge SDK for Android](https://github.com/adobe/aepsdk-edge-android) | Provides support to the Experience Platform Edge for the AEP SDK.
- |
- | [AEP Assurance SDK for Android](https://github.com/adobe/aepsdk-assurance-android) |  Provides support to inspect and validate AEP SDK by integrating with Adobe Experience Platform Assurance. 
- |
+| [AEP Edge SDK for Android](https://github.com/adobe/aepsdk-edge-android) | Provides support to the Experience Platform Edge for the AEP SDK.|
+ | [AEP Assurance SDK for Android](https://github.com/adobe/aepsdk-assurance-android) |  Provides support to inspect and validate AEP SDK by integrating with Adobe Experience Platform Assurance. |
 
 ## Documentation
 

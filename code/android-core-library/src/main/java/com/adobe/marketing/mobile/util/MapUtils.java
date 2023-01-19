@@ -31,7 +31,7 @@ public final class MapUtils {
     }
 
     /**
-     * Adds {@code key}/{@code values} to {@code map} if {@code value} is not null or an empty
+     * Adds {@code key}/{@code value} to {@code map} if {@code value} is not null or an empty
      * string, map or collection.
      *
      * @param map collection to put {@code values} mapped to {@code key} if {@code values} is
@@ -48,16 +48,16 @@ public final class MapUtils {
             return;
         }
 
-        boolean isEmpty = false;
+        boolean isValueEmpty = false;
         if (value instanceof String) {
-            isEmpty = ((String) value).isEmpty();
+            isValueEmpty = ((String) value).isEmpty();
         } else if (value instanceof Map<?, ?>) {
-            isEmpty = ((Map<?, ?>) value).isEmpty();
+            isValueEmpty = ((Map<?, ?>) value).isEmpty();
         } else if (value instanceof Collection<?>) {
-            isEmpty = ((Collection<?>) value).isEmpty();
+            isValueEmpty = ((Collection<?>) value).isEmpty();
         }
 
-        if (!isEmpty) {
+        if (!isValueEmpty) {
             map.put(key, value);
         }
     }

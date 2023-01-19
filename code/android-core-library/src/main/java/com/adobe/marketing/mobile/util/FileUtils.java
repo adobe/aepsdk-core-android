@@ -19,34 +19,35 @@ import java.io.File;
 public class FileUtils {
     private static final String LOG_SOURCE = "FileUtils";
 
+    private FileUtils() {}
+
+    /** @param fileName the file name to be deleted */
+
     /**
      * Deletes a file in the Application's cache folder.
      *
      * @param fileName the file name to be deleted
+     * @return true, if the file is successfully deleted or the file not exists; false otherwise
      */
-    public static void deleteFileFromCacheDir(final String fileName) {
+    public static boolean deleteFileFromCacheDir(final String fileName) {
         try {
             final File cacheDir =
                     ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
             if (cacheDir == null || StringUtils.isNullOrEmpty(fileName)) {
-                return;
+                return false;
             }
             final File filePath = new File(cacheDir, fileName);
             if (filePath.exists()) {
-                if (!filePath.delete()) {
-                    Log.error(
-                            CoreConstants.LOG_TAG,
-                            LOG_SOURCE,
-                            "Failed to delete (%s) in cache folder.",
-                            fileName);
-                }
+                return filePath.delete();
             }
+            return true;
         } catch (Exception e) {
-            Log.error(
+            Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_SOURCE,
                     "Failed to delete (%s) in cache folder.",
                     fileName);
+            return false;
         }
     }
 }

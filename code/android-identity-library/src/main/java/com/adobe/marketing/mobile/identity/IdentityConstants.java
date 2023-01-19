@@ -19,7 +19,7 @@ final class IdentityConstants {
     static final String LOG_TAG = "Identity";
     static final String FRIENDLY_NAME = "Identity";
     static final String EXTENSION_NAME = "com.adobe.module.identity";
-    static final String DEPRECATED_V5_HIT_DATABASE_FILENAME = "ADBMobileIdentity.sqlite";
+    static final String DEPRECATED_1X_HIT_DATABASE_FILENAME = "ADBMobileIdentity.sqlite";
 
     static final String ANALYTICS_FOR_IDENTITY_REQUEST_EVENT_NAME = "AnalyticsForIdentityRequest";
 

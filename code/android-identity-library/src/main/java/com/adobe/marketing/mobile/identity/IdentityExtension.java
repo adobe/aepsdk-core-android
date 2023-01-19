@@ -285,7 +285,7 @@ public final class IdentityExtension extends Extension {
 
     /** Delete the deprecated V5 hit database file if exists */
     private void deleteDeprecatedV5HitDatabase() {
-        FileUtils.deleteFileFromCacheDir(IdentityConstants.DEPRECATED_V5_HIT_DATABASE_FILENAME);
+        FileUtils.deleteFileFromCacheDir(IdentityConstants.DEPRECATED_1X_HIT_DATABASE_FILENAME);
     }
 
     /**

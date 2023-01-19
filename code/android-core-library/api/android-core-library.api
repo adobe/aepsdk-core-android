@@ -1026,8 +1026,7 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 }
 
 public class com/adobe/marketing/mobile/util/FileUtils {
-	public fun <init> ()V
-	public static fun deleteFileFromCacheDir (Ljava/lang/String;)V
+	public static fun deleteFileFromCacheDir (Ljava/lang/String;)Z
 }
 
 public final class com/adobe/marketing/mobile/util/JSONUtils {

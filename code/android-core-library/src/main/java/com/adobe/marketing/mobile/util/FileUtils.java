@@ -27,7 +27,7 @@ public class FileUtils {
     public static void deleteFileFromCacheDir(final String fileName) {
         final File cacheDir =
                 ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-        if (cacheDir == null) {
+        if (cacheDir == null || StringUtils.isNullOrEmpty(fileName)) {
             return;
         }
         final File filePath = new File(cacheDir, fileName);

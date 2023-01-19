@@ -24,19 +24,20 @@ public class FileUtils {
      *
      * @param fileName the file name to be deleted
      */
-    public static void deleteFileFromCacheDir(String fileName) {
+    public static void deleteFileFromCacheDir(final String fileName) {
         final File cacheDir =
                 ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
-        if (cacheDir != null) {
-            final File filePath = new File(cacheDir, fileName);
-            if (filePath.exists()) {
-                if (!filePath.delete()) {
-                    Log.error(
-                            CoreConstants.LOG_TAG,
-                            LOG_SOURCE,
-                            "Failed to delete (%s) in cache folder.",
-                            fileName);
-                }
+        if (cacheDir == null) {
+            return;
+        }
+        final File filePath = new File(cacheDir, fileName);
+        if (filePath.exists()) {
+            if (!filePath.delete()) {
+                Log.error(
+                        CoreConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "Failed to delete (%s) in cache folder.",
+                        fileName);
             }
         }
     }

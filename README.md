@@ -36,9 +36,9 @@ implementation 'com.adobe.marketing.mobile:lifecycle:2.x.x'
 
 ## Development
 
-*** Open the project *** To open and run the project, open the `code/build.gradle` file in Android Studio
+***Open the project*** To open and run the project, open the `code/build.gradle` file in Android Studio
 
-*** Run demo application *** Once you open the project in Android Studio (see above), select the `testapp` or `testapp-kotlin` runnable and your favorite emulator and run the program.
+***Run demo application*** Once you open the project in Android Studio (see above), select the `testapp` or `testapp-kotlin` runnable and your favorite emulator and run the program.
 
 ## Related Projects
 

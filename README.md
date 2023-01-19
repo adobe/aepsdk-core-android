@@ -17,11 +17,15 @@ The `MobileCore` and `Identity` extensions represent the foundation of the Adobe
 
 `Lifecycle` represents the Adobe Experience Platform SDK's `Lifecycle` extension that helps collect application Lifecycle metrics, such as application install or upgrade information, application launch and session information, device information, and any additional context data provided by the application developer. 
 
+## Requirements
+
+- Android API 19 (Kitkat) and newer.
+
 ## Installing the AEP SDK for Android
 
-The AEP SDK supports Android API 19 (Kitkat) and newer.
-
 Installation via [Maven](https://maven.apache.org/) & [Gradle](https://gradle.org/) is the easiest and recommended way to get the AEP SDK into your Android app.  In your `build.gradle` file, include the latest version of following dependencies:
+
+> The following 2.x.x should be replaced with the latest version numbers.
 
 ```gradle
 implementation 'com.adobe.marketing.mobile:core:2.x.x'
@@ -32,7 +36,19 @@ implementation 'com.adobe.marketing.mobile:lifecycle:2.x.x'
 
 ## Development
 
-To open and run the project, open the `code/build.gradle` file in Android Studio
+*** Open the project *** To open and run the project, open the `code/build.gradle` file in Android Studio
+
+*** Run demo application *** Once you open the project in Android Studio (see above), select the `testapp` or `testapp-kotlin` runnable and your favorite emulator and run the program.
+
+## Related Projects
+
+| Project                                                      | Description                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [AEP SDK Sample App for Android](https://github.com/adobe/aepsdk-sample-app-android) | Contains Android sample app for the AEP SDK. |
+| [AEP Edge SDK for Android](https://github.com/adobe/aepsdk-edge-android) | Provides support to the Experience Platform Edge for the AEP SDK.
+ |
+ | [AEP Assurance SDK for Android](https://github.com/adobe/aepsdk-assurance-android) |  Provides support to inspect and validate AEP SDK by integrating with Adobe Experience Platform Assurance. 
+ |
 
 ## Documentation
 

@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.util;
 
 import androidx.annotation.Nullable;
-
 import java.util.Collection;
 import java.util.Map;
 
@@ -32,8 +31,8 @@ public final class MapUtils {
     }
 
     /**
-     * Adds {@code key}/{@code values} to {@code map} if {@code value} is not null or an empty string,
-     * map or collection.
+     * Adds {@code key}/{@code values} to {@code map} if {@code value} is not null or an empty
+     * string, map or collection.
      *
      * @param map collection to put {@code values} mapped to {@code key} if {@code values} is
      *     non-null and contains at least one entry
@@ -62,5 +61,4 @@ public final class MapUtils {
             map.put(key, value);
         }
     }
-
 }

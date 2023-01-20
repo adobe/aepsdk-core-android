@@ -21,13 +21,11 @@ public class FileUtils {
 
     private FileUtils() {}
 
-    /** @param fileName the file name to be deleted */
-
     /**
      * Deletes a file in the Application's cache folder.
      *
      * @param fileName the file name to be deleted
-     * @return true, if the file is successfully deleted or the file not exists; false otherwise
+     * @return true, if the file is successfully deleted; false otherwise
      */
     public static boolean deleteFileFromCacheDir(final String fileName) {
         try {
@@ -40,7 +38,7 @@ public class FileUtils {
             if (filePath.exists()) {
                 return filePath.delete();
             }
-            return true;
+            return false;
         } catch (Exception e) {
             Log.debug(
                     CoreConstants.LOG_TAG,

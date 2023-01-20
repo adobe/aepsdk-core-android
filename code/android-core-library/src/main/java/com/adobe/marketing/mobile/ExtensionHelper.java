@@ -18,6 +18,8 @@ import java.util.Map;
 /** Helper methods to access protected Extension methods from different packages */
 public class ExtensionHelper {
 
+    private ExtensionHelper() {}
+
     public static @Nullable String getName(@NonNull final Extension extension) {
         try {
             return extension.getName();

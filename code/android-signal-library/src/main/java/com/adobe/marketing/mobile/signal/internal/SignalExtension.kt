@@ -26,6 +26,7 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.DataReader
+import com.adobe.marketing.mobile.util.FileUtils
 
 class SignalExtension : Extension {
     private val hitQueue: HitQueuing
@@ -52,6 +53,11 @@ class SignalExtension : Extension {
         api.registerEventListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT) {
             handleConfigurationResponse(it)
         }
+        deleteDeprecatedV5HitDatabase()
+    }
+
+    private fun deleteDeprecatedV5HitDatabase() {
+        FileUtils.deleteFileFromCacheDir(SignalConstants.DEPRECATED_1X_HIT_DATABASE_FILENAME)
     }
 
     override fun getName(): String {

@@ -45,7 +45,6 @@ public class RulesEngine<T extends Rule> {
 
     public void replaceRules(final List<T> newRules) {
         synchronized (rulesEngineMutex) {
-            rules.clear();
             rules = newRules;
         }
     }

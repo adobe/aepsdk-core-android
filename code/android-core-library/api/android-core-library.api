@@ -55,10 +55,6 @@ public abstract interface class com/adobe/marketing/mobile/EventHistoryResultHan
 	public abstract fun call (Ljava/lang/Object;)V
 }
 
-public abstract interface class com/adobe/marketing/mobile/EventPreprocessor {
-	public abstract fun process (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event;
-}
-
 public final class com/adobe/marketing/mobile/EventSource {
 	public static final field APPLICATION_CLOSE Ljava/lang/String;
 	public static final field APPLICATION_LAUNCH Ljava/lang/String;
@@ -170,7 +166,6 @@ public abstract interface class com/adobe/marketing/mobile/ExtensionEventListene
 }
 
 public class com/adobe/marketing/mobile/ExtensionHelper {
-	public fun <init> ()V
 	public static fun getFriendlyName (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;
 	public static fun getMetadata (Lcom/adobe/marketing/mobile/Extension;)Ljava/util/Map;
 	public static fun getName (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;
@@ -1030,6 +1025,10 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 	public static fun immutableClone (Ljava/util/Map;)Ljava/util/Map;
 }
 
+public class com/adobe/marketing/mobile/util/FileUtils {
+	public static fun deleteFileFromCacheDir (Ljava/lang/String;)Z
+}
+
 public final class com/adobe/marketing/mobile/util/JSONUtils {
 	public static fun isNullOrEmpty (Lorg/json/JSONArray;)Z
 	public static fun isNullOrEmpty (Lorg/json/JSONObject;)Z
@@ -1039,8 +1038,7 @@ public final class com/adobe/marketing/mobile/util/JSONUtils {
 
 public final class com/adobe/marketing/mobile/util/MapUtils {
 	public static fun isNullOrEmpty (Ljava/util/Map;)Z
-	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)V
-	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;)V
+	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/lang/Object;)V
 }
 
 public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {

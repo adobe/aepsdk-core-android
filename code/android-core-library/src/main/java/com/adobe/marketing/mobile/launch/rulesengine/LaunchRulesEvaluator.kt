@@ -13,10 +13,10 @@ package com.adobe.marketing.mobile.launch.rulesengine
 
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
-import com.adobe.marketing.mobile.EventPreprocessor
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.internal.eventhub.EventPreprocessor
 
 internal class LaunchRulesEvaluator(
     private val name: String,

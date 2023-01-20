@@ -16,6 +16,7 @@ internal object SignalConstants {
     const val FRIENDLY_NAME = "Signal"
     const val LOG_TAG = "Signal"
     const val DEFAULT_NETWORK_TIMEOUT = 2
+    const val DEPRECATED_1X_HIT_DATABASE_FILENAME = "ADBMobileSignalDataCache.sqlite"
 
     const val NETWORK_REQUEST_HEATER_CONTENT_TYPE = "Content-Type"
     val RECOVERABLE_ERROR_CODES = intArrayOf(408, 504, 503)

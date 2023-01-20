@@ -38,6 +38,7 @@ import com.adobe.marketing.mobile.services.Networking;
 import com.adobe.marketing.mobile.services.PersistentHitQueue;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.FileUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.TimeUtils;
 import com.adobe.marketing.mobile.util.URLBuilder;
@@ -275,10 +276,16 @@ public final class IdentityExtension extends Extension {
 
     private void boot() {
         loadVariablesFromPersistentData();
+        deleteDeprecatedV5HitDatabase();
         initializeHitQueueDatabase();
         if (!StringUtils.isNullOrEmpty(mid)) {
             getApi().createSharedState(packageEventData(), null);
         }
+    }
+
+    /** Delete the deprecated V5 hit database file if exists */
+    private void deleteDeprecatedV5HitDatabase() {
+        FileUtils.deleteFileFromCacheDir(IdentityConstants.DEPRECATED_1X_HIT_DATABASE_FILENAME);
     }
 
     /**
@@ -1989,7 +1996,6 @@ public final class IdentityExtension extends Extension {
 
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
-                .enableSSL(Defaults.DEFAULT_SSL)
                 .addPath("id")
                 .setServer(configSharedState.marketingCloudServer)
                 .addQueryParameters(queryParameters);
@@ -2034,7 +2040,6 @@ public final class IdentityExtension extends Extension {
 
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
-                .enableSSL(Defaults.DEFAULT_SSL)
                 .addPath(IdentityConstants.UrlKeys.PATH_OPTOUT)
                 .setServer(configSharedState.marketingCloudServer)
                 .addQueryParameters(queryParameters);

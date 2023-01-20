@@ -17,6 +17,7 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionEventListener
 import com.adobe.marketing.mobile.ExtensionHelper
 import com.adobe.marketing.mobile.services.PersistentHitQueue
+import com.adobe.marketing.mobile.util.FileUtils
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -25,6 +26,7 @@ import org.junit.BeforeClass
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
 import org.mockito.Mockito.doNothing
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockConstruction
@@ -78,6 +80,24 @@ class SignalExtensionProtectedMethodsTests {
         assertEquals("com.adobe.eventSource.responseContent", eventSourceCaptor.allValues[1])
         assertNotNull(listenerCaptor.allValues[0])
         assertNotNull(listenerCaptor.allValues[1])
+    }
+
+    @Test
+    fun `onRegister() - should delete deprecated hit database file`() {
+        Mockito.mockStatic(FileUtils::class.java).use { fileUtilsMockedStatic ->
+            val fileNameClassCaptor =
+                ArgumentCaptor.forClass(
+                    String::class.java
+                )
+            fileUtilsMockedStatic
+                .`when`<Any> {
+                    FileUtils.deleteFileFromCacheDir(fileNameClassCaptor.capture())
+                }
+                .thenReturn(true)
+            ExtensionHelper.notifyRegistered(signalExtension)
+
+            assertEquals("ADBMobileSignalDataCache.sqlite", fileNameClassCaptor.value)
+        }
     }
 
     @Test

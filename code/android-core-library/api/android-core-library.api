@@ -1034,8 +1034,7 @@ public final class com/adobe/marketing/mobile/util/JSONUtils {
 
 public final class com/adobe/marketing/mobile/util/MapUtils {
 	public static fun isNullOrEmpty (Ljava/util/Map;)Z
-	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)V
-	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;)V
+	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/lang/Object;)V
 }
 
 public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {

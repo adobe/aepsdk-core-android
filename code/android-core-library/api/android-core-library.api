@@ -1025,6 +1025,10 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 	public static fun immutableClone (Ljava/util/Map;)Ljava/util/Map;
 }
 
+public class com/adobe/marketing/mobile/util/FileUtils {
+	public static fun deleteFileFromCacheDir (Ljava/lang/String;)Z
+}
+
 public final class com/adobe/marketing/mobile/util/JSONUtils {
 	public static fun isNullOrEmpty (Lorg/json/JSONArray;)Z
 	public static fun isNullOrEmpty (Lorg/json/JSONObject;)Z

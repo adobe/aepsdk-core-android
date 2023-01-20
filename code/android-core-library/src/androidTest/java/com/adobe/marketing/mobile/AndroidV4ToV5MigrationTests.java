@@ -536,7 +536,7 @@ public class AndroidV4ToV5MigrationTests {
         assertTrue(v4DataStore.contains(V4.Target.TNT_ID));
         assertTrue(v4DataStore.contains(V4.Target.THIRD_PARTY_ID));
         assertTrue(v4DataStore.contains(V4.Target.SESSION_ID));
-        assertTrue(v4DataStore.contains(V4.Target.THIRD_PARTY_ID));
+        assertTrue(v4DataStore.contains(V4.Target.EDGE_HOST));
 
         // configuration data is migrated and removed
         assertFalse(v4DataStore.contains(V4.Configuration.GLOBAL_PRIVACY_KEY));
@@ -560,6 +560,8 @@ public class AndroidV4ToV5MigrationTests {
                         .getNamedCollection(V5.Target.DATASTORE_NAME);
         assertFalse(v5Target.contains(V5.Target.TNT_ID));
         assertFalse(v5Target.contains(V5.Target.THIRD_PARTY_ID));
+        assertFalse(v5Target.contains(V5.Target.SESSION_ID));
+        assertFalse(v5Target.contains(V5.Target.EDGE_HOST));
     }
 
     @Test

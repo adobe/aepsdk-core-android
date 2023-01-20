@@ -56,13 +56,13 @@ public class FileUtilsTests {
     }
 
     @Test
-    public void testFillNameIsNull() {
+    public void testFileNameIsNull() {
         boolean result = FileUtils.deleteFileFromCacheDir(null);
         assertFalse(result);
     }
 
     @Test
-    public void testFillNameIsEmpty() {
+    public void testFileNameIsEmpty() {
         boolean result = FileUtils.deleteFileFromCacheDir("");
         assertFalse(result);
     }

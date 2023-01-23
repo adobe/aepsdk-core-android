@@ -77,6 +77,8 @@ class V4ToV5Migration {
             private static final String THIRD_PARTY_ID = "ADBMOBILE_TARGET_3RD_PARTY_ID";
             private static final String TNT_ID = "ADBMOBILE_TARGET_TNT_ID";
             private static final String LAST_TIMESTAMP = "ADBMOBILE_TARGET_LAST_TIMESTAMP";
+            private static final String SESSION_ID = "ADBMOBILE_TARGET_SESSION_ID";
+            private static final String EDGE_HOST = "ADBMOBILE_TARGET_EDGE_HOST";
             private static final String COOKIE_EXPIRES = "mboxPC_Expires";
             private static final String COOKIE_VALUE = "mboxPC_Value";
 
@@ -169,6 +171,8 @@ class V4ToV5Migration {
             private static final String DATASTORE_NAME = "ADOBEMOBILE_TARGET";
             private static final String THIRD_PARTY_ID = "THIRD_PARTY_ID";
             private static final String TNT_ID = "TNT_ID";
+            private static final String SESSION_ID = "SESSION_ID";
+            private static final String EDGE_HOST = "EDGE_HOST";
 
             private Target() {}
         }
@@ -462,8 +466,14 @@ class V4ToV5Migration {
                 V5.Target.TNT_ID, v4DataStore.getString(V4.Target.TNT_ID, null));
         targetV5DataStore.setString(
                 V5.Target.THIRD_PARTY_ID, v4DataStore.getString(V4.Target.THIRD_PARTY_ID, null));
+        targetV5DataStore.setString(
+                V5.Target.SESSION_ID, v4DataStore.getString(V4.Target.SESSION_ID, null));
+        targetV5DataStore.setString(
+                V5.Target.EDGE_HOST, v4DataStore.getString(V4.Target.EDGE_HOST, null));
         v4DataStoreEditor.remove(V4.Target.TNT_ID);
         v4DataStoreEditor.remove(V4.Target.THIRD_PARTY_ID);
+        v4DataStoreEditor.remove(V4.Target.SESSION_ID);
+        v4DataStoreEditor.remove(V4.Target.EDGE_HOST);
         v4DataStoreEditor.remove(V4.Target.LAST_TIMESTAMP);
         v4DataStoreEditor.remove(V4.Target.COOKIE_EXPIRES);
         v4DataStoreEditor.remove(V4.Target.COOKIE_VALUE);

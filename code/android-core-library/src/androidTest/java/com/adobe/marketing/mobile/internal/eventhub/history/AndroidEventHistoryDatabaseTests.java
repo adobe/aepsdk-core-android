@@ -35,7 +35,7 @@ import org.junit.runner.RunWith;
 public class AndroidEventHistoryDatabaseTests {
 
     private static final String DATABASE_NAME = "com.adobe.module.core.eventhistory";
-    private static final String DATABASE_NAME_1X = "com.adobe.marketing.db.eventhistory";
+    private static final String DATABASE_NAME_1X = "EventHistory";
     private static final String TABLE_NAME = "Events";
     private static final String COLUMN_HASH = "eventHash";
     private static final String COLUMN_TIMESTAMP = "timestamp";

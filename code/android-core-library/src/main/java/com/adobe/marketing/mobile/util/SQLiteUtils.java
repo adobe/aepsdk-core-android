@@ -18,9 +18,16 @@ import com.adobe.marketing.mobile.services.ServiceProvider;
 import java.io.File;
 
 public class SQLiteUtils {
+    private SQLiteUtils() {}
 
     private static final String LOG_SOURCE = "SQLiteUtils";
 
+    /**
+     * Deletes the database files in the Application's cache folder.
+     *
+     * @param fileName the file name to be deleted
+     * @return true, if the file is successfully deleted; false otherwise
+     */
     public static boolean deleteDBFromCacheDir(final String fileName) {
         try {
             final File cacheDir =
@@ -29,10 +36,7 @@ public class SQLiteUtils {
                 return false;
             }
             final File databaseFile = new File(cacheDir, fileName);
-            if (databaseFile.exists()) {
-                return SQLiteDatabase.deleteDatabase(databaseFile);
-            }
-            return false;
+            return SQLiteDatabase.deleteDatabase(databaseFile);
         } catch (Exception e) {
             Log.debug(
                     CoreConstants.LOG_TAG,

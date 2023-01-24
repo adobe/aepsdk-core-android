@@ -1041,6 +1041,11 @@ public final class com/adobe/marketing/mobile/util/MapUtils {
 	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/lang/Object;)V
 }
 
+public class com/adobe/marketing/mobile/util/SQLiteUtils {
+	public fun <init> ()V
+	public static fun deleteDBFromCacheDir (Ljava/lang/String;)Z
+}
+
 public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
 	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$WorkHandler;)V
 	protected fun canWork ()Z

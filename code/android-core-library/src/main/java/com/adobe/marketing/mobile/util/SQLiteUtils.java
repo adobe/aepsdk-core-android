@@ -11,34 +11,32 @@
 
 package com.adobe.marketing.mobile.util;
 
+import android.database.sqlite.SQLiteDatabase;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import java.io.File;
 
-public class FileUtils {
-    private static final String LOG_SOURCE = "FileUtils";
+public class SQLiteUtils {
+    private SQLiteUtils() {}
 
-    private FileUtils() {}
+    private static final String LOG_SOURCE = "SQLiteUtils";
 
     /**
-     * Deletes a file in the Application's cache folder.
+     * Deletes the database files in the Application's cache folder.
      *
      * @param fileName the file name to be deleted
      * @return true, if the file is successfully deleted; false otherwise
      */
-    public static boolean deleteFileFromCacheDir(final String fileName) {
+    public static boolean deleteDBFromCacheDir(final String fileName) {
         try {
             final File cacheDir =
                     ServiceProvider.getInstance().getDeviceInfoService().getApplicationCacheDir();
             if (cacheDir == null || StringUtils.isNullOrEmpty(fileName)) {
                 return false;
             }
-            final File filePath = new File(cacheDir, fileName);
-            if (filePath.exists()) {
-                return filePath.delete();
-            }
-            return false;
+            final File databaseFile = new File(cacheDir, fileName);
+            return SQLiteDatabase.deleteDatabase(databaseFile);
         } catch (Exception e) {
             Log.debug(
                     CoreConstants.LOG_TAG,

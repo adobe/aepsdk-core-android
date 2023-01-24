@@ -26,7 +26,7 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.DataReader
-import com.adobe.marketing.mobile.util.FileUtils
+import com.adobe.marketing.mobile.util.SQLiteUtils
 
 class SignalExtension : Extension {
     private val hitQueue: HitQueuing
@@ -57,7 +57,7 @@ class SignalExtension : Extension {
     }
 
     private fun deleteDeprecatedV5HitDatabase() {
-        FileUtils.deleteFileFromCacheDir(SignalConstants.DEPRECATED_1X_HIT_DATABASE_FILENAME)
+        SQLiteUtils.deleteDBFromCacheDir(SignalConstants.DEPRECATED_1X_HIT_DATABASE_FILENAME)
     }
 
     override fun getName(): String {

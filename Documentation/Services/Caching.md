@@ -30,4 +30,4 @@ ServiceProvider.getInstance().cacheService.set("cache_name", "key", cacheEntry)
 
 ## APIs
 
-For a full list of APIs provided by the `CacheService`, see [CacheService.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/caching/CacheService.java).
+For a full list of APIs provided by the `CacheService`, see [CacheService.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/caching/CacheService.java).

@@ -40,8 +40,8 @@ dataqueue.add(dataEntity)
 
 ## APIs
 
-For a full list of APIs provided by the `DataQueuing` service, see [`DataQueue.java`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/DataQueue.java).
+For a full list of APIs provided by the `DataQueuing` service, see [`DataQueue.java`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/DataQueue.java).
 
 ## Further Reading
 
-Additional types such as [`DataQueue`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/DataQueue.java), [`DataEntity`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/DataEntity.java), and [`PersistentHitQueue`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/PersistentHitQueue.java) are useful when using the `DataQueuing` service.
+Additional types such as [`DataQueue`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/DataQueue.java), [`DataEntity`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/DataEntity.java), and [`PersistentHitQueue`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/PersistentHitQueue.java) are useful when using the `DataQueuing` service.

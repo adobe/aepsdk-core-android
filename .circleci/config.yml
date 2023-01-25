@@ -64,48 +64,48 @@ jobs:
           command: make core-unit-test-coverage
 
       - store_test_results:
-          path: code/android-core-library/build/test-results/testPhoneDebugUnitTest
+          path: code/core/build/test-results/testPhoneDebugUnitTest
 
       - run:
           name: Upload Core unit test coverage
           command: |            
-            bash ./codecov -v -X s3 -c -D "./code/android-core-library/build/reports/coverage/test/phone/debug" -F unit-tests
+            bash ./codecov -v -X s3 -c -D "./code/core/build/reports/coverage/test/phone/debug" -F unit-tests
 
       - run:
           name: Run Signal unit tests
           command: make signal-unit-test-coverage
 
       - store_test_results:
-          path: code/android-signal-library/build/test-results/testPhoneDebugUnitTest
+          path: code/signal/build/test-results/testPhoneDebugUnitTest
 
       - run:
           name: Upload Signal coverage report
           command: |            
-            bash ./codecov -v -X s3 -c -D "./code/android-signal-library/build/reports/coverage/test/phone/debug" -F unit-tests
+            bash ./codecov -v -X s3 -c -D "./code/signal/build/reports/coverage/test/phone/debug" -F unit-tests
 
       - run:
           name: Run Lifecycle unit tests
           command: make lifecycle-unit-test-coverage
 
       - store_test_results:
-          path: code/android-lifecycle-library/build/test-results/testPhoneDebugUnitTest
+          path: code/lifecycle/build/test-results/testPhoneDebugUnitTest
 
       - run:
           name: Upload Lifecycle coverage report
           command: |            
-            bash ./codecov -v -X s3 -c -D "./code/android-lifecycle-library/build/reports/coverage/test/phone/debug" -F unit-tests
+            bash ./codecov -v -X s3 -c -D "./code/lifecycle/build/reports/coverage/test/phone/debug" -F unit-tests
 
       - run:
           name: Run Identity unit tests
           command: make identity-unit-test-coverage
 
       - store_test_results:
-          path: code/android-identity-library/build/test-results/testPhoneDebugUnitTest
+          path: code/identity/build/test-results/testPhoneDebugUnitTest
 
       - run:
           name: Upload Identity coverage report
           command: |            
-            bash ./codecov -v -X s3 -c -D "./code/android-identity-library/build/reports/coverage/test/phone/debug" -F unit-tests
+            bash ./codecov -v -X s3 -c -D "./code/identity/build/reports/coverage/test/phone/debug" -F unit-tests
 
   functional-test:
       executor:
@@ -135,17 +135,17 @@ jobs:
         - run:
             name: Upload Core coverage report
             command: |                        
-              bash ./codecov -v -X s3 -c -D "./code/android-core-library/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+              bash ./codecov -v -X s3 -c -D "./code/core/build/reports/coverage/androidTest/phone/debug" -F functional-tests
 
         - run:
             name: Upload Signal coverage report
             command: |            
-              bash ./codecov -v -X s3 -c -D "./code/android-signal-library/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+              bash ./codecov -v -X s3 -c -D "./code/signal/build/reports/coverage/androidTest/phone/debug" -F functional-tests
 
         - run:
             name: Upload Lifecycle coverage report
             command: |            
-              bash ./codecov -v -X s3 -c -D "./code/android-lifecycle-library/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+              bash ./codecov -v -X s3 -c -D "./code/lifecycle/build/reports/coverage/androidTest/phone/debug" -F functional-tests
 
   integration-test:
       executor:

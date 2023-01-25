@@ -8,7 +8,7 @@ This document covers the high level concepts about developing your own extension
 
 For an extension to be registered with the `EventHub`, it must conform to the `Extension` class. The `Extension` protocol defines an `Extension` as a type which provides a initializer which takes in a `ExtensionApi` instance and override the necessary methods. 
 
-See [`Extension.java`](../../code/android-core-library/src/main/java/com/adobe/marketing/mobile/Extension.java) for the complete definition.
+See [`Extension.java`](../../code/core/src/main/java/com/adobe/marketing/mobile/Extension.java) for the complete definition.
 
 #### Events
 

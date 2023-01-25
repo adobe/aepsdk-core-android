@@ -26,4 +26,4 @@ val local = ServiceProvider.getInstance().deviceInfoService.activeLocale
 
 ## APIs
 
-For a full list of APIs provided by the `DeviceInforming` service, see [`DeviceInforming.java`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/DeviceInforming.java).
+For a full list of APIs provided by the `DeviceInforming` service, see [`DeviceInforming.java`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/DeviceInforming.java).

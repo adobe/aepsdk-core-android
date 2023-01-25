@@ -41,10 +41,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation project(':android-core-library')
-    implementation project(':android-identity-library')
-    implementation project(':android-signal-library')
-    implementation project(':android-lifecycle-library')
+    implementation project(':core')
+    implementation project(':identity')
+    implementation project(':signal')
+    implementation project(':lifecycle')
 
     /* Uncomment the following line when testing with analytics extension */
     //implementation 'com.adobe.marketing.mobile:analytics:2.0.0', withoutCore

@@ -214,7 +214,7 @@ class AEPMessage implements FullscreenMessage {
                     ServiceConstants.LOG_TAG,
                     TAG,"Preparing message fragment to be used in displaying the in-app message.");
             // prepare a message fragment and replace the frame layout with the fragment
-            MessageFragment messageFragment = new MessageFragment();
+            messageFragment = new MessageFragment();
             messageFragment.setAEPMessage(message);
 
             final int id =

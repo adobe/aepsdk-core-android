@@ -30,7 +30,6 @@ import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
 
 import com.adobe.marketing.mobile.MobileCore;
-import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
@@ -227,7 +226,8 @@ class AEPMessage implements FullscreenMessage {
             final FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction
                     .replace(id, messageFragment, FRAGMENT_TAG)
-                    .addToBackStack(null);
+                    .addToBackStack(null)
+                    .commit();
             fragmentManager.executePendingTransactions();
         });
     }

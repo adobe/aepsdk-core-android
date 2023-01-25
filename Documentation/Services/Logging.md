@@ -26,4 +26,4 @@ Log.debug("label1", "label2", "My log message")
 
 ## APIs
 
-For a full list of APIs provided by the `Logging` service, see [Logging.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/Logging.java) and for a complete list of APIs provided by the wrapper class, see [Log.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/phone/java/com/adobe/marketing/mobile/services/Log.java).
+For a full list of APIs provided by the `Logging` service, see [Logging.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/Logging.java) and for a complete list of APIs provided by the wrapper class, see [Log.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/phone/java/com/adobe/marketing/mobile/services/Log.java).

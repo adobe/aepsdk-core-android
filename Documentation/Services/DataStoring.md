@@ -32,4 +32,4 @@ val value = namedCollection.getString("key", "default_value")
 
 ## APIs
 
-For a full list of APIs provided by the `DataStoring` service see [DataStoring.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/DataStoring.java) and [NamedCollection.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/NamedCollection.java).
+For a full list of APIs provided by the `DataStoring` service see [DataStoring.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/DataStoring.java) and [NamedCollection.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/NamedCollection.java).

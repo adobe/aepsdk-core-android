@@ -73,4 +73,4 @@ A mechanism that allows **Extensions** to share state XDM compliant data with ot
 
 ### Shared State Resolver
 
-A [Shared State Resolver](../../code/android-core-library/src/main/java/com/adobe/marketing/mobile/SharedStateResolver.java) is used when an **Extension** knows it will need to create a **Shared State** for a specific event, but it doesn't yet have the data that it needs to share. Once the extension has completed its work, it calls the shared state resolver with the necessary data. Shared State Resolvers are used in conjunction with **Pending Shared States**.
+A [Shared State Resolver](../../code/core/src/main/java/com/adobe/marketing/mobile/SharedStateResolver.java) is used when an **Extension** knows it will need to create a **Shared State** for a specific event, but it doesn't yet have the data that it needs to share. Once the extension has completed its work, it calls the shared state resolver with the necessary data. Shared State Resolvers are used in conjunction with **Pending Shared States**.

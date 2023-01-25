@@ -32,8 +32,8 @@ ServiceProvider.getInstance().networkService.connectAsync(
 
 ## APIs
 
-For a full list of APIs provided by the `Networking` service, see [Networking.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/Networking.java).
+For a full list of APIs provided by the `Networking` service, see [Networking.java](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/Networking.java).
 
 ## Further Reading
 
-Additional types such as [`NetworkRequest`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/NetworkRequest.java) and [`HttpConnecting`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/android-core-library/src/main/java/com/adobe/marketing/mobile/services/HttpConnecting.java) are required to send and handle network requests.
+Additional types such as [`NetworkRequest`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/NetworkRequest.java) and [`HttpConnecting`](https://github.com/adobe/aepsdk-core-android/blob/staging/code/core/src/main/java/com/adobe/marketing/mobile/services/HttpConnecting.java) are required to send and handle network requests.

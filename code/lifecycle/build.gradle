@@ -136,7 +136,7 @@ publishToMavenLocal.dependsOn('assemblePhone')
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation project(path: ':android-core-library')
+    implementation project(path: ':core')
     // Unit tests
     testImplementation "junit:junit:4.13.2"
     //noinspection GradleDependency

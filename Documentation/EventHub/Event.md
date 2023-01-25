@@ -19,13 +19,13 @@ This document outlines the specification for an Event Hub `Event`. These events 
 
 Every `Event` has an `EventType` string associated with it, which defines what kind of event it is and determines who is notified when this event occurs.
 
-For a full list of possible event types, see [EventType.java](../../code/android-core-library/src/main/java/com/adobe/marketing/mobile/EventType.java).
+For a full list of possible event types, see [EventType.java](../../code/core/src/main/java/com/adobe/marketing/mobile/EventType.java).
 
 ### Event Source
 
 Along with an `EventType`, an `Event` has a `EventSource` string associated with it, which defines where the event originated and is used to determine who is notified when this event occurs.
 
-For a full list of possible event sources, see [EventSource.java](../../code/android-core-library/src/main/java/com/adobe/marketing/mobile/EventSource.java).
+For a full list of possible event sources, see [EventSource.java](../../code/core/src/main/java/com/adobe/marketing/mobile/EventSource.java).
 
 ### Creating an `Event`
 

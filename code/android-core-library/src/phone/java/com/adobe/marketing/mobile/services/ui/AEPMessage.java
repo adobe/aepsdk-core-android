@@ -26,17 +26,23 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
+
 import androidx.annotation.Nullable;
+
 import com.adobe.marketing.mobile.MobileCore;
+import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import com.adobe.marketing.mobile.util.StringUtils;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * The Android implementation for {@link FullscreenMessage}. It creates and starts a {@link
@@ -70,19 +76,20 @@ class AEPMessage implements FullscreenMessage {
     private Animation dismissAnimation;
     private Animation.AnimationListener animationListener;
     private Map<String, String> assetMap = Collections.emptyMap();
+    private final Executor executor;
 
     /**
      * Constructor.
      *
-     * @param html {@code String} containing the html payload
-     * @param messageDelegate {@link FullscreenMessageDelegate} listening for message lifecycle
-     *     events
+     * @param html             {@code String} containing the html payload
+     * @param messageDelegate  {@link FullscreenMessageDelegate} listening for message lifecycle
+     *                         events
      * @param isLocalImageUsed {@code boolean} If true, an image from the app bundle will be used
-     *     for the message
-     * @param messagesMonitor {@link MessagesMonitor} instance that tracks and provides the
-     *     displayed status for a message
-     * @param settings {@link MessageSettings} object defining layout and behavior of the new
-     *     message
+     *                         for the message
+     * @param messagesMonitor  {@link MessagesMonitor} instance that tracks and provides the
+     *                         displayed status for a message
+     * @param settings         {@link MessageSettings} object defining layout and behavior of the new
+     *                         message
      * @throws MessageCreationException If the passed in {@code FullscreenMessageDelegate} is null
      */
     AEPMessage(
@@ -106,15 +113,18 @@ class AEPMessage implements FullscreenMessage {
         this.settings = settings;
         this.html = html;
         this.isLocalImageUsed = isLocalImageUsed;
+        this.executor = Executors.newSingleThreadExecutor();
     }
 
     @Override
-    @Nullable public WebView getWebView() {
+    @Nullable
+    public WebView getWebView() {
         return this.webView;
     }
 
     @Override
-    @Nullable public MessageSettings getMessageSettings() {
+    @Nullable
+    public MessageSettings getMessageSettings() {
         return this.settings;
     }
 
@@ -127,26 +137,12 @@ class AEPMessage implements FullscreenMessage {
     @SuppressLint("ResourceType")
     @Override
     public void show() {
-        if (messagesMonitor != null && messagesMonitor.isDisplayed()) {
-            Log.debug(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    "Message couldn't be displayed, another message is displayed at this time.");
-            fullScreenMessageDelegate.onShowFailure();
-            return;
-        }
+        show(true);
+    }
 
-        if (!fullScreenMessageDelegate.shouldShowMessage(this)) {
-            Log.debug(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    "Message couldn't be displayed, FullscreenMessageDelegate#shouldShowMessage"
-                            + " states the message should not be displayed.");
-            return;
-        }
-
-        final Context appContext =
-                ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+    public void show(final boolean withDelegateControl) {
+        final AppContextService appContextService = ServiceProvider.getInstance().getAppContextService();
+        final Context appContext = appContextService.getApplicationContext();
         if (appContext == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
@@ -156,8 +152,7 @@ class AEPMessage implements FullscreenMessage {
             return;
         }
 
-        final Activity currentActivity =
-                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        final Activity currentActivity = appContextService.getCurrentActivity();
         if (currentActivity == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
@@ -167,8 +162,7 @@ class AEPMessage implements FullscreenMessage {
             return;
         }
 
-        // find the base root view group and add a frame layout to be used for displaying the in-app
-        // message.
+        // find the base root view group and add a frame layout to be used for displaying the in-app message
         if (rootViewGroup == null) {
             rootViewGroup = currentActivity.findViewById(android.R.id.content);
             // preserve the base root view group height and width for future in-app message
@@ -186,56 +180,63 @@ class AEPMessage implements FullscreenMessage {
             fragmentFrameLayout.setId(frameLayoutResourceId);
         }
 
-        if (messagesMonitor != null) {
-            messagesMonitor.displayed();
-        }
-
         // replace the existing frame layout (if present) with a new MessageFragment
         final AEPMessage message = this;
 
-        currentActivity.runOnUiThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        // add the frame layout to be replaced with the message fragment
-                        rootViewGroup.addView(fragmentFrameLayout);
+        currentActivity.runOnUiThread(() -> {
+            // add the frame layout to be replaced with the message fragment
+            rootViewGroup.addView(fragmentFrameLayout);
 
-                        final FragmentManager fragmentManager =
-                                currentActivity.getFragmentManager();
+            final FragmentManager fragmentManager =
+                    currentActivity.getFragmentManager();
 
-                        // ensure there are no existing webview fragments before creating a new one
-                        final Fragment currentMessageFragment =
-                                fragmentManager.findFragmentByTag(FRAGMENT_TAG);
 
-                        if (currentMessageFragment != null) {
-                            fragmentManager
-                                    .beginTransaction()
-                                    .remove(currentMessageFragment)
-                                    .commit();
-                        }
+            final Fragment currentMessageFragment =
+                    fragmentManager.findFragmentByTag(FRAGMENT_TAG);
 
-                        // prepare a message fragment and replace the frame layout with the fragment
-                        messageFragment = new MessageFragment();
-                        messageFragment.setAEPMessage(message);
+            if (currentMessageFragment != null) {
+                fragmentManager
+                        .beginTransaction()
+                        .remove(currentMessageFragment)
+                        .commit();
+            }
 
-                        final int id =
-                                appContext
-                                        .getResources()
-                                        .getIdentifier(
-                                                Integer.toString(frameLayoutResourceId),
-                                                "id",
-                                                appContext.getPackageName());
-                        final FragmentTransaction transaction = fragmentManager.beginTransaction();
-                        transaction
-                                .replace(id, messageFragment, FRAGMENT_TAG)
-                                .addToBackStack(null)
-                                .commit();
-                        fragmentManager.executePendingTransactions();
-                    }
-                });
+            executor.execute(() -> handleShouldShow(currentActivity, appContext, fragmentManager, message, withDelegateControl));
+        });
     }
 
-    /** Dismisses the message. */
+    private void handleShouldShow(final Activity currentActivity, final Context appContext, final FragmentManager fragmentManager, final AEPMessage message, final boolean delegateControl) {
+        if (!messagesMonitor.show(message, delegateControl)) {
+            fullScreenMessageDelegate.onShowFailure();
+            return;
+        }
+
+        currentActivity.runOnUiThread(() -> {
+            if (messagesMonitor != null) {
+                messagesMonitor.displayed();
+            }
+
+            // prepare a message fragment and replace the frame layout with the fragment
+            MessageFragment messageFragment = new MessageFragment();
+            messageFragment.setAEPMessage(message);
+
+            final int id =
+                    appContext.getResources()
+                            .getIdentifier(
+                                    Integer.toString(frameLayoutResourceId),
+                                    "id",
+                                    appContext.getPackageName());
+            final FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction
+                    .replace(id, messageFragment, FRAGMENT_TAG)
+                    .addToBackStack(null);
+            fragmentManager.executePendingTransactions();
+        });
+    }
+
+    /**
+     * Dismisses the message.
+     */
     @Override
     public void dismiss() {
         removeFromRootViewGroup();
@@ -291,7 +292,9 @@ class AEPMessage implements FullscreenMessage {
         return this.settings;
     }
 
-    /** Invoked after the message is successfully shown. */
+    /**
+     * Invoked after the message is successfully shown.
+     */
     void viewed() {
         isVisible = true;
 
@@ -322,7 +325,7 @@ class AEPMessage implements FullscreenMessage {
      * Returns the message visibility status.
      *
      * @return a {@code boolean} containing true if the message is currently visible, false
-     *     otherwise
+     * otherwise
      */
     boolean isMessageVisible() {
         return isVisible;
@@ -350,7 +353,9 @@ class AEPMessage implements FullscreenMessage {
         }
     }
 
-    /** Tears down views and listeners used to display the {@link AEPMessage}. */
+    /**
+     * Tears down views and listeners used to display the {@link AEPMessage}.
+     */
     void cleanup() {
         Log.trace(ServiceConstants.LOG_TAG, TAG, "Cleaning the AEPMessage.");
         delegateFullscreenMessageDismiss();
@@ -392,7 +397,7 @@ class AEPMessage implements FullscreenMessage {
      * The asset map contains the mapping between a remote image asset url and it's cached location.
      *
      * @param assetMap The {@code Map<String, String} object containing the mapping between a remote
-     *     asset url and its cached location.
+     *                 asset url and its cached location.
      */
     @Override
     public void setLocalAssetsMap(final Map<String, String> assetMap) {
@@ -405,7 +410,7 @@ class AEPMessage implements FullscreenMessage {
      * Sets or updates the {@link MessageSettings} for the current fullscreen message.
      *
      * @param messageSettings {@link MessageSettings} object defining layout and behavior of the new
-     *     message.
+     *                        message.
      */
     @Override
     public void setMessageSetting(final MessageSettings messageSettings) {
@@ -449,7 +454,8 @@ class AEPMessage implements FullscreenMessage {
             animationListener =
                     new Animation.AnimationListener() {
                         @Override
-                        public void onAnimationStart(final Animation animation) {}
+                        public void onAnimationStart(final Animation animation) {
+                        }
 
                         @Override
                         public void onAnimationEnd(final Animation animation) {
@@ -457,7 +463,8 @@ class AEPMessage implements FullscreenMessage {
                         }
 
                         @Override
-                        public void onAnimationRepeat(final Animation animation) {}
+                        public void onAnimationRepeat(final Animation animation) {
+                        }
                     };
             dismissAnimation.setAnimationListener(animationListener);
             webView.startAnimation(dismissAnimation);
@@ -470,7 +477,7 @@ class AEPMessage implements FullscreenMessage {
      * Create a message dismissal {@link Animation}.
      *
      * @return {@code Animation} object defining the animation that will be performed when the
-     *     message is dismissed.
+     * message is dismissed.
      */
     private Animation setupDismissAnimation() {
         final MessageSettings.MessageAnimation animation = getSettings().getDismissAnimation();

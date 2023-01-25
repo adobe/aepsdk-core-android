@@ -22,8 +22,7 @@ public class MessagesMonitor {
 
     private static final MessagesMonitor INSTANCE = new MessagesMonitor();
 
-    private MessagesMonitor() {
-    }
+    private MessagesMonitor() {}
 
     public static MessagesMonitor getInstance() {
         return INSTANCE;
@@ -43,25 +42,23 @@ public class MessagesMonitor {
         return messageDisplayed;
     }
 
-    /**
-     * Notifies that a message was dismissed
-     */
+    /** Notifies that a message was dismissed */
     public void dismissed() {
         messageDisplayed = false;
     }
 
-    /**
-     * Notifies that a message was displayed
-     */
+    /** Notifies that a message was displayed */
     public void displayed() {
         messageDisplayed = true;
     }
 
     /**
-     * Determines whether the provided {@link FullscreenMessage} should be shown.
-     * If a UI message is already showing, this method will return false.
-     * If a {@link com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate} exists, this method will call its
-     * {@link com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate#shouldShowMessage(FullscreenMessage)} method.
+     * Determines whether the provided {@link FullscreenMessage} should be shown. If a UI message is
+     * already showing, this method will return false. If a {@link
+     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate} exists, this method will
+     * call its {@link
+     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate#shouldShowMessage(FullscreenMessage)}
+     * method.
      *
      * @param message {@code FullscreenMessage} to be shown
      * @return {@code boolean} true if message needs to be shown
@@ -71,26 +68,34 @@ public class MessagesMonitor {
     }
 
     /**
-     * Determines whether the provided {@link FullscreenMessage} should be shown.
-     * If a UI message is already showing, this method will return false.
-     * If a {@link com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate} exists, this method will call its
-     * {@link com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate#shouldShowMessage(FullscreenMessage)} method.
+     * Determines whether the provided {@link FullscreenMessage} should be shown. If a UI message is
+     * already showing, this method will return false. If a {@link
+     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate} exists, this method will
+     * call its {@link
+     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate#shouldShowMessage(FullscreenMessage)}
+     * method.
      *
-     * @param message         {@code FullscreenMessage} to be shown
-     * @param delegateControl {@code boolean} If true, the {@code FullscreenMessageDelegate} will control whether the message should be shown
+     * @param message {@code FullscreenMessage} to be shown
+     * @param delegateControl {@code boolean} If true, the {@code FullscreenMessageDelegate} will
+     *     control whether the message should be shown
      * @return {@code boolean} true if message needs to be shown
      */
     public boolean show(final FullscreenMessage message, final boolean delegateControl) {
         if (isDisplayed()) {
-            Log.debug(ServiceConstants.LOG_TAG,
-                    TAG, "Message couldn't be displayed, another message is displayed at this time.");
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Message couldn't be displayed, another message is displayed at this time.");
             return false;
         }
 
         if (delegateControl) {
             if (!ServiceProvider.getInstance().getMessageDelegate().shouldShowMessage(message)) {
-                Log.debug(ServiceConstants.LOG_TAG,
-                        TAG, "Message couldn't be displayed, MessagingDelegate#showMessage states the message should not be displayed.");
+                Log.debug(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        "Message couldn't be displayed, MessagingDelegate#showMessage states the"
+                                + " message should not be displayed.");
                 return false;
             }
         }
@@ -103,8 +108,10 @@ public class MessagesMonitor {
 
     public boolean dismiss() {
         if (!isDisplayed()) {
-            Log.debug(ServiceConstants.LOG_TAG,
-                    TAG, "Message failed to be dismissed, nothing is currently displayed.");
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Message failed to be dismissed, nothing is currently displayed.");
             return false;
         }
 

@@ -141,8 +141,7 @@ class AEPMessage implements FullscreenMessage {
     }
 
     public void show(final boolean withDelegateControl) {
-        final AppContextService appContextService = ServiceProvider.getInstance().getAppContextService();
-        final Context appContext = appContextService.getApplicationContext();
+        final Context appContext = ServiceProvider.getInstance().getAppContextService().getApplicationContext();
         if (appContext == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
@@ -152,7 +151,7 @@ class AEPMessage implements FullscreenMessage {
             return;
         }
 
-        final Activity currentActivity = appContextService.getCurrentActivity();
+        final Activity currentActivity = ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
         if (currentActivity == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
@@ -201,31 +200,30 @@ class AEPMessage implements FullscreenMessage {
                         .commit();
             }
 
-            executor.execute(() -> handleShouldShow(currentActivity, appContext, fragmentManager, message, withDelegateControl));
+            executor.execute(() -> handleShouldShow(fragmentManager, message, withDelegateControl));
         });
     }
 
-    private void handleShouldShow(final Activity currentActivity, final Context appContext, final FragmentManager fragmentManager, final AEPMessage message, final boolean delegateControl) {
+    private void handleShouldShow(final FragmentManager fragmentManager, final AEPMessage message, final boolean delegateControl) {
         if (!messagesMonitor.show(message, delegateControl)) {
             fullScreenMessageDelegate.onShowFailure();
             return;
         }
 
-        currentActivity.runOnUiThread(() -> {
-            if (messagesMonitor != null) {
-                messagesMonitor.displayed();
-            }
-
+        ServiceProvider.getInstance().getAppContextService().getCurrentActivity().runOnUiThread(() -> {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,"Preparing message fragment to be used in displaying the in-app message.");
             // prepare a message fragment and replace the frame layout with the fragment
             MessageFragment messageFragment = new MessageFragment();
             messageFragment.setAEPMessage(message);
 
             final int id =
-                    appContext.getResources()
+                    ServiceProvider.getInstance().getAppContextService().getApplicationContext().getResources()
                             .getIdentifier(
                                     Integer.toString(frameLayoutResourceId),
                                     "id",
-                                    appContext.getPackageName());
+                                    ServiceProvider.getInstance().getAppContextService().getApplicationContext().getPackageName());
             final FragmentTransaction transaction = fragmentManager.beginTransaction();
             transaction
                     .replace(id, messageFragment, FRAGMENT_TAG)

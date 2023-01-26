@@ -109,7 +109,8 @@ public class AndroidEventHistory implements EventHistory {
                                     final Cursor result =
                                             androidEventHistoryDatabase.select(eventHash, from, to);
 
-                                    try { // columns are index 0: count, index 1: oldest, index 2:
+                                    try {
+                                        // columns are index 0: count, index 1: oldest, index 2:
                                         // newest
                                         result.moveToFirst();
 
@@ -136,8 +137,8 @@ public class AndroidEventHistory implements EventHistory {
                                 }
 
                                 // for ordered searches, if found event count matches the total
-                                // number of
-                                // requests, then all requests were found. return 1 / true.
+                                // number of requests, then all requests were found. return 1 /
+                                // true.
                                 if (enforceOrder) {
                                     if (foundEventCount == eventHistoryRequests.length) {
                                         handler.call(1);
@@ -172,8 +173,7 @@ public class AndroidEventHistory implements EventHistory {
 
                                 for (final EventHistoryRequest request : eventHistoryRequests) {
                                     // if no "from" date is provided, delete from the beginning of
-                                    // the
-                                    // database
+                                    // the database
                                     final long from =
                                             request.getFromDate() == 0 ? 0 : request.getFromDate();
                                     // if no "to" date is provided, delete until the end of the

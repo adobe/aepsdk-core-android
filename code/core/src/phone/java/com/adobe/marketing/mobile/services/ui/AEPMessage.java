@@ -136,7 +136,8 @@ class AEPMessage implements FullscreenMessage {
         show(true);
     }
 
-    void show(final boolean withDelegateControl) {
+    @Override
+    public void show(final boolean withMessagingDelegateControl) {
         final Context appContext =
                 ServiceProvider.getInstance().getAppContextService().getApplicationContext();
         if (appContext == null) {
@@ -164,7 +165,7 @@ class AEPMessage implements FullscreenMessage {
                     final AEPMessage message = this;
 
                     // bail if we shouldn't be displaying a message
-                    if (!messagesMonitor.show(message, withDelegateControl)) {
+                    if (!messagesMonitor.show(message, withMessagingDelegateControl)) {
                         fullScreenMessageDelegate.onShowFailure();
                         return;
                     }

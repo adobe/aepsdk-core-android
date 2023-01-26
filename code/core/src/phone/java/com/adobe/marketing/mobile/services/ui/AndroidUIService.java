@@ -377,7 +377,12 @@ public class AndroidUIService implements UIService {
         try {
             message =
                     new AEPMessage(
-                            html, listener, isLocalImageUsed, messagesMonitor, settings, getExecutor());
+                            html,
+                            listener,
+                            isLocalImageUsed,
+                            messagesMonitor,
+                            settings,
+                            getExecutor());
         } catch (MessageCreationException exception) {
             Log.warning(
                     ServiceConstants.LOG_TAG,

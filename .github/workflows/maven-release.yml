@@ -6,25 +6,25 @@ on:
         required: false
         type: boolean
         default: false
-        description: Release android-core-library
+        description: Release Core
 
       release_identity:
         required: false
         type: boolean
         default: false
-        description: Release android-identity-library
+        description: Release Identity
 
       release_lifecycle:
         required: false
         type: boolean
         default: false
-        description: Release android-lifecycle-library
+        description: Release Lifecycle
 
       release_signal:
         required: false
         type: boolean
         default: false
-        description: Release android-signal-library
+        description: Release Signal
 
 jobs:
   publish:

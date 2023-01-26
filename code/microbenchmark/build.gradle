@@ -44,10 +44,10 @@ dependencies {
     androidTestImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.benchmark:benchmark-junit4:1.2.0-alpha04'
 
-    implementation project(path: ':android-core-library')
-    implementation project(path: ':android-identity-library')
-    implementation project(path: ':android-signal-library')
-    implementation project(path: ':android-lifecycle-library')
+    implementation project(path: ':core')
+    implementation project(path: ':identity')
+    implementation project(path: ':signal')
+    implementation project(path: ':lifecycle')
 
     // Add your dependencies here. Note that you cannot benchmark code
     // in an app module this way - you will need to move any code you

@@ -28,16 +28,13 @@ import java.util.concurrent.Executors;
 public class AndroidEventHistory implements EventHistory {
 
     private static final String LOG_TAG = "AndroidEventHistory";
-    private static final int THREAD_POOL_SIZE = 1;
     private static final int COUNT_INDEX = 0;
     private static final int OLDEST_INDEX = 1;
     private final AndroidEventHistoryDatabase androidEventHistoryDatabase;
-    private final ExecutorService executorService;
 
     /** Constructor. */
     public AndroidEventHistory() throws EventHistoryDatabaseCreationException {
         androidEventHistoryDatabase = new AndroidEventHistoryDatabase();
-        executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
     }
 
     /**
@@ -62,13 +59,15 @@ public class AndroidEventHistory implements EventHistory {
             return;
         }
 
-        executorService.submit(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        notifyHandler(handler, androidEventHistoryDatabase.insert(fnv1aHash));
-                    }
-                });
+        getExecutor()
+                .submit(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                notifyHandler(
+                                        handler, androidEventHistoryDatabase.insert(fnv1aHash));
+                            }
+                        });
     }
 
     /**
@@ -89,63 +88,68 @@ public class AndroidEventHistory implements EventHistory {
             final EventHistoryRequest[] eventHistoryRequests,
             final boolean enforceOrder,
             final EventHistoryResultHandler<Integer> handler) {
-        executorService.submit(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        long previousEventOldestOccurrence = 0L;
-                        int foundEventCount = 0;
+        getExecutor()
+                .submit(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                long previousEventOldestOccurrence = 0L;
+                                int foundEventCount = 0;
 
-                        for (final EventHistoryRequest request : eventHistoryRequests) {
-                            final long from =
-                                    (enforceOrder && previousEventOldestOccurrence != 0)
-                                            ? previousEventOldestOccurrence
-                                            : request.getFromDate();
-                            final long to =
-                                    request.getToDate() == 0
-                                            ? System.currentTimeMillis()
-                                            : request.getToDate();
-                            final long eventHash = request.getMaskAsDecimalHash();
-                            final Cursor result =
-                                    androidEventHistoryDatabase.select(eventHash, from, to);
+                                for (final EventHistoryRequest request : eventHistoryRequests) {
+                                    final long from =
+                                            (enforceOrder && previousEventOldestOccurrence != 0)
+                                                    ? previousEventOldestOccurrence
+                                                    : request.getFromDate();
+                                    final long to =
+                                            request.getToDate() == 0
+                                                    ? System.currentTimeMillis()
+                                                    : request.getToDate();
+                                    final long eventHash = request.getMaskAsDecimalHash();
+                                    final Cursor result =
+                                            androidEventHistoryDatabase.select(eventHash, from, to);
 
-                            try { // columns are index 0: count, index 1: oldest, index 2: newest
-                                result.moveToFirst();
+                                    try {
+                                        // columns are index 0: count, index 1: oldest, index 2:
+                                        // newest
+                                        result.moveToFirst();
 
-                                if (result.getInt(COUNT_INDEX) != 0) {
-                                    previousEventOldestOccurrence = result.getLong(OLDEST_INDEX);
+                                        if (result.getInt(COUNT_INDEX) != 0) {
+                                            previousEventOldestOccurrence =
+                                                    result.getLong(OLDEST_INDEX);
 
-                                    if (enforceOrder) {
-                                        foundEventCount++;
-                                    } else {
-                                        foundEventCount += result.getInt(COUNT_INDEX);
+                                            if (enforceOrder) {
+                                                foundEventCount++;
+                                            } else {
+                                                foundEventCount += result.getInt(COUNT_INDEX);
+                                            }
+                                        }
+                                    } catch (final Exception exception) {
+                                        Log.debug(
+                                                CoreConstants.LOG_TAG,
+                                                LOG_TAG,
+                                                String.format(
+                                                        "Exception occurred when attempting to"
+                                                            + " retrieve events with eventHash %s"
+                                                            + " from the EventHistoryDatabase: %s",
+                                                        eventHash, exception.getMessage()));
                                     }
                                 }
-                            } catch (final Exception exception) {
-                                Log.debug(
-                                        CoreConstants.LOG_TAG,
-                                        LOG_TAG,
-                                        String.format(
-                                                "Exception occurred when attempting to retrieve"
-                                                        + " events with eventHash %s from the"
-                                                        + " EventHistoryDatabase: %s",
-                                                eventHash, exception.getMessage()));
-                            }
-                        }
 
-                        // for ordered searches, if found event count matches the total number of
-                        // requests, then all requests were found. return 1 / true.
-                        if (enforceOrder) {
-                            if (foundEventCount == eventHistoryRequests.length) {
-                                handler.call(1);
-                            } else { // otherwise return 0 / false
-                                handler.call(0);
+                                // for ordered searches, if found event count matches the total
+                                // number of requests, then all requests were found. return 1 /
+                                // true.
+                                if (enforceOrder) {
+                                    if (foundEventCount == eventHistoryRequests.length) {
+                                        handler.call(1);
+                                    } else { // otherwise return 0 / false
+                                        handler.call(0);
+                                    }
+                                } else { // for "any" search, return total number of matching events
+                                    notifyHandler(handler, foundEventCount);
+                                }
                             }
-                        } else { // for "any" search, return total number of matching events
-                            notifyHandler(handler, foundEventCount);
-                        }
-                    }
-                });
+                        });
     }
 
     /**
@@ -160,29 +164,32 @@ public class AndroidEventHistory implements EventHistory {
     public void deleteEvents(
             final EventHistoryRequest[] eventHistoryRequests,
             final EventHistoryResultHandler<Integer> handler) {
-        executorService.submit(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        int deletedRows = 0;
+        getExecutor()
+                .submit(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                int deletedRows = 0;
 
-                        for (final EventHistoryRequest request : eventHistoryRequests) {
-                            // if no "from" date is provided, delete from the beginning of the
-                            // database
-                            final long from =
-                                    request.getFromDate() == 0 ? 0 : request.getFromDate();
-                            // if no "to" date is provided, delete until the end of the database
-                            final long to =
-                                    request.getToDate() == 0
-                                            ? System.currentTimeMillis()
-                                            : request.getToDate();
-                            final long eventHash = request.getMaskAsDecimalHash();
-                            deletedRows += androidEventHistoryDatabase.delete(eventHash, from, to);
-                        }
+                                for (final EventHistoryRequest request : eventHistoryRequests) {
+                                    // if no "from" date is provided, delete from the beginning of
+                                    // the database
+                                    final long from =
+                                            request.getFromDate() == 0 ? 0 : request.getFromDate();
+                                    // if no "to" date is provided, delete until the end of the
+                                    // database
+                                    final long to =
+                                            request.getToDate() == 0
+                                                    ? System.currentTimeMillis()
+                                                    : request.getToDate();
+                                    final long eventHash = request.getMaskAsDecimalHash();
+                                    deletedRows +=
+                                            androidEventHistoryDatabase.delete(eventHash, from, to);
+                                }
 
-                        notifyHandler(handler, deletedRows);
-                    }
-                });
+                                notifyHandler(handler, deletedRows);
+                            }
+                        });
     }
 
     private <T> void notifyHandler(final EventHistoryResultHandler<T> handler, final T value) {
@@ -196,5 +203,17 @@ public class AndroidEventHistory implements EventHistory {
                         String.format("Exception executing event history result handler %s", ex));
             }
         }
+    }
+
+    /**
+     * Responsible for holding a single thread executor for lazy initialization only if
+     * AndroidEventHistory operations are used.
+     */
+    private static class ExecutorHolder {
+        static final ExecutorService INSTANCE = Executors.newSingleThreadExecutor();
+    }
+
+    private static ExecutorService getExecutor() {
+        return ExecutorHolder.INSTANCE;
     }
 }

@@ -15,8 +15,6 @@ IDEs such as Android Studio or IntelliJ will highlight dynamic or outdated depen
 ![Dynamic dependency warning](./assets/dependencies_hint1.png)
 ![Outdated dependency warning](./assets/dependencies_hint2.png)
 
-![[./assets/dependencies-hint2.png]]
-
 ## Locking dependency versions
 
 Gradle dependency locking is a feature that allows developers to lock the versions of dependencies used in a project, ensuring that the same versions are used consistently across different builds and environments. This helps to ensure that the project remains stable and predictable, and prevents version conflicts or unexpected behavior caused by using different versions of dependencies.

@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
  * The Android implementation for {@link FullscreenMessage}. It creates and starts a {@link
@@ -86,6 +85,8 @@ class AEPMessage implements FullscreenMessage {
      *     displayed status for a message
      * @param settings {@link MessageSettings} object defining layout and behavior of the new
      *     message
+     * @param executor {@link Executor} to be used for executing code checking if a {@link
+     *     AEPMessage} should be displayed
      * @throws MessageCreationException If the passed in {@code FullscreenMessageDelegate} is null
      */
     AEPMessage(
@@ -93,7 +94,8 @@ class AEPMessage implements FullscreenMessage {
             final FullscreenMessageDelegate messageDelegate,
             final boolean isLocalImageUsed,
             final MessagesMonitor messagesMonitor,
-            final MessageSettings settings)
+            final MessageSettings settings,
+            final Executor executor)
             throws MessageCreationException {
         if (messageDelegate == null) {
             Log.debug(
@@ -109,7 +111,7 @@ class AEPMessage implements FullscreenMessage {
         this.settings = settings;
         this.html = html;
         this.isLocalImageUsed = isLocalImageUsed;
-        this.executor = Executors.newSingleThreadExecutor();
+        this.executor = executor;
     }
 
     @Override
@@ -134,7 +136,7 @@ class AEPMessage implements FullscreenMessage {
         show(true);
     }
 
-    public void show(final boolean withDelegateControl) {
+    void show(final boolean withDelegateControl) {
         final Context appContext =
                 ServiceProvider.getInstance().getAppContextService().getApplicationContext();
         if (appContext == null) {
@@ -157,91 +159,98 @@ class AEPMessage implements FullscreenMessage {
             return;
         }
 
-        // find the base root view group and add a frame layout to be used for displaying the in-app
-        // message
-        if (rootViewGroup == null) {
-            rootViewGroup = currentActivity.findViewById(android.R.id.content);
-            // preserve the base root view group height and width for future in-app message
-            // measurement calculations
-            baseRootViewHeight = rootViewGroup.getHeight();
-            baseRootViewWidth = rootViewGroup.getWidth();
-        }
-
-        // use a random int as a resource id for the message fragment frame layout to prevent any
-        // collisions
-        frameLayoutResourceId = new Random().nextInt();
-
-        if (fragmentFrameLayout == null) {
-            fragmentFrameLayout = new FrameLayout(appContext);
-            fragmentFrameLayout.setId(frameLayoutResourceId);
-        }
-
-        // replace the existing frame layout (if present) with a new MessageFragment
-        final AEPMessage message = this;
-
-        currentActivity.runOnUiThread(
+        executor.execute(
                 () -> {
-                    // add the frame layout to be replaced with the message fragment
-                    rootViewGroup.addView(fragmentFrameLayout);
+                    final AEPMessage message = this;
 
-                    final FragmentManager fragmentManager = currentActivity.getFragmentManager();
-
-                    final Fragment currentMessageFragment =
-                            fragmentManager.findFragmentByTag(FRAGMENT_TAG);
-
-                    if (currentMessageFragment != null) {
-                        fragmentManager.beginTransaction().remove(currentMessageFragment).commit();
+                    // bail if we shouldn't be displaying a message
+                    if (!messagesMonitor.show(message, withDelegateControl)) {
+                        fullScreenMessageDelegate.onShowFailure();
+                        return;
                     }
 
-                    executor.execute(
-                            () -> handleShouldShow(fragmentManager, message, withDelegateControl));
+                    ServiceProvider.getInstance()
+                            .getAppContextService()
+                            .getCurrentActivity()
+                            .runOnUiThread(
+                                    () -> {
+                                        // find the base root view group and add a frame layout to
+                                        // be used for
+                                        // displaying the in-app
+                                        // message
+                                        if (rootViewGroup == null) {
+                                            rootViewGroup =
+                                                    currentActivity.findViewById(
+                                                            android.R.id.content);
+                                            // preserve the base root view group height and width
+                                            // for future in-app
+                                            // message
+                                            // measurement calculations
+                                            baseRootViewHeight = rootViewGroup.getHeight();
+                                            baseRootViewWidth = rootViewGroup.getWidth();
+                                        }
+
+                                        // use a random int as a resource id for the message
+                                        // fragment frame layout to
+                                        // prevent any
+                                        // collisions
+                                        frameLayoutResourceId = new Random().nextInt();
+
+                                        if (fragmentFrameLayout == null) {
+                                            fragmentFrameLayout = new FrameLayout(appContext);
+                                            fragmentFrameLayout.setId(frameLayoutResourceId);
+                                        }
+
+                                        // add the frame layout to be replaced with the message
+                                        // fragment
+                                        rootViewGroup.addView(fragmentFrameLayout);
+
+                                        Log.debug(
+                                                ServiceConstants.LOG_TAG,
+                                                TAG,
+                                                "Preparing message fragment to be used in"
+                                                        + " displaying the in-app message.");
+                                        final FragmentManager fragmentManager =
+                                                currentActivity.getFragmentManager();
+
+                                        final Fragment currentMessageFragment =
+                                                fragmentManager.findFragmentByTag(FRAGMENT_TAG);
+
+                                        if (currentMessageFragment != null) {
+                                            fragmentManager
+                                                    .beginTransaction()
+                                                    .remove(currentMessageFragment)
+                                                    .commit();
+                                        }
+
+                                        // prepare a message fragment and replace the frame layout
+                                        // with the
+                                        // fragment
+                                        messageFragment = new MessageFragment();
+                                        messageFragment.setAEPMessage(message);
+
+                                        final int id =
+                                                ServiceProvider.getInstance()
+                                                        .getAppContextService()
+                                                        .getApplicationContext()
+                                                        .getResources()
+                                                        .getIdentifier(
+                                                                Integer.toString(
+                                                                        frameLayoutResourceId),
+                                                                "id",
+                                                                ServiceProvider.getInstance()
+                                                                        .getAppContextService()
+                                                                        .getApplicationContext()
+                                                                        .getPackageName());
+                                        final FragmentTransaction transaction =
+                                                fragmentManager.beginTransaction();
+                                        transaction
+                                                .replace(id, messageFragment, FRAGMENT_TAG)
+                                                .addToBackStack(null)
+                                                .commit();
+                                        fragmentManager.executePendingTransactions();
+                                    });
                 });
-    }
-
-    private void handleShouldShow(
-            final FragmentManager fragmentManager,
-            final AEPMessage message,
-            final boolean delegateControl) {
-        if (!messagesMonitor.show(message, delegateControl)) {
-            fullScreenMessageDelegate.onShowFailure();
-            return;
-        }
-
-        ServiceProvider.getInstance()
-                .getAppContextService()
-                .getCurrentActivity()
-                .runOnUiThread(
-                        () -> {
-                            Log.debug(
-                                    ServiceConstants.LOG_TAG,
-                                    TAG,
-                                    "Preparing message fragment to be used in displaying the"
-                                            + " in-app message.");
-                            // prepare a message fragment and replace the frame layout with the
-                            // fragment
-                            messageFragment = new MessageFragment();
-                            messageFragment.setAEPMessage(message);
-
-                            final int id =
-                                    ServiceProvider.getInstance()
-                                            .getAppContextService()
-                                            .getApplicationContext()
-                                            .getResources()
-                                            .getIdentifier(
-                                                    Integer.toString(frameLayoutResourceId),
-                                                    "id",
-                                                    ServiceProvider.getInstance()
-                                                            .getAppContextService()
-                                                            .getApplicationContext()
-                                                            .getPackageName());
-                            final FragmentTransaction transaction =
-                                    fragmentManager.beginTransaction();
-                            transaction
-                                    .replace(id, messageFragment, FRAGMENT_TAG)
-                                    .addToBackStack(null)
-                                    .commit();
-                            fragmentManager.executePendingTransactions();
-                        });
     }
 
     /** Dismisses the message. */

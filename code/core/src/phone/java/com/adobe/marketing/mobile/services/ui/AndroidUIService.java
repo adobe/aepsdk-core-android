@@ -30,6 +30,8 @@ import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class AndroidUIService implements UIService {
 
@@ -46,6 +48,7 @@ public class AndroidUIService implements UIService {
     public static final String NOTIFICATION_REQUEST_CODE_KEY = "NOTIFICATION_REQUEST_CODE";
     public static final String NOTIFICATION_TITLE = "NOTIFICATION_TITLE";
     private URIHandler uriHandler;
+    private Executor executor;
 
     MessagesMonitor messagesMonitor = MessagesMonitor.getInstance();
 
@@ -361,7 +364,12 @@ public class AndroidUIService implements UIService {
         AEPMessage message = null;
 
         try {
-            message = new AEPMessage(html, listener, isLocalImageUsed, messagesMonitor, settings);
+            if (executor == null) {
+                executor = Executors.newSingleThreadExecutor();
+            }
+            message =
+                    new AEPMessage(
+                            html, listener, isLocalImageUsed, messagesMonitor, settings, executor);
         } catch (MessageCreationException exception) {
             Log.warning(
                     ServiceConstants.LOG_TAG,

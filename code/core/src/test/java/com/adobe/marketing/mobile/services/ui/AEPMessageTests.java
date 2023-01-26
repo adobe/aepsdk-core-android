@@ -31,6 +31,7 @@ import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import java.util.HashMap;
+import java.util.concurrent.Executor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -76,6 +77,8 @@ public class AEPMessageTests {
 
     @Mock private Animation mockAnimation;
 
+    @Mock private Executor mockExecutor;
+
     private AEPMessage message;
     private HashMap<MessageGesture, String> gestureMap = new HashMap<>();
 
@@ -107,7 +110,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (final MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -119,7 +123,14 @@ public class AEPMessageTests {
     @Test(expected = MessageCreationException.class)
     public void testCreateAEPMessage_nullMessageDelegate() throws MessageCreationException {
         // test and verify
-        message = new AEPMessage("html", null, false, mockMessageMonitor, mockAEPMessageSettings);
+        message =
+                new AEPMessage(
+                        "html",
+                        null,
+                        false,
+                        mockMessageMonitor,
+                        mockAEPMessageSettings,
+                        mockExecutor);
     }
 
     // AEPMessage show tests
@@ -141,7 +152,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -187,7 +199,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -232,7 +245,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -282,7 +296,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -338,7 +353,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -373,7 +389,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -407,7 +424,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -435,7 +453,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -464,7 +483,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -492,7 +512,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -544,7 +565,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
@@ -603,7 +625,8 @@ public class AEPMessageTests {
                             mockFullscreenMessageDelegate,
                             false,
                             mockMessageMonitor,
-                            mockAEPMessageSettings);
+                            mockAEPMessageSettings,
+                            mockExecutor);
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }

@@ -30,9 +30,7 @@ public class AndroidEventHistory implements EventHistory {
     private static final String LOG_TAG = "AndroidEventHistory";
     private static final int COUNT_INDEX = 0;
     private static final int OLDEST_INDEX = 1;
-    private final Object executorMutex = new Object();
     private final AndroidEventHistoryDatabase androidEventHistoryDatabase;
-    private ExecutorService executorService;
 
     /** Constructor. */
     public AndroidEventHistory() throws EventHistoryDatabaseCreationException {
@@ -208,17 +206,14 @@ public class AndroidEventHistory implements EventHistory {
     }
 
     /**
-     * Lazily initializes an executor service for use by operations in this class.
-     *
-     * @return a single thread executor
+     * Responsible for holding a single thread executor for lazy initialization only if
+     * AndroidEventHistory operations are used.
      */
-    private ExecutorService getExecutor() {
-        synchronized (executorMutex) {
-            if (executorService == null) {
-                executorService = Executors.newSingleThreadExecutor();
-            }
+    private static class ExecutorHolder {
+        static final ExecutorService INSTANCE = Executors.newSingleThreadExecutor();
+    }
 
-            return executorService;
-        }
+    private static ExecutorService getExecutor() {
+        return ExecutorHolder.INSTANCE;
     }
 }

@@ -212,7 +212,7 @@ public class AndroidEventHistory implements EventHistory {
      *
      * @return a single thread executor
      */
-    ExecutorService getExecutor() {
+    private ExecutorService getExecutor() {
         synchronized (executorMutex) {
             if (executorService == null) {
                 executorService = Executors.newSingleThreadExecutor();

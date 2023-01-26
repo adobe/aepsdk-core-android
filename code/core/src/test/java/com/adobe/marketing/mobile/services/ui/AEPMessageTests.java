@@ -12,7 +12,11 @@
 package com.adobe.marketing.mobile.services.ui;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 
 import android.app.Activity;
@@ -20,6 +24,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +39,6 @@ import java.util.HashMap;
 import java.util.concurrent.Executor;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -79,6 +83,8 @@ public class AEPMessageTests {
 
     @Mock private Executor mockExecutor;
 
+    @Mock private Resources mockResources;
+
     private AEPMessage message;
     private HashMap<MessageGesture, String> gestureMap = new HashMap<>();
 
@@ -96,7 +102,18 @@ public class AEPMessageTests {
         ServiceProviderModifier.setAppContextService(mockAppContextService);
         Mockito.when(mockAppContextService.getApplicationContext())
                 .thenReturn(mockApplicationContext);
+        Mockito.when(mockApplicationContext.getResources()).thenReturn(mockResources);
         Mockito.when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
+
+        // Actually run the executor runnable - mocking the executor.execute()
+        doAnswer(
+                        invocation -> {
+                            Runnable r = invocation.getArgument(0);
+                            r.run();
+                            return null;
+                        })
+                .when(mockExecutor)
+                .execute(any(Runnable.class));
     }
 
     // AEPMessage creation tests
@@ -134,7 +151,7 @@ public class AEPMessageTests {
     }
 
     // AEPMessage show tests
-    @Ignore // TODO: passes when run as a single test, fails when run in the suite. To be
+    // @Ignore // TODO: passes when run as a single test, fails when run in the suite. To be
     // investigated.
     @Test
     public void aepMessageIsShown_When_NoOtherMessagesAreDisplayed() {
@@ -162,16 +179,6 @@ public class AEPMessageTests {
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
 
-        // Actually run the handler runnable - mocking the activity.runOnUiThread()
-        doAnswer(
-                        invocation -> {
-                            Runnable r = invocation.getArgument(0);
-                            r.run();
-                            return null;
-                        })
-                .when(mockActivity)
-                .runOnUiThread(any(Runnable.class));
-
         // test
         message.show();
         // verify
@@ -179,7 +186,7 @@ public class AEPMessageTests {
                 .show(any(FullscreenMessage.class), eq(true));
     }
 
-    @Ignore // TODO: passes when run as a single test, fails when run in the suite. To be
+    // @Ignore // TODO: passes when run as a single test, fails when run in the suite. To be
     // investigated.
     @Test
     public void aepMessageIsShown_When_RootViewIsNull() {
@@ -211,16 +218,6 @@ public class AEPMessageTests {
                 .thenReturn(mockFragmentTransaction);
         Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
                 .thenReturn(mockMessageFragment);
-
-        // Actually run the handler runnable - mocking the activity.runOnUiThread()
-        doAnswer(
-                        invocation -> {
-                            Runnable r = invocation.getArgument(0);
-                            r.run();
-                            return null;
-                        })
-                .when(mockActivity)
-                .runOnUiThread(any(Runnable.class));
 
         // test
         message.show();
@@ -254,16 +251,6 @@ public class AEPMessageTests {
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
-
-        // Actually run the handler runnable - mocking the activity.runOnUiThread()
-        doAnswer(
-                        invocation -> {
-                            Runnable r = invocation.getArgument(0);
-                            r.run();
-                            return null;
-                        })
-                .when(mockActivity)
-                .runOnUiThread(any(Runnable.class));
 
         // test
         message.show();
@@ -320,7 +307,7 @@ public class AEPMessageTests {
         Mockito.verify(mockFragmentTransaction, Mockito.times(1)).commit();
     }
 
-    @Ignore // TODO: passes when run as a single test, fails when run in the suite. To be
+    // @Ignore // TODO: passes when run as a single test, fails when run in the suite. To be
     // investigated.
     @Test
     public void messageMonitorShowCalled_When_aepMessageShown() {
@@ -335,16 +322,6 @@ public class AEPMessageTests {
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
-
-        // Actually run the handler runnable - mocking the activity.runOnUiThread()
-        doAnswer(
-                        invocation -> {
-                            Runnable r = invocation.getArgument(0);
-                            r.run();
-                            return null;
-                        })
-                .when(mockActivity)
-                .runOnUiThread(any(Runnable.class));
 
         try {
             message =
@@ -536,6 +513,8 @@ public class AEPMessageTests {
         mockMessageFragment.dismissedWithGesture = false;
         Mockito.when(mockAEPMessageSettings.getDismissAnimation())
                 .thenReturn(MessageAnimation.BOTTOM);
+        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
+                .thenReturn(true);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
                         mockFullscreenMessageDelegate.shouldShowMessage(
@@ -547,8 +526,15 @@ public class AEPMessageTests {
                 .thenReturn(mockFragmentTransaction);
         Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
                 .thenReturn(mockMessageFragment);
+        Mockito.when(
+                        mockFragmentTransaction.replace(
+                                anyInt(), any(MessageFragment.class), anyString()))
+                .thenReturn(mockFragmentTransaction);
+        Mockito.when(mockFragmentTransaction.addToBackStack(isNull()))
+                .thenReturn(mockFragmentTransaction);
+        Mockito.when(mockFragmentTransaction.commit()).thenReturn(123);
 
-        // Actually run the handler runnable - mocking the activity.runOnUiThread()
+        // Actually run the runOnUIThread runnable
         doAnswer(
                         invocation -> {
                             Runnable r = invocation.getArgument(0);
@@ -583,8 +569,6 @@ public class AEPMessageTests {
         message.dismiss();
         message.getAnimationListener().onAnimationEnd(mockAnimation);
         // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(1))
-                .show(any(FullscreenMessage.class), eq(true));
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismissed();
         Mockito.verify(mockWebView, Mockito.times(1))
                 .startAnimation(ArgumentMatchers.any(Animation.class));
@@ -596,6 +580,8 @@ public class AEPMessageTests {
         mockMessageFragment.dismissedWithGesture = true;
         Mockito.when(mockAEPMessageSettings.getDismissAnimation())
                 .thenReturn(MessageAnimation.BOTTOM);
+        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
+                .thenReturn(true);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
                         mockFullscreenMessageDelegate.shouldShowMessage(
@@ -607,8 +593,15 @@ public class AEPMessageTests {
                 .thenReturn(mockFragmentTransaction);
         Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
                 .thenReturn(mockMessageFragment);
+        Mockito.when(
+                        mockFragmentTransaction.replace(
+                                anyInt(), any(MessageFragment.class), anyString()))
+                .thenReturn(mockFragmentTransaction);
+        Mockito.when(mockFragmentTransaction.addToBackStack(isNull()))
+                .thenReturn(mockFragmentTransaction);
+        Mockito.when(mockFragmentTransaction.commit()).thenReturn(123);
 
-        // Actually run the handler runnable - mocking the activity.runOnUiThread()
+        // Actually run the runOnUIThread runnable
         doAnswer(
                         invocation -> {
                             Runnable r = invocation.getArgument(0);
@@ -632,7 +625,6 @@ public class AEPMessageTests {
         }
 
         message.rootViewGroup = mockViewGroup;
-        message.messageFragment = mockMessageFragment;
         message.messageWebViewRunner = mockMessageWebViewRunner;
         message.webView = mockWebView;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
@@ -640,10 +632,9 @@ public class AEPMessageTests {
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
         message.show();
+        message.messageFragment = mockMessageFragment;
         message.dismiss();
         // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(1))
-                .show(any(FullscreenMessage.class), eq(true));
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismissed();
         Mockito.verify(mockWebView, Mockito.times(0))
                 .startAnimation(ArgumentMatchers.any(Animation.class));

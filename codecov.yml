@@ -13,11 +13,11 @@ coverage:
     changes: no
 
   ignore:
-    - "code/android-core-library/src/main/java/com/adobe/marketing/mobile/ExtensionListener.java"
-    - "code/android-core-library/src/main/java/com/adobe/marketing/mobile/InvalidInitException.java"
-    - "code/android-core-library/src/main/java/com/adobe/marketing/mobile/ExtensionUnexpectedError.java"
-    - "code/android-core-library/src/main/java/com/adobe/marketing/mobile/internal/CoreConstants.kt"
-    - "code/android-core-library/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHubConstants.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/ExtensionListener.java"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/InvalidInitException.java"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/ExtensionUnexpectedError.java"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/CoreConstants.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHubConstants.kt"
 
 parsers:
   gcov:

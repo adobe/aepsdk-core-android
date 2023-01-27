@@ -157,7 +157,7 @@ class IdentityExtensionTests {
     fun `readyForEvent() - handle getExperienceCloudId or getIdentifiers event without valid configuration`() {
         val identityExtension = initializeSpiedIdentityExtension()
         identityExtension.onRegistered()
-        identityExtension.setHasSynced(true)
+        identityExtension.setHasSynced(true);
 
         Mockito.`when`(
             mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
@@ -179,7 +179,7 @@ class IdentityExtensionTests {
     fun `readyForEvent() should return false for appendUrl and urlVars events if Analytics extension is not registered`() {
         val identityExtension = initializeSpiedIdentityExtension()
         identityExtension.onRegistered()
-        identityExtension.setHasSynced(true)
+        identityExtension.setHasSynced(true);
 
         val countDownLatch = CountDownLatch(2)
         Mockito.`when`(
@@ -254,15 +254,15 @@ class IdentityExtensionTests {
     fun `forceSyncIdentifiers() should return true on valid Configuration state `() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+                mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET,
-                    mapOf(
-                        "experienceCloud.org" to "orgid"
-                    )
+                        SharedStateStatus.SET,
+                        mapOf(
+                                "experienceCloud.org" to "orgid"
+                        )
                 )
             }
             return@thenAnswer null
@@ -279,15 +279,15 @@ class IdentityExtensionTests {
     fun `forceSyncIdentifiers() should return false on Configuration state without orgId `() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+                mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET,
-                    mapOf(
-                        "no.server.config" to "orgid"
-                    )
+                        SharedStateStatus.SET,
+                        mapOf(
+                                "no.server.config" to "orgid"
+                        )
                 )
             }
             return@thenAnswer null
@@ -305,15 +305,15 @@ class IdentityExtensionTests {
     fun `forceSyncIdentifiers() should still create a shared state if OPTED_OUT`() {
         val identityExtension = initializeSpiedIdentityExtension()
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+                mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
                 return@thenAnswer SharedStateResult(
-                    SharedStateStatus.SET,
-                    mapOf(
-                        "experienceCloud.org" to "orgid"
-                    )
+                        SharedStateStatus.SET,
+                        mapOf(
+                                "experienceCloud.org" to "orgid"
+                        )
                 )
             }
             return@thenAnswer null
@@ -391,7 +391,7 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
-        spiedIdentityExtension.setHasSynced(true)
+        spiedIdentityExtension.setHasSynced(true);
 
         Mockito.`when`(
             mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
@@ -429,7 +429,7 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
-        spiedIdentityExtension.setHasSynced(true)
+        spiedIdentityExtension.setHasSynced(true);
 
         Mockito.`when`(
             mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
@@ -459,7 +459,7 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
-        spiedIdentityExtension.setHasSynced(true)
+        spiedIdentityExtension.setHasSynced(true);
 
         Mockito.`when`(
             mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
@@ -497,7 +497,7 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
-        spiedIdentityExtension.setHasSynced(true)
+        spiedIdentityExtension.setHasSynced(true);
 
         Mockito.`when`(
             mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
@@ -942,9 +942,9 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
-                Event.Builder("event", "type", "source").build(),
-                null,
-                false
+                    Event.Builder("event", "type", "source").build(),
+                    null,
+                    false
             )
         )
         verify(spiedIdentityExtension, never()).extractIdentifiers(any())
@@ -957,9 +957,9 @@ class IdentityExtensionTests {
         val state = ConfigurationSharedStateIdentity()
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
-                Event.Builder("event", "type", "source").build(),
-                state,
-                false
+                    Event.Builder("event", "type", "source").build(),
+                    state,
+                    false
             )
         )
 
@@ -979,9 +979,9 @@ class IdentityExtensionTests {
         )
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
-                Event.Builder("event", "type", "source").build(),
-                state,
-                false
+                    Event.Builder("event", "type", "source").build(),
+                    state,
+                    false
             )
         )
 

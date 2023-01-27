@@ -248,10 +248,10 @@ public final class IdentityExtension extends Extension {
 
         SharedStateResult configState =
                 getApi().getSharedState(
-                        IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                        null,
-                        false,
-                        SharedStateResolution.LAST_SET);
+                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                                null,
+                                false,
+                                SharedStateResolution.LAST_SET);
         if (configState == null || configState.getStatus() != SharedStateStatus.SET) {
             return false;
         }
@@ -260,7 +260,8 @@ public final class IdentityExtension extends Extension {
             return false;
         }
 
-        // Get privacy status from configuration, set global "privacyStatus" variable, update hit queue
+        // Get privacy status from configuration, set global "privacyStatus" variable, update hit
+        // queue
         loadPrivacyStatusIfConfigurationStateValid(event);
 
         Map<String, Object> configuration = configState.getValue();
@@ -268,7 +269,9 @@ public final class IdentityExtension extends Extension {
         ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
         configSharedState.getConfigurationProperties(configuration);
 
-        hasSynced = handleSyncIdentifiers(event, configSharedState, true) || MobilePrivacyStatus.OPT_OUT.equals(privacyStatus);
+        hasSynced =
+                handleSyncIdentifiers(event, configSharedState, true)
+                        || MobilePrivacyStatus.OPT_OUT.equals(privacyStatus);
 
         if (hasSynced && !didCreateInitialSharedState) {
             getApi().createSharedState(packageEventData(), event);
@@ -498,10 +501,10 @@ public final class IdentityExtension extends Extension {
 
         SharedStateResult configState =
                 getApi().getSharedState(
-                        IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                        event,
-                        false,
-                        SharedStateResolution.LAST_SET);
+                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                                event,
+                                false,
+                                SharedStateResolution.LAST_SET);
         if (configState != null) {
             configSharedState.getConfigurationProperties(configState.getValue());
         }
@@ -817,12 +820,14 @@ public final class IdentityExtension extends Extension {
      * @param event {@code Event} containing identifiers that need to be synced
      * @param configSharedState {@code ConfigurationSharedStateIdentity} valid for this event
      * @param forceSync
-     * @return true if the identifiers were successfully processed and a shared state needs
-     * to be created, false if the identifiers could not be processed at this time.
+     * @return true if the identifiers were successfully processed and a shared state needs to be
+     *     created, false if the identifiers could not be processed at this time.
      */
     @VisibleForTesting
     boolean handleSyncIdentifiers(
-            final Event event, final ConfigurationSharedStateIdentity configSharedState, boolean forceSync) {
+            final Event event,
+            final ConfigurationSharedStateIdentity configSharedState,
+            boolean forceSync) {
         if (configSharedState == null) {
             // sanity check, should never get here
             Log.debug(
@@ -914,9 +919,12 @@ public final class IdentityExtension extends Extension {
                                 0));
 
         // Extract isForceSync
-        final boolean shouldForceSync = forceSync ||
-                DataReader.optBoolean(
-                        eventData, IdentityConstants.EventDataKeys.Identity.FORCE_SYNC, false);
+        final boolean shouldForceSync =
+                forceSync
+                        || DataReader.optBoolean(
+                                eventData,
+                                IdentityConstants.EventDataKeys.Identity.FORCE_SYNC,
+                                false);
 
         List<VisitorID> currentCustomerIds = generateCustomerIds(identifiers, idState);
 
@@ -1120,8 +1128,8 @@ public final class IdentityExtension extends Extension {
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
                     "updatePushIdentifier : Ignored a push token (%s) as it matches with an"
-                        + " existing token, and the push notification status will not be re-sent"
-                        + " to Analytics.",
+                        + " existing token, and the push notification status will not be re-sent to"
+                        + " Analytics.",
                     pushId);
             return;
         }
@@ -1816,7 +1824,9 @@ public final class IdentityExtension extends Extension {
                 newEvent.toString());
     }
 
-    /** @param eventData to be used to create the event object to be dispatched. */
+    /**
+     * @param eventData to be used to create the event object to be dispatched.
+     */
     @VisibleForTesting
     void handleIdentityConfigurationUpdateEvent(final Map<String, Object> eventData) {
         final Event event =
@@ -1889,14 +1899,15 @@ public final class IdentityExtension extends Extension {
             getApi().createSharedState(packageEventData(), event);
         } else if (StringUtils.isNullOrEmpty(mid)) {
             // Need to generate new Experience Cloud ID for the user
-            ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
+            ConfigurationSharedStateIdentity configSharedState =
+                    new ConfigurationSharedStateIdentity();
 
             SharedStateResult configState =
                     getApi().getSharedState(
-                            IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                            event,
-                            false,
-                            SharedStateResolution.LAST_SET);
+                                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                                    event,
+                                    false,
+                                    SharedStateResolution.LAST_SET);
             if (configState != null) {
                 configSharedState.getConfigurationProperties(configState.getValue());
             }

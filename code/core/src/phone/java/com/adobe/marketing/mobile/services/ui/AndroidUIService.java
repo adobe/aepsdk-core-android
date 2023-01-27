@@ -30,6 +30,8 @@ import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AndroidUIService implements UIService {
 
@@ -48,6 +50,18 @@ public class AndroidUIService implements UIService {
     private URIHandler uriHandler;
 
     MessagesMonitor messagesMonitor = MessagesMonitor.getInstance();
+
+    /*
+     * Responsible for holding a single thread executor for lazy initialization only if
+     * an AEPMessage will be created.
+     */
+    private static class ExecutorHolder {
+        static final ExecutorService INSTANCE = Executors.newSingleThreadExecutor();
+    }
+
+    private static ExecutorService getExecutor() {
+        return ExecutorHolder.INSTANCE;
+    }
 
     @Override
     public void showAlert(final AlertSetting alertSetting, final AlertListener alertListener) {
@@ -361,7 +375,14 @@ public class AndroidUIService implements UIService {
         AEPMessage message = null;
 
         try {
-            message = new AEPMessage(html, listener, isLocalImageUsed, messagesMonitor, settings);
+            message =
+                    new AEPMessage(
+                            html,
+                            listener,
+                            isLocalImageUsed,
+                            messagesMonitor,
+                            settings,
+                            getExecutor());
         } catch (MessageCreationException exception) {
             Log.warning(
                     ServiceConstants.LOG_TAG,

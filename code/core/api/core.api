@@ -856,6 +856,7 @@ public abstract interface class com/adobe/marketing/mobile/services/ui/Fullscree
 	public abstract fun setLocalAssetsMap (Ljava/util/Map;)V
 	public abstract fun setMessageSetting (Lcom/adobe/marketing/mobile/services/ui/MessageSettings;)V
 	public abstract fun show ()V
+	public abstract fun show (Z)V
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate {

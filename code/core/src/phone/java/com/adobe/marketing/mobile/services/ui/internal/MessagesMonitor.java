@@ -11,11 +11,16 @@
 
 package com.adobe.marketing.mobile.services.ui.internal;
 
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
+import com.adobe.marketing.mobile.services.ServiceProvider;
+import com.adobe.marketing.mobile.services.ui.FullscreenMessage;
 import com.adobe.marketing.mobile.services.ui.UIService;
 
 public class MessagesMonitor {
+    private static final String TAG = "MessagesMonitor";
 
-    private static MessagesMonitor INSTANCE = new MessagesMonitor();
+    private static final MessagesMonitor INSTANCE = new MessagesMonitor();
 
     private MessagesMonitor() {}
 
@@ -45,5 +50,74 @@ public class MessagesMonitor {
     /** Notifies that a message was displayed */
     public void displayed() {
         messageDisplayed = true;
+    }
+
+    /**
+     * Determines whether the provided {@link FullscreenMessage} should be shown. If a UI message is
+     * already showing, this method will return false. If a {@link
+     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate} exists, this method will
+     * call its {@link
+     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate#shouldShowMessage(FullscreenMessage)}
+     * method.
+     *
+     * @param message {@code FullscreenMessage} to be shown
+     * @return {@code boolean} true if message needs to be shown
+     */
+    public boolean show(final FullscreenMessage message) {
+        return show(message, true);
+    }
+
+    /**
+     * Determines whether the provided {@link FullscreenMessage} should be shown. If a UI message is
+     * already showing, this method will return false. If a {@link
+     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate} exists, this method will
+     * call its {@link
+     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate#shouldShowMessage(FullscreenMessage)}
+     * method.
+     *
+     * @param message {@code FullscreenMessage} to be shown
+     * @param delegateControl {@code boolean} If true, the {@code FullscreenMessageDelegate} will
+     *     control whether the message should be shown
+     * @return {@code boolean} true if message needs to be shown
+     */
+    public boolean show(final FullscreenMessage message, final boolean delegateControl) {
+        if (isDisplayed()) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Message couldn't be displayed, another message is displayed at this time.");
+            return false;
+        }
+
+        if (delegateControl) {
+            if (!ServiceProvider.getInstance().getMessageDelegate().shouldShowMessage(message)) {
+                Log.debug(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        "Message couldn't be displayed, MessagingDelegate#showMessage states the"
+                                + " message should not be displayed.");
+                return false;
+            }
+        }
+
+        // Change message monitor to display
+        displayed();
+
+        return true;
+    }
+
+    public boolean dismiss() {
+        if (!isDisplayed()) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Message failed to be dismissed, nothing is currently displayed.");
+            return false;
+        }
+
+        // Change message visibility to dismiss
+        dismissed();
+
+        return true;
     }
 }

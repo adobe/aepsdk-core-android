@@ -244,14 +244,14 @@ public final class IdentityExtension extends Extension {
     }
 
     private boolean hasValidSharedState(final String extensionName, final Event event) {
-        SharedStateResult result =
+        SharedStateResult sharedStateResult =
                 getApi().getSharedState(
                                 extensionName, event, false, SharedStateResolution.LAST_SET);
-        if (result == null) {
+        if (sharedStateResult == null || sharedStateResult.getStatus() != SharedStateStatus.SET) {
             return false;
         }
-        Map<String, Object> configuration = result.getValue();
-        return configuration != null && !configuration.isEmpty();
+        Map<String, Object> sharedStateValue = sharedStateResult.getValue();
+        return sharedStateValue != null && !sharedStateValue.isEmpty();
     }
 
     @VisibleForTesting

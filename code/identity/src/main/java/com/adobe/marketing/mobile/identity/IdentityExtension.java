@@ -897,17 +897,6 @@ public final class IdentityExtension extends Extension {
                     currentEventValidConfig.marketingCloudServer);
         }
 
-        // AMSDK-6861
-        // When updating the push identifier, if the value changes from empty to set or vice versa,
-        // an Analytics Request Content event is dispatched to track the enable/disable of the push
-        // ID.
-        // This happens before the Identity shared state is created. However, Analytics doesn't
-        // (currently)
-        // read the push ID from the Identity shared state when processing the event. If Analytics
-        // changes
-        // to read the push ID, then the code here will need to change to dispatch the event after
-        // creating the shared state.
-
         final Map<String, Object> eventData = event.getEventData();
 
         // Extract dpId's

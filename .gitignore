@@ -91,3 +91,5 @@ lint/tmp/
 # Ignore Gradle build output directory
 build
 jacoco.exec
+
+.DS_Store

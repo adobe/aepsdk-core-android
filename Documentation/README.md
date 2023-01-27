@@ -4,8 +4,9 @@
 
 * Implementing the SDK:
     * [Getting Started](./GettingStarted.md)
+        * [Managing Gradle Dependencies](./GradleDependencies.md)
     * [API Usage](./Usage/README.md)
-    * [Migrating from ACPCore to AEPCore](./Migration/Migration_Install.md)
+    * [Migrating from ACPCore to AEPCore](./Migration.md)
     * [Validation via Assurance](./Debugging.md)
 * [Building Extensions](./EventHub/README.md)
     * [Services](./Services/README.md)

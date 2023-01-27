@@ -16,15 +16,15 @@ If you cannot access the Mobile Install Instructions dialog box in the Data Coll
 
 1. Each extension needs to be added as a dependency to the mobile application project. The following examples will add the Mobile Core, Lifecycle, Identity, Signal and Profile extensions.
 
-> The following 2.x.x should be replaced with the latest version numbers.
-
 ```java
-implementation 'com.adobe.marketing.mobile:userprofile:2.x.x'
-implementation 'com.adobe.marketing.mobile:core:2.x.x'
-implementation 'com.adobe.marketing.mobile:identity:2.x.x'
-implementation 'com.adobe.marketing.mobile:signal:2.x.x'
-implementation 'com.adobe.marketing.mobile:lifecycle:2.x.x'
+implementation 'com.adobe.marketing.mobile:userprofile:2.+'
+implementation 'com.adobe.marketing.mobile:core:2.+'
+implementation 'com.adobe.marketing.mobile:identity:2.+'
+implementation 'com.adobe.marketing.mobile:signal:2.+'
+implementation 'com.adobe.marketing.mobile:lifecycle:2.+'
 ```
+
+> Using dynamic dependency versions is not recommended for production apps. Refer to this [page](./GradleDependencies.md) for managing gradle dependencies
 
 2. Next you'll need to import SDK libraries into your project and register them for initialization. Extensions are registered with Mobile Core so that they can dispatch and listen for events.
 
@@ -42,11 +42,11 @@ public class MainApp extends Application {
         MobileCore.setLogLevel(LoggingMode.VERBOSE);
         MobileCore.configureWithAppID(APP_ID);
 
-        List<Class<? extends Extension>> extensions = new ArrayList<>();
-        extensions.add(Lifecycle.EXTENSION);
-        extensions.add(Signal.EXTENSION);
-        extensions.add(Identity.EXTENSION);
-        extensions.add(UserProfile.EXTENSION);
+        List<Class<? extends Extension>> extensions = Arrays.asList(
+                Lifecycle.EXTENSION,
+                Signal.EXTENSION,
+                Identity.EXTENSION,
+                UserProfile.EXTENSION);
         MobileCore.registerExtensions(extensions, o -> {
             Log.d(LOG_TAG, "AEP Mobile SDK is initialized");
         });

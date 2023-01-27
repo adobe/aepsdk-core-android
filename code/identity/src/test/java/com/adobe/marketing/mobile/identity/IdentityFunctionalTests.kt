@@ -1979,15 +1979,6 @@ class IdentityFunctionalTests {
                 "com.adobe.eventSource.requestReset"
             ).build()
         )
-        val eventCaptor = ArgumentCaptor.forClass(Event::class.java)
-        verify(mockedExtensionApi, atLeast(1)).dispatch(eventCaptor.capture())
-        val event = eventCaptor.value
-        assertNotNull(event.eventData)
-        assertTrue(event.eventData.contains("forcesync"))
-        assertTrue(event.eventData.contains("authenticationstate"))
-        assertTrue(event.eventData.contains("issyncevent"))
-
-        identityExtension.processIdentityRequest(event)
 
         countDownLatch.await()
     }

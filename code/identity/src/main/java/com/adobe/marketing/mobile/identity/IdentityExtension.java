@@ -256,7 +256,7 @@ public final class IdentityExtension extends Extension {
 
     @VisibleForTesting
     void forceSyncIdentifiers(@NonNull final Event event) {
-        loadPrivacyStatusIfConfigurationSateValid(event);
+        loadPrivacyStatusIfConfigurationStateValid(event);
 
         final Event forcedSyncEvent = createForcedSyncEvent();
         processIdentityRequest(forcedSyncEvent);
@@ -2461,7 +2461,7 @@ public final class IdentityExtension extends Extension {
      *
      * @param event the {@link Event} used to retrieve the {@code Configuration} state
      */
-    private void loadPrivacyStatusIfConfigurationSateValid(final Event event) {
+    private void loadPrivacyStatusIfConfigurationStateValid(final Event event) {
         SharedStateResult result =
                 getApi().getSharedState(
                                 IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,

@@ -24,7 +24,8 @@ implementation 'com.adobe.marketing.mobile:signal:2.+'
 implementation 'com.adobe.marketing.mobile:lifecycle:2.+'
 ```
 
-> Using dynamic dependency versions is not recommended for production apps. Refer to this [page](./GradleDependencies.md) for managing gradle dependencies
+> **Warning**
+> Using dynamic dependency versions is not recommended for production apps. Refer to this [page](./GradleDependencies.md) for managing gradle dependencies.
 
 2. Next you'll need to import SDK libraries into your project and register them for initialization. Extensions are registered with Mobile Core so that they can dispatch and listen for events.
 

@@ -11,4 +11,5 @@
 
 package com.adobe.marketing.mobile;
 
+@Deprecated
 public class InvalidInitException extends RuntimeException {}

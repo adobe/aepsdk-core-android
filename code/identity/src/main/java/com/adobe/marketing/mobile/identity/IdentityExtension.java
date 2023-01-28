@@ -822,7 +822,7 @@ public final class IdentityExtension extends Extension {
     boolean handleSyncIdentifiers(
             final Event event,
             final ConfigurationSharedStateIdentity configSharedState,
-            boolean forceSync) {
+            final boolean forceSync) {
         if (configSharedState == null) {
             // sanity check, should never get here
             Log.debug(

@@ -154,7 +154,7 @@ public final class IdentityExtension extends Extension {
         getApi().registerEventListener(
                         EventType.GENERIC_IDENTITY,
                         EventSource.REQUEST_RESET,
-                        this::processIdentityRequest);
+                        this::handleIdentityRequestReset);
         // listen to Analytics response
         getApi().registerEventListener(
                         EventType.ANALYTICS,
@@ -467,16 +467,7 @@ public final class IdentityExtension extends Extension {
      *
      * @param event the request request {@link Event}
      */
-    void handleIdentityRequestReset(final Event event) {
-        if (event == null) {
-            Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    LOG_SOURCE,
-                    "handleIdentityRequestReset: Ignoring null event");
-            return;
-        }
-
+    void handleIdentityRequestReset(@NonNull final Event event) {
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             Log.debug(
                     IdentityConstants.LOG_TAG,
@@ -763,9 +754,7 @@ public final class IdentityExtension extends Extension {
                 "processEvent : Processing the Identity event: %s",
                 event);
 
-        if (isResetIdentityEvent(event)) {
-            handleIdentityRequestReset(event);
-        } else if (isSyncEvent(event) || event.getType().equals(EventType.GENERIC_IDENTITY)) {
+         if (isSyncEvent(event) || event.getType().equals(EventType.GENERIC_IDENTITY)) {
             if (handleSyncIdentifiers(event, configSharedState, false)) {
                 getApi().createSharedState(packageEventData(), event);
             }

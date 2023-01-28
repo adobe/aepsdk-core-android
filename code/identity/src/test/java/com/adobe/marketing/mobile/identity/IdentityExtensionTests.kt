@@ -568,14 +568,6 @@ class IdentityExtensionTests {
     }
 
     @Test
-    fun `handleIdentityRequestReset() - event is null`() {
-        val spiedIdentityExtension = initializeSpiedIdentityExtension()
-        spiedIdentityExtension.handleIdentityRequestReset(null)
-
-        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
-    }
-
-    @Test
     fun `handleIdentityRequestReset() - OptedOut`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 

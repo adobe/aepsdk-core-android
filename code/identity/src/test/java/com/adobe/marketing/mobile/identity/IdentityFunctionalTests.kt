@@ -1972,7 +1972,7 @@ class IdentityFunctionalTests {
             }
         }
 
-        identityExtension.processIdentityRequest(
+        identityExtension.handleIdentityRequestReset(
             Event.Builder(
                 "event",
                 "com.adobe.eventType.generic.identity",

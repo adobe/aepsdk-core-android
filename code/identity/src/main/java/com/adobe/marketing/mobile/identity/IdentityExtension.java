@@ -502,7 +502,7 @@ public final class IdentityExtension extends Extension {
             configSharedState.getConfigurationProperties(configState.getValue());
         }
 
-        if (handleSyncIdentifiers(event, configSharedState, true)) {
+        if (handleSyncIdentifiers(event, configSharedState, false)) {
             getApi().createSharedState(packageEventData(), event);
         }
     }
@@ -1894,7 +1894,7 @@ public final class IdentityExtension extends Extension {
                 configSharedState.getConfigurationProperties(configState.getValue());
             }
 
-            if (handleSyncIdentifiers(event, configSharedState, true)) {
+            if (handleSyncIdentifiers(event, configSharedState, false)) {
                 getApi().createSharedState(packageEventData(), event);
             }
         }

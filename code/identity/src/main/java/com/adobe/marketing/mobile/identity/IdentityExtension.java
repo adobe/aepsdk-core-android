@@ -261,7 +261,8 @@ public final class IdentityExtension extends Extension {
         }
 
         // Get privacy status from configuration, set global "privacyStatus" variable, update hit queue
-        loadPrivacyStatusIfConfigurationStateValid(event);
+        loadPrivacyStatusFromConfigurationState(configState.getValue());
+        hitQueue.handlePrivacyChange(privacyStatus);
 
         Map<String, Object> configuration = configState.getValue();
 
@@ -2474,23 +2475,9 @@ public final class IdentityExtension extends Extension {
      * the {@code Configuration} shared state for the given {@code event}. This method should be
      * called during the extension's boot process.
      *
-     * @param event the {@link Event} used to retrieve the {@code Configuration} state
+     * @param configState the Configuration shared state
      */
-    private void loadPrivacyStatusIfConfigurationStateValid(final Event event) {
-        SharedStateResult result =
-                getApi().getSharedState(
-                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                event,
-                                false,
-                                SharedStateResolution.LAST_SET);
-        if (result == null) {
-            return;
-        }
-        Map<String, Object> configState = result.getValue();
-        if (configState == null) {
-            return;
-        }
-
+    private void loadPrivacyStatusFromConfigurationState(final Map<String, Object> configState) {
         String privacyString =
                 DataReader.optString(
                         configState,
@@ -2498,12 +2485,6 @@ public final class IdentityExtension extends Extension {
                         Defaults.DEFAULT_MOBILE_PRIVACY.getValue());
 
         privacyStatus = MobilePrivacyStatus.fromString(privacyString);
-
-        hitQueue.handlePrivacyChange(privacyStatus);
-        Log.trace(
-                LOG_SOURCE,
-                "loadPrivacyStatus : Updated the database with the current privacy status: %s.",
-                privacyString);
     }
 
     @VisibleForTesting

@@ -118,6 +118,12 @@ internal class ExtensionContainer constructor(
 
         // Notify that the extension is registered
         extension.onExtensionRegistered()
+
+        Log.debug(
+            CoreConstants.LOG_TAG,
+            getTag(),
+            "Started processing events"
+        )
     }
 
     private val teardownJob = Runnable {
@@ -132,12 +138,6 @@ internal class ExtensionContainer constructor(
         eventProcessor.setInitialJob(initJob)
         eventProcessor.setFinalJob(teardownJob)
         eventProcessor.start()
-
-        Log.debug(
-            CoreConstants.LOG_TAG,
-            getTag(),
-            "ExtensionContainer started processing events"
-        )
     }
 
     fun shutdown() {

@@ -29,7 +29,7 @@ To see more examples of integrating with the Android SDK 2.0, head over to the s
 
 ## Next Steps
 
-- Get familiar with the various APIs offered by the Android SDK 2.0 by checking out the [API usage documents](../Usage/README.md).
-- To leverage shared services offered by the Android SDK, check out the [Services documentation](../Services/README.md).
-- To build an extension on top of the Android SDK, check out the [Building Extensions documentation](../EventHub/BuildingExtensions.md).
-- Verify an SDK implementation with [Assurance](../Debugging.md).
+- Get familiar with the various APIs offered by the Android SDK 2.0 by checking out the [API usage documents](./MobileCore/api-reference.md)
+- To leverage shared services offered by the Android SDK, check out the [Services documentation](./Services/README.md).
+- To build an extension on top of the Android SDK, check out the [Building Extensions documentation](./EventHub/BuildingExtensions.md).
+- Verify an SDK implementation with [Assurance](./Debugging.md).

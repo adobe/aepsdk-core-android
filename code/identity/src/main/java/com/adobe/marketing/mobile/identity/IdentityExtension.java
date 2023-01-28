@@ -758,7 +758,7 @@ public final class IdentityExtension extends Extension {
                 "processEvent : Processing the Identity event: %s",
                 event);
 
-        if (isSyncEvent(event) || event.getType().equals(EventType.GENERIC_IDENTITY)) {
+        if (isSyncEvent(event) || EventType.GENERIC_IDENTITY.equals(event.getType())) {
             if (handleSyncIdentifiers(event, configSharedState, false)) {
                 getApi().createSharedState(packageEventData(), event);
             }

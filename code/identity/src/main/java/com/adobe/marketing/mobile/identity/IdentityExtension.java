@@ -38,6 +38,7 @@ import com.adobe.marketing.mobile.services.Networking;
 import com.adobe.marketing.mobile.services.PersistentHitQueue;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.MapUtils;
 import com.adobe.marketing.mobile.util.SQLiteUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
 import com.adobe.marketing.mobile.util.TimeUtils;
@@ -271,6 +272,9 @@ public final class IdentityExtension extends Extension {
 
         hasSynced = handleSyncIdentifiers(event, configSharedState, true) || MobilePrivacyStatus.OPT_OUT.equals(privacyStatus);
 
+        // Identity should always share its state
+        // However, don't create a shared state twice, which will log an error
+        // If the sync was successful and there is no initial shared state available, post a shared state update
         if (hasSynced && !didCreateInitialSharedState) {
             getApi().createSharedState(packageEventData(), event);
             didCreateInitialSharedState = true;
@@ -287,7 +291,7 @@ public final class IdentityExtension extends Extension {
             return false;
         }
         Map<String, Object> sharedStateValue = sharedStateResult.getValue();
-        return sharedStateValue != null && !sharedStateValue.isEmpty();
+        return !MapUtils.isNullOrEmpty(sharedStateValue);
     }
 
     private void boot() {
@@ -841,7 +845,6 @@ public final class IdentityExtension extends Extension {
                     LOG_SOURCE,
                     "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the"
                             + " privacy status was opt-out.");
-            // did process this event but can't sync the call. Hence return true.
             return false;
         }
 
@@ -2114,7 +2117,7 @@ public final class IdentityExtension extends Extension {
      * @return {@link String} representing valid query parameters for a URL.
      */
     String generateInternalIdString(final Map<String, String> dpids) {
-        if (dpids == null || dpids.isEmpty()) {
+        if (MapUtils.isNullOrEmpty(dpids)) {
             return "";
         }
 

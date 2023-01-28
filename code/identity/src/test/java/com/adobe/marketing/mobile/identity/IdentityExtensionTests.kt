@@ -42,6 +42,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.eq
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -116,7 +117,7 @@ class IdentityExtensionTests {
         identityExtension.onRegistered()
 
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -137,7 +138,7 @@ class IdentityExtensionTests {
         identityExtension.onRegistered()
 
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -156,9 +157,10 @@ class IdentityExtensionTests {
     fun `readyForEvent() - handle getExperienceCloudId or getIdentifiers event without valid configuration`() {
         val identityExtension = initializeSpiedIdentityExtension()
         identityExtension.onRegistered()
+        identityExtension.setHasSynced(true)
 
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -177,9 +179,11 @@ class IdentityExtensionTests {
     fun `readyForEvent() should return false for appendUrl and urlVars events if Analytics extension is not registered`() {
         val identityExtension = initializeSpiedIdentityExtension()
         identityExtension.onRegistered()
+        identityExtension.setHasSynced(true)
+
         val countDownLatch = CountDownLatch(2)
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -218,10 +222,10 @@ class IdentityExtensionTests {
     }
 
     @Test
-    fun `readyForEvent() should trigger one forceSync event `() {
+    fun `readyForEvent() should trigger forceSync event `() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -234,18 +238,91 @@ class IdentityExtensionTests {
             }
             return@thenAnswer null
         }
-        spiedIdentityExtension.readyForEvent(Event.Builder("event", "type", "source").build())
 
-        spiedIdentityExtension.readyForEvent(Event.Builder("event", "type", "source").build())
-        verify(spiedIdentityExtension, times(1)).forceSyncIdentifiers(any())
+        val testEvent1 = Event.Builder("event", "type", "source").build()
+        spiedIdentityExtension.readyForEvent(testEvent1)
+
+        val testEvent2 = Event.Builder("event", "type", "source").build()
+        spiedIdentityExtension.readyForEvent(testEvent2)
+
+        verify(spiedIdentityExtension, times(1)).readyForSyncIdentifiers(any())
+        verify(mockedExtensionApi, times(1)).createSharedState(any(), eq(testEvent1))
+        verify(spiedIdentityExtension, times(2)).forceSyncIdentifiers(any())
+    }
+
+    @Test
+    fun `forceSyncIdentifiers() should return true on valid Configuration state `() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "experienceCloud.org" to "orgid"
+                    )
+                )
+            }
+            return@thenAnswer null
+        }
+
+        val event = Event.Builder("event", "type", "source").build()
+        assertTrue(spiedIdentityExtension.forceSyncIdentifiers(event))
+
+        verify(spiedIdentityExtension, times(1)).readyForSyncIdentifiers(any())
+        verify(mockedExtensionApi, times(1)).createSharedState(any(), eq(event))
+    }
+
+    @Test
+    fun `forceSyncIdentifiers() should return false on Configuration state without orgId `() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "no.server.config" to "orgid"
+                    )
+                )
+            }
+            return@thenAnswer null
+        }
+
+        val event = Event.Builder("event", "type", "source").build()
+        assertFalse(spiedIdentityExtension.forceSyncIdentifiers(event))
+
+        // forceSyncIdentifiers fails from call to readyForSyncIdentifiers
+        verify(spiedIdentityExtension, times(1)).readyForSyncIdentifiers(any())
+        verify(mockedExtensionApi, never()).createSharedState(any(), any())
     }
 
     @Test
     fun `forceSyncIdentifiers() should still create a shared state if OPTED_OUT`() {
         val identityExtension = initializeSpiedIdentityExtension()
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "experienceCloud.org" to "orgid"
+                    )
+                )
+            }
+            return@thenAnswer null
+        }
         identityExtension.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-        identityExtension.forceSyncIdentifiers(Event.Builder("event", "type", "source").build())
-        verify(mockedExtensionApi, times(1)).createSharedState(any(), anyOrNull())
+
+        val event = Event.Builder("event", "type", "source").build()
+        assertTrue(identityExtension.forceSyncIdentifiers(event))
+        verify(mockedExtensionApi, times(1)).createSharedState(any(), eq(event))
     }
 
     @Test
@@ -253,9 +330,11 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
+        // Initial sync needs to occur before a sync event will call readyForSyncIdentifiers
+        spiedIdentityExtension.setHasSynced(true)
 
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -278,13 +357,14 @@ class IdentityExtensionTests {
     }
 
     @Test
-    fun `readyForSyncIdentifiers() for sync event - no valid orgId - return false`() {
+    fun `readyForEvent() for sync event - no valid orgId - return false`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
+        spiedIdentityExtension.setHasSynced(true)
 
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -303,17 +383,18 @@ class IdentityExtensionTests {
                     .build()
             )
         )
-        verify(spiedIdentityExtension, times(2)).isSyncEvent(any())
+        verify(spiedIdentityExtension, times(1)).isSyncEvent(any())
     }
 
     @Test
-    fun `readyForSyncIdentifiers() - appendUrlEvent - happy`() {
+    fun `readyForEvent() - appendUrlEvent - happy`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
+        spiedIdentityExtension.setHasSynced(true)
 
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -344,13 +425,14 @@ class IdentityExtensionTests {
     }
 
     @Test
-    fun `readyForSyncIdentifiers() - appendUrlEvent - invalid analytics`() {
+    fun `readyForEvent() - appendUrlEvent - invalid analytics`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
+        spiedIdentityExtension.setHasSynced(true)
 
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -373,13 +455,14 @@ class IdentityExtensionTests {
     }
 
     @Test
-    fun `readyForSyncIdentifiers() - getUrlVarsEvent - happy`() {
+    fun `readyForEvent() - getUrlVarsEvent - happy`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
+        spiedIdentityExtension.setHasSynced(true)
 
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -410,13 +493,14 @@ class IdentityExtensionTests {
     }
 
     @Test
-    fun `readyForSyncIdentifiers() - getUrlVarsEvent - invalid analytics`() {
+    fun `readyForEvent() - getUrlVarsEvent - invalid analytics`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
+        spiedIdentityExtension.setHasSynced(true)
 
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -481,14 +565,6 @@ class IdentityExtensionTests {
 
         verify(spiedIdentityExtension, never()).processPrivacyChange(any(), any())
         verify(spiedIdentityExtension, never()).updateLatestValidConfiguration(any())
-    }
-
-    @Test
-    fun `handleIdentityRequestReset() - event is null`() {
-        val spiedIdentityExtension = initializeSpiedIdentityExtension()
-        spiedIdentityExtension.handleIdentityRequestReset(null)
-
-        verify(spiedIdentityExtension, never()).processIdentityRequest(any())
     }
 
     @Test
@@ -660,7 +736,7 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         var retrievedConfiguration = false
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -678,7 +754,7 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         var retrievedConfiguration = false
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -702,7 +778,7 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         var retrievedConfiguration = false
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -730,7 +806,7 @@ class IdentityExtensionTests {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         var retrievedConfiguration = false
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -757,7 +833,7 @@ class IdentityExtensionTests {
     fun `processAudienceResponse() - happy`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         Mockito.`when`(
-            mockedExtensionApi.getSharedState(any(), any(), anyOrNull(), any())
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->
             val extension = invocation.arguments[0] as? String
             if ("com.adobe.module.configuration" === extension) {
@@ -854,26 +930,28 @@ class IdentityExtensionTests {
     }
 
     @Test
-    fun `handleSyncIdentifiers() - null configuration`() {
+    fun `handleSyncIdentifiers() - returns false on null configuration`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
-        assertTrue(
+        assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
-                null
+                null,
+                false
             )
         )
         verify(spiedIdentityExtension, never()).extractIdentifiers(any())
     }
 
     @Test
-    fun `handleSyncIdentifiers() - cached state is OPTED_OUT`() {
+    fun `handleSyncIdentifiers() - returns false on cached state is OPTED_OUT`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         spiedIdentityExtension.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
         val state = ConfigurationSharedStateIdentity()
-        assertTrue(
+        assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
-                state
+                state,
+                false
             )
         )
 
@@ -881,7 +959,7 @@ class IdentityExtensionTests {
     }
 
     @Test
-    fun `handleSyncIdentifiers() - latest state is OPTED_OUT`() {
+    fun `handleSyncIdentifiers() - returns false on latest state is OPTED_OUT`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         val state = ConfigurationSharedStateIdentity()
         state.getConfigurationProperties(
@@ -891,10 +969,11 @@ class IdentityExtensionTests {
 
             )
         )
-        assertTrue(
+        assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
-                state
+                state,
+                false
             )
         )
 
@@ -902,7 +981,7 @@ class IdentityExtensionTests {
     }
 
     @Test
-    fun `handleSyncIdentifiers() - null event`() {
+    fun `handleSyncIdentifiers() - returns false on null event`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         val state = ConfigurationSharedStateIdentity()
         state.getConfigurationProperties(
@@ -912,7 +991,7 @@ class IdentityExtensionTests {
 
             )
         )
-        assertTrue(spiedIdentityExtension.handleSyncIdentifiers(null, state))
+        assertFalse(spiedIdentityExtension.handleSyncIdentifiers(null, state, false))
 
         verify(spiedIdentityExtension, never()).extractIdentifiers(any())
     }

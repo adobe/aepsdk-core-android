@@ -10,10 +10,10 @@ To have predictable builds, follow one of these approaches when managing gradle 
 
 To ensure consistent builds, it is best to explicitly specify the versions of dependencies and manually update them as necessary. This allows for full control over version updates and the ability to thoroughly review the dependency changelog and assess the changes before implementation.
 
-IDEs such as Android Studio or IntelliJ highlights dynamic or outdated dependencies as warnings. Follow the suggestions provided to update them to appropriate version.
+IDEs such as Android Studio or IntelliJ highlight dynamic or outdated dependencies as warnings. Follow the suggestions provided to update them to appropriate version.
 
-![Dynamic dependency warning](./assets/dependencies_hint1.png)
-![Outdated dependency warning](./assets/dependencies_hint2.png)
+![Dynamic dependency warning](../assets/dependencies_hint1.png)
+![Outdated dependency warning](../assets/dependencies_hint2.png)
 
 ## Locking dependency versions
 

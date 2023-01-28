@@ -2,7 +2,7 @@
 
 This guide walks through how to get up and running with the AEP Android SDK with only a few lines of code.
 
-> Existing ACP SDK customers should check out the [migration document](./Migration.md).
+> Existing ACP SDK customers should check out the [migration document](../Migration.md).
 
 ## Set up a Mobile Property
 
@@ -25,7 +25,7 @@ implementation 'com.adobe.marketing.mobile:lifecycle:2.+'
 ```
 
 > **Warning**
-> Using dynamic dependency versions is not recommended for production apps. Refer to this [page](./GradleDependencies.md) for managing gradle dependencies.
+> Using dynamic dependency versions is not recommended for production apps. Refer to this [page](./gradle-dependencies.md) for managing gradle dependencies.
 
 2. Next you'll need to import SDK libraries into your project and register them for initialization. Extensions are registered with Mobile Core so that they can dispatch and listen for events.
 
@@ -133,6 +133,6 @@ To download more examples of integrating the AEP Android SDK, head over to the s
 
 ## Next Steps
 
-- Get familiar with the various APIs offered by the AEP SDK by checking out the [API usage documents](./Usage/README.md).
-- Validate SDK implementation with [Assurance](./Debugging.md).
-- To build an extension on-top of the AEP SDK, check out the [Building Extensions documentation](./EventHub/BuildingExtensions.md).
+- Get familiar with the various APIs offered by the AEP SDK by checking out the [Mobile Core API reference](./api-reference.md).
+- Validate SDK implementation with [Assurance](../Debugging.md).
+- To build an extension on-top of the AEP SDK, check out the [Building Extensions documentation](../EventHub/BuildingExtensions.md).

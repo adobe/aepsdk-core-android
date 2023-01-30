@@ -38,6 +38,7 @@ private typealias NetworkMonitor = (url: String) -> Unit
 @RunWith(AndroidJUnit4::class)
 class IdentityIntegrationTests {
     companion object {
+        private const val TEST_TIMEOUT : Long = 1000
         private var networkMonitor: NetworkMonitor? = null
 
         @BeforeClass
@@ -101,15 +102,16 @@ class IdentityIntegrationTests {
         MobileCore.registerExtensions(
             listOf(
                 IdentityExtension::class.java,
-                MonitorExtension::class.java
+                MonitorExtension::class.java,
+                Analytics.EXTENSION
             )
         ) {
             countDownLatch.countDown()
         }
-        assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatch.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
     }
 
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     fun testSyncIdentifiers() {
         val countDownLatch = CountDownLatch(1)
         val configurationLatch = CountDownLatch(1)
@@ -139,7 +141,7 @@ class IdentityIntegrationTests {
     }
 
 
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     fun testIdentitySendsForceSyncRequestOnEveryLaunch() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -166,7 +168,7 @@ class IdentityIntegrationTests {
             mapOf("id1" to "value1"),
             VisitorID.AuthenticationState.AUTHENTICATED
         )
-        assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatch.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
 
         val context = ApplicationProvider.getApplicationContext<Context>()
         val sharedPreference = context.getSharedPreferences("visitorIDServiceDataStore", 0)
@@ -211,11 +213,11 @@ class IdentityIntegrationTests {
         configurationAwareness { configurationLatch2.countDown() }
         configurationLatch2.await()
 
-        assertTrue(countDownLatchSecondLaunch.await(500, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatchSecondLaunch.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
         countDownLatchSecondNetworkMonitor.await()
     }
 
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     fun testOptedout() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -237,10 +239,44 @@ class IdentityIntegrationTests {
         assertFalse(countDownLatch.await(200, TimeUnit.MILLISECONDS))
     }
 
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     @Ignore
-    //TODO: getUrlVariables feature depends on Analytics shared state, will re-enable it once Analytics 2.0 migration is done.
-    fun testGetUrlVariables() {
+    //TODO: Fix issue where Analytics does not update persistence and shared state with latest vid
+    fun testGetUrlVariables_whenValidAnalyticsIds_includesAnalyticsIdsInReturnedUrl() {
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
+
+        Analytics.setVisitorIdentifier("testVid")
+        val analyticsLatch = CountDownLatch(1)
+        Analytics.getVisitorIdentifier{ id ->
+            analyticsLatch.countDown()
+        }
+        analyticsLatch.await()
+
+        val countDownLatch = CountDownLatch(1)
+        Identity.getUrlVariables { variables ->
+            assertNotNull(variables)
+            assertTrue(variables.contains("TS"))
+            assertTrue(variables.contains("MCMID"))
+            assertTrue(variables.contains("MCORGID"))
+            assertTrue(variables.contains("adobe_aa_vid=testVid"))
+            countDownLatch.countDown()
+        }
+
+        countDownLatch.await()
+    }
+
+    @Test(timeout = TEST_TIMEOUT)
+    fun testGetUrlVariables_whenNoAnalyticsIds_returnsUrlWithIdentityInfo() {
         MobileCore.updateConfiguration(
             mapOf(
                 "experienceCloud.org" to "orgid",
@@ -259,6 +295,8 @@ class IdentityIntegrationTests {
             assertTrue(variables.contains("TS"))
             assertTrue(variables.contains("MCMID"))
             assertTrue(variables.contains("MCORGID"))
+            assertFalse(variables.contains("adobe_aa_vid"))
+            assertFalse(variables.contains("MCAID"))
             countDownLatch.countDown()
         }
 
@@ -267,8 +305,8 @@ class IdentityIntegrationTests {
 
     @Test
     @Ignore
-    //TODO: appendUrl feature depends on Analytics shared state, will re-enable it once Analytics 2.0 migration is done.
-    fun testAppendTo() {
+    //TODO: Fix issue where Analytics does not update persistence and shared state with latest vid
+    fun testAppendTo_whenValidAnalyticsIds_includesAnalyticsIdsInReturnedUrl() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
             mapOf(
@@ -280,17 +318,51 @@ class IdentityIntegrationTests {
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
         configurationLatch.await()
+        Analytics.setVisitorIdentifier("testVid")
+        val analyticsLatch = CountDownLatch(1)
+        Analytics.getVisitorIdentifier{ id ->
+            analyticsLatch.countDown()
+        }
+        analyticsLatch.await()
+
         Identity.appendVisitorInfoForURL("https://adobe.com") { url ->
             assertNotNull(url)
             assertTrue(url.contains("TS"))
             assertTrue(url.contains("MCMID"))
             assertTrue(url.contains("MCORGID"))
+            assertTrue(url.contains("adobe_aa_vid=testVid"))
             countDownLatch.countDown()
         }
         countDownLatch.await()
     }
 
-    @Test(timeout = 10000)
+    @Test
+    fun testAppendTo_whenNoAnalyticsIds_returnsUrlWithIdentityInfo() {
+        val countDownLatch = CountDownLatch(1)
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
+
+        Identity.appendVisitorInfoForURL("https://adobe.com") { url ->
+            assertNotNull(url)
+            assertTrue(url.contains("TS"))
+            assertTrue(url.contains("MCMID"))
+            assertTrue(url.contains("MCORGID"))
+            assertFalse(url.contains("adobe_aa_vid"))
+            assertFalse(url.contains("MCAID"))
+            countDownLatch.countDown()
+        }
+        countDownLatch.await()
+    }
+
+    @Test(timeout = TEST_TIMEOUT)
     fun testGetExperienceCloudId() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -311,7 +383,7 @@ class IdentityIntegrationTests {
     }
 
     @Ignore
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     //TODO: enable this test once MobileCore.getSdkIdentities event handling is implemented in the new Configuration extension
     fun testGetSdkIdentities() {
         val countDownLatch = CountDownLatch(1)
@@ -334,7 +406,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     fun testGetIdentifiers() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -361,7 +433,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     fun testGetIdentifiers_returnsEmptyList_whenNoIds() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -382,7 +454,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     fun testSetPushIdentifier() {
         val countDownLatchNetworkMonitor = CountDownLatch(1)
         networkMonitor = { url ->
@@ -405,7 +477,7 @@ class IdentityIntegrationTests {
         countDownLatchNetworkMonitor.await()
     }
 
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     fun testSetAdvertisingIdentifier() {
         val countDownLatchNetworkMonitor = CountDownLatch(1)
         networkMonitor = { url ->
@@ -428,7 +500,7 @@ class IdentityIntegrationTests {
         countDownLatchNetworkMonitor.await()
     }
 
-    @Test(timeout = 10000)
+    @Test(timeout = TEST_TIMEOUT)
     fun testResetIdentities() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -448,7 +520,7 @@ class IdentityIntegrationTests {
                 countDownLatch.countDown()
             }
         }
-        assertTrue(countDownLatch.await(500, TimeUnit.MILLISECONDS))
+        assertTrue(countDownLatch.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
         val firstMid = loadStoreMid()
         assertNotEquals("", firstMid)
 

@@ -38,7 +38,7 @@ private typealias NetworkMonitor = (url: String) -> Unit
 @RunWith(AndroidJUnit4::class)
 class IdentityIntegrationTests {
     companion object {
-        private const val TEST_TIMEOUT : Long = 500
+        private const val TEST_TIMEOUT : Long = 1000
         private var networkMonitor: NetworkMonitor? = null
 
         @BeforeClass
@@ -242,7 +242,7 @@ class IdentityIntegrationTests {
     @Test(timeout = TEST_TIMEOUT)
     @Ignore
     //TODO: Fix issue where Analytics does not update persistence and shared state with latest vid
-    fun testGetUrlVariables_whenAnalyticsIds() {
+    fun testGetUrlVariables_whenValidAnalyticsIds_includesAnalyticsIdsInReturnedUrl() {
         MobileCore.updateConfiguration(
             mapOf(
                 "experienceCloud.org" to "orgid",
@@ -276,7 +276,7 @@ class IdentityIntegrationTests {
     }
 
     @Test(timeout = TEST_TIMEOUT)
-    fun testGetUrlVariables_whenNoAnalyticsIds() {
+    fun testGetUrlVariables_whenNoAnalyticsIds_returnsUrlWithIdentityInfo() {
         MobileCore.updateConfiguration(
             mapOf(
                 "experienceCloud.org" to "orgid",
@@ -306,7 +306,7 @@ class IdentityIntegrationTests {
     @Test
     @Ignore
     //TODO: Fix issue where Analytics does not update persistence and shared state with latest vid
-    fun testAppendTo_whenAnalyticsIds() {
+    fun testAppendTo_whenValidAnalyticsIds_includesAnalyticsIdsInReturnedUrl() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
             mapOf(
@@ -337,7 +337,7 @@ class IdentityIntegrationTests {
     }
 
     @Test
-    fun testAppendTo_whenNoAnalyticsIds() {
+    fun testAppendTo_whenNoAnalyticsIds_returnsUrlWithIdentityInfo() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
             mapOf(

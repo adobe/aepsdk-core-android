@@ -194,8 +194,6 @@ class IdentityExtensionTests {
         val identityExtension = initializeSpiedIdentityExtension()
         identityExtension.onRegistered()
         identityExtension.setHasSynced(true)
-
-        val countDownLatch = CountDownLatch(2)
         Mockito.`when`(
             mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
         ).thenAnswer { invocation ->

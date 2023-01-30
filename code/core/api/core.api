@@ -1,0 +1,1124 @@
+public abstract interface class com/adobe/marketing/mobile/AdobeCallback {
+	public abstract fun call (Ljava/lang/Object;)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/AdobeCallbackWithError : com/adobe/marketing/mobile/AdobeCallback {
+	public abstract fun fail (Lcom/adobe/marketing/mobile/AdobeError;)V
+}
+
+public class com/adobe/marketing/mobile/AdobeError : java/io/Serializable {
+	public static final field CALLBACK_NULL Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field CALLBACK_TIMEOUT Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field EXTENSION_NOT_INITIALIZED Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field UNEXPECTED_ERROR Lcom/adobe/marketing/mobile/AdobeError;
+	protected fun <init> (Ljava/lang/String;I)V
+	public fun getErrorCode ()I
+	public fun getErrorName ()Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/Event {
+	public fun cloneWithEventData (Ljava/util/Map;)Lcom/adobe/marketing/mobile/Event;
+	public fun copy ()Lcom/adobe/marketing/mobile/Event;
+	public fun getEventData ()Ljava/util/Map;
+	public fun getMask ()[Ljava/lang/String;
+	public fun getName ()Ljava/lang/String;
+	public fun getResponseID ()Ljava/lang/String;
+	public fun getSource ()Ljava/lang/String;
+	public fun getTimestamp ()J
+	public fun getTimestampInSeconds ()J
+	public fun getType ()Ljava/lang/String;
+	public fun getUniqueIdentifier ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/Event$Builder {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V
+	public fun build ()Lcom/adobe/marketing/mobile/Event;
+	public fun inResponseToEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event$Builder;
+	public fun setEventData (Ljava/util/Map;)Lcom/adobe/marketing/mobile/Event$Builder;
+}
+
+public class com/adobe/marketing/mobile/EventCoder {
+	public static fun decode (Ljava/lang/String;)Lcom/adobe/marketing/mobile/Event;
+	public static fun encode (Lcom/adobe/marketing/mobile/Event;)Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/EventHistoryRequest {
+	public fun <init> (Ljava/util/Map;JJ)V
+	public fun getFromDate ()J
+	public fun getMaskAsDecimalHash ()J
+	public fun getToDate ()J
+}
+
+public abstract interface class com/adobe/marketing/mobile/EventHistoryResultHandler {
+	public abstract fun call (Ljava/lang/Object;)V
+}
+
+public final class com/adobe/marketing/mobile/EventSource {
+	public static final field APPLICATION_CLOSE Ljava/lang/String;
+	public static final field APPLICATION_LAUNCH Ljava/lang/String;
+	public static final field CONSENT_PREFERENCE Ljava/lang/String;
+	public static final field ERROR_RESPONSE_CONTENT Ljava/lang/String;
+	public static final field NONE Ljava/lang/String;
+	public static final field OS Ljava/lang/String;
+	public static final field REMOVE_IDENTITY Ljava/lang/String;
+	public static final field REQUEST_CONTENT Ljava/lang/String;
+	public static final field REQUEST_IDENTITY Ljava/lang/String;
+	public static final field REQUEST_PROFILE Ljava/lang/String;
+	public static final field REQUEST_RESET Ljava/lang/String;
+	public static final field RESET_COMPLETE Ljava/lang/String;
+	public static final field RESPONSE_CONTENT Ljava/lang/String;
+	public static final field RESPONSE_IDENTITY Ljava/lang/String;
+	public static final field RESPONSE_PROFILE Ljava/lang/String;
+	public static final field SHARED_STATE Ljava/lang/String;
+	public static final field UPDATE_CONSENT Ljava/lang/String;
+	public static final field UPDATE_IDENTITY Ljava/lang/String;
+	public static final field WILDCARD Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/EventType {
+	public static final field ACQUISITION Ljava/lang/String;
+	public static final field ANALYTICS Ljava/lang/String;
+	public static final field ASSURANCE Ljava/lang/String;
+	public static final field AUDIENCEMANAGER Ljava/lang/String;
+	public static final field CAMPAIGN Ljava/lang/String;
+	public static final field CONFIGURATION Ljava/lang/String;
+	public static final field CONSENT Ljava/lang/String;
+	public static final field CUSTOM Ljava/lang/String;
+	public static final field EDGE Ljava/lang/String;
+	public static final field EDGE_IDENTITY Ljava/lang/String;
+	public static final field GENERIC_DATA Ljava/lang/String;
+	public static final field GENERIC_IDENTITY Ljava/lang/String;
+	public static final field GENERIC_LIFECYCLE Ljava/lang/String;
+	public static final field GENERIC_PII Ljava/lang/String;
+	public static final field GENERIC_TRACK Ljava/lang/String;
+	public static final field HUB Ljava/lang/String;
+	public static final field IDENTITY Ljava/lang/String;
+	public static final field LIFECYCLE Ljava/lang/String;
+	public static final field LOCATION Ljava/lang/String;
+	public static final field MEDIA Ljava/lang/String;
+	public static final field MESSAGING Ljava/lang/String;
+	public static final field PII Ljava/lang/String;
+	public static final field PLACES Ljava/lang/String;
+	public static final field RULES_ENGINE Ljava/lang/String;
+	public static final field SIGNAL Ljava/lang/String;
+	public static final field SYSTEM Ljava/lang/String;
+	public static final field TARGET Ljava/lang/String;
+	public static final field USERPROFILE Ljava/lang/String;
+	public static final field WILDCARD Ljava/lang/String;
+}
+
+public abstract class com/adobe/marketing/mobile/Extension {
+	protected fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
+	public final fun getApi ()Lcom/adobe/marketing/mobile/ExtensionApi;
+	protected fun getFriendlyName ()Ljava/lang/String;
+	protected fun getMetadata ()Ljava/util/Map;
+	protected abstract fun getName ()Ljava/lang/String;
+	protected fun getVersion ()Ljava/lang/String;
+	protected fun onRegistered ()V
+	protected fun onUnexpectedError (Lcom/adobe/marketing/mobile/ExtensionUnexpectedError;)V
+	protected fun onUnregistered ()V
+	public fun readyForEvent (Lcom/adobe/marketing/mobile/Event;)Z
+}
+
+public abstract class com/adobe/marketing/mobile/ExtensionApi {
+	public fun <init> ()V
+	public abstract fun clearSharedEventStates (Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public abstract fun clearXDMSharedEventStates (Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public abstract fun createPendingSharedState (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/SharedStateResolver;
+	public abstract fun createPendingXDMSharedState (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/SharedStateResolver;
+	public abstract fun createSharedState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;)V
+	public abstract fun createXDMSharedState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;)V
+	public abstract fun dispatch (Lcom/adobe/marketing/mobile/Event;)V
+	public abstract fun getHistoricalEvents ([Lcom/adobe/marketing/mobile/EventHistoryRequest;ZLcom/adobe/marketing/mobile/EventHistoryResultHandler;)V
+	public abstract fun getSharedEventState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Ljava/util/Map;
+	public abstract fun getSharedState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;ZLcom/adobe/marketing/mobile/SharedStateResolution;)Lcom/adobe/marketing/mobile/SharedStateResult;
+	public abstract fun getXDMSharedEventState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Ljava/util/Map;
+	public abstract fun getXDMSharedState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;ZLcom/adobe/marketing/mobile/SharedStateResolution;)Lcom/adobe/marketing/mobile/SharedStateResult;
+	public abstract fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionEventListener;)V
+	public abstract fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public abstract fun registerWildcardListener (Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public abstract fun setSharedEventState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public abstract fun setXDMSharedEventState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public abstract fun startEvents ()V
+	public abstract fun stopEvents ()V
+	public abstract fun unregisterExtension ()V
+}
+
+public class com/adobe/marketing/mobile/ExtensionError : com/adobe/marketing/mobile/AdobeError {
+	public static final field BAD_NAME Lcom/adobe/marketing/mobile/ExtensionError;
+	public static final field CALLBACK_NULL Lcom/adobe/marketing/mobile/ExtensionError;
+	public static final field DUPLICATE_NAME Lcom/adobe/marketing/mobile/ExtensionError;
+	public static final field EVENT_DATA_NOT_SUPPORTED Lcom/adobe/marketing/mobile/ExtensionError;
+	public static final field EVENT_SOURCE_NOT_SUPPORTED Lcom/adobe/marketing/mobile/ExtensionError;
+	public static final field EVENT_TYPE_NOT_SUPPORTED Lcom/adobe/marketing/mobile/ExtensionError;
+	public static final field LISTENER_TIMEOUT Lcom/adobe/marketing/mobile/ExtensionError;
+	public static final field UNEXPECTED_ERROR Lcom/adobe/marketing/mobile/ExtensionError;
+}
+
+public abstract interface class com/adobe/marketing/mobile/ExtensionErrorCallback {
+	public abstract fun error (Ljava/lang/Object;)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/ExtensionEventListener {
+	public abstract fun hear (Lcom/adobe/marketing/mobile/Event;)V
+}
+
+public class com/adobe/marketing/mobile/ExtensionHelper {
+	public static fun getFriendlyName (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;
+	public static fun getMetadata (Lcom/adobe/marketing/mobile/Extension;)Ljava/util/Map;
+	public static fun getName (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;
+	public static fun getVersion (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;
+	public static fun notifyError (Lcom/adobe/marketing/mobile/Extension;Lcom/adobe/marketing/mobile/ExtensionUnexpectedError;)V
+	public static fun notifyRegistered (Lcom/adobe/marketing/mobile/Extension;)V
+	public static fun notifyUnregistered (Lcom/adobe/marketing/mobile/Extension;)V
+}
+
+public abstract class com/adobe/marketing/mobile/ExtensionListener {
+	protected fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;Ljava/lang/String;Ljava/lang/String;)V
+	protected fun getParentExtension ()Lcom/adobe/marketing/mobile/Extension;
+	public abstract fun hear (Lcom/adobe/marketing/mobile/Event;)V
+	public fun onUnregistered ()V
+}
+
+public class com/adobe/marketing/mobile/ExtensionUnexpectedError : java/lang/Exception {
+	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionError;)V
+	public fun getErrorCode ()Lcom/adobe/marketing/mobile/ExtensionError;
+}
+
+public class com/adobe/marketing/mobile/InvalidInitException : java/lang/RuntimeException {
+	public fun <init> ()V
+}
+
+public class com/adobe/marketing/mobile/LocalNotificationHandler : android/content/BroadcastReceiver {
+	public fun <init> ()V
+	public fun onReceive (Landroid/content/Context;Landroid/content/Intent;)V
+}
+
+public final class com/adobe/marketing/mobile/LoggingMode : java/lang/Enum {
+	public static final field DEBUG Lcom/adobe/marketing/mobile/LoggingMode;
+	public static final field ERROR Lcom/adobe/marketing/mobile/LoggingMode;
+	public static final field VERBOSE Lcom/adobe/marketing/mobile/LoggingMode;
+	public static final field WARNING Lcom/adobe/marketing/mobile/LoggingMode;
+	public final field id I
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/LoggingMode;
+	public static fun values ()[Lcom/adobe/marketing/mobile/LoggingMode;
+}
+
+public final class com/adobe/marketing/mobile/MobileCore {
+	public static fun clearUpdatedConfiguration ()V
+	public static fun collectMessageInfo (Ljava/util/Map;)V
+	public static fun collectPii (Ljava/util/Map;)V
+	public static fun configureWithAppID (Ljava/lang/String;)V
+	public static fun configureWithFileInAssets (Ljava/lang/String;)V
+	public static fun configureWithFileInPath (Ljava/lang/String;)V
+	public static fun dispatchEvent (Lcom/adobe/marketing/mobile/Event;)V
+	public static fun dispatchEvent (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public static fun dispatchEventWithResponseCallback (Lcom/adobe/marketing/mobile/Event;JLcom/adobe/marketing/mobile/AdobeCallbackWithError;)V
+	public static fun dispatchEventWithResponseCallback (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/AdobeCallback;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public static fun dispatchEventWithResponseCallback (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/AdobeCallbackWithError;)V
+	public static fun dispatchResponseEvent (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public static fun extensionVersion ()Ljava/lang/String;
+	public static fun getApplication ()Landroid/app/Application;
+	public static fun getLogLevel ()Lcom/adobe/marketing/mobile/LoggingMode;
+	public static fun getPrivacyStatus (Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public static fun getSdkIdentities (Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public static fun lifecyclePause ()V
+	public static fun lifecycleStart (Ljava/util/Map;)V
+	public static fun log (Lcom/adobe/marketing/mobile/LoggingMode;Ljava/lang/String;Ljava/lang/String;)V
+	public static fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public static fun registerExtension (Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
+	public static fun registerExtensions (Ljava/util/List;Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public static fun resetIdentities ()V
+	public static fun setAdvertisingIdentifier (Ljava/lang/String;)V
+	public static fun setApplication (Landroid/app/Application;)V
+	public static fun setLargeIconResourceID (I)V
+	public static fun setLogLevel (Lcom/adobe/marketing/mobile/LoggingMode;)V
+	public static fun setPrivacyStatus (Lcom/adobe/marketing/mobile/MobilePrivacyStatus;)V
+	public static fun setPushIdentifier (Ljava/lang/String;)V
+	public static fun setSmallIconResourceID (I)V
+	public static fun setWrapperType (Lcom/adobe/marketing/mobile/WrapperType;)V
+	public static fun start (Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public static fun trackAction (Ljava/lang/String;Ljava/util/Map;)V
+	public static fun trackState (Ljava/lang/String;Ljava/util/Map;)V
+	public static fun updateConfiguration (Ljava/util/Map;)V
+}
+
+public final class com/adobe/marketing/mobile/MobilePrivacyStatus : java/lang/Enum {
+	public static final field OPT_IN Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
+	public static final field OPT_OUT Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
+	public static final field UNKNOWN Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
+	public static fun fromString (Ljava/lang/String;)Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
+	public fun getValue ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
+	public static fun values ()[Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
+}
+
+public final class com/adobe/marketing/mobile/NotificationDismissalHandler : android/content/BroadcastReceiver {
+	public fun <init> ()V
+	public fun onReceive (Landroid/content/Context;Landroid/content/Intent;)V
+}
+
+public final class com/adobe/marketing/mobile/SharedStateResolution : java/lang/Enum {
+	public static final field ANY Lcom/adobe/marketing/mobile/SharedStateResolution;
+	public static final field LAST_SET Lcom/adobe/marketing/mobile/SharedStateResolution;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/SharedStateResolution;
+	public static fun values ()[Lcom/adobe/marketing/mobile/SharedStateResolution;
+}
+
+public abstract interface class com/adobe/marketing/mobile/SharedStateResolver {
+	public abstract fun resolve (Ljava/util/Map;)V
+}
+
+public class com/adobe/marketing/mobile/SharedStateResult {
+	public fun <init> (Lcom/adobe/marketing/mobile/SharedStateStatus;Ljava/util/Map;)V
+	public fun getStatus ()Lcom/adobe/marketing/mobile/SharedStateStatus;
+	public fun getValue ()Ljava/util/Map;
+}
+
+public final class com/adobe/marketing/mobile/SharedStateStatus : java/lang/Enum {
+	public static final field NONE Lcom/adobe/marketing/mobile/SharedStateStatus;
+	public static final field PENDING Lcom/adobe/marketing/mobile/SharedStateStatus;
+	public static final field SET Lcom/adobe/marketing/mobile/SharedStateStatus;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/SharedStateStatus;
+	public static fun values ()[Lcom/adobe/marketing/mobile/SharedStateStatus;
+}
+
+public class com/adobe/marketing/mobile/VisitorID {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getAuthenticationState ()Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getIdOrigin ()Ljava/lang/String;
+	public final fun getIdType ()Ljava/lang/String;
+	public fun hashCode ()I
+}
+
+public final class com/adobe/marketing/mobile/VisitorID$AuthenticationState : java/lang/Enum {
+	public static final field AUTHENTICATED Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public static final field LOGGED_OUT Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public static final field UNKNOWN Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public static fun fromInteger (I)Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public fun getValue ()I
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+	public static fun values ()[Lcom/adobe/marketing/mobile/VisitorID$AuthenticationState;
+}
+
+public final class com/adobe/marketing/mobile/WrapperType : java/lang/Enum {
+	public static final field CORDOVA Lcom/adobe/marketing/mobile/WrapperType;
+	public static final field FLUTTER Lcom/adobe/marketing/mobile/WrapperType;
+	public static final field NONE Lcom/adobe/marketing/mobile/WrapperType;
+	public static final field REACT_NATIVE Lcom/adobe/marketing/mobile/WrapperType;
+	public static final field UNITY Lcom/adobe/marketing/mobile/WrapperType;
+	public static final field XAMARIN Lcom/adobe/marketing/mobile/WrapperType;
+	public static fun fromString (Ljava/lang/String;)Lcom/adobe/marketing/mobile/WrapperType;
+	public fun getFriendlyName ()Ljava/lang/String;
+	public fun getWrapperTag ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/WrapperType;
+	public static fun values ()[Lcom/adobe/marketing/mobile/WrapperType;
+}
+
+public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRule : com/adobe/marketing/mobile/rulesengine/Rule {
+	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/Evaluable;Ljava/util/List;)V
+	public final fun component1 ()Lcom/adobe/marketing/mobile/rulesengine/Evaluable;
+	public final fun component2 ()Ljava/util/List;
+	public final fun copy (Lcom/adobe/marketing/mobile/rulesengine/Evaluable;Ljava/util/List;)Lcom/adobe/marketing/mobile/launch/rulesengine/LaunchRule;
+	public static synthetic fun copy$default (Lcom/adobe/marketing/mobile/launch/rulesengine/LaunchRule;Lcom/adobe/marketing/mobile/rulesengine/Evaluable;Ljava/util/List;ILjava/lang/Object;)Lcom/adobe/marketing/mobile/launch/rulesengine/LaunchRule;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCondition ()Lcom/adobe/marketing/mobile/rulesengine/Evaluable;
+	public final fun getConsequenceList ()Ljava/util/List;
+	public fun getEvaluable ()Lcom/adobe/marketing/mobile/rulesengine/Evaluable;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
+	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
+	public fun process (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
+	public fun replaceRules (Ljava/util/List;)V
+}
+
+public final class com/adobe/marketing/mobile/launch/rulesengine/RuleConsequence {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;
+	public static synthetic fun copy$default (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lcom/adobe/marketing/mobile/launch/rulesengine/RuleConsequence;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDetail ()Ljava/util/Map;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult {
+	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;)V
+	public fun getData ()Ljava/lang/String;
+	public fun getReason ()Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+}
+
+public final class com/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason : java/lang/Enum {
+	public static final field CANNOT_CREATE_TEMP_DIR Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field CANNOT_STORE_IN_TEMP_DIR Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field INVALID_SOURCE Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field NOT_MODIFIED Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field NO_DATA Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field SUCCESS Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static final field ZIP_EXTRACTION_FAILED Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+	public static fun values ()[Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult$Reason;
+}
+
+public class com/adobe/marketing/mobile/launch/rulesengine/download/RulesLoader {
+	public fun <init> (Ljava/lang/String;)V
+	public fun getCacheName ()Ljava/lang/String;
+	public fun loadFromAsset (Ljava/lang/String;)Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult;
+	public fun loadFromCache (Ljava/lang/String;)Lcom/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult;
+	public fun loadFromUrl (Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
+}
+
+public final class com/adobe/marketing/mobile/launch/rulesengine/json/JSONRulesParser {
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/launch/rulesengine/json/JSONRulesParser;
+	public static final fun parse (Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionApi;)Ljava/util/List;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/ComparisonExpression : com/adobe/marketing/mobile/rulesengine/Evaluable {
+	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/Operand;Ljava/lang/String;Lcom/adobe/marketing/mobile/rulesengine/Operand;)V
+	public fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/Context;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/ConditionEvaluator : com/adobe/marketing/mobile/rulesengine/Evaluating {
+	public fun <init> ()V
+	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/ConditionEvaluator$Option;)V
+	public fun evaluate (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
+	public fun evaluate (Ljava/lang/String;Ljava/lang/Object;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
+}
+
+public final class com/adobe/marketing/mobile/rulesengine/ConditionEvaluator$Option : java/lang/Enum {
+	public static final field CASE_INSENSITIVE Lcom/adobe/marketing/mobile/rulesengine/ConditionEvaluator$Option;
+	public static final field DEFAULT Lcom/adobe/marketing/mobile/rulesengine/ConditionEvaluator$Option;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/rulesengine/ConditionEvaluator$Option;
+	public static fun values ()[Lcom/adobe/marketing/mobile/rulesengine/ConditionEvaluator$Option;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/Context {
+	public final field evaluator Lcom/adobe/marketing/mobile/rulesengine/Evaluating;
+	public final field tokenFinder Lcom/adobe/marketing/mobile/rulesengine/TokenFinder;
+	public final field transformer Lcom/adobe/marketing/mobile/rulesengine/Transforming;
+	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/TokenFinder;Lcom/adobe/marketing/mobile/rulesengine/Evaluating;Lcom/adobe/marketing/mobile/rulesengine/Transforming;)V
+}
+
+public class com/adobe/marketing/mobile/rulesengine/DelimiterPair {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/rulesengine/Evaluable {
+	public abstract fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/Context;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
+}
+
+public abstract interface class com/adobe/marketing/mobile/rulesengine/Evaluating {
+	public abstract fun evaluate (Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
+	public abstract fun evaluate (Ljava/lang/String;Ljava/lang/Object;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
+}
+
+public abstract interface class com/adobe/marketing/mobile/rulesengine/FunctionBlock {
+	public abstract fun execute ([Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/LogicalExpression : com/adobe/marketing/mobile/rulesengine/Evaluable {
+	public final field operands Ljava/util/List;
+	public final field operationName Ljava/lang/String;
+	public fun <init> (Ljava/util/List;Ljava/lang/String;)V
+	public fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/Context;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
+}
+
+public abstract interface class com/adobe/marketing/mobile/rulesengine/Operand {
+	public abstract fun resolve (Lcom/adobe/marketing/mobile/rulesengine/Context;)Ljava/lang/Object;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/OperandFunction : com/adobe/marketing/mobile/rulesengine/Operand {
+	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/FunctionBlock;[Ljava/lang/Object;)V
+	public fun resolve (Lcom/adobe/marketing/mobile/rulesengine/Context;)Ljava/lang/Object;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/OperandLiteral : com/adobe/marketing/mobile/rulesengine/Operand {
+	public fun <init> (Ljava/lang/Object;)V
+	public fun resolve (Lcom/adobe/marketing/mobile/rulesengine/Context;)Ljava/lang/Object;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/OperandMustacheToken : com/adobe/marketing/mobile/rulesengine/Operand {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Class;)V
+	public fun resolve (Lcom/adobe/marketing/mobile/rulesengine/Context;)Ljava/lang/Object;
+}
+
+public abstract interface class com/adobe/marketing/mobile/rulesengine/Rule {
+	public abstract fun getEvaluable ()Lcom/adobe/marketing/mobile/rulesengine/Evaluable;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/RulesEngine {
+	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/Evaluating;Lcom/adobe/marketing/mobile/rulesengine/Transforming;)V
+	public fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/TokenFinder;)Ljava/util/List;
+	public fun replaceRules (Ljava/util/List;)V
+}
+
+public class com/adobe/marketing/mobile/rulesengine/RulesResult {
+	public static final field SUCCESS Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
+	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/RulesResult$FailureType;Ljava/lang/String;)V
+	public fun getFailureMessage ()Ljava/lang/String;
+	public fun getFailureType ()Lcom/adobe/marketing/mobile/rulesengine/RulesResult$FailureType;
+	public fun isSuccess ()Z
+}
+
+public final class com/adobe/marketing/mobile/rulesengine/RulesResult$FailureType : java/lang/Enum {
+	public static final field CONDITION_FAILED Lcom/adobe/marketing/mobile/rulesengine/RulesResult$FailureType;
+	public static final field INVALID_OPERAND Lcom/adobe/marketing/mobile/rulesengine/RulesResult$FailureType;
+	public static final field MISSING_OPERATOR Lcom/adobe/marketing/mobile/rulesengine/RulesResult$FailureType;
+	public static final field TYPE_MISMATCHED Lcom/adobe/marketing/mobile/rulesengine/RulesResult$FailureType;
+	public static final field UNKNOWN Lcom/adobe/marketing/mobile/rulesengine/RulesResult$FailureType;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult$FailureType;
+	public static fun values ()[Lcom/adobe/marketing/mobile/rulesengine/RulesResult$FailureType;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/SegmentText : com/adobe/marketing/mobile/rulesengine/Segment {
+	public fun <init> (Ljava/lang/String;)V
+	public fun getContent (Lcom/adobe/marketing/mobile/rulesengine/TokenFinder;Lcom/adobe/marketing/mobile/rulesengine/Transforming;)Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/SegmentToken : com/adobe/marketing/mobile/rulesengine/Segment {
+	public fun <init> (Ljava/lang/String;)V
+	public fun getContent (Lcom/adobe/marketing/mobile/rulesengine/TokenFinder;Lcom/adobe/marketing/mobile/rulesengine/Transforming;)Ljava/lang/String;
+	public fun getMustacheToken ()Lcom/adobe/marketing/mobile/rulesengine/MustacheToken;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/Template {
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/rulesengine/DelimiterPair;)V
+	public fun render (Lcom/adobe/marketing/mobile/rulesengine/TokenFinder;Lcom/adobe/marketing/mobile/rulesengine/Transforming;)Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/TemplateParser {
+	public fun <init> ()V
+}
+
+public abstract interface class com/adobe/marketing/mobile/rulesengine/TokenFinder {
+	public abstract fun get (Ljava/lang/String;)Ljava/lang/Object;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/Transformer : com/adobe/marketing/mobile/rulesengine/Transforming {
+	public fun <init> ()V
+	public fun register (Ljava/lang/String;Lcom/adobe/marketing/mobile/rulesengine/TransformerBlock;)V
+	public fun transform (Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class com/adobe/marketing/mobile/rulesengine/TransformerBlock {
+	public abstract fun transform (Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class com/adobe/marketing/mobile/rulesengine/Transforming {
+	public abstract fun transform (Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+}
+
+public class com/adobe/marketing/mobile/rulesengine/UnaryExpression : com/adobe/marketing/mobile/rulesengine/Evaluable {
+	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/Operand;Ljava/lang/String;)V
+	public fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/Context;)Lcom/adobe/marketing/mobile/rulesengine/RulesResult;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/AppContextService {
+	public abstract fun getAppState ()Lcom/adobe/marketing/mobile/services/AppState;
+	public abstract fun getApplication ()Landroid/app/Application;
+	public abstract fun getApplicationContext ()Landroid/content/Context;
+	public abstract fun getCurrentActivity ()Landroid/app/Activity;
+	public abstract fun setApplication (Landroid/app/Application;)V
+}
+
+public final class com/adobe/marketing/mobile/services/AppState : java/lang/Enum {
+	public static final field BACKGROUND Lcom/adobe/marketing/mobile/services/AppState;
+	public static final field FOREGROUND Lcom/adobe/marketing/mobile/services/AppState;
+	public static final field UNKNOWN Lcom/adobe/marketing/mobile/services/AppState;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/AppState;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/AppState;
+}
+
+public final class com/adobe/marketing/mobile/services/DataEntity {
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/Date;Ljava/lang/String;)V
+	public fun getData ()Ljava/lang/String;
+	public fun getTimestamp ()Ljava/util/Date;
+	public fun getUniqueIdentifier ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/DataQueue {
+	public abstract fun add (Lcom/adobe/marketing/mobile/services/DataEntity;)Z
+	public abstract fun clear ()Z
+	public abstract fun close ()V
+	public abstract fun count ()I
+	public abstract fun peek ()Lcom/adobe/marketing/mobile/services/DataEntity;
+	public abstract fun peek (I)Ljava/util/List;
+	public abstract fun remove ()Z
+	public abstract fun remove (I)Z
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/DataQueuing {
+	public abstract fun getDataQueue (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/DataQueue;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/DataStoring {
+	public abstract fun getNamedCollection (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/NamedCollection;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/DeviceInforming {
+	public abstract fun getActiveLocale ()Ljava/util/Locale;
+	public abstract fun getApplicationBaseDir ()Ljava/io/File;
+	public abstract fun getApplicationCacheDir ()Ljava/io/File;
+	public abstract fun getApplicationName ()Ljava/lang/String;
+	public abstract fun getApplicationPackageName ()Ljava/lang/String;
+	public abstract fun getApplicationVersion ()Ljava/lang/String;
+	public abstract fun getApplicationVersionCode ()Ljava/lang/String;
+	public abstract fun getAsset (Ljava/lang/String;)Ljava/io/InputStream;
+	public abstract fun getCanonicalPlatformName ()Ljava/lang/String;
+	public abstract fun getCurrentOrientation ()I
+	public abstract fun getDefaultUserAgent ()Ljava/lang/String;
+	public abstract fun getDevice ()Ljava/lang/String;
+	public abstract fun getDeviceBrand ()Ljava/lang/String;
+	public abstract fun getDeviceBuildId ()Ljava/lang/String;
+	public abstract fun getDeviceManufacturer ()Ljava/lang/String;
+	public abstract fun getDeviceName ()Ljava/lang/String;
+	public abstract fun getDeviceType ()Lcom/adobe/marketing/mobile/services/DeviceInforming$DeviceType;
+	public abstract fun getDeviceUniqueId ()Ljava/lang/String;
+	public abstract fun getDisplayInformation ()Lcom/adobe/marketing/mobile/services/DeviceInforming$DisplayInformation;
+	public abstract fun getLocaleString ()Ljava/lang/String;
+	public abstract fun getMobileCarrierName ()Ljava/lang/String;
+	public abstract fun getNetworkConnectionStatus ()Lcom/adobe/marketing/mobile/services/DeviceInforming$ConnectionStatus;
+	public abstract fun getOperatingSystemName ()Ljava/lang/String;
+	public abstract fun getOperatingSystemVersion ()Ljava/lang/String;
+	public abstract fun getPropertyFromManifest (Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun getRunMode ()Ljava/lang/String;
+	public abstract fun registerOneTimeNetworkConnectionActiveListener (Lcom/adobe/marketing/mobile/services/DeviceInforming$NetworkConnectionActiveListener;)Z
+}
+
+public final class com/adobe/marketing/mobile/services/DeviceInforming$ConnectionStatus : java/lang/Enum {
+	public static final field CONNECTED Lcom/adobe/marketing/mobile/services/DeviceInforming$ConnectionStatus;
+	public static final field DISCONNECTED Lcom/adobe/marketing/mobile/services/DeviceInforming$ConnectionStatus;
+	public static final field UNKNOWN Lcom/adobe/marketing/mobile/services/DeviceInforming$ConnectionStatus;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/DeviceInforming$ConnectionStatus;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/DeviceInforming$ConnectionStatus;
+}
+
+public final class com/adobe/marketing/mobile/services/DeviceInforming$DeviceType : java/lang/Enum {
+	public static final field PHONE Lcom/adobe/marketing/mobile/services/DeviceInforming$DeviceType;
+	public static final field TABLET Lcom/adobe/marketing/mobile/services/DeviceInforming$DeviceType;
+	public static final field UNKNOWN Lcom/adobe/marketing/mobile/services/DeviceInforming$DeviceType;
+	public static final field WATCH Lcom/adobe/marketing/mobile/services/DeviceInforming$DeviceType;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/DeviceInforming$DeviceType;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/DeviceInforming$DeviceType;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/DeviceInforming$DisplayInformation {
+	public abstract fun getDensityDpi ()I
+	public abstract fun getHeightPixels ()I
+	public abstract fun getWidthPixels ()I
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/DeviceInforming$NetworkConnectionActiveListener {
+	public abstract fun onActive ()V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/HitProcessing {
+	public abstract fun processHit (Lcom/adobe/marketing/mobile/services/DataEntity;Lcom/adobe/marketing/mobile/services/HitProcessingResult;)V
+	public abstract fun retryInterval (Lcom/adobe/marketing/mobile/services/DataEntity;)I
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/HitProcessingResult {
+	public abstract fun complete (Z)V
+}
+
+public abstract class com/adobe/marketing/mobile/services/HitQueuing {
+	public fun <init> ()V
+	public abstract fun beginProcessing ()V
+	public abstract fun clear ()V
+	public abstract fun close ()V
+	public abstract fun count ()I
+	public fun handlePrivacyChange (Lcom/adobe/marketing/mobile/MobilePrivacyStatus;)V
+	public abstract fun queue (Lcom/adobe/marketing/mobile/services/DataEntity;)Z
+	public abstract fun suspend ()V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/HttpConnecting {
+	public abstract fun close ()V
+	public abstract fun getErrorStream ()Ljava/io/InputStream;
+	public abstract fun getInputStream ()Ljava/io/InputStream;
+	public abstract fun getResponseCode ()I
+	public abstract fun getResponseMessage ()Ljava/lang/String;
+	public abstract fun getResponsePropertyValue (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/services/HttpMethod : java/lang/Enum {
+	public static final field GET Lcom/adobe/marketing/mobile/services/HttpMethod;
+	public static final field POST Lcom/adobe/marketing/mobile/services/HttpMethod;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/HttpMethod;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/HttpMethod;
+}
+
+public class com/adobe/marketing/mobile/services/Log {
+	public static final field INVALID_FORMAT Ljava/lang/String;
+	public static final field UNEXPECTED_EMPTY_VALUE Ljava/lang/String;
+	public static final field UNEXPECTED_NULL_VALUE Ljava/lang/String;
+	public static fun debug (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V
+	public static fun error (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V
+	public static fun getLogLevel ()Lcom/adobe/marketing/mobile/LoggingMode;
+	public static fun setLogLevel (Lcom/adobe/marketing/mobile/LoggingMode;)V
+	public static fun trace (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V
+	public static fun warning (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/Logging {
+	public abstract fun debug (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun error (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun trace (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun warning (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/NamedCollection {
+	public abstract fun contains (Ljava/lang/String;)Z
+	public abstract fun getBoolean (Ljava/lang/String;Z)Z
+	public abstract fun getDouble (Ljava/lang/String;D)D
+	public abstract fun getFloat (Ljava/lang/String;F)F
+	public abstract fun getInt (Ljava/lang/String;I)I
+	public abstract fun getLong (Ljava/lang/String;J)J
+	public abstract fun getMap (Ljava/lang/String;)Ljava/util/Map;
+	public abstract fun getString (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun remove (Ljava/lang/String;)V
+	public abstract fun removeAll ()V
+	public abstract fun setBoolean (Ljava/lang/String;Z)V
+	public abstract fun setDouble (Ljava/lang/String;D)V
+	public abstract fun setFloat (Ljava/lang/String;F)V
+	public abstract fun setInt (Ljava/lang/String;I)V
+	public abstract fun setLong (Ljava/lang/String;J)V
+	public abstract fun setMap (Ljava/lang/String;Ljava/util/Map;)V
+	public abstract fun setString (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/NetworkCallback {
+	public abstract fun call (Lcom/adobe/marketing/mobile/services/HttpConnecting;)V
+}
+
+public class com/adobe/marketing/mobile/services/NetworkRequest {
+	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/HttpMethod;[BLjava/util/Map;II)V
+	public fun getBody ()[B
+	public fun getConnectTimeout ()I
+	public fun getHeaders ()Ljava/util/Map;
+	public fun getMethod ()Lcom/adobe/marketing/mobile/services/HttpMethod;
+	public fun getReadTimeout ()I
+	public fun getUrl ()Ljava/lang/String;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/Networking {
+	public abstract fun connectAsync (Lcom/adobe/marketing/mobile/services/NetworkRequest;Lcom/adobe/marketing/mobile/services/NetworkCallback;)V
+}
+
+public class com/adobe/marketing/mobile/services/NetworkingConstants {
+	public static field RECOVERABLE_ERROR_CODES Ljava/util/ArrayList;
+}
+
+public class com/adobe/marketing/mobile/services/NetworkingConstants$HeaderValues {
+	public static final field ACCEPT_TEXT_HTML Ljava/lang/String;
+	public static final field CONTENT_TYPE_JSON_APPLICATION Ljava/lang/String;
+	public static final field CONTENT_TYPE_URL_ENCODED Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/services/NetworkingConstants$Headers {
+	public static final field ACCEPT Ljava/lang/String;
+	public static final field ACCEPT_LANGUAGE Ljava/lang/String;
+	public static final field CONTENT_TYPE Ljava/lang/String;
+	public static final field ETAG Ljava/lang/String;
+	public static final field IF_MODIFIED_SINCE Ljava/lang/String;
+	public static final field IF_NONE_MATCH Ljava/lang/String;
+	public static final field LAST_MODIFIED Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/services/PersistentHitQueue : com/adobe/marketing/mobile/services/HitQueuing {
+	public fun <init> (Lcom/adobe/marketing/mobile/services/DataQueue;Lcom/adobe/marketing/mobile/services/HitProcessing;)V
+	public fun beginProcessing ()V
+	public fun clear ()V
+	public fun close ()V
+	public fun count ()I
+	public fun queue (Lcom/adobe/marketing/mobile/services/DataEntity;)Z
+	public fun suspend ()V
+}
+
+public class com/adobe/marketing/mobile/services/ServiceProvider {
+	public fun getAppContextService ()Lcom/adobe/marketing/mobile/services/AppContextService;
+	public fun getCacheService ()Lcom/adobe/marketing/mobile/services/caching/CacheService;
+	public fun getDataQueueService ()Lcom/adobe/marketing/mobile/services/DataQueuing;
+	public fun getDataStoreService ()Lcom/adobe/marketing/mobile/services/DataStoring;
+	public fun getDeviceInfoService ()Lcom/adobe/marketing/mobile/services/DeviceInforming;
+	public static fun getInstance ()Lcom/adobe/marketing/mobile/services/ServiceProvider;
+	public fun getLoggingService ()Lcom/adobe/marketing/mobile/services/Logging;
+	public fun getMessageDelegate ()Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;
+	public fun getNetworkService ()Lcom/adobe/marketing/mobile/services/Networking;
+	public fun getUIService ()Lcom/adobe/marketing/mobile/services/ui/UIService;
+	public fun setLoggingService (Lcom/adobe/marketing/mobile/services/Logging;)V
+	public fun setMessageDelegate (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;)V
+	public fun setNetworkService (Lcom/adobe/marketing/mobile/services/Networking;)V
+	public fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
+}
+
+public class com/adobe/marketing/mobile/services/caching/CacheEntry {
+	public fun <init> (Ljava/io/InputStream;Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;Ljava/util/Map;)V
+	public fun getData ()Ljava/io/InputStream;
+	public fun getExpiry ()Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+	public fun getMetadata ()Ljava/util/Map;
+}
+
+public class com/adobe/marketing/mobile/services/caching/CacheExpiry {
+	public static fun after (J)Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+	public static fun at (Ljava/util/Date;)Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+	public final fun getExpiration ()Ljava/util/Date;
+	public fun isExpired ()Z
+	public static fun never ()Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/caching/CacheResult {
+	public abstract fun getData ()Ljava/io/InputStream;
+	public abstract fun getExpiry ()Lcom/adobe/marketing/mobile/services/caching/CacheExpiry;
+	public abstract fun getMetadata ()Ljava/util/Map;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/caching/CacheService {
+	public abstract fun get (Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/caching/CacheResult;
+	public abstract fun remove (Ljava/lang/String;Ljava/lang/String;)Z
+	public abstract fun set (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/services/caching/CacheEntry;)Z
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/AlertListener {
+	public abstract fun onDismiss ()V
+	public abstract fun onError (Lcom/adobe/marketing/mobile/services/ui/UIError;)V
+	public abstract fun onNegativeResponse ()V
+	public abstract fun onPositiveResponse ()V
+	public abstract fun onShow ()V
+}
+
+public class com/adobe/marketing/mobile/services/ui/AlertSetting {
+	public static fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/AlertSetting;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getNegativeButtonText ()Ljava/lang/String;
+	public fun getPositiveButtonText ()Ljava/lang/String;
+	public fun getTitle ()Ljava/lang/String;
+}
+
+public class com/adobe/marketing/mobile/services/ui/AndroidUIService : com/adobe/marketing/mobile/services/ui/UIService {
+	public static final field NOTIFICATION_CONTENT_KEY Ljava/lang/String;
+	public static final field NOTIFICATION_DEEPLINK_KEY Ljava/lang/String;
+	public static final field NOTIFICATION_IDENTIFIER_KEY Ljava/lang/String;
+	public static final field NOTIFICATION_REQUEST_CODE_KEY Ljava/lang/String;
+	public static final field NOTIFICATION_SENDER_CODE I
+	public static final field NOTIFICATION_SENDER_CODE_KEY Ljava/lang/String;
+	public static final field NOTIFICATION_SOUND_KEY Ljava/lang/String;
+	public static final field NOTIFICATION_TITLE Ljava/lang/String;
+	public static final field NOTIFICATION_USER_INFO_KEY Ljava/lang/String;
+	public fun <init> ()V
+	public fun createFloatingButton (Lcom/adobe/marketing/mobile/services/ui/FloatingButtonListener;)Lcom/adobe/marketing/mobile/services/ui/FloatingButton;
+	public fun createFullscreenMessage (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;ZLcom/adobe/marketing/mobile/services/ui/MessageSettings;)Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;
+	public fun getIntentWithURI (Ljava/lang/String;)Landroid/content/Intent;
+	public fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
+	public fun showAlert (Lcom/adobe/marketing/mobile/services/ui/AlertSetting;Lcom/adobe/marketing/mobile/services/ui/AlertListener;)V
+	public fun showLocalNotification (Lcom/adobe/marketing/mobile/services/ui/NotificationSetting;)V
+	public fun showUrl (Ljava/lang/String;)Z
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/FloatingButton {
+	public abstract fun display ()V
+	public abstract fun remove ()V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/FloatingButtonListener {
+	public abstract fun onPanDetected ()V
+	public abstract fun onTapDetected ()V
+}
+
+public class com/adobe/marketing/mobile/services/ui/FloatingButtonView : android/widget/Button, android/view/View$OnTouchListener {
+	public fun <init> (Landroid/content/Context;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
+	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
+	public fun onTouch (Landroid/view/View;Landroid/view/MotionEvent;)Z
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessage {
+	public abstract fun dismiss ()V
+	public abstract fun getMessageSettings ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings;
+	public abstract fun getParent ()Ljava/lang/Object;
+	public abstract fun getWebView ()Landroid/webkit/WebView;
+	public abstract fun openUrl (Ljava/lang/String;)V
+	public abstract fun setLocalAssetsMap (Ljava/util/Map;)V
+	public abstract fun setMessageSetting (Lcom/adobe/marketing/mobile/services/ui/MessageSettings;)V
+	public abstract fun show ()V
+	public abstract fun show (Z)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate {
+	public abstract fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
+	public abstract fun onShow (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
+	public abstract fun onShowFailure ()V
+	public abstract fun overrideUrlLoad (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;Ljava/lang/String;)Z
+	public abstract fun shouldShowMessage (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)Z
+}
+
+public class com/adobe/marketing/mobile/services/ui/MessageCreationException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public class com/adobe/marketing/mobile/services/ui/MessageFragment : android/app/Fragment, android/view/View$OnTouchListener {
+	protected field dismissedWithGesture Z
+	protected field gestureDetector Landroid/view/GestureDetector;
+	protected field gestures Ljava/util/Map;
+	protected field message Lcom/adobe/marketing/mobile/services/ui/AEPMessage;
+	protected field webViewGestureListener Lcom/adobe/marketing/mobile/services/ui/WebViewGestureListener;
+	public fun <init> ()V
+	public fun getGestureDetector ()Landroid/view/GestureDetector;
+	public fun getGestures ()Ljava/util/Map;
+	public fun getWebViewGestureListener ()Lcom/adobe/marketing/mobile/services/ui/WebViewGestureListener;
+	public fun isDismissedWithGesture ()Z
+	public fun onCreate (Landroid/os/Bundle;)V
+	public fun onResume ()V
+	public fun onTouch (Landroid/view/View;Landroid/view/MotionEvent;)Z
+	public fun setAEPMessage (Lcom/adobe/marketing/mobile/services/ui/AEPMessage;)V
+}
+
+public class com/adobe/marketing/mobile/services/ui/MessageSettings {
+	public fun <init> ()V
+	public fun getBackdropColor ()Ljava/lang/String;
+	public fun getBackdropOpacity ()F
+	public fun getCornerRadius ()F
+	public fun getDismissAnimation ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public fun getDisplayAnimation ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public fun getGestures ()Ljava/util/Map;
+	public fun getHeight ()I
+	public fun getHorizontalAlign ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
+	public fun getHorizontalInset ()I
+	public fun getParent ()Ljava/lang/Object;
+	public fun getUITakeover ()Z
+	public fun getVerticalAlign ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
+	public fun getVerticalInset ()I
+	public fun getWidth ()I
+	public fun setBackdropColor (Ljava/lang/String;)V
+	public fun setBackdropOpacity (F)V
+	public fun setCornerRadius (F)V
+	public fun setDismissAnimation (Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;)V
+	public fun setDisplayAnimation (Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;)V
+	public fun setGestures (Ljava/util/Map;)V
+	public fun setHeight (I)V
+	public fun setHorizontalAlign (Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;)V
+	public fun setHorizontalInset (I)V
+	public fun setParent (Ljava/lang/Object;)V
+	public fun setUiTakeover (Z)V
+	public fun setVerticalAlign (Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;)V
+	public fun setVerticalInset (I)V
+	public fun setWidth (I)V
+}
+
+public final class com/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment : java/lang/Enum {
+	public static final field BOTTOM Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
+	public static final field CENTER Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
+	public static final field LEFT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
+	public static final field RIGHT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
+	public static final field TOP Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation : java/lang/Enum {
+	public static final field BOTTOM Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public static final field CENTER Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public static final field FADE Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public static final field LEFT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public static final field NONE Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public static final field RIGHT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public static final field TOP Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture : java/lang/Enum {
+	public static final field BACKGROUND_TAP Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
+	public static final field SWIPE_DOWN Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
+	public static final field SWIPE_LEFT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
+	public static final field SWIPE_RIGHT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
+	public static final field SWIPE_UP Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
+	public static fun get (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
+}
+
+public class com/adobe/marketing/mobile/services/ui/NotificationSetting {
+	public static fun build (Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/NotificationSetting;
+	public fun getContent ()Ljava/lang/String;
+	public fun getDeeplink ()Ljava/lang/String;
+	public fun getDelaySeconds ()I
+	public fun getFireDate ()J
+	public fun getIdentifier ()Ljava/lang/String;
+	public fun getSound ()Ljava/lang/String;
+	public fun getTitle ()Ljava/lang/String;
+	public fun getUserInfo ()Ljava/util/Map;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/UIError : java/lang/Enum {
+	public static final field ANOTHER_MESSAGE_IS_DISPLAYED Lcom/adobe/marketing/mobile/services/ui/UIError;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/UIError;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/UIError;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/UIService {
+	public abstract fun createFloatingButton (Lcom/adobe/marketing/mobile/services/ui/FloatingButtonListener;)Lcom/adobe/marketing/mobile/services/ui/FloatingButton;
+	public abstract fun createFullscreenMessage (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;ZLcom/adobe/marketing/mobile/services/ui/MessageSettings;)Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;
+	public abstract fun getIntentWithURI (Ljava/lang/String;)Landroid/content/Intent;
+	public abstract fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
+	public abstract fun showAlert (Lcom/adobe/marketing/mobile/services/ui/AlertSetting;Lcom/adobe/marketing/mobile/services/ui/AlertListener;)V
+	public abstract fun showLocalNotification (Lcom/adobe/marketing/mobile/services/ui/NotificationSetting;)V
+	public abstract fun showUrl (Ljava/lang/String;)Z
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/URIHandler {
+	public abstract fun getURIDestination (Ljava/lang/String;)Landroid/content/Intent;
+}
+
+public class com/adobe/marketing/mobile/util/CloneFailedException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public class com/adobe/marketing/mobile/util/DataReader {
+	public static fun getBoolean (Ljava/util/Map;Ljava/lang/String;)Z
+	public static fun getDouble (Ljava/util/Map;Ljava/lang/String;)D
+	public static fun getFloat (Ljava/util/Map;Ljava/lang/String;)F
+	public static fun getInt (Ljava/util/Map;Ljava/lang/String;)I
+	public static fun getLong (Ljava/util/Map;Ljava/lang/String;)J
+	public static fun getString (Ljava/util/Map;Ljava/lang/String;)Ljava/lang/String;
+	public static fun getStringList (Ljava/util/Map;Ljava/lang/String;)Ljava/util/List;
+	public static fun getStringMap (Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map;
+	public static fun getTypedList (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;)Ljava/util/List;
+	public static fun getTypedListOfMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;)Ljava/util/List;
+	public static fun getTypedMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;)Ljava/util/Map;
+	public static fun optBoolean (Ljava/util/Map;Ljava/lang/String;Z)Z
+	public static fun optDouble (Ljava/util/Map;Ljava/lang/String;D)D
+	public static fun optFloat (Ljava/util/Map;Ljava/lang/String;F)F
+	public static fun optInt (Ljava/util/Map;Ljava/lang/String;I)I
+	public static fun optLong (Ljava/util/Map;Ljava/lang/String;J)J
+	public static fun optString (Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static fun optStringList (Ljava/util/Map;Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
+	public static fun optStringMap (Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;
+	public static fun optTypedList (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
+	public static fun optTypedListOfMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;Ljava/util/List;)Ljava/util/List;
+	public static fun optTypedMap (Ljava/lang/Class;Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;)Ljava/util/Map;
+}
+
+public class com/adobe/marketing/mobile/util/DataReaderException : java/lang/Exception {
+	public fun <init> (Ljava/lang/Exception;)V
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public class com/adobe/marketing/mobile/util/EventDataUtils {
+	public static fun castFromGenericType (Ljava/util/Map;)Ljava/util/Map;
+	public static fun clone (Ljava/util/Map;)Ljava/util/Map;
+	public static fun immutableClone (Ljava/util/Map;)Ljava/util/Map;
+}
+
+public final class com/adobe/marketing/mobile/util/JSONUtils {
+	public static fun isNullOrEmpty (Lorg/json/JSONArray;)Z
+	public static fun isNullOrEmpty (Lorg/json/JSONObject;)Z
+	public static fun toList (Lorg/json/JSONArray;)Ljava/util/List;
+	public static fun toMap (Lorg/json/JSONObject;)Ljava/util/Map;
+}
+
+public final class com/adobe/marketing/mobile/util/MapUtils {
+	public static fun isNullOrEmpty (Ljava/util/Map;)Z
+	public static fun putIfNotEmpty (Ljava/util/Map;Ljava/lang/String;Ljava/lang/Object;)V
+}
+
+public class com/adobe/marketing/mobile/util/SQLiteUtils {
+	public static fun deleteDBFromCacheDir (Ljava/lang/String;)Z
+}
+
+public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
+	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$WorkHandler;)V
+	protected fun canWork ()Z
+	public final fun getState ()Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
+	public final fun offer (Ljava/lang/Object;)Z
+	public final fun pause ()Z
+	public final fun resume ()Z
+	public final fun setExecutorService (Ljava/util/concurrent/ExecutorService;)V
+	public final fun setFinalJob (Ljava/lang/Runnable;)V
+	public final fun setInitialJob (Ljava/lang/Runnable;)V
+	public final fun shutdown ()V
+	public final fun start ()Z
+}
+
+public final class com/adobe/marketing/mobile/util/SerialWorkDispatcher$State : java/lang/Enum {
+	public static final field ACTIVE Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
+	public static final field NOT_STARTED Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
+	public static final field PAUSED Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
+	public static final field SHUTDOWN Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
+	public static fun values ()[Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
+}
+
+public abstract interface class com/adobe/marketing/mobile/util/SerialWorkDispatcher$WorkHandler {
+	public abstract fun doWork (Ljava/lang/Object;)Z
+}
+
+public final class com/adobe/marketing/mobile/util/StreamUtils {
+	public static fun readAsString (Ljava/io/InputStream;)Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/util/StringUtils {
+	public static fun isNullOrEmpty (Ljava/lang/String;)Z
+}
+
+public final class com/adobe/marketing/mobile/util/TimeUtils {
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/util/TimeUtils;
+	public static final fun getISO8601Date ()Ljava/lang/String;
+	public static final fun getISO8601Date (Ljava/util/Date;)Ljava/lang/String;
+	public static synthetic fun getISO8601Date$default (Ljava/util/Date;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun getISO8601DateNoColon ()Ljava/lang/String;
+	public static final fun getISO8601DateNoColon (Ljava/util/Date;)Ljava/lang/String;
+	public static synthetic fun getISO8601DateNoColon$default (Ljava/util/Date;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun getISO8601FullDate ()Ljava/lang/String;
+	public static final fun getISO8601FullDate (Ljava/util/Date;)Ljava/lang/String;
+	public static synthetic fun getISO8601FullDate$default (Ljava/util/Date;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun getISO8601UTCDateWithMilliseconds ()Ljava/lang/String;
+	public static final fun getISO8601UTCDateWithMilliseconds (Ljava/util/Date;)Ljava/lang/String;
+	public static synthetic fun getISO8601UTCDateWithMilliseconds$default (Ljava/util/Date;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun getRFC2822Date (JLjava/util/TimeZone;Ljava/util/Locale;)Ljava/lang/String;
+	public static final fun getUnixTimeInSeconds ()J
+	public static final fun parseRFC2822Date (Ljava/lang/String;Ljava/util/TimeZone;Ljava/util/Locale;)Ljava/util/Date;
+}
+
+public class com/adobe/marketing/mobile/util/URLBuilder {
+	public fun <init> ()V
+	public fun addPath (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun addQuery (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun addQuery (Ljava/lang/String;Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun addQueryParameter (Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun addQueryParameters (Ljava/util/Map;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun build ()Ljava/lang/String;
+	public fun enableSSL (Z)Lcom/adobe/marketing/mobile/util/URLBuilder;
+	public fun setServer (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder;
+}
+
+public final class com/adobe/marketing/mobile/util/URLBuilder$EncodeType : java/lang/Enum {
+	public static final field ENCODE Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;
+	public static final field NONE Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;
+	public final field id I
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;
+	public static fun values ()[Lcom/adobe/marketing/mobile/util/URLBuilder$EncodeType;
+}
+
+public final class com/adobe/marketing/mobile/util/UrlUtils {
+	public static fun extractQueryParameters (Ljava/lang/String;)Ljava/util/Map;
+	public static fun isValidUrl (Ljava/lang/String;)Z
+	public static fun urlEncode (Ljava/lang/String;)Ljava/lang/String;
+}
+

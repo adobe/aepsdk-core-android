@@ -1,0 +1,34 @@
+codecov:
+  notify:
+    require_ci_to_pass: yes
+
+coverage:
+  precision: 2
+  round: nearest
+  range: "60...90"
+
+  status:
+    project: yes
+    patch: yes
+    changes: no
+
+  ignore:
+    - "code/core/src/main/java/com/adobe/marketing/mobile/ExtensionListener.java"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/InvalidInitException.java"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/ExtensionUnexpectedError.java"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/CoreConstants.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHubConstants.kt"
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+
+comment:
+  layout: "header, diff, flags, files"
+  behavior: default
+  require_changes: no
+  require_base: no

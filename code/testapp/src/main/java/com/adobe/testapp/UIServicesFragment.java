@@ -12,12 +12,12 @@
 package com.adobe.testapp;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.adobe.marketing.mobile.TestAppUIServices;
+import com.adobe.marketing.mobile.services.ui.TestAppUIServices;
 
 /**
  * A simple {@link Fragment} subclass.

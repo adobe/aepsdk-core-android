@@ -1,0 +1,132 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.dokka'
+
+// Disable variants for binary compatibility validation tasks.
+apply plugin: 'binary-compatibility-validator'
+ext.disableVariants = project.gradle.startParameter.taskNames.any { taskName ->
+    project.logger.debug(taskName)
+    taskName.contains("apiDump") || taskName.contains("apiCheck")
+}
+apiValidation {
+    ignoredPackages += [
+        "com.adobe.marketing.mobile.internal",
+        "com.adobe.marketing.mobile.services.internal",
+        "com.adobe.marketing.mobile.services.ui.internal"
+    ]
+
+    ignoredClasses += [
+        "com.adobe.marketing.mobile.BuildConfig"
+    ]
+}
+
+android {
+    compileSdkVersion rootProject.ext.targetSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        //noinspection OldTargetApi
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        //Include the Proguard rules for Core Extension in the aar
+        consumerProguardFiles 'lib-proguard-rules.pro'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+        unitTests.includeAndroidResources = true
+    }
+
+    flavorDimensions "target"
+
+    if (disableVariants) {
+        sourceSets {
+            main {
+                java {
+                    srcDirs 'src/phone/java'
+                }
+            }
+        }
+    } else {
+        productFlavors {
+            phone {
+                dimension "target"
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility rootProject.ext.sourceCompatibility
+        targetCompatibility rootProject.ext.targetCompatibility
+    }
+
+    kotlinOptions {
+        jvmTarget = rootProject.ext.kotlinJvmTarget
+        languageVersion = rootProject.ext.kotlinLanguageVersion
+        apiVersion = rootProject.ext.kotlinApiVersion
+    }
+}
+
+apply from: '../checkstyle.gradle'
+apply from: '../codeformat.gradle'
+apply from: '../jacoco.gradle'
+apply from: 'release.gradle'
+
+dokkaJavadoc.configure {
+    dokkaSourceSets {
+        named("main") {
+            noAndroidSdkLink.set(false)
+            perPackageOption {
+                matchingRegex.set(".*\\.internal.*") // proper setting
+                suppress.set(true)
+            }
+        }
+
+        if (!disableVariants) {
+            named("phone") {
+                noAndroidSdkLink.set(false)
+                perPackageOption {
+                    matchingRegex.set(".*\\.internal.*") // proper setting
+                    suppress.set(true)
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    //noinspection GradleDependency,GradleCompatible
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    //noinspection GradleDependency
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    // unit tests
+    testImplementation "junit:junit:4.13.2"
+    testImplementation "org.mockito:mockito-core:4.5.1"
+    testImplementation 'org.mockito:mockito-inline:4.5.1'
+    //noinspection GradleDependency
+    testImplementation 'commons-codec:commons-codec:1.15'
+    testImplementation 'org.robolectric:robolectric:3.6.2'
+    testImplementation "org.mockito.kotlin:mockito-kotlin:3.2.0"
+    //noinspection GradleDependency
+    testImplementation 'org.json:json:20160810'
+    //noinspection GradleDependency
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_version"
+
+    // instrumentation tests
+    androidTestImplementation 'androidx.test:rules:1.4.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_version"
+
+    dokkaGfmPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:${dokka_version}")
+}

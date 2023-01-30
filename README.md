@@ -19,7 +19,7 @@ The `MobileCore` and `Identity` extensions represent the foundation of the Adobe
 
 ## Getting started
 
-Refer to the [getting started](./Documentation/GettingStarted.md) guide for setting up and using the SDK with your application.
+Refer to the [getting started](./Documentation/MobileCore/getting-started.md) guide for setting up and using the SDK with your application.
 
 ## Development
 

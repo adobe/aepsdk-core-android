@@ -47,11 +47,13 @@ import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import java.util.*
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class ConfigurationExtensionTest {
@@ -997,6 +999,33 @@ class ConfigurationExtensionTest {
             mockBundledConfig,
             event
         )
+    }
+
+    @Test
+    fun `retrieveSDKIdentifiers dispatches paired Configuration ResponseIdentity event`() {
+        val configurationExtension = ConfigurationExtension(
+            mockExtensionApi,
+            mockAppIdManager,
+            mockLaunchRulesEvaluator,
+            mockExecutorService,
+            mockConfigStateManager,
+            mockConfigurationRulesManager
+        )
+
+        val event: Event = Event.Builder(
+            "SDKIdentifiers request",
+            EventType.CONFIGURATION,
+            EventSource.REQUEST_IDENTITY
+        ).build()
+
+        configurationExtension.retrieveSDKIdentifiers(event)
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockExtensionApi, times(1)).dispatch(eventCaptor.capture())
+
+        assertEquals(EventType.CONFIGURATION, eventCaptor.firstValue.type)
+        assertEquals(EventSource.RESPONSE_IDENTITY, eventCaptor.firstValue.source)
+        assertTrue(eventCaptor.firstValue.eventData.containsKey("config.allIdentifiers"), "But EventData was: " + eventCaptor.firstValue.eventData)
+        assertEquals(event.uniqueIdentifier, eventCaptor.firstValue.responseID)
     }
 
     @After

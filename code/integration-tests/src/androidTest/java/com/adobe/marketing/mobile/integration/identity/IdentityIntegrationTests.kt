@@ -101,7 +101,8 @@ class IdentityIntegrationTests {
         MobileCore.registerExtensions(
             listOf(
                 IdentityExtension::class.java,
-                MonitorExtension::class.java
+                MonitorExtension::class.java,
+                Analytics.EXTENSION
             )
         ) {
             countDownLatch.countDown()
@@ -310,11 +311,10 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
+    @Test(timeout = 5000)
     @Ignore
-    @Test(timeout = 10000)
-    //TODO: enable this test once MobileCore.getSdkIdentities event handling is implemented in the new Configuration extension
+    //TODO: Fix issue where Analytics does not update persistence and shared state with latest vid
     fun testGetSdkIdentities() {
-        val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
             mapOf(
                 "experienceCloud.org" to "orgid",
@@ -322,16 +322,38 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+
+        Analytics.setVisitorIdentifier("testVid")
+        val analyticsLatch = CountDownLatch(1)
+        Analytics.getVisitorIdentifier {
+            analyticsLatch.countDown()
+        }
         MobileCore.setAdvertisingIdentifier("adid")
         Identity.syncIdentifiers(mapOf("id1" to "value1"))
+        val identityLatch = CountDownLatch(1)
+        var ecid : String? = null
+        Identity.getExperienceCloudId{
+            ecid = it
+            identityLatch.countDown()
+        }
+        identityLatch.await()
+        analyticsLatch.await()
+
+        val countDownLatch = CountDownLatch(1)
+        var receivedSDKIdentities : String? = null
         MobileCore.getSdkIdentities { identityString ->
-            assertNotNull(identityString)
-            assertTrue(identityString.contains("DSID_20915"))
-            assertTrue(identityString.contains("id1"))
-            assertTrue(identityString.contains("imsOrgID"))
+            receivedSDKIdentities = identityString
             countDownLatch.countDown()
         }
         countDownLatch.await()
+
+        assertNotNull(receivedSDKIdentities)
+        val assertMessage = "Received SDKIdentities: " + receivedSDKIdentities
+        assertTrue(assertMessage, receivedSDKIdentities?.contains("{\"namespace\":\"DSID_20914\",\"value\":\"adid\",\"type\":\"integrationCode\"}") ?: false)
+        assertTrue(assertMessage, receivedSDKIdentities?.contains("{\"namespace\":\"id1\",\"value\":\"value1\",\"type\":\"integrationCode\"}") ?: false)
+        assertTrue(assertMessage, receivedSDKIdentities?.contains("\"companyContexts\":[{\"namespace\":\"imsOrgID\",\"value\":\"orgid\"}]") ?: false)
+        assertTrue(assertMessage, receivedSDKIdentities?.contains("{\"namespace\":\"4\",\"value\":\""+ ecid + "\",\"type\":\"namespaceId\"}") ?: false)
+        assertTrue(assertMessage, receivedSDKIdentities?.contains("testVid") ?: false)
     }
 
     @Test(timeout = 10000)

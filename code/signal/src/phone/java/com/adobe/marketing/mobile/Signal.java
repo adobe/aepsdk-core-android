@@ -34,9 +34,12 @@ public class Signal {
     }
 
     /**
-	 * Registers the extension with the Mobile SDK. This method should be called only once in your application class.
-	 * @deprecated as of 2.0.0, use {@link MobileCore#registerExtensions(List, AdobeCallback)} with {@link Signal#EXTENSION} instead.
-	 */
+     * Registers the extension with the Mobile SDK. This method should be called only once in your
+     * application class.
+     *
+     * @deprecated as of 2.0.0, use {@link MobileCore#registerExtensions(List, AdobeCallback)} with
+     *     {@link Signal#EXTENSION} instead.
+     */
     @Deprecated
     public static void registerExtension() {
         MobileCore.registerExtension(

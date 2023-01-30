@@ -25,7 +25,6 @@ import com.adobe.marketing.mobile.services.ServiceProviderModifier
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.BeforeClass
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.InputStream
@@ -101,7 +100,7 @@ class IdentityIntegrationTests {
         val countDownLatch = CountDownLatch(1)
         MobileCore.registerExtensions(
             listOf(
-                IdentityExtension::class.java,
+                Identity.EXTENSION,
                 MonitorExtension::class.java,
                 Analytics.EXTENSION
             )
@@ -240,8 +239,6 @@ class IdentityIntegrationTests {
     }
 
     @Test(timeout = TEST_TIMEOUT)
-    @Ignore
-    //TODO: Fix issue where Analytics does not update persistence and shared state with latest vid
     fun testGetUrlVariables_whenValidAnalyticsIds_includesAnalyticsIdsInReturnedUrl() {
         MobileCore.updateConfiguration(
             mapOf(
@@ -304,8 +301,6 @@ class IdentityIntegrationTests {
     }
 
     @Test(timeout = TEST_TIMEOUT)
-    @Ignore
-    //TODO: Fix issue where Analytics does not update persistence and shared state with latest vid
     fun testAppendTo_whenValidAnalyticsIds_includesAnalyticsIdsInReturnedUrl() {
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
@@ -315,6 +310,7 @@ class IdentityIntegrationTests {
                 "global.privacy" to "optedin"
             )
         )
+
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
         configurationLatch.await()
@@ -382,9 +378,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Ignore
     @Test(timeout = TEST_TIMEOUT)
-    //TODO: Fix issue where Analytics does not update persistence and shared state with latest vid
     fun testGetSdkIdentities() {
         MobileCore.updateConfiguration(
             mapOf(

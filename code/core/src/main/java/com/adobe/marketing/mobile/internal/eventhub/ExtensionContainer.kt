@@ -114,20 +114,25 @@ internal class ExtensionContainer constructor(
             SharedStateType.STANDARD to SharedStateManager(extensionName)
         )
 
+        Log.debug(
+            CoreConstants.LOG_TAG,
+            getTag(),
+            "Extension registered"
+        )
+
         callback(EventHubError.None)
 
         // Notify that the extension is registered
         extension.onExtensionRegistered()
-
-        Log.debug(
-            CoreConstants.LOG_TAG,
-            getTag(),
-            "Started processing events"
-        )
     }
 
     private val teardownJob = Runnable {
         extension?.onExtensionUnregistered()
+        Log.debug(
+            CoreConstants.LOG_TAG,
+            getTag(),
+            "Extension unregistered"
+        )
     }
 
     val eventProcessor: SerialWorkDispatcher<Event> =

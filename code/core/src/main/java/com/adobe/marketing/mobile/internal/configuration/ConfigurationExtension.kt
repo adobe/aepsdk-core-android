@@ -401,7 +401,8 @@ internal class ConfigurationExtension : Extension {
      * @param event the event to which the current SDK Identifiers should be
      *        dispatched as a response
      */
-    private fun retrieveSDKIdentifiers(event: Event) {
+    @VisibleForTesting
+    internal fun retrieveSDKIdentifiers(event: Event) {
         val eventData = mutableMapOf<String, Any?>()
         MobileIdentitiesProvider.collectSdkIdentifiers(event, api).also { sdkIdentitiesJson ->
             eventData[CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS] = sdkIdentitiesJson
@@ -410,7 +411,7 @@ internal class ConfigurationExtension : Extension {
         val responseIdentityEvent = Event.Builder(
             "Configuration Response Identity",
             EventType.CONFIGURATION,
-            EventSource.REQUEST_IDENTITY
+            EventSource.RESPONSE_IDENTITY
         ).setEventData(eventData).inResponseToEvent(event).build()
 
         api.dispatch(responseIdentityEvent)

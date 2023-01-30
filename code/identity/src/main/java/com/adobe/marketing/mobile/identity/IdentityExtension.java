@@ -144,10 +144,6 @@ public final class IdentityExtension extends Extension {
                         EventSource.REQUEST_IDENTITY,
                         this::processIdentityRequest);
         getApi().registerEventListener(
-                        EventType.IDENTITY,
-                        EventSource.RESPONSE_IDENTITY,
-                        this::handleIdentityResponseIdentityForSharedState);
-        getApi().registerEventListener(
                         EventType.GENERIC_IDENTITY,
                         EventSource.REQUEST_CONTENT,
                         this::processIdentityRequest);
@@ -155,6 +151,10 @@ public final class IdentityExtension extends Extension {
                         EventType.GENERIC_IDENTITY,
                         EventSource.REQUEST_RESET,
                         this::handleIdentityRequestReset);
+        getApi().registerEventListener(
+                        EventType.IDENTITY,
+                        EventSource.RESPONSE_IDENTITY,
+                        this::handleIdentityResponseIdentityForSharedState);
         // listen to Analytics response
         getApi().registerEventListener(
                         EventType.ANALYTICS,
@@ -192,18 +192,26 @@ public final class IdentityExtension extends Extension {
             return true;
         }
 
-        if (isSyncEvent(event)) {
+        if (isSyncEvent(event) || EventType.GENERIC_IDENTITY.equals(event.getType())) {
             return readyForSyncIdentifiers(event);
         }
 
         if (isAppendUrlEvent(event) || isGetUrlVarsEvent(event)) {
-            if (!hasValidSharedState(
-                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME, event)) {
+            // analytics shared state will be null if analytics extension is not registered. Wait
+            // for analytics shared only if the status is pending or none
+            SharedStateResult sharedStateResult =
+                    getApi().getSharedState(
+                                    IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
+                                    event,
+                                    false,
+                                    SharedStateResolution.LAST_SET);
+            if (sharedStateResult != null
+                    && sharedStateResult.getStatus() != SharedStateStatus.SET) {
                 Log.trace(
                         IdentityConstants.LOG_TAG,
                         LOG_SOURCE,
-                        "Waiting for the Analytics shared state to get required configuration"
-                                + " fields before processing [event: %s].",
+                        "Waiting for the Analytics shared state to be set before processing"
+                                + " [event: %s].",
                         event.getName());
                 return false;
             }

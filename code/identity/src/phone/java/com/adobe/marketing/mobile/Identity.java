@@ -45,12 +45,9 @@ public class Identity {
     }
 
     /**
-     * Registers the Identity extension with the {@code MobileCore}
-     *
-     * <p>
-     *
-     * <p>This will allow the extension to send and receive events to and from the SDK.
-     */
+	 * Registers the extension with the Mobile SDK. This method should be called only once in your application class.
+	 * @deprecated as of 2.0.0, use {@link MobileCore#registerExtensions(List, AdobeCallback)} with {@link Identity#EXTENSION} instead.
+	 */
     @Deprecated
     public static void registerExtension() {
         MobileCore.registerExtension(

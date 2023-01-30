@@ -2484,6 +2484,7 @@ public final class IdentityExtension extends Extension {
 
         privacyStatus = MobilePrivacyStatus.fromString(privacyString);
         Log.trace(
+                IdentityConstants.LOG_TAG,
                 LOG_SOURCE,
                 "loadPrivacyStatus : Updated the database with the current privacy status: %s.",
                 privacyString);

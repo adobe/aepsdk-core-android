@@ -158,7 +158,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Dispatched Event #${getEventNumber(event)} to extensions after processing rules - ($event)"
+                    "Dispatched Event #${getEventNumber(event)} to extensions after processing rules - ($processedEvent)"
                 )
             }
 
@@ -346,10 +346,10 @@ internal class EventHub(val eventHistory: EventHistory?) {
      */
     private fun extensionPostRegistration(extensionClass: Class<out Extension>, error: EventHubError) {
         if (error != EventHubError.None) {
-            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registration failed with error $error")
+            Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registration failed with error $error")
             unregisterExtensionInternal(extensionClass)
         } else {
-            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registered successfully")
+            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass registered successfully")
             shareEventHubSharedState()
         }
 
@@ -383,10 +383,10 @@ internal class EventHub(val eventHistory: EventHistory?) {
         if (container != null) {
             container.shutdown()
             shareEventHubSharedState()
-            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistered successfully")
+            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistered successfully")
             error = EventHubError.None
         } else {
-            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistration failed as extension was not registered")
+            Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistration failed as extension was not registered")
             error = EventHubError.ExtensionNotRegistered
         }
 
@@ -511,7 +511,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.warning(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
+                "Create $sharedStateType shared state for extension \"$extensionName\" for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
             )
             return false
         }
@@ -522,13 +522,13 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.warning(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Create $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
+                "Create $sharedStateType shared state for extension \"$extensionName\" for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
             )
         } else {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Created $sharedStateType shared state for extension $extensionName with version $version and data ${state?.prettify()}"
+                "Created $sharedStateType shared state for extension \"$extensionName\" with version $version and data ${state?.prettify()}"
             )
             dispatchSharedStateEvent(sharedStateType, extensionName)
         }
@@ -557,7 +557,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Create pending $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
+                    "Create pending $sharedStateType shared state for extension \"$extensionName\" for event ${event?.uniqueIdentifier} failed - SharedStateManager is null"
                 )
                 return@Callable null
             }
@@ -568,7 +568,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Create pending $sharedStateType shared state for extension $extensionName for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
+                    "Create pending $sharedStateType shared state for extension \"$extensionName\" for event ${event?.uniqueIdentifier} failed - SharedStateManager failed"
                 )
                 return@Callable null
             }
@@ -576,7 +576,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Created pending $sharedStateType shared state for extension $extensionName with version $pendingVersion"
+                "Created pending $sharedStateType shared state for extension \"$extensionName\" with version $pendingVersion"
             )
             return@Callable SharedStateResolver {
                 resolvePendingSharedState(sharedStateType, extensionName, it, pendingVersion)
@@ -606,7 +606,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.warning(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Resolving pending $sharedStateType shared state for extension $extensionName and version $version with null - Clone failed with exception $ex"
+                "Resolving pending $sharedStateType shared state for extension \"$extensionName\" and version $version with null - Clone failed with exception $ex"
             )
             null
         }
@@ -616,7 +616,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Resolve pending $sharedStateType shared state for extension $extensionName and version $version failed - SharedStateManager is null"
+                    "Resolve pending $sharedStateType shared state for extension \"$extensionName\" and version $version failed - SharedStateManager is null"
                 )
                 return@Callable
             }
@@ -626,7 +626,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Resolve pending $sharedStateType shared state for extension $extensionName and version $version failed - SharedStateManager failed"
+                    "Resolve pending $sharedStateType shared state for extension \"$extensionName\" and version $version failed - SharedStateManager failed"
                 )
                 return@Callable
             }
@@ -634,7 +634,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Resolved pending $sharedStateType shared state for $extensionName and version $version with data ${immutableState?.prettify()}"
+                "Resolved pending $sharedStateType shared state for \"$extensionName\" and version $version with data ${immutableState?.prettify()}"
             )
             dispatchSharedStateEvent(sharedStateType, extensionName)
         }
@@ -662,7 +662,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Unable to retrieve $sharedStateType shared state for $extensionName. No such extension is registered."
+                    "Unable to retrieve $sharedStateType shared state for \"$extensionName\". No such extension is registered."
                 )
 
                 return@Callable null
@@ -672,7 +672,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Unable to retrieve $sharedStateType shared state for $extensionName. SharedStateManager is null"
+                    "Unable to retrieve $sharedStateType shared state for \"$extensionName\". SharedStateManager is null"
                 )
                 return@Callable null
             }
@@ -714,7 +714,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Clear $sharedStateType shared state for extension $extensionName failed - SharedStateManager is null"
+                    "Clear $sharedStateType shared state for extension \"$extensionName\" failed - SharedStateManager is null"
                 )
                 return@Callable false
             }
@@ -723,7 +723,7 @@ internal class EventHub(val eventHistory: EventHistory?) {
             Log.warning(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Cleared $sharedStateType shared state for extension $extensionName"
+                "Cleared $sharedStateType shared state for extension \"$extensionName\""
             )
             return@Callable true
         }

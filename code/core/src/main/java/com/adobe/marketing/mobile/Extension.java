@@ -72,7 +72,7 @@ public abstract class Extension {
      * to setup event listeners and shared states.
      */
     protected void onRegistered() {
-        Log.debug(CoreConstants.LOG_TAG, getLogTag(), "Extension registered successfully.");
+        Log.trace(CoreConstants.LOG_TAG, getLogTag(), "Extension registered successfully.");
     }
 
     /**
@@ -80,7 +80,7 @@ public abstract class Extension {
      * to clean up resources when the extension is released.
      */
     protected void onUnregistered() {
-        Log.debug(CoreConstants.LOG_TAG, getLogTag(), "Extension unregistered successfully.");
+        Log.trace(CoreConstants.LOG_TAG, getLogTag(), "Extension unregistered successfully.");
     }
 
     /**

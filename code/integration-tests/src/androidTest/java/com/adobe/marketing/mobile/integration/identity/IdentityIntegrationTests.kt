@@ -111,7 +111,7 @@ class IdentityIntegrationTests {
         assertTrue(countDownLatch.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
     }
 
-    @Test(timeout = 1000)
+    @Test(timeout = TEST_TIMEOUT)
     fun testSyncIdentifiers() {
         val countDownLatch = CountDownLatch(1)
         val configurationLatch = CountDownLatch(1)

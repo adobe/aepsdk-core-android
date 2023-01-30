@@ -348,6 +348,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
 
         assertNotNull(receivedSDKIdentities)
+        assertNotNull(ecid)
         val assertMessage = "Received SDKIdentities: " + receivedSDKIdentities
         assertTrue(assertMessage, receivedSDKIdentities?.contains("{\"namespace\":\"DSID_20914\",\"value\":\"adid\",\"type\":\"integrationCode\"}") ?: false)
         assertTrue(assertMessage, receivedSDKIdentities?.contains("{\"namespace\":\"id1\",\"value\":\"value1\",\"type\":\"integrationCode\"}") ?: false)

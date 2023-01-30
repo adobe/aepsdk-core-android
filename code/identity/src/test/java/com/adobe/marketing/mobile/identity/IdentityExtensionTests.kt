@@ -12,6 +12,8 @@
 package com.adobe.marketing.mobile.identity
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.SharedStateResult
@@ -53,6 +55,18 @@ import java.util.concurrent.CountDownLatch
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class IdentityExtensionTests {
+    private val appendToUrlEvent = Event.Builder("AppendToUrlRequest", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).setEventData(
+        mapOf(
+            "baseurl" to "https://example.com"
+        )
+    ).build()
+
+    private val urlVariablesEvent = Event.Builder("GetUrlVariablesRequest", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).setEventData(
+        mapOf(
+            "urlvariables" to true
+        )
+    ).build()
+
     @Mock
     private lateinit var mockedExtensionApi: ExtensionApi
 
@@ -175,8 +189,8 @@ class IdentityExtensionTests {
         )
     }
 
-    @Test(timeout = 10000)
-    fun `readyForEvent() should return false for appendUrl and urlVars events if Analytics extension is not registered`() {
+    @Test
+    fun `readyForEvent() should return true for appendUrl and urlVars events if Analytics extension is not registered`() {
         val identityExtension = initializeSpiedIdentityExtension()
         identityExtension.onRegistered()
         identityExtension.setHasSynced(true)
@@ -195,30 +209,64 @@ class IdentityExtensionTests {
                 )
             }
             if ("com.adobe.module.analytics" === extension) {
-                countDownLatch.countDown()
                 return@thenAnswer null
             }
             return@thenAnswer null
         }
-        assertFalse(
-            identityExtension.readyForEvent(
-                Event.Builder("event", "type", "source").setEventData(
+        assertTrue(identityExtension.readyForEvent(appendToUrlEvent))
+        assertTrue(identityExtension.readyForEvent(urlVariablesEvent))
+    }
+
+    @Test
+    fun `readyForEvent() should return false for appendUrl and urlVars events if Analytics shared state pending`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onRegistered()
+        identityExtension.setHasSynced(true)
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.SET,
                     mapOf(
-                        "baseurl" to true
+                        "experienceCloud.org" to "orgid"
                     )
-                ).build()
-            )
-        )
-        assertFalse(
-            identityExtension.readyForEvent(
-                Event.Builder("event", "type", "source").setEventData(
+                )
+            }
+            if ("com.adobe.module.analytics" === extension) {
+                return@thenAnswer SharedStateResult(SharedStateStatus.PENDING, null)
+            }
+            return@thenAnswer null
+        }
+        assertFalse(identityExtension.readyForEvent(appendToUrlEvent))
+        assertFalse(identityExtension.readyForEvent(urlVariablesEvent))
+    }
+
+    @Test
+    fun `readyForEvent() should return true for appendUrl and urlVars events if Analytics shared state set`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onRegistered()
+        identityExtension.setHasSynced(true)
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.SET,
                     mapOf(
-                        "urlvariables" to true
+                        "experienceCloud.org" to "orgid"
                     )
-                ).build()
-            )
-        )
-        countDownLatch.await()
+                )
+            }
+            if ("com.adobe.module.analytics" === extension) {
+                return@thenAnswer SharedStateResult(SharedStateStatus.SET, mapOf("aid" to "testaid"))
+            }
+            return@thenAnswer null
+        }
+        assertTrue(identityExtension.readyForEvent(appendToUrlEvent))
+        assertTrue(identityExtension.readyForEvent(urlVariablesEvent))
     }
 
     @Test
@@ -415,17 +463,12 @@ class IdentityExtensionTests {
             }
             return@thenAnswer null
         }
-        assertTrue(
-            spiedIdentityExtension.readyForEvent(
-                Event.Builder("event", "type", "source").setEventData(mapOf("baseurl" to "url"))
-                    .build()
-            )
-        )
+        assertTrue(spiedIdentityExtension.readyForEvent(appendToUrlEvent))
         verify(spiedIdentityExtension, times(1)).isAppendUrlEvent(any())
     }
 
     @Test
-    fun `readyForEvent() - appendUrlEvent - invalid analytics`() {
+    fun `readyForEvent() should return true for appendUrlEvent when invalid analytics`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
@@ -445,12 +488,7 @@ class IdentityExtensionTests {
             }
             return@thenAnswer null
         }
-        assertFalse(
-            spiedIdentityExtension.readyForEvent(
-                Event.Builder("event", "type", "source").setEventData(mapOf("baseurl" to "url"))
-                    .build()
-            )
-        )
+        assertTrue(spiedIdentityExtension.readyForEvent(appendToUrlEvent))
         verify(spiedIdentityExtension, times(1)).isAppendUrlEvent(any())
     }
 
@@ -483,17 +521,12 @@ class IdentityExtensionTests {
             }
             return@thenAnswer null
         }
-        assertTrue(
-            spiedIdentityExtension.readyForEvent(
-                Event.Builder("event", "type", "source").setEventData(mapOf("urlvariables" to true))
-                    .build()
-            )
-        )
+        assertTrue(spiedIdentityExtension.readyForEvent(urlVariablesEvent))
         verify(spiedIdentityExtension, times(1)).isGetUrlVarsEvent(any())
     }
 
     @Test
-    fun `readyForEvent() - getUrlVarsEvent - invalid analytics`() {
+    fun `readyForEvent() should return true for getUrlVarsEvent when invalid analytics`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
         spiedIdentityExtension.onRegistered()
@@ -513,12 +546,7 @@ class IdentityExtensionTests {
             }
             return@thenAnswer null
         }
-        assertFalse(
-            spiedIdentityExtension.readyForEvent(
-                Event.Builder("event", "type", "source").setEventData(mapOf("urlvariables" to true))
-                    .build()
-            )
-        )
+        assertTrue(spiedIdentityExtension.readyForEvent(urlVariablesEvent))
         verify(spiedIdentityExtension, times(1)).isGetUrlVarsEvent(any())
     }
 

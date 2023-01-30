@@ -303,7 +303,7 @@ class IdentityIntegrationTests {
         countDownLatch.await()
     }
 
-    @Test
+    @Test(timeout = TEST_TIMEOUT)
     @Ignore
     //TODO: Fix issue where Analytics does not update persistence and shared state with latest vid
     fun testAppendTo_whenValidAnalyticsIds_includesAnalyticsIdsInReturnedUrl() {

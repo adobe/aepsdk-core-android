@@ -18,8 +18,6 @@ assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-pho
 
 assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release identity-assemble-phone-release
 
-javadoc: core-javadoc
-
 unit-test: core-unit-test signal-unit-test lifecycle-unit-test
 
 unit-test-coverage: core-unit-test-coverage signal-unit-test-coverage lifecycle-unit-test-coverage

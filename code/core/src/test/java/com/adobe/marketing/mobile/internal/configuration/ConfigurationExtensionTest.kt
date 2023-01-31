@@ -528,14 +528,14 @@ class ConfigurationExtensionTest {
         verify(mockExecutorService).schedule(
             Mockito.any(Runnable::class.java),
             eq(5000L),
-            eq(TimeUnit.SECONDS)
+            eq(TimeUnit.MILLISECONDS)
         )
 
         // Verify second retry scheduling
         verify(mockExecutorService).schedule(
             Mockito.any(Runnable::class.java),
             eq(10000L),
-            eq(TimeUnit.SECONDS)
+            eq(TimeUnit.MILLISECONDS)
         )
 
         // Verify that cached state is set twice for 2 failed downloads

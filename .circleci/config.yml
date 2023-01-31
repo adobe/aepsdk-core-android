@@ -29,10 +29,6 @@ jobs:
           command: make api-check
 
       - run:
-          name: JavaDoc
-          command: make javadoc
-
-      - run:
           name: Install jitpack (core) to maven local
           command: make core-publish-maven-local-jitpack
 

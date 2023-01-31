@@ -23,7 +23,7 @@ jobs:
       - run:
           name: Assemble phone release
           command: make assemble-phone-release
-      
+
       - run:
           name: Verify Core APIs
           command: make api-check
@@ -48,6 +48,18 @@ jobs:
           name: Install jitpack (identity) to maven local
           command: make identity-publish-maven-local-jitpack
 
+      - store_artifacts:
+          path: code/core/build/libs
+
+      - store_artifacts:
+          path: code/signal/build/libs
+
+      - store_artifacts:
+          path: code/lifecycle/build/libs
+
+      - store_artifacts:
+          path: code/identity/build/libs
+
       - run:
           name: Download Codecov Uploader
           command: |
@@ -68,7 +80,7 @@ jobs:
 
       - run:
           name: Upload Core unit test coverage
-          command: |            
+          command: |
             bash ./codecov -v -X s3 -c -D "./code/core/build/reports/coverage/test/phone/debug" -F unit-tests
 
       - run:
@@ -80,7 +92,7 @@ jobs:
 
       - run:
           name: Upload Signal coverage report
-          command: |            
+          command: |
             bash ./codecov -v -X s3 -c -D "./code/signal/build/reports/coverage/test/phone/debug" -F unit-tests
 
       - run:
@@ -92,7 +104,7 @@ jobs:
 
       - run:
           name: Upload Lifecycle coverage report
-          command: |            
+          command: |
             bash ./codecov -v -X s3 -c -D "./code/lifecycle/build/reports/coverage/test/phone/debug" -F unit-tests
 
       - run:
@@ -104,70 +116,70 @@ jobs:
 
       - run:
           name: Upload Identity coverage report
-          command: |            
+          command: |
             bash ./codecov -v -X s3 -c -D "./code/identity/build/reports/coverage/test/phone/debug" -F unit-tests
 
   functional-test:
-      executor:
-        name: android/android-machine
-        resource-class: large
-        tag: 2022.01.1
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: 2022.01.1
 
-      steps:
-        - checkout
-        
-        - android/start-emulator-and-run-tests:
-            system-image: system-images;android-29;default;x86
-            post-emulator-launch-assemble-command: make assemble-phone
-            test-command: make functional-test-coverage
+    steps:
+      - checkout
 
-        - run:
-            name: Download Codecov Uploader
-            command: |
-              curl -s https://codecov.io/bash > codecov;
-              VERSION=$(grep 'VERSION=\"[0-9\.]*\"' codecov | cut -d'"' -f2);
-              for i in 1 256 512
-              do
-                shasum -a $i -c --ignore-missing <(curl -s "https://raw.githubusercontent.com/codecov/codecov-bash/${VERSION}/SHA${i}SUM") ||
-                shasum -a $i -c <(curl -s "https://raw.githubusercontent.com/codecov/codecov-bash/${VERSION}/SHA${i}SUM" | grep -w "codecov")
-              done
+      - android/start-emulator-and-run-tests:
+          system-image: system-images;android-29;default;x86
+          post-emulator-launch-assemble-command: make assemble-phone
+          test-command: make functional-test-coverage
 
-        - run:
-            name: Upload Core coverage report
-            command: |                        
-              bash ./codecov -v -X s3 -c -D "./code/core/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+      - run:
+          name: Download Codecov Uploader
+          command: |
+            curl -s https://codecov.io/bash > codecov;
+            VERSION=$(grep 'VERSION=\"[0-9\.]*\"' codecov | cut -d'"' -f2);
+            for i in 1 256 512
+            do
+              shasum -a $i -c --ignore-missing <(curl -s "https://raw.githubusercontent.com/codecov/codecov-bash/${VERSION}/SHA${i}SUM") ||
+              shasum -a $i -c <(curl -s "https://raw.githubusercontent.com/codecov/codecov-bash/${VERSION}/SHA${i}SUM" | grep -w "codecov")
+            done
 
-        - run:
-            name: Upload Signal coverage report
-            command: |            
-              bash ./codecov -v -X s3 -c -D "./code/signal/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+      - run:
+          name: Upload Core coverage report
+          command: |
+            bash ./codecov -v -X s3 -c -D "./code/core/build/reports/coverage/androidTest/phone/debug" -F functional-tests
 
-        - run:
-            name: Upload Lifecycle coverage report
-            command: |            
-              bash ./codecov -v -X s3 -c -D "./code/lifecycle/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+      - run:
+          name: Upload Signal coverage report
+          command: |
+            bash ./codecov -v -X s3 -c -D "./code/signal/build/reports/coverage/androidTest/phone/debug" -F functional-tests
+
+      - run:
+          name: Upload Lifecycle coverage report
+          command: |
+            bash ./codecov -v -X s3 -c -D "./code/lifecycle/build/reports/coverage/androidTest/phone/debug" -F functional-tests
 
   integration-test:
-      executor:
-        name: android/android-machine
-        resource-class: large
-        tag: 2022.01.1
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: 2022.01.1
 
-      steps:
-        - checkout
-        
-        - android/start-emulator-and-run-tests:
-            system-image: system-images;android-29;default;x86
-            post-emulator-launch-assemble-command: make assemble-phone
-            test-command: make integration-test
+    steps:
+      - checkout
 
-        - store_test_results:
-            path: code/integration-tests/build/outputs/androidTest-results/connected
+      - android/start-emulator-and-run-tests:
+          system-image: system-images;android-29;default;x86
+          post-emulator-launch-assemble-command: make assemble-phone
+          test-command: make integration-test
+
+      - store_test_results:
+          path: code/integration-tests/build/outputs/androidTest-results/connected
 
 workflows:
   version: 2
-  aepsdk-core-ci: 
+  aepsdk-core-ci:
     jobs:
       - build-and-unit-test
       - functional-test
-      - integration-test      
+      - integration-test

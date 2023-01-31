@@ -54,6 +54,18 @@ android {
     }
 }
 
+dokkaJavadoc.configure {
+    dokkaSourceSets {
+        named("main") {
+            noAndroidSdkLink.set(false)
+            perPackageOption {
+                matchingRegex.set(".*\\.internal.*") // proper setting
+                suppress.set(true)
+            }
+        }
+    }
+}
+
 apply from: '../checkstyle.gradle'
 apply from: '../codeformat.gradle'
 apply from: '../jacoco.gradle'
@@ -69,6 +81,12 @@ def isReleaseBuild() {
 version = isReleaseBuild() ? rootProject.signalExtensionVersion : rootProject.signalExtensionVersion+"-SNAPSHOT"
 
 def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
+
+task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    archiveClassifier.set('javadoc')
+    from dokkaJavadoc.outputDirectory
+}
+
 publishing {
     publications {
         release(MavenPublication) {
@@ -76,6 +94,7 @@ publishing {
             artifactId = rootProject.signalExtensionName
             version = version
             artifact("$buildDir/outputs/aar/${rootProject.signalExtensionAARName}")
+            artifact javadocJar
 
             pom {
                 name = rootProject.mavenRepoName

@@ -17,6 +17,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
+import java.io.File;
 
 /** Helper class for performing atomic operation on SQLite Database. */
 public class SQLiteDatabaseHelper {
@@ -128,6 +129,28 @@ public class SQLiteDatabaseHelper {
                     LOG_PREFIX,
                     "openDatabase - Failed to open database - filepath is null or empty");
             throw new SQLiteException("Invalid database path. Database path is null or empty.");
+        }
+
+        // Create parent directory if it don't exist.
+        try {
+            File databasePath = new File(filePath);
+            File parentDir = databasePath.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                Log.debug(
+                        CoreConstants.LOG_TAG,
+                        LOG_PREFIX,
+                        "openDatabase - Creating parent directory (%s)",
+                        parentDir.getPath());
+                parentDir.mkdirs();
+            }
+        } catch (Exception ex) {
+            Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_PREFIX,
+                    "openDatabase - Failed to create parent directory for path (%s)",
+                    filePath);
+            throw new SQLiteException(
+                    "Invalid database path. Unable to create parent directory for database.");
         }
 
         SQLiteDatabase database =

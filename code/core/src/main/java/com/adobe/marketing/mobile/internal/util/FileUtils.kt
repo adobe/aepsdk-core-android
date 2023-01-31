@@ -259,6 +259,10 @@ internal object FileUtils {
     @JvmStatic
     @Throws(Exception::class)
     fun moveFile(src: File, dest: File) {
+        if (!dest.parentFile.exists()) {
+            dest.parentFile.mkdirs()
+        }
+
         if (!dest.exists()) {
             dest.createNewFile()
         }

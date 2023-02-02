@@ -169,6 +169,7 @@ class HttpConnection implements HttpConnecting {
     public void close() {
         final InputStream inputStream = this.getInputStream();
 
+        final InputStream errorStream = this.getErrorStream();
         if (inputStream != null) {
             try {
                 inputStream.close();
@@ -182,6 +183,16 @@ class HttpConnection implements HttpConnecting {
                         ServiceConstants.LOG_TAG,
                         TAG,
                         String.format("Could not close the input stream. (%s)", e));
+            }
+        }
+        if (errorStream != null) {
+            try {
+                errorStream.close();
+            } catch (final Exception | Error e) {
+                Log.warning(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        String.format("Could not close the error stream. (%s)", e));
             }
         }
 

@@ -1130,8 +1130,8 @@ public final class IdentityExtension extends Extension {
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
                     "updatePushIdentifier : Ignored a push token (%s) as it matches with an"
-                        + " existing token, and the push notification status will not be re-sent"
-                        + " to Analytics.",
+                        + " existing token, and the push notification status will not be re-sent to"
+                        + " Analytics.",
                     pushId);
             return;
         }
@@ -1826,7 +1826,9 @@ public final class IdentityExtension extends Extension {
                 newEvent.toString());
     }
 
-    /** @param eventData to be used to create the event object to be dispatched. */
+    /**
+     * @param eventData to be used to create the event object to be dispatched.
+     */
     @VisibleForTesting
     void handleIdentityConfigurationUpdateEvent(final Map<String, Object> eventData) {
         final Event event =

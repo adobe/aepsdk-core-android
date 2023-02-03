@@ -145,10 +145,9 @@ class IdentityHitsProcessing implements HitProcessing {
                                 Log.debug(
                                         IdentityConstants.LOG_TAG,
                                         LOG_SOURCE,
-                                        "IdentityHitsDatabase.process : A recoverable network"
-                                            + " error occurred with response code %d while"
-                                            + " processing ECID Service requests.  Will retry in"
-                                            + " 30 seconds.",
+                                        "IdentityHitsDatabase.process : A recoverable network error"
+                                            + " occurred with response code %d while processing"
+                                            + " ECID Service requests.  Will retry in 30 seconds.",
                                         connection.getResponseCode());
                                 processingResult.complete(false);
                             }

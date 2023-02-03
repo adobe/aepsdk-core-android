@@ -108,7 +108,7 @@ class IdentityExtensionTests {
     @Test
     fun `get extension version`() {
         val identityExtension = initializeSpiedIdentityExtension()
-        assertEquals("2.0.0", identityExtension.version)
+        assertEquals("2.0.1", identityExtension.version)
     }
 
     @Test

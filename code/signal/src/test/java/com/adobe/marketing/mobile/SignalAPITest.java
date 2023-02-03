@@ -27,7 +27,7 @@ public class SignalAPITest {
 
     @Test
     public void test_extensionVersion() {
-        assertEquals("2.0.0", Signal.extensionVersion());
+        assertEquals("2.0.1", Signal.extensionVersion());
     }
 
     @Test

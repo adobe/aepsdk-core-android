@@ -17,7 +17,7 @@ import com.adobe.marketing.mobile.signal.internal.SignalExtension;
 
 public class Signal {
 
-    private static final String EXTENSION_VERSION = "2.0.0";
+    private static final String EXTENSION_VERSION = "2.0.1";
     private static final String CLASS_NAME = "Signal";
 
     public static final Class<? extends Extension> EXTENSION = SignalExtension.class;

@@ -4,7 +4,7 @@ spotless {
    java {
         toggleOffOn("format:off", "format:on")
         target "src/*/java/**/*.java"
-        googleJavaFormat('1.8').aosp().reflowLongStrings()
+        googleJavaFormat('1.15.0').aosp().reflowLongStrings()
         importOrder()
         removeUnusedImports()
         endWithNewline()

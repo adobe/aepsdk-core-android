@@ -61,12 +61,16 @@ public class NotificationSetting {
         return notificationSetting;
     }
 
-    /** @return unique identifier for the local notification */
+    /**
+     * @return unique identifier for the local notification
+     */
     public String getIdentifier() {
         return identifier;
     }
 
-    /** @return notification message content */
+    /**
+     * @return notification message content
+     */
     public String getContent() {
         return content;
     }
@@ -79,27 +83,37 @@ public class NotificationSetting {
         return fireDate;
     }
 
-    /** @return int number of seconds to wait before displaying this local notification */
+    /**
+     * @return int number of seconds to wait before displaying this local notification
+     */
     public int getDelaySeconds() {
         return delaySeconds;
     }
 
-    /** @return the link to be opened on notification clickthrough */
+    /**
+     * @return the link to be opened on notification clickthrough
+     */
     public String getDeeplink() {
         return deeplink;
     }
 
-    /** @return {@code Map<String, Object>} of additional data for the local notification */
+    /**
+     * @return {@code Map<String, Object>} of additional data for the local notification
+     */
     public Map<String, Object> getUserInfo() {
         return userInfo;
     }
 
-    /** @return a custom sound to play when the notification is shown */
+    /**
+     * @return a custom sound to play when the notification is shown
+     */
     public String getSound() {
         return sound;
     }
 
-    /** @return the title of the notification message */
+    /**
+     * @return the title of the notification message
+     */
     public String getTitle() {
         return title;
     }

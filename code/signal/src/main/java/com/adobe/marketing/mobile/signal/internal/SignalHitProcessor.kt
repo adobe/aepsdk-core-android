@@ -54,7 +54,7 @@ internal class SignalHitProcessor : HitProcessing {
         }
         networkService.connectAsync(request) { connection ->
             if (connection == null) {
-                processingResult.complete(false)
+                processingResult.complete(true)
                 return@connectAsync
             }
             when (val responseCode = connection.responseCode) {

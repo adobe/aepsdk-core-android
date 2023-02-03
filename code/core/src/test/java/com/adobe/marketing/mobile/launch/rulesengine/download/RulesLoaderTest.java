@@ -177,6 +177,7 @@ public class RulesLoaderTest {
         assertEquals(
                 String.valueOf(SAMPLE_LAST_MODIFIED_MS),
                 capturedCacheEntry.getMetadata().get(RulesLoader.HTTP_HEADER_LAST_MODIFIED));
+        verify(mockResponse).close();
     }
 
     @Test
@@ -225,6 +226,7 @@ public class RulesLoaderTest {
                 ArgumentCaptor.forClass(NetworkRequest.class);
         verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
         verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.getValue());
+        verify(mockResponse).close();
 
         final ArgumentCaptor<RulesLoadResult> resultCaptor =
                 ArgumentCaptor.forClass(RulesLoadResult.class);
@@ -273,6 +275,7 @@ public class RulesLoaderTest {
                 ArgumentCaptor.forClass(NetworkRequest.class);
         verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
         verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.getValue());
+        verify(mockResponse).close();
 
         final ArgumentCaptor<RulesLoadResult> resultCaptor =
                 ArgumentCaptor.forClass(RulesLoadResult.class);
@@ -315,6 +318,7 @@ public class RulesLoaderTest {
                 ArgumentCaptor.forClass(NetworkRequest.class);
         verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
         verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.getValue());
+        verify(mockResponse).close();
 
         final ArgumentCaptor<RulesLoadResult> resultCaptor =
                 ArgumentCaptor.forClass(RulesLoadResult.class);
@@ -354,6 +358,7 @@ public class RulesLoaderTest {
                 ArgumentCaptor.forClass(NetworkRequest.class);
         verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
         verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.getValue());
+        verify(mockResponse).close();
 
         final ArgumentCaptor<RulesLoadResult> resultCaptor =
                 ArgumentCaptor.forClass(RulesLoadResult.class);
@@ -409,6 +414,7 @@ public class RulesLoaderTest {
                 ArgumentCaptor.forClass(NetworkRequest.class);
         verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
         verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.getValue());
+        verify(mockResponse).close();
 
         final ArgumentCaptor<RulesLoadResult> resultCaptor =
                 ArgumentCaptor.forClass(RulesLoadResult.class);
@@ -448,6 +454,7 @@ public class RulesLoaderTest {
                 ArgumentCaptor.forClass(NetworkRequest.class);
         verify(mockNetworkService, times(1)).connectAsync(networkRequestCaptor.capture(), any());
         verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.getValue());
+        verify(mockResponse, times(1)).close();
 
         final ArgumentCaptor<RulesLoadResult> resultCaptor =
                 ArgumentCaptor.forClass(RulesLoadResult.class);

@@ -104,6 +104,7 @@ public class RulesLoader {
         final NetworkCallback networkCallback =
                 response -> {
                     final RulesLoadResult result = handleDownloadResponse(url, response);
+                    response.close();
                     callback.call(result);
                 };
 

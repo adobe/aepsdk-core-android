@@ -89,13 +89,15 @@ class ConfigurationDownloaderTest {
     @Test
     fun `Download always makes a network request for a valid url`() {
         val mockConfigJson = "{}"
+        val simulatedResponse = simulateNetworkResponse(
+            HttpURLConnection.HTTP_OK,
+            mockConfigJson.byteInputStream(),
+            mapOf()
+        )
+
         `when`(mockNetworkService.connectAsync(any(), any())).then {
             val callback = it.getArgument<NetworkCallback>(1)
-            val simulatedResponse = simulateNetworkResponse(
-                HttpURLConnection.HTTP_OK,
-                mockConfigJson.byteInputStream(),
-                mapOf()
-            )
+
             callback.call(simulatedResponse)
         }
 
@@ -108,14 +110,16 @@ class ConfigurationDownloaderTest {
         verify(mockNetworkService, times(1)).connectAsync(any(), any())
         // verify that the original callback is invoked with right content
         verify(mockCompletionCallback).invoke(emptyMap())
+        verify(simulatedResponse).close()
     }
 
     @Test
     fun `Download when RemoteDownload result is null`() {
+        val simulatedResponse =
+            simulateNetworkResponse(HttpURLConnection.HTTP_OK, null, mapOf())
+
         `when`(mockNetworkService.connectAsync(any(), any())).then {
             val callback = it.getArgument<NetworkCallback>(1)
-            val simulatedResponse =
-                simulateNetworkResponse(HttpURLConnection.HTTP_OK, null, mapOf())
             callback.call(simulatedResponse)
         }
 
@@ -124,18 +128,20 @@ class ConfigurationDownloaderTest {
         verify(mockCacheService).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
         verify(mockNetworkService, times(1)).connectAsync(any(), any())
         verify(mockCompletionCallback).invoke(null)
+        verify(simulatedResponse).close()
     }
 
     @Test
     fun `Download when download result file cannot be parsed`() {
         val mockConfigJson = "{invalid json}"
+        val simulatedResponse = simulateNetworkResponse(
+            HttpURLConnection.HTTP_OK,
+            mockConfigJson.byteInputStream(),
+            mapOf()
+        )
+
         `when`(mockNetworkService.connectAsync(any(), any())).then {
             val callback = it.getArgument<NetworkCallback>(1)
-            val simulatedResponse = simulateNetworkResponse(
-                HttpURLConnection.HTTP_OK,
-                mockConfigJson.byteInputStream(),
-                mapOf()
-            )
             callback.call(simulatedResponse)
         }
 
@@ -144,18 +150,21 @@ class ConfigurationDownloaderTest {
         verify(mockCacheService).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
         verify(mockNetworkService, times(1)).connectAsync(any(), any())
         verify(mockCompletionCallback).invoke(null)
+        verify(simulatedResponse).close()
     }
 
     @Test
     fun `Download when download result is empty`() {
         val mockConfigJson = ""
+        val simulatedResponse = simulateNetworkResponse(
+            HttpURLConnection.HTTP_OK,
+            mockConfigJson.byteInputStream(),
+            mapOf()
+        )
+
         `when`(mockNetworkService.connectAsync(any(), any())).then {
             val callback = it.getArgument<NetworkCallback>(1)
-            val simulatedResponse = simulateNetworkResponse(
-                HttpURLConnection.HTTP_OK,
-                mockConfigJson.byteInputStream(),
-                mapOf()
-            )
+
             callback.call(simulatedResponse)
         }
 
@@ -165,6 +174,7 @@ class ConfigurationDownloaderTest {
         verify(mockNetworkService, times(1)).connectAsync(any(), any())
         // verify that the original callback is invoked with right content
         verify(mockCompletionCallback).invoke(emptyMap())
+        verify(simulatedResponse).close()
     }
 
     @Test
@@ -178,13 +188,14 @@ class ConfigurationDownloaderTest {
             "\"timeout\": 30.5" +
             "}"
 
+        val simulatedResponse = simulateNetworkResponse(
+            HttpURLConnection.HTTP_OK,
+            mockConfigContentJson.byteInputStream(),
+            mapOf()
+        )
+
         `when`(mockNetworkService.connectAsync(any(), any())).then {
             val callback = it.getArgument<NetworkCallback>(1)
-            val simulatedResponse = simulateNetworkResponse(
-                HttpURLConnection.HTTP_OK,
-                mockConfigContentJson.byteInputStream(),
-                mapOf()
-            )
             callback.call(simulatedResponse)
         }
 
@@ -203,6 +214,7 @@ class ConfigurationDownloaderTest {
         verify(mockCacheService).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
         verify(mockNetworkService, times(1)).connectAsync(any(), any())
         verify(mockCompletionCallback).invoke(expectedConfig)
+        verify(simulatedResponse).close()
     }
 
     @Test
@@ -212,13 +224,16 @@ class ConfigurationDownloaderTest {
             "\"global.ssl\": true,\n" +
             "\"rules.url\"= \"https://assets.adobedtm.com/launch-rules.zip\"," + // This line has = instead of :
             "}"
+
+        val simulatedResponse = simulateNetworkResponse(
+            HttpURLConnection.HTTP_OK,
+            mockConfigContentJson.byteInputStream(),
+            mapOf()
+        )
+
         `when`(mockNetworkService.connectAsync(any(), any())).then {
             val callback = it.getArgument<NetworkCallback>(1)
-            val simulatedResponse = simulateNetworkResponse(
-                HttpURLConnection.HTTP_OK,
-                mockConfigContentJson.byteInputStream(),
-                mapOf()
-            )
+
             callback.call(simulatedResponse)
         }
 
@@ -227,14 +242,15 @@ class ConfigurationDownloaderTest {
         verify(mockCacheService).get(ConfigurationDownloader.CONFIG_CACHE_NAME, SAMPLE_URL)
         verify(mockNetworkService, times(1)).connectAsync(any(), any())
         verify(mockCompletionCallback).invoke(null)
+        verify(simulatedResponse).close()
     }
 
     @Test
     fun `Download when response is HTTP_NOT_MODIFIED`() {
+        val simulatedResponse = simulateNetworkResponse(HttpURLConnection.HTTP_NOT_MODIFIED, null, mapOf())
+
         `when`(mockNetworkService.connectAsync(any(), any())).then {
             val callback = it.getArgument<NetworkCallback>(1)
-            val simulatedResponse =
-                simulateNetworkResponse(HttpURLConnection.HTTP_NOT_MODIFIED, null, mapOf())
             callback.call(simulatedResponse)
         }
 
@@ -286,6 +302,7 @@ class ConfigurationDownloaderTest {
         // verify that the original callback is invoked with right content
         val expectedConfig = mapOf("cachedKey" to "value")
         verify(mockCompletionCallback).invoke(expectedConfig)
+        verify(simulatedResponse).close()
     }
 
     @After

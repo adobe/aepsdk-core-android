@@ -152,6 +152,8 @@ class IdentityHitsProcessing implements HitProcessing {
                                         connection.getResponseCode());
                                 processingResult.complete(false);
                             }
+
+                            connection.close();
                         });
     }
 

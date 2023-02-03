@@ -83,7 +83,7 @@ internal class SignalHitProcessor : HitProcessing {
                     )
                     processingResult.complete(true)
                 }
-            }
+            }.also { connection.close() }
         }
     }
 

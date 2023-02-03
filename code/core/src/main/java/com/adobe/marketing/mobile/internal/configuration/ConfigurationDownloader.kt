@@ -109,6 +109,7 @@ internal class ConfigurationDownloader {
 
         val networkCallback = NetworkCallback { response: HttpConnecting ->
             val config = handleDownloadResponse(url, response)
+            response.close()
             completionCallback.invoke(config)
         }
 

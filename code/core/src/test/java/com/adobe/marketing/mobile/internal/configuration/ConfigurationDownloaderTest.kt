@@ -114,6 +114,26 @@ class ConfigurationDownloaderTest {
     }
 
     @Test
+    fun `Download when network response is null`() {
+        `when`(mockNetworkService.connectAsync(any(), any())).then {
+            val callback = it.getArgument<NetworkCallback>(1)
+
+            callback.call(null)
+        }
+
+        configurationDownloader.download(SAMPLE_URL, mockCompletionCallback)
+
+        verify(mockCacheService, times(1)).get(
+            ConfigurationDownloader.CONFIG_CACHE_NAME,
+            SAMPLE_URL
+        )
+        verify(mockNetworkService, times(1)).connectAsync(any(), any())
+
+        // verify that the original callback is invoked with null content
+        verify(mockCompletionCallback).invoke(null)
+    }
+
+    @Test
     fun `Download when RemoteDownload result is null`() {
         val simulatedResponse =
             simulateNetworkResponse(HttpURLConnection.HTTP_OK, null, mapOf())

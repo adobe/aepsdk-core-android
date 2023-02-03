@@ -104,6 +104,11 @@ public class RulesLoader {
         final NetworkCallback networkCallback =
                 response -> {
                     final RulesLoadResult result = handleDownloadResponse(url, response);
+
+                    if (response != null) {
+                        response.close();
+                    }
+
                     callback.call(result);
                 };
 
@@ -169,6 +174,12 @@ public class RulesLoader {
 
     private RulesLoadResult handleDownloadResponse(
             final String url, final HttpConnecting response) {
+
+        if (response == null) {
+            Log.trace(TAG, cacheName, "Received null response.");
+            return new RulesLoadResult(null, RulesLoadResult.Reason.NO_DATA);
+        }
+
         switch (response.getResponseCode()) {
             case HttpURLConnection.HTTP_OK:
                 return extractRules(

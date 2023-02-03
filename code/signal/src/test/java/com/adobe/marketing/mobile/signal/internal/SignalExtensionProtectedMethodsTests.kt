@@ -112,7 +112,7 @@ class SignalExtensionProtectedMethodsTests {
 
     @Test
     fun `Test getVersion() `() {
-        assertEquals("2.0.0", ExtensionHelper.getVersion(signalExtension))
+        assertEquals("2.0.1", ExtensionHelper.getVersion(signalExtension))
     }
 
     @Test

@@ -60,9 +60,35 @@ def isReleaseBuild() {
     return hasProperty('release')
 }
 
-version = isReleaseBuild() ? rootProject.lifecycleExtensionVersion : rootProject.lifecycleExtensionVersion+"-SNAPSHOT"
+version = isReleaseBuild() ? rootProject.lifecycleExtensionVersion : rootProject.lifecycleExtensionVersion + "-SNAPSHOT"
 
-def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
+def groupIdForPublish = isJitPackBuild() ? 'com.github.adobe.aepsdk-core-android' : 'com.adobe.marketing.mobile'
+
+android.libraryVariants.all { variant ->
+    tasks.withType(Javadoc) {
+        source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+
+        doFirst{classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)}
+
+        exclude "**/BuildConfig.java"
+        exclude "**/R.java"
+        options {
+            links "https://developer.android.com/reference"
+        }
+    }
+}
+
+task javadocPublic(type: Javadoc) {
+    destinationDir = reporting.file("javadocPublic")
+    options.memberLevel = JavadocMemberLevel.PUBLIC
+}
+
+task javadocPublish(type: Jar) {
+    from javadocPublic
+    archiveClassifier.set('javadoc')
+}
+
 publishing {
     publications {
         release(MavenPublication) {
@@ -70,14 +96,14 @@ publishing {
             artifactId = rootProject.lifecycleExtensionName
             version = version
             artifact("$buildDir/outputs/aar/${rootProject.lifecycleExtensionAARName}")
-
+            artifact javadocPublish
             pom {
                 name = rootProject.mavenRepoName
                 description = rootProject.mavenRepoDescription
                 url = 'https://developer.adobe.com/client-sdks'
                 licenses {
                     license {
-                        name = 'Adobe Proprietary'
+                        name = 'The Apache License, Version 2.0'
                     }
                 }
                 developers {
@@ -117,9 +143,9 @@ publishing {
 
 }
 
-ext."signing.gnupg.executable"="gpg"
-ext."signing.gnupg.keyName"=System.getenv("GPG_KEY_ID")
-ext."signing.gnupg.passphrase"=System.getenv("GPG_PASSPHRASE")
+ext."signing.gnupg.executable" = "gpg"
+ext."signing.gnupg.keyName" = System.getenv("GPG_KEY_ID")
+ext."signing.gnupg.passphrase" = System.getenv("GPG_PASSPHRASE")
 
 signing {
     useGpgCmd()
@@ -131,7 +157,6 @@ signing {
     sign publishing.publications
 }
 
-tasks.withType(Javadoc).all { enabled = false }
 publishToMavenLocal.dependsOn('assemblePhone')
 
 dependencies {

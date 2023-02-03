@@ -19,6 +19,7 @@ import static junit.framework.TestCase.assertTrue;
 import android.content.Context;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import com.adobe.marketing.mobile.internal.util.FileUtils;
 import java.io.File;
 import org.junit.After;
 import org.junit.Assert;
@@ -40,6 +41,9 @@ public class DataQueueServiceTests {
         mockAppContextService.appContext = context;
 
         ServiceProviderModifier.setAppContextService(mockAppContextService);
+
+        // Ensure databases directory exist
+        context.getDatabasePath(TEST_DATABASE_NAME).getParentFile().mkdirs();
     }
 
     @After
@@ -72,7 +76,30 @@ public class DataQueueServiceTests {
     }
 
     @Test
+    public void testGetDataQueue_DatabasesDirectoryAbsent() {
+        // Delete databases directory
+        FileUtils.deleteFile(context.getDatabasePath(TEST_DATABASE_NAME).getParentFile(), true);
+        assertFalse(context.getDatabasePath(TEST_DATABASE_NAME).exists());
+        DataQueue dataQueue = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
+        assertNotNull(dataQueue);
+        assertTrue(context.getDatabasePath(TEST_DATABASE_NAME).exists());
+    }
+
+    @Test
     public void testGetDataQueue_DataQueueMigrationFromCacheDirectory() {
+        // Delete databases directory
+        FileUtils.deleteFile(context.getDatabasePath(TEST_DATABASE_NAME).getParentFile(), true);
+        assertFalse(context.getDatabasePath(TEST_DATABASE_NAME).exists());
+        File cacheDatabaseFile = new File(context.getCacheDir(), TEST_DATABASE_NAME);
+        DataQueue dataQueue = new SQLiteDataQueue(cacheDatabaseFile.getPath());
+        dataQueue.add(new DataEntity("test_data_1"));
+        DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
+        Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
+        assertFalse(cacheDatabaseFile.exists());
+    }
+
+    @Test
+    public void testGetDataQueue_DataQueueMigrationFromCacheDirectory_DatabasesDirectoryAbsent() {
         assertFalse(context.getDatabasePath(TEST_DATABASE_NAME).exists());
         File cacheDatabaseFile = new File(context.getCacheDir(), TEST_DATABASE_NAME);
         DataQueue dataQueue = new SQLiteDataQueue(cacheDatabaseFile.getPath());

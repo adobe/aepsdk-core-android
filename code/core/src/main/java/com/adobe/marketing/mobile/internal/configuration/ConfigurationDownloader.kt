@@ -107,8 +107,9 @@ internal class ConfigurationDownloader {
             DEFAULT_READ_TIMEOUT_MS
         )
 
-        val networkCallback = NetworkCallback { response: HttpConnecting ->
+        val networkCallback = NetworkCallback { response: HttpConnecting? ->
             val config = handleDownloadResponse(url, response)
+            response?.close()
             completionCallback.invoke(config)
         }
 
@@ -123,7 +124,19 @@ internal class ConfigurationDownloader {
      * @param response the response which is to be processed
      * @return a map representation of the json configuration obtained from [response]
      */
-    private fun handleDownloadResponse(url: String, response: HttpConnecting): Map<String, Any?>? {
+    private fun handleDownloadResponse(url: String, response: HttpConnecting?): Map<String, Any?>? {
+        if (response == null) {
+            Log.trace(
+                ConfigurationExtension.TAG,
+                LOG_TAG,
+                "Received a null response."
+            )
+
+            // Return null here to trigger a retry as this is likely an internal failure
+            // in the network service
+            return null
+        }
+
         return when (response.responseCode) {
             HttpURLConnection.HTTP_OK -> {
                 val metadata = mutableMapOf<String, String>()

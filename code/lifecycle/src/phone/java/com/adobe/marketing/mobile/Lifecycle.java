@@ -16,7 +16,7 @@ import com.adobe.marketing.mobile.services.Log;
 
 public class Lifecycle {
 
-    private static final String EXTENSION_VERSION = "2.0.0";
+    private static final String EXTENSION_VERSION = "2.0.1";
 
     public static final Class<? extends Extension> EXTENSION = LifecycleExtension.class;
 

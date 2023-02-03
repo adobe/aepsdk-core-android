@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
@@ -72,6 +71,30 @@ def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android'
 
 version = isReleaseBuild() ? rootProject.identityExtensionVersion : rootProject.identityExtensionVersion+"-SNAPSHOT"
 
+android.libraryVariants.all { variant ->
+    tasks.withType(Javadoc) {
+        source = [android.sourceSets.main.java.sourceFiles, android.sourceSets.phone.java.sourceFiles]
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+
+        doFirst{classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)}
+
+        exclude "**/BuildConfig.java"
+        exclude "**/R.java"
+        options {
+            links "https://developer.android.com/reference"
+        }
+    }
+}
+
+task javadocPublic(type: Javadoc) {
+    destinationDir = reporting.file("javadocPublic")
+    options.memberLevel = JavadocMemberLevel.PUBLIC
+}
+
+task javadocPublish(type: Jar) {
+    from javadocPublic
+    archiveClassifier.set('javadoc')
+}
 publishing {
     publications {
         release(MavenPublication) {
@@ -79,6 +102,7 @@ publishing {
             artifactId = rootProject.identityExtensionName
             version = version
             artifact("$buildDir/outputs/aar/${rootProject.identityExtensionAARName}")
+            artifact javadocPublish
 
             pom {
                 name = rootProject.mavenRepoName
@@ -86,7 +110,7 @@ publishing {
                 url = 'https://developer.adobe.com/client-sdks'
                 licenses {
                     license {
-                        name = 'Adobe Proprietary'
+                        name = 'The Apache License, Version 2.0'
                     }
                 }
                 developers {
@@ -139,7 +163,6 @@ signing {
     sign publishing.publications
 }
 
-tasks.withType(Javadoc).all { enabled = false }
 publishToMavenLocal.dependsOn('assemblePhone')
 
 dependencies {

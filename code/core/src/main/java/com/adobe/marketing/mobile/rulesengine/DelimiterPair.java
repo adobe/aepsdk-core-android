@@ -32,17 +32,23 @@ public class DelimiterPair {
         this.endTag = endString;
     }
 
-    /** @return the startTag for this {@link DelimiterPair} */
+    /**
+     * @return the startTag for this {@link DelimiterPair}
+     */
     String getStartTag() {
         return startTag;
     }
 
-    /** @return the endTag for this {@link DelimiterPair} */
+    /**
+     * @return the endTag for this {@link DelimiterPair}
+     */
     String getEndTag() {
         return endTag;
     }
 
-    /** @return the character length of startTag of this delimiter */
+    /**
+     * @return the character length of startTag of this delimiter
+     */
     int getStartLength() {
         return startTag.length();
     }

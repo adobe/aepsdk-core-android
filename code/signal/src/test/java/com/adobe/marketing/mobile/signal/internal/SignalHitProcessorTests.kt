@@ -24,6 +24,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class SignalHitProcessorTests {
@@ -291,5 +292,28 @@ class SignalHitProcessorTests {
         signalHitProcessor.processHit(entity) { if (it) countDownLatch.countDown() }
 
         countDownLatch.await()
+    }
+
+    @Test
+    fun `processHit() - drops the hit if the response is null`() {
+        val entity = DataEntity(
+            """
+            {
+              "contentType": "",
+              "body": "{\"key\":\"value\"}",
+              "url": "https://www.postback.com",
+              "timeout": 2
+            }
+            """.trimIndent()
+        )
+        signalHitProcessor = SignalHitProcessor { _, callback ->
+            callback.call(null)
+        }
+        val countDownLatch = CountDownLatch(1)
+        signalHitProcessor.processHit(entity) { result ->
+            if (result) countDownLatch.countDown()
+        }
+
+        countDownLatch.await(100, TimeUnit.MILLISECONDS)
     }
 }

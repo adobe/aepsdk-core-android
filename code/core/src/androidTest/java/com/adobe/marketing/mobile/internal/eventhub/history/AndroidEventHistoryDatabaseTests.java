@@ -23,6 +23,7 @@ import android.database.sqlite.SQLiteDatabase;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.adobe.marketing.mobile.TestUtils;
+import com.adobe.marketing.mobile.internal.util.FileUtils;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
 import com.adobe.marketing.mobile.services.MockAppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
@@ -50,6 +51,9 @@ public class AndroidEventHistoryDatabaseTests {
         ServiceProviderModifier.setAppContextService(mockAppContextService);
 
         TestUtils.deleteAllFilesInCacheDir(context);
+
+        // Make sure databases directory exist
+        context.getApplicationContext().getDatabasePath(DATABASE_NAME).getParentFile().mkdirs();
         context.getApplicationContext().getDatabasePath(DATABASE_NAME).delete();
 
         try {
@@ -125,7 +129,25 @@ public class AndroidEventHistoryDatabaseTests {
     }
 
     @Test
-    public void testInsert_EventHistoryDatabaseMigrationFromCacheDirectory() {
+    public void testInsert_DatabasesDirectoryAbsent() {
+        try {
+            // delete databases dir
+            FileUtils.deleteFile(context.getDatabasePath(DATABASE_NAME).getParentFile(), true);
+
+            // create new event history database
+            AndroidEventHistoryDatabase eventHistoryDatabase = new AndroidEventHistoryDatabase();
+            assertTrue(eventHistoryDatabase.insert(222222222));
+
+            final Cursor cursor2 =
+                    eventHistoryDatabase.select(222222222, 0, System.currentTimeMillis());
+            assertEquals("1", cursor2.getString(0));
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testInsert_MigrationFromCacheDirectory() {
         try {
             // create event history database in cache directory
             createEventHistoryDatabaseInCacheDirectory();
@@ -161,7 +183,43 @@ public class AndroidEventHistoryDatabaseTests {
     }
 
     @Test
-    public void testInsert_EventHistoryDatabaseExists() {
+    public void testInsert_MigrationFromCacheDirectory_DatabasesDirectoryAbsent() {
+        try {
+            // create event history database in cache directory
+            createEventHistoryDatabaseInCacheDirectory();
+
+            // delete databases dir
+            FileUtils.deleteFile(context.getDatabasePath(DATABASE_NAME).getParentFile(), true);
+
+            // create new event history database
+            AndroidEventHistoryDatabase eventHistoryDatabase = new AndroidEventHistoryDatabase();
+            assertTrue(eventHistoryDatabase.insert(222222222));
+
+            // assert cache event history database content is copied to new event history database
+            String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
+            SQLiteDatabase database =
+                    SQLiteDatabaseHelper.openDatabase(
+                            dbPath, SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE);
+
+            long dbSize = DatabaseUtils.queryNumEntries(database, "Events");
+            assertEquals(2, dbSize);
+
+            final Cursor cursor1 =
+                    eventHistoryDatabase.select(1111111111, 0, System.currentTimeMillis());
+            assertEquals("1", cursor1.getString(0));
+
+            final Cursor cursor2 =
+                    eventHistoryDatabase.select(222222222, 0, System.currentTimeMillis());
+            assertEquals("1", cursor2.getString(0));
+
+            SQLiteDatabaseHelper.closeDatabase(database);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testInsert_DatabaseExists() {
         try {
             // insert into existing event history database
             assertTrue(androidEventHistoryDatabase.insert(1111111111));

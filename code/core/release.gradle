@@ -1,6 +1,11 @@
 apply plugin: 'signing'
 apply plugin: 'maven-publish'
 
+task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    archiveClassifier.set('javadoc')
+    from dokkaJavadoc.outputDirectory
+}
+
 def isJitPackBuild() {
     return hasProperty('jitpack')
 }
@@ -19,13 +24,14 @@ publishing {
             artifactId = rootProject.coreExtensionName
             version = version
             artifact("$buildDir/outputs/aar/${rootProject.coreExtensionAARName}")
+            artifact javadocJar
             pom {
                 name = rootProject.mavenRepoName
                 description = rootProject.mavenRepoDescription
                 url = 'https://developer.adobe.com/client-sdks'
                 licenses {
                     license {
-                        name = 'Adobe Proprietary'
+                        name = 'The Apache License, Version 2.0'
                     }
                 }
                 developers {
@@ -62,7 +68,7 @@ publishing {
         }
     }
 }
-tasks.withType(Javadoc).all { enabled = false }
+//tasks.withType(Javadoc).all { enabled = false }
 publishToMavenLocal.dependsOn('assemblePhone')
 publishReleasePublicationToMavenLocal.dependsOn('assemblePhone')
 publish.dependsOn('assemblePhone')

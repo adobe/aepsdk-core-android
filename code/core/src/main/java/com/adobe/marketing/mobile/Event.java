@@ -308,7 +308,9 @@ public final class Event {
         return data;
     }
 
-    /** @return {@link Event} timestamp in milliseconds */
+    /**
+     * @return {@link Event} timestamp in milliseconds
+     */
     public long getTimestamp() {
         return timestamp;
     }
@@ -328,7 +330,9 @@ public final class Event {
         this.responseID = responseID;
     }
 
-    /** @return event timestamp in seconds */
+    /**
+     * @return event timestamp in seconds
+     */
     public long getTimestampInSeconds() {
         return TimeUnit.MILLISECONDS.toSeconds(timestamp);
     }

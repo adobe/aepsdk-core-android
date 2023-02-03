@@ -329,7 +329,7 @@ public class MessageSettings {
      *     being fully transparent and 1.0 being fully opaque
      */
     public void setBackdropOpacity(final float backdropOpacity) {
-        this.backdropColor = backdropColor;
+        this.backdropOpacity = backdropOpacity;
     }
 
     /**

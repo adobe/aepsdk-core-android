@@ -80,7 +80,7 @@ public class MessageFragmentTests {
         Mockito.when(mockMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_DOWN);
 
         messageFragment = new MessageFragment();
-        mockAEPMessage.fullScreenMessageDelegate = mockFullscreenMessageDelegate;
+        mockAEPMessage.listener = mockFullscreenMessageDelegate;
         messageFragment.setAEPMessage(mockAEPMessage);
     }
 

@@ -42,7 +42,7 @@ public class MessageWebViewClientTests {
 
     @Before
     public void setup() throws Exception {
-        mockAEPMessage.fullScreenMessageDelegate = mockFullscreenMessageDelegate;
+        mockAEPMessage.listener = mockFullscreenMessageDelegate;
         messageWebViewClient = new MessageWebViewClient(mockAEPMessage);
     }
 
@@ -110,7 +110,7 @@ public class MessageWebViewClientTests {
     @Test
     public void testShouldOverrideUrlLoading_WithNullMessageDelegate_ThenUrlNotHandled() {
         // setup
-        mockAEPMessage.fullScreenMessageDelegate = null;
+        mockAEPMessage.listener = null;
         // test
         final boolean urlHandlingAborted =
                 messageWebViewClient.shouldOverrideUrlLoading(mockWebView, (String) null);

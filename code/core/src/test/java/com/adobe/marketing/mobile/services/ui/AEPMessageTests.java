@@ -31,6 +31,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import com.adobe.marketing.mobile.services.AppContextService;
+import com.adobe.marketing.mobile.services.MessagingDelegate;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
@@ -60,6 +61,8 @@ public class AEPMessageTests {
     @Mock private FrameLayout mockFrameLayout;
 
     @Mock private FullscreenMessageDelegate mockFullscreenMessageDelegate;
+
+    @Mock private MessagingDelegate mockMessagingDelegate;
 
     @Mock private ViewGroup mockViewGroup;
 
@@ -100,6 +103,7 @@ public class AEPMessageTests {
         Mockito.when(mockMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_DOWN);
 
         ServiceProviderModifier.setAppContextService(mockAppContextService);
+        ServiceProviderModifier.setMessagingDelegate(mockMessagingDelegate);
         Mockito.when(mockAppContextService.getApplicationContext())
                 .thenReturn(mockApplicationContext);
         Mockito.when(mockApplicationContext.getResources()).thenReturn(mockResources);
@@ -158,7 +162,7 @@ public class AEPMessageTests {
         // setup
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
-                        mockFullscreenMessageDelegate.shouldShowMessage(
+                        mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
 
@@ -193,7 +197,7 @@ public class AEPMessageTests {
         // setup
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
-                        mockFullscreenMessageDelegate.shouldShowMessage(
+                        mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
         Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
@@ -231,7 +235,7 @@ public class AEPMessageTests {
         // setup
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
         Mockito.when(
-                        mockFullscreenMessageDelegate.shouldShowMessage(
+                        mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
 
@@ -263,7 +267,7 @@ public class AEPMessageTests {
         // setup
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
-                        mockFullscreenMessageDelegate.shouldShowMessage(
+                        mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
         Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
@@ -314,7 +318,7 @@ public class AEPMessageTests {
         // setup
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
-                        mockFullscreenMessageDelegate.shouldShowMessage(
+                        mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
         Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
@@ -351,7 +355,7 @@ public class AEPMessageTests {
         // setup
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
-                        mockFullscreenMessageDelegate.shouldShowMessage(
+                        mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(false);
         Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
@@ -387,7 +391,7 @@ public class AEPMessageTests {
         // setup
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
-                        mockFullscreenMessageDelegate.shouldShowMessage(
+                        mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
 
@@ -517,7 +521,7 @@ public class AEPMessageTests {
                 .thenReturn(true);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
-                        mockFullscreenMessageDelegate.shouldShowMessage(
+                        mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
         Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
@@ -584,7 +588,7 @@ public class AEPMessageTests {
                 .thenReturn(true);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(
-                        mockFullscreenMessageDelegate.shouldShowMessage(
+                        mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
         Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);

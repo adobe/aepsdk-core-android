@@ -23,6 +23,7 @@ import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubError;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.MessagingDelegate;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.util.DataReader;
@@ -937,6 +938,25 @@ public final class MobileCore {
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
+    }
+
+    /**
+     * Gets a previously set Message delegate.
+     *
+     * @return {@link MessagingDelegate} used to listen for current message lifecycle events
+     */
+    public static MessagingDelegate getMessagingDelegate() {
+        return ServiceProvider.getInstance().getMessageDelegate();
+    }
+
+    /**
+     * Sets a Message delegate used to listen for current message lifecycle events.
+     *
+     * @param messagingDelegate {@link MessagingDelegate} to use for listening to current message
+     *     lifecycle events
+     */
+    public static void setMessagingDelegate(final MessagingDelegate messagingDelegate) {
+        ServiceProvider.getInstance().setMessageDelegate(messagingDelegate);
     }
 
     // ========================================================

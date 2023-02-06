@@ -222,6 +222,7 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun extensionVersion ()Ljava/lang/String;
 	public static fun getApplication ()Landroid/app/Application;
 	public static fun getLogLevel ()Lcom/adobe/marketing/mobile/LoggingMode;
+	public static fun getMessagingDelegate ()Lcom/adobe/marketing/mobile/services/MessagingDelegate;
 	public static fun getPrivacyStatus (Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun getSdkIdentities (Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun lifecyclePause ()V
@@ -235,6 +236,7 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun setApplication (Landroid/app/Application;)V
 	public static fun setLargeIconResourceID (I)V
 	public static fun setLogLevel (Lcom/adobe/marketing/mobile/LoggingMode;)V
+	public static fun setMessagingDelegate (Lcom/adobe/marketing/mobile/services/MessagingDelegate;)V
 	public static fun setPrivacyStatus (Lcom/adobe/marketing/mobile/MobilePrivacyStatus;)V
 	public static fun setPushIdentifier (Ljava/lang/String;)V
 	public static fun setSmallIconResourceID (I)V
@@ -682,6 +684,13 @@ public abstract interface class com/adobe/marketing/mobile/services/Logging {
 	public abstract fun warning (Ljava/lang/String;Ljava/lang/String;)V
 }
 
+public abstract interface class com/adobe/marketing/mobile/services/MessagingDelegate {
+	public abstract fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
+	public abstract fun onShow (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
+	public abstract fun shouldShowMessage (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)Z
+	public fun urlLoaded (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
+}
+
 public abstract interface class com/adobe/marketing/mobile/services/NamedCollection {
 	public abstract fun contains (Ljava/lang/String;)Z
 	public abstract fun getBoolean (Ljava/lang/String;Z)Z
@@ -758,11 +767,11 @@ public class com/adobe/marketing/mobile/services/ServiceProvider {
 	public fun getDeviceInfoService ()Lcom/adobe/marketing/mobile/services/DeviceInforming;
 	public static fun getInstance ()Lcom/adobe/marketing/mobile/services/ServiceProvider;
 	public fun getLoggingService ()Lcom/adobe/marketing/mobile/services/Logging;
-	public fun getMessageDelegate ()Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;
+	public fun getMessageDelegate ()Lcom/adobe/marketing/mobile/services/MessagingDelegate;
 	public fun getNetworkService ()Lcom/adobe/marketing/mobile/services/Networking;
 	public fun getUIService ()Lcom/adobe/marketing/mobile/services/ui/UIService;
 	public fun setLoggingService (Lcom/adobe/marketing/mobile/services/Logging;)V
-	public fun setMessageDelegate (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;)V
+	public fun setMessageDelegate (Lcom/adobe/marketing/mobile/services/MessagingDelegate;)V
 	public fun setNetworkService (Lcom/adobe/marketing/mobile/services/Networking;)V
 	public fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
 }
@@ -864,7 +873,6 @@ public abstract interface class com/adobe/marketing/mobile/services/ui/Fullscree
 	public abstract fun onShow (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
 	public abstract fun onShowFailure ()V
 	public abstract fun overrideUrlLoad (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;Ljava/lang/String;)Z
-	public abstract fun shouldShowMessage (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)Z
 }
 
 public class com/adobe/marketing/mobile/services/ui/MessageCreationException : java/lang/Exception {

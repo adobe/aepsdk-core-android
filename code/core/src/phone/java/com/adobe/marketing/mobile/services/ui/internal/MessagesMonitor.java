@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.services.ui.internal;
 
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.MessagingDelegate;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.FullscreenMessage;
@@ -55,9 +56,9 @@ public class MessagesMonitor {
     /**
      * Determines whether the provided {@link FullscreenMessage} should be shown. If a UI message is
      * already showing, this method will return false. If a {@link
-     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate} exists, this method will
-     * call its {@link
-     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate#shouldShowMessage(FullscreenMessage)}
+     * com.adobe.marketing.mobile.services.MessagingDelegate} exists, this method will call its
+     * {@link
+     * com.adobe.marketing.mobile.services.MessagingDelegate#shouldShowMessage(FullscreenMessage)}
      * method.
      *
      * @param message {@code FullscreenMessage} to be shown
@@ -70,9 +71,9 @@ public class MessagesMonitor {
     /**
      * Determines whether the provided {@link FullscreenMessage} should be shown. If a UI message is
      * already showing, this method will return false. If a {@link
-     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate} exists, this method will
-     * call its {@link
-     * com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate#shouldShowMessage(FullscreenMessage)}
+     * com.adobe.marketing.mobile.services.MessagingDelegate} exists, this method will call its
+     * {@link
+     * com.adobe.marketing.mobile.services.MessagingDelegate#shouldShowMessage(FullscreenMessage)}
      * method.
      *
      * @param message {@code FullscreenMessage} to be shown
@@ -90,12 +91,14 @@ public class MessagesMonitor {
         }
 
         if (delegateControl) {
-            if (!ServiceProvider.getInstance().getMessageDelegate().shouldShowMessage(message)) {
+            final MessagingDelegate messagingDelegate =
+                    ServiceProvider.getInstance().getMessageDelegate();
+            if (messagingDelegate != null && !messagingDelegate.shouldShowMessage(message)) {
                 Log.debug(
                         ServiceConstants.LOG_TAG,
                         TAG,
-                        "Message couldn't be displayed, MessagingDelegate#showMessage states the"
-                                + " message should not be displayed.");
+                        "Message couldn't be displayed, MessagingDelegate#shouldShowMessage states"
+                                + " the message should not be displayed.");
                 return false;
             }
         }

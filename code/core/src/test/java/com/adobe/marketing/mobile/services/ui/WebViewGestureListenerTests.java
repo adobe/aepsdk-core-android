@@ -62,7 +62,7 @@ public class WebViewGestureListenerTests {
 
         doCallRealMethod().when(mockMessageFragment).isDismissedWithGesture();
 
-        mockAEPMessage.fullScreenMessageDelegate = mockFullscreenMessageDelegate;
+        mockAEPMessage.listener = mockFullscreenMessageDelegate;
         mockAEPMessage.webView = mockMessageWebView;
         mockAEPMessage.baseRootViewHeight = 3000;
         mockAEPMessage.baseRootViewWidth = 2000;

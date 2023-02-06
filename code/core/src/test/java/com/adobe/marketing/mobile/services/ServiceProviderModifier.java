@@ -16,4 +16,8 @@ public class ServiceProviderModifier {
     public static void setAppContextService(AppContextService service) {
         ServiceProvider.getInstance().setAppContextService(service);
     }
+
+    public static void setMessagingDelegate(MessagingDelegate messagingDelegate) {
+        ServiceProvider.getInstance().setMessageDelegate(messagingDelegate);
+    }
 }

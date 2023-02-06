@@ -11,39 +11,32 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
-/** Delegate for Messaging extension in-app message events. */
+/** Fullscreen message lifecycle event listener. */
 public interface FullscreenMessageDelegate {
     /**
-     * Invoked when the in-app message is displayed.
+     * Invoked when the fullscreen message is displayed.
      *
-     * @param message FullscreenMessage the in-app message being displayed
+     * @param message {@link FullscreenMessage} fullscreen message which is currently shown
      */
     void onShow(final FullscreenMessage message);
 
     /**
-     * Invoked when the in-app message is dismissed.
+     * Invoked when the fullscreen message is dismissed.
      *
-     * @param message FullscreenMessage the in-app message being dismissed
+     * @param message {@link FullscreenMessage} message which is dismissed
      */
     void onDismiss(final FullscreenMessage message);
 
     /**
-     * Used to determine if the in-app message should be shown.
+     * Invoked when the fullscreen message is attempting to load a url.
      *
-     * @param message FullscreenMessage the in-app message that is about to get displayed
-     */
-    boolean shouldShowMessage(final FullscreenMessage message);
-
-    /**
-     * Invoked when the in-app message is attempting to load a url.
-     *
-     * @param message FullscreenMessage the in-app message attempting to load the url
-     * @param url String the url being loaded by the message
+     * @param message {@link FullscreenMessage} message attempting to load the url
+     * @param url {@code String} the url being loaded by the message
      * @return True if the core wants to handle the URL (and not the fullscreen message view
      *     implementation)
      */
     boolean overrideUrlLoad(final FullscreenMessage message, final String url);
 
-    /** Invoked when the in-app message failed to be displayed. */
+    /** Invoked when the fullscreen message failed to be displayed. */
     void onShowFailure();
 }

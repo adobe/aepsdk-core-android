@@ -27,8 +27,8 @@ import android.view.animation.TranslateAnimation;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.MessagingDelegate;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
@@ -59,8 +59,9 @@ class AEPMessage implements FullscreenMessage {
     int baseRootViewWidth;
     int frameLayoutResourceId = 0;
     final MessagesMonitor messagesMonitor;
-    FullscreenMessageDelegate fullScreenMessageDelegate;
+    FullscreenMessageDelegate listener;
     MessageFragment messageFragment;
+    MessagingDelegate messagingDelegate = ServiceProvider.getInstance().getMessageDelegate();
 
     // private vars
     private final String html;
@@ -77,8 +78,7 @@ class AEPMessage implements FullscreenMessage {
      * Constructor.
      *
      * @param html {@code String} containing the html payload
-     * @param messageDelegate {@link FullscreenMessageDelegate} listening for message lifecycle
-     *     events
+     * @param listener {@link FullscreenMessageDelegate} listening for message lifecycle events
      * @param isLocalImageUsed {@code boolean} If true, an image from the app bundle will be used
      *     for the message
      * @param messagesMonitor {@link MessagesMonitor} instance that tracks and provides the
@@ -91,13 +91,13 @@ class AEPMessage implements FullscreenMessage {
      */
     AEPMessage(
             final String html,
-            final FullscreenMessageDelegate messageDelegate,
+            final FullscreenMessageDelegate listener,
             final boolean isLocalImageUsed,
             final MessagesMonitor messagesMonitor,
             final MessageSettings settings,
             final Executor executor)
             throws MessageCreationException {
-        if (messageDelegate == null) {
+        if (listener == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -106,7 +106,7 @@ class AEPMessage implements FullscreenMessage {
                     "Message couldn't be created because the FullscreenMessageDelegate was null.");
         }
 
-        this.fullScreenMessageDelegate = messageDelegate;
+        this.listener = listener;
         this.messagesMonitor = messagesMonitor;
         this.settings = settings;
         this.html = html;
@@ -145,7 +145,7 @@ class AEPMessage implements FullscreenMessage {
                     ServiceConstants.LOG_TAG,
                     TAG,
                     UNEXPECTED_NULL_VALUE + " (context), failed to show the message.");
-            fullScreenMessageDelegate.onShowFailure();
+            listener.onShowFailure();
             return;
         }
 
@@ -156,7 +156,7 @@ class AEPMessage implements FullscreenMessage {
                     ServiceConstants.LOG_TAG,
                     TAG,
                     UNEXPECTED_NULL_VALUE + " (current activity), failed to show the message.");
-            fullScreenMessageDelegate.onShowFailure();
+            listener.onShowFailure();
             return;
         }
 
@@ -166,8 +166,14 @@ class AEPMessage implements FullscreenMessage {
 
                     // bail if we shouldn't be displaying a message
                     if (!messagesMonitor.show(message, withMessagingDelegateControl)) {
-                        fullScreenMessageDelegate.onShowFailure();
+                        listener.onShowFailure();
                         return;
+                    }
+
+                    // notify listeners
+                    listener.onShow(this);
+                    if (messagingDelegate != null) {
+                        messagingDelegate.onShow(this);
                     }
 
                     ServiceProvider.getInstance()
@@ -257,6 +263,16 @@ class AEPMessage implements FullscreenMessage {
     /** Dismisses the message. */
     @Override
     public void dismiss() {
+        if (messagesMonitor.dismiss()) {
+            return;
+        }
+
+        // notify listeners
+        listener.onDismiss(this);
+        if (messagingDelegate != null) {
+            messagingDelegate.onDismiss(this);
+        }
+
         removeFromRootViewGroup();
     }
 
@@ -313,10 +329,6 @@ class AEPMessage implements FullscreenMessage {
     /** Invoked after the message is successfully shown. */
     void viewed() {
         isVisible = true;
-
-        if (fullScreenMessageDelegate != null) {
-            fullScreenMessageDelegate.onShow(this);
-        }
     }
 
     /**
@@ -372,11 +384,6 @@ class AEPMessage implements FullscreenMessage {
     /** Tears down views and listeners used to display the {@link AEPMessage}. */
     void cleanup() {
         Log.trace(ServiceConstants.LOG_TAG, TAG, "Cleaning the AEPMessage.");
-        delegateFullscreenMessageDismiss();
-
-        if (messagesMonitor != null) {
-            messagesMonitor.dismissed();
-        }
 
         isVisible = false;
         // remove touch listeners
@@ -429,21 +436,6 @@ class AEPMessage implements FullscreenMessage {
     @Override
     public void setMessageSetting(final MessageSettings messageSettings) {
         this.settings = messageSettings;
-    }
-
-    /**
-     * Checks if a custom {@link FullscreenMessageDelegate} was set in the {@link MobileCore}. If it
-     * was set, {@code FullscreenMessageDelegate#onDismiss} is called and the {@link AEPMessage}
-     * object is passed to the custom delegate. Note, this method applies to custom delegates only.
-     * onDismiss is called automatically if the internal {@code FullscreenMessageDelegate} is used.
-     */
-    private void delegateFullscreenMessageDismiss() {
-        final FullscreenMessageDelegate messageDelegate =
-                ServiceProvider.getInstance().getMessageDelegate();
-
-        if (messageDelegate != null) {
-            messageDelegate.onDismiss(this);
-        }
     }
 
     /**

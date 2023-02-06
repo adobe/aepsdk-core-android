@@ -16,7 +16,6 @@ import com.adobe.marketing.mobile.services.caching.CacheService;
 import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
-import com.adobe.marketing.mobile.services.ui.FullscreenMessageDelegate;
 import com.adobe.marketing.mobile.services.ui.UIService;
 import com.adobe.marketing.mobile.services.ui.URIHandler;
 
@@ -44,7 +43,7 @@ public class ServiceProvider {
     private DataQueuing dataQueueService;
     private DataStoring defaultDataStoreService;
     private UIService defaultUIService;
-    private FullscreenMessageDelegate messageDelegate;
+    private MessagingDelegate messageDelegate;
     private Logging defaultLoggingService;
     private Logging overrideLoggingService;
     private CacheService defaultCacheService;
@@ -178,21 +177,20 @@ public class ServiceProvider {
     }
 
     /**
-     * Gets the custom {@link FullscreenMessageDelegate}.
+     * Gets the custom {@link MessagingDelegate}.
      *
-     * @return the custom {@code FullscreenMessageDelegate} if set, null otherwise
+     * @return the custom {@code MessagingDelegate} if set, null otherwise
      */
-    public FullscreenMessageDelegate getMessageDelegate() {
+    public MessagingDelegate getMessageDelegate() {
         return this.messageDelegate;
     }
 
     /**
-     * Sets a custom {@link FullscreenMessageDelegate}.
+     * Sets a custom {@link MessagingDelegate}.
      *
-     * @param messageDelegate the custom {@code FullscreenMessageDelegate} to use for handling the
-     *     display of Messaging extension in-app messages
+     * @param messageDelegate the custom {@link MessagingDelegate} to message visibility updates
      */
-    public void setMessageDelegate(final FullscreenMessageDelegate messageDelegate) {
+    public void setMessageDelegate(final MessagingDelegate messageDelegate) {
         this.messageDelegate = messageDelegate;
     }
 

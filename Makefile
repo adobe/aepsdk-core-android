@@ -108,10 +108,10 @@ signal-functional-test:
 signal-functional-test-coverage:		
 		(./code/gradlew -p code/signal createPhoneDebugAndroidTestCoverageReport)
 
-signal-publish-staging: clean signal-assemble-phone-release
+signal-publish-staging: clean signal-assemble-phone
 		(./code/gradlew -p code/signal publishReleasePublicationToSonatypeRepository --stacktrace)
 
-signal-publish-main: clean signal-assemble-phone-release
+signal-publish-main: clean signal-assemble-phone
 		(./code/gradlew -p code/signal publishReleasePublicationToSonatypeRepository -Prelease)
 
 signal-publish-maven-local:
@@ -152,10 +152,11 @@ lifecycle-functional-test:
 lifecycle-functional-test-coverage:		
 		(./code/gradlew -p code/lifecycle createPhoneDebugAndroidTestCoverageReport)
 
-lifecycle-publish-staging: clean lifecycle-assemble-phone-release
+lifecycle-publish-staging: clean lifecycle-assemble-phone
+		# (./code/gradlew -p code/lifecycle compilePhoneDebugJavaWithJavac)
 		(./code/gradlew -p code/lifecycle publishReleasePublicationToSonatypeRepository --stacktrace)
 
-lifecycle-publish-main: clean lifecycle-assemble-phone-release
+lifecycle-publish-main: clean lifecycle-assemble-phone
 		(./code/gradlew -p code/lifecycle publishReleasePublicationToSonatypeRepository -Prelease)
 
 lifecycle-publish-maven-local:
@@ -196,10 +197,10 @@ identity-functional-test:
 identity-functional-test-coverage:
 		(./code/gradlew -p code/identity createPhoneDebugAndroidTestCoverageReport)
 
-identity-publish-staging: clean identity-assemble-phone-release
+identity-publish-staging: clean identity-assemble-phone
 		(./code/gradlew -p code/identity publishReleasePublicationToSonatypeRepository --stacktrace)
 
-identity-publish-main: clean identity-assemble-phone-release
+identity-publish-main: clean identity-assemble-phone
 		(./code/gradlew -p code/identity publishReleasePublicationToSonatypeRepository -Prelease)
 
 identity-publish-maven-local:

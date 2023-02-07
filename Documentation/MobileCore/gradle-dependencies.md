@@ -1,6 +1,6 @@
 # Managing Gradle Dependencies
 
-Our getting started guide and the Android installation instructions generated for Mobile Properties in [Data Collection UI](https://developer.adobe.com/client-sdks/documentation/getting-started/get-the-sdk/) use dynamic versioning for Gradle dependencies. This is done to simplyfy getting started with the latest versions of our SDKs 
+Our getting started guide and the Android installation instructions generated for Mobile Properties in [Data Collection UI](https://developer.adobe.com/client-sdks/documentation/getting-started/get-the-sdk/) use dynamic versioning for Gradle dependencies. This is done to simplify getting started with the latest versions of our SDKs 
 
 Use of dynamic dependency version is not recommended as it makes builds non-deterministic. This causes builds to break without any obvious change, and worse, can be caused by a transitive dependency that the build author has no control over.
 

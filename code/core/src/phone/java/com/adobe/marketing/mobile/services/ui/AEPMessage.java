@@ -263,7 +263,7 @@ class AEPMessage implements FullscreenMessage {
     /** Dismisses the message. */
     @Override
     public void dismiss() {
-        if (messagesMonitor.dismiss()) {
+        if (!messagesMonitor.dismiss()) {
             return;
         }
 

@@ -66,7 +66,7 @@ core-functional-test-coverage:
 core-javadoc:
 		(./code/gradlew -p code/core dokkaJavadoc)
 
-core-publish-staging: clean core-assemble-phone-release
+core-publish-snapshot: clean core-assemble-phone-release
 		(./code/gradlew -p code/core publishReleasePublicationToSonatypeRepository --stacktrace)
 
 core-publish-main: clean core-assemble-phone-release
@@ -108,7 +108,7 @@ signal-functional-test:
 signal-functional-test-coverage:		
 		(./code/gradlew -p code/signal createPhoneDebugAndroidTestCoverageReport)
 
-signal-publish-staging: clean signal-assemble-phone
+signal-publish-snapshot: clean signal-assemble-phone
 		(./code/gradlew -p code/signal publishReleasePublicationToSonatypeRepository --stacktrace)
 
 signal-publish-main: clean signal-assemble-phone
@@ -152,7 +152,7 @@ lifecycle-functional-test:
 lifecycle-functional-test-coverage:		
 		(./code/gradlew -p code/lifecycle createPhoneDebugAndroidTestCoverageReport)
 
-lifecycle-publish-staging: clean lifecycle-assemble-phone
+lifecycle-publish-snapshot: clean lifecycle-assemble-phone
 		# (./code/gradlew -p code/lifecycle compilePhoneDebugJavaWithJavac)
 		(./code/gradlew -p code/lifecycle publishReleasePublicationToSonatypeRepository --stacktrace)
 
@@ -197,7 +197,7 @@ identity-functional-test:
 identity-functional-test-coverage:
 		(./code/gradlew -p code/identity createPhoneDebugAndroidTestCoverageReport)
 
-identity-publish-staging: clean identity-assemble-phone
+identity-publish-snapshot: clean identity-assemble-phone
 		(./code/gradlew -p code/identity publishReleasePublicationToSonatypeRepository --stacktrace)
 
 identity-publish-main: clean identity-assemble-phone

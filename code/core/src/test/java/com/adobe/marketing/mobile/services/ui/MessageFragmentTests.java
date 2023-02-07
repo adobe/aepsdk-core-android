@@ -22,6 +22,7 @@ import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Random;
 import org.junit.Assert;
@@ -79,8 +80,12 @@ public class MessageFragmentTests {
         Mockito.when(mockAEPMessageSettings.getGestures()).thenReturn(gestureMap);
         Mockito.when(mockMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_DOWN);
 
+        // set the private fullscreen message delegate var using reflection
+        final Field listener = mockAEPMessage.getClass().getDeclaredField("listener");
+        listener.setAccessible(true);
+        listener.set(mockAEPMessage, mockFullscreenMessageDelegate);
+
         messageFragment = new MessageFragment();
-        mockAEPMessage.listener = mockFullscreenMessageDelegate;
         messageFragment.setAEPMessage(mockAEPMessage);
     }
 

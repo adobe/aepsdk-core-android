@@ -11,10 +11,12 @@
 
 package com.adobe.marketing.mobile.services;
 
-import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.ui.FullscreenMessage;
 
-/** UI Message delegate which is used to listen for current message lifecycle events. */
+/**
+ * UI Message delegate which is used to listen for current message lifecycle events and control if
+ * the message should be displayed.
+ */
 public interface MessagingDelegate {
     /**
      * Invoked when a message is displayed.
@@ -46,7 +48,7 @@ public interface MessagingDelegate {
      */
     default void urlLoaded(final String url, final FullscreenMessage message) {
         Log.debug(
-                CoreConstants.LOG_TAG,
+                ServiceConstants.LOG_TAG,
                 "MessagingDelegate",
                 "Fullscreen message loaded url: %s",
                 url);

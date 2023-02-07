@@ -182,17 +182,14 @@ public class AEPMessageTests {
         message.rootViewGroup = mockViewGroup;
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
+        setupFragmentTransactionMocks();
 
         // test
         message.show();
-        // verify listeners are called for a message show
+        // verify
         Mockito.verify(mockMessageMonitor, Mockito.times(1))
                 .show(any(FullscreenMessage.class), eq(true));
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .onShow(any(FullscreenMessage.class));
-        Mockito.verify(mockMessagingDelegate, Mockito.times(1))
-                .onShow(any(FullscreenMessage.class));
+        Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
     }
 
     @Test
@@ -222,22 +219,14 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
         message.rootViewGroup = null;
-        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
-        Mockito.when(mockFragmentManager.beginTransaction()).thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.remove(ArgumentMatchers.any(MessageFragment.class)))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
-                .thenReturn(mockMessageFragment);
+        setupFragmentTransactionMocks();
 
         // test
         message.show();
-        // verify listeners are called for a message show
+        // verify
         Mockito.verify(mockMessageMonitor, Mockito.times(1))
                 .show(any(FullscreenMessage.class), eq(true));
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .onShow(any(FullscreenMessage.class));
-        Mockito.verify(mockMessagingDelegate, Mockito.times(1))
-                .onShow(any(FullscreenMessage.class));
+        Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
     }
 
     @Test
@@ -264,111 +253,21 @@ public class AEPMessageTests {
         message.rootViewGroup = mockViewGroup;
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
+        setupFragmentTransactionMocks();
 
         // test
         message.show();
-        // verify listeners are called for a message show failure
+        // verify
         Mockito.verify(mockMessageMonitor, Mockito.times(1))
                 .show(any(FullscreenMessage.class), eq(true));
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
-        Mockito.verify(mockMessagingDelegate, Mockito.times(0))
-                .onShow(any(FullscreenMessage.class));
-    }
-
-    @Test
-    public void messageMonitorDismissedCalled_When_aepMessageDismissCalled() {
-        // setup
-        Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
-        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
-        Mockito.when(mockFragmentManager.beginTransaction()).thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.remove(ArgumentMatchers.any(MessageFragment.class)))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
-                .thenReturn(mockMessageFragment);
-        Mockito.when(mockAEPMessageSettings.getGestures()).thenReturn(gestureMap);
-        Mockito.when(mockAEPMessageSettings.getDismissAnimation())
-                .thenReturn(MessageAnimation.BOTTOM);
-
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
-        message.rootViewGroup = mockViewGroup;
-        message.fragmentFrameLayout = mockFrameLayout;
-        message.messageWebViewRunner = mockMessageWebViewRunner;
-        message.webView = mockWebView;
-        message.messageFragment = mockMessageFragment;
-        mockMessageWebViewRunner.backdrop = mockViewGroup;
-
-        // test
-        message.dismiss();
-        // simulate the dismiss animation ending
-        message.getAnimationListener().onAnimationEnd(null);
-        // verify listeners are called for a message dismiss
-        Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockMessagingDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
-    }
-
-    @Test
-    public void messageMonitorShowCalled_When_aepMessageShown() {
-        // setup
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenCallRealMethod()
-                .thenReturn(true);
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(true);
-        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
-                .thenReturn(mockViewGroup);
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
-
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
-        message.rootViewGroup = mockViewGroup;
-        message.webView = mockWebView;
-        message.messageFragment = mockMessageFragment;
-
-        // test
-        message.show();
-        // verify listeners are called for a message show
-        Mockito.verify(mockMessageMonitor, Mockito.times(1))
-                .show(any(FullscreenMessage.class), eq(true));
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .onShow(any(FullscreenMessage.class));
-        Mockito.verify(mockMessagingDelegate, Mockito.times(1))
-                .onShow(any(FullscreenMessage.class));
+        Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
     }
 
     @Test
     public void aepMessageIsNotShown_When_MessagingDelegateSet_And_ShouldShowMessageIsFalse() {
         // setup
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
+        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
+                .thenCallRealMethod();
         Mockito.when(
                         mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
@@ -377,6 +276,7 @@ public class AEPMessageTests {
                 .thenReturn(mockViewGroup);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+        setupFragmentTransactionMocks();
 
         try {
             message =
@@ -397,10 +297,8 @@ public class AEPMessageTests {
 
         // test
         message.show();
-        // verify listeners are called for a message show failure
+        // verify
         Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
-        Mockito.verify(mockMessagingDelegate, Mockito.times(0))
-                .onShow(any(FullscreenMessage.class));
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
     }
 
@@ -410,12 +308,12 @@ public class AEPMessageTests {
         ServiceProviderModifier.setMessagingDelegate(null);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
         Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenCallRealMethod()
-                .thenReturn(true);
+                .thenCallRealMethod();
         Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
                 .thenReturn(mockViewGroup);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+        setupFragmentTransactionMocks();
 
         try {
             message =
@@ -436,17 +334,14 @@ public class AEPMessageTests {
 
         // test
         message.show(false);
-        // verify only fullscreen delegate and message monitor are called for a message show
+        // verify
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
-        Mockito.verifyNoInteractions(mockMessagingDelegate);
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .onShow(any(FullscreenMessage.class));
     }
 
     @Test
     public void aepMessageIsNotShown_When_CurrentActivityIsNull() {
         // setup
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
+        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
         Mockito.when(
                         mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
@@ -473,10 +368,8 @@ public class AEPMessageTests {
 
         // test
         message.show();
-        // verify listeners are called for a message show failure
+        // verify
         Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
-        Mockito.verify(mockMessagingDelegate, Mockito.times(0))
-                .onShow(any(FullscreenMessage.class));
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
     }
 
@@ -576,34 +469,13 @@ public class AEPMessageTests {
         mockMessageFragment.dismissedWithGesture = false;
         Mockito.when(mockAEPMessageSettings.getDismissAnimation())
                 .thenReturn(MessageAnimation.BOTTOM);
+        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
         Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
         Mockito.when(
                         mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
-        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
-        Mockito.when(mockFragmentManager.beginTransaction()).thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.remove(ArgumentMatchers.any(MessageFragment.class)))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
-                .thenReturn(mockMessageFragment);
-        Mockito.when(
-                        mockFragmentTransaction.replace(
-                                anyInt(), any(MessageFragment.class), anyString()))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.addToBackStack(isNull()))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.commit()).thenReturn(123);
-
-        // Actually run the runOnUIThread runnable
-        doAnswer(
-                        invocation -> {
-                            Runnable r = invocation.getArgument(0);
-                            r.run();
-                            return null;
-                        })
-                .when(mockActivity)
-                .runOnUiThread(any(Runnable.class));
+        setupFragmentTransactionMocks();
 
         try {
             message =
@@ -624,10 +496,10 @@ public class AEPMessageTests {
         message.messageWebViewRunner = mockMessageWebViewRunner;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.webView = mockWebView;
+        message.setVisible(true);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
-        message.show();
         message.dismiss();
         message.getAnimationListener().onAnimationEnd(mockAnimation);
         // verify listeners are called for a message dismiss
@@ -647,30 +519,10 @@ public class AEPMessageTests {
         mockMessageFragment.dismissedWithGesture = false;
         Mockito.when(mockAEPMessageSettings.getDismissAnimation())
                 .thenReturn(MessageAnimation.BOTTOM);
+        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
+                .thenReturn(true);
         Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
-        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
-        Mockito.when(mockFragmentManager.beginTransaction()).thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.remove(ArgumentMatchers.any(MessageFragment.class)))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
-                .thenReturn(mockMessageFragment);
-        Mockito.when(
-                        mockFragmentTransaction.replace(
-                                anyInt(), any(MessageFragment.class), anyString()))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.addToBackStack(isNull()))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.commit()).thenReturn(123);
-
-        // Actually run the runOnUIThread runnable
-        doAnswer(
-                        invocation -> {
-                            Runnable r = invocation.getArgument(0);
-                            r.run();
-                            return null;
-                        })
-                .when(mockActivity)
-                .runOnUiThread(any(Runnable.class));
+        setupFragmentTransactionMocks();
 
         try {
             message =
@@ -691,10 +543,10 @@ public class AEPMessageTests {
         message.messageWebViewRunner = mockMessageWebViewRunner;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.webView = mockWebView;
+        message.setVisible(true);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
-        message.show();
         message.dismiss();
         message.getAnimationListener().onAnimationEnd(mockAnimation);
         // verify listeners except for the messaging delegate are called for a message dismiss
@@ -713,37 +565,14 @@ public class AEPMessageTests {
         Mockito.when(mockAEPMessageSettings.getDismissAnimation())
                 .thenReturn(MessageAnimation.BOTTOM);
         Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenCallRealMethod()
                 .thenReturn(true);
+        Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
-        Mockito.when(mockMessageMonitor.dismiss()).thenCallRealMethod();
         Mockito.when(
                         mockMessagingDelegate.shouldShowMessage(
                                 ArgumentMatchers.any(AEPMessage.class)))
                 .thenReturn(true);
-        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
-        Mockito.when(mockFragmentManager.beginTransaction()).thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.remove(ArgumentMatchers.any(MessageFragment.class)))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
-                .thenReturn(mockMessageFragment);
-        Mockito.when(
-                        mockFragmentTransaction.replace(
-                                anyInt(), any(MessageFragment.class), anyString()))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.addToBackStack(isNull()))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.commit()).thenReturn(123);
-
-        // Actually run the runOnUIThread runnable
-        doAnswer(
-                        invocation -> {
-                            Runnable r = invocation.getArgument(0);
-                            r.run();
-                            return null;
-                        })
-                .when(mockActivity)
-                .runOnUiThread(any(Runnable.class));
+        setupFragmentTransactionMocks();
 
         try {
             message =
@@ -764,10 +593,10 @@ public class AEPMessageTests {
         message.messageFragment = mockMessageFragment;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.webView = mockWebView;
+        message.setVisible(true);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
-        message.show();
         message.dismiss();
         // verify listeners are called for a message dismiss
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
@@ -775,8 +604,6 @@ public class AEPMessageTests {
                 .onDismiss(any(FullscreenMessage.class));
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
                 .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockWebView, Mockito.times(0))
-                .startAnimation(ArgumentMatchers.any(Animation.class));
     }
 
     @Test
@@ -790,31 +617,10 @@ public class AEPMessageTests {
         Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
                 .thenCallRealMethod()
                 .thenReturn(true);
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
-        Mockito.when(mockMessageMonitor.dismiss()).thenCallRealMethod();
-        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
-        Mockito.when(mockFragmentManager.beginTransaction()).thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.remove(ArgumentMatchers.any(MessageFragment.class)))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
-                .thenReturn(mockMessageFragment);
-        Mockito.when(
-                        mockFragmentTransaction.replace(
-                                anyInt(), any(MessageFragment.class), anyString()))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.addToBackStack(isNull()))
-                .thenReturn(mockFragmentTransaction);
-        Mockito.when(mockFragmentTransaction.commit()).thenReturn(123);
-
-        // Actually run the runOnUIThread runnable
-        doAnswer(
-                        invocation -> {
-                            Runnable r = invocation.getArgument(0);
-                            r.run();
-                            return null;
-                        })
-                .when(mockActivity)
-                .runOnUiThread(any(Runnable.class));
+        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
+                .thenReturn(true);
+        Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
+        setupFragmentTransactionMocks();
 
         try {
             message =
@@ -835,10 +641,10 @@ public class AEPMessageTests {
         message.messageFragment = mockMessageFragment;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.webView = mockWebView;
+        message.setVisible(true);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
-        message.show(false);
         message.dismiss();
         // verify listeners except for the messaging delegate are called for a message dismiss
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
@@ -847,5 +653,22 @@ public class AEPMessageTests {
                 .onDismiss(any(FullscreenMessage.class));
         Mockito.verify(mockWebView, Mockito.times(0))
                 .startAnimation(ArgumentMatchers.any(Animation.class));
+    }
+
+    // mock fragment setup helper
+    void setupFragmentTransactionMocks() {
+        Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);
+        Mockito.when(mockFragmentManager.beginTransaction()).thenReturn(mockFragmentTransaction);
+        Mockito.when(mockFragmentTransaction.remove(ArgumentMatchers.any(MessageFragment.class)))
+                .thenReturn(mockFragmentTransaction);
+        Mockito.when(mockFragmentManager.findFragmentByTag(ArgumentMatchers.anyString()))
+                .thenReturn(mockMessageFragment);
+        Mockito.when(
+                        mockFragmentTransaction.replace(
+                                anyInt(), any(MessageFragment.class), anyString()))
+                .thenReturn(mockFragmentTransaction);
+        Mockito.when(mockFragmentTransaction.addToBackStack(isNull()))
+                .thenReturn(mockFragmentTransaction);
+        Mockito.when(mockFragmentTransaction.commit()).thenReturn(123);
     }
 }

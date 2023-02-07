@@ -940,12 +940,16 @@ public final class MobileCore {
         dispatchEvent(event);
     }
 
+    // ========================================================
+    // Messaging Delegate methods
+    // ========================================================
+
     /**
      * Gets a previously set Message delegate.
      *
      * @return {@link MessagingDelegate} used to listen for current message lifecycle events
      */
-    public static MessagingDelegate getMessagingDelegate() {
+    @Nullable public static MessagingDelegate getMessagingDelegate() {
         return ServiceProvider.getInstance().getMessageDelegate();
     }
 
@@ -955,7 +959,7 @@ public final class MobileCore {
      * @param messagingDelegate {@link MessagingDelegate} to use for listening to current message
      *     lifecycle events
      */
-    public static void setMessagingDelegate(final MessagingDelegate messagingDelegate) {
+    @Nullable public static void setMessagingDelegate(final MessagingDelegate messagingDelegate) {
         ServiceProvider.getInstance().setMessageDelegate(messagingDelegate);
     }
 

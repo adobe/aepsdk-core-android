@@ -27,7 +27,9 @@ import android.view.animation.TranslateAnimation;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.MessagingDelegate;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
@@ -58,7 +60,7 @@ class AEPMessage implements FullscreenMessage {
     int baseRootViewWidth;
     int frameLayoutResourceId = 0;
     final MessagesMonitor messagesMonitor;
-    FullscreenMessageDelegate listener;
+    final FullscreenMessageDelegate listener;
     MessageFragment messageFragment;
 
     // private vars
@@ -122,6 +124,11 @@ class AEPMessage implements FullscreenMessage {
         return this.settings;
     }
 
+    @VisibleForTesting
+    void setVisible(final boolean isVisible) {
+        this.isVisible = isVisible;
+    }
+
     /**
      * Starts the {@link MessageFragment}.
      *
@@ -166,12 +173,6 @@ class AEPMessage implements FullscreenMessage {
                     if (!messagesMonitor.show(message, withMessagingDelegateControl)) {
                         listener.onShowFailure();
                         return;
-                    }
-
-                    // notify listeners
-                    listener.onShow(this);
-                    if (ServiceProvider.getInstance().getMessageDelegate() != null) {
-                        ServiceProvider.getInstance().getMessageDelegate().onShow(this);
                     }
 
                     ServiceProvider.getInstance()
@@ -317,6 +318,13 @@ class AEPMessage implements FullscreenMessage {
     /** Invoked after the message is successfully shown. */
     void viewed() {
         isVisible = true;
+
+        // notify listeners
+        listener.onShow(this);
+        final MessagingDelegate delegate = ServiceProvider.getInstance().getMessageDelegate();
+        if (delegate != null) {
+            delegate.onShow(this);
+        }
     }
 
     /**
@@ -377,9 +385,14 @@ class AEPMessage implements FullscreenMessage {
         }
 
         // notify message listeners
-        listener.onDismiss(this);
-        if (ServiceProvider.getInstance().getMessageDelegate() != null) {
-            ServiceProvider.getInstance().getMessageDelegate().onDismiss(this);
+        if (isVisible) { // If this flag is false, it means we had some error and did not call
+            // onShow() notifiers
+            listener.onDismiss(this);
+
+            final MessagingDelegate delegate = ServiceProvider.getInstance().getMessageDelegate();
+            if (delegate != null) {
+                delegate.onDismiss(this);
+            }
         }
 
         isVisible = false;

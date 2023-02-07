@@ -1,4 +1,4 @@
-name: Publish Package to the Maven Central Staging Repository
+name: Publish Snapshot
 on:
   workflow_dispatch:
     inputs:
@@ -51,36 +51,36 @@ jobs:
           echo $GPG_SECRET_KEYS | base64 --decode | gpg --import --no-tty --batch --yes
           echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust --no-tty --batch --yes
 
-      - name: Publish Core to maven central staging repository
+      - name: Publish Core to maven central snapshot repository
         if: ${{ inputs.release_core }}
-        run: make core-publish-staging
+        run: make core-publish-snapshot
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
 
-      - name: Publish Identity to maven central staging repository
+      - name: Publish Identity to maven central snapshot repository
         if: ${{ inputs.release_identity }}
-        run: make identity-publish-staging
+        run: make identity-publish-snapshot
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
 
-      - name: Publish Lifecycle to maven central staging repository
+      - name: Publish Lifecycle to maven central snapshot repository
         if: ${{ inputs.release_lifecycle }}
-        run: make lifecycle-publish-staging
+        run: make lifecycle-publish-snapshot
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
 
-      - name: Publish Signal to maven central staging repository
+      - name: Publish Signal to maven central snapshot repository
         if: ${{ inputs.release_signal }}
-        run: make signal-publish-staging
+        run: make signal-publish-snapshot
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}

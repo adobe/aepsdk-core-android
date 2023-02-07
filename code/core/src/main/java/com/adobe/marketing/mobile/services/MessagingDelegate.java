@@ -23,14 +23,18 @@ public interface MessagingDelegate {
      *
      * @param message {@link FullscreenMessage} that is being displayed
      */
-    void onShow(final FullscreenMessage message);
+    default void onShow(final FullscreenMessage message) {
+        Log.debug(ServiceConstants.LOG_TAG, "MessagingDelegate", "Fullscreen message shown.");
+    }
 
     /**
      * Invoked when a message is dismissed.
      *
      * @param message {@link FullscreenMessage} that is being dismissed
      */
-    void onDismiss(final FullscreenMessage message);
+    default void onDismiss(final FullscreenMessage message) {
+        Log.debug(ServiceConstants.LOG_TAG, "MessagingDelegate", "Fullscreen message dismissed.");
+    }
 
     /**
      * Used to determine if a message should be shown.

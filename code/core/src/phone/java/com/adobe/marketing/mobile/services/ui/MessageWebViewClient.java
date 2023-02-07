@@ -152,7 +152,6 @@ class MessageWebViewClient extends WebViewClient {
             return true;
         }
 
-        return (message.fullScreenMessageDelegate == null
-                || message.fullScreenMessageDelegate.overrideUrlLoad(message, url));
+        return (message.listener == null || message.listener.overrideUrlLoad(message, url));
     }
 }

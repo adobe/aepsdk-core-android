@@ -16,6 +16,7 @@ import static org.mockito.Mockito.doCallRealMethod;
 import android.animation.ObjectAnimator;
 import android.view.MotionEvent;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,7 +63,11 @@ public class WebViewGestureListenerTests {
 
         doCallRealMethod().when(mockMessageFragment).isDismissedWithGesture();
 
-        mockAEPMessage.fullScreenMessageDelegate = mockFullscreenMessageDelegate;
+        // set the private fullscreen message delegate var using reflection
+        final Field listener = mockAEPMessage.getClass().getDeclaredField("listener");
+        listener.setAccessible(true);
+        listener.set(mockAEPMessage, mockFullscreenMessageDelegate);
+
         mockAEPMessage.webView = mockMessageWebView;
         mockAEPMessage.baseRootViewHeight = 3000;
         mockAEPMessage.baseRootViewWidth = 2000;

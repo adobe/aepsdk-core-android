@@ -200,16 +200,14 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
     private void dismissMessage(final MessageGesture gesture, final boolean dismissedWithGesture) {
         parentFragment.dismissedWithGesture = dismissedWithGesture;
 
-        if (parentFragment.message != null
-                && parentFragment.message.fullScreenMessageDelegate != null) {
+        if (parentFragment.message != null && parentFragment.message.listener != null) {
             final String behavior =
                     parentFragment.gestures == null ? null : parentFragment.gestures.get(gesture);
 
             // if we have a gesture mapping with behaviors, use the specified behavior. otherwise,
             // just dismiss the message.
             if (!StringUtils.isNullOrEmpty(behavior)) {
-                parentFragment.message.fullScreenMessageDelegate.overrideUrlLoad(
-                        parentFragment.message, behavior);
+                parentFragment.message.listener.overrideUrlLoad(parentFragment.message, behavior);
             } else {
                 parentFragment.message.dismiss();
             }

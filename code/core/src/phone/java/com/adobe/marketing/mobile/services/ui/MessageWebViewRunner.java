@@ -210,7 +210,7 @@ class MessageWebViewRunner implements Runnable {
 
             createMessageFrameAndAddMessageToRootView(messageSettings);
             message.viewed();
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Log.warning(
                     ServiceConstants.LOG_TAG, TAG, "Failed to show the message " + ex.getMessage());
         }

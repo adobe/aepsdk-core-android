@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import android.net.Uri;
 import android.webkit.WebResourceRequest;
+import java.lang.reflect.Field;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +43,10 @@ public class MessageWebViewClientTests {
 
     @Before
     public void setup() throws Exception {
-        mockAEPMessage.fullScreenMessageDelegate = mockFullscreenMessageDelegate;
+        // set the private fullscreen message delegate var using reflection
+        final Field listener = mockAEPMessage.getClass().getDeclaredField("listener");
+        listener.setAccessible(true);
+        listener.set(mockAEPMessage, mockFullscreenMessageDelegate);
         messageWebViewClient = new MessageWebViewClient(mockAEPMessage);
     }
 
@@ -108,9 +112,14 @@ public class MessageWebViewClientTests {
     }
 
     @Test
-    public void testShouldOverrideUrlLoading_WithNullMessageDelegate_ThenUrlNotHandled() {
+    public void testShouldOverrideUrlLoading_WithNullMessageDelegate_ThenUrlNotHandled()
+            throws IllegalAccessException, NoSuchFieldException {
         // setup
-        mockAEPMessage.fullScreenMessageDelegate = null;
+        // set the private fullscreen message delegate var using reflection
+        final Field listener = mockAEPMessage.getClass().getDeclaredField("listener");
+        listener.setAccessible(true);
+        listener.set(mockAEPMessage, null);
+
         // test
         final boolean urlHandlingAborted =
                 messageWebViewClient.shouldOverrideUrlLoading(mockWebView, (String) null);

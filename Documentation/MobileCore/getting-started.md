@@ -6,7 +6,7 @@ This guide walks through how to get up and running with the AEP Android SDK with
 
 ## Set up a Mobile Property
 
-Set up a mobile property as outlined in the Adobe Experience Platform [docs](https://developer-stage.adobe.com/client-sdks/documentation/getting-started/create-a-mobile-property/)
+Set up a mobile property as outlined in the Adobe Experience Platform [docs](https://developer.adobe.com/client-sdks/documentation/getting-started/create-a-mobile-property/)
 
 ## Get the Experience Platform SDK
 

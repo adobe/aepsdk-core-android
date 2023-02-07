@@ -82,6 +82,8 @@ public class AEPMessageTests {
 
     @Mock private MessageFragment mockMessageFragment;
 
+    @Mock private Animation mockAnimation;
+
     @Mock private Executor mockExecutor;
 
     @Mock private Resources mockResources;
@@ -617,6 +619,7 @@ public class AEPMessageTests {
         }
 
         message.rootViewGroup = mockViewGroup;
+        message.fragmentFrameLayout = mockFrameLayout;
         message.messageFragment = mockMessageFragment;
         message.messageWebViewRunner = mockMessageWebViewRunner;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
@@ -624,7 +627,9 @@ public class AEPMessageTests {
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
+        message.show();
         message.dismiss();
+        message.getAnimationListener().onAnimationEnd(mockAnimation);
         // verify listeners are called for a message dismiss
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
         Mockito.verify(mockMessagingDelegate, Mockito.times(1))
@@ -681,6 +686,7 @@ public class AEPMessageTests {
         }
 
         message.rootViewGroup = mockViewGroup;
+        message.fragmentFrameLayout = mockFrameLayout;
         message.messageFragment = mockMessageFragment;
         message.messageWebViewRunner = mockMessageWebViewRunner;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
@@ -688,7 +694,9 @@ public class AEPMessageTests {
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
+        message.show();
         message.dismiss();
+        message.getAnimationListener().onAnimationEnd(mockAnimation);
         // verify listeners except for the messaging delegate are called for a message dismiss
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
         Mockito.verifyNoInteractions(mockMessagingDelegate);

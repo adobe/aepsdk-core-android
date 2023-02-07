@@ -61,7 +61,6 @@ class AEPMessage implements FullscreenMessage {
     final MessagesMonitor messagesMonitor;
     FullscreenMessageDelegate listener;
     MessageFragment messageFragment;
-    MessagingDelegate messagingDelegate = ServiceProvider.getInstance().getMessageDelegate();
 
     // private vars
     private final String html;
@@ -172,8 +171,8 @@ class AEPMessage implements FullscreenMessage {
 
                     // notify listeners
                     listener.onShow(this);
-                    if (messagingDelegate != null) {
-                        messagingDelegate.onShow(this);
+                    if (ServiceProvider.getInstance().getMessageDelegate() != null) {
+                        ServiceProvider.getInstance().getMessageDelegate().onShow(this);
                     }
 
                     ServiceProvider.getInstance()
@@ -263,16 +262,6 @@ class AEPMessage implements FullscreenMessage {
     /** Dismisses the message. */
     @Override
     public void dismiss() {
-        if (!messagesMonitor.dismiss()) {
-            return;
-        }
-
-        // notify listeners
-        listener.onDismiss(this);
-        if (messagingDelegate != null) {
-            messagingDelegate.onDismiss(this);
-        }
-
         removeFromRootViewGroup();
     }
 
@@ -384,8 +373,18 @@ class AEPMessage implements FullscreenMessage {
     /** Tears down views and listeners used to display the {@link AEPMessage}. */
     void cleanup() {
         Log.trace(ServiceConstants.LOG_TAG, TAG, "Cleaning the AEPMessage.");
+        if (!messagesMonitor.dismiss()) {
+            return;
+        }
+
+        // notify message listeners
+        listener.onDismiss(this);
+        if (ServiceProvider.getInstance().getMessageDelegate() != null) {
+            ServiceProvider.getInstance().getMessageDelegate().onDismiss(this);
+        }
 
         isVisible = false;
+
         // remove touch listeners
         webView.setOnTouchListener(null);
         fragmentFrameLayout.setOnTouchListener(null);

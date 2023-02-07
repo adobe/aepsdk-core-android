@@ -11,12 +11,12 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
-/** Fullscreen message lifecycle event listener. */
+/** Fullscreen message listener for {@link FullscreenMessage} lifecycle events. */
 public interface FullscreenMessageDelegate {
     /**
      * Invoked when the fullscreen message is displayed.
      *
-     * @param message {@link FullscreenMessage} fullscreen message which is currently shown
+     * @param message {@link FullscreenMessage} message which is currently shown
      */
     void onShow(final FullscreenMessage message);
 

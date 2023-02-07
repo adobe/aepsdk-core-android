@@ -959,7 +959,7 @@ public final class MobileCore {
      * @param messagingDelegate {@link MessagingDelegate} to use for listening to current message
      *     lifecycle events
      */
-    @Nullable public static void setMessagingDelegate(final MessagingDelegate messagingDelegate) {
+    public static void setMessagingDelegate(@Nullable final MessagingDelegate messagingDelegate) {
         ServiceProvider.getInstance().setMessageDelegate(messagingDelegate);
     }
 

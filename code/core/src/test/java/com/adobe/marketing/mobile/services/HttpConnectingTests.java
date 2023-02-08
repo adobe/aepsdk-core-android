@@ -12,6 +12,8 @@
 package com.adobe.marketing.mobile.services;
 
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.BufferedReader;
@@ -25,14 +27,17 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class HttpConnectingTests {
 
     @Mock private HttpURLConnection httpURLConnection;
+
+    @Mock private InputStream inputStream;
+
+    @Mock private InputStream errorStream;
 
     @Test
     public void testGetInputStream_Valid_InputStream() throws IOException {
@@ -150,22 +155,25 @@ public class HttpConnectingTests {
 
     @Test
     public void testClose() throws IOException {
+        Mockito.reset(inputStream);
+        Mockito.reset(errorStream);
         // Setup
         final AtomicBoolean controlValue = new AtomicBoolean(false);
         doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                controlValue.set(true);
-                                return null;
-                            }
+                        invocation -> {
+                            controlValue.set(true);
+                            return null;
                         })
                 .when(httpURLConnection)
                 .disconnect();
+        when(httpURLConnection.getInputStream()).thenReturn(inputStream);
+        when(httpURLConnection.getErrorStream()).thenReturn(errorStream);
         HttpConnection connection = new HttpConnection(httpURLConnection);
         // Test
         connection.close();
         // Verify
         Assert.assertTrue(controlValue.get());
+        verify(inputStream, times(1)).close();
+        verify(errorStream, times(1)).close();
     }
 }

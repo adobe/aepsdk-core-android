@@ -436,7 +436,7 @@ internal class ConfigurationExtension : Extension {
                 )
             },
             retryDelay,
-            TimeUnit.SECONDS
+            TimeUnit.MILLISECONDS
         )
     }
 

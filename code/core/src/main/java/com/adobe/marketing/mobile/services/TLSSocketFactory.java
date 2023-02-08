@@ -37,7 +37,9 @@ class TLSSocketFactory extends SSLSocketFactory {
         delegate = context.getSocketFactory();
     }
 
-    /** @return an instance of SSLSocketFactory */
+    /**
+     * @return an instance of SSLSocketFactory
+     */
     public static SSLSocketFactory getInstance() {
         if (singleton == null && !failed) {
             synchronized (TLSSocketFactory.class) {

@@ -20,22 +20,30 @@ public class AlertSetting {
 
     private AlertSetting() {}
 
-    /** @return the alert title */
+    /**
+     * @return the alert title
+     */
     public String getTitle() {
         return title;
     }
 
-    /** @return the alert message */
+    /**
+     * @return the alert message
+     */
     public String getMessage() {
         return message;
     }
 
-    /** @return the positive response button text */
+    /**
+     * @return the positive response button text
+     */
     public String getPositiveButtonText() {
         return positiveButtonText;
     }
 
-    /** @return the negative response button text */
+    /**
+     * @return the negative response button text
+     */
     public String getNegativeButtonText() {
         return negativeButtonText;
     }

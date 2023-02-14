@@ -7,47 +7,60 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
- */
+*/
+
 package com.adobe.marketing.mobile.services
 
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import junit.framework.TestCase
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class DeviceInfoServiceTests {
-    private var deviceInfoService: DeviceInforming? = null
+    private lateinit var deviceInfoService: DeviceInforming
 
     @Before
     fun setup() {
-        ServiceProviderModifier.setAppContextService(MockAppContextService());
+        ServiceProvider.getInstance().appContextService.setApplication(ApplicationProvider.getApplicationContext())
         deviceInfoService = ServiceProvider.getInstance().deviceInfoService
     }
 
     @Test
     fun testWhenNullContext() {
-        TestCase.assertNull(deviceInfoService!!.activeLocale)
-        TestCase.assertNull(deviceInfoService!!.displayInformation)
-        TestCase.assertEquals(
+        ServiceProviderModifier.setAppContextService(MockAppContextService())
+        deviceInfoService = ServiceProvider.getInstance().deviceInfoService
+        assertNull(deviceInfoService.activeLocale)
+        assertNull(deviceInfoService.displayInformation)
+        assertEquals(
             DeviceInforming.DeviceType.UNKNOWN,
-            deviceInfoService!!.deviceType
+            deviceInfoService.deviceType
         )
-        TestCase.assertNull(deviceInfoService!!.mobileCarrierName)
-        TestCase.assertEquals(
+        assertNull(deviceInfoService.mobileCarrierName)
+        assertEquals(
             DeviceInforming.ConnectionStatus.UNKNOWN,
-            deviceInfoService!!.networkConnectionStatus
+            deviceInfoService.networkConnectionStatus
         )
-        TestCase.assertNull(deviceInfoService!!.applicationCacheDir)
-        TestCase.assertNull(deviceInfoService!!.getAsset("testFileName"))
-        TestCase.assertNull(deviceInfoService!!.getPropertyFromManifest("key"))
-        TestCase.assertNull(deviceInfoService!!.applicationName)
-        TestCase.assertNull(deviceInfoService!!.applicationPackageName)
-        TestCase.assertNull(deviceInfoService!!.applicationVersion)
-        TestCase.assertNull(deviceInfoService!!.applicationVersionCode)
-        TestCase.assertNull(deviceInfoService!!.applicationBaseDir)
-        TestCase.assertEquals("en-US", deviceInfoService!!.localeString)
-        TestCase.assertNull(deviceInfoService!!.deviceUniqueId)
+        assertNull(deviceInfoService.applicationCacheDir)
+        assertNull(deviceInfoService.getAsset("testFileName"))
+        assertNull(deviceInfoService.getPropertyFromManifest("key"))
+        assertNull(deviceInfoService.applicationName)
+        assertNull(deviceInfoService.applicationPackageName)
+        assertNull(deviceInfoService.applicationVersion)
+        assertNull(deviceInfoService.applicationVersionCode)
+        assertNull(deviceInfoService.applicationBaseDir)
+        assertEquals("en-US", deviceInfoService.localeString)
+        assertNull(deviceInfoService.deviceUniqueId)
+    }
+
+    @Test
+    fun testDisplayInfoService() {
+        assertTrue(deviceInfoService.displayInformation.densityDpi > 0)
+        assertTrue(deviceInfoService.displayInformation.heightPixels > 0)
+        assertTrue(deviceInfoService.displayInformation.widthPixels > 0)
     }
 }

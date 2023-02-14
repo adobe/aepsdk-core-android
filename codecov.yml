@@ -25,7 +25,7 @@ coverage:
     - "code/core/src/main/java/com/adobe/marketing/mobile/internal/CoreConstants.kt"
     - "code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHubConstants.kt"
     - "code/core/src/phone/java/com/adobe/marketing/mobile/services/ServiceConstants.kt"
-    - "code/core/src/phone/java/com/adobe/marketing/mobile/ui/**.*"
+    - "code/core/src/phone/java/com/adobe/marketing/mobile/ui"
 
 parsers:
   gcov:

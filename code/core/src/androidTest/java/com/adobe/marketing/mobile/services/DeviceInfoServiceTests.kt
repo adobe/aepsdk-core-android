@@ -8,13 +8,9 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.integration.core
+package com.adobe.marketing.mobile.services
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.adobe.marketing.mobile.services.DeviceInforming
-import com.adobe.marketing.mobile.services.MockAppContextService
-import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ServiceProviderModifier
 import junit.framework.TestCase
 import org.junit.Before
 import org.junit.Test

@@ -14,9 +14,12 @@ package com.adobe.marketing.mobile.services
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -26,6 +29,7 @@ class DeviceInfoServiceTests {
 
     @Before
     fun setup() {
+        ServiceProvider.getInstance().resetServices()
         ServiceProvider.getInstance().appContextService.setApplication(ApplicationProvider.getApplicationContext())
         deviceInfoService = ServiceProvider.getInstance().deviceInfoService
     }
@@ -63,4 +67,107 @@ class DeviceInfoServiceTests {
         assertTrue(deviceInfoService.displayInformation.heightPixels > 0)
         assertTrue(deviceInfoService.displayInformation.widthPixels > 0)
     }
+    @Test
+    fun testGetActiveLocale() {
+        assertTrue(deviceInfoService.activeLocale.displayLanguage.isNotEmpty())
+    }
+    @Test
+    fun testGetCurrentOrientation() {
+        assertTrue(deviceInfoService.currentOrientation >= 0)
+    }
+
+    @Test
+    fun testGetCanonicalPlatformName() {
+        assertEquals("android", deviceInfoService.canonicalPlatformName)
+    }
+
+    @Test
+    fun testGetOperatingSystemName() {
+        assertEquals("Android", deviceInfoService.operatingSystemName)
+    }
+    @Test
+    fun testGetOperatingSystemVersion() {
+        assertTrue(deviceInfoService.operatingSystemVersion.isNotEmpty())
+    }
+
+    @Test
+    fun testGetDeviceBrand() {
+        assertTrue(deviceInfoService.deviceBrand.isNotEmpty())
+    }
+
+    @Test
+    fun testGetDeviceManufacturer() {
+        assertTrue(deviceInfoService.deviceManufacturer.isNotEmpty())
+    }
+
+    @Test
+    fun testGetDeviceName() {
+        assertTrue(deviceInfoService.deviceName.isNotEmpty())
+    }
+
+    @Test
+    fun testGetDevice() {
+        assertTrue(deviceInfoService.device.isNotEmpty())
+    }
+
+    @Test
+    fun testGetDeviceType() {
+        assertNotNull(deviceInfoService.deviceType)
+    }
+    @Test
+    fun testGetDeviceBuildId() {
+        assertTrue(deviceInfoService.deviceBuildId.isNotEmpty())
+    }
+
+    @Test
+    fun testGetMobileCarrierName() {
+        assertTrue(deviceInfoService.mobileCarrierName.isNotEmpty())
+    }
+    @Test
+    fun testGetNetworkConnectionStatus() {
+        assertEquals(DeviceInforming.ConnectionStatus.CONNECTED,deviceInfoService.networkConnectionStatus)
+    }
+    @Test
+    fun testRegisterOneTimeNetworkConnectionActiveListener() {
+        assertFalse(deviceInfoService.registerOneTimeNetworkConnectionActiveListener {  })
+    }
+
+    @Test
+    fun testGetRunMode() {
+        assertEquals("Application",deviceInfoService.runMode)
+    }
+
+    @Test
+    fun testGetDeviceUniqueId() {
+        assertTrue(deviceInfoService.deviceUniqueId.isNotEmpty())
+    }
+
+    @Test
+    fun testGetDefaultUserAgent() {
+        assertTrue(deviceInfoService.defaultUserAgent.isNotEmpty())
+    }
+
+    @Test
+    fun testGetApplicationCacheDir() {
+        assertTrue(deviceInfoService.applicationCacheDir.absolutePath.isNotEmpty())
+    }
+
+    @Test
+    fun testGetApplicationCacheDir() {
+        assertTrue(deviceInfoService.applicationCacheDir.absolutePath.isNotEmpty())
+    }
+
+    @Ignore
+    @Test
+    fun testGetAsset() {
+        //TODO
+    }
+
+    @Ignore
+    @Test
+    fun testGetPropertyFromManifest() {
+        //TODO
+    }
+
+
 }

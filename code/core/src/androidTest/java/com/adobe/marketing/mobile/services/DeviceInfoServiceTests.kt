@@ -67,10 +67,12 @@ class DeviceInfoServiceTests {
         assertTrue(deviceInfoService.displayInformation.heightPixels > 0)
         assertTrue(deviceInfoService.displayInformation.widthPixels > 0)
     }
+
     @Test
     fun testGetActiveLocale() {
         assertTrue(deviceInfoService.activeLocale.displayLanguage.isNotEmpty())
     }
+
     @Test
     fun testGetCurrentOrientation() {
         assertTrue(deviceInfoService.currentOrientation >= 0)
@@ -85,6 +87,7 @@ class DeviceInfoServiceTests {
     fun testGetOperatingSystemName() {
         assertEquals("Android", deviceInfoService.operatingSystemName)
     }
+
     @Test
     fun testGetOperatingSystemVersion() {
         assertTrue(deviceInfoService.operatingSystemVersion.isNotEmpty())
@@ -114,6 +117,7 @@ class DeviceInfoServiceTests {
     fun testGetDeviceType() {
         assertNotNull(deviceInfoService.deviceType)
     }
+
     @Test
     fun testGetDeviceBuildId() {
         assertTrue(deviceInfoService.deviceBuildId.isNotEmpty())
@@ -123,18 +127,20 @@ class DeviceInfoServiceTests {
     fun testGetMobileCarrierName() {
         assertTrue(deviceInfoService.mobileCarrierName.isNotEmpty())
     }
+
     @Test
     fun testGetNetworkConnectionStatus() {
-        assertEquals(DeviceInforming.ConnectionStatus.CONNECTED,deviceInfoService.networkConnectionStatus)
+        assertEquals(DeviceInforming.ConnectionStatus.CONNECTED, deviceInfoService.networkConnectionStatus)
     }
+
     @Test
     fun testRegisterOneTimeNetworkConnectionActiveListener() {
-        assertFalse(deviceInfoService.registerOneTimeNetworkConnectionActiveListener {  })
+        assertFalse(deviceInfoService.registerOneTimeNetworkConnectionActiveListener { })
     }
 
     @Test
     fun testGetRunMode() {
-        assertEquals("Application",deviceInfoService.runMode)
+        assertEquals("Application", deviceInfoService.runMode)
     }
 
     @Test
@@ -155,13 +161,13 @@ class DeviceInfoServiceTests {
     @Ignore
     @Test
     fun testGetAsset() {
-        //TODO
+        // TODO
     }
 
     @Ignore
     @Test
     fun testGetPropertyFromManifest() {
-        //TODO
+        // TODO
     }
 
     @Test
@@ -183,9 +189,9 @@ class DeviceInfoServiceTests {
     fun testGetApplicationBaseDir() {
         assertTrue(deviceInfoService.applicationBaseDir.absolutePath.isNotEmpty())
     }
+
     @Test
     fun testGetLocaleString() {
         assertTrue(deviceInfoService.localeString.isNotEmpty())
     }
-
 }

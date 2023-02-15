@@ -152,11 +152,6 @@ class DeviceInfoServiceTests {
         assertTrue(deviceInfoService.applicationCacheDir.absolutePath.isNotEmpty())
     }
 
-    @Test
-    fun testGetApplicationCacheDir() {
-        assertTrue(deviceInfoService.applicationCacheDir.absolutePath.isNotEmpty())
-    }
-
     @Ignore
     @Test
     fun testGetAsset() {
@@ -169,5 +164,28 @@ class DeviceInfoServiceTests {
         //TODO
     }
 
+    @Test
+    fun testGetApplicationName() {
+        assertTrue(deviceInfoService.applicationName.isNotEmpty())
+    }
+
+    @Test
+    fun testGetApplicationPackageName() {
+        assertTrue(deviceInfoService.applicationPackageName.isNotEmpty())
+    }
+
+    @Test
+    fun testGetApplicationVersionCode() {
+        assertTrue(deviceInfoService.applicationVersionCode.isNotEmpty())
+    }
+
+    @Test
+    fun testGetApplicationBaseDir() {
+        assertTrue(deviceInfoService.applicationBaseDir.absolutePath.isNotEmpty())
+    }
+    @Test
+    fun testGetLocaleString() {
+        assertTrue(deviceInfoService.localeString.isNotEmpty())
+    }
 
 }

@@ -10,11 +10,11 @@ coverage:
   status:
     project:
       default:
-        target: 70%
+        target: 85%
         threshold: 5%
     patch:
       default:
-        target: 70%
+        target: 85%
         threshold: 5%
     changes: no
 
@@ -24,6 +24,26 @@ coverage:
     - "code/core/src/main/java/com/adobe/marketing/mobile/ExtensionUnexpectedError.java"
     - "code/core/src/main/java/com/adobe/marketing/mobile/internal/CoreConstants.kt"
     - "code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHubConstants.kt"
+    - "code/core/src/phone/java/com/adobe/marketing/mobile/services/ServiceConstants.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngineConstants.kt"
+    - "code/core/src/phone/java/com/adobe/marketing/mobile"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/LocalNotificationHandler.java"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/NotificationDismissalHandler.java"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/AppResourceStore.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/history"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/ExtensionContainer.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/util/EventDataMerger.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/util/FileUtils.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/util/MapUtils.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/util/VisitorIDSerializer.java"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/configuration/ConfigurationRulesManager.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/internal/configuration/ConfigurationStateManager.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/launch/rulesengine/json/HistoricalCondition.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/launch/rulesengine/json/JSONConsequence.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/launch/rulesengine/json/JSONDefinition.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/launch/rulesengine/json/JSONRule.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/launch/rulesengine/json/JSONRuleRoot.kt"
+    - "code/core/src/main/java/com/adobe/marketing/mobile/ExtensionHelper.java"
 
 parsers:
   gcov:

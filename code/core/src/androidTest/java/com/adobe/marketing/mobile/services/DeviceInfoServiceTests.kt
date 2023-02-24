@@ -19,9 +19,9 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.BufferedReader
 
 @RunWith(AndroidJUnit4::class)
 class DeviceInfoServiceTests {
@@ -158,16 +158,21 @@ class DeviceInfoServiceTests {
         assertTrue(deviceInfoService.applicationCacheDir.absolutePath.isNotEmpty())
     }
 
-    @Ignore
     @Test
     fun testGetAsset() {
-        // TODO
+        val inputStream = deviceInfoService.getAsset("DeviceInforming.getAsset")
+        assertNotNull(inputStream)
+        val reader = BufferedReader(inputStream.reader())
+        var content: String
+        reader.use { reader ->
+            content = reader.readText()
+        }
+        assertEquals("DeviceInforming.getAsset", content)
     }
 
-    @Ignore
     @Test
     fun testGetPropertyFromManifest() {
-        // TODO
+        assertEquals("this_is_a_value", deviceInfoService.getPropertyFromManifest("DeviceInfoServiceTests.testGetPropertyFromManifest.do.not.delete"))
     }
 
     @Test

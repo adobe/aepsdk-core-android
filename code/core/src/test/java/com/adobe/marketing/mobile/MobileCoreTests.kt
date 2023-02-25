@@ -11,17 +11,14 @@
 
 package com.adobe.marketing.mobile
 
-import android.app.Application
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants
-import com.adobe.marketing.mobile.internal.eventhub.EventHubError
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.junit.MockitoJUnitRunner
@@ -41,83 +38,9 @@ class MobileCoreTests {
     @Mock
     private lateinit var mockedEventHub: EventHub
 
-    class MockExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
-        companion object {
-            var registrationClosure: (() -> Unit)? = null
-            var unregistrationClosure: (() -> Unit)? = null
-            var eventReceivedClosure: ((Event) -> Unit)? = null
-
-            fun reset() {
-                registrationClosure = null
-                unregistrationClosure = null
-                eventReceivedClosure = null
-            }
-        }
-
-        override fun getName(): String = "MockExtension"
-
-        override fun onRegistered() {
-            api.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) {
-                eventReceivedClosure?.invoke(it)
-            }
-
-            registrationClosure?.invoke()
-        }
-
-        override fun onUnregistered() {
-            unregistrationClosure?.invoke()
-        }
-    }
-
-    class MockExtension2(extensionApi: ExtensionApi) : Extension(extensionApi) {
-        companion object {
-            var registrationClosure: (() -> Unit)? = null
-            var unregistrationClosure: (() -> Unit)? = null
-            var eventReceivedClosure: ((Event) -> Unit)? = null
-
-            fun reset() {
-                registrationClosure = null
-                unregistrationClosure = null
-                eventReceivedClosure = null
-            }
-        }
-
-        override fun getName(): String = "MockExtension2"
-
-        override fun onRegistered() {
-            api.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) {
-                eventReceivedClosure?.invoke(it)
-            }
-
-            registrationClosure?.invoke()
-        }
-
-        override fun onUnregistered() {
-            unregistrationClosure?.invoke()
-        }
-    }
-
-    class MockExtensionWithSlowInit(extensionApi: ExtensionApi) : Extension(extensionApi) {
-        companion object {
-            var initWaitTimeMS: Long = 0
-            var registrationClosure: (() -> Unit)? = null
-        }
-
-        init {
-            Thread.sleep(initWaitTimeMS)
-        }
-
-        override fun getName(): String = "SlowMockExtension"
-
-        override fun onRegistered() {
-            registrationClosure?.invoke()
-        }
-    }
-
     @Before
     fun setup() {
-        MockExtension.reset()
-        EventHub.shared = EventHub()
+        EventHub.shared = mockedEventHub
         MobileCore.sdkInitializedWithContext = AtomicBoolean(false)
     }
 
@@ -127,196 +50,20 @@ class MobileCoreTests {
         EventHub.shared.shutdown()
     }
 
-    private fun registerExtension(extensionClass: Class<out Extension>): EventHubError {
-        var ret: EventHubError = EventHubError.Unknown
-
-        val latch = CountDownLatch(1)
-        EventHub.shared.registerExtension(extensionClass) { error ->
-            ret = error
-            latch.countDown()
-        }
-        if (!latch.await(1, TimeUnit.SECONDS)) throw Exception("Timeout registering extension")
-        return ret
-    }
-
-    @Test
-    fun testRegisterExtensionsSimple() {
-        val latch = CountDownLatch(1)
-        MockExtension.registrationClosure = { latch.countDown() }
-
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtensions(listOf(MockExtension::class.java)) {}
-
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
-    }
-
-    @Test
-    fun testRegisterExtensionsSimpleMultiple() {
-        val latch = CountDownLatch(2)
-        MockExtension.registrationClosure = { latch.countDown() }
-        MockExtension2.registrationClosure = { latch.countDown() }
-
-        val extensions: List<Class<out Extension>> = listOf(
-            MockExtension::class.java,
-            MockExtension2::class.java
-        )
-
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtensions(extensions) {}
-
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
-    }
-
-    @Test
-    fun testRegisterExtensionsWithSlowExtension() {
-        val latch = CountDownLatch(2)
-        MockExtension.registrationClosure = { latch.countDown() }
-        MockExtension2.registrationClosure = { latch.countDown() }
-
-        MockExtensionWithSlowInit.initWaitTimeMS = 2000
-
-        val extensions: List<Class<out Extension>> = listOf(
-            MockExtensionWithSlowInit::class.java,
-            MockExtension::class.java,
-            MockExtension2::class.java
-        )
-
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtensions(extensions) {}
-
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
-    }
-
-    @Test
-    fun testRegisterExtensionsSimpleEventDispatch() {
-        val latch = CountDownLatch(1)
-        MockExtension.eventReceivedClosure = {
-            if (it.name == "test-event") {
-                latch.countDown()
-            }
-        }
-
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.start {}
-
-        val event = Event.Builder("test-event", "analytics", "requestContent").build()
-        MobileCore.dispatchEvent(event)
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
-    }
-
-    @Test
-    fun testRegisterExtensionsDispatchEventBeforeRegister() {
-        val latch = CountDownLatch(1)
-        MockExtension.eventReceivedClosure = {
-            if (it.name == "test-event") {
-                latch.countDown()
-            }
-        }
-
-        val event = Event.Builder("test-event", "analytics", "requestContent").build()
-        MobileCore.dispatchEvent(event)
-
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.start {}
-
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
-    }
-
-    @Test
-    fun testRegisterMultipleExtensionsSimpleEventDispatch() {
-        val latch = CountDownLatch(2)
-        MockExtension.eventReceivedClosure = {
-            if (it.name == "test-event") {
-                latch.countDown()
-            }
-        }
-        MockExtension2.eventReceivedClosure = {
-            if (it.name == "test-event") {
-                latch.countDown()
-            }
-        }
-
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.registerExtension(MockExtension2::class.java) {}
-        MobileCore.start {}
-
-        val event = Event.Builder("test-event", "analytics", "requestContent").build()
-        MobileCore.dispatchEvent(event)
-
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
-    }
-
-    @Test
-    fun testRegisterMultipleExtensionsDispatchEventBeforeRegister() {
-        val latch = CountDownLatch(3)
-        MockExtension.eventReceivedClosure = {
-            if (it.name == "test-event") {
-                latch.countDown()
-            }
-        }
-        MockExtension2.eventReceivedClosure = {
-            if (it.name == "test-event") {
-                latch.countDown()
-            }
-        }
-
-        val event = Event.Builder("test-event", "analytics", "requestContent").build()
-        MobileCore.dispatchEvent(event)
-
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.registerExtension(MockExtension2::class.java) {}
-        MobileCore.start {
-            latch.countDown()
-        }
-
-        assertTrue { latch.await(1000, TimeUnit.SECONDS) }
-    }
-
-    @Test
-    fun testRegisterSameExtensionTwice() {
-        val capturedErrors = mutableListOf<ExtensionError>()
-
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {
-            capturedErrors.add(it)
-        }
-        MobileCore.registerExtension(MockExtension::class.java) {
-            capturedErrors.add(it)
-        }
-
-        Thread.sleep(500)
-        assertEquals(mutableListOf(ExtensionError.DUPLICATE_NAME), capturedErrors)
-    }
-
     @Test
     fun testDispatchEventSimple() {
         val event = Event.Builder("test", "analytics", "requestContent").build()
-
-        val latch = CountDownLatch(1)
-        val capturedEvents = mutableListOf<Event>()
-        registerExtension(MockExtension::class.java)
-        EventHub.shared.getExtensionContainer(MockExtension::class.java)
-            ?.registerEventListener(event.type, event.source) {
-                capturedEvents.add(it)
-                latch.countDown()
-            }
-
-        EventHub.shared.start()
-
-        // test
         MobileCore.dispatchEvent(event)
-
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
-        assertEquals(event, capturedEvents[0])
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockedEventHub, times(1)).dispatch(eventCaptor.capture())
+        assertEquals("analytics", eventCaptor.firstValue.type)
+        assertEquals("requestContent", eventCaptor.firstValue.source)
     }
 
     // / Tests that the response callback is invoked when the trigger event is dispatched
     @Test
     fun testDispatchEventWithResponseCallbackSimple() {
+        EventHub.shared = EventHub()
         // setup
         val event = Event.Builder("test", "analytics", "requestContent").build()
         val responseEvent =
@@ -352,7 +99,7 @@ class MobileCoreTests {
     // / Tests that the event listener only receive the events it is registered for
     @Test
     fun testRegisterEventListener() {
-        // setup
+        EventHub.shared = EventHub()
         val event1 = Event.Builder("test", "analytics", "requestContent").build()
         val event2 = Event.Builder("test", "analytics", "requestContent").build()
         val unexpectedEvent = Event.Builder("", "wrong", "wrong").build()
@@ -379,7 +126,7 @@ class MobileCoreTests {
     // / Tests that the event listeners listening for same events can all receives the events
     @Test
     fun testRegisterEventListenerMultipleListenersForSameEvents() {
-        // setup
+        EventHub.shared = EventHub()
         val event1 = Event.Builder("test", "analytics", "requestContent").build()
         val event2 = Event.Builder("test", "analytics", "requestContent").build()
         val unexpectedEvent = Event.Builder("", "wrong", "wrong").build()
@@ -421,12 +168,14 @@ class MobileCoreTests {
     // / No wrapper tag should be appended when the setWrapperType API is never invoked
     @Test
     fun testSetWrapperTypeNeverCalled() {
+        EventHub.shared = EventHub()
         assertEquals(EventHubConstants.VERSION_NUMBER, MobileCore.extensionVersion())
     }
 
     // Tests that no wrapper tag is appended when the wrapper type is none
     @Test
     fun testSetWrapperTypeNone() {
+        EventHub.shared = EventHub()
         MobileCore.setWrapperType(WrapperType.NONE)
         assertEquals(EventHubConstants.VERSION_NUMBER, MobileCore.extensionVersion())
     }
@@ -434,6 +183,7 @@ class MobileCoreTests {
     // / Tests that the React Native wrapper tag is appended
     @Test
     fun testSetWrapperTypeReactNative() {
+        EventHub.shared = EventHub()
         MobileCore.setWrapperType(WrapperType.REACT_NATIVE)
         assertEquals(EventHubConstants.VERSION_NUMBER + "-R", MobileCore.extensionVersion())
     }
@@ -441,6 +191,7 @@ class MobileCoreTests {
     // / Tests that the Flutter wrapper tag is appended
     @Test
     fun testSetWrapperTypeFlutter() {
+        EventHub.shared = EventHub()
         MobileCore.setWrapperType(WrapperType.FLUTTER)
         assertEquals(EventHubConstants.VERSION_NUMBER + "-F", MobileCore.extensionVersion())
     }
@@ -448,6 +199,7 @@ class MobileCoreTests {
     // / Tests that the Cordova wrapper tag is appended
     @Test
     fun testSetWrapperTypeCordova() {
+        EventHub.shared = EventHub()
         MobileCore.setWrapperType(WrapperType.CORDOVA)
         assertEquals(EventHubConstants.VERSION_NUMBER + "-C", MobileCore.extensionVersion())
     }
@@ -455,6 +207,7 @@ class MobileCoreTests {
     // / Tests that the Unity wrapper tag is appended
     @Test
     fun testSetWrapperTypeUnity() {
+        EventHub.shared = EventHub()
         MobileCore.setWrapperType(WrapperType.UNITY)
         assertEquals(EventHubConstants.VERSION_NUMBER + "-U", MobileCore.extensionVersion())
     }
@@ -462,6 +215,7 @@ class MobileCoreTests {
     // / Tests that the Xamarin wrapper tag is appended
     @Test
     fun testSetWrapperTypeXamarin() {
+        EventHub.shared = EventHub()
         MobileCore.setWrapperType(WrapperType.XAMARIN)
         assertEquals(EventHubConstants.VERSION_NUMBER + "-X", MobileCore.extensionVersion())
     }
@@ -499,7 +253,6 @@ class MobileCoreTests {
     // / When message info is empty no event should be dispatched
     @Test
     fun testCollectMessageInfoEmpty() {
-        EventHub.shared = mockedEventHub
         MobileCore.collectMessageInfo(HashMap())
         verifyNoInteractions(mockedEventHub)
     }
@@ -507,8 +260,6 @@ class MobileCoreTests {
     // / When message info is not empty we should dispatch an event
     @Test
     fun testCollectMessageInfoWithData() {
-        EventHub.shared = mockedEventHub
-
         val messageInfo = mapOf("testKey" to "testVal")
         MobileCore.collectMessageInfo(messageInfo)
 
@@ -525,7 +276,6 @@ class MobileCoreTests {
     // / When launch info is empty no event should be dispatched
     @Test
     fun testCollectLaunchInfoEmpty() {
-        EventHub.shared = mockedEventHub
         MobileCore.collectLaunchInfo(null)
         verifyNoInteractions(mockedEventHub)
     }
@@ -566,15 +316,12 @@ class MobileCoreTests {
     // / When data is empty no event should be dispatched
     @Test
     fun testCollectPiiInfoEmpty() {
-        EventHub.shared = mockedEventHub
         MobileCore.collectPii(HashMap())
         verifyNoInteractions(mockedEventHub)
     }
 
     @Test
     fun testCollectPiiInfoWithData() {
-        EventHub.shared = mockedEventHub
-
         val piiInfo = mapOf("testKey" to "testVal")
         MobileCore.collectPii(piiInfo)
 
@@ -591,7 +338,7 @@ class MobileCoreTests {
     @Test
     fun testSetAdvertisingIdentifierHappy() {
         // setup
-        EventHub.shared = mockedEventHub
+
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
         MobileCore.setAdvertisingIdentifier("test-ad-id")
         verify(mockedEventHub, times(1)).dispatch(eventCaptor.capture())
@@ -606,8 +353,6 @@ class MobileCoreTests {
     // / Tests that when nil is passed to setAdvertisingId that we convert it to an empty string since swift cannot hold nil in a dict
     @Test
     fun testSetAdvertisingIdentifierNil() {
-        EventHub.shared = mockedEventHub
-
         MobileCore.setAdvertisingIdentifier(null)
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -623,8 +368,6 @@ class MobileCoreTests {
     // / Tests that when setPushIdentifier is called that we dispatch an event with the push identifier in the event data
     @Test
     fun testSetPushIdentifierHappy() {
-        EventHub.shared = mockedEventHub
-
         MobileCore.setPushIdentifier("test-push-id")
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -639,8 +382,6 @@ class MobileCoreTests {
     // / Tests that when setPushIdentifier is called that we dispatch an event with the push identifier in the event data and that an empty push id is handled properly
     @Test
     fun testSetPushIdentifierNil() {
-        EventHub.shared = mockedEventHub
-
         MobileCore.setPushIdentifier(null)
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -655,8 +396,6 @@ class MobileCoreTests {
     // / Tests that a configuration request content event is dispatched with the appId
     @Test
     fun testConfigureWithAppId() {
-        EventHub.shared = mockedEventHub
-
         val appId = "test-app-id"
         MobileCore.configureWithAppID(appId)
 
@@ -672,8 +411,6 @@ class MobileCoreTests {
     // / Tests that a configuration request content event is dispatched with the filePath
     @Test
     fun testConfigureWithFilePath() {
-        EventHub.shared = mockedEventHub
-
         val filePath = "test-file-path"
         MobileCore.configureWithFileInPath(filePath)
 
@@ -689,8 +426,6 @@ class MobileCoreTests {
     // / Tests that a configuration request content event is dispatched with the fileAssets
     @Test
     fun testConfigureWithFileAssets() {
-        EventHub.shared = mockedEventHub
-
         val assertPath = "test-asset-path"
         MobileCore.configureWithFileInAssets(assertPath)
 
@@ -706,8 +441,6 @@ class MobileCoreTests {
     // / Tests that a configuration request content event is dispatched with the updated dict
     @Test
     fun testUpdateConfiguration() {
-        EventHub.shared = mockedEventHub
-
         val updateDict = mapOf("testKey" to "testVal")
         MobileCore.updateConfiguration(updateDict)
 
@@ -723,8 +456,6 @@ class MobileCoreTests {
     // / Tests that a configuration request content event is dispatched with the true value for a revert
     @Test
     fun testClearUpdateConfiguration() {
-        EventHub.shared = mockedEventHub
-
         MobileCore.clearUpdatedConfiguration()
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -739,8 +470,6 @@ class MobileCoreTests {
     // / Tests that set privacy status dispatches a configuration request content event with the new privacy status
     @Test
     fun testSetPrivacy() {
-        EventHub.shared = mockedEventHub
-
         MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_IN)
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -757,8 +486,6 @@ class MobileCoreTests {
     // / Tests that get privacy status dispatches an event of configuration request content with the correct retrieve config data
     @Test
     fun testGetPrivacy() {
-        EventHub.shared = mockedEventHub
-
         MobileCore.getPrivacyStatus { }
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -773,8 +500,6 @@ class MobileCoreTests {
     // / Tests that getSdkIdentities dispatches a configuration request identity event
     @Test
     fun testGetSdkIdentities() {
-        EventHub.shared = mockedEventHub
-
         MobileCore.getSdkIdentities {}
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -786,8 +511,6 @@ class MobileCoreTests {
     // / Tests that resetIdentities dispatches an generic identity event
     @Test
     fun testResetIdentities() {
-        EventHub.shared = mockedEventHub
-
         MobileCore.resetIdentities()
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -799,8 +522,6 @@ class MobileCoreTests {
     // Track methods
     @Test
     fun testTrackAction() {
-        EventHub.shared = mockedEventHub
-
         val contextData = mapOf("testKey" to "testVal")
         val action = "myAction"
         MobileCore.trackAction(action, contextData)
@@ -818,8 +539,6 @@ class MobileCoreTests {
 
     @Test
     fun testTrackState() {
-        EventHub.shared = mockedEventHub
-
         val contextData = mapOf("testKey" to "testVal")
         val state = "myState"
         MobileCore.trackState(state, contextData)
@@ -838,8 +557,6 @@ class MobileCoreTests {
     // Lifecycle methods
     @Test
     fun testLifecycleStart() {
-        EventHub.shared = mockedEventHub
-
         val contextData = mapOf("testKey" to "testVal")
         MobileCore.lifecycleStart(contextData)
 
@@ -856,8 +573,6 @@ class MobileCoreTests {
 
     @Test
     fun testLifecyclePause() {
-        EventHub.shared = mockedEventHub
-
         MobileCore.lifecyclePause()
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()

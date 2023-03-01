@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.1.0
         with:
-          ref: bom
+          ref: main
 
       - name: Bump BOM version
         run: make bom-bump-version

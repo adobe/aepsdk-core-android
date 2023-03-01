@@ -216,3 +216,20 @@ bump-versions:
 	(LC_ALL=C find . -type f -name 'gradle.properties' -exec sed -i '' 's/$(from)/$(to)/' {} +)
 	(LC_ALL=C find . -type f -name '*.kt' -exec sed -i '' 's/$(from)/$(to)/' {} +)	
 	(LC_ALL=C find . -type f -name '*.java' -exec sed -i '' 's/$(from)/$(to)/' {} +)
+
+# SDK size
+sdk-size:
+	(./code/gradlew -p code/sdk-bom computeSdkSize)
+
+# SDK BOM artifact
+bom-bump-version:
+	(./code/gradlew -p code/sdk-bom bumpBomMinorVersion)
+
+update-bom-properties:
+	(./code/gradlew -p code/sdk-bom storeLatestExtensionInfo)
+
+generate-bom-pom:
+	(./code/gradlew -p code/sdk-bom generatePomFileForReleasePublication)
+
+bom-publish-maven-local:
+	(./code/gradlew -p code/sdk-bom publishReleasePublicationToMavenLocal -x signReleasePublication)

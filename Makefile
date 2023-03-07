@@ -221,11 +221,12 @@ bump-versions:
 sdk-size:
 	(./code/gradlew -p code/sdk-bom computeSdkSize)
 
-# SDK BOM artifact
-bom-bump-version:
-	(./code/gradlew -p code/sdk-bom bumpBomMinorVersion)
+bom-project-refresh-dependencies:
+	(./code/gradlew -p code/sdk-bom build --refresh-dependencies)
 
-update-bom-properties:
+# SDK BOM artifact
+bump-bom-version-and-update-bom-properties:
+	(./code/gradlew -p code/sdk-bom bumpBomVersion)
 	(./code/gradlew -p code/sdk-bom storeLatestExtensionInfo)
 
 generate-bom-pom:

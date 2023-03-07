@@ -26,7 +26,12 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.adobe.marketing.mobile:core:latest.release'
     implementation 'com.adobe.marketing.mobile:lifecycle:latest.release'
     implementation 'com.adobe.marketing.mobile:identity:latest.release'
@@ -44,15 +49,11 @@ dependencies {
     implementation 'com.adobe.marketing.mobile:media:latest.release'
     implementation 'com.adobe.marketing.mobile:target:latest.release'
     implementation 'com.adobe.marketing.mobile:campaign:latest.release'
+    implementation 'com.adobe.marketing.mobile:campaignclassic:latest.release'
     implementation 'com.adobe.marketing.mobile:audience:latest.release'
 }
 
 configurations.implementation.canBeResolved = true
-
-task storeLatestExtensionInfo(type: WriteProperties) {
-    outputFile './bom.properties'
-    properties(retrieveLatestExtensionInfo())
-}
 
 Map<String, String> retrieveLatestExtensionInfo() {
     def map = [:]
@@ -120,18 +121,64 @@ task computeSdkSize() {
     }
 }
 
-task bumpBomMinorVersion(){
-    doLast{
+task bumpBomVersion() {
+    doLast {
+        def extensionVersionsInReleasedBom = retrieveExtensionVersionFromBomProperties()
+        def latestExtensionVersions = retrieveLatestExtensionInfo()
+        def bumpType = bumpBomVersionType(latestExtensionVersions, extensionVersionsInReleasedBom)
         def bomVersion = rootProject.bomVersion.toString()
         def digits = bomVersion.split("\\.")
-        if (digits.size() == 3) {
-            def newMinor = digits[2].toInteger() + 1
-            def newBomVersion = "${digits[0]}.${digits[1]}.${newMinor}".toString()
-            ant.propertyfile(file: "../gradle.properties") {
-                entry( key: "bomVersion", value: newBomVersion)
+        if (digits.size() != 3) {
+            throw IllegalArgumentException("bom versoin (${bomVersion}) is not valid.")
+        }
+        def newBomVersion = bomVersion
+        switch (bumpType) {
+            case 0:
+                break
+            case 1:
+                def newPatch = digits[2].toInteger() + 1
+                newBomVersion = "${digits[0]}.${digits[1]}.${newPatch}".toString()
+                break
+            case 2:
+                def newMinor = digits[1].toInteger() + 1
+                newBomVersion = "${digits[0]}.${newMinor}.${digits[2]}".toString()
+                break
+            case 3:
+                def newMajor = digits[0].toInteger() + 1
+                newBomVersion = "${newMajor}.${digits[1]}.${digits[2]}".toString()
+                break
+            default:
+                break
+        }
+        ant.propertyfile(file: "../gradle.properties") {
+            entry(key: "bomVersion", value: newBomVersion)
+        }
+
+    }
+}
+
+int bumpBomVersionType(Map<String, String> latestExVersions, Map<String, String> currentExVersions) {
+    int type = 0
+    if (latestExVersions.size() != currentExVersions.size()) return 3
+    for (latestExtension in latestExVersions) {
+        def extensionName = latestExtension.key.replace("com.adobe.marketing.mobile-", "")
+        if (latestExtension.value != currentExVersions[extensionName]) {
+            def latestVersion = latestExtension.value.split("\\.")
+            def currentVersion = currentExVersions[extensionName].split("\\.")
+            if (latestVersion.size() != 3 || currentVersion.size() != 3) {
+                throw IllegalArgumentException("extension versoin (${latestVersion} or ${currentVersion}) is not valid.")
             }
+            if (latestVersion[0] != currentVersion[0]) return 3
+            else if (latestVersion[1] != currentVersion[1]) type = 2
+            else if (latestVersion[2] != currentVersion[2]) type = 1
         }
     }
+    return type
+}
+
+task storeLatestExtensionInfo(type: WriteProperties) {
+    outputFile './bom.properties'
+    properties(retrieveLatestExtensionInfo())
 }
 
 def isReleaseBuild() {

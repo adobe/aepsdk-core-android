@@ -1,0 +1,258 @@
+apply plugin: 'com.android.library'
+apply plugin: 'signing'
+apply plugin: 'maven-publish'
+
+android {
+    namespace 'com.adobe.marketing.mobile'
+    compileSdk 33
+
+    defaultConfig {
+        minSdk 19
+        targetSdk 33
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.adobe.marketing.mobile:core:latest.release'
+    implementation 'com.adobe.marketing.mobile:lifecycle:latest.release'
+    implementation 'com.adobe.marketing.mobile:identity:latest.release'
+    implementation 'com.adobe.marketing.mobile:signal:latest.release'
+    implementation 'com.adobe.marketing.mobile:userprofile:latest.release'
+    implementation 'com.adobe.marketing.mobile:assurance:latest.release'
+    implementation 'com.adobe.marketing.mobile:edge:latest.release'
+    implementation 'com.adobe.marketing.mobile:edgeidentity:latest.release'
+    implementation 'com.adobe.marketing.mobile:edgeconsent:latest.release'
+    implementation 'com.adobe.marketing.mobile:edgebridge:latest.release'
+    implementation 'com.adobe.marketing.mobile:messaging:latest.release'
+    implementation 'com.adobe.marketing.mobile:optimize:latest.release'
+    implementation 'com.adobe.marketing.mobile:places:latest.release'
+    implementation 'com.adobe.marketing.mobile:analytics:latest.release'
+    implementation 'com.adobe.marketing.mobile:media:latest.release'
+    implementation 'com.adobe.marketing.mobile:target:latest.release'
+    implementation 'com.adobe.marketing.mobile:campaign:latest.release'
+    implementation 'com.adobe.marketing.mobile:campaignclassic:latest.release'
+    implementation 'com.adobe.marketing.mobile:audience:latest.release'
+}
+
+configurations.implementation.canBeResolved = true
+
+Map<String, String> retrieveLatestExtensionInfo() {
+    def map = [:]
+    configurations.implementation.resolvedConfiguration.resolvedArtifacts.each {
+        def group = it.moduleVersion.id.group
+        def name = it.moduleVersion.id.name
+        def version = it.moduleVersion.id.version
+        if (group == "com.adobe.marketing.mobile") {
+            map["${group}-${name}"] = version
+        }
+    }
+    return map
+}
+
+task testIt() {
+    doLast {
+        println(retrieveLatestExtensionInfo())
+        println(retrieveExtensionVersionFromBomProperties())
+    }
+}
+
+Map<String, String> retrieveExtensionVersionFromBomProperties() {
+    Map<String, String> map = [:]
+    def props = new Properties()
+    file("bom.properties").withInputStream { props.load(it) }
+    props.each {
+        def key = it.key.toString()
+        def value = it.value
+        if (key.startsWith("com.adobe.marketing.mobile")) {
+            def extensionName = key.replace("com.adobe.marketing.mobile-", "")
+            map[extensionName] = value
+        }
+    }
+    return map
+}
+
+
+task computeSdkSize() {
+    doLast {
+        def formatStr = "%,10.2f"
+        def size = configurations.implementation.collect { it.length() / (1024 * 1024) }.sum()
+        def out = new StringBuffer()
+        if (size) {
+            out << "\n"
+            out << "-------------------------------------------------------\n"
+            out << 'Android SDK'.padRight(40)
+            out << "${String.format(formatStr, size)} Mb\n"
+            out << "-------------------------------------------------------\n"
+
+            configurations.implementation.sort { -it.length() }
+                    .each {
+                        if (it.name.contains("kotlin-stdlib") || it.name.contains("constraintlayout") || it.name.contains("annotations")) {
+                            return true
+                        }
+                        def items = it.name.replace(".aar", "").split("-")
+                        out << "${items[0]}".padRight(25)
+                        out << "${items[1]}".padRight(15)
+                        out << "${String.format(formatStr, (it.length() / 1024))} kb\n"
+                    }
+        } else {
+            out << 'No dependencies found';
+        }
+        out << "-------------------------------------------------------\n"
+        println(out)
+    }
+}
+
+task bumpBomVersion() {
+    doLast {
+        def extensionVersionsInReleasedBom = retrieveExtensionVersionFromBomProperties()
+        def latestExtensionVersions = retrieveLatestExtensionInfo()
+        def bumpType = bumpBomVersionType(latestExtensionVersions, extensionVersionsInReleasedBom)
+        def bomVersion = rootProject.bomVersion.toString()
+        def digits = bomVersion.split("\\.")
+        if (digits.size() != 3) {
+            throw IllegalArgumentException("bom versoin (${bomVersion}) is not valid.")
+        }
+        def newBomVersion = bomVersion
+        switch (bumpType) {
+            case 0:
+                break
+            case 1:
+                def newPatch = digits[2].toInteger() + 1
+                newBomVersion = "${digits[0]}.${digits[1]}.${newPatch}".toString()
+                break
+            case 2:
+                def newMinor = digits[1].toInteger() + 1
+                newBomVersion = "${digits[0]}.${newMinor}.${digits[2]}".toString()
+                break
+            case 3:
+                def newMajor = digits[0].toInteger() + 1
+                newBomVersion = "${newMajor}.${digits[1]}.${digits[2]}".toString()
+                break
+            default:
+                break
+        }
+        ant.propertyfile(file: "../gradle.properties") {
+            entry(key: "bomVersion", value: newBomVersion)
+        }
+
+    }
+}
+
+int bumpBomVersionType(Map<String, String> latestExVersions, Map<String, String> currentExVersions) {
+    int type = 0
+    if (latestExVersions.size() != currentExVersions.size()) return 3
+    for (latestExtension in latestExVersions) {
+        def extensionName = latestExtension.key.replace("com.adobe.marketing.mobile-", "")
+        if (latestExtension.value != currentExVersions[extensionName]) {
+            def latestVersion = latestExtension.value.split("\\.")
+            def currentVersion = currentExVersions[extensionName].split("\\.")
+            if (latestVersion.size() != 3 || currentVersion.size() != 3) {
+                throw IllegalArgumentException("extension versoin (${latestVersion} or ${currentVersion}) is not valid.")
+            }
+            if (latestVersion[0] != currentVersion[0]) return 3
+            else if (latestVersion[1] != currentVersion[1]) type = 2
+            else if (latestVersion[2] != currentVersion[2]) type = 1
+        }
+    }
+    return type
+}
+
+task storeLatestExtensionInfo(type: WriteProperties) {
+    outputFile './bom.properties'
+    properties(retrieveLatestExtensionInfo())
+}
+
+def isReleaseBuild() {
+    return hasProperty('release')
+}
+
+version = isReleaseBuild() ? rootProject.bomVersion : rootProject.bomVersion + "-SNAPSHOT"
+
+Map<String, String> extensionVersionMap = retrieveExtensionVersionFromBomProperties()
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = "com.adobe.marketing.mobile"
+            artifactId = "sdk-bom"
+            version = version
+            pom {
+                name = rootProject.mavenRepoName
+                description = rootProject.mavenRepoDescription
+                url = 'https://developer.adobe.com/client-sdks'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'adobe'
+                        name = 'adobe'
+                        email = 'adobe-mobile-testing@adobe.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:github.com//adobe/aepsdk-core-android.git'
+                    developerConnection = 'scm:git:ssh://github.com//adobe/aepsdk-core-android.git'
+                    url = 'https://github.com/adobe/aepsdk-core-android'
+                }
+                withXml {
+
+                    def dependencyManagementNode = asNode().appendNode('dependencyManagement')
+                    def dependenciesNode = dependencyManagementNode.appendNode('dependencies')
+                    extensionVersionMap.each {
+                        def extensionName = it.key
+                        def extensionVersion = it.value
+                        def extensionNode = dependenciesNode.appendNode('dependency')
+                        extensionNode.appendNode('groupId', 'com.adobe.marketing.mobile')
+                        extensionNode.appendNode('artifactId', extensionName)
+                        extensionNode.appendNode('version', extensionVersion)
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "sonatype"
+            url = version.endsWith('SNAPSHOT') ? "https://oss.sonatype.org/content/repositories/snapshots/" : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username = System.getenv("SONATYPE_USERNAME")
+                password = System.getenv("SONATYPE_PASSWORD")
+            }
+        }
+    }
+}
+
+ext."signing.gnupg.executable" = "gpg"
+ext."signing.gnupg.keyName" = System.getenv("GPG_KEY_ID")
+ext."signing.gnupg.passphrase" = System.getenv("GPG_PASSPHRASE")
+
+signing {
+    useGpgCmd()
+    required {
+        tasks.withType(PublishToMavenRepository).find {
+            gradle.taskGraph.hasTask it
+        }
+    }
+    sign publishing.publications
+}

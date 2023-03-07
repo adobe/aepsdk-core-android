@@ -18,8 +18,8 @@ jobs:
         with:
           ref: main
 
-      - name: Bump BOM version
-        run: make bom-bump-version
+      - name: Bump up BOM version and update extension versions
+        run: make bump-bom-version-and-update-bom-properties
 
       - name: Load the new BOM version
         id: read_property
@@ -31,11 +31,11 @@ jobs:
       - name: Print the new BOM version
         run: echo ${{ steps.read_property.outputs.bomVersion }}
 
-      - name: Update extension versions
-        run: make update-bom-properties
-
       - name: Generate POM file
         run: make generate-bom-pom
+        
+      - name: Print the new POM
+        run: make print-bom-pom
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4.2.3

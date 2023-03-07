@@ -232,5 +232,11 @@ bump-bom-version-and-update-bom-properties:
 generate-bom-pom:
 	(./code/gradlew -p code/sdk-bom generatePomFileForReleasePublication)
 
+print-bom-pom:
+	(xmllint --format ./code/sdk-bom/build/publications/release/pom-default.xml)
+
+print-bom-version:
+	(./code/gradlew -p code/sdk-bom printBomVersion)
+
 bom-publish-maven-local:
 	(./code/gradlew -p code/sdk-bom publishReleasePublicationToMavenLocal -x signReleasePublication)

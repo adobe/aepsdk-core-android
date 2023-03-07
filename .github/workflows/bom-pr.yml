@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v3.1.0
         with:
           ref: main
-          
+
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
@@ -26,19 +26,9 @@ jobs:
       - name: Bump up BOM version and update extension versions
         run: make bump-bom-version-and-update-bom-properties
 
-      - name: Load the new BOM version
-        id: read_property
-        uses: christian-draeger/read-properties@1.1.1
-        with:
-          path: "./code/gradle.properties"
-          properties: "bomVersion"
-
-      - name: Print the new BOM version
-        run: echo ${{ steps.read_property.outputs.bomVersion }}
-
       - name: Generate POM file
         run: make generate-bom-pom
-        
+
       - name: Print the new POM
         run: make print-bom-pom
 

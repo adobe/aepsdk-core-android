@@ -157,6 +157,12 @@ task bumpBomVersion() {
     }
 }
 
+task printBomVersion(){
+    doLast{
+        print(rootProject.bomVersion)
+    }
+}
+
 int bumpBomVersionType(Map<String, String> latestExVersions, Map<String, String> currentExVersions) {
     int type = 0
     if (latestExVersions.size() != currentExVersions.size()) return 3

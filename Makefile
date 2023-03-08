@@ -244,5 +244,5 @@ bom-publish-maven-local:
 bom-assemble-release:
 	(./code/gradlew -p code/sdk-bom assembleRelease --stacktrace)
 
-core-publish-snapshot: clean bom-assemble-release
+bom-publish-snapshot: clean bom-assemble-release
 	(./code/gradlew -p code/core publishReleasePublicationToSonatypeRepository --stacktrace)

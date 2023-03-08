@@ -240,3 +240,9 @@ print-bom-pom:
 
 bom-publish-maven-local:
 	(./code/gradlew -p code/sdk-bom publishReleasePublicationToMavenLocal -x signReleasePublication)
+
+bom-assemble-release:
+	(./code/gradlew -p code/sdk-bom assembleRelease --stacktrace)
+
+bom-publish-snapshot: clean bom-assemble-release
+	(./code/gradlew -p code/sdk-bom publishReleasePublicationToSonatypeRepository --stacktrace)

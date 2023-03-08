@@ -229,8 +229,14 @@ bump-bom-version-and-update-bom-properties:
 	(./code/gradlew -p code/sdk-bom bumpBomVersion)
 	(./code/gradlew -p code/sdk-bom storeLatestExtensionInfo)
 
+print-bom-version:
+	(grep "^bomVersion=" ./code/gradle.properties | sed -e 's/.*=//')
+
 generate-bom-pom:
 	(./code/gradlew -p code/sdk-bom generatePomFileForReleasePublication)
+
+print-bom-pom:
+	(xmllint --format ./code/sdk-bom/build/publications/release/pom-default.xml)
 
 bom-publish-maven-local:
 	(./code/gradlew -p code/sdk-bom publishReleasePublicationToMavenLocal -x signReleasePublication)

@@ -105,13 +105,12 @@ task computeSdkSize() {
 
             configurations.implementation.sort { -it.length() }
                     .each {
-                        if (it.name.contains("kotlin-stdlib") || it.name.contains("constraintlayout") || it.name.contains("annotations")) {
-                            return true
+                        if (it.absolutePath.toString().contains("com.adobe.marketing.mobile")) {
+                            def items = it.name.replace(".aar", "").split("-")
+                            out << "${items[0]}".padRight(25)
+                            out << "${items[1]}".padRight(15)
+                            out << "${String.format(formatStr, (it.length() / 1024))} kb\n"
                         }
-                        def items = it.name.replace(".aar", "").split("-")
-                        out << "${items[0]}".padRight(25)
-                        out << "${items[1]}".padRight(15)
-                        out << "${String.format(formatStr, (it.length() / 1024))} kb\n"
                     }
         } else {
             out << 'No dependencies found';

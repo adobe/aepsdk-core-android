@@ -11,6 +11,10 @@
 
 package com.adobe.marketing.mobile.rulesengine;
 
+import androidx.annotation.VisibleForTesting;
+
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRule;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +24,8 @@ public class RulesEngine<T extends Rule> {
     private final Object rulesEngineMutex = new Object();
     private final Evaluating evaluator;
     private final Transforming transformer;
-    private List<T> rules;
+    @VisibleForTesting ()
+    public List<T> rules;
 
     public RulesEngine(final Evaluating evaluator, final Transforming transformer) {
         this.evaluator = evaluator;
@@ -46,6 +51,12 @@ public class RulesEngine<T extends Rule> {
     public void replaceRules(final List<T> newRules) {
         synchronized (rulesEngineMutex) {
             rules = newRules;
+        }
+    }
+
+    public void addRules(final List<T> newRules) {
+        synchronized (rulesEngineMutex) {
+            rules.addAll(newRules);
         }
     }
 }

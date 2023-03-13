@@ -548,4 +548,20 @@ class LaunchRulesEngineModuleTests {
         assertEquals(1, matchedRules[0].consequenceList.size)
         assertEquals("url", matchedRules[0].consequenceList[0].type)
     }
+
+    @Test
+    fun `Test add rules`() {
+        val firstJson = readTestResources("rules_happy/rules.json")
+        val secondJson = readTestResources("rules_module_tests/consequence_rules_1.json")
+        assertNotNull(firstJson)
+        assertNotNull(secondJson)
+        val rules = JSONRulesParser.parse(firstJson, extensionApi)
+        val newRules = JSONRulesParser.parse(secondJson, extensionApi)
+        assertNotNull(rules)
+        assertNotNull(newRules)
+        launchRulesEngine.replaceRules(rules)
+        assertEquals(2, launchRulesEngine.rules.size)
+        launchRulesEngine.addRules(newRules)
+        assertEquals(4, launchRulesEngine.rules.size)
+    }
 }

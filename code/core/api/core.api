@@ -462,10 +462,10 @@ public abstract interface class com/adobe/marketing/mobile/rulesengine/Rule {
 }
 
 public class com/adobe/marketing/mobile/rulesengine/RulesEngine {
-	public field rules Ljava/util/List;
 	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/Evaluating;Lcom/adobe/marketing/mobile/rulesengine/Transforming;)V
 	public fun addRules (Ljava/util/List;)V
 	public fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/TokenFinder;)Ljava/util/List;
+	public fun getRules ()Ljava/util/List;
 	public fun replaceRules (Ljava/util/List;)V
 }
 

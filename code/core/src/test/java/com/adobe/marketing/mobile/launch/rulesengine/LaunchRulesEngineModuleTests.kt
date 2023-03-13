@@ -560,8 +560,8 @@ class LaunchRulesEngineModuleTests {
         assertNotNull(rules)
         assertNotNull(newRules)
         launchRulesEngine.replaceRules(rules)
-        assertEquals(2, launchRulesEngine.rulesList.size)
+        assertEquals(2, launchRulesEngine.rules.size)
         launchRulesEngine.addRules(newRules)
-        assertEquals(4, launchRulesEngine.rulesList.size)
+        assertEquals(4, launchRulesEngine.rules.size)
     }
 }

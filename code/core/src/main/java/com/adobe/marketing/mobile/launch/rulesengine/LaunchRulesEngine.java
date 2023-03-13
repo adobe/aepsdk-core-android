@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.launch.rulesengine;
 
 import androidx.annotation.VisibleForTesting;
-
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator;

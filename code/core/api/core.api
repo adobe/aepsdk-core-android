@@ -337,6 +337,7 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRule : co
 
 public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
+	public fun addRules (Ljava/util/List;)V
 	public fun process (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
 	public fun replaceRules (Ljava/util/List;)V
 }
@@ -462,7 +463,9 @@ public abstract interface class com/adobe/marketing/mobile/rulesengine/Rule {
 
 public class com/adobe/marketing/mobile/rulesengine/RulesEngine {
 	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/Evaluating;Lcom/adobe/marketing/mobile/rulesengine/Transforming;)V
+	public fun addRules (Ljava/util/List;)V
 	public fun evaluate (Lcom/adobe/marketing/mobile/rulesengine/TokenFinder;)Ljava/util/List;
+	public fun getRules ()Ljava/util/List;
 	public fun replaceRules (Ljava/util/List;)V
 }
 

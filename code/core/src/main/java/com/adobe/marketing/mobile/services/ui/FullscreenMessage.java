@@ -23,7 +23,7 @@ public interface FullscreenMessage {
      * Display the fullscreen message.
      *
      * @param withMessagingDelegateControl boolean signaling if the {@link
-     *     FullscreenMessageDelegate#shouldShowMessage(FullscreenMessage)} should be bypassed
+     *     MessagingDelegate#shouldShowMessage(FullscreenMessage)} should be bypassed
      */
     void show(final boolean withMessagingDelegateControl);
 

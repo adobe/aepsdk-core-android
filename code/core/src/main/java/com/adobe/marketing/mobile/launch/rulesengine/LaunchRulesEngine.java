@@ -40,6 +40,15 @@ public class LaunchRulesEngine {
     }
 
     /**
+     * Adds a new set of rules, the new rules are added to the current rules.
+     *
+     * @param rules a list of {@link LaunchRule}s
+     */
+    public void addRules(final List<LaunchRule> rules) {
+        ruleRulesEngine.addRules(rules);
+    }
+
+    /**
      * Evaluates all the current rules against the supplied {@link Event}.
      *
      * @param event the {@link Event} against which to evaluate the rules
@@ -47,5 +56,9 @@ public class LaunchRulesEngine {
      */
     public List<LaunchRule> process(final Event event) {
         return ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
+    }
+
+    List<LaunchRule> getRules() {
+        return ruleRulesEngine.getRules();
     }
 }

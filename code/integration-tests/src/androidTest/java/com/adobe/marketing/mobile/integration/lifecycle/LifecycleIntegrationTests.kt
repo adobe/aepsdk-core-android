@@ -8,30 +8,25 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.lifecycle
+package com.adobe.marketing.mobile.integration.lifecycle
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.adobe.marketing.mobile.Identity
-import com.adobe.marketing.mobile.Lifecycle
-import com.adobe.marketing.mobile.LoggingMode
-import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.SDKHelper
-import com.adobe.marketing.mobile.Signal
+import com.adobe.marketing.mobile.*
 import com.adobe.marketing.mobile.integration.ConfigurationMonitor
 import com.adobe.marketing.mobile.integration.MonitorExtension
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ServiceProviderModifier
+import org.junit.Assert
+import org.junit.Before
+import org.junit.BeforeClass
+import org.junit.Ignore
+import org.junit.Test
 import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
 
 private typealias NetworkMonitor = (url: String) -> Unit
 
@@ -78,17 +73,17 @@ class LifecycleIntegrationTests {
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         MobileCore.registerExtensions(
-            listOf(
-                Lifecycle.EXTENSION,
-                Identity.EXTENSION,
-                Signal.EXTENSION,
-                MonitorExtension::class.java
-            )
+                listOf(
+                        Lifecycle.EXTENSION,
+                        Identity.EXTENSION,
+                        Signal.EXTENSION,
+                        MonitorExtension::class.java
+                )
         )
         {
             countDownLatch.countDown()
         }
-        assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
+        Assert.assertTrue(countDownLatch.await(1000, TimeUnit.MILLISECONDS))
     }
 
     private fun clearSharedPreference() {
@@ -112,11 +107,11 @@ class LifecycleIntegrationTests {
             }
         }
         MobileCore.updateConfiguration(
-            mapOf(
-                "lifecycle.sessionTimeout" to 300,
-                "global.privacy" to "optedin",
-                "rules.url" to "https://adobe.com/rules_lifecycle.zip"
-            )
+                mapOf(
+                        "lifecycle.sessionTimeout" to 300,
+                        "global.privacy" to "optedin",
+                        "rules.url" to "https://adobe.com/rules_lifecycle.zip"
+                )
         )
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
@@ -125,7 +120,7 @@ class LifecycleIntegrationTests {
         // test
         MobileCore.lifecycleStart(null)
         countDownLatch.await()
-        assertTrue(postbackUrl.contains("installevent=InstallEvent"))
+        Assert.assertTrue(postbackUrl.contains("installevent=InstallEvent"))
     }
 
     @Test(timeout = 10000)
@@ -133,11 +128,11 @@ class LifecycleIntegrationTests {
         // setup
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
-            mapOf(
-                "lifecycle.sessionTimeout" to 1,
-                "global.privacy" to "optedin",
-                "rules.url" to "https://adobe.com/rules_lifecycle.zip"
-            )
+                mapOf(
+                        "lifecycle.sessionTimeout" to 1,
+                        "global.privacy" to "optedin",
+                        "rules.url" to "https://adobe.com/rules_lifecycle.zip"
+                )
         )
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
@@ -150,7 +145,7 @@ class LifecycleIntegrationTests {
         }
 
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
+        Assert.assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
 
         MobileCore.lifecyclePause()
         Thread.sleep(2000)
@@ -173,22 +168,22 @@ class LifecycleIntegrationTests {
         }
         val countDownLatchSecondLaunch = CountDownLatch(1)
         MobileCore.registerExtensions(
-            listOf(
-                Lifecycle.EXTENSION,
-                Identity.EXTENSION,
-                Signal.EXTENSION,
-                MonitorExtension::class.java
-            )
+                listOf(
+                        Lifecycle.EXTENSION,
+                        Identity.EXTENSION,
+                        Signal.EXTENSION,
+                        MonitorExtension::class.java
+                )
         ) {
             countDownLatchSecondLaunch.countDown()
         }
 
         MobileCore.updateConfiguration(
-            mapOf(
-                "lifecycle.sessionTimeout" to 1,
-                "global.privacy" to "optedin",
-                "rules.url" to "https://adobe.com/rules_lifecycle.zip"
-            )
+                mapOf(
+                        "lifecycle.sessionTimeout" to 1,
+                        "global.privacy" to "optedin",
+                        "rules.url" to "https://adobe.com/rules_lifecycle.zip"
+                )
         )
         val configurationLatch2 = CountDownLatch(1)
         configurationAwareness { configurationLatch2.countDown() }
@@ -196,10 +191,10 @@ class LifecycleIntegrationTests {
 
         // test
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
+        Assert.assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
         countDownLatchSecondLifecycleStart.await()
-        assertTrue(postbackUrl.contains("installevent=&"))
-        assertTrue(postbackUrl.contains("launchevent=LaunchEvent"))
+        Assert.assertTrue(postbackUrl.contains("installevent=&"))
+        Assert.assertTrue(postbackUrl.contains("launchevent=LaunchEvent"))
     }
 
     @Test(timeout = 10000)
@@ -207,11 +202,11 @@ class LifecycleIntegrationTests {
         // setup
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
-            mapOf(
-                "lifecycle.sessionTimeout" to 1,
-                "global.privacy" to "optedin",
-                "rules.url" to "https://adobe.com/rules_lifecycle.zip"
-            )
+                mapOf(
+                        "lifecycle.sessionTimeout" to 1,
+                        "global.privacy" to "optedin",
+                        "rules.url" to "https://adobe.com/rules_lifecycle.zip"
+                )
         )
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
@@ -224,7 +219,7 @@ class LifecycleIntegrationTests {
         }
 
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
+        Assert.assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
 
         // restart
         SDKHelper.resetSDK()
@@ -244,22 +239,22 @@ class LifecycleIntegrationTests {
         }
         val countDownLatchSecondLaunch = CountDownLatch(1)
         MobileCore.registerExtensions(
-            listOf(
-                Lifecycle.EXTENSION,
-                Identity.EXTENSION,
-                Signal.EXTENSION,
-                MonitorExtension::class.java
-            )
+                listOf(
+                        Lifecycle.EXTENSION,
+                        Identity.EXTENSION,
+                        Signal.EXTENSION,
+                        MonitorExtension::class.java
+                )
         ) {
             countDownLatchSecondLaunch.countDown()
         }
 
         MobileCore.updateConfiguration(
-            mapOf(
-                "lifecycle.sessionTimeout" to 1,
-                "global.privacy" to "optedin",
-                "rules.url" to "https://adobe.com/rules_lifecycle.zip"
-            )
+                mapOf(
+                        "lifecycle.sessionTimeout" to 1,
+                        "global.privacy" to "optedin",
+                        "rules.url" to "https://adobe.com/rules_lifecycle.zip"
+                )
         )
         val configurationLatch2 = CountDownLatch(1)
         configurationAwareness { configurationLatch2.countDown() }
@@ -267,11 +262,11 @@ class LifecycleIntegrationTests {
 
         // test
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
+        Assert.assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
         countDownLatchSecondLifecycleStart.await()
-        assertTrue(postbackUrl.contains("installevent=&"))
-        assertTrue(postbackUrl.contains("launchevent=LaunchEvent"))
-        assertTrue(postbackUrl.contains("crashevent=CrashEvent"))
+        Assert.assertTrue(postbackUrl.contains("installevent=&"))
+        Assert.assertTrue(postbackUrl.contains("launchevent=LaunchEvent"))
+        Assert.assertTrue(postbackUrl.contains("crashevent=CrashEvent"))
     }
 
     @Test(timeout = 10000)
@@ -285,11 +280,11 @@ class LifecycleIntegrationTests {
             }
         }
         MobileCore.updateConfiguration(
-            mapOf(
-                "lifecycle.sessionTimeout" to 1,
-                "global.privacy" to "optedin",
-                "rules.url" to "https://adobe.com/rules_lifecycle.zip"
-            )
+                mapOf(
+                        "lifecycle.sessionTimeout" to 1,
+                        "global.privacy" to "optedin",
+                        "rules.url" to "https://adobe.com/rules_lifecycle.zip"
+                )
         )
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
@@ -297,7 +292,7 @@ class LifecycleIntegrationTests {
 
         MobileCore.lifecycleStart(mapOf("key" to "value"))
         countDownLatch.await()
-        assertTrue(postbackUrl.contains("key=value"))
+        Assert.assertTrue(postbackUrl.contains("key=value"))
     }
 
     @Test(timeout = 10000)
@@ -305,11 +300,11 @@ class LifecycleIntegrationTests {
         // setup
         val countDownLatch = CountDownLatch(1)
         MobileCore.updateConfiguration(
-            mapOf(
-                "lifecycle.sessionTimeout" to 10,
-                "global.privacy" to "optedin",
-                "rules.url" to "https://adobe.com/rules_lifecycle.zip"
-            )
+                mapOf(
+                        "lifecycle.sessionTimeout" to 10,
+                        "global.privacy" to "optedin",
+                        "rules.url" to "https://adobe.com/rules_lifecycle.zip"
+                )
         )
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
@@ -324,8 +319,8 @@ class LifecycleIntegrationTests {
         }
 
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
-        assertTrue(postbackUrl.contains("installevent=InstallEvent"))
+        Assert.assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
+        Assert.assertTrue(postbackUrl.contains("installevent=InstallEvent"))
 
         MobileCore.lifecyclePause()
         Thread.sleep(2000)
@@ -346,22 +341,22 @@ class LifecycleIntegrationTests {
         }
         val countDownLatchSecondLaunch = CountDownLatch(1)
         MobileCore.registerExtensions(
-            listOf(
-                Lifecycle.EXTENSION,
-                Identity.EXTENSION,
-                Signal.EXTENSION,
-                MonitorExtension::class.java
-            )
+                listOf(
+                        Lifecycle.EXTENSION,
+                        Identity.EXTENSION,
+                        Signal.EXTENSION,
+                        MonitorExtension::class.java
+                )
         ) {
             countDownLatchSecondLaunch.countDown()
         }
 
         MobileCore.updateConfiguration(
-            mapOf(
-                "lifecycle.sessionTimeout" to 10,
-                "global.privacy" to "optedin",
-                "rules.url" to "https://adobe.com/rules_lifecycle.zip"
-            )
+                mapOf(
+                        "lifecycle.sessionTimeout" to 10,
+                        "global.privacy" to "optedin",
+                        "rules.url" to "https://adobe.com/rules_lifecycle.zip"
+                )
         )
         val configurationLatch2 = CountDownLatch(1)
         configurationAwareness { configurationLatch2.countDown() }
@@ -369,8 +364,8 @@ class LifecycleIntegrationTests {
 
         // test
         MobileCore.lifecycleStart(null)
-        assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
-        assertFalse(countDownLatchSecondLifecycleStart.await(1, TimeUnit.SECONDS))
+        Assert.assertTrue(countDownLatchSecondLaunch.await(1, TimeUnit.SECONDS))
+        Assert.assertFalse(countDownLatchSecondLifecycleStart.await(1, TimeUnit.SECONDS))
     }
 
     private fun configurationAwareness(callback: ConfigurationMonitor) {
@@ -385,7 +380,7 @@ private class MockedHttpConnecting(val rulesFileName: String?) : HttpConnecting 
     override fun getInputStream(): InputStream? {
         if (rulesFileName != null) {
             rulesStream = this::class.java.classLoader?.getResource("${rulesFileName}.zip")
-                ?.openStream()!!
+                    ?.openStream()!!
             return rulesStream
         }
         return null

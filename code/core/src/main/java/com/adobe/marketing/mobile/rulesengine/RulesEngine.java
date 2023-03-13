@@ -44,8 +44,22 @@ public class RulesEngine<T extends Rule> {
     }
 
     public void replaceRules(final List<T> newRules) {
-        synchronized (rulesEngineMutex) {
-            rules = newRules;
+        if (newRules == null) {
+            return;
         }
+
+        synchronized (rulesEngineMutex) {
+            rules = new ArrayList<>(newRules);
+        }
+    }
+
+    public void addRules(final List<T> newRules) {
+        synchronized (rulesEngineMutex) {
+            rules.addAll(newRules);
+        }
+    }
+
+    public List<T> getRules() {
+        return new ArrayList<>(rules);
     }
 }

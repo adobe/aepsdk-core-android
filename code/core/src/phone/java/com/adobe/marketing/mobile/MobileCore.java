@@ -119,8 +119,12 @@ public final class MobileCore {
         ServiceProvider.getInstance().getAppContextService().setApplication(application);
         App.INSTANCE.registerActivityResumedListener(MobileCore::collectLaunchInfo);
 
-        V4ToV5Migration migrationTool = new V4ToV5Migration();
-        migrationTool.migrate();
+        try {
+            V4ToV5Migration migrationTool = new V4ToV5Migration();
+            migrationTool.migrate();
+        } catch (Exception e) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "V4 to V5 migration failed.");
+        }
 
         // Register configuration extension
         EventHub.Companion.getShared().registerExtension(ConfigurationExtension.class);

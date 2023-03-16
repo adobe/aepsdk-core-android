@@ -216,3 +216,33 @@ bump-versions:
 	(LC_ALL=C find . -type f -name 'gradle.properties' -exec sed -i '' 's/$(from)/$(to)/' {} +)
 	(LC_ALL=C find . -type f -name '*.kt' -exec sed -i '' 's/$(from)/$(to)/' {} +)	
 	(LC_ALL=C find . -type f -name '*.java' -exec sed -i '' 's/$(from)/$(to)/' {} +)
+
+# SDK size
+sdk-size:
+	(./code/gradlew -p code/sdk-bom computeSdkSize)
+
+bom-project-refresh-dependencies:
+	(./code/gradlew -p code/sdk-bom build --refresh-dependencies)
+
+# SDK BOM artifact
+bump-bom-version-and-update-bom-properties:
+	(./code/gradlew -p code/sdk-bom bumpBomVersion)
+	(./code/gradlew -p code/sdk-bom storeLatestExtensionInfo)
+
+print-bom-version:
+	(grep "^bomVersion=" ./code/gradle.properties | sed -e 's/.*=//')
+
+generate-bom-pom:
+	(./code/gradlew -p code/sdk-bom generatePomFileForReleasePublication)
+
+print-bom-pom:
+	(xmllint --format ./code/sdk-bom/build/publications/release/pom-default.xml)
+
+bom-publish-maven-local:
+	(./code/gradlew -p code/sdk-bom publishReleasePublicationToMavenLocal -x signReleasePublication)
+
+bom-assemble-release:
+	(./code/gradlew -p code/sdk-bom assembleRelease --stacktrace)
+
+bom-publish-snapshot: clean bom-assemble-release
+	(./code/gradlew -p code/sdk-bom publishReleasePublicationToSonatypeRepository --stacktrace)

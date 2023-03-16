@@ -1,0 +1,51 @@
+# This is a basic workflow that is manually triggered
+
+name: Update BOM
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on: workflow_dispatch
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  update-bom:
+    runs-on: macos-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+        with:
+          ref: main
+
+      - name: Set up Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Bump up BOM version and update extension versions
+        run: make bump-bom-version-and-update-bom-properties
+
+      - name: Set env (BOM_VERSION)
+        run: echo BOM_VERSION=$(grep "^bomVersion=" ./code/gradle.properties | sed -e 's/.*=//') >> $GITHUB_ENV
+
+      - name: Print the new BOM version
+        run: echo ${{ env.BOM_VERSION }}
+
+      - name: Generate POM file
+        run: make generate-bom-pom
+
+      - name: Print the new POM
+        run: make print-bom-pom
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4.2.3
+        with:
+          token: ${{ github.token }}
+          commit-message: Updating BOM to ${{ env.BOM_VERSION }}
+          branch: bom-${{ env.BOM_VERSION }}-update
+          delete-branch: true
+          title: Updating BOM to ${{ env.BOM_VERSION }}
+          body: Updating BOM to ${{ env.BOM_VERSION }}
+        env:
+          bom_version_new:

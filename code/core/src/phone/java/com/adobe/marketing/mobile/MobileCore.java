@@ -123,7 +123,10 @@ public final class MobileCore {
             V4ToV5Migration migrationTool = new V4ToV5Migration();
             migrationTool.migrate();
         } catch (Exception e) {
-            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "V4 to V5 migration failed.");
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "V4 to V5 migration failed - " + e.getLocalizedMessage());
         }
 
         // Register configuration extension

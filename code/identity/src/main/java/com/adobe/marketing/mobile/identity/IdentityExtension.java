@@ -193,7 +193,22 @@ public final class IdentityExtension extends Extension {
         }
 
         if (isSyncEvent(event) || EventType.GENERIC_IDENTITY.equals(event.getType())) {
-            return readyForSyncIdentifiers(event);
+            SharedStateResult configState =
+                    getApi().getSharedState(
+                                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                                    event,
+                                    false,
+                                    SharedStateResolution.LAST_SET);
+            if (configState == null || configState.getStatus() != SharedStateStatus.SET) {
+                Log.trace(
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "Waiting for the Configuration shared state to be set before processing"
+                                + " [event: %s].",
+                        event.getName());
+                return false;
+            }
+            return readyForSyncIdentifiers(configState.getValue());
         }
 
         if (isAppendUrlEvent(event) || isGetUrlVarsEvent(event)) {
@@ -232,21 +247,10 @@ public final class IdentityExtension extends Extension {
     }
 
     @VisibleForTesting
-    boolean readyForSyncIdentifiers(final Event event) {
-        Map<String, Object> configuration =
-                getApi().getSharedState(
-                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                event,
-                                false,
-                                SharedStateResolution.LAST_SET)
-                        .getValue();
-        String orgId =
-                DataReader.optString(
-                        configuration,
-                        IdentityConstants.EventDataKeys.Configuration
-                                .CONFIG_EXPERIENCE_CLOUD_ORGID_KEY,
-                        "");
-        return !orgId.isEmpty();
+    boolean readyForSyncIdentifiers(final Map<String, Object> configurationSharedState) {
+        updateLatestValidConfiguration(configurationSharedState);
+        return latestValidConfig != null
+                && latestValidConfig.canSyncIdentifiersWithCurrentConfiguration();
     }
 
     @VisibleForTesting
@@ -262,10 +266,22 @@ public final class IdentityExtension extends Extension {
                                 false,
                                 SharedStateResolution.LAST_SET);
         if (configState == null || configState.getStatus() != SharedStateStatus.SET) {
+            Log.debug(
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Waiting for Configuration shared state before processing event [name: %s, id:"
+                            + " %s]",
+                    event.getName(),
+                    event.getUniqueIdentifier());
             return false;
         }
 
-        if (!readyForSyncIdentifiers(event)) {
+        if (!readyForSyncIdentifiers(configState.getValue())) {
+            Log.debug(
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Cannot force sync identifiers, waiting for configuration with valid"
+                            + " 'experienceCloud.org' value.");
             return false;
         }
 

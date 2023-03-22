@@ -216,6 +216,74 @@ class IdentityIntegrationTests {
         countDownLatchSecondNetworkMonitor.await()
     }
 
+    @Test(timeout = 5_000)
+    fun testIdentitySendsForceSyncRequestOnLaunchOnValidConfig() {
+        SDKHelper.resetSDK()
+        ServiceProviderModifier.reset()
+
+        overrideNetworkService()
+
+        MobileCore.setApplication(ApplicationProvider.getApplicationContext())
+        MobileCore.setLogLevel(LoggingMode.VERBOSE)
+        val countDownLatchNetworkMonitor = CountDownLatch(1)
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/id")) {
+                countDownLatchNetworkMonitor.countDown()
+            }
+        }
+        val countDownLatchLaunch = CountDownLatch(1)
+        MobileCore.registerExtensions(
+            listOf(
+                IdentityExtension::class.java,
+                MonitorExtension::class.java
+            )
+        ) {
+            countDownLatchLaunch.countDown()
+        }
+
+        // Set invalid configuration (no org id)
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
+
+        assertTrue(countDownLatchLaunch.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
+
+        // No force sync request is sent on invalid configuration
+        assertFalse(countDownLatchNetworkMonitor.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
+
+        val countDownLatchSecondNetworkMonitor = CountDownLatch(1)
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/id")) {
+                assertTrue(url.contains("d_orgid=orgid"))
+                assertTrue(url.contains("d_mid="))
+                countDownLatchSecondNetworkMonitor.countDown()
+            }
+        }
+
+        // Set valid configuration
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+
+        val configurationLatch2 = CountDownLatch(1)
+        configurationAwareness { configurationLatch2.countDown() }
+        configurationLatch2.await()
+
+        // Expect force sync after valid configuration update
+        assertTrue("Timeout waiting for force sync network request after updating configuration with valid org id.", countDownLatchSecondNetworkMonitor.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
+    }
+
     @Test(timeout = TEST_TIMEOUT)
     fun testOptedout() {
         val countDownLatch = CountDownLatch(1)

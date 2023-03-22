@@ -28,6 +28,7 @@ import com.adobe.marketing.mobile.util.DataReader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -294,6 +295,29 @@ class IdentityExtensionTests {
         verify(spiedIdentityExtension, times(1)).readyForSyncIdentifiers(any())
         verify(mockedExtensionApi, times(1)).createSharedState(any(), eq(testEvent1))
         verify(spiedIdentityExtension, times(2)).forceSyncIdentifiers(any())
+    }
+
+    @Test
+    fun `readyForSyncIdentifiers() sets latest valid config and returns true on valid configuration`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+
+        val config = mapOf<String, Any>("experienceCloud.org" to "orgid", "global.privacy" to "optedin")
+        val result = spiedIdentityExtension.readyForSyncIdentifiers(config)
+
+        assertTrue(result)
+        assertNotNull(spiedIdentityExtension.latestValidConfig)
+        assertTrue(spiedIdentityExtension.latestValidConfig.canSyncIdentifiersWithCurrentConfiguration())
+    }
+
+    @Test
+    fun `readyForSyncIdentifiers() does not set latest valid config and returns false on invalid configuration`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+
+        val config = mapOf<String, Any>("global.privacy" to "optedin") // No experienceCloud.org
+        val result = spiedIdentityExtension.readyForSyncIdentifiers(config)
+
+        assertFalse(result)
+        assertNull(spiedIdentityExtension.latestValidConfig)
     }
 
     @Test

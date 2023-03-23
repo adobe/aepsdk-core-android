@@ -218,27 +218,11 @@ class IdentityIntegrationTests {
 
     @Test(timeout = 5_000)
     fun testIdentitySendsForceSyncRequestOnLaunchOnValidConfig() {
-        SDKHelper.resetSDK()
-        ServiceProviderModifier.reset()
-
-        overrideNetworkService()
-
-        MobileCore.setApplication(ApplicationProvider.getApplicationContext())
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
         val countDownLatchNetworkMonitor = CountDownLatch(1)
         networkMonitor = { url ->
             if (url.contains("https://test.com/id")) {
                 countDownLatchNetworkMonitor.countDown()
             }
-        }
-        val countDownLatchLaunch = CountDownLatch(1)
-        MobileCore.registerExtensions(
-            listOf(
-                IdentityExtension::class.java,
-                MonitorExtension::class.java
-            )
-        ) {
-            countDownLatchLaunch.countDown()
         }
 
         // Set invalid configuration (no org id)
@@ -252,8 +236,6 @@ class IdentityIntegrationTests {
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
         configurationLatch.await()
-
-        assertTrue(countDownLatchLaunch.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
 
         // No force sync request is sent on invalid configuration
         assertFalse(countDownLatchNetworkMonitor.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))

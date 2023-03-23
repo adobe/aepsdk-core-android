@@ -993,9 +993,16 @@ class IdentityExtensionTests {
 
     @Test
     fun `handleSyncIdentifiers() - returns false on cached state is OPTED_OUT`() {
+        val state = ConfigurationSharedStateIdentity()
+        state.getConfigurationProperties(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "global.privacy" to "optedout"
+            )
+        )
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         spiedIdentityExtension.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-        spiedIdentityExtension.latestValidConfig = ConfigurationSharedStateIdentity()
+        spiedIdentityExtension.latestValidConfig = state
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
@@ -1014,7 +1021,6 @@ class IdentityExtensionTests {
             mapOf(
                 "experienceCloud.org" to "orgid",
                 "global.privacy" to "optedout"
-
             )
         )
         spiedIdentityExtension.latestValidConfig = state
@@ -1036,7 +1042,6 @@ class IdentityExtensionTests {
             mapOf(
                 "experienceCloud.org" to "orgid",
                 "global.privacy" to "optedout"
-
             )
         )
         spiedIdentityExtension.latestValidConfig = state

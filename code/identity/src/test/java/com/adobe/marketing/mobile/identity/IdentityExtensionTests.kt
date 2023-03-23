@@ -982,10 +982,10 @@ class IdentityExtensionTests {
     @Test
     fun `handleSyncIdentifiers() - returns false on null configuration`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        spiedIdentityExtension.latestValidConfig = null
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
-                null,
                 false
             )
         )
@@ -996,11 +996,10 @@ class IdentityExtensionTests {
     fun `handleSyncIdentifiers() - returns false on cached state is OPTED_OUT`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         spiedIdentityExtension.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-        val state = ConfigurationSharedStateIdentity()
+        spiedIdentityExtension.latestValidConfig = ConfigurationSharedStateIdentity()
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
-                state,
                 false
             )
         )
@@ -1019,10 +1018,10 @@ class IdentityExtensionTests {
 
             )
         )
+        spiedIdentityExtension.latestValidConfig = state
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
-                state,
                 false
             )
         )
@@ -1041,7 +1040,8 @@ class IdentityExtensionTests {
 
             )
         )
-        assertFalse(spiedIdentityExtension.handleSyncIdentifiers(null, state, false))
+        spiedIdentityExtension.latestValidConfig = state
+        assertFalse(spiedIdentityExtension.handleSyncIdentifiers(null, false))
 
         verify(spiedIdentityExtension, never()).extractIdentifiers(any())
     }

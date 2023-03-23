@@ -82,7 +82,7 @@ public final class IdentityExtension extends Extension {
     private HitQueuing hitQueue;
     private static boolean pushEnabled = false;
     private static final Object pushEnabledMutex = new Object();
-    private ConfigurationSharedStateIdentity latestValidConfig;
+    @VisibleForTesting ConfigurationSharedStateIdentity latestValidConfig;
     private final NamedCollection namedCollection;
 
     private String mid;
@@ -290,13 +290,8 @@ public final class IdentityExtension extends Extension {
         loadPrivacyStatusFromConfigurationState(configState.getValue());
         hitQueue.handlePrivacyChange(privacyStatus);
 
-        Map<String, Object> configuration = configState.getValue();
-
-        ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
-        configSharedState.getConfigurationProperties(configuration);
-
         hasSynced =
-                handleSyncIdentifiers(event, configSharedState, true)
+                handleSyncIdentifiers(event, true)
                         || MobilePrivacyStatus.OPT_OUT.equals(privacyStatus);
 
         // Identity should always share its state
@@ -372,6 +367,8 @@ public final class IdentityExtension extends Extension {
             return;
         }
 
+        updateLatestValidConfiguration(configuration);
+
         MobilePrivacyStatus mobilePrivacyStatus =
                 MobilePrivacyStatus.fromString(
                         DataReader.optString(
@@ -387,8 +384,6 @@ public final class IdentityExtension extends Extension {
         // Do this after calling handleOptOut; clearing the identifiers before will cause
         // handleOptOut to fail
         processPrivacyChange(configurationEvent, configuration);
-
-        updateLatestValidConfiguration(configuration);
     }
 
     /**
@@ -518,19 +513,7 @@ public final class IdentityExtension extends Extension {
         savePersistently(); // clear datastore
 
         // When resetting identifiers, need to generate new Experience Cloud ID for the user
-        ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
-
-        SharedStateResult configState =
-                getApi().getSharedState(
-                                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                event,
-                                false,
-                                SharedStateResolution.LAST_SET);
-        if (configState != null) {
-            configSharedState.getConfigurationProperties(configState.getValue());
-        }
-
-        if (handleSyncIdentifiers(event, configSharedState, false)) {
+        if (handleSyncIdentifiers(event, false)) {
             getApi().createSharedState(packageEventData(), event);
         }
     }
@@ -783,7 +766,7 @@ public final class IdentityExtension extends Extension {
                 event);
 
         if (isSyncEvent(event) || EventType.GENERIC_IDENTITY.equals(event.getType())) {
-            if (handleSyncIdentifiers(event, configSharedState, false)) {
+            if (handleSyncIdentifiers(event, false)) {
                 getApi().createSharedState(packageEventData(), event);
             }
         } else if (isAppendUrlEvent(event)) {
@@ -831,32 +814,18 @@ public final class IdentityExtension extends Extension {
     }
 
     /**
-     * Handler for sync identifiers calls
+     * Handler for sync identifiers calls.
      *
      * <p>Calling this method will result in a Visitor ID Sync call being queued in the Identity
      * database
      *
      * @param event {@code Event} containing identifiers that need to be synced
-     * @param configSharedState {@code ConfigurationSharedStateIdentity} valid for this event
      * @param forceSync
      * @return true if the identifiers were successfully processed and a shared state needs to be
      *     created, false if the identifiers could not be processed at this time.
      */
     @VisibleForTesting
-    boolean handleSyncIdentifiers(
-            final Event event,
-            final ConfigurationSharedStateIdentity configSharedState,
-            final boolean forceSync) {
-        if (configSharedState == null) {
-            // sanity check, should never get here
-            Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the"
-                            + " configuration was null.");
-            return false;
-        }
-
+    boolean handleSyncIdentifiers(final Event event, final boolean forceSync) {
         // do not even extract any data if the config is opt_out.
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             Log.debug(
@@ -876,31 +845,22 @@ public final class IdentityExtension extends Extension {
             return false;
         }
 
-        // org id is a requirement.
-        // Use what's in current config shared state. if that's missing, check latest config.
-        // if latest config doesn't have org id either, IdentityExtension can't proceed.
-        ConfigurationSharedStateIdentity currentEventValidConfig;
-
-        if (!StringUtils.isNullOrEmpty(configSharedState.orgID)) {
-            currentEventValidConfig = configSharedState;
-        } else {
-            if (latestValidConfig != null) {
-                currentEventValidConfig = latestValidConfig;
-            } else {
-                // can't process this event. return false to break execution loop
-                Log.debug(
-                        IdentityConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "handleSyncIdentifiers : Unable to process sync identifiers request as the"
-                                + " configuration did not contain a valid Experience Cloud"
-                                + " organization ID. Will attempt to process event when a valid"
-                                + " configuration is received.");
-                return false;
-            }
+        if (latestValidConfig == null) {
+            // sanity check, should never get here as latestValidConfig set from
+            // readyForEvent/readyForSyncIdentifiers
+            // can't process this event. return false to break execution loop
+            Log.debug(
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "handleSyncIdentifiers : Unable to process sync identifiers request as the"
+                            + " configuration did not contain a valid Experience Cloud"
+                            + " organization ID. Will attempt to process event when a valid"
+                            + " configuration is received.");
+            return false;
         }
 
         // check privacy again from the configuration object
-        if (currentEventValidConfig.privacyStatus == MobilePrivacyStatus.OPT_OUT) {
+        if (latestValidConfig.privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             Log.debug(
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
@@ -910,14 +870,14 @@ public final class IdentityExtension extends Extension {
         }
 
         // if the marketingCloudServer is null or empty use the default server
-        if (StringUtils.isNullOrEmpty(currentEventValidConfig.marketingCloudServer)) {
-            currentEventValidConfig.marketingCloudServer = IdentityConstants.Defaults.SERVER;
+        if (StringUtils.isNullOrEmpty(latestValidConfig.marketingCloudServer)) {
+            latestValidConfig.marketingCloudServer = IdentityConstants.Defaults.SERVER;
             Log.debug(
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
                     "handleSyncIdentifiers : The experienceCloud.server was empty is the"
                             + " configuration, hence used the default server: (%s).",
-                    currentEventValidConfig.marketingCloudServer);
+                    latestValidConfig.marketingCloudServer);
         }
 
         final Map<String, Object> eventData = event.getEventData();
@@ -969,13 +929,10 @@ public final class IdentityExtension extends Extension {
                 currentCustomerIds,
                 dpids,
                 shouldForceSync || didAdidConsentChange,
-                currentEventValidConfig)) {
+                latestValidConfig)) {
             final String urlString =
                     buildURLString(
-                            currentCustomerIds,
-                            dpids,
-                            currentEventValidConfig,
-                            didAdidConsentChange);
+                            currentCustomerIds, dpids, latestValidConfig, didAdidConsentChange);
             IdentityHit hit = new IdentityHit(urlString, event);
             hitQueue.queue(hit.toDataEntity());
         } else {
@@ -1917,20 +1874,7 @@ public final class IdentityExtension extends Extension {
             getApi().createSharedState(packageEventData(), event);
         } else if (StringUtils.isNullOrEmpty(mid)) {
             // Need to generate new Experience Cloud ID for the user
-            ConfigurationSharedStateIdentity configSharedState =
-                    new ConfigurationSharedStateIdentity();
-
-            SharedStateResult configState =
-                    getApi().getSharedState(
-                                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
-                                    event,
-                                    false,
-                                    SharedStateResolution.LAST_SET);
-            if (configState != null) {
-                configSharedState.getConfigurationProperties(configState.getValue());
-            }
-
-            if (handleSyncIdentifiers(event, configSharedState, false)) {
+            if (handleSyncIdentifiers(event, false)) {
                 getApi().createSharedState(packageEventData(), event);
             }
         }
@@ -2553,10 +2497,5 @@ public final class IdentityExtension extends Extension {
     @VisibleForTesting
     void setLocationHint(final String locationHint) {
         this.locationHint = locationHint;
-    }
-
-    @VisibleForTesting
-    ConfigurationSharedStateIdentity getLatestValidConfig() {
-        return this.latestValidConfig;
     }
 }

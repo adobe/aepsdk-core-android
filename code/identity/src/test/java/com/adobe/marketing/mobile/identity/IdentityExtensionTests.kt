@@ -301,12 +301,11 @@ class IdentityExtensionTests {
     fun `readyForSyncIdentifiers() sets latest valid config and returns true on valid configuration`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
-        val config = mapOf<String, Any>("experienceCloud.org" to "orgid", "global.privacy" to "optedin")
+        val config = mapOf<String, Any>("experienceCloud.org" to "orgid", "global.privacy" to "optedout")
         val result = spiedIdentityExtension.readyForSyncIdentifiers(config)
 
         assertTrue(result)
         assertNotNull(spiedIdentityExtension.latestValidConfig)
-        assertTrue(spiedIdentityExtension.latestValidConfig.canSyncIdentifiersWithCurrentConfiguration())
     }
 
     @Test

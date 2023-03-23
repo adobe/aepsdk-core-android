@@ -595,7 +595,7 @@ class IdentityExtensionTests {
         )
         assertEquals(
             "dpm.demdex.net",
-            spiedIdentityExtension.latestValidConfig.marketingCloudServer
+            spiedIdentityExtension.latestValidConfig.experienceCloudServer
         )
     }
 

@@ -1961,7 +1961,7 @@ public final class IdentityExtension extends Extension {
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
                 .addPath("id")
-                .setServer(configSharedState.getMarketingCloudServer())
+                .setServer(configSharedState.getExperienceCloudServer())
                 .addQueryParameters(queryParameters);
 
         final String customerIdsString = generateURLEncodedValuesCustomerIdString(customerIds);
@@ -2005,7 +2005,7 @@ public final class IdentityExtension extends Extension {
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
                 .addPath(IdentityConstants.UrlKeys.PATH_OPTOUT)
-                .setServer(configSharedState.getMarketingCloudServer())
+                .setServer(configSharedState.getExperienceCloudServer())
                 .addQueryParameters(queryParameters);
 
         return urlBuilder.build();

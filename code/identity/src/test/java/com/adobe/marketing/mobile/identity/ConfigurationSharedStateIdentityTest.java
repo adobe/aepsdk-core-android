@@ -100,10 +100,10 @@ public class ConfigurationSharedStateIdentityTest {
                 configurationSharedStateIdentity.getPrivacyStatus(), MobilePrivacyStatus.UNKNOWN);
     }
 
-    // marketing server
+    // experience cloud server
     @Test
     public void
-            testExtractConfigurationProperties_SetsMarketingServer_When_NonNullMarketingServer() {
+            testExtractConfigurationProperties_SetsExperienceCloudServer_When_NonNullExperienceCloudServer() {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put(
                 IdentityTestConstants.JSON_EXPERIENCE_CLOUD_SERVER_KEY, "my-custom-server");
@@ -111,19 +111,19 @@ public class ConfigurationSharedStateIdentityTest {
         ConfigurationSharedStateIdentity configurationSharedStateIdentity =
                 new ConfigurationSharedStateIdentity(testSharedData);
         assertEquals(
-                configurationSharedStateIdentity.getMarketingCloudServer(), "my-custom-server");
+                configurationSharedStateIdentity.getExperienceCloudServer(), "my-custom-server");
     }
 
     @Test
     public void
-            testExtractConfigurationProperties_SetsMarketingServerToDefault_When_NullMarketingServer() {
+            testExtractConfigurationProperties_SetsExperienceCloudServerToDefault_When_NullExperienceCloudServer() {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put("random-key", "random-value");
 
         ConfigurationSharedStateIdentity configurationSharedStateIdentity =
                 new ConfigurationSharedStateIdentity(testSharedData);
         assertEquals(
-                configurationSharedStateIdentity.getMarketingCloudServer(),
+                configurationSharedStateIdentity.getExperienceCloudServer(),
                 IdentityTestConstants.Defaults.SERVER);
     }
 
@@ -249,7 +249,7 @@ public class ConfigurationSharedStateIdentityTest {
                 configurationSharedStateIdentity.getPrivacyStatus(),
                 IdentityTestConstants.Defaults.DEFAULT_MOBILE_PRIVACY);
         assertEquals(
-                configurationSharedStateIdentity.getMarketingCloudServer(),
+                configurationSharedStateIdentity.getExperienceCloudServer(),
                 IdentityTestConstants.Defaults.SERVER);
     }
 }

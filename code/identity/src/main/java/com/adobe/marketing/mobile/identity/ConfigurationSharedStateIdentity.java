@@ -35,12 +35,12 @@ final class ConfigurationSharedStateIdentity {
     private final MobilePrivacyStatus privacyStatus;
 
     /** {@link String} containing the host value for the Experience Cloud Server */
-    private final String marketingCloudServer;
+    private final String experienceCloudServer;
 
     /**
      * Extracts data from the provided shared state data and sets the internal configuration
      * appropriately. Sets default values for {@link #privacyStatus}, and {@link
-     * #marketingCloudServer} if provided shared state does not contain valid values.
+     * #experienceCloudServer} if provided shared state does not contain valid values.
      *
      * @param sharedState EventData representing a {@code Configuration} shared state
      */
@@ -53,11 +53,7 @@ final class ConfigurationSharedStateIdentity {
                         IdentityConstants.JSON_EXPERIENCE_CLOUD_SERVER_KEY,
                         Defaults.SERVER);
 
-        if (StringUtils.isNullOrEmpty(server)) {
-            this.marketingCloudServer = Defaults.SERVER;
-        } else {
-            this.marketingCloudServer = server;
-        }
+        this.experienceCloudServer = StringUtils.isNullOrEmpty(server) ? Defaults.SERVER : server;
 
         this.privacyStatus =
                 MobilePrivacyStatus.fromString(
@@ -90,8 +86,8 @@ final class ConfigurationSharedStateIdentity {
      *
      * @return the Experience Cloud server; defaults to {@link Defaults#SERVER}
      */
-    @NonNull String getMarketingCloudServer() {
-        return marketingCloudServer;
+    @NonNull String getExperienceCloudServer() {
+        return experienceCloudServer;
     }
 
     /**

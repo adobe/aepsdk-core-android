@@ -249,7 +249,15 @@ public final class IdentityExtension extends Extension {
     @VisibleForTesting
     boolean readyForSyncIdentifiers(final Map<String, Object> configurationSharedState) {
         updateLatestValidConfiguration(configurationSharedState);
-        return latestValidConfig != null && !StringUtils.isNullOrEmpty(latestValidConfig.orgID);
+        if (latestValidConfig == null || StringUtils.isNullOrEmpty(latestValidConfig.orgID)) {
+            Log.debug(
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Cannot sync identifiers, waiting for configuration with valid"
+                            + " 'experienceCloud.org' value.");
+            return false;
+        }
+        return true;
     }
 
     @VisibleForTesting
@@ -265,7 +273,7 @@ public final class IdentityExtension extends Extension {
                                 false,
                                 SharedStateResolution.LAST_SET);
         if (configState == null || configState.getStatus() != SharedStateStatus.SET) {
-            Log.debug(
+            Log.trace(
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
                     "Waiting for Configuration shared state before processing event [name: %s, id:"
@@ -276,11 +284,6 @@ public final class IdentityExtension extends Extension {
         }
 
         if (!readyForSyncIdentifiers(configState.getValue())) {
-            Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "Cannot force sync identifiers, waiting for configuration with valid"
-                            + " 'experienceCloud.org' value.");
             return false;
         }
 
@@ -825,25 +828,6 @@ public final class IdentityExtension extends Extension {
      */
     @VisibleForTesting
     boolean handleSyncIdentifiers(final Event event, final boolean forceSync) {
-        // do not even extract any data if the config is opt_out.
-        if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the"
-                            + " privacy status was opt-out.");
-            return false;
-        }
-
-        if (event == null) {
-            Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the event"
-                            + " sent was null.");
-            return false;
-        }
-
         if (latestValidConfig == null) {
             // sanity check, should never get here as latestValidConfig set from
             // readyForEvent/readyForSyncIdentifiers
@@ -853,18 +837,25 @@ public final class IdentityExtension extends Extension {
                     LOG_SOURCE,
                     "handleSyncIdentifiers : Unable to process sync identifiers request as the"
                             + " configuration did not contain a valid Experience Cloud"
-                            + " organization ID. Will attempt to process event when a valid"
-                            + " configuration is received.");
+                            + " organization ID.");
             return false;
         }
 
-        // check privacy again from the configuration object
         if (latestValidConfig.privacyStatus == MobilePrivacyStatus.OPT_OUT) {
             Log.debug(
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
                     "handleSyncIdentifiers : Ignored the Sync Identifiers call because the privacy"
                             + " status was opt-out.");
+            return false;
+        }
+
+        if (event == null) {
+            Log.debug(
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the event"
+                            + " sent was null.");
             return false;
         }
 

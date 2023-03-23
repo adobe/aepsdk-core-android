@@ -11,9 +11,10 @@
 
 package com.adobe.marketing.mobile.identity;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
 import com.adobe.marketing.mobile.identity.IdentityConstants.Defaults;
-import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.util.DataReader;
 import com.adobe.marketing.mobile.util.StringUtils;
 import java.util.Map;
@@ -27,52 +28,35 @@ import java.util.Map;
  */
 final class ConfigurationSharedStateIdentity {
 
-    private static final String LOG_SOURCE = "ConfigurationSharedStateIdentity";
-
     /** {@link String} containing value of the customer's Experience Cloud Organization ID */
-    String orgID;
+    private final String orgID;
 
     /** {@link MobilePrivacyStatus} value containing the current opt status of the user */
-    MobilePrivacyStatus privacyStatus;
+    private final MobilePrivacyStatus privacyStatus;
 
     /** {@link String} containing the host value for the Experience Cloud Server */
-    String marketingCloudServer;
-
-    /**
-     * Constructor sets default values for {@link #privacyStatus}, and {@link #marketingCloudServer}
-     */
-    ConfigurationSharedStateIdentity() {
-        this.orgID = null;
-        this.privacyStatus = Defaults.DEFAULT_MOBILE_PRIVACY;
-        this.marketingCloudServer = Defaults.SERVER;
-    }
+    private final String marketingCloudServer;
 
     /**
      * Extracts data from the provided shared state data and sets the internal configuration
-     * appropriately
+     * appropriately. Sets default values for {@link #privacyStatus}, and {@link
+     * #marketingCloudServer} if provided shared state does not contain valid values.
      *
      * @param sharedState EventData representing a {@code Configuration} shared state
      */
-    void getConfigurationProperties(final Map<String, Object> sharedState) {
-        if (sharedState == null) {
-            Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "getConfigurationProperties : Using default configurations because config"
-                            + " state was null.");
-            return;
-        }
-
+    ConfigurationSharedStateIdentity(final Map<String, Object> sharedState) {
         this.orgID =
                 DataReader.optString(sharedState, IdentityConstants.JSON_CONFIG_ORGID_KEY, null);
-        this.marketingCloudServer =
+        String server =
                 DataReader.optString(
                         sharedState,
                         IdentityConstants.JSON_EXPERIENCE_CLOUD_SERVER_KEY,
                         Defaults.SERVER);
 
-        if (StringUtils.isNullOrEmpty(this.marketingCloudServer)) {
+        if (StringUtils.isNullOrEmpty(server)) {
             this.marketingCloudServer = Defaults.SERVER;
+        } else {
+            this.marketingCloudServer = server;
         }
 
         this.privacyStatus =
@@ -81,6 +65,33 @@ final class ConfigurationSharedStateIdentity {
                                 sharedState,
                                 IdentityConstants.JSON_CONFIG_PRIVACY_KEY,
                                 Defaults.DEFAULT_MOBILE_PRIVACY.getValue()));
+    }
+
+    /**
+     * The Experience Cloud organization ID.
+     *
+     * @return the Experience Cloud organization ID or null if one wasn't set.
+     */
+    @Nullable String getOrgID() {
+        return orgID;
+    }
+
+    /**
+     * The privacy status.
+     *
+     * @return the privacy status; defaults to {@link Defaults#DEFAULT_MOBILE_PRIVACY}.
+     */
+    @NonNull MobilePrivacyStatus getPrivacyStatus() {
+        return privacyStatus;
+    }
+
+    /**
+     * The Experience Cloud server.
+     *
+     * @return the Experience Cloud server; defaults to {@link Defaults#SERVER}
+     */
+    @NonNull String getMarketingCloudServer() {
+        return marketingCloudServer;
     }
 
     /**

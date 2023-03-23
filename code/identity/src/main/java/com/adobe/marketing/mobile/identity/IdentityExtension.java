@@ -249,7 +249,7 @@ public final class IdentityExtension extends Extension {
     @VisibleForTesting
     boolean readyForSyncIdentifiers(final Map<String, Object> configurationSharedState) {
         updateLatestValidConfiguration(configurationSharedState);
-        if (latestValidConfig == null || StringUtils.isNullOrEmpty(latestValidConfig.orgID)) {
+        if (latestValidConfig == null || StringUtils.isNullOrEmpty(latestValidConfig.getOrgID())) {
             Log.debug(
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
@@ -481,8 +481,7 @@ public final class IdentityExtension extends Extension {
                         null);
 
         if (!StringUtils.isNullOrEmpty(orgId)) {
-            latestValidConfig = new ConfigurationSharedStateIdentity();
-            latestValidConfig.getConfigurationProperties(data);
+            latestValidConfig = new ConfigurationSharedStateIdentity(data);
         }
     }
 
@@ -575,10 +574,9 @@ public final class IdentityExtension extends Extension {
             // Make sure that the configuration shared state at this point has not changed the
             // privacy status
             ConfigurationSharedStateIdentity configSharedState =
-                    new ConfigurationSharedStateIdentity();
-            configSharedState.getConfigurationProperties(identitySharedState.getValue());
+                    new ConfigurationSharedStateIdentity(identitySharedState.getValue());
 
-            if (configSharedState.privacyStatus.equals(MobilePrivacyStatus.OPT_OUT)) {
+            if (configSharedState.getPrivacyStatus().equals(MobilePrivacyStatus.OPT_OUT)) {
                 sendOptOutHit(configSharedState);
             }
         }
@@ -758,8 +756,8 @@ public final class IdentityExtension extends Extension {
 
         Map<String, Object> configuration = result.getValue();
 
-        ConfigurationSharedStateIdentity configSharedState = new ConfigurationSharedStateIdentity();
-        configSharedState.getConfigurationProperties(configuration);
+        ConfigurationSharedStateIdentity configSharedState =
+                new ConfigurationSharedStateIdentity(configuration);
 
         Log.trace(
                 IdentityConstants.LOG_TAG,
@@ -806,10 +804,9 @@ public final class IdentityExtension extends Extension {
             // Otherwise, check to see if currently we are still opt_out, and if so, send the OPT
             // OUT hit
             ConfigurationSharedStateIdentity configSharedState =
-                    new ConfigurationSharedStateIdentity();
-            configSharedState.getConfigurationProperties(configuration);
+                    new ConfigurationSharedStateIdentity(configuration);
 
-            if (configSharedState.privacyStatus.equals(MobilePrivacyStatus.OPT_OUT)) {
+            if (configSharedState.getPrivacyStatus().equals(MobilePrivacyStatus.OPT_OUT)) {
                 sendOptOutHit(configSharedState);
             }
         }
@@ -841,7 +838,7 @@ public final class IdentityExtension extends Extension {
             return false;
         }
 
-        if (latestValidConfig.privacyStatus == MobilePrivacyStatus.OPT_OUT) {
+        if (latestValidConfig.getPrivacyStatus() == MobilePrivacyStatus.OPT_OUT) {
             Log.debug(
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
@@ -857,17 +854,6 @@ public final class IdentityExtension extends Extension {
                     "handleSyncIdentifiers : Ignoring the Sync Identifiers call because the event"
                             + " sent was null.");
             return false;
-        }
-
-        // if the marketingCloudServer is null or empty use the default server
-        if (StringUtils.isNullOrEmpty(latestValidConfig.marketingCloudServer)) {
-            latestValidConfig.marketingCloudServer = IdentityConstants.Defaults.SERVER;
-            Log.debug(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "handleSyncIdentifiers : The experienceCloud.server was empty is the"
-                            + " configuration, hence used the default server: (%s).",
-                    latestValidConfig.marketingCloudServer);
         }
 
         final Map<String, Object> eventData = event.getEventData();
@@ -1471,7 +1457,7 @@ public final class IdentityExtension extends Extension {
         }
 
         // add Experience Cloud Org ID
-        String orgId = configSharedState != null ? configSharedState.orgID : null;
+        String orgId = configSharedState != null ? configSharedState.getOrgID() : null;
 
         if (!StringUtils.isNullOrEmpty(orgId)) {
             theIdString =
@@ -1958,7 +1944,7 @@ public final class IdentityExtension extends Extension {
             }
         }
 
-        queryParameters.put(IdentityConstants.UrlKeys.ORGID, configSharedState.orgID);
+        queryParameters.put(IdentityConstants.UrlKeys.ORGID, configSharedState.getOrgID());
 
         if (mid != null) {
             queryParameters.put(IdentityConstants.UrlKeys.MID, mid);
@@ -1975,7 +1961,7 @@ public final class IdentityExtension extends Extension {
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
                 .addPath("id")
-                .setServer(configSharedState.marketingCloudServer)
+                .setServer(configSharedState.getMarketingCloudServer())
                 .addQueryParameters(queryParameters);
 
         final String customerIdsString = generateURLEncodedValuesCustomerIdString(customerIds);
@@ -2008,18 +1994,18 @@ public final class IdentityExtension extends Extension {
             return null;
         }
 
-        if (configSharedState.orgID == null || mid == null) {
+        if (configSharedState.getOrgID() == null || mid == null) {
             return null;
         }
 
         final Map<String, String> queryParameters = new HashMap<>();
-        queryParameters.put(IdentityConstants.UrlKeys.ORGID, configSharedState.orgID);
+        queryParameters.put(IdentityConstants.UrlKeys.ORGID, configSharedState.getOrgID());
         queryParameters.put(IdentityConstants.UrlKeys.MID, mid);
 
         final URLBuilder urlBuilder = new URLBuilder();
         urlBuilder
                 .addPath(IdentityConstants.UrlKeys.PATH_OPTOUT)
-                .setServer(configSharedState.marketingCloudServer)
+                .setServer(configSharedState.getMarketingCloudServer())
                 .addQueryParameters(queryParameters);
 
         return urlBuilder.build();

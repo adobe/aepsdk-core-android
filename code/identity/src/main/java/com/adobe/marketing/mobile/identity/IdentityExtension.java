@@ -249,8 +249,7 @@ public final class IdentityExtension extends Extension {
     @VisibleForTesting
     boolean readyForSyncIdentifiers(final Map<String, Object> configurationSharedState) {
         updateLatestValidConfiguration(configurationSharedState);
-        return latestValidConfig != null
-                && !StringUtils.isNullOrEmpty(latestValidConfig.orgID);
+        return latestValidConfig != null && !StringUtils.isNullOrEmpty(latestValidConfig.orgID);
     }
 
     @VisibleForTesting

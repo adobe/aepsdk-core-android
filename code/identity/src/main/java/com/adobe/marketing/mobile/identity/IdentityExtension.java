@@ -2405,22 +2405,6 @@ public final class IdentityExtension extends Extension {
         return requiresSharedStateUpdate;
     }
 
-    private Event createForcedSyncEvent() {
-        final Map<String, Object> eventData = new HashMap<>();
-        eventData.put(IdentityConstants.EventDataKeys.Identity.FORCE_SYNC, true);
-        eventData.put(IdentityConstants.EventDataKeys.Identity.IS_SYNC_EVENT, true);
-        eventData.put(
-                IdentityConstants.EventDataKeys.Identity.AUTHENTICATION_STATE,
-                VisitorID.AuthenticationState.UNKNOWN.getValue());
-
-        return new Event.Builder(
-                        "id-construct-forced-sync",
-                        EventType.IDENTITY,
-                        EventSource.REQUEST_IDENTITY)
-                .setEventData(eventData)
-                .build();
-    }
-
     /**
      * Checks if two {@link VisitorID}s have the same id type. This method is used for identifying
      * if an id needs to be updated or if it is completely new.

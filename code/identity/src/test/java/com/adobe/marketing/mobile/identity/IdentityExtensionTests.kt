@@ -28,6 +28,7 @@ import com.adobe.marketing.mobile.util.DataReader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -294,6 +295,28 @@ class IdentityExtensionTests {
         verify(spiedIdentityExtension, times(1)).readyForSyncIdentifiers(any())
         verify(mockedExtensionApi, times(1)).createSharedState(any(), eq(testEvent1))
         verify(spiedIdentityExtension, times(2)).forceSyncIdentifiers(any())
+    }
+
+    @Test
+    fun `readyForSyncIdentifiers() sets latest valid config and returns true on valid configuration`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+
+        val config = mapOf<String, Any>("experienceCloud.org" to "orgid", "global.privacy" to "optedout")
+        val result = spiedIdentityExtension.readyForSyncIdentifiers(config)
+
+        assertTrue(result)
+        assertNotNull(spiedIdentityExtension.latestValidConfig)
+    }
+
+    @Test
+    fun `readyForSyncIdentifiers() does not set latest valid config and returns false on invalid configuration`() {
+        val spiedIdentityExtension = initializeSpiedIdentityExtension()
+
+        val config = mapOf<String, Any>("global.privacy" to "optedin") // No experienceCloud.org
+        val result = spiedIdentityExtension.readyForSyncIdentifiers(config)
+
+        assertFalse(result)
+        assertNull(spiedIdentityExtension.latestValidConfig)
     }
 
     @Test
@@ -572,7 +595,7 @@ class IdentityExtensionTests {
         )
         assertEquals(
             "dpm.demdex.net",
-            spiedIdentityExtension.latestValidConfig.marketingCloudServer
+            spiedIdentityExtension.latestValidConfig.experienceCloudServer
         )
     }
 
@@ -889,7 +912,11 @@ class IdentityExtensionTests {
     @Test(timeout = 10000)
     fun `sendOptOutHit() - happy (200)`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
-        val state = ConfigurationSharedStateIdentity()
+        val state = ConfigurationSharedStateIdentity(
+            mapOf(
+                "experienceCloud.org" to "orgId"
+            )
+        )
         spiedIdentityExtension.mid = "123455"
         Mockito.`when`(mockedConnection.responseCode).thenReturn(200)
         val countDownLatch = CountDownLatch(1)
@@ -899,11 +926,7 @@ class IdentityExtensionTests {
             callback.call(mockedConnection)
             countDownLatch.countDown()
         }
-        state.getConfigurationProperties(
-            mapOf(
-                "experienceCloud.org" to "orgId"
-            )
-        )
+
         spiedIdentityExtension.sendOptOutHit(state)
         countDownLatch.await()
         verify(mockedConnection, times(1)).close()
@@ -912,7 +935,11 @@ class IdentityExtensionTests {
     @Test(timeout = 10000)
     fun `sendOptOutHit() - bad request (400)`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
-        val state = ConfigurationSharedStateIdentity()
+        val state = ConfigurationSharedStateIdentity(
+            mapOf(
+                "experienceCloud.org" to "orgId"
+            )
+        )
         spiedIdentityExtension.mid = "123455"
         Mockito.`when`(mockedConnection.responseCode).thenReturn(400)
         val countDownLatch = CountDownLatch(1)
@@ -922,11 +949,7 @@ class IdentityExtensionTests {
             callback.call(mockedConnection)
             countDownLatch.countDown()
         }
-        state.getConfigurationProperties(
-            mapOf(
-                "experienceCloud.org" to "orgId"
-            )
-        )
+
         spiedIdentityExtension.sendOptOutHit(state)
         countDownLatch.await()
         verify(mockedConnection, times(1)).close()
@@ -935,7 +958,11 @@ class IdentityExtensionTests {
     @Test(timeout = 10000)
     fun `sendOptOutHit() - null connection`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
-        val state = ConfigurationSharedStateIdentity()
+        val state = ConfigurationSharedStateIdentity(
+            mapOf(
+                "experienceCloud.org" to "orgId"
+            )
+        )
         spiedIdentityExtension.mid = "123455"
         Mockito.`when`(mockedConnection.responseCode).thenReturn(200)
         val countDownLatch = CountDownLatch(1)
@@ -945,11 +972,7 @@ class IdentityExtensionTests {
             callback.call(null)
             countDownLatch.countDown()
         }
-        state.getConfigurationProperties(
-            mapOf(
-                "experienceCloud.org" to "orgId"
-            )
-        )
+
         spiedIdentityExtension.sendOptOutHit(state)
         countDownLatch.await()
         verify(mockedConnection, never()).close()
@@ -958,10 +981,10 @@ class IdentityExtensionTests {
     @Test
     fun `handleSyncIdentifiers() - returns false on null configuration`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
+        spiedIdentityExtension.latestValidConfig = null
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
-                null,
                 false
             )
         )
@@ -970,13 +993,19 @@ class IdentityExtensionTests {
 
     @Test
     fun `handleSyncIdentifiers() - returns false on cached state is OPTED_OUT`() {
+        val state = ConfigurationSharedStateIdentity(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "global.privacy" to "optedout"
+            )
+        )
+
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
         spiedIdentityExtension.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-        val state = ConfigurationSharedStateIdentity()
+        spiedIdentityExtension.latestValidConfig = state
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
-                state,
                 false
             )
         )
@@ -987,18 +1016,17 @@ class IdentityExtensionTests {
     @Test
     fun `handleSyncIdentifiers() - returns false on latest state is OPTED_OUT`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
-        val state = ConfigurationSharedStateIdentity()
-        state.getConfigurationProperties(
+        val state = ConfigurationSharedStateIdentity(
             mapOf(
                 "experienceCloud.org" to "orgid",
                 "global.privacy" to "optedout"
-
             )
         )
+
+        spiedIdentityExtension.latestValidConfig = state
         assertFalse(
             spiedIdentityExtension.handleSyncIdentifiers(
                 Event.Builder("event", "type", "source").build(),
-                state,
                 false
             )
         )
@@ -1009,15 +1037,15 @@ class IdentityExtensionTests {
     @Test
     fun `handleSyncIdentifiers() - returns false on null event`() {
         val spiedIdentityExtension = initializeSpiedIdentityExtension()
-        val state = ConfigurationSharedStateIdentity()
-        state.getConfigurationProperties(
+        val state = ConfigurationSharedStateIdentity(
             mapOf(
                 "experienceCloud.org" to "orgid",
                 "global.privacy" to "optedout"
-
             )
         )
-        assertFalse(spiedIdentityExtension.handleSyncIdentifiers(null, state, false))
+
+        spiedIdentityExtension.latestValidConfig = state
+        assertFalse(spiedIdentityExtension.handleSyncIdentifiers(null, false))
 
         verify(spiedIdentityExtension, never()).extractIdentifiers(any())
     }
@@ -1772,8 +1800,7 @@ class IdentityExtensionTests {
 
             val spiedIdentityExtension = initializeSpiedIdentityExtension()
 
-            val configurationSharedStateIdentity = ConfigurationSharedStateIdentity()
-            configurationSharedStateIdentity.getConfigurationProperties(
+            val configurationSharedStateIdentity = ConfigurationSharedStateIdentity(
                 mapOf(
                     "experienceCloud.org" to "orgid"
                 )

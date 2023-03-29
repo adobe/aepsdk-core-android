@@ -36,7 +36,7 @@ public class IdentityAPITests {
 
     @Test
     public void test_extensionVersion() {
-        assertEquals("2.0.1", Identity.extensionVersion());
+        assertEquals("2.0.2", Identity.extensionVersion());
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

@@ -14,30 +14,24 @@ package com.adobe.marketing.mobile.identity;
 import static org.junit.Assert.*;
 
 import com.adobe.marketing.mobile.MobilePrivacyStatus;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 public class ConfigurationSharedStateIdentityTest {
 
-    private ConfigurationSharedStateIdentity configurationSharedStateIdentity;
-
-    @Before
-    public void setup() {
-        configurationSharedStateIdentity = new ConfigurationSharedStateIdentity();
-    }
-
     @Test
     public void testConstructor_ShouldSetDefault() {
-        verifyDefaultValues();
+        verifyDefaultValues(new ConfigurationSharedStateIdentity(Collections.emptyMap()));
     }
 
     @Test
     public void testExtractConfigurationProperties_ShouldLetDefaultValuesBe_When_NullSharedState() {
-        configurationSharedStateIdentity.getConfigurationProperties(null);
-        verifyDefaultValues();
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(null);
+        verifyDefaultValues(configurationSharedStateIdentity);
     }
 
     // org id
@@ -46,8 +40,9 @@ public class ConfigurationSharedStateIdentityTest {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "test-org-id");
 
-        configurationSharedStateIdentity.getConfigurationProperties(testSharedData);
-        assertEquals(configurationSharedStateIdentity.orgID, "test-org-id");
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
+        assertEquals(configurationSharedStateIdentity.getOrgID(), "test-org-id");
     }
 
     @Test
@@ -55,8 +50,9 @@ public class ConfigurationSharedStateIdentityTest {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put("random-key", "random-value");
 
-        configurationSharedStateIdentity.getConfigurationProperties(testSharedData);
-        assertNull(configurationSharedStateIdentity.orgID, null);
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
+        assertNull(configurationSharedStateIdentity.getOrgID(), null);
     }
 
     // privacy
@@ -65,9 +61,10 @@ public class ConfigurationSharedStateIdentityTest {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "optedin");
 
-        configurationSharedStateIdentity.getConfigurationProperties(testSharedData);
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         Assert.assertEquals(
-                configurationSharedStateIdentity.privacyStatus, MobilePrivacyStatus.OPT_IN);
+                configurationSharedStateIdentity.getPrivacyStatus(), MobilePrivacyStatus.OPT_IN);
     }
 
     @Test
@@ -75,8 +72,10 @@ public class ConfigurationSharedStateIdentityTest {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "invalidValue");
 
-        configurationSharedStateIdentity.getConfigurationProperties(testSharedData);
-        assertEquals(configurationSharedStateIdentity.privacyStatus, MobilePrivacyStatus.UNKNOWN);
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
+        assertEquals(
+                configurationSharedStateIdentity.getPrivacyStatus(), MobilePrivacyStatus.UNKNOWN);
     }
 
     @Test
@@ -84,8 +83,10 @@ public class ConfigurationSharedStateIdentityTest {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put("random-key", "random-value");
 
-        configurationSharedStateIdentity.getConfigurationProperties(testSharedData);
-        assertEquals(configurationSharedStateIdentity.privacyStatus, MobilePrivacyStatus.UNKNOWN);
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
+        assertEquals(
+                configurationSharedStateIdentity.getPrivacyStatus(), MobilePrivacyStatus.UNKNOWN);
     }
 
     @Test
@@ -93,31 +94,36 @@ public class ConfigurationSharedStateIdentityTest {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put(IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY, "opted-whatever");
 
-        configurationSharedStateIdentity.getConfigurationProperties(testSharedData);
-        assertEquals(configurationSharedStateIdentity.privacyStatus, MobilePrivacyStatus.UNKNOWN);
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
+        assertEquals(
+                configurationSharedStateIdentity.getPrivacyStatus(), MobilePrivacyStatus.UNKNOWN);
     }
 
-    // marketing server
+    // experience cloud server
     @Test
     public void
-            testExtractConfigurationProperties_SetsMarketingServer_When_NonNullMarketingServer() {
+            testExtractConfigurationProperties_SetsExperienceCloudServer_When_NonNullExperienceCloudServer() {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put(
                 IdentityTestConstants.JSON_EXPERIENCE_CLOUD_SERVER_KEY, "my-custom-server");
 
-        configurationSharedStateIdentity.getConfigurationProperties(testSharedData);
-        assertEquals(configurationSharedStateIdentity.marketingCloudServer, "my-custom-server");
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
+        assertEquals(
+                configurationSharedStateIdentity.getExperienceCloudServer(), "my-custom-server");
     }
 
     @Test
     public void
-            testExtractConfigurationProperties_SetsMarketingServerToDefault_When_NullMarketingServer() {
+            testExtractConfigurationProperties_SetsExperienceCloudServerToDefault_When_NullExperienceCloudServer() {
         Map<String, Object> testSharedData = new HashMap<>();
         testSharedData.put("random-key", "random-value");
 
-        configurationSharedStateIdentity.getConfigurationProperties(testSharedData);
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         assertEquals(
-                configurationSharedStateIdentity.marketingCloudServer,
+                configurationSharedStateIdentity.getExperienceCloudServer(),
                 IdentityTestConstants.Defaults.SERVER);
     }
 
@@ -125,78 +131,125 @@ public class ConfigurationSharedStateIdentityTest {
     @Test
     public void
             testShouldSyncIdentifiersWithCurrentConfiguration_ShouldReturnFalse_When_NullOrgID() {
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(null);
         assertFalse(configurationSharedStateIdentity.canSyncIdentifiersWithCurrentConfiguration());
     }
 
     @Test
     public void
             testShouldSyncIdentifiersWithCurrentConfiguration_ShouldReturnFalse_When_EmptyOrgID() {
-        configurationSharedStateIdentity.orgID = "";
+        Map<String, Object> testSharedData = new HashMap<>();
+        testSharedData.put(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "");
+
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         assertFalse(configurationSharedStateIdentity.canSyncIdentifiersWithCurrentConfiguration());
     }
 
     @Test
     public void
             testShouldSyncIdentifiersWithCurrentConfiguration_ShouldReturnFalse_When_PrivacyOptedOut() {
-        configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_OUT;
+        Map<String, Object> testSharedData = new HashMap<>();
+        testSharedData.put(
+                IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY,
+                MobilePrivacyStatus.OPT_OUT.getValue());
+
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         assertFalse(configurationSharedStateIdentity.canSyncIdentifiersWithCurrentConfiguration());
     }
 
     @Test
     public void
             testShouldSyncIdentifiersWithCurrentConfiguration_ShouldReturnFalse_When_PrivacyOptedOut_NonEmptyOrgID() {
-        configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_OUT;
-        configurationSharedStateIdentity.orgID = "non-empty-org-id";
+        Map<String, Object> testSharedData = new HashMap<>();
+        testSharedData.put(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "non-empty-org-id");
+        testSharedData.put(
+                IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY,
+                MobilePrivacyStatus.OPT_OUT.getValue());
+
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         assertFalse(configurationSharedStateIdentity.canSyncIdentifiersWithCurrentConfiguration());
     }
 
     @Test
     public void
             testShouldSyncIdentifiersWithCurrentConfiguration_ShouldReturnFalse_When_PrivacyOptedIn_EmptyOrgID() {
-        configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
-        configurationSharedStateIdentity.orgID = "";
+        Map<String, Object> testSharedData = new HashMap<>();
+        testSharedData.put(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "");
+        testSharedData.put(
+                IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY,
+                MobilePrivacyStatus.OPT_IN.getValue());
+
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         assertFalse(configurationSharedStateIdentity.canSyncIdentifiersWithCurrentConfiguration());
     }
 
     @Test
     public void
             testShouldSyncIdentifiersWithCurrentConfiguration_ShouldReturnFalse_When_PrivacyOptedIn_NullOrgID() {
-        configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
-        configurationSharedStateIdentity.orgID = null;
+        Map<String, Object> testSharedData = new HashMap<>();
+        testSharedData.put(
+                IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY,
+                MobilePrivacyStatus.OPT_IN.getValue());
+
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         assertFalse(configurationSharedStateIdentity.canSyncIdentifiersWithCurrentConfiguration());
     }
 
     @Test
     public void
             testShouldSyncIdentifiersWithCurrentConfiguration_ShouldReturnFalse_When_PrivacyUnknown_NullOrgID() {
-        configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.UNKNOWN;
-        configurationSharedStateIdentity.orgID = null;
+        Map<String, Object> testSharedData = new HashMap<>();
+        testSharedData.put(
+                IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY,
+                MobilePrivacyStatus.UNKNOWN.getValue());
+
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         assertFalse(configurationSharedStateIdentity.canSyncIdentifiersWithCurrentConfiguration());
     }
 
     @Test
     public void
             testShouldSyncIdentifiersWithCurrentConfiguration_ShouldReturnTrue_When_PrivacyUnknown_NonNullOrgID() {
-        configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.UNKNOWN;
-        configurationSharedStateIdentity.orgID = "non-empty-org-id";
+        Map<String, Object> testSharedData = new HashMap<>();
+        testSharedData.put(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "non-empty-org-id");
+        testSharedData.put(
+                IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY,
+                MobilePrivacyStatus.UNKNOWN.getValue());
+
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         assertTrue(configurationSharedStateIdentity.canSyncIdentifiersWithCurrentConfiguration());
     }
 
     @Test
     public void
             testShouldSyncIdentifiersWithCurrentConfiguration_ShouldReturnTrue_When_PrivacyOptedIn_NonNullOrgID() {
-        configurationSharedStateIdentity.privacyStatus = MobilePrivacyStatus.OPT_IN;
-        configurationSharedStateIdentity.orgID = "non-empty-org-id";
+        Map<String, Object> testSharedData = new HashMap<>();
+        testSharedData.put(IdentityTestConstants.JSON_CONFIG_ORGID_KEY, "non-empty-org-id");
+        testSharedData.put(
+                IdentityTestConstants.JSON_CONFIG_PRIVACY_KEY,
+                MobilePrivacyStatus.OPT_IN.getValue());
+
+        ConfigurationSharedStateIdentity configurationSharedStateIdentity =
+                new ConfigurationSharedStateIdentity(testSharedData);
         assertTrue(configurationSharedStateIdentity.canSyncIdentifiersWithCurrentConfiguration());
     }
 
-    private void verifyDefaultValues() {
-        assertNull(configurationSharedStateIdentity.orgID);
+    private void verifyDefaultValues(
+            ConfigurationSharedStateIdentity configurationSharedStateIdentity) {
+        assertNull(configurationSharedStateIdentity.getOrgID());
         Assert.assertEquals(
-                configurationSharedStateIdentity.privacyStatus,
+                configurationSharedStateIdentity.getPrivacyStatus(),
                 IdentityTestConstants.Defaults.DEFAULT_MOBILE_PRIVACY);
         assertEquals(
-                configurationSharedStateIdentity.marketingCloudServer,
+                configurationSharedStateIdentity.getExperienceCloudServer(),
                 IdentityTestConstants.Defaults.SERVER);
     }
 }

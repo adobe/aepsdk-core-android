@@ -32,7 +32,7 @@ internal fun historicalEventsQuerying(
         var eventCounts = 0
         extensionApi.getHistoricalEvents(
             requests.toTypedArray(),
-            searchType == SEARCH_TYPE_ANY
+            searchType != SEARCH_TYPE_ANY
         ) {
             latch.countDown()
             eventCounts = it

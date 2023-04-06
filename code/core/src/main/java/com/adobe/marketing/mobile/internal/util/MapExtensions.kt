@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.internal.util
 
 import com.adobe.marketing.mobile.internal.util.UrlEncoder.urlEncode
+import com.adobe.marketing.mobile.util.StringUtils
 import org.json.JSONObject
 
 /**
@@ -28,8 +29,10 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
     if (innerMasks?.isEmpty() == true) innerMasks = null
     innerMasks?.let {
         it.sortedArray().forEach { mask ->
-            if (mask.isNotEmpty() && flattenedMap.containsKey(mask)) {
-                kvPairs.append(mask).append(":").append(flattenedMap[mask].toString())
+            val mapValue = flattenedMap[mask].toString()
+            // we want to ignore null or empty values within the map
+            if (mask.isNotEmpty() && mapValue != "null" && mapValue != "") {
+                kvPairs.append(mask).append(":").append(mapValue)
             }
         }
     } ?: run {

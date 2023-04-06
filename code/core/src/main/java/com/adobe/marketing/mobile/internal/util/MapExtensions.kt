@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.internal.util
 
 import com.adobe.marketing.mobile.internal.util.UrlEncoder.urlEncode
-import com.adobe.marketing.mobile.util.StringUtils
 import org.json.JSONObject
 
 /**

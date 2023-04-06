@@ -1,4 +1,4 @@
-name: Publish BOM Snapshot
+name: Publish BOM
 on: workflow_dispatch
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
           echo $GPG_SECRET_KEYS | base64 --decode | gpg --import --no-tty --batch --yes
           echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust --no-tty --batch --yes
 
-      - name: Publish sdk-bom to maven central snapshot repository
+      - name: Publish sdk-bom to maven central
         run: make bom-publish-main
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}

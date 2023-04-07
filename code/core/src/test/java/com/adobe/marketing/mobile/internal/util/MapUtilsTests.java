@@ -327,6 +327,32 @@ public class MapUtilsTests {
     }
 
     @Test
+    public void testGetFnv1aHash_NullAndEmptyMapValuesPresentInInnerMap_WithAllKeysInMask() {
+        // setup
+        final Map<String, Object> inner =
+                new HashMap<String, Object>() {
+                    {
+                        put("a", "1");
+                        put("b", "2");
+                        put("c", "");
+                        put("d", null);
+                    }
+                };
+        final Map<String, Object> map =
+                new HashMap<String, Object>() {
+                    {
+                        put("inner", inner);
+                    }
+                };
+        // test
+        final long hash =
+                MapUtilsKt.convertMapToFnv1aHash(map, new String[] {"inner.a", "inner.b"});
+        // verify flattened map string "inner.a:1inner.b:2"
+        final long expectedHash = 3328417429L;
+        assertEquals(expectedHash, hash);
+    }
+
+    @Test
     public void testGetFnv1aHash_NullAndEmptyMapValuesPresent_WithNoMask() {
         // setup
         final Map<String, Object> map =

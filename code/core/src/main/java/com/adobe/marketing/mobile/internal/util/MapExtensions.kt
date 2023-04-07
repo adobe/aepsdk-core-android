@@ -42,15 +42,20 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
 }
 
 /**
- * Removes null or empty string values from a map.
+ * Recursively removes null or empty string values from a map.
  *
  * @return the [Map] with null and empty string values removed
  */
 @JvmSynthetic
 internal fun Map<String, Any?>.filterNullOrEmptyValues(): Map<String, Any?> {
-    val filteredMap = HashMap<String, Any>()
+    val filteredMap = mutableMapOf<String, Any?>()
     for ((key, value) in this) {
-        if (value != null && value != "") filteredMap[key] = value
+        if (value is Map<*, *>) {
+            @Suppress("UNCHECKED_CAST")
+            filteredMap[key] = (value as Map<String, Any?>).filterNullOrEmptyValues()
+        } else {
+            if (value != null && value != "") filteredMap[key] = value
+        }
     }
     return filteredMap
 }

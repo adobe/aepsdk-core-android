@@ -288,6 +288,65 @@ public class MapUtilsTests {
     }
 
     @Test
+    public void testGetFnv1aHash_NullAndEmptyMapValuesPresent_WithAllKeysInMask() {
+        // setup
+        final Map<String, Object> map =
+                new HashMap<String, Object>() {
+                    {
+                        put("a", "1");
+                        put("b", "2");
+                        put("c", "");
+                        put("d", null);
+                    }
+                };
+        // test
+        final long hash = MapUtilsKt.convertMapToFnv1aHash(map, new String[] {"a", "b", "c", "d"});
+        // verify flattened map string "a:1b:2"
+        final long expectedHash = 3371500665L;
+        assertEquals(expectedHash, hash);
+    }
+
+    @Test
+    public void testGetFnv1aHash_NullAndEmptyMapValuesPresent_WithKeysForNullAndEmptyValuesInMask() {
+        // setup
+        final Map<String, Object> map =
+                new HashMap<String, Object>() {
+                    {
+                        put("a", "1");
+                        put("b", "2");
+                        put("c", "");
+                        put("d", null);
+                    }
+                };
+        // test
+        final long hash = MapUtilsKt.convertMapToFnv1aHash(map, new String[] {"c", "d"});
+        // verify 0 / no hash generated due to mask keys being present for null and empty values
+        final long expectedHash = 0;
+        assertEquals(expectedHash, hash);
+    }
+
+    @Test
+    public void testGetFnv1aHash_NullAndEmptyMapValuesPresent_WithNoMask() {
+        // setup
+        final Map<String, Object> map =
+                new HashMap<String, Object>() {
+                    {
+                        put("a", "1");
+                        put("b", "2");
+                        put("c", "");
+                        put("d", null);
+                        put("e", 3);
+                        put("f", "4");
+                    }
+                };
+        // test
+        final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
+        // verify flattened map string "a:1b:2e:3f:4"
+        final long expectedHash = 3916945161L;
+        assertEquals(expectedHash, hash);
+    }
+
+    @Test
     public void testGetFnv1aHash_NoMask_VerifyEventDataMapSortedWithCaseSensitivity() {
         // setup
         final Map<String, Object> map =

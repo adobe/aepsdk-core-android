@@ -28,15 +28,21 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
     if (innerMasks?.isEmpty() == true) innerMasks = null
     innerMasks?.let {
         it.sortedArray().forEach { mask ->
-            val mapValue = flattenedMap[mask].toString()
-            // we want to ignore null or empty values within the map
-            if (mask.isNotEmpty() && mapValue != "null" && mapValue != "") {
-                kvPairs.append(mask).append(":").append(mapValue)
+            // we want to ignore null values
+            if (mask.isNotEmpty() && flattenedMap[mask] != null) {
+                val mapValue = flattenedMap[mask].toString()
+                // we want to ignore empty strings
+                if (mapValue != "") {
+                    kvPairs.append(mask).append(":").append(mapValue)
+                }
             }
         }
     } ?: run {
         flattenedMap.toSortedMap().forEach { entry ->
-            kvPairs.append(entry.key).append(":").append(entry.value.toString())
+            // we want to ignore null values or empty strings
+            if (entry.value != null && entry.value.toString() != "") {
+                kvPairs.append(entry.key).append(":").append(entry.value.toString())
+            }
         }
     }
     return StringEncoder.convertStringToDecimalHash(kvPairs.toString())

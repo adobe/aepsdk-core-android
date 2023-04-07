@@ -22,30 +22,37 @@ import org.json.JSONObject
  */
 @JvmSynthetic
 internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
-    val flattenedMap = this.flattening()
+    // remove null or empty values before flattening
+    val flattenedMap = this.filterNullOrEmptyValues().flattening()
     val kvPairs = StringBuilder()
     var innerMasks = masks
     if (innerMasks?.isEmpty() == true) innerMasks = null
     innerMasks?.let {
         it.sortedArray().forEach { mask ->
-            // we want to ignore null values
             if (mask.isNotEmpty() && flattenedMap[mask] != null) {
-                val mapValue = flattenedMap[mask].toString()
-                // we want to ignore empty strings
-                if (mapValue != "") {
-                    kvPairs.append(mask).append(":").append(mapValue)
-                }
+                kvPairs.append(mask).append(":").append(flattenedMap[mask].toString())
             }
         }
     } ?: run {
         flattenedMap.toSortedMap().forEach { entry ->
-            // we want to ignore null values or empty strings
-            if (entry.value != null && entry.value.toString() != "") {
-                kvPairs.append(entry.key).append(":").append(entry.value.toString())
-            }
+            kvPairs.append(entry.key).append(":").append(entry.value.toString())
         }
     }
     return StringEncoder.convertStringToDecimalHash(kvPairs.toString())
+}
+
+/**
+ * Removes null or empty string values from a map.
+ *
+ * @return the [Map] with null and empty string values removed
+ */
+@JvmSynthetic
+internal fun Map<String, Any?>.filterNullOrEmptyValues(): Map<String, Any?> {
+    val filteredMap = HashMap<String, Any>()
+    for ((key, value) in this) {
+        if (value != null && value != "") filteredMap[key] = value
+    }
+    return filteredMap
 }
 
 /**

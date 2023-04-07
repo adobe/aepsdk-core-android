@@ -307,7 +307,8 @@ public class MapUtilsTests {
     }
 
     @Test
-    public void testGetFnv1aHash_NullAndEmptyMapValuesPresent_WithKeysForNullAndEmptyValuesInMask() {
+    public void
+            testGetFnv1aHash_NullAndEmptyMapValuesPresent_WithKeysForNullAndEmptyValuesInMask() {
         // setup
         final Map<String, Object> map =
                 new HashMap<String, Object>() {

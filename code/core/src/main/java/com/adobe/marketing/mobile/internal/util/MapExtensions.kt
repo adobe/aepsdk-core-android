@@ -22,42 +22,24 @@ import org.json.JSONObject
  */
 @JvmSynthetic
 internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
-    // remove null or empty values before flattening
-    val flattenedMap = this.filterNullOrEmptyValues().flattening()
+    val flattenedMap = this.flattening()
     val kvPairs = StringBuilder()
     var innerMasks = masks
     if (innerMasks?.isEmpty() == true) innerMasks = null
     innerMasks?.let {
         it.sortedArray().forEach { mask ->
-            if (mask.isNotEmpty() && flattenedMap[mask] != null) {
+            if (mask.isNotEmpty() && !flattenedMap[mask].isNullOrEmptyString()) {
                 kvPairs.append(mask).append(":").append(flattenedMap[mask].toString())
             }
         }
     } ?: run {
         flattenedMap.toSortedMap().forEach { entry ->
-            kvPairs.append(entry.key).append(":").append(entry.value.toString())
+            if (!entry.value.isNullOrEmptyString()) {
+                kvPairs.append(entry.key).append(":").append(entry.value.toString())
+            }
         }
     }
     return StringEncoder.convertStringToDecimalHash(kvPairs.toString())
-}
-
-/**
- * Recursively removes null or empty string values from a map.
- *
- * @return the [Map] with null and empty string values removed
- */
-@JvmSynthetic
-internal fun Map<String, Any?>.filterNullOrEmptyValues(): Map<String, Any?> {
-    val filteredMap = mutableMapOf<String, Any?>()
-    for ((key, value) in this) {
-        if (value is Map<*, *>) {
-            @Suppress("UNCHECKED_CAST")
-            filteredMap[key] = (value as Map<String, Any?>).filterNullOrEmptyValues()
-        } else {
-            if (value != null && value != "") filteredMap[key] = value
-        }
-    }
-    return filteredMap
 }
 
 /**
@@ -167,3 +149,10 @@ private fun join(elements: Iterable<*>, delimiter: String?): String {
     }
     return sBuilder.toString()
 }
+
+/**
+ * Returns a [Boolean] containing true if the value is null or an empty [String], false otherwise.
+ *
+ * @return [Boolean] true if the value is null or an empty [String], false otherwise
+ */
+private fun Any?.isNullOrEmptyString(): Boolean = this == null || (this is String && this.isEmpty())

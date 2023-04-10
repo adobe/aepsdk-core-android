@@ -353,6 +353,60 @@ public class MapUtilsTests {
     }
 
     @Test
+    public void testGetFnv1aHash_NullAndEmptyMapValuesPresentInMultipleNestedInnerMaps() {
+        // setup
+        final Map<String, Object> nestedNestedInner =
+                new HashMap<String, Object>() {
+                    {
+                        put("k", "5");
+                        put("l", "6");
+                        put("m", "");
+                        put("n", null);
+                    }
+                };
+        final Map<String, Object> nestedInner =
+                new HashMap<String, Object>() {
+                    {
+                        put("f", "3");
+                        put("g", "4");
+                        put("h", "");
+                        put("i", null);
+                        put("nestedNestedInner", nestedNestedInner);
+                    }
+                };
+        final Map<String, Object> inner =
+                new HashMap<String, Object>() {
+                    {
+                        put("a", "1");
+                        put("b", "2");
+                        put("c", "");
+                        put("d", null);
+                        put("nestedInner", nestedInner);
+                    }
+                };
+        final Map<String, Object> map =
+                new HashMap<String, Object>() {
+                    {
+                        put("inner", inner);
+                    }
+                };
+        // test
+        final long hash =
+                MapUtilsKt.convertMapToFnv1aHash(
+                        map,
+                        new String[] {
+                            "inner.a",
+                            "inner.b",
+                            "inner.nestedInner.g",
+                            "inner.nestedInner.nestedNestedInner.l"
+                        });
+        // verify flattened map string
+        // "inner.a:1inner.b:2inner.nestedInner.g:4inner.nestedInner.nestedNestedInner.l:6"
+        final long expectedHash = 4160127196L;
+        assertEquals(expectedHash, hash);
+    }
+
+    @Test
     public void testGetFnv1aHash_NullAndEmptyMapValuesPresent_WithNoMask() {
         // setup
         final Map<String, Object> map =

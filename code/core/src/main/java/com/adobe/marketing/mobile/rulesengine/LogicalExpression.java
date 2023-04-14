@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.rulesengine;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class LogicalExpression implements Evaluable {
@@ -26,27 +25,17 @@ public class LogicalExpression implements Evaluable {
 
     @Override
     public RulesResult evaluate(final Context context) {
-        ArrayList<RulesResult> resolvedOperands = new ArrayList<>();
 
         if (operationName == null || operationName.isEmpty()) {
             return new RulesResult(
                     RulesResult.FailureType.MISSING_OPERATOR,
                     "Null or empty operator for logical expression");
         }
-
-        if (operands != null) {
-            for (Evaluable evaluable : operands) {
-                if (evaluable != null) {
-                    resolvedOperands.add(evaluable.evaluate(context));
-                }
-            }
-        }
-
         switch (operationName) {
             case "and":
-                return performAndOperation(resolvedOperands);
+                return performAndOperation(context, operands);
             case "or":
-                return performOrOperation(resolvedOperands);
+                return performOrOperation(context, operands);
             default:
                 return new RulesResult(
                         RulesResult.FailureType.MISSING_OPERATOR,
@@ -54,24 +43,32 @@ public class LogicalExpression implements Evaluable {
         }
     }
 
-    private RulesResult performAndOperation(final List<RulesResult> resolvedOperands) {
-        for (RulesResult rulesResult : resolvedOperands) {
-            if (!rulesResult.isSuccess()) {
-                return new RulesResult(
-                        RulesResult.FailureType.CONDITION_FAILED, "AND operation returned false.");
+    private RulesResult performAndOperation(
+            final Context context, final List<Evaluable> resolvedOperands) {
+        for (Evaluable evaluable : resolvedOperands) {
+            if (evaluable != null) {
+                RulesResult rulesResult = evaluable.evaluate(context);
+                if (!rulesResult.isSuccess()) {
+                    return new RulesResult(
+                            RulesResult.FailureType.CONDITION_FAILED,
+                            "AND operation returned false.");
+                }
             }
         }
 
         return RulesResult.SUCCESS;
     }
 
-    private RulesResult performOrOperation(final List<RulesResult> resolvedOperands) {
-        for (RulesResult rulesResult : resolvedOperands) {
-            if (rulesResult.isSuccess()) {
-                return RulesResult.SUCCESS;
+    private RulesResult performOrOperation(
+            final Context context, final List<Evaluable> resolvedOperands) {
+        for (Evaluable evaluable : resolvedOperands) {
+            if (evaluable != null) {
+                RulesResult rulesResult = evaluable.evaluate(context);
+                if (rulesResult.isSuccess()) {
+                    return RulesResult.SUCCESS;
+                }
             }
         }
-
         return new RulesResult(
                 RulesResult.FailureType.CONDITION_FAILED, "OR operation returned false.");
     }

@@ -29,6 +29,11 @@ public class LogicalExpressionTests {
             new ComparisonExpression<>(
                     new OperandLiteral<>("One"), "notEquals", new OperandLiteral<>("One"));
 
+    private final Evaluable evaluableShouldNotBeCalled =
+            context -> {
+                throw new RuntimeException("This evaluable should not be called.");
+            };
+
     @Test
     public void testLogicalExpression_NullOperands() {
         // setup
@@ -71,6 +76,19 @@ public class LogicalExpressionTests {
     }
 
     @Test
+    public void testLogicalExpression_AND_Short_Circuit() {
+        // setup
+        List<Evaluable> operands = new ArrayList<>();
+        operands.add(expressionFalse);
+        operands.add(evaluableShouldNotBeCalled);
+
+        // test
+        RulesResult result = new LogicalExpression(operands, "and").evaluate(defaultContext());
+        assertFalse(result.isSuccess());
+        assertEquals("AND operation returned false.", result.getFailureMessage());
+    }
+
+    @Test
     public void testLogicalExpression_OR() {
         // setup
         List<Evaluable> operands = new ArrayList<>();
@@ -88,6 +106,18 @@ public class LogicalExpressionTests {
         // test
         RulesResult result2 = new LogicalExpression(operands, "or").evaluate(defaultContext());
         assertTrue(result2.isSuccess());
+    }
+
+    @Test
+    public void testLogicalExpression_OR_Short_Circuit() {
+        // setup
+        List<Evaluable> operands = new ArrayList<>();
+        operands.add(expressionTrue);
+        operands.add(evaluableShouldNotBeCalled);
+
+        // test
+        RulesResult result = new LogicalExpression(operands, "or").evaluate(defaultContext());
+        assertTrue(result.isSuccess());
     }
 
     @Test

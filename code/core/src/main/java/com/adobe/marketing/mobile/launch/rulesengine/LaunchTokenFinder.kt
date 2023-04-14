@@ -144,11 +144,6 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
      */
     private fun getValueFromEvent(key: String): Any? {
         if (event.eventData == null) {
-            Log.debug(
-                LaunchRulesEngineConstants.LOG_TAG,
-                LOG_TAG,
-                "Triggering event ${event.uniqueIdentifier} - Event data is null, unable to replace the token $key"
-            )
             return EMPTY_STRING
         }
         val eventDataMap = event.eventData.flattening()

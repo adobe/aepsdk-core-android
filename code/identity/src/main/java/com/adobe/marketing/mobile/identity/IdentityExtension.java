@@ -666,6 +666,11 @@ public final class IdentityExtension extends Extension {
         }
         mid = namedCollection.getString(IdentityConstants.DataStoreKeys.MARKETING_CLOUD_ID, null);
 
+        Log.trace(
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "Load ECID from persistence: ecid = %s", mid);
+
         // reload the customer ids.
         final List<VisitorID> newCustomerIDs =
                 convertVisitorIdsStringToVisitorIDObjects(
@@ -1216,8 +1221,13 @@ public final class IdentityExtension extends Extension {
         final long most = uuid.getMostSignificantBits();
         final long least = uuid.getLeastSignificantBits();
         // return formatted string, flip negatives if they're set.
-        return String.format(
+        final String ecid =  String.format(
                 Locale.US, "%019d%019d", most < 0 ? -most : most, least < 0 ? -least : least);
+        Log.trace(
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "generateMID : Generating new ECID %s", ecid);
+        return ecid;
     }
 
     /**

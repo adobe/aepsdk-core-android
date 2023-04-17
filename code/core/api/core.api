@@ -59,6 +59,7 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field APPLICATION_CLOSE Ljava/lang/String;
 	public static final field APPLICATION_LAUNCH Ljava/lang/String;
 	public static final field CONSENT_PREFERENCE Ljava/lang/String;
+	public static final field CREATE_TRACKER Ljava/lang/String;
 	public static final field ERROR_RESPONSE_CONTENT Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
@@ -67,12 +68,10 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field REQUEST_IDENTITY Ljava/lang/String;
 	public static final field REQUEST_PROFILE Ljava/lang/String;
 	public static final field REQUEST_RESET Ljava/lang/String;
-	public static final field REQUEST_TRACKER Ljava/lang/String;
 	public static final field RESET_COMPLETE Ljava/lang/String;
 	public static final field RESPONSE_CONTENT Ljava/lang/String;
 	public static final field RESPONSE_IDENTITY Ljava/lang/String;
 	public static final field RESPONSE_PROFILE Ljava/lang/String;
-	public static final field SESSION_CREATED Ljava/lang/String;
 	public static final field SHARED_STATE Ljava/lang/String;
 	public static final field TRACK_MEDIA Ljava/lang/String;
 	public static final field UPDATE_CONSENT Ljava/lang/String;

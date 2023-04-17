@@ -18,7 +18,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 private const val LOG_TAG = "historicalEventsQuerying"
-private const val SEARCH_TYPE_ANY = "any"
+private const val SEARCH_TYPE_ORDERED = "ordered"
 private const val ASYNC_TIMEOUT = 1000L
 
 @JvmSynthetic
@@ -32,7 +32,7 @@ internal fun historicalEventsQuerying(
         var eventCounts = 0
         extensionApi.getHistoricalEvents(
             requests.toTypedArray(),
-            searchType == SEARCH_TYPE_ANY
+            searchType == SEARCH_TYPE_ORDERED
         ) {
             latch.countDown()
             eventCounts = it

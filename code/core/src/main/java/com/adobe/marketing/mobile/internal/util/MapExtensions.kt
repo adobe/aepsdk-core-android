@@ -28,13 +28,15 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
     if (innerMasks?.isEmpty() == true) innerMasks = null
     innerMasks?.let {
         it.sortedArray().forEach { mask ->
-            if (mask.isNotEmpty() && flattenedMap.containsKey(mask)) {
+            if (mask.isNotEmpty() && !flattenedMap[mask].isNullOrEmptyString()) {
                 kvPairs.append(mask).append(":").append(flattenedMap[mask].toString())
             }
         }
     } ?: run {
         flattenedMap.toSortedMap().forEach { entry ->
-            kvPairs.append(entry.key).append(":").append(entry.value.toString())
+            if (!entry.value.isNullOrEmptyString()) {
+                kvPairs.append(entry.key).append(":").append(entry.value.toString())
+            }
         }
     }
     return StringEncoder.convertStringToDecimalHash(kvPairs.toString())
@@ -147,3 +149,10 @@ private fun join(elements: Iterable<*>, delimiter: String?): String {
     }
     return sBuilder.toString()
 }
+
+/**
+ * Returns a [Boolean] containing true if the value is null or an empty [String], false otherwise.
+ *
+ * @return [Boolean] true if the value is null or an empty [String], false otherwise
+ */
+private fun Any?.isNullOrEmptyString(): Boolean = this == null || (this is String && this.isEmpty())

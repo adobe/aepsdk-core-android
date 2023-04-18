@@ -666,12 +666,6 @@ public final class IdentityExtension extends Extension {
         }
         mid = namedCollection.getString(IdentityConstants.DataStoreKeys.MARKETING_CLOUD_ID, null);
 
-        Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "Load ECID from persistence: ecid = %s",
-                mid);
-
         // reload the customer ids.
         final List<VisitorID> newCustomerIDs =
                 convertVisitorIdsStringToVisitorIDObjects(
@@ -681,11 +675,7 @@ public final class IdentityExtension extends Extension {
         customerIds = newCustomerIDs == null || newCustomerIDs.isEmpty() ? null : newCustomerIDs;
         int customerIdsSize =
                 newCustomerIDs == null || newCustomerIDs.isEmpty() ? 0 : customerIds.size();
-        Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "Load the store VisitorIDs from persistence: size = %s",
-                customerIdsSize);
+
         locationHint =
                 namedCollection.getString(IdentityConstants.DataStoreKeys.LOCATION_HINT, null);
         blob = namedCollection.getString(IdentityConstants.DataStoreKeys.BLOB, null);
@@ -703,7 +693,7 @@ public final class IdentityExtension extends Extension {
                 IdentityConstants.LOG_TAG,
                 LOG_SOURCE,
                 "loadVariablesFromPersistentData : Successfully loaded the Identity data from"
-                        + " persistence.");
+                        + " persistence. Loaded %d VisitorIds. ECID is set to %s. ", customerIdsSize, mid);
     }
 
     @VisibleForTesting

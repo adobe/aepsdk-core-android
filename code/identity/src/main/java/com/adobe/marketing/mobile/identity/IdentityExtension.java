@@ -2052,6 +2052,10 @@ public final class IdentityExtension extends Extension {
         if (!StringUtils.isNullOrEmpty(mid) && !hasIdentifiers && !hasDpids && !needResync) {
             syncForIds = false;
         } else if (StringUtils.isNullOrEmpty(mid)) {
+            Log.trace(
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "shouldSync : ECID is null when sync identifiers event received. Generate new ECID value.");
             mid = generateMID(); // generate ID before network call
         }
 
@@ -2336,6 +2340,10 @@ public final class IdentityExtension extends Extension {
             // should never happen bc we generate mid locally before n/w request.
             // Still, generate mid locally if there's none yet.
             if (mid == null) {
+                Log.trace(
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "handleNetworkResponseMap : ECID is null when network response error received. Generate new ECID value.");
                 // no valid id, generate locally
                 mid = generateMID();
                 requiresSharedStateUpdate = true;

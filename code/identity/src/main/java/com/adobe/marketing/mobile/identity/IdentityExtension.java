@@ -693,7 +693,9 @@ public final class IdentityExtension extends Extension {
                 IdentityConstants.LOG_TAG,
                 LOG_SOURCE,
                 "loadVariablesFromPersistentData : Successfully loaded the Identity data from"
-                        + " persistence. Loaded %d VisitorIds. ECID is set to %s. ", customerIdsSize, mid);
+                        + " persistence. Loaded %d VisitorIds. ECID is set to %s. ",
+                customerIdsSize,
+                mid);
     }
 
     @VisibleForTesting
@@ -2055,7 +2057,8 @@ public final class IdentityExtension extends Extension {
             Log.trace(
                     IdentityConstants.LOG_TAG,
                     LOG_SOURCE,
-                    "shouldSync : ECID is null when sync identifiers event received. Generate new ECID value.");
+                    "shouldSync : ECID is null when sync identifiers event received. Generate new"
+                            + " ECID value.");
             mid = generateMID(); // generate ID before network call
         }
 
@@ -2343,7 +2346,8 @@ public final class IdentityExtension extends Extension {
                 Log.trace(
                         IdentityConstants.LOG_TAG,
                         LOG_SOURCE,
-                        "handleNetworkResponseMap : ECID is null when network response error received. Generate new ECID value.");
+                        "handleNetworkResponseMap : ECID is null when network response error"
+                                + " received. Generate new ECID value.");
                 // no valid id, generate locally
                 mid = generateMID();
                 requiresSharedStateUpdate = true;

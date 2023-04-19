@@ -33,6 +33,7 @@ public final class EventType {
     public static final String CUSTOM = "com.adobe.eventType.custom";
     public static final String EDGE = "com.adobe.eventType.edge";
     public static final String EDGE_IDENTITY = "com.adobe.eventType.edgeIdentity";
+    public static final String EDGE_MEDIA = "com.adobe.eventType.edgeMedia";
     public static final String GENERIC_DATA = "com.adobe.eventType.generic.data";
     public static final String GENERIC_IDENTITY = "com.adobe.eventType.generic.identity";
     public static final String GENERIC_LIFECYCLE = "com.adobe.eventType.generic.lifecycle";

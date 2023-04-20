@@ -165,11 +165,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
             // Record event history
             processedEvent.mask?.let {
                 eventHistory?.recordEvent(processedEvent) { result ->
-                    if (Log.getLogLevel() == LoggingMode.VERBOSE) {
-                        Log.trace(
+                    if (!result) {
+                        Log.debug(
                             CoreConstants.LOG_TAG,
                             LOG_TAG,
-                            if (result) "Successfully inserted an Event into EventHistory database" else "Failed to insert an Event into EventHistory database"
+                            "Failed to insert Event(${processedEvent.uniqueIdentifier}) into EventHistory database"
                         )
                     }
                 }
@@ -786,11 +786,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
     private fun getExtensionContainer(extensionName: String): ExtensionContainer? {
         val extensionContainer = registeredExtensions.entries.firstOrNull {
             return@firstOrNull (
-                it.value.sharedStateName?.equals(
-                    extensionName,
-                    true
-                ) ?: false
-                )
+                    it.value.sharedStateName?.equals(
+                        extensionName,
+                        true
+                    ) ?: false
+                    )
         }
         return extensionContainer?.value
     }

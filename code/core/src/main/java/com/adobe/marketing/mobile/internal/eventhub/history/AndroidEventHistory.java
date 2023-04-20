@@ -54,8 +54,7 @@ public class AndroidEventHistory implements EventHistory {
                 "%s hash(%s) for Event(%s)",
                 fnv1aHash == 0 ? "Not Recording" : "Recording",
                 fnv1aHash,
-                event.getUniqueIdentifier()
-        );
+                event.getUniqueIdentifier());
 
         if (fnv1aHash == 0) {
             return;
@@ -112,7 +111,6 @@ public class AndroidEventHistory implements EventHistory {
                                     final Cursor result =
                                             androidEventHistoryDatabase.select(eventHash, from, to);
 
-
                                     int currentResult = 0;
                                     try {
                                         // columns are index 0: count, index 1: oldest, index 2:
@@ -135,17 +133,22 @@ public class AndroidEventHistory implements EventHistory {
                                         Log.debug(
                                                 CoreConstants.LOG_TAG,
                                                 LOG_TAG,
-                                                "EventHistoryRequest[%s] - (%d of %d) for hash(%s) with enforceOrder(%s) returned %d events",
-                                                eventHistoryRequests.hashCode(), i + 1, eventHistoryRequests.length, eventHash, enforceOrder ? "true": "false", currentResult
-                                        );
+                                                "EventHistoryRequest[%s] - (%d of %d) for hash(%s)"
+                                                    + " with enforceOrder(%s) returned %d events",
+                                                eventHistoryRequests.hashCode(),
+                                                i + 1,
+                                                eventHistoryRequests.length,
+                                                eventHash,
+                                                enforceOrder ? "true" : "false",
+                                                currentResult);
                                     } catch (final Exception exception) {
                                         Log.debug(
                                                 CoreConstants.LOG_TAG,
                                                 LOG_TAG,
                                                 String.format(
                                                         "Exception occurred when attempting to"
-                                                                + " retrieve events with eventHash %s"
-                                                                + " from the EventHistoryDatabase: %s",
+                                                            + " retrieve events with eventHash %s"
+                                                            + " from the EventHistoryDatabase: %s",
                                                         eventHash, exception.getMessage()));
                                     }
                                 }

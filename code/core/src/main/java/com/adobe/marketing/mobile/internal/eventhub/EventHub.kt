@@ -786,11 +786,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
     private fun getExtensionContainer(extensionName: String): ExtensionContainer? {
         val extensionContainer = registeredExtensions.entries.firstOrNull {
             return@firstOrNull (
-                    it.value.sharedStateName?.equals(
-                        extensionName,
-                        true
-                    ) ?: false
-                    )
+                it.value.sharedStateName?.equals(
+                    extensionName,
+                    true
+                ) ?: false
+                )
         }
         return extensionContainer?.value
     }

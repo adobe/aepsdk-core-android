@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.services.ui;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
@@ -22,6 +23,7 @@ import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import com.adobe.marketing.mobile.services.Log;
@@ -46,13 +48,14 @@ class MessageWebViewRunner implements Runnable {
     private static final String TAG = "MessageWebViewRunner";
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
     private static final int ANIMATION_DURATION = 300;
+    private static final int FULLY_OPAQUE_ALPHA_VALUE = 255;
     private static final String BASE_URL = "file:///android_asset/";
     private static final String MIME_TYPE = "text/html";
 
-    protected View backdrop;
+    protected View backdrop = null;
     private final AEPMessage message;
     private WebSettings webviewSettings;
-    private MessageWebView webView;
+    private WebView webView;
     private MessageWebViewClient webViewClient;
     private MessageSettings settings;
     private int messageHeight, messageWidth, originX, originY;
@@ -125,12 +128,13 @@ class MessageWebViewRunner implements Runnable {
             }
 
             // create the webview and configure the settings
-            webView =
-                    new MessageWebView(
-                            context, settings.getCornerRadius(), 0, 0, messageWidth, messageHeight);
-            webView.setVerticalScrollBarEnabled(false);
-            webView.setHorizontalScrollBarEnabled(false);
+            webView = new WebView(context);
+            webView.setVerticalScrollBarEnabled(true);
+            webView.setHorizontalScrollBarEnabled(true);
+            webView.setScrollbarFadingEnabled(true);
+            webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
             webView.setBackgroundColor(Color.TRANSPARENT);
+
             webViewClient = new MessageWebViewClient(message);
             webViewClient.setLocalAssetsMap(assetMap);
             webView.setWebViewClient(webViewClient);
@@ -139,6 +143,25 @@ class MessageWebViewRunner implements Runnable {
             webviewSettings.setJavaScriptEnabled(true);
             webviewSettings.setAllowFileAccess(false);
             webviewSettings.setDomStorageEnabled(true);
+            webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
+
+            webviewSettings.setDefaultTextEncodingName(StandardCharsets.UTF_8.name());
+            webView.loadDataWithBaseURL(
+                    BASE_URL,
+                    message.getMessageHtml(),
+                    MIME_TYPE,
+                    StandardCharsets.UTF_8.name(),
+                    null);
+
+            message.rootViewGroup.setOnTouchListener(message.getMessageFragment());
+            message.fragmentFrameLayout.setOnTouchListener(message.getMessageFragment());
+            webView.setOnTouchListener(message.getMessageFragment());
+
+            // if swipe gestures are provided disable the scrollbars
+            if (!settings.getGestures().isEmpty()) {
+                webView.setVerticalScrollBarEnabled(false);
+                webView.setHorizontalScrollBarEnabled(false);
+            }
 
             message.webView = webView;
 
@@ -155,10 +178,6 @@ class MessageWebViewRunner implements Runnable {
                 message.cleanup();
                 return;
             }
-
-            message.rootViewGroup.setOnTouchListener(message.getMessageFragment());
-            message.fragmentFrameLayout.setOnTouchListener(message.getMessageFragment());
-            webView.setOnTouchListener(message.getMessageFragment());
 
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR1) {
                 // Disallow need for a user gesture to play media. Works on API 17 and above.
@@ -181,14 +200,6 @@ class MessageWebViewRunner implements Runnable {
             if (cacheDirectory != null) {
                 webviewSettings.setDatabaseEnabled(true);
             }
-
-            webviewSettings.setDefaultTextEncodingName(StandardCharsets.UTF_8.name());
-            webView.loadDataWithBaseURL(
-                    BASE_URL,
-                    message.getMessageHtml(),
-                    MIME_TYPE,
-                    StandardCharsets.UTF_8.name(),
-                    null);
 
             // if we are re-showing after an orientation change, no need to animate
             final MessageSettings messageSettings = message.getSettings();
@@ -295,20 +306,31 @@ class MessageWebViewRunner implements Runnable {
             webviewSettings.setUseWideViewPort(true);
         }
 
-        // create a new view to apply a background dimming effect behind a displayed message
-        backdrop =
-                new View(
-                        ServiceProvider.getInstance()
-                                .getAppContextService()
-                                .getApplicationContext());
-        backdrop.setLayoutParams(
-                new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        backdrop.setBackgroundColor(Color.parseColor(settings.getBackdropColor()));
-        backdrop.setAlpha(settings.getBackdropOpacity());
+        // apply round corners to the webview
+        final GradientDrawable shape = new GradientDrawable();
+        shape.setCornerRadius(settings.getCornerRadius());
+        message.webView.setBackground(shape);
 
-        // add the webview overlaid on the backdrop
-        message.rootViewGroup.addView(
-                backdrop, message.baseRootViewWidth, message.baseRootViewHeight);
+        // add the webview overlaid on the backdrop if uitakeover is enabled
+        if (settings.getUITakeover()) {
+            // create a new view to apply a background dimming effect behind a displayed message
+            backdrop =
+                    new View(
+                            ServiceProvider.getInstance()
+                                    .getAppContextService()
+                                    .getApplicationContext());
+            backdrop.setLayoutParams(
+                    new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            backdrop.setBackgroundColor(Color.parseColor(settings.getBackdropColor()));
+
+            // alpha values range from 0-256 (0 means fully transparent, 255 means fully opaque)
+            final int convertedAlpha =
+                    (int) (settings.getBackdropOpacity() * FULLY_OPAQUE_ALPHA_VALUE);
+            backdrop.getBackground().setAlpha(convertedAlpha);
+
+            message.rootViewGroup.addView(
+                    backdrop, message.baseRootViewWidth, message.baseRootViewHeight);
+        }
         message.rootViewGroup.addView(webView, params);
     }
 

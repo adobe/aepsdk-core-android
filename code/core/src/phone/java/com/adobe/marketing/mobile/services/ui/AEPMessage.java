@@ -402,7 +402,9 @@ class AEPMessage implements FullscreenMessage {
         fragmentFrameLayout.setOnTouchListener(null);
         rootViewGroup.setOnTouchListener(null);
         // remove message webview, frame layout, and backdrop from the root view group
-        rootViewGroup.removeView(webView);
+        if (messageWebViewRunner.backdrop != null) {
+            rootViewGroup.removeView(messageWebViewRunner.backdrop);
+        }
         rootViewGroup.removeView(fragmentFrameLayout);
         rootViewGroup.removeView(messageWebViewRunner.backdrop);
         messageFragment = null;

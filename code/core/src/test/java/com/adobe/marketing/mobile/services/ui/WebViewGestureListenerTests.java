@@ -15,6 +15,7 @@ import static org.mockito.Mockito.doCallRealMethod;
 
 import android.animation.ObjectAnimator;
 import android.view.MotionEvent;
+import android.webkit.WebView;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class WebViewGestureListenerTests {
 
     @Mock private FullscreenMessageDelegate mockFullscreenMessageDelegate;
 
-    @Mock private MessageWebView mockMessageWebView;
+    @Mock private WebView mockWebView;
 
     @Mock private MotionEvent mockMotionEvent2;
 
@@ -56,10 +57,10 @@ public class WebViewGestureListenerTests {
         gestureMap.put(MessageGesture.SWIPE_UP, "adbinapp://dismiss");
         gestureMap.put(MessageGesture.SWIPE_DOWN, "adbinapp://dismiss");
 
-        Mockito.when(mockMessageWebView.getX()).thenReturn(2000.0f);
-        Mockito.when(mockMessageWebView.getY()).thenReturn(3000.0f);
-        Mockito.when(mockMessageWebView.getTop()).thenReturn(0);
-        Mockito.when(mockMessageWebView.getBottom()).thenReturn(3000);
+        Mockito.when(mockWebView.getX()).thenReturn(2000.0f);
+        Mockito.when(mockWebView.getY()).thenReturn(3000.0f);
+        Mockito.when(mockWebView.getTop()).thenReturn(0);
+        Mockito.when(mockWebView.getBottom()).thenReturn(3000);
 
         doCallRealMethod().when(mockMessageFragment).isDismissedWithGesture();
 
@@ -68,7 +69,7 @@ public class WebViewGestureListenerTests {
         listener.setAccessible(true);
         listener.set(mockAEPMessage, mockFullscreenMessageDelegate);
 
-        mockAEPMessage.webView = mockMessageWebView;
+        mockAEPMessage.webView = mockWebView;
         mockAEPMessage.baseRootViewHeight = 3000;
         mockAEPMessage.baseRootViewWidth = 2000;
         mockMessageFragment.gestures = gestureMap;
@@ -94,7 +95,7 @@ public class WebViewGestureListenerTests {
                     .when(
                             () ->
                                     ObjectAnimator.ofFloat(
-                                            ArgumentMatchers.any(MessageWebView.class),
+                                            ArgumentMatchers.any(WebView.class),
                                             ArgumentMatchers.anyString(),
                                             ArgumentMatchers.anyFloat(),
                                             ArgumentMatchers.anyFloat()))
@@ -125,7 +126,7 @@ public class WebViewGestureListenerTests {
                     .when(
                             () ->
                                     ObjectAnimator.ofFloat(
-                                            ArgumentMatchers.any(MessageWebView.class),
+                                            ArgumentMatchers.any(WebView.class),
                                             ArgumentMatchers.anyString(),
                                             ArgumentMatchers.anyFloat(),
                                             ArgumentMatchers.anyFloat()))
@@ -155,7 +156,7 @@ public class WebViewGestureListenerTests {
                     .when(
                             () ->
                                     ObjectAnimator.ofFloat(
-                                            ArgumentMatchers.any(MessageWebView.class),
+                                            ArgumentMatchers.any(WebView.class),
                                             ArgumentMatchers.anyString(),
                                             ArgumentMatchers.anyFloat(),
                                             ArgumentMatchers.anyFloat()))
@@ -185,7 +186,7 @@ public class WebViewGestureListenerTests {
                     .when(
                             () ->
                                     ObjectAnimator.ofFloat(
-                                            ArgumentMatchers.any(MessageWebView.class),
+                                            ArgumentMatchers.any(WebView.class),
                                             ArgumentMatchers.anyString(),
                                             ArgumentMatchers.anyFloat(),
                                             ArgumentMatchers.anyFloat()))

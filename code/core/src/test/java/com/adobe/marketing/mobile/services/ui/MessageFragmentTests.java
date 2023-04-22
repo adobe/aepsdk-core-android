@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.FrameLayout;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.AppContextService;
@@ -55,7 +56,7 @@ public class MessageFragmentTests {
 
     @Mock private ViewGroup mockViewGroup;
 
-    @Mock private MessageWebView mockWebView;
+    @Mock private WebView mockWebView;
 
     @Mock private MotionEvent mockMotionEvent;
 

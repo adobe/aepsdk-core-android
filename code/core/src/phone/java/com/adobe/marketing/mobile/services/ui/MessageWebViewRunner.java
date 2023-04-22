@@ -289,8 +289,7 @@ class MessageWebViewRunner implements Runnable {
     }
 
     /**
-     * Creates a {@link MessageWebView} and a {@link LinearLayout} backdrop and adds them to the
-     * root view.
+     * Creates a {@link WebView} and a {@link LinearLayout} backdrop and adds them to the root view.
      *
      * @param settings The {@link MessageSettings} object containing customization settings for the
      *     {@link AEPMessage}.
@@ -308,7 +307,9 @@ class MessageWebViewRunner implements Runnable {
 
         // apply round corners to the webview
         final GradientDrawable shape = new GradientDrawable();
+        shape.setShape(GradientDrawable.RECTANGLE);
         shape.setCornerRadius(settings.getCornerRadius());
+        shape.setColor(Color.TRANSPARENT);
         message.webView.setBackground(shape);
 
         // add the webview overlaid on the backdrop if uitakeover is enabled
@@ -323,7 +324,7 @@ class MessageWebViewRunner implements Runnable {
                     new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
             backdrop.setBackgroundColor(Color.parseColor(settings.getBackdropColor()));
 
-            // alpha values range from 0-256 (0 means fully transparent, 255 means fully opaque)
+            // alpha values range from 0-255 (0 means fully transparent, 255 means fully opaque)
             final int convertedAlpha =
                     (int) (settings.getBackdropOpacity() * FULLY_OPAQUE_ALPHA_VALUE);
             backdrop.getBackground().setAlpha(convertedAlpha);

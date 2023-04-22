@@ -29,6 +29,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.webkit.WebView;
 import android.widget.FrameLayout;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.MessagingDelegate;
@@ -68,7 +69,7 @@ public class AEPMessageTests {
 
     @Mock private View mockBackdrop;
 
-    @Mock private MessageWebView mockWebView;
+    @Mock private WebView mockWebView;
 
     @Mock private MotionEvent mockMotionEvent;
 

@@ -42,7 +42,7 @@ import java.util.concurrent.Executor;
 
 /**
  * The Android implementation for {@link FullscreenMessage}. It creates and starts a {@link
- * MessageFragment} then adds a {@link MessageWebView} containing an in-app message.
+ * MessageFragment} then adds a {@link WebView} containing an in-app message.
  */
 class AEPMessage implements FullscreenMessage {
 
@@ -405,6 +405,7 @@ class AEPMessage implements FullscreenMessage {
         if (messageWebViewRunner.backdrop != null) {
             rootViewGroup.removeView(messageWebViewRunner.backdrop);
         }
+        rootViewGroup.removeView(webView);
         rootViewGroup.removeView(fragmentFrameLayout);
         rootViewGroup.removeView(messageWebViewRunner.backdrop);
         messageFragment = null;

@@ -23,7 +23,7 @@ import com.adobe.marketing.mobile.util.StringUtils;
 
 /**
  * Listens for {@link MotionEvent}s and determines if a swipe gesture occurred on the {@link
- * MessageWebView}.
+ * android.webkit.WebView}.
  */
 class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 

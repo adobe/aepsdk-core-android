@@ -13,8 +13,8 @@ package com.adobe.marketing.mobile.services.ui;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -26,6 +26,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
@@ -53,6 +54,7 @@ class MessageWebViewRunner implements Runnable {
     private static final String MIME_TYPE = "text/html";
 
     protected View backdrop = null;
+    protected CardView webViewFrame;
     private final AEPMessage message;
     private WebSettings webviewSettings;
     private WebView webView;
@@ -305,12 +307,17 @@ class MessageWebViewRunner implements Runnable {
             webviewSettings.setUseWideViewPort(true);
         }
 
-        // apply round corners to the webview
-        final GradientDrawable shape = new GradientDrawable();
-        shape.setShape(GradientDrawable.RECTANGLE);
-        shape.setCornerRadius(settings.getCornerRadius());
-        shape.setColor(Color.TRANSPARENT);
-        message.webView.setBackground(shape);
+        // apply round corners to a CardView then add the webview
+        final Context context =
+                ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+        webViewFrame = new CardView(context);
+        final float calculatedRadius =
+                TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP,
+                        settings.getCornerRadius(),
+                        context.getResources().getDisplayMetrics());
+        webViewFrame.setRadius(calculatedRadius);
+        webViewFrame.addView(message.webView);
 
         // add the webview overlaid on the backdrop if uitakeover is enabled
         if (settings.getUITakeover()) {
@@ -332,12 +339,12 @@ class MessageWebViewRunner implements Runnable {
             message.rootViewGroup.addView(
                     backdrop, message.baseRootViewWidth, message.baseRootViewHeight);
         }
-        message.rootViewGroup.addView(webView, params);
+        message.rootViewGroup.addView(webViewFrame, params);
     }
 
     /**
-     * Generates {@link FrameLayout.LayoutParams} for the {@link MessageWebView} given the provided
-     * message height, width, origin x, and origin y.
+     * Generates {@link FrameLayout.LayoutParams} for the {@link WebView} given the provided message
+     * height, width, origin x, and origin y.
      *
      * @param messageHeight a {@code int} specifying the height of the webview.
      * @param messageWidth a {@code int} specifying the width of the webview.
@@ -378,7 +385,7 @@ class MessageWebViewRunner implements Runnable {
     }
 
     /**
-     * Calculates the left most point of the {@link MessageWebView}.
+     * Calculates the left most point of the {@link WebView}.
      *
      * <p>The x origin is calculated by the settings values of horizontal alignment and horizontal
      * inset. If the horizontal alignment is center, horizontal inset is ignored and x is calculated
@@ -426,7 +433,7 @@ class MessageWebViewRunner implements Runnable {
     }
 
     /**
-     * Calculates the top most point of the {@link MessageWebView}.
+     * Calculates the top most point of the {@link WebView}.
      *
      * <p>The y origin is calculated by the settings values of vertical alignment and vertical
      * inset. If vertical alignment is center, vertical inset is ignored and y is calculated so that

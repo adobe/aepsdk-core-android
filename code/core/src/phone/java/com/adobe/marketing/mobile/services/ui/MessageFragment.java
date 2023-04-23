@@ -98,7 +98,6 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
                 gestureDetector.onTouchEvent(motionEvent);
                 // we want to ignore scroll events (ACTION_MOVE) with gestures present
                 return motionEvent.getAction() == MotionEvent.ACTION_MOVE;
-
             }
             return view.onTouchEvent(motionEvent);
         }

@@ -51,17 +51,17 @@ publishing {
                 withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
 
-                    def kotlinDependencyNode = dependenciesNode.appendNode('kotlin')
+                    def kotlinDependencyNode = dependenciesNode.appendNode('dependency')
                     kotlinDependencyNode.appendNode('groupId', 'org.jetbrains.kotlin')
                     kotlinDependencyNode.appendNode('artifactId', 'kotlin-stdlib-jdk8')
                     kotlinDependencyNode.appendNode('version', rootProject.kotlin_version)
 
-                    def cardviewDependencyNode = dependenciesNode.appendNode('cardview')
+                    def cardviewDependencyNode = dependenciesNode.appendNode('dependency')
                     cardviewDependencyNode.appendNode('groupId', 'androidx.cardview')
                     cardviewDependencyNode.appendNode('artifactId', 'cardview')
                     cardviewDependencyNode.appendNode('version', '1.0.0')
 
-                    def appcompatDependencyNode = dependenciesNode.appendNode('appcompat')
+                    def appcompatDependencyNode = dependenciesNode.appendNode('dependency')
                     appcompatDependencyNode.appendNode('groupId', 'androidx.appcompat')
                     appcompatDependencyNode.appendNode('artifactId', 'appcompat')
                     appcompatDependencyNode.appendNode('version', '1.0.0')

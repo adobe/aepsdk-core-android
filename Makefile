@@ -246,3 +246,6 @@ bom-assemble-release:
 
 bom-publish-snapshot: clean bom-assemble-release
 	(./code/gradlew -p code/sdk-bom publishReleasePublicationToSonatypeRepository --stacktrace)
+
+bom-publish-main: clean bom-assemble-release
+	(./code/gradlew -p code/sdk-bom publishReleasePublicationToSonatypeRepository -Prelease)

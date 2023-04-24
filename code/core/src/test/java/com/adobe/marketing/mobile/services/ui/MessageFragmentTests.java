@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.FrameLayout;
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.AppContextService;
@@ -55,7 +56,7 @@ public class MessageFragmentTests {
 
     @Mock private ViewGroup mockViewGroup;
 
-    @Mock private MessageWebView mockWebView;
+    @Mock private WebView mockWebView;
 
     @Mock private MotionEvent mockMotionEvent;
 
@@ -94,8 +95,10 @@ public class MessageFragmentTests {
         // test
         messageFragment.onCreate(mockSavedInstanceState);
         // verify
-        Mockito.verify(mockAEPMessage, Mockito.times(1)).getSettings();
-        Mockito.verify(mockAEPMessageSettings, Mockito.times(1)).getGestures();
+        // get settings / get gestures called twice, once for null check then once for variable
+        // assignment
+        Mockito.verify(mockAEPMessage, Mockito.times(2)).getSettings();
+        Mockito.verify(mockAEPMessageSettings, Mockito.times(2)).getGestures();
         Assert.assertEquals(messageFragment.getGestures(), gestureMap);
         Assert.assertNotNull(messageFragment.getGestureDetector());
         Assert.assertNotNull(messageFragment.getWebViewGestureListener());

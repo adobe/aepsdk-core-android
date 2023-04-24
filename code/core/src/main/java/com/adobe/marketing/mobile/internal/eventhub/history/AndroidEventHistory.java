@@ -48,14 +48,15 @@ public class AndroidEventHistory implements EventHistory {
         final long fnv1aHash =
                 MapUtilsKt.convertMapToFnv1aHash(event.getEventData(), event.getMask());
 
+        Log.debug(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "%s hash(%s) for Event(%s)",
+                fnv1aHash == 0 ? "Not Recording" : "Recording",
+                fnv1aHash,
+                event.getUniqueIdentifier());
+
         if (fnv1aHash == 0) {
-            Log.trace(
-                    CoreConstants.LOG_TAG,
-                    LOG_TAG,
-                    String.format(
-                            "The event with name \"%s\" has a fnv1a hash equal to 0. The event"
-                                    + " will not be recorded.",
-                            event.getName()));
             return;
         }
 
@@ -96,7 +97,8 @@ public class AndroidEventHistory implements EventHistory {
                                 long previousEventOldestOccurrence = 0L;
                                 int foundEventCount = 0;
 
-                                for (final EventHistoryRequest request : eventHistoryRequests) {
+                                for (int i = 0; i < eventHistoryRequests.length; ++i) {
+                                    EventHistoryRequest request = eventHistoryRequests[i];
                                     final long from =
                                             (enforceOrder && previousEventOldestOccurrence != 0)
                                                     ? previousEventOldestOccurrence
@@ -109,6 +111,7 @@ public class AndroidEventHistory implements EventHistory {
                                     final Cursor result =
                                             androidEventHistoryDatabase.select(eventHash, from, to);
 
+                                    int currentResult = 0;
                                     try {
                                         // columns are index 0: count, index 1: oldest, index 2:
                                         // newest
@@ -119,11 +122,25 @@ public class AndroidEventHistory implements EventHistory {
                                                     result.getLong(OLDEST_INDEX);
 
                                             if (enforceOrder) {
-                                                foundEventCount++;
+                                                currentResult = 1;
                                             } else {
-                                                foundEventCount += result.getInt(COUNT_INDEX);
+                                                currentResult = result.getInt(COUNT_INDEX);
                                             }
+
+                                            foundEventCount += currentResult;
                                         }
+
+                                        Log.debug(
+                                                CoreConstants.LOG_TAG,
+                                                LOG_TAG,
+                                                "EventHistoryRequest[%s] - (%d of %d) for hash(%s)"
+                                                    + " with enforceOrder(%s) returned %d events",
+                                                eventHistoryRequests.hashCode(),
+                                                i + 1,
+                                                eventHistoryRequests.length,
+                                                eventHash,
+                                                enforceOrder ? "true" : "false",
+                                                currentResult);
                                     } catch (final Exception exception) {
                                         Log.debug(
                                                 CoreConstants.LOG_TAG,

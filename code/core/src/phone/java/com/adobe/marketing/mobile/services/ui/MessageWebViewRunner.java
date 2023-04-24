@@ -30,6 +30,7 @@ import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
+import com.adobe.marketing.mobile.util.MapUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -158,7 +159,7 @@ class MessageWebViewRunner implements Runnable {
             webView.setOnTouchListener(message.getMessageFragment());
 
             // if swipe gestures are provided disable the scrollbars
-            if (settings.getGestures() != null && !settings.getGestures().isEmpty()) {
+            if (!MapUtils.isNullOrEmpty(settings.getGestures())) {
                 webView.setVerticalScrollBarEnabled(false);
                 webView.setHorizontalScrollBarEnabled(false);
             }

@@ -42,7 +42,7 @@ import java.util.concurrent.Executor;
 
 /**
  * The Android implementation for {@link FullscreenMessage}. It creates and starts a {@link
- * MessageFragment} then adds a {@link MessageWebView} containing an in-app message.
+ * MessageFragment} then adds a {@link WebView} containing an in-app message.
  */
 class AEPMessage implements FullscreenMessage {
 
@@ -200,7 +200,7 @@ class AEPMessage implements FullscreenMessage {
                                         // fragment frame layout to
                                         // prevent any
                                         // collisions
-                                        frameLayoutResourceId = new Random().nextInt();
+                                        frameLayoutResourceId = Math.abs(new Random().nextInt());
 
                                         if (fragmentFrameLayout == null) {
                                             fragmentFrameLayout = new FrameLayout(appContext);
@@ -357,7 +357,7 @@ class AEPMessage implements FullscreenMessage {
 
     /**
      * Creates the {@link MessageWebViewRunner} and posts it to the main {@link Handler} to create
-     * the {@link MessageWebView}.
+     * the {@link WebView}.
      */
     void showInRootViewGroup() {
         final int currentOrientation =
@@ -402,6 +402,10 @@ class AEPMessage implements FullscreenMessage {
         fragmentFrameLayout.setOnTouchListener(null);
         rootViewGroup.setOnTouchListener(null);
         // remove message webview, frame layout, and backdrop from the root view group
+        if (messageWebViewRunner.backdrop != null) {
+            rootViewGroup.removeView(messageWebViewRunner.backdrop);
+        }
+        rootViewGroup.removeView(messageWebViewRunner.webViewFrame);
         rootViewGroup.removeView(webView);
         rootViewGroup.removeView(fragmentFrameLayout);
         rootViewGroup.removeView(messageWebViewRunner.backdrop);
@@ -482,7 +486,7 @@ class AEPMessage implements FullscreenMessage {
                         public void onAnimationRepeat(final Animation animation) {}
                     };
             dismissAnimation.setAnimationListener(animationListener);
-            webView.startAnimation(dismissAnimation);
+            messageWebViewRunner.webViewFrame.startAnimation(dismissAnimation);
         } else { // otherwise, just clean the views
             cleanup();
         }

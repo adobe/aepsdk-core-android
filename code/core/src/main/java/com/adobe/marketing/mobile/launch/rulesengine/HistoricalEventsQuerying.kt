@@ -34,8 +34,8 @@ internal fun historicalEventsQuerying(
             requests.toTypedArray(),
             searchType == SEARCH_TYPE_ORDERED
         ) {
-            latch.countDown()
             eventCounts = it
+            latch.countDown()
         }
         latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
         eventCounts

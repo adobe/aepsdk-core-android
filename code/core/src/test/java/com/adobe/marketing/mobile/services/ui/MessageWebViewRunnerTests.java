@@ -46,6 +46,10 @@ public class MessageWebViewRunnerTests {
 
     @Mock private ViewGroup mockViewGroup;
 
+    @Mock private MessageWebViewRunner mockMessageWebViewRunner;
+
+    @Mock private CardView mockCardView;
+
     @Mock private FrameLayout mockFrameLayout;
 
     @Mock private WebSettings mockWebSettings;
@@ -96,6 +100,8 @@ public class MessageWebViewRunnerTests {
         when(mockViewGroup.getHeight()).thenReturn(400);
         mockAEPMessage.rootViewGroup = mockViewGroup;
         mockAEPMessage.fragmentFrameLayout = mockFrameLayout;
+        mockMessageWebViewRunner.webViewFrame = mockCardView;
+        mockAEPMessage.messageWebViewRunner = mockMessageWebViewRunner;
         mockWebview = null;
     }
 

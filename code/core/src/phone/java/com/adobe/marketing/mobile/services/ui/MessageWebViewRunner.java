@@ -13,7 +13,6 @@ package com.adobe.marketing.mobile.services.ui;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -25,7 +24,6 @@ import android.view.animation.TranslateAnimation;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
@@ -34,7 +32,6 @@ import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.util.StringUtils;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,6 +49,7 @@ class MessageWebViewRunner implements Runnable {
     private static final int FULLY_OPAQUE_ALPHA_VALUE = 255;
     private static final String BASE_URL = "file:///android_asset/";
     private static final String MIME_TYPE = "text/html";
+    private static final String UTF_8 = "UTF-8";
 
     protected View backdrop = null;
     protected CardView webViewFrame;
@@ -147,7 +145,7 @@ class MessageWebViewRunner implements Runnable {
             webviewSettings.setDomStorageEnabled(true);
             webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
 
-            webviewSettings.setDefaultTextEncodingName(StandardCharsets.UTF_8.name());
+            webviewSettings.setDefaultTextEncodingName(UTF_8);
             webView.loadDataWithBaseURL(
                     BASE_URL,
                     message.getMessageHtml(),
@@ -181,15 +179,8 @@ class MessageWebViewRunner implements Runnable {
                 return;
             }
 
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                // Disallow need for a user gesture to play media. Works on API 17 and above.
-                final Method method =
-                        webviewSettings
-                                .getClass()
-                                .getMethod("setMediaPlaybackRequiresUserGesture", Boolean.TYPE);
-                method.setAccessible(true);
-                method.invoke(webviewSettings, false);
-            }
+            // Disallow need for a user gesture to play media.
+            webviewSettings.setMediaPlaybackRequiresUserGesture(false);
 
             final Context appContext =
                     ServiceProvider.getInstance().getAppContextService().getApplicationContext();
@@ -205,21 +196,6 @@ class MessageWebViewRunner implements Runnable {
 
             // if we are re-showing after an orientation change, no need to animate
             final MessageSettings messageSettings = message.getSettings();
-
-            if (!message.isMessageVisible()) {
-                final Animation animation = setupDisplayAnimation();
-
-                if (animation == null) {
-                    Log.debug(
-                            ServiceConstants.LOG_TAG,
-                            TAG,
-                            UNEXPECTED_NULL_VALUE
-                                    + " (MessageAnimation), failed to setup a display animation.");
-                    return;
-                }
-
-                webView.setAnimation(animation);
-            }
 
             createMessageFrameAndAddMessageToRootView(messageSettings);
             message.viewed();
@@ -291,7 +267,8 @@ class MessageWebViewRunner implements Runnable {
     }
 
     /**
-     * Creates a {@link WebView} and a {@link LinearLayout} backdrop and adds them to the root view.
+     * Creates a {@link CardView} to frame the {@link WebView} and a {@link View} backdrop (if a UI
+     * takeover is needed) and adds them to the root view.
      *
      * @param settings The {@link MessageSettings} object containing customization settings for the
      *     {@link AEPMessage}.
@@ -310,6 +287,15 @@ class MessageWebViewRunner implements Runnable {
         // apply round corners to a CardView then add the webview
         final Context context =
                 ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+        if (context == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    UNEXPECTED_NULL_VALUE
+                            + " (createMessageFrameAndAddMessageToRootView) Context is null, can't"
+                            + " display the message.");
+            return;
+        }
         webViewFrame = new CardView(context);
         final float calculatedRadius =
                 TypedValue.applyDimension(
@@ -318,6 +304,22 @@ class MessageWebViewRunner implements Runnable {
                         context.getResources().getDisplayMetrics());
         webViewFrame.setRadius(calculatedRadius);
         webViewFrame.addView(message.webView);
+
+        // setup a display animation for the CardView
+        if (!message.isMessageVisible()) {
+            final Animation animation = setupDisplayAnimation();
+
+            if (animation == null) {
+                Log.debug(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        UNEXPECTED_NULL_VALUE
+                                + " (MessageAnimation), failed to setup a display animation.");
+                return;
+            }
+
+            message.messageWebViewRunner.webViewFrame.setAnimation(animation);
+        }
 
         // add the webview overlaid on the backdrop if uitakeover is enabled
         if (settings.getUITakeover()) {

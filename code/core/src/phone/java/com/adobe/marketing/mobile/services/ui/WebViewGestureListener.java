@@ -15,6 +15,7 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.webkit.WebView;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
@@ -23,7 +24,7 @@ import com.adobe.marketing.mobile.util.StringUtils;
 
 /**
  * Listens for {@link MotionEvent}s and determines if a swipe gesture occurred on the {@link
- * android.webkit.WebView}.
+ * WebView}.
  */
 class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 
@@ -111,11 +112,11 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
     }
 
     /**
-     * Generates a dismiss animation using the {@link ObjectAnimator}. The {@link MessageWebView}
-     * will be dismissed at the direction of the detected swipe {@link MessageGesture}. If the
-     * webview was dismissed via a {@code MessageGesture.BACKGROUND_TAP} then the {@code
-     * MessageWebView} will be dismissed using the dismissal {@link MessageAnimation} specified in
-     * the {@link MessageSettings}.
+     * Generates a dismiss animation using the {@link ObjectAnimator}. The {@link
+     * androidx.cardview.widget.CardView} frame will be dismissed at the direction of the detected
+     * swipe {@link MessageGesture}. If the in-app message was dismissed via a {@code
+     * MessageGesture.BACKGROUND_TAP} then the {@code CardView} will be dismissed using the
+     * dismissal {@link MessageAnimation} specified in the {@link MessageSettings}.
      *
      * @param gesture The detected swipe {@code MessageGesture} that occurred.
      */
@@ -133,33 +134,33 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
             case SWIPE_RIGHT:
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.webView,
+                                parentFragment.message.messageWebViewRunner.webViewFrame,
                                 "x",
-                                parentFragment.message.webView.getX(),
+                                parentFragment.message.messageWebViewRunner.webViewFrame.getX(),
                                 parentFragment.message.baseRootViewWidth);
                 break;
             case SWIPE_LEFT:
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.webView,
+                                parentFragment.message.messageWebViewRunner.webViewFrame,
                                 "x",
-                                parentFragment.message.webView.getX(),
+                                parentFragment.message.messageWebViewRunner.webViewFrame.getX(),
                                 -parentFragment.message.baseRootViewWidth);
                 break;
             case SWIPE_UP:
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.webView,
+                                parentFragment.message.messageWebViewRunner.webViewFrame,
                                 "y",
-                                parentFragment.message.webView.getTop(),
+                                parentFragment.message.messageWebViewRunner.webViewFrame.getTop(),
                                 -parentFragment.message.baseRootViewHeight);
                 break;
             default: // default, dismiss to bottom if not a background tap
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.webView,
+                                parentFragment.message.messageWebViewRunner.webViewFrame,
                                 "y",
-                                parentFragment.message.webView.getTop(),
+                                parentFragment.message.messageWebViewRunner.webViewFrame.getTop(),
                                 parentFragment.message.baseRootViewHeight);
                 break;
         }
@@ -189,9 +190,9 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
     }
 
     /**
-     * Dismisses the {@link MessageWebView} by calling the {@link
-     * FullscreenMessageDelegate#overrideUrlLoad} function present in the parent {@link
-     * MessageFragment}'s message listener.
+     * Dismisses the {@link androidx.cardview.widget.CardView} frame containing the {@link WebView}
+     * by calling the {@link FullscreenMessageDelegate#overrideUrlLoad} function present in the
+     * parent {@link MessageFragment}'s message listener.
      *
      * @param gesture The detected {@code MessageGesture} that occurred.
      * @param dismissedWithGesture true if a swipe gesture occurred, false if a background tap

@@ -181,19 +181,25 @@ class AEPMessage implements FullscreenMessage {
                             .runOnUiThread(
                                     () -> {
                                         // find the base root view group and add a frame layout to
-                                        // be used for displaying the in-app message
+                                        // be used for
+                                        // displaying the in-app
+                                        // message
                                         if (rootViewGroup == null) {
                                             rootViewGroup =
                                                     currentActivity.findViewById(
                                                             android.R.id.content);
                                             // preserve the base root view group height and width
-                                            // for future in-app message measurement calculations
+                                            // for future in-app
+                                            // message
+                                            // measurement calculations
                                             baseRootViewHeight = rootViewGroup.getHeight();
                                             baseRootViewWidth = rootViewGroup.getWidth();
                                         }
 
                                         // use a random int as a resource id for the message
-                                        // fragment frame layout to prevent any collisions
+                                        // fragment frame layout to
+                                        // prevent any
+                                        // collisions
                                         frameLayoutResourceId = Math.abs(new Random().nextInt());
 
                                         if (fragmentFrameLayout == null) {
@@ -224,7 +230,8 @@ class AEPMessage implements FullscreenMessage {
                                         }
 
                                         // prepare a message fragment and replace the frame layout
-                                        // with the fragment
+                                        // with the
+                                        // fragment
                                         messageFragment = new MessageFragment();
                                         messageFragment.setAEPMessage(message);
 
@@ -479,7 +486,7 @@ class AEPMessage implements FullscreenMessage {
                         public void onAnimationRepeat(final Animation animation) {}
                     };
             dismissAnimation.setAnimationListener(animationListener);
-            webView.startAnimation(dismissAnimation);
+            messageWebViewRunner.webViewFrame.startAnimation(dismissAnimation);
         } else { // otherwise, just clean the views
             cleanup();
         }

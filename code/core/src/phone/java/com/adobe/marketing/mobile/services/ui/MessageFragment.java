@@ -92,14 +92,15 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
         // determine if the tapped view is the webview
         if (view.getId() == message.webView.getId()) {
             // if we have no gestures just pass the touch event to the webview
-            if (!message.getMessageSettings().getGestures().isEmpty()) {
-                // otherwise, pass the event to the gesture detector to determine if a motion event
-                // occurred on the webview
-                gestureDetector.onTouchEvent(motionEvent);
-                // we want to ignore scroll events (ACTION_MOVE) with gestures present
-                return motionEvent.getAction() == MotionEvent.ACTION_MOVE;
+            if (message.getMessageSettings().getGestures() == null
+                    || message.getMessageSettings().getGestures().isEmpty()) {
+                return view.onTouchEvent(motionEvent);
             }
-            return view.onTouchEvent(motionEvent);
+            // otherwise, pass the event to the gesture detector to determine if a motion event
+            // occurred on the webview
+            gestureDetector.onTouchEvent(motionEvent);
+            // we want to ignore scroll events (ACTION_MOVE) with gestures present
+            return motionEvent.getAction() == MotionEvent.ACTION_MOVE;
         }
 
         return false;

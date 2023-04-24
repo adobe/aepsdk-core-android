@@ -16,6 +16,7 @@ import static org.mockito.Mockito.doCallRealMethod;
 import android.animation.ObjectAnimator;
 import android.view.MotionEvent;
 import android.webkit.WebView;
+import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -37,6 +38,10 @@ public class WebViewGestureListenerTests {
     @Mock private FullscreenMessageDelegate mockFullscreenMessageDelegate;
 
     @Mock private WebView mockWebView;
+
+    @Mock private CardView mockCardView;
+
+    @Mock private MessageWebViewRunner mockMessageWebViewRunner;
 
     @Mock private MotionEvent mockMotionEvent2;
 
@@ -70,6 +75,8 @@ public class WebViewGestureListenerTests {
         listener.set(mockAEPMessage, mockFullscreenMessageDelegate);
 
         mockAEPMessage.webView = mockWebView;
+        mockMessageWebViewRunner.webViewFrame = mockCardView;
+        mockAEPMessage.messageWebViewRunner = mockMessageWebViewRunner;
         mockAEPMessage.baseRootViewHeight = 3000;
         mockAEPMessage.baseRootViewWidth = 2000;
         mockMessageFragment.gestures = gestureMap;
@@ -95,7 +102,7 @@ public class WebViewGestureListenerTests {
                     .when(
                             () ->
                                     ObjectAnimator.ofFloat(
-                                            ArgumentMatchers.any(WebView.class),
+                                            ArgumentMatchers.any(CardView.class),
                                             ArgumentMatchers.anyString(),
                                             ArgumentMatchers.anyFloat(),
                                             ArgumentMatchers.anyFloat()))
@@ -126,7 +133,7 @@ public class WebViewGestureListenerTests {
                     .when(
                             () ->
                                     ObjectAnimator.ofFloat(
-                                            ArgumentMatchers.any(WebView.class),
+                                            ArgumentMatchers.any(CardView.class),
                                             ArgumentMatchers.anyString(),
                                             ArgumentMatchers.anyFloat(),
                                             ArgumentMatchers.anyFloat()))
@@ -156,7 +163,7 @@ public class WebViewGestureListenerTests {
                     .when(
                             () ->
                                     ObjectAnimator.ofFloat(
-                                            ArgumentMatchers.any(WebView.class),
+                                            ArgumentMatchers.any(CardView.class),
                                             ArgumentMatchers.anyString(),
                                             ArgumentMatchers.anyFloat(),
                                             ArgumentMatchers.anyFloat()))
@@ -186,7 +193,7 @@ public class WebViewGestureListenerTests {
                     .when(
                             () ->
                                     ObjectAnimator.ofFloat(
-                                            ArgumentMatchers.any(WebView.class),
+                                            ArgumentMatchers.any(CardView.class),
                                             ArgumentMatchers.anyString(),
                                             ArgumentMatchers.anyFloat(),
                                             ArgumentMatchers.anyFloat()))

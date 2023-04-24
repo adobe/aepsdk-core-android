@@ -54,6 +54,9 @@ public class EventCoderTests {
 
     @Test
     public void testEncodeDecode_When_AllTheFieldsAreValid() {
+        Event parentEvent =
+                new Event.Builder("ParentEvent", "responseType", "responseSource").build();
+
         Map<String, Object> data =
                 new HashMap<String, Object>() {
                     {
@@ -66,6 +69,7 @@ public class EventCoderTests {
                         .setEventData(data)
                         .setResponseId("response id")
                         .setUniqueIdentifier("uuid")
+                        .setParentEvent(parentEvent)
                         .build();
         Event decodedEvent = EventCoder.decode(EventCoder.encode(event));
         verifyEventEquals(event, decodedEvent);
@@ -231,6 +235,7 @@ public class EventCoderTests {
         assertEquals(a.getSource(), b.getSource());
         assertEquals(a.getUniqueIdentifier(), b.getUniqueIdentifier());
         assertEquals(a.getResponseID(), b.getResponseID());
+        assertEquals(a.getParentID(), b.getParentID());
         assertEquals(a.getEventData(), b.getEventData());
         assertTrue(Arrays.equals(a.getMask(), b.getMask()));
     }

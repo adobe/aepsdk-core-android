@@ -106,6 +106,7 @@ class RulesEngineIntegrationTests {
         assertTrue(eventLatch.await(WAIT_TIME_MILLIS_SHORT, TimeUnit.MILLISECONDS))
         assertTrue(capturedEvents.size == 1)
         assertEquals(eventData, capturedEvents[0].eventData)
+        assertEquals(event.uniqueIdentifier, capturedEvents[0].parentID)
     }
 
     @Test
@@ -133,6 +134,7 @@ class RulesEngineIntegrationTests {
         assertEquals(2, capturedEvents.size)
         capturedEvents.forEach { e ->
             assertEquals("yes", e.eventData?.get("dispatch"))
+            assertEquals(event.uniqueIdentifier, e.parentID)
         }
     }
 

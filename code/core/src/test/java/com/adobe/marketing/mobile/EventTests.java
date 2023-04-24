@@ -81,6 +81,7 @@ public class EventTests {
                         .build();
 
         assertEquals(triggerEvent.getUniqueIdentifier(), event.getResponseID());
+        assertEquals(triggerEvent.getUniqueIdentifier(), event.getParentID());
     }
 
     @Test(expected = NullPointerException.class)
@@ -226,6 +227,20 @@ public class EventTests {
     }
 
     @Test
+    public void Event_setParentWorksProperly() {
+        Event parentEvent =
+                new Event.Builder("ParentEvent", "responseType", "responseSource").build();
+
+        Event event =
+                new Event.Builder(mockEventName, mockEventType, mockEventSource)
+                        .setTimestamp(mockTimestamp)
+                        .setParentEvent(parentEvent)
+                        .build();
+
+        assertEquals(parentEvent.getUniqueIdentifier(), event.getParentID());
+    }
+
+    @Test
     public void Event_builderWorksProperly() {
         Event triggerEvent =
                 new Event.Builder("TriggerEvent", "responseType", "responseSource").build();
@@ -242,6 +257,7 @@ public class EventTests {
         assertEquals(mockEventSource, event.getSource());
         assertEquals(mockTimestamp, event.getTimestamp());
         assertEquals(triggerEvent.getUniqueIdentifier(), event.getResponseID());
+        assertEquals(triggerEvent.getUniqueIdentifier(), event.getParentID());
         assertEquals(mockEventData, event.getEventData());
     }
 

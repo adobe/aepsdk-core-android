@@ -30,6 +30,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.reset
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -247,6 +248,7 @@ class LaunchRulesConsequenceTests {
         assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals(event.eventData, dispatchedEventCaptor.value.eventData)
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -283,6 +285,7 @@ class LaunchRulesConsequenceTests {
         assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals(null, dispatchedEventCaptor.value.eventData)
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -326,6 +329,7 @@ class LaunchRulesConsequenceTests {
         assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals("value", dispatchedEventCaptor.value.eventData["key"])
         assertEquals("subvalue", dispatchedEventCaptor.value.eventData["key.subkey"])
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -363,6 +367,7 @@ class LaunchRulesConsequenceTests {
         assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals(null, dispatchedEventCaptor.value.eventData)
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -537,6 +542,7 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to not be called max allowed chained events is 1
@@ -598,6 +604,10 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
@@ -606,12 +616,19 @@ class LaunchRulesConsequenceTests {
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
         )
-        verify(extensionApi, times(1)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect event to be processed as if first time
         launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
-        verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
@@ -620,7 +637,7 @@ class LaunchRulesConsequenceTests {
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent2
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
     }
 
     @Test
@@ -673,6 +690,10 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
@@ -681,7 +702,10 @@ class LaunchRulesConsequenceTests {
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
         )
-        verify(extensionApi, times(1)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect event to be processed as if first time
@@ -689,7 +713,10 @@ class LaunchRulesConsequenceTests {
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
         )
-        verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
@@ -698,7 +725,7 @@ class LaunchRulesConsequenceTests {
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent2
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
     }
 
     @Test
@@ -795,6 +822,7 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor1: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor1.capture())
+        assertEquals(eventEdgeRequest.uniqueIdentifier, dispatchedEventCaptor1.value.parentID)
 
         // Process launch event
         val matchedRulesLaunchEvent = launchRulesEngine.process(eventLaunch)
@@ -802,6 +830,10 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor2: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor2.capture())
+        assertEquals(eventLaunch.uniqueIdentifier, dispatchedEventCaptor2.value.parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process first dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
@@ -810,7 +842,6 @@ class LaunchRulesConsequenceTests {
             dispatchedEventCaptor1.value,
             matchedRulesDispatchEvent1
         )
-        verify(extensionApi, times(2)).dispatch(any())
 
         // Process second dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
@@ -819,7 +850,7 @@ class LaunchRulesConsequenceTests {
             dispatchedEventCaptor2.value,
             matchedRulesDispatchEvent2
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
     }
 
     @Test
@@ -894,6 +925,11 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.allValues[0].parentID)
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.allValues[1].parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event 1, expect 0 dispatch events
         // chain count = 1, which is max chained events
@@ -903,7 +939,7 @@ class LaunchRulesConsequenceTests {
             dispatchedEventCaptor.allValues[0],
             matchedRulesDispatchEvent1
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
 
         // Process dispatched event 2, expect 0 dispatch events
         // chain count = 1, which is max chained events
@@ -913,7 +949,7 @@ class LaunchRulesConsequenceTests {
             dispatchedEventCaptor.allValues[1],
             matchedRulesDispatchEvent2
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
     }
 
     @Test

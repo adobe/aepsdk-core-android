@@ -21,6 +21,8 @@ import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
+
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -120,11 +122,7 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
         }
 
         // store message gestures if available
-        final Map<MessageGesture, String> retrievedGestures = message.getSettings().getGestures();
-
-        if (retrievedGestures != null && !retrievedGestures.isEmpty()) {
-            gestures = retrievedGestures;
-        }
+        gestures = message.getSettings().getGestures() != null ? message.getSettings().getGestures() : new HashMap<>();
 
         // initialize the gesture detector and listener
         webViewGestureListener = new WebViewGestureListener(this);

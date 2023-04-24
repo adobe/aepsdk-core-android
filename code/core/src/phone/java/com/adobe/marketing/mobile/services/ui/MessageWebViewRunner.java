@@ -158,7 +158,7 @@ class MessageWebViewRunner implements Runnable {
             webView.setOnTouchListener(message.getMessageFragment());
 
             // if swipe gestures are provided disable the scrollbars
-            if (!settings.getGestures().isEmpty()) {
+            if (settings.getGestures() != null && !settings.getGestures().isEmpty()) {
                 webView.setVerticalScrollBarEnabled(false);
                 webView.setHorizontalScrollBarEnabled(false);
             }

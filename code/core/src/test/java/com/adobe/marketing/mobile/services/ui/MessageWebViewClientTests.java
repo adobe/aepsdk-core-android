@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 import android.net.Uri;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebView;
 import java.lang.reflect.Field;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,7 +34,7 @@ public class MessageWebViewClientTests {
 
     @Mock private FullscreenMessageDelegate mockFullscreenMessageDelegate;
 
-    @Mock private MessageWebView mockWebView;
+    @Mock private WebView mockWebView;
 
     @Mock private WebResourceRequest mockWebResourceRequest;
 

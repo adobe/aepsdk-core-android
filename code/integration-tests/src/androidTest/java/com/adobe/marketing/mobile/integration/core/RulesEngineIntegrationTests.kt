@@ -11,16 +11,13 @@
 
 package com.adobe.marketing.mobile.integration.core
 
-import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import com.adobe.marketing.mobile.AdobeCallbackWithError
-import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SDKHelper
+import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.integration.MockNetworkResponse
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
@@ -52,6 +49,7 @@ class RulesEngineIntegrationTests {
     fun setup() {
         // Setup with only configuration extension
         SDKHelper.resetSDK()
+        Thread.sleep(WAIT_TIME_MILLIS_LONG)
 
         val initializationLatch = CountDownLatch(1)
         val configUrlValidationLatch = CountDownLatch(1)
@@ -73,10 +71,16 @@ class RulesEngineIntegrationTests {
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
-        MobileCore.start {
+
+        // Start event processing by registering extensions. Just register one extension because,
+        // at least one extension is required for the completion callback to be invoked.
+        MobileCore.registerExtensions(mutableListOf(Signal.EXTENSION)) {
+            // Wait for the registration to complete
             initializationLatch.countDown()
+
+            // Now configure with a app id to simulate mock config and rule download
+            MobileCore.configureWithAppID(TEST_APP_ID)
         }
-        MobileCore.configureWithAppID(TEST_APP_ID)
 
         assertTrue(initializationLatch.await(WAIT_TIME_MILLIS_LONG, TimeUnit.MILLISECONDS))
         // Validate that the configuration url is hit

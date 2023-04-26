@@ -39,13 +39,18 @@ class ConfigurationIntegrationTests {
         const val TEST_APP_ID = "appId"
         const val TEST_CONFIG_URL = "https://assets.adobedtm.com/${TEST_APP_ID}.json"
         const val TEST_RULES_RESOURCE = "rules_configuration_tests.zip"
-        const val WAIT_TIME_MILLIS = 500L
+        const val WAIT_TIME_MILLIS = 5000L
+        const val CONFIGURATION_DATA_STORE = "AdobeMobile_ConfigState"
     }
 
     @Before
     fun setup() {
-        // Setup with only configuration extension
         SDKHelper.resetSDK()
+
+        // Clear configuration datastore
+        ServiceProvider.getInstance().dataStoreService.getNamedCollection(CONFIGURATION_DATA_STORE)?.removeAll()
+
+        // Setup with only configuration extension
         initializeSDK()
     }
 

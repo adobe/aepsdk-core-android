@@ -44,7 +44,7 @@ public final class Event {
     private String responseID;
     // Represents the unique identifier for the parent of this event. The parent event is a
     // trigger for creating the current event
-    private String parentId;
+    private String parentID;
     // Specifies the properties in the Event and its data that should be used in the hash for
     // EventHistory storage.
     private String[] mask;
@@ -88,7 +88,7 @@ public final class Event {
             event.type = type;
             event.source = source;
             event.responseID = null;
-            event.parentId = null;
+            event.parentID = null;
             event.mask = mask;
             didBuild = false;
         }
@@ -216,7 +216,7 @@ public final class Event {
                 throw new NullPointerException("parentEvent cannot be null");
             }
 
-            event.parentId = parentEvent.getUniqueIdentifier();
+            event.parentID = parentEvent.getUniqueIdentifier();
 
             return this;
         }
@@ -245,7 +245,7 @@ public final class Event {
          */
         Builder setParentId(final String parentId) {
             throwIfAlreadyBuilt();
-            event.parentId = parentId;
+            event.parentID = parentId;
             return this;
         }
 
@@ -373,7 +373,7 @@ public final class Event {
      * @return the unique identifier of the parent of this event
      */
     public String getParentID() {
-        return parentId;
+        return parentID;
     }
 
     /** Pair ID for events dispatched by the receiver(s) in response to this event */
@@ -410,7 +410,7 @@ public final class Event {
         sb.append("    source: ").append(source).append(COMMA).append(NEWLINE);
         sb.append("    type: ").append(type).append(COMMA).append(NEWLINE);
         sb.append("    responseId: ").append(responseID).append(COMMA).append(NEWLINE);
-        sb.append("    parentId: ").append(parentId).append(COMMA).append(NEWLINE);
+        sb.append("    parentId: ").append(parentID).append(COMMA).append(NEWLINE);
         sb.append("    timestamp: ").append(timestamp).append(COMMA).append(NEWLINE);
         String dataAsStr = data == null ? "{}" : MapExtensionsKt.prettify(data);
         sb.append("    data: ").append(dataAsStr).append(COMMA).append(NEWLINE);

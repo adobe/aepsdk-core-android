@@ -49,7 +49,6 @@ class RulesEngineIntegrationTests {
     fun setup() {
         // Setup with only configuration extension
         SDKHelper.resetSDK()
-        Thread.sleep(WAIT_TIME_MILLIS_LONG)
 
         val initializationLatch = CountDownLatch(1)
         val configUrlValidationLatch = CountDownLatch(1)

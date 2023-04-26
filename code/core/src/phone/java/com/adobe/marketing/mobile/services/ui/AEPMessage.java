@@ -18,12 +18,15 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Handler;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
@@ -38,7 +41,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.RunnableFuture;
 
 /**
  * The Android implementation for {@link FullscreenMessage}. It creates and starts a {@link
@@ -50,6 +56,7 @@ class AEPMessage implements FullscreenMessage {
     private static final String FRAGMENT_TAG = "AEPMessageFragment";
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
     private static final int ANIMATION_DURATION = 300;
+    private static final String UTF_8 = "UTF-8";
 
     // package private vars
     WebView webView;
@@ -73,6 +80,7 @@ class AEPMessage implements FullscreenMessage {
     private Animation.AnimationListener animationListener;
     private Map<String, String> assetMap = Collections.emptyMap();
     private final Executor executor;
+    private MessageWebViewClient webViewClient;
 
     /**
      * Constructor.
@@ -104,6 +112,49 @@ class AEPMessage implements FullscreenMessage {
                     "Message couldn't be created because the FullscreenMessageDelegate was null.");
             throw new MessageCreationException(
                     "Message couldn't be created because the FullscreenMessageDelegate was null.");
+        }
+
+        // create webview
+        final Runnable createWebviewRunnable =
+                () -> {
+                    final Context appContext =
+                            ServiceProvider.getInstance()
+                                    .getAppContextService()
+                                    .getApplicationContext();
+                    webView = new WebView(appContext);
+                    webView.setVerticalScrollBarEnabled(true);
+                    webView.setHorizontalScrollBarEnabled(true);
+                    webView.setScrollbarFadingEnabled(true);
+                    webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+                    webView.setBackgroundColor(Color.TRANSPARENT);
+
+                    webViewClient = new MessageWebViewClient(AEPMessage.this);
+                    webViewClient.setLocalAssetsMap(assetMap);
+                    webView.setWebViewClient(webViewClient);
+
+                    final WebSettings webviewSettings = webView.getSettings();
+                    webviewSettings.setJavaScriptEnabled(true);
+                    webviewSettings.setAllowFileAccess(false);
+                    webviewSettings.setDomStorageEnabled(true);
+                    webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
+                    webviewSettings.setDefaultTextEncodingName(UTF_8);
+                };
+        final RunnableFuture<Void> createWebviewTask =
+                new FutureTask<>(createWebviewRunnable, null);
+        ServiceProvider.getInstance()
+                .getAppContextService()
+                .getCurrentActivity()
+                .runOnUiThread(createWebviewTask);
+        try {
+            createWebviewTask.get();
+        } catch (final InterruptedException | ExecutionException exception) {
+            Log.error(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Message creation failed, exception occurred when creating the webview: %s.",
+                    exception.getLocalizedMessage());
+            throw new MessageCreationException(
+                    "Message creation failed, exception occurred when creating the webview.");
         }
 
         this.listener = listener;

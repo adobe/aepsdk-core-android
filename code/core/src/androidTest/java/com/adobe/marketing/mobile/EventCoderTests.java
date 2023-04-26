@@ -69,7 +69,7 @@ public class EventCoderTests {
                         .setEventData(data)
                         .setResponseId("response id")
                         .setUniqueIdentifier("uuid")
-                        .setParentEvent(parentEvent)
+                        .chainToParentEvent(parentEvent)
                         .build();
         Event decodedEvent = EventCoder.decode(EventCoder.encode(event));
         verifyEventEquals(event, decodedEvent);

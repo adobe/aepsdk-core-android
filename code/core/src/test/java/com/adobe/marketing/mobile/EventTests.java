@@ -234,7 +234,7 @@ public class EventTests {
         Event event =
                 new Event.Builder(mockEventName, mockEventType, mockEventSource)
                         .setTimestamp(mockTimestamp)
-                        .setParentEvent(parentEvent)
+                        .chainToParentEvent(parentEvent)
                         .build();
 
         assertEquals(parentEvent.getUniqueIdentifier(), event.getParentID());

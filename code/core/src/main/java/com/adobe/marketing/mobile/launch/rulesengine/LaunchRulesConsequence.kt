@@ -274,7 +274,7 @@ internal class LaunchRulesConsequence(
         }
         return Event.Builder(CONSEQUENCE_DISPATCH_EVENT_NAME, type, source)
             .setEventData(dispatchEventData)
-            .setParentEvent(parentEvent)
+            .chainToParentEvent(parentEvent)
             .build()
     }
 
@@ -295,7 +295,7 @@ internal class LaunchRulesConsequence(
             EventSource.RESPONSE_CONTENT
         )
             .setEventData(mapOf(CONSEQUENCE_EVENT_DATA_KEY_CONSEQUENCE to eventData))
-            .setParentEvent(parentEvent)
+            .chainToParentEvent(parentEvent)
             .build()
     }
 }

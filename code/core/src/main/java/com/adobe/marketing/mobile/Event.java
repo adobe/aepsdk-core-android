@@ -195,7 +195,7 @@ public final class Event {
             }
 
             setResponseId(requestEvent.uniqueIdentifier);
-            setParentEvent(requestEvent);
+            chainToParentEvent(requestEvent);
 
             return this;
         }
@@ -209,7 +209,7 @@ public final class Event {
          * @throws UnsupportedOperationException if this method is called after {@link
          *     Builder#build()} was called
          */
-        public Builder setParentEvent(@NonNull final Event parentEvent) {
+        public Builder chainToParentEvent(@NonNull final Event parentEvent) {
             throwIfAlreadyBuilt();
 
             if (parentEvent == null) {

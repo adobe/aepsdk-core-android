@@ -116,52 +116,6 @@ class AEPMessage implements FullscreenMessage {
                     "Message couldn't be created because the FullscreenMessageDelegate was null.");
         }
 
-        final Activity currentActivity =
-                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
-        if (currentActivity == null) {
-            throw new MessageCreationException(
-                    "Message creation failed, the current activity is null");
-        }
-
-        // create webview
-        final Runnable createWebviewRunnable =
-                () -> {
-                    final Context appContext =
-                            ServiceProvider.getInstance()
-                                    .getAppContextService()
-                                    .getApplicationContext();
-                    webView = new WebView(appContext);
-                    webView.setVerticalScrollBarEnabled(true);
-                    webView.setHorizontalScrollBarEnabled(true);
-                    webView.setScrollbarFadingEnabled(true);
-                    webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-                    webView.setBackgroundColor(Color.TRANSPARENT);
-
-                    webViewClient = new MessageWebViewClient(AEPMessage.this);
-                    webViewClient.setLocalAssetsMap(assetMap);
-                    webView.setWebViewClient(webViewClient);
-
-                    final WebSettings webviewSettings = webView.getSettings();
-                    webviewSettings.setJavaScriptEnabled(true);
-                    webviewSettings.setAllowFileAccess(false);
-                    webviewSettings.setDomStorageEnabled(true);
-                    webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
-                    webviewSettings.setDefaultTextEncodingName(UTF_8);
-                };
-
-        final RunnableFuture<Void> createWebviewTask =
-                new FutureTask<>(createWebviewRunnable, null);
-
-        currentActivity.runOnUiThread(createWebviewTask);
-
-        try {
-            createWebviewTask.get(1, TimeUnit.SECONDS);
-        } catch (final InterruptedException | ExecutionException | TimeoutException exception) {
-            throw new MessageCreationException(
-                    "Message creation failed, exception occurred when creating the webview: "
-                            + exception.getLocalizedMessage());
-        }
-
         this.listener = listener;
         this.messagesMonitor = messagesMonitor;
         this.settings = settings;
@@ -224,6 +178,48 @@ class AEPMessage implements FullscreenMessage {
         executor.execute(
                 () -> {
                     final AEPMessage message = this;
+
+                    // create webview
+                    final Runnable createWebviewRunnable =
+                            () -> {
+                                webView = new WebView(appContext);
+                                webView.setVerticalScrollBarEnabled(true);
+                                webView.setHorizontalScrollBarEnabled(true);
+                                webView.setScrollbarFadingEnabled(true);
+                                webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+                                webView.setBackgroundColor(Color.TRANSPARENT);
+
+                                webViewClient = new MessageWebViewClient(AEPMessage.this);
+                                webViewClient.setLocalAssetsMap(assetMap);
+                                webView.setWebViewClient(webViewClient);
+
+                                final WebSettings webviewSettings = webView.getSettings();
+                                webviewSettings.setJavaScriptEnabled(true);
+                                webviewSettings.setAllowFileAccess(false);
+                                webviewSettings.setDomStorageEnabled(true);
+                                webviewSettings.setLayoutAlgorithm(
+                                        WebSettings.LayoutAlgorithm.NORMAL);
+                                webviewSettings.setDefaultTextEncodingName(UTF_8);
+                            };
+
+                    final RunnableFuture<Void> createWebviewTask =
+                            new FutureTask<>(createWebviewRunnable, null);
+
+                    currentActivity.runOnUiThread(createWebviewTask);
+
+                    try {
+                        createWebviewTask.get(1, TimeUnit.SECONDS);
+                    } catch (final InterruptedException
+                            | ExecutionException
+                            | TimeoutException exception) {
+                        Log.debug(
+                                ServiceConstants.LOG_TAG,
+                                TAG,
+                                "Exception occurred when creating the webview: %s",
+                                exception.getLocalizedMessage());
+                        listener.onShowFailure();
+                        return;
+                    }
 
                     // bail if we shouldn't be displaying a message
                     if (!messagesMonitor.show(message, withMessagingDelegateControl)) {

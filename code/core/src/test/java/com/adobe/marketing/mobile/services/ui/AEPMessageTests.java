@@ -76,6 +76,8 @@ public class AEPMessageTests {
 
     @Mock private CardView mockCardView;
 
+    @Mock private WebView mockWebView;
+
     @Mock private WebSettings mockWebSettings;
 
     @Mock private MotionEvent mockMotionEvent;
@@ -521,6 +523,7 @@ public class AEPMessageTests {
                         Assert.fail(ex.getMessage());
                     }
 
+                    message.webView = mockWebView;
                     message.rootViewGroup = mockViewGroup;
                     message.fragmentFrameLayout = mockFrameLayout;
                     message.messageFragment = mockMessageFragment;
@@ -573,6 +576,7 @@ public class AEPMessageTests {
                         Assert.fail(ex.getMessage());
                     }
 
+                    message.webView = mockWebView;
                     message.rootViewGroup = mockViewGroup;
                     message.fragmentFrameLayout = mockFrameLayout;
                     message.messageFragment = mockMessageFragment;
@@ -629,6 +633,7 @@ public class AEPMessageTests {
                         Assert.fail(ex.getMessage());
                     }
 
+                    message.webView = mockWebView;
                     message.rootViewGroup = mockViewGroup;
                     message.fragmentFrameLayout = mockFrameLayout;
                     message.messageWebViewRunner = mockMessageWebViewRunner;
@@ -686,6 +691,7 @@ public class AEPMessageTests {
                         Assert.fail(ex.getMessage());
                     }
 
+                    message.webView = mockWebView;
                     message.rootViewGroup = mockViewGroup;
                     message.fragmentFrameLayout = mockFrameLayout;
                     message.messageWebViewRunner = mockMessageWebViewRunner;

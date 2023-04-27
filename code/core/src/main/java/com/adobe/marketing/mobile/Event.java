@@ -42,6 +42,9 @@ public final class Event {
     // If `responseID` is not nil, then this event is a response event and `responseID` is the
     // `event.id` of the `triggerEvent`
     private String responseID;
+    // Represents the unique identifier for the parent of this event. The parent event is a
+    // trigger for creating the current event
+    private String parentID;
     // Specifies the properties in the Event and its data that should be used in the hash for
     // EventHistory storage.
     private String[] mask;
@@ -85,6 +88,7 @@ public final class Event {
             event.type = type;
             event.source = source;
             event.responseID = null;
+            event.parentID = null;
             event.mask = mask;
             didBuild = false;
         }
@@ -175,7 +179,8 @@ public final class Event {
         }
 
         /**
-         * Sets this as response for request {@code Event} *
+         * Sets this as response for {@code requestEvent}. Additionally, marks {@code requestEvent}
+         * as the parent event to this event.
          *
          * @param requestEvent {@code Event} event
          * @return this Event {@link Builder}
@@ -188,7 +193,31 @@ public final class Event {
             if (requestEvent == null) {
                 throw new NullPointerException("requestEvent is null");
             }
-            event.responseID = requestEvent.uniqueIdentifier;
+
+            setResponseId(requestEvent.uniqueIdentifier);
+            chainToParentEvent(requestEvent);
+
+            return this;
+        }
+
+        /**
+         * Sets parent event for this event.
+         *
+         * @param parentEvent the {@code Event} to be set as the parent event. The parent event is
+         *     considered as the trigger for creating the current event
+         * @return this {@link Event.Builder}
+         * @throws UnsupportedOperationException if this method is called after {@link
+         *     Builder#build()} was called
+         */
+        public Builder chainToParentEvent(@NonNull final Event parentEvent) {
+            throwIfAlreadyBuilt();
+
+            if (parentEvent == null) {
+                throw new NullPointerException("parentEvent cannot be null");
+            }
+
+            event.parentID = parentEvent.getUniqueIdentifier();
+
             return this;
         }
 
@@ -203,6 +232,20 @@ public final class Event {
         Builder setResponseId(final String responseId) {
             throwIfAlreadyBuilt();
             event.responseID = responseId;
+            return this;
+        }
+
+        /**
+         * Sets parentId for this event
+         *
+         * @param parentId the uniqueIdentifier of the parent event
+         * @return this {@link Event.Builder}
+         * @throws UnsupportedOperationException if this method is called after {@link
+         *     Builder#build()} was called
+         */
+        Builder setParentId(final String parentId) {
+            throwIfAlreadyBuilt();
+            event.parentID = parentId;
             return this;
         }
 
@@ -324,6 +367,15 @@ public final class Event {
         return responseID;
     }
 
+    /**
+     * Returns the unique identifier of the parent of this event.
+     *
+     * @return the unique identifier of the parent of this event
+     */
+    public String getParentID() {
+        return parentID;
+    }
+
     /** Pair ID for events dispatched by the receiver(s) in response to this event */
     @Deprecated
     void setResponseID(final String responseID) {
@@ -358,6 +410,7 @@ public final class Event {
         sb.append("    source: ").append(source).append(COMMA).append(NEWLINE);
         sb.append("    type: ").append(type).append(COMMA).append(NEWLINE);
         sb.append("    responseId: ").append(responseID).append(COMMA).append(NEWLINE);
+        sb.append("    parentId: ").append(parentID).append(COMMA).append(NEWLINE);
         sb.append("    timestamp: ").append(timestamp).append(COMMA).append(NEWLINE);
         String dataAsStr = data == null ? "{}" : MapExtensionsKt.prettify(data);
         sb.append("    data: ").append(dataAsStr).append(COMMA).append(NEWLINE);

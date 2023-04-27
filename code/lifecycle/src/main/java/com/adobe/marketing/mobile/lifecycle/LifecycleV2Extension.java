@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventSource;
@@ -112,7 +113,7 @@ class LifecycleV2Extension {
                                         event.getTimestamp() - BACKDATE_TIMESTAMP_OFFSET_MILLIS,
                                         true);
                         // Dispatch application close event with xdm data
-                        dispatchApplicationClose(appCloseXDMData);
+                        dispatchApplicationClose(appCloseXDMData, event);
                     }
 
                     final long startTimestamp = event.getTimestamp();
@@ -129,7 +130,7 @@ class LifecycleV2Extension {
                                     null);
 
                     // Dispatch application launch event with xdm data
-                    dispatchApplicationLaunch(appLaunchXDMData, freeFormData);
+                    dispatchApplicationLaunch(appLaunchXDMData, freeFormData, event);
 
                     // persist App version to track App upgrades
                     persistAppVersion();
@@ -159,7 +160,7 @@ class LifecycleV2Extension {
                                     pauseTimestamp,
                                     false);
                     // Dispatch application close event with xdm data
-                    dispatchApplicationClose(appCloseXDMData);
+                    dispatchApplicationClose(appCloseXDMData, event);
                 });
     }
 
@@ -219,9 +220,12 @@ class LifecycleV2Extension {
      *
      * @param appLaunchXDMData the current session start xdm data
      * @param freeFormData additional free-form context data
+     * @param parentEvent the event that triggered the application launch event
      */
     private void dispatchApplicationLaunch(
-            final Map<String, Object> appLaunchXDMData, final Map<String, String> freeFormData) {
+            final Map<String, Object> appLaunchXDMData,
+            final Map<String, String> freeFormData,
+            @NonNull final Event parentEvent) {
         if (appLaunchXDMData == null || appLaunchXDMData.isEmpty()) {
             Log.trace(
                     LifecycleConstants.LOG_TAG,
@@ -240,6 +244,7 @@ class LifecycleV2Extension {
                                 EventType.LIFECYCLE,
                                 EventSource.APPLICATION_LAUNCH)
                         .setEventData(launchEventData)
+                        .chainToParentEvent(parentEvent)
                         .build();
         extensionApi.dispatch(lifecycleLaunchEvent);
     }
@@ -249,8 +254,10 @@ class LifecycleV2Extension {
      * as xdm event data
      *
      * @param appCloseXDMData the current session close xdm data
+     * @param parentEvent the event that triggered the application close event
      */
-    private void dispatchApplicationClose(final Map<String, Object> appCloseXDMData) {
+    private void dispatchApplicationClose(
+            final Map<String, Object> appCloseXDMData, @NonNull final Event parentEvent) {
         if (appCloseXDMData == null || appCloseXDMData.isEmpty()) {
             Log.trace(
                     LifecycleConstants.LOG_TAG,
@@ -267,6 +274,7 @@ class LifecycleV2Extension {
                                 EventType.LIFECYCLE,
                                 EventSource.APPLICATION_CLOSE)
                         .setEventData(closeEventData)
+                        .chainToParentEvent(parentEvent)
                         .build();
         extensionApi.dispatch(lifecycleCloseEvent);
     }

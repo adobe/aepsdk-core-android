@@ -90,7 +90,8 @@ class LifecycleV1Extension {
             dispatchSessionStart(
                     startTimestampInSeconds,
                     previousSessionInfo.getStartTimestampInSeconds(),
-                    previousSessionInfo.getPauseTimestampInSeconds());
+                    previousSessionInfo.getPauseTimestampInSeconds(),
+                    startEvent);
         }
     }
 
@@ -178,11 +179,13 @@ class LifecycleV1Extension {
      * @param startTimestampInSeconds session start time
      * @param previousStartTime start time of previous session
      * @param previousPauseTime pause time of previous session
+     * @param parentEvent the lifecycle event that triggered start
      */
     private void dispatchSessionStart(
             final long startTimestampInSeconds,
             final long previousStartTime,
-            final long previousPauseTime) {
+            final long previousPauseTime,
+            final Event parentEvent) {
         // Dispatch a new event with session related data
         Map<String, Object> eventDataMap = new HashMap<>();
         eventDataMap.put(
@@ -210,6 +213,7 @@ class LifecycleV1Extension {
                                 EventType.LIFECYCLE,
                                 EventSource.RESPONSE_CONTENT)
                         .setEventData(eventDataMap)
+                        .chainToParentEvent(parentEvent)
                         .build();
 
         extensionApi.dispatch(startEvent);

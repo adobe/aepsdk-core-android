@@ -152,8 +152,8 @@ public class LifecycleV2FunctionalTest {
 
         // test
         long sessionStartTimeInMillis = currentTimestampMillis;
-        mockExtensionApi.simulateComingEvent(
-                createStartEvent(expectedFreeFormData, sessionStartTimeInMillis));
+        final Event startEvent = createStartEvent(expectedFreeFormData, sessionStartTimeInMillis);
+        mockExtensionApi.simulateComingEvent(startEvent);
 
         // verify
         assertExpectedEvents(mockExtensionApi);
@@ -192,6 +192,8 @@ public class LifecycleV2FunctionalTest {
         assertEquals(
                 EventSource.APPLICATION_LAUNCH, sessionStartApplicationLaunchEvent.getSource());
         assertEquals(expectedEventData, sessionStartApplicationLaunchEvent.getEventData());
+        assertEquals(
+                startEvent.getUniqueIdentifier(), sessionStartApplicationLaunchEvent.getParentID());
     }
 
     @Test
@@ -204,9 +206,11 @@ public class LifecycleV2FunctionalTest {
                 EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE, 1, mockExtensionApi);
 
         // test
-        mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
+        final Event startEvent = createStartEvent(null, currentTimestampMillis);
+        mockExtensionApi.simulateComingEvent(startEvent);
         long sessionPauseTimeInMillis = currentTimestampMillis + 1000;
-        mockExtensionApi.simulateComingEvent(createPauseEvent(sessionPauseTimeInMillis));
+        final Event pauseEvent = createPauseEvent(sessionPauseTimeInMillis);
+        mockExtensionApi.simulateComingEvent(pauseEvent);
 
         // verify
         assertExpectedEvents(mockExtensionApi);
@@ -233,11 +237,21 @@ public class LifecycleV2FunctionalTest {
                         put(XDM, expectedXDMData);
                     }
                 };
+
+        Event sessionStartApplicationLaunchEvent = mockExtensionApi.dispatchedEvents.get(0);
+        assertEquals(
+                startEvent.getUniqueIdentifier(), sessionStartApplicationLaunchEvent.getParentID());
+        assertEquals(EventType.LIFECYCLE, sessionStartApplicationLaunchEvent.getType());
+        assertEquals(
+                EventSource.APPLICATION_LAUNCH, sessionStartApplicationLaunchEvent.getSource());
+
         Event sessionPauseApplicationCloseEvent = mockExtensionApi.dispatchedEvents.get(1);
         assertEquals("Application Close (Background)", sessionPauseApplicationCloseEvent.getName());
         assertEquals(EventType.LIFECYCLE, sessionPauseApplicationCloseEvent.getType());
         assertEquals(EventSource.APPLICATION_CLOSE, sessionPauseApplicationCloseEvent.getSource());
         assertEquals(expectedEventData, sessionPauseApplicationCloseEvent.getEventData());
+        assertEquals(
+                pauseEvent.getUniqueIdentifier(), sessionPauseApplicationCloseEvent.getParentID());
     }
 
     @Test
@@ -261,8 +275,8 @@ public class LifecycleV2FunctionalTest {
         mockDeviceInfoService.applicationVersion = "1.2";
 
         long secondSessionStartTimeInMillis = currentTimestampMillis + TimeUnit.DAYS.toMillis(1);
-        mockExtensionApi.simulateComingEvent(
-                createStartEvent(null, secondSessionStartTimeInMillis));
+        final Event secondStartEvent = createStartEvent(null, secondSessionStartTimeInMillis);
+        mockExtensionApi.simulateComingEvent(secondStartEvent);
 
         // verify
         assertExpectedEvents(mockExtensionApi);
@@ -303,6 +317,9 @@ public class LifecycleV2FunctionalTest {
                 EventSource.APPLICATION_LAUNCH,
                 secondSessionStartApplicationLaunchEvent.getSource());
         assertEquals(expectedEventData, secondSessionStartApplicationLaunchEvent.getEventData());
+        assertEquals(
+                secondStartEvent.getUniqueIdentifier(),
+                secondSessionStartApplicationLaunchEvent.getParentID());
     }
 
     @Test
@@ -325,8 +342,8 @@ public class LifecycleV2FunctionalTest {
         sleep(1000);
 
         long secondSessionStartTimeInMillis = currentTimestampMillis + TimeUnit.DAYS.toMillis(1);
-        mockExtensionApi.simulateComingEvent(
-                createStartEvent(null, secondSessionStartTimeInMillis));
+        final Event secondStartEvent = createStartEvent(null, secondSessionStartTimeInMillis);
+        mockExtensionApi.simulateComingEvent(secondStartEvent);
 
         // verify
         assertExpectedEvents(mockExtensionApi);
@@ -365,6 +382,9 @@ public class LifecycleV2FunctionalTest {
                 EventSource.APPLICATION_LAUNCH,
                 secondSessionStartApplicationLaunchEvent.getSource());
         assertEquals(expectedEventData, secondSessionStartApplicationLaunchEvent.getEventData());
+        assertEquals(
+                secondStartEvent.getUniqueIdentifier(),
+                secondSessionStartApplicationLaunchEvent.getParentID());
     }
 
     @Test
@@ -392,8 +412,8 @@ public class LifecycleV2FunctionalTest {
         setExpectationEvent(
                 EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 1, mockExtensionApi2);
         long secondSessionStartTimeInMillis = currentTimestampMillis;
-        mockExtensionApi2.simulateComingEvent(
-                createStartEvent(null, secondSessionStartTimeInMillis));
+        final Event secondStartEvent = createStartEvent(null, secondSessionStartTimeInMillis);
+        mockExtensionApi2.simulateComingEvent(secondStartEvent);
 
         // verify
         assertExpectedEvents(mockExtensionApi);
@@ -435,6 +455,9 @@ public class LifecycleV2FunctionalTest {
         assertEquals(
                 EventSource.APPLICATION_CLOSE, secondSessionStartApplicationCloseEvent.getSource());
         assertEquals(expectedEventData, secondSessionStartApplicationCloseEvent.getEventData());
+        assertEquals(
+                secondStartEvent.getUniqueIdentifier(),
+                secondSessionStartApplicationCloseEvent.getParentID());
     }
 
     @Test

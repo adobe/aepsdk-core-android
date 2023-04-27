@@ -21,6 +21,7 @@ import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -91,11 +92,16 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
 
         // determine if the tapped view is the webview
         if (view.getId() == message.webView.getId()) {
-            // pass the event to the gesture detector to determine if a motion event occurred on the
-            // webview.
+            // if we have no gestures just pass the touch event to the webview
+            if (message.getMessageSettings().getGestures() == null
+                    || message.getMessageSettings().getGestures().isEmpty()) {
+                return view.onTouchEvent(motionEvent);
+            }
+            // otherwise, pass the event to the gesture detector to determine if a motion event
+            // occurred on the webview
             gestureDetector.onTouchEvent(motionEvent);
-            // perform the tap to allow interaction with buttons within the webview
-            return view.onTouchEvent(motionEvent);
+            // we want to ignore scroll events (ACTION_MOVE) with gestures present
+            return motionEvent.getAction() == MotionEvent.ACTION_MOVE;
         }
 
         return false;
@@ -115,11 +121,10 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
         }
 
         // store message gestures if available
-        final Map<MessageGesture, String> retrievedGestures = message.getSettings().getGestures();
-
-        if (retrievedGestures != null && !retrievedGestures.isEmpty()) {
-            gestures = retrievedGestures;
-        }
+        gestures =
+                message.getSettings().getGestures() != null
+                        ? message.getSettings().getGestures()
+                        : new HashMap<>();
 
         // initialize the gesture detector and listener
         webViewGestureListener = new WebViewGestureListener(this);

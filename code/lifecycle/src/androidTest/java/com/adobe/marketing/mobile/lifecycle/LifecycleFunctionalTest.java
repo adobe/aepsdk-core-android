@@ -170,7 +170,8 @@ public class LifecycleFunctionalTest {
     public void
             testLifecycle__When__Start__Then__DispatchLifecycleContextDataUpdate_InstallEvent() {
         // test
-        mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
+        final Event startEvent = createStartEvent(null, currentTimestampMillis);
+        mockExtensionApi.simulateComingEvent(startEvent);
 
         // verify session start dispatches response content event
         List<Event> events = mockExtensionApi.dispatchedEvents;
@@ -228,6 +229,7 @@ public class LifecycleFunctionalTest {
         assertEquals(EventType.LIFECYCLE, sessionStartResponseEvent.getType());
         assertEquals(EventSource.RESPONSE_CONTENT, sessionStartResponseEvent.getSource());
         assertEquals(expectedEventData, sessionStartResponseEvent.getEventData());
+        assertEquals(startEvent.getUniqueIdentifier(), sessionStartResponseEvent.getParentID());
 
         Map<String, Object> updatedLifecycleSharedState = sharedStateList.get(0);
         assertEquals(expectedSharedState, updatedLifecycleSharedState);
@@ -243,8 +245,8 @@ public class LifecycleFunctionalTest {
         // test
         Map<String, String> additionalContextData = new HashMap<>();
         additionalContextData.put("testKey", "testVal");
-        mockExtensionApi.simulateComingEvent(
-                createStartEvent(additionalContextData, currentTimestampMillis));
+        final Event startEvent = createStartEvent(additionalContextData, currentTimestampMillis);
+        mockExtensionApi.simulateComingEvent(startEvent);
 
         // verify session start dispatches response content event
         List<Event> events = mockExtensionApi.dispatchedEvents;
@@ -259,6 +261,7 @@ public class LifecycleFunctionalTest {
         Map<String, String> sessionStartContextData =
                 (Map<String, String>) events.get(0).getEventData().get(LIFECYCLE_CONTEXT_DATA);
         assertEquals("testVal", sessionStartContextData.get("testKey"));
+        assertEquals(startEvent.getUniqueIdentifier(), events.get(0).getParentID());
     }
 
     @Test

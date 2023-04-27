@@ -242,6 +242,9 @@ public class LifecycleV1ExtensionTest {
                     MAX_SESSION_LENGTH_SECONDS, lifecycleResponseEventData.get(MAX_SESSION_LENGTH));
             assertEquals(111L, lifecycleResponseEventData.get(PREVIOUS_SESSION_START_TIMESTAMP));
             assertEquals(222L, lifecycleResponseEventData.get(PREVIOUS_SESSION_PAUSE_TIMESTAMP));
+            assertEquals(
+                    lifecycleStartEvent.getUniqueIdentifier(),
+                    lifecycleResponseEvent.getValue().getParentID());
         }
     }
 

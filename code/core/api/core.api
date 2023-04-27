@@ -22,6 +22,7 @@ public final class com/adobe/marketing/mobile/Event {
 	public fun getEventData ()Ljava/util/Map;
 	public fun getMask ()[Ljava/lang/String;
 	public fun getName ()Ljava/lang/String;
+	public fun getParentID ()Ljava/lang/String;
 	public fun getResponseID ()Ljava/lang/String;
 	public fun getSource ()Ljava/lang/String;
 	public fun getTimestamp ()J
@@ -35,6 +36,7 @@ public class com/adobe/marketing/mobile/Event$Builder {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V
 	public fun build ()Lcom/adobe/marketing/mobile/Event;
+	public fun chainToParentEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event$Builder;
 	public fun inResponseToEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event$Builder;
 	public fun setEventData (Ljava/util/Map;)Lcom/adobe/marketing/mobile/Event$Builder;
 }

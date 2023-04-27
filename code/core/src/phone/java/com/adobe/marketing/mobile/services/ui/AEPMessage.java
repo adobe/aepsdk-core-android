@@ -151,7 +151,7 @@ class AEPMessage implements FullscreenMessage {
 
         final RunnableFuture<Void> createWebviewTask =
                 new FutureTask<>(createWebviewRunnable, null);
-        
+
         currentActivity.runOnUiThread(createWebviewTask);
 
         try {

@@ -116,6 +116,13 @@ class AEPMessage implements FullscreenMessage {
                     "Message couldn't be created because the FullscreenMessageDelegate was null.");
         }
 
+        final Activity currentActivity =
+                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        if (currentActivity == null) {
+            throw new MessageCreationException(
+                    "Message creation failed, the current activity is null");
+        }
+
         // create webview
         final Runnable createWebviewRunnable =
                 () -> {
@@ -144,12 +151,7 @@ class AEPMessage implements FullscreenMessage {
 
         final RunnableFuture<Void> createWebviewTask =
                 new FutureTask<>(createWebviewRunnable, null);
-        final Activity currentActivity =
-                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
-        if (currentActivity == null) {
-            throw new MessageCreationException(
-                    "Message creation failed, the current activity is null");
-        }
+        
         currentActivity.runOnUiThread(createWebviewTask);
 
         try {

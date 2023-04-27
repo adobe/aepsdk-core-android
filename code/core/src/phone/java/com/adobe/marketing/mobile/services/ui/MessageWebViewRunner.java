@@ -21,6 +21,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.cardview.widget.CardView;
@@ -155,8 +156,10 @@ class MessageWebViewRunner implements Runnable {
                 return;
             }
 
+            final WebSettings webSettings = message.webView.getSettings();
+
             // Disallow need for a user gesture to play media.
-            message.webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+            webSettings.setMediaPlaybackRequiresUserGesture(false);
 
             final Context appContext =
                     ServiceProvider.getInstance().getAppContextService().getApplicationContext();
@@ -167,13 +170,13 @@ class MessageWebViewRunner implements Runnable {
             }
 
             if (cacheDirectory != null) {
-                message.webView.getSettings().setDatabaseEnabled(true);
+                webSettings.setDatabaseEnabled(true);
             }
 
             // if we are re-showing after an orientation change, no need to animate
             final MessageSettings messageSettings = message.getSettings();
 
-            createMessageFrameAndAddMessageToRootView(messageSettings);
+            createMessageFrameAndAddMessageToRootView(messageSettings, webSettings);
             message.viewed();
         } catch (final Exception ex) {
             Log.warning(
@@ -248,16 +251,18 @@ class MessageWebViewRunner implements Runnable {
      *
      * @param settings The {@link MessageSettings} object containing customization settings for the
      *     {@link AEPMessage}.
+     * @param webSettings The {@link WebSettings} for the in-app {@code WebView}
      */
-    private void createMessageFrameAndAddMessageToRootView(final MessageSettings settings) {
+    private void createMessageFrameAndAddMessageToRootView(
+            final MessageSettings settings, final WebSettings webSettings) {
         FrameLayout.LayoutParams params =
                 generateLayoutParams(messageHeight, messageWidth, originX, originY);
 
         // if we have non fullscreen messages, fill the webview
         final int fullScreenMessageHeight = 100;
         if (settings.getHeight() != fullScreenMessageHeight) {
-            message.webView.getSettings().setLoadWithOverviewMode(true);
-            message.webView.getSettings().setUseWideViewPort(true);
+            webSettings.setLoadWithOverviewMode(true);
+            webSettings.setUseWideViewPort(true);
         }
 
         // apply round corners to a CardView then add the webview

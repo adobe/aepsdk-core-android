@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 import android.app.Activity;
 import android.app.FragmentManager;
@@ -29,6 +30,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.cardview.widget.CardView;
@@ -40,12 +42,14 @@ import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import java.util.HashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.RunnableFuture;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -72,7 +76,7 @@ public class AEPMessageTests {
 
     @Mock private CardView mockCardView;
 
-    @Mock private WebView mockWebView;
+    @Mock private WebSettings mockWebSettings;
 
     @Mock private MotionEvent mockMotionEvent;
 
@@ -122,549 +126,586 @@ public class AEPMessageTests {
                         })
                 .when(mockExecutor)
                 .execute(any(Runnable.class));
+
+        // Actually run the runnable future - mocking the activity.runOnUiThread()
+        doAnswer(
+                        invocation -> {
+                            Runnable r = invocation.getArgument(0);
+                            r.run();
+                            return null;
+                        })
+                .when(mockActivity)
+                .runOnUiThread(any(RunnableFuture.class));
+    }
+
+    private void setupWebViewMockAndRunTest(Runnable testRunnable) {
+        try (MockedConstruction<WebView> mockedConstruction =
+                Mockito.mockConstruction(
+                        WebView.class,
+                        (mock, context) -> {
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                        })) {
+            testRunnable.run();
+        }
     }
 
     // AEPMessage creation tests
     @Test
     public void testCreateAEPMessage() {
-        // test
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (final MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
+        // setup
+        setupWebViewMockAndRunTest(
+                () -> {
+                    // test
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (final MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
 
-        // verify
-        Assert.assertNotNull(message);
+                    // verify
+                    Assert.assertNotNull(message);
+                });
     }
 
-    @Test(expected = MessageCreationException.class)
-    public void testCreateAEPMessage_nullMessageDelegate() throws MessageCreationException {
-        // test and verify
-        message =
-                new AEPMessage(
-                        "html",
-                        null,
-                        false,
-                        mockMessageMonitor,
-                        mockAEPMessageSettings,
-                        mockExecutor);
+    @Test
+    public void testCreateAEPMessage_currentActivityIsNull() {
+        // setup
+        setupWebViewMockAndRunTest(
+                () -> {
+                    Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
+                    Mockito.when(
+                                    mockMessagingDelegate.shouldShowMessage(
+                                            ArgumentMatchers.any(AEPMessage.class)))
+                            .thenReturn(true);
+
+                    // set the current activity to null
+                    Mockito.when(mockAppContextService.getCurrentActivity()).thenReturn(null);
+
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.assertEquals(MessageCreationException.class, ex.getClass());
+                    }
+                });
+    }
+
+    @Test
+    public void testCreateAEPMessage_messageDelegateIsNull() {
+        // setup
+        setupWebViewMockAndRunTest(
+                () -> {
+                    // test and verify
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        null,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (final MessageCreationException ex) {
+                        Assert.assertEquals(MessageCreationException.class, ex.getClass());
+                    }
+                });
     }
 
     // AEPMessage show tests
     @Test
     public void aepMessageIsShown_When_NoOtherMessagesAreDisplayed() {
         // setup
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenCallRealMethod()
-                .thenReturn(true);
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(true);
+        setupWebViewMockAndRunTest(
+                () -> {
+                    Mockito.when(
+                                    mockMessageMonitor.show(
+                                            any(FullscreenMessage.class), anyBoolean()))
+                            .thenCallRealMethod()
+                            .thenReturn(true);
+                    Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
+                    Mockito.when(
+                                    mockMessagingDelegate.shouldShowMessage(
+                                            ArgumentMatchers.any(AEPMessage.class)))
+                            .thenReturn(true);
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
-        message.rootViewGroup = mockViewGroup;
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        setupFragmentTransactionMocks();
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
+                    message.rootViewGroup = mockViewGroup;
+                    Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+                    Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+                    setupFragmentTransactionMocks();
 
-        // test
-        message.show();
-        // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(1))
-                .show(any(FullscreenMessage.class), eq(true));
-        Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
+                    // test
+                    message.show();
+                    // verify
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1))
+                            .show(any(FullscreenMessage.class), eq(true));
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
+                });
     }
 
     @Test
     public void aepMessageIsShown_When_RootViewIsNull() {
         // setup
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenCallRealMethod()
-                .thenReturn(true);
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(true);
-        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
-                .thenReturn(mockViewGroup);
+        setupWebViewMockAndRunTest(
+                () -> {
+                    Mockito.when(
+                                    mockMessageMonitor.show(
+                                            any(FullscreenMessage.class), anyBoolean()))
+                            .thenCallRealMethod()
+                            .thenReturn(true);
+                    Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
+                    Mockito.when(
+                                    mockMessagingDelegate.shouldShowMessage(
+                                            ArgumentMatchers.any(AEPMessage.class)))
+                            .thenReturn(true);
+                    Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
+                            .thenReturn(mockViewGroup);
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
-        message.rootViewGroup = null;
-        setupFragmentTransactionMocks();
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
+                    message.rootViewGroup = null;
+                    setupFragmentTransactionMocks();
 
-        // test
-        message.show();
-        // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(1))
-                .show(any(FullscreenMessage.class), eq(true));
-        Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
+                    // test
+                    message.show();
+                    // verify
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1))
+                            .show(any(FullscreenMessage.class), eq(true));
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
+                });
     }
 
     @Test
     public void aepMessageIsNotShown_When_AnotherMessageIsDisplayed() {
         // setup
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(true);
+        setupWebViewMockAndRunTest(
+                () -> {
+                    Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
+                    Mockito.when(
+                                    mockMessagingDelegate.shouldShowMessage(
+                                            ArgumentMatchers.any(AEPMessage.class)))
+                            .thenReturn(true);
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
-        message.rootViewGroup = mockViewGroup;
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        setupFragmentTransactionMocks();
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
+                    message.rootViewGroup = mockViewGroup;
+                    Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+                    Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+                    setupFragmentTransactionMocks();
 
-        // test
-        message.show();
-        // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(1))
-                .show(any(FullscreenMessage.class), eq(true));
-        Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
+                    // test
+                    message.show();
+                    // verify
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1))
+                            .show(any(FullscreenMessage.class), eq(true));
+                    Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
+                });
     }
 
     @Test
     public void aepMessageIsNotShown_When_MessagingDelegateSet_And_ShouldShowMessageIsFalse() {
         // setup
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenCallRealMethod();
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(false);
-        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
-                .thenReturn(mockViewGroup);
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        setupFragmentTransactionMocks();
+        setupWebViewMockAndRunTest(
+                () -> {
+                    Mockito.when(
+                                    mockMessageMonitor.show(
+                                            any(FullscreenMessage.class), anyBoolean()))
+                            .thenCallRealMethod();
+                    Mockito.when(
+                                    mockMessagingDelegate.shouldShowMessage(
+                                            ArgumentMatchers.any(AEPMessage.class)))
+                            .thenReturn(false);
+                    Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
+                            .thenReturn(mockViewGroup);
+                    Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+                    Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+                    setupFragmentTransactionMocks();
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
 
-        message.rootViewGroup = mockViewGroup;
-        message.webView = mockWebView;
-        message.messageFragment = mockMessageFragment;
+                    message.rootViewGroup = mockViewGroup;
+                    message.messageFragment = mockMessageFragment;
 
-        // test
-        message.show();
-        // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
+                    // test
+                    message.show();
+                    // verify
+                    Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
+                    Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
+                });
     }
 
     @Test
     public void aepMessageIsShown_When_NoMessageDelegateSet() {
         // setup
-        ServiceProviderModifier.setMessagingDelegate(null);
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenCallRealMethod();
-        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
-                .thenReturn(mockViewGroup);
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        setupFragmentTransactionMocks();
+        setupWebViewMockAndRunTest(
+                () -> {
+                    ServiceProviderModifier.setMessagingDelegate(null);
+                    Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
+                    Mockito.when(
+                                    mockMessageMonitor.show(
+                                            any(FullscreenMessage.class), anyBoolean()))
+                            .thenCallRealMethod();
+                    Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
+                            .thenReturn(mockViewGroup);
+                    Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+                    Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+                    setupFragmentTransactionMocks();
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
 
-        message.rootViewGroup = mockViewGroup;
-        message.webView = mockWebView;
-        message.messageFragment = mockMessageFragment;
+                    message.rootViewGroup = mockViewGroup;
+                    message.messageFragment = mockMessageFragment;
 
-        // test
-        message.show(false);
-        // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
-    }
-
-    @Test
-    public void aepMessageIsNotShown_When_CurrentActivityIsNull() {
-        // setup
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(true);
-
-        // set the current activity to null
-        Mockito.when(mockAppContextService.getCurrentActivity()).thenReturn(null);
-
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
-        message.rootViewGroup = mockViewGroup;
-        message.webView = mockWebView;
-        message.messageFragment = mockMessageFragment;
-
-        // test
-        message.show();
-        // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
+                    // test
+                    message.show(false);
+                    // verify
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
+                });
     }
 
     // openUrl tests
     @Test
     public void urlOpened_When_ActivityIsNotNull() {
         // setup
-        String url = "https://www.adobe.com";
+        setupWebViewMockAndRunTest(
+                () -> {
+                    String url = "https://www.adobe.com";
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
-        message.rootViewGroup = mockViewGroup;
-        message.webView = mockWebView;
-        message.messageFragment = mockMessageFragment;
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
+                    message.rootViewGroup = mockViewGroup;
+                    message.messageFragment = mockMessageFragment;
 
-        // test
-        message.openUrl(url);
-        // verify
-        Mockito.verify(mockActivity, Mockito.times(1))
-                .startActivity(ArgumentMatchers.any(Intent.class));
-    }
-
-    @Test
-    public void urlNotOpened_When_ActivityIsNull() {
-        // setup
-        Mockito.when(mockAppContextService.getCurrentActivity()).thenReturn(null);
-
-        String url = "https://www.adobe.com";
-
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
-
-        message.rootViewGroup = mockViewGroup;
-        message.webView = mockWebView;
-        message.messageFragment = mockMessageFragment;
-
-        // test
-        message.openUrl(url);
-        // verify
-        Mockito.verify(mockActivity, Mockito.times(0))
-                .startActivity(ArgumentMatchers.any(Intent.class));
+                    // test
+                    message.openUrl(url);
+                    // verify
+                    Mockito.verify(mockActivity, Mockito.times(1))
+                            .startActivity(ArgumentMatchers.any(Intent.class));
+                });
     }
 
     @Test
     public void urlNotOpened_When_UrlStringIsEmpty() {
         // setup
-        String url = "";
+        setupWebViewMockAndRunTest(
+                () -> {
+                    String url = "";
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
 
-        message.rootViewGroup = mockViewGroup;
-        message.webView = mockWebView;
-        message.messageFragment = mockMessageFragment;
+                    message.rootViewGroup = mockViewGroup;
+                    message.messageFragment = mockMessageFragment;
 
-        // test
-        message.openUrl(url);
-        // verify
-        Mockito.verify(mockActivity, Mockito.times(0))
-                .startActivity(ArgumentMatchers.any(Intent.class));
+                    // test
+                    message.openUrl(url);
+                    // verify
+                    Mockito.verify(mockActivity, Mockito.times(0))
+                            .startActivity(ArgumentMatchers.any(Intent.class));
+                });
     }
 
     // AEPMessage dismiss tests
     @Test
     public void aepMessageIsDismissed_When_MessagingDelegateSet_And_MessageDismissCalled() {
         // setup
-        mockMessageFragment.dismissedWithGesture = false;
-        Mockito.when(mockAEPMessageSettings.getDismissAnimation())
-                .thenReturn(MessageAnimation.BOTTOM);
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
-        Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(true);
-        setupFragmentTransactionMocks();
+        setupWebViewMockAndRunTest(
+                () -> {
+                    mockMessageFragment.dismissedWithGesture = false;
+                    Mockito.when(mockAEPMessageSettings.getDismissAnimation())
+                            .thenReturn(MessageAnimation.BOTTOM);
+                    Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
+                    Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
+                    Mockito.when(
+                                    mockMessagingDelegate.shouldShowMessage(
+                                            ArgumentMatchers.any(AEPMessage.class)))
+                            .thenReturn(true);
+                    setupFragmentTransactionMocks();
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
 
-        message.rootViewGroup = mockViewGroup;
-        message.fragmentFrameLayout = mockFrameLayout;
-        message.messageFragment = mockMessageFragment;
-        message.messageWebViewRunner = mockMessageWebViewRunner;
-        mockMessageWebViewRunner.backdrop = mockBackdrop;
-        message.webView = mockWebView;
-        message.messageWebViewRunner.webViewFrame = mockCardView;
-        message.setVisible(true);
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        // test
-        message.dismiss();
-        message.getAnimationListener().onAnimationEnd(mockAnimation);
-        // verify listeners are called for a message dismiss
-        Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
-        Mockito.verify(mockMessagingDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockCardView, Mockito.times(1))
-                .startAnimation(ArgumentMatchers.any(Animation.class));
+                    message.rootViewGroup = mockViewGroup;
+                    message.fragmentFrameLayout = mockFrameLayout;
+                    message.messageFragment = mockMessageFragment;
+                    message.messageWebViewRunner = mockMessageWebViewRunner;
+                    mockMessageWebViewRunner.backdrop = mockBackdrop;
+                    message.messageWebViewRunner.webViewFrame = mockCardView;
+                    message.setVisible(true);
+                    Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+                    Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+                    // test
+                    message.dismiss();
+                    message.getAnimationListener().onAnimationEnd(mockAnimation);
+                    // verify listeners are called for a message dismiss
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
+                    Mockito.verify(mockMessagingDelegate, Mockito.times(1))
+                            .onDismiss(any(FullscreenMessage.class));
+                    Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                            .onDismiss(any(FullscreenMessage.class));
+                    Mockito.verify(mockCardView, Mockito.times(1))
+                            .startAnimation(ArgumentMatchers.any(Animation.class));
+                });
     }
 
     @Test
     public void aepMessageIsDismissed_When_NoMessagingDelegateSet_And_MessageDismissCalled() {
         // setup
-        ServiceProviderModifier.setMessagingDelegate(null);
-        mockMessageFragment.dismissedWithGesture = false;
-        Mockito.when(mockAEPMessageSettings.getDismissAnimation())
-                .thenReturn(MessageAnimation.BOTTOM);
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenReturn(true);
-        Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
-        setupFragmentTransactionMocks();
+        setupWebViewMockAndRunTest(
+                () -> {
+                    ServiceProviderModifier.setMessagingDelegate(null);
+                    mockMessageFragment.dismissedWithGesture = false;
+                    Mockito.when(mockAEPMessageSettings.getDismissAnimation())
+                            .thenReturn(MessageAnimation.BOTTOM);
+                    Mockito.when(
+                                    mockMessageMonitor.show(
+                                            any(FullscreenMessage.class), anyBoolean()))
+                            .thenReturn(true);
+                    Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
+                    setupFragmentTransactionMocks();
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
 
-        message.rootViewGroup = mockViewGroup;
-        message.fragmentFrameLayout = mockFrameLayout;
-        message.messageFragment = mockMessageFragment;
-        message.messageWebViewRunner = mockMessageWebViewRunner;
-        mockMessageWebViewRunner.backdrop = mockBackdrop;
-        message.webView = mockWebView;
-        message.messageWebViewRunner.webViewFrame = mockCardView;
-        message.setVisible(true);
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        // test
-        message.dismiss();
-        message.getAnimationListener().onAnimationEnd(mockAnimation);
-        // verify listeners except for the messaging delegate are called for a message dismiss
-        Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
-        Mockito.verifyNoInteractions(mockMessagingDelegate);
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockCardView, Mockito.times(1))
-                .startAnimation(ArgumentMatchers.any(Animation.class));
+                    message.rootViewGroup = mockViewGroup;
+                    message.fragmentFrameLayout = mockFrameLayout;
+                    message.messageFragment = mockMessageFragment;
+                    message.messageWebViewRunner = mockMessageWebViewRunner;
+                    mockMessageWebViewRunner.backdrop = mockBackdrop;
+                    message.messageWebViewRunner.webViewFrame = mockCardView;
+                    message.setVisible(true);
+                    Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+                    Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+                    // test
+                    message.dismiss();
+                    message.getAnimationListener().onAnimationEnd(mockAnimation);
+                    // verify listeners except for the messaging delegate are called for a message
+                    // dismiss
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
+                    Mockito.verifyNoInteractions(mockMessagingDelegate);
+                    Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                            .onDismiss(any(FullscreenMessage.class));
+                    Mockito.verify(mockCardView, Mockito.times(1))
+                            .startAnimation(ArgumentMatchers.any(Animation.class));
+                });
     }
 
     @Test
     public void aepMessageIsDismissed_When_MessagingDelegateSet_And_MessageDismissedWithGesture() {
         // setup
-        mockMessageFragment.dismissedWithGesture = true;
-        Mockito.when(mockAEPMessageSettings.getDismissAnimation())
-                .thenReturn(MessageAnimation.BOTTOM);
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenReturn(true);
-        Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(true);
-        setupFragmentTransactionMocks();
+        setupWebViewMockAndRunTest(
+                () -> {
+                    mockMessageFragment.dismissedWithGesture = true;
+                    Mockito.when(mockAEPMessageSettings.getDismissAnimation())
+                            .thenReturn(MessageAnimation.BOTTOM);
+                    Mockito.when(
+                                    mockMessageMonitor.show(
+                                            any(FullscreenMessage.class), anyBoolean()))
+                            .thenReturn(true);
+                    Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
+                    Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
+                    Mockito.when(
+                                    mockMessagingDelegate.shouldShowMessage(
+                                            ArgumentMatchers.any(AEPMessage.class)))
+                            .thenReturn(true);
+                    setupFragmentTransactionMocks();
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
 
-        message.rootViewGroup = mockViewGroup;
-        message.fragmentFrameLayout = mockFrameLayout;
-        message.messageWebViewRunner = mockMessageWebViewRunner;
-        message.messageFragment = mockMessageFragment;
-        mockMessageWebViewRunner.backdrop = mockBackdrop;
-        message.webView = mockWebView;
-        message.messageWebViewRunner.webViewFrame = mockCardView;
-        message.setVisible(true);
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        // test
-        message.dismiss();
-        // verify listeners are called for a message dismiss
-        Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
-        Mockito.verify(mockMessagingDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockCardView, Mockito.times(0))
-                .startAnimation(ArgumentMatchers.any(Animation.class));
+                    message.rootViewGroup = mockViewGroup;
+                    message.fragmentFrameLayout = mockFrameLayout;
+                    message.messageWebViewRunner = mockMessageWebViewRunner;
+                    message.messageFragment = mockMessageFragment;
+                    mockMessageWebViewRunner.backdrop = mockBackdrop;
+                    message.messageWebViewRunner.webViewFrame = mockCardView;
+                    message.setVisible(true);
+                    Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+                    Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+                    // test
+                    message.dismiss();
+                    // verify listeners are called for a message dismiss
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
+                    Mockito.verify(mockMessagingDelegate, Mockito.times(1))
+                            .onDismiss(any(FullscreenMessage.class));
+                    Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                            .onDismiss(any(FullscreenMessage.class));
+                    Mockito.verify(mockCardView, Mockito.times(0))
+                            .startAnimation(ArgumentMatchers.any(Animation.class));
+                });
     }
 
     @Test
     public void
             aepMessageIsDismissed_When_NoMessagingDelegateSet_And_MessageDismissedWithGesture() {
         // setup
-        ServiceProviderModifier.setMessagingDelegate(null);
-        mockMessageFragment.dismissedWithGesture = true;
-        Mockito.when(mockAEPMessageSettings.getDismissAnimation())
-                .thenReturn(MessageAnimation.BOTTOM);
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenCallRealMethod()
-                .thenReturn(true);
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenReturn(true);
-        Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
-        setupFragmentTransactionMocks();
+        setupWebViewMockAndRunTest(
+                () -> {
+                    ServiceProviderModifier.setMessagingDelegate(null);
+                    mockMessageFragment.dismissedWithGesture = true;
+                    Mockito.when(mockAEPMessageSettings.getDismissAnimation())
+                            .thenReturn(MessageAnimation.BOTTOM);
+                    Mockito.when(
+                                    mockMessageMonitor.show(
+                                            any(FullscreenMessage.class), anyBoolean()))
+                            .thenCallRealMethod()
+                            .thenReturn(true);
+                    Mockito.when(
+                                    mockMessageMonitor.show(
+                                            any(FullscreenMessage.class), anyBoolean()))
+                            .thenReturn(true);
+                    Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
+                    setupFragmentTransactionMocks();
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
-        }
+                    try {
+                        message =
+                                new AEPMessage(
+                                        "html",
+                                        mockFullscreenMessageDelegate,
+                                        false,
+                                        mockMessageMonitor,
+                                        mockAEPMessageSettings,
+                                        mockExecutor);
+                    } catch (MessageCreationException ex) {
+                        Assert.fail(ex.getMessage());
+                    }
 
-        message.rootViewGroup = mockViewGroup;
-        message.fragmentFrameLayout = mockFrameLayout;
-        message.messageWebViewRunner = mockMessageWebViewRunner;
-        message.messageFragment = mockMessageFragment;
-        mockMessageWebViewRunner.backdrop = mockBackdrop;
-        message.webView = mockWebView;
-        message.messageWebViewRunner.webViewFrame = mockCardView;
-        message.setVisible(true);
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        // test
-        message.dismiss();
-        // verify listeners except for the messaging delegate are called for a message dismiss
-        Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
-        Mockito.verifyNoInteractions(mockMessagingDelegate);
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockWebView, Mockito.times(0))
-                .startAnimation(ArgumentMatchers.any(Animation.class));
-        Mockito.verify(mockCardView, Mockito.times(0))
-                .startAnimation(ArgumentMatchers.any(Animation.class));
+                    message.rootViewGroup = mockViewGroup;
+                    message.fragmentFrameLayout = mockFrameLayout;
+                    message.messageWebViewRunner = mockMessageWebViewRunner;
+                    message.messageFragment = mockMessageFragment;
+                    mockMessageWebViewRunner.backdrop = mockBackdrop;
+                    message.messageWebViewRunner.webViewFrame = mockCardView;
+                    message.setVisible(true);
+                    Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+                    Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+                    // test
+                    message.dismiss();
+                    // verify listeners except for the messaging delegate are called for a message
+                    // dismiss
+                    Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
+                    Mockito.verifyNoInteractions(mockMessagingDelegate);
+                    Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                            .onDismiss(any(FullscreenMessage.class));
+                    Mockito.verify(mockCardView, Mockito.times(0))
+                            .startAnimation(ArgumentMatchers.any(Animation.class));
+                });
     }
 
     // mock fragment setup helper

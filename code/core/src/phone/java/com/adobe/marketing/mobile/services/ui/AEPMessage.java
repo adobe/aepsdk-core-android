@@ -45,6 +45,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The Android implementation for {@link FullscreenMessage}. It creates and starts a {@link
@@ -139,22 +141,23 @@ class AEPMessage implements FullscreenMessage {
                     webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
                     webviewSettings.setDefaultTextEncodingName(UTF_8);
                 };
+
         final RunnableFuture<Void> createWebviewTask =
                 new FutureTask<>(createWebviewRunnable, null);
-        ServiceProvider.getInstance()
-                .getAppContextService()
-                .getCurrentActivity()
-                .runOnUiThread(createWebviewTask);
-        try {
-            createWebviewTask.get();
-        } catch (final InterruptedException | ExecutionException exception) {
-            Log.error(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    "Message creation failed, exception occurred when creating the webview: %s.",
-                    exception.getLocalizedMessage());
+        final Activity currentActivity =
+                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        if (currentActivity == null) {
             throw new MessageCreationException(
-                    "Message creation failed, exception occurred when creating the webview.");
+                    "Message creation failed, the current activity is null");
+        }
+        currentActivity.runOnUiThread(createWebviewTask);
+
+        try {
+            createWebviewTask.get(1, TimeUnit.SECONDS);
+        } catch (final InterruptedException | ExecutionException | TimeoutException exception) {
+            throw new MessageCreationException(
+                    "Message creation failed, exception occurred when creating the webview: "
+                            + exception.getLocalizedMessage());
         }
 
         this.listener = listener;

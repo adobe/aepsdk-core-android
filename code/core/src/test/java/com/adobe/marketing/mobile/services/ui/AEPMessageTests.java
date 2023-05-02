@@ -29,7 +29,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.webkit.WebView;
 import android.widget.FrameLayout;
+import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.MessagingDelegate;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
@@ -68,7 +70,9 @@ public class AEPMessageTests {
 
     @Mock private View mockBackdrop;
 
-    @Mock private MessageWebView mockWebView;
+    @Mock private CardView mockCardView;
+
+    @Mock private WebView mockWebView;
 
     @Mock private MotionEvent mockMotionEvent;
 
@@ -496,6 +500,7 @@ public class AEPMessageTests {
         message.messageWebViewRunner = mockMessageWebViewRunner;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.webView = mockWebView;
+        message.messageWebViewRunner.webViewFrame = mockCardView;
         message.setVisible(true);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
@@ -508,7 +513,7 @@ public class AEPMessageTests {
                 .onDismiss(any(FullscreenMessage.class));
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
                 .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockWebView, Mockito.times(1))
+        Mockito.verify(mockCardView, Mockito.times(1))
                 .startAnimation(ArgumentMatchers.any(Animation.class));
     }
 
@@ -543,6 +548,7 @@ public class AEPMessageTests {
         message.messageWebViewRunner = mockMessageWebViewRunner;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.webView = mockWebView;
+        message.messageWebViewRunner.webViewFrame = mockCardView;
         message.setVisible(true);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
@@ -554,7 +560,7 @@ public class AEPMessageTests {
         Mockito.verifyNoInteractions(mockMessagingDelegate);
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
                 .onDismiss(any(FullscreenMessage.class));
-        Mockito.verify(mockWebView, Mockito.times(1))
+        Mockito.verify(mockCardView, Mockito.times(1))
                 .startAnimation(ArgumentMatchers.any(Animation.class));
     }
 
@@ -593,6 +599,7 @@ public class AEPMessageTests {
         message.messageFragment = mockMessageFragment;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.webView = mockWebView;
+        message.messageWebViewRunner.webViewFrame = mockCardView;
         message.setVisible(true);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
@@ -604,6 +611,8 @@ public class AEPMessageTests {
                 .onDismiss(any(FullscreenMessage.class));
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
                 .onDismiss(any(FullscreenMessage.class));
+        Mockito.verify(mockCardView, Mockito.times(0))
+                .startAnimation(ArgumentMatchers.any(Animation.class));
     }
 
     @Test
@@ -641,6 +650,7 @@ public class AEPMessageTests {
         message.messageFragment = mockMessageFragment;
         mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.webView = mockWebView;
+        message.messageWebViewRunner.webViewFrame = mockCardView;
         message.setVisible(true);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
@@ -652,6 +662,8 @@ public class AEPMessageTests {
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
                 .onDismiss(any(FullscreenMessage.class));
         Mockito.verify(mockWebView, Mockito.times(0))
+                .startAnimation(ArgumentMatchers.any(Animation.class));
+        Mockito.verify(mockCardView, Mockito.times(0))
                 .startAnimation(ArgumentMatchers.any(Animation.class));
     }
 

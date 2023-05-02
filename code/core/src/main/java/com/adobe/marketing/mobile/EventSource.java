@@ -43,4 +43,6 @@ public final class EventSource {
     public static final String REMOVE_IDENTITY = "com.adobe.eventSource.removeIdentity";
     public static final String ERROR_RESPONSE_CONTENT =
             "com.adobe.eventSource.errorResponseContent";
+    public static final String CREATE_TRACKER = "com.adobe.eventSource.createTracker";
+    public static final String TRACK_MEDIA = "com.adobe.eventSource.trackMedia";
 }

@@ -564,4 +564,32 @@ class LaunchRulesEngineModuleTests {
         launchRulesEngine.addRules(newRules)
         assertEquals(4, launchRulesEngine.rules.size)
     }
+
+    @Test
+    fun `Test process feed rules`() {
+        val json = readTestResources("rules_module_tests/rules_testMessageFeed.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "key" to "value"
+                        )
+                    )
+                )
+            )
+
+        launchRulesEngine.process(defaultEvent) {
+            assertEquals(3, it.size)
+            for (consequence in it) {
+                assertEquals("ajoInbound", consequence.type)
+                assertEquals("ajoFeedItem", consequence.detail?.get("type"))
+            }
+        }
+    }
 }

@@ -344,6 +344,7 @@ public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
 	public fun addRules (Ljava/util/List;)V
 	public fun process (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
+	public fun process (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public fun replaceRules (Ljava/util/List;)V
 }
 

@@ -11,10 +11,12 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine;
 
+import com.adobe.marketing.mobile.AdobeCallback;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator;
 import com.adobe.marketing.mobile.rulesengine.RulesEngine;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LaunchRulesEngine {
@@ -56,6 +58,30 @@ public class LaunchRulesEngine {
      */
     public List<LaunchRule> process(final Event event) {
         return ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
+    }
+
+    /**
+     * Evaluates all the current rules against the supplied {@link Event}. The matched {@code
+     * RuleConsequence} objects are returned in the provided {code
+     * AdobeCallback<List<RuleConsequence>>}.
+     *
+     * @param event the {@link Event} against which to evaluate the rules
+     * @param consequencesCallback a {@link AdobeCallback<List<RuleConsequence>>} containing all of
+     *     the matched consequences
+     */
+    public void process(
+            final Event event, final AdobeCallback<List<RuleConsequence>> consequencesCallback) {
+        final List<RuleConsequence> matchedConsequences = new ArrayList<>();
+        final List<LaunchRule> matchedRules =
+                ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
+
+        for (final LaunchRule matchedRule : matchedRules) {
+            matchedConsequences.addAll(matchedRule.getConsequenceList());
+        }
+
+        if (consequencesCallback != null) {
+            consequencesCallback.call(matchedConsequences);
+        }
     }
 
     List<LaunchRule> getRules() {

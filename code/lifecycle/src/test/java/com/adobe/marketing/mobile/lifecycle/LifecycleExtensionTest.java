@@ -92,7 +92,7 @@ public class LifecycleExtensionTest {
 
     @Test
     public void testGetVersion() {
-        assertEquals("2.0.1", lifecycle.getVersion());
+        assertEquals("2.0.2", lifecycle.getVersion());
     }
 
     @Test

@@ -371,7 +371,7 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     @VisibleForTesting
     internal inner class WorkProcessor : Runnable {
         override fun run() {
-            // flag representing whether processing should be auto resume after the loop ends
+            // flag representing whether processing should be auto resumed after the loop ends
             var autoResume = true
 
             // Perform work only if the dispatcher is unblocked and there are

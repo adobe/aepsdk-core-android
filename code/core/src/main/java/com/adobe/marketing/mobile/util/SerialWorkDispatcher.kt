@@ -371,16 +371,27 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
     @VisibleForTesting
     internal inner class WorkProcessor : Runnable {
         override fun run() {
+            // flag representing whether processing should be auto resumed after the loop ends
+            var autoResume = true
+
             // Perform work only if the dispatcher is unblocked and there are
             // items in the queue to perform work on.
             while (!Thread.interrupted() && state == State.ACTIVE && canWork() && hasWork()) {
                 try {
-                    val workItem = peekWorkItem() ?: return
+                    val workItem = peekWorkItem()
+                        // this return exists for syntactical correctness. We reached here after
+                        // verifying that there is work via hasWork() and work cannot be removed
+                        // outside of the WorkProcessor. So there should exist at least one work
+                        // item when we reach here.
+                        ?: return
+
                     if (workHandler.doWork(workItem)) {
                         // Handler has successfully processed the work item, remove and try processing the next item
                         removeWorkItem()
                     } else {
                         // Work handler cannot process the work item, wait until next item.
+                        // Do not auto resume here. Auto resuming will cause aggressive retries.
+                        autoResume = false
                         break
                     }
                 } catch (exception: Exception) {
@@ -390,6 +401,23 @@ open class SerialWorkDispatcher<T>(private val name: String, private val workHan
                         getTag(),
                         "Exception encountered while processing item. $exception"
                     )
+                }
+            }
+
+            synchronized(activenessMutex) {
+                // At this point the work processor future cannot be null because it refers to
+                // this task (only one of which exists at a time).
+                // However, there may be a case where logic in resume() bails on scheduling a new
+                // work processor because this task is still not "done". Overcome that race by
+                // checking the state of the queue here and invoking resume here.
+                workProcessorFuture = null
+                if (autoResume && state == State.ACTIVE && hasWork()) {
+                    Log.trace(
+                        CoreConstants.LOG_TAG,
+                        getTag(),
+                        "Auto resuming work processor."
+                    )
+                    resume()
                 }
             }
         }

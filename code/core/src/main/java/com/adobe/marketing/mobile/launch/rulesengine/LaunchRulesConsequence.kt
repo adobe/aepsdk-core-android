@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
+import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
@@ -109,6 +110,19 @@ internal class LaunchRulesConsequence(
             }
         }
         return processedEvent
+    }
+
+    fun evaluateRulesConsequenceBatch(event: Event, matchedRules: List<LaunchRule>, callback: AdobeCallback<List<RuleConsequence>>) {
+        val processedConsequences = mutableListOf<RuleConsequence>()
+        val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
+        for (rule in matchedRules) {
+            for (consequence in rule.consequenceList) {
+                processedConsequences.add(replaceToken(consequence, launchTokenFinder))
+            }
+        }
+        if (callback != null) {
+            callback.call(processedConsequences)
+        }
     }
 
     /**

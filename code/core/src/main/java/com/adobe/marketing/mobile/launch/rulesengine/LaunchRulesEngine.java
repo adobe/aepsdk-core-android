@@ -16,7 +16,6 @@ import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator;
 import com.adobe.marketing.mobile.rulesengine.RulesEngine;
-import java.util.ArrayList;
 import java.util.List;
 
 public class LaunchRulesEngine {
@@ -71,17 +70,14 @@ public class LaunchRulesEngine {
      */
     public void process(
             final Event event, final AdobeCallback<List<RuleConsequence>> consequencesCallback) {
-        final List<RuleConsequence> matchedConsequences = new ArrayList<>();
         final List<LaunchRule> matchedRules =
                 ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
 
-        for (final LaunchRule matchedRule : matchedRules) {
-            matchedConsequences.addAll(matchedRule.getConsequenceList());
-        }
-
-        if (consequencesCallback != null) {
-            consequencesCallback.call(matchedConsequences);
-        }
+        // get token replaced consequences
+        final LaunchRulesConsequence launchRulesConsequence =
+                new LaunchRulesConsequence(extensionApi);
+        launchRulesConsequence.evaluateRulesConsequenceBatch(
+                event, matchedRules, consequencesCallback);
     }
 
     List<LaunchRule> getRules() {

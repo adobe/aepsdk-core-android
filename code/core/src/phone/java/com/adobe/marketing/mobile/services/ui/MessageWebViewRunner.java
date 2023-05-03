@@ -57,6 +57,7 @@ class MessageWebViewRunner implements Runnable {
     private MessageSettings settings;
     private int messageHeight, messageWidth, originX, originY;
     private Map<String, String> assetMap = Collections.emptyMap();
+    private WebView messageWebView;
 
     /**
      * Constructor.
@@ -125,7 +126,8 @@ class MessageWebViewRunner implements Runnable {
             }
 
             // load the in-app message in the webview
-            message.webView.loadDataWithBaseURL(
+            messageWebView = message.getWebView();
+            messageWebView.loadDataWithBaseURL(
                     BASE_URL,
                     message.getMessageHtml(),
                     MIME_TYPE,
@@ -134,12 +136,12 @@ class MessageWebViewRunner implements Runnable {
 
             message.rootViewGroup.setOnTouchListener(message.getMessageFragment());
             message.fragmentFrameLayout.setOnTouchListener(message.getMessageFragment());
-            message.webView.setOnTouchListener(message.getMessageFragment());
+            messageWebView.setOnTouchListener(message.getMessageFragment());
 
             // if swipe gestures are provided disable the scrollbars
             if (!MapUtils.isNullOrEmpty(settings.getGestures())) {
-                message.webView.setVerticalScrollBarEnabled(false);
-                message.webView.setHorizontalScrollBarEnabled(false);
+                messageWebView.setVerticalScrollBarEnabled(false);
+                messageWebView.setHorizontalScrollBarEnabled(false);
             }
 
             // setup onTouchListeners for the webview and the rootview.
@@ -156,7 +158,7 @@ class MessageWebViewRunner implements Runnable {
                 return;
             }
 
-            final WebSettings webSettings = message.webView.getSettings();
+            final WebSettings webSettings = messageWebView.getSettings();
 
             // Disallow need for a user gesture to play media.
             webSettings.setMediaPlaybackRequiresUserGesture(false);
@@ -221,7 +223,7 @@ class MessageWebViewRunner implements Runnable {
             case BOTTOM:
                 displayAnimation =
                         new TranslateAnimation(
-                                0, 0, message.baseRootViewHeight * 2, message.webView.getTop());
+                                0, 0, message.baseRootViewHeight * 2, messageWebView.getTop());
                 break;
             case CENTER:
                 displayAnimation =
@@ -285,7 +287,7 @@ class MessageWebViewRunner implements Runnable {
                         settings.getCornerRadius(),
                         context.getResources().getDisplayMetrics());
         webViewFrame.setRadius(calculatedRadius);
-        webViewFrame.addView(message.webView);
+        webViewFrame.addView(messageWebView);
 
         // setup a display animation for the CardView
         if (!message.isMessageVisible()) {

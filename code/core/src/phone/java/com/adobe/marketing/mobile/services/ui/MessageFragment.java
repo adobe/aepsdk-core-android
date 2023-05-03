@@ -66,7 +66,7 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
         // determine if the tap occurred outside the webview
         if ((motionEventAction == MotionEvent.ACTION_DOWN
                         || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
-                && view.getId() != message.webView.getId()) {
+                && view.getId() != message.getWebView().getId()) {
             Log.trace(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -91,7 +91,7 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
         }
 
         // determine if the tapped view is the webview
-        if (view.getId() == message.webView.getId()) {
+        if (view.getId() == message.getWebView().getId()) {
             // if we have no gestures just pass the touch event to the webview
             if (message.getMessageSettings().getGestures() == null
                     || message.getMessageSettings().getGestures().isEmpty()) {

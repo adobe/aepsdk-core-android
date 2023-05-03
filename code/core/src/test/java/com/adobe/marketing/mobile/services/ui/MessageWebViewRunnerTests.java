@@ -103,7 +103,7 @@ public class MessageWebViewRunnerTests {
         mockMessageWebViewRunner.webViewFrame = mockCardView;
         mockAEPMessage.messageWebViewRunner = mockMessageWebViewRunner;
         when(mockWebview.getSettings()).thenReturn(mockWebSettings);
-        mockAEPMessage.webView = mockWebview;
+        when(mockAEPMessage.getWebView()).thenReturn(mockWebview);
     }
 
     @Test

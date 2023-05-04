@@ -127,7 +127,7 @@ class AEPMessage implements FullscreenMessage {
 
     @Override
     @Nullable public WebView getWebView() {
-        return webView != null ? webView : createWebView();
+        return webView;
     }
 
     @Override

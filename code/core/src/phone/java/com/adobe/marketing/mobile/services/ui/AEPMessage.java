@@ -31,6 +31,7 @@ import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.MessagingDelegate;
 import com.adobe.marketing.mobile.services.ServiceConstants;
@@ -159,13 +160,7 @@ class AEPMessage implements FullscreenMessage {
 
     @Override
     public void show(final boolean withMessagingDelegateControl) {
-        // create the webview if needed
-        if (webView == null) {
-            webView = createWebView();
-        }
-
-        final Context appContext =
-                ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+        final Context appContext = getApplicationContext();
         if (appContext == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
@@ -175,8 +170,7 @@ class AEPMessage implements FullscreenMessage {
             return;
         }
 
-        final Activity currentActivity =
-                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        final Activity currentActivity = getCurrentActivity();
         if (currentActivity == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
@@ -190,93 +184,88 @@ class AEPMessage implements FullscreenMessage {
                 () -> {
                     final AEPMessage message = this;
 
+                    // create the webview if needed
+                    if (webView == null) {
+                        webView = createWebView();
+                    }
+
                     // bail if we shouldn't be displaying a message
                     if (!messagesMonitor.show(message, withMessagingDelegateControl)) {
                         listener.onShowFailure();
                         return;
                     }
 
-                    ServiceProvider.getInstance()
-                            .getAppContextService()
-                            .getCurrentActivity()
-                            .runOnUiThread(
-                                    () -> {
-                                        // find the base root view group and add a frame layout to
-                                        // be used for
-                                        // displaying the in-app
-                                        // message
-                                        if (rootViewGroup == null) {
-                                            rootViewGroup =
-                                                    currentActivity.findViewById(
-                                                            android.R.id.content);
-                                            // preserve the base root view group height and width
-                                            // for future in-app
-                                            // message
-                                            // measurement calculations
-                                            baseRootViewHeight = rootViewGroup.getHeight();
-                                            baseRootViewWidth = rootViewGroup.getWidth();
-                                        }
+                    currentActivity.runOnUiThread(
+                            () -> {
+                                // find the base root view group and add a frame layout to
+                                // be used for
+                                // displaying the in-app
+                                // message
+                                if (rootViewGroup == null) {
+                                    rootViewGroup =
+                                            currentActivity.findViewById(android.R.id.content);
+                                    // preserve the base root view group height and width
+                                    // for future in-app
+                                    // message
+                                    // measurement calculations
+                                    baseRootViewHeight = rootViewGroup.getHeight();
+                                    baseRootViewWidth = rootViewGroup.getWidth();
+                                }
 
-                                        // use a random int as a resource id for the message
-                                        // fragment frame layout to
-                                        // prevent any
-                                        // collisions
-                                        frameLayoutResourceId = Math.abs(new Random().nextInt());
+                                // use a random int as a resource id for the message
+                                // fragment frame layout to
+                                // prevent any
+                                // collisions
+                                frameLayoutResourceId = Math.abs(new Random().nextInt());
 
-                                        if (fragmentFrameLayout == null) {
-                                            fragmentFrameLayout = new FrameLayout(appContext);
-                                            fragmentFrameLayout.setId(frameLayoutResourceId);
-                                        }
+                                if (fragmentFrameLayout == null) {
+                                    fragmentFrameLayout = new FrameLayout(appContext);
+                                    fragmentFrameLayout.setId(frameLayoutResourceId);
+                                }
 
-                                        // add the frame layout to be replaced with the message
-                                        // fragment
-                                        rootViewGroup.addView(fragmentFrameLayout);
+                                // add the frame layout to be replaced with the message
+                                // fragment
+                                rootViewGroup.addView(fragmentFrameLayout);
 
-                                        Log.debug(
-                                                ServiceConstants.LOG_TAG,
-                                                TAG,
-                                                "Preparing message fragment to be used in"
-                                                        + " displaying the in-app message.");
-                                        final FragmentManager fragmentManager =
-                                                currentActivity.getFragmentManager();
+                                Log.debug(
+                                        ServiceConstants.LOG_TAG,
+                                        TAG,
+                                        "Preparing message fragment to be used in"
+                                                + " displaying the in-app message.");
+                                final FragmentManager fragmentManager =
+                                        currentActivity.getFragmentManager();
 
-                                        final Fragment currentMessageFragment =
-                                                fragmentManager.findFragmentByTag(FRAGMENT_TAG);
+                                final Fragment currentMessageFragment =
+                                        fragmentManager.findFragmentByTag(FRAGMENT_TAG);
 
-                                        if (currentMessageFragment != null) {
-                                            fragmentManager
-                                                    .beginTransaction()
-                                                    .remove(currentMessageFragment)
-                                                    .commit();
-                                        }
+                                if (currentMessageFragment != null) {
+                                    fragmentManager
+                                            .beginTransaction()
+                                            .remove(currentMessageFragment)
+                                            .commit();
+                                }
 
-                                        // prepare a message fragment and replace the frame layout
-                                        // with the
-                                        // fragment
-                                        messageFragment = new MessageFragment();
-                                        messageFragment.setAEPMessage(message);
+                                // prepare a message fragment and replace the frame layout
+                                // with the
+                                // fragment
+                                messageFragment = new MessageFragment();
+                                messageFragment.setAEPMessage(message);
 
-                                        final int id =
-                                                ServiceProvider.getInstance()
-                                                        .getAppContextService()
-                                                        .getApplicationContext()
-                                                        .getResources()
-                                                        .getIdentifier(
-                                                                Integer.toString(
-                                                                        frameLayoutResourceId),
-                                                                "id",
-                                                                ServiceProvider.getInstance()
-                                                                        .getAppContextService()
-                                                                        .getApplicationContext()
-                                                                        .getPackageName());
-                                        final FragmentTransaction transaction =
-                                                fragmentManager.beginTransaction();
-                                        transaction
-                                                .replace(id, messageFragment, FRAGMENT_TAG)
-                                                .addToBackStack(null)
-                                                .commit();
-                                        fragmentManager.executePendingTransactions();
-                                    });
+                                final int id =
+                                        appContext
+                                                .getResources()
+                                                .getIdentifier(
+                                                        Integer.toString(frameLayoutResourceId),
+                                                        "id",
+                                                        appContext.getPackageName());
+                                final FragmentTransaction transaction =
+                                        fragmentManager.beginTransaction();
+                                transaction
+                                        .replace(id, messageFragment, FRAGMENT_TAG)
+                                        .addToBackStack(null)
+                                        .commit();
+                                fragmentManager.executePendingTransactions();
+                            });
                 });
     }
 
@@ -305,10 +294,8 @@ class AEPMessage implements FullscreenMessage {
         }
 
         try {
-            final Intent intent =
-                    ServiceProvider.getInstance().getUIService().getIntentWithURI(url);
-            Activity currentActivity =
-                    ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+            final Intent intent = getUIService().getIntentWithURI(url);
+            final Activity currentActivity = getCurrentActivity();
             if (currentActivity != null) {
                 currentActivity.startActivity(intent);
             }
@@ -345,7 +332,7 @@ class AEPMessage implements FullscreenMessage {
 
         // notify listeners
         listener.onShow(this);
-        final MessagingDelegate delegate = ServiceProvider.getInstance().getMessageDelegate();
+        final MessagingDelegate delegate = getMessagingDelegate();
         if (delegate != null) {
             delegate.onShow(this);
         }
@@ -384,8 +371,7 @@ class AEPMessage implements FullscreenMessage {
      * the {@link WebView}.
      */
     void showInRootViewGroup() {
-        final int currentOrientation =
-                ServiceProvider.getInstance().getDeviceInfoService().getCurrentOrientation();
+        final int currentOrientation = getDeviceInfoService().getCurrentOrientation();
 
         if (isVisible && orientationWhenShown == currentOrientation) {
             return;
@@ -394,8 +380,7 @@ class AEPMessage implements FullscreenMessage {
         orientationWhenShown = currentOrientation;
         messageWebViewRunner = new MessageWebViewRunner(this);
         messageWebViewRunner.setLocalAssetsMap(assetMap);
-        final Activity currentActivity =
-                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        final Activity currentActivity = getCurrentActivity();
         if (currentActivity != null) {
             currentActivity.runOnUiThread(messageWebViewRunner);
         }
@@ -410,7 +395,7 @@ class AEPMessage implements FullscreenMessage {
             // onShow() notifiers
             listener.onDismiss(this);
 
-            final MessagingDelegate delegate = ServiceProvider.getInstance().getMessageDelegate();
+            final MessagingDelegate delegate = getMessagingDelegate();
             if (delegate != null) {
                 delegate.onDismiss(this);
             }
@@ -434,8 +419,7 @@ class AEPMessage implements FullscreenMessage {
         webViewClient = null;
         webView = null;
         // clean the message fragment
-        final Activity currentActivity =
-                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+        final Activity currentActivity = getCurrentActivity();
         if (currentActivity == null) {
             return;
         }
@@ -481,13 +465,10 @@ class AEPMessage implements FullscreenMessage {
      */
     private WebView createWebView() {
         final AtomicReference<WebView> webViewAtomicReference = new AtomicReference<>();
+        @SuppressLint("SetJavaScriptEnabled")
         final Runnable createWebViewRunnable =
                 () -> {
-                    final WebView newWebView =
-                            new WebView(
-                                    ServiceProvider.getInstance()
-                                            .getAppContextService()
-                                            .getApplicationContext());
+                    final WebView newWebView = new WebView(getApplicationContext());
                     newWebView.setVerticalScrollBarEnabled(true);
                     newWebView.setHorizontalScrollBarEnabled(true);
                     newWebView.setScrollbarFadingEnabled(true);
@@ -511,10 +492,7 @@ class AEPMessage implements FullscreenMessage {
         final RunnableFuture<Void> createWebviewTask =
                 new FutureTask<>(createWebViewRunnable, null);
 
-        ServiceProvider.getInstance()
-                .getAppContextService()
-                .getCurrentActivity()
-                .runOnUiThread(createWebviewTask);
+        getCurrentActivity().runOnUiThread(createWebviewTask);
 
         try {
             createWebviewTask.get(1, TimeUnit.SECONDS);
@@ -630,6 +608,27 @@ class AEPMessage implements FullscreenMessage {
         dismissAnimation.setFillAfter(true);
 
         return dismissAnimation;
+    }
+
+    // service provider getters
+    private UIService getUIService() {
+        return ServiceProvider.getInstance().getUIService();
+    }
+
+    private DeviceInforming getDeviceInfoService() {
+        return ServiceProvider.getInstance().getDeviceInfoService();
+    }
+
+    private MessagingDelegate getMessagingDelegate() {
+        return ServiceProvider.getInstance().getMessageDelegate();
+    }
+
+    private Context getApplicationContext() {
+        return ServiceProvider.getInstance().getAppContextService().getApplicationContext();
+    }
+
+    private Activity getCurrentActivity() {
+        return ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
     }
 
     // added for unit testing

@@ -96,7 +96,7 @@ class LaunchRulesConsequenceTests {
 
         val matchedRules = launchRulesEngine.process(defaultEvent)
         val processedEvent =
-            launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+            launchRulesConsequence.evaluate(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -127,7 +127,7 @@ class LaunchRulesConsequenceTests {
         // / When: evaluating a launch event
         val matchedRules = launchRulesEngine.process(defaultEvent)
         val processedEvent =
-            launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+            launchRulesConsequence.evaluate(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -174,7 +174,7 @@ class LaunchRulesConsequenceTests {
 
         val matchedRules = launchRulesEngine.process(defaultEvent)
         val processedEvent =
-            launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+            launchRulesConsequence.evaluate(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -205,7 +205,7 @@ class LaunchRulesConsequenceTests {
         // / When: evaluating a launch event
         val matchedRules = launchRulesEngine.process(defaultEvent)
         val processedEvent =
-            launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+            launchRulesConsequence.evaluate(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -239,7 +239,7 @@ class LaunchRulesConsequenceTests {
             .build()
 
         val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val processedEvent = launchRulesConsequence.evaluate(event, matchedRules)
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
@@ -276,7 +276,7 @@ class LaunchRulesConsequenceTests {
             .build()
 
         val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val processedEvent = launchRulesConsequence.evaluate(event, matchedRules)
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
@@ -319,7 +319,7 @@ class LaunchRulesConsequenceTests {
             .build()
 
         val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val processedEvent = launchRulesConsequence.evaluate(event, matchedRules)
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
@@ -358,7 +358,7 @@ class LaunchRulesConsequenceTests {
             .build()
 
         val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val processedEvent = launchRulesConsequence.evaluate(event, matchedRules)
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
@@ -395,7 +395,7 @@ class LaunchRulesConsequenceTests {
             .build()
 
         val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val processedEvent = launchRulesConsequence.evaluate(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -425,7 +425,7 @@ class LaunchRulesConsequenceTests {
             .build()
 
         val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val processedEvent = launchRulesConsequence.evaluate(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -454,7 +454,7 @@ class LaunchRulesConsequenceTests {
             .build()
 
         val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val processedEvent = launchRulesConsequence.evaluate(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -483,7 +483,7 @@ class LaunchRulesConsequenceTests {
             .build()
 
         val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val processedEvent = launchRulesConsequence.evaluate(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -538,7 +538,7 @@ class LaunchRulesConsequenceTests {
 
         // Process original event; dispatch chain count = 0
         val matchedRules = launchRulesEngine.process(event)
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        launchRulesConsequence.evaluate(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
@@ -547,7 +547,7 @@ class LaunchRulesConsequenceTests {
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to not be called max allowed chained events is 1
         val matchedRulesDDispatchedEvent = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor.value,
             matchedRulesDDispatchedEvent
         )
@@ -600,7 +600,7 @@ class LaunchRulesConsequenceTests {
 
         // Process original event; dispatch chain count = 0
         val matchedRules = launchRulesEngine.process(event)
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        launchRulesConsequence.evaluate(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
@@ -612,7 +612,7 @@ class LaunchRulesConsequenceTests {
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchedEvent = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
         )
@@ -623,7 +623,7 @@ class LaunchRulesConsequenceTests {
 
         // Process dispatched event; dispatch chain count = 1
         // Expect event to be processed as if first time
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        launchRulesConsequence.evaluate(event, matchedRules)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
         assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
@@ -633,7 +633,7 @@ class LaunchRulesConsequenceTests {
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchedEvent2 = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent2
         )
@@ -686,7 +686,7 @@ class LaunchRulesConsequenceTests {
 
         // Process original event; dispatch chain count = 0
         val matchedRules = launchRulesEngine.process(event)
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        launchRulesConsequence.evaluate(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
@@ -698,7 +698,7 @@ class LaunchRulesConsequenceTests {
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchedEvent = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
         )
@@ -709,7 +709,7 @@ class LaunchRulesConsequenceTests {
 
         // Process dispatched event; dispatch chain count = 1
         // Expect event to be processed as if first time
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
         )
@@ -721,7 +721,7 @@ class LaunchRulesConsequenceTests {
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchedEvent2 = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent2
         )
@@ -815,7 +815,7 @@ class LaunchRulesConsequenceTests {
 
         // Process original event; dispatch chain count = 0
         val matchedRulesEdgeRequestEvent = launchRulesEngine.process(eventEdgeRequest)
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             eventEdgeRequest,
             matchedRulesEdgeRequestEvent
         )
@@ -826,7 +826,7 @@ class LaunchRulesConsequenceTests {
 
         // Process launch event
         val matchedRulesLaunchEvent = launchRulesEngine.process(eventLaunch)
-        launchRulesConsequence.evaluateRulesConsequence(eventLaunch, matchedRulesLaunchEvent)
+        launchRulesConsequence.evaluate(eventLaunch, matchedRulesLaunchEvent)
         val dispatchedEventCaptor2: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor2.capture())
@@ -838,7 +838,7 @@ class LaunchRulesConsequenceTests {
         // Process first dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchEvent1 = launchRulesEngine.process(dispatchedEventCaptor1.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor1.value,
             matchedRulesDispatchEvent1
         )
@@ -846,7 +846,7 @@ class LaunchRulesConsequenceTests {
         // Process second dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
         val matchedRulesDispatchEvent2 = launchRulesEngine.process(dispatchedEventCaptor2.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor2.value,
             matchedRulesDispatchEvent2
         )
@@ -921,7 +921,7 @@ class LaunchRulesConsequenceTests {
 
         // Process original event, expect 2 dispatched events
         val matchedRules = launchRulesEngine.process(event)
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        launchRulesConsequence.evaluate(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
@@ -935,7 +935,7 @@ class LaunchRulesConsequenceTests {
         // chain count = 1, which is max chained events
         val matchedRulesDispatchEvent1 =
             launchRulesEngine.process(dispatchedEventCaptor.allValues[0])
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor.allValues[0],
             matchedRulesDispatchEvent1
         )
@@ -945,7 +945,7 @@ class LaunchRulesConsequenceTests {
         // chain count = 1, which is max chained events
         val matchedRulesDispatchEvent2 =
             launchRulesEngine.process(dispatchedEventCaptor.allValues[1])
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.evaluate(
             dispatchedEventCaptor.allValues[1],
             matchedRulesDispatchEvent2
         )
@@ -976,7 +976,7 @@ class LaunchRulesConsequenceTests {
         )
 
         val matchedRules = launchRulesEngine.process(defaultEvent)
-        launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+        launchRulesConsequence.evaluate(defaultEvent, matchedRules)
 
         val consequenceEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
@@ -1014,7 +1014,7 @@ class LaunchRulesConsequenceTests {
         )
 
         val matchedRules = launchRulesEngine.process(defaultEvent)
-        launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+        launchRulesConsequence.evaluate(defaultEvent, matchedRules)
 
         val consequenceEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
@@ -1032,5 +1032,6 @@ class LaunchRulesConsequenceTests {
         val json = readTestResources(rulesFileName)
         val rules = json?.let { JSONRulesParser.parse(it, extensionApi) }
         launchRulesEngine.replaceRules(rules)
+        reset(extensionApi)
     }
 }

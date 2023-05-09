@@ -342,7 +342,10 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRule : co
 
 public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
+	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionApi;)V
 	public fun addRules (Ljava/util/List;)V
+	public fun evaluate (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event;
+	public fun evaluateConsequence (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
 	public fun process (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
 	public fun replaceRules (Ljava/util/List;)V
 }

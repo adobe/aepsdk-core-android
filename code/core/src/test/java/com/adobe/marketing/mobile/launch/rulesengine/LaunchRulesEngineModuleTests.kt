@@ -576,7 +576,7 @@ class LaunchRulesEngineModuleTests {
     @Test
     fun `Cache incoming events if rules are not set`() {
         repeat(100) {
-            launchRulesEngine.evaluate(
+            launchRulesEngine.processEvent(
                 Event.Builder("event-$it", "type", "source").build()
             )
         }
@@ -586,7 +586,7 @@ class LaunchRulesEngineModuleTests {
     @Test
     fun `Reprocess cached events when rules are ready`() {
         repeat(10) {
-            launchRulesEngine.evaluate(
+            launchRulesEngine.processEvent(
                 Event.Builder("event-$it", "type", "source").build()
             )
         }
@@ -600,7 +600,7 @@ class LaunchRulesEngineModuleTests {
         assertEquals(EventType.RULES_ENGINE, eventCaptor.firstValue.type)
         assertEquals(EventSource.REQUEST_RESET, eventCaptor.firstValue.source)
 
-        launchRulesEngine.evaluate(eventCaptor.firstValue)
+        launchRulesEngine.processEvent(eventCaptor.firstValue)
 
         assertEquals(0, launchRulesEngine.cachedEventCount)
     }
@@ -608,7 +608,7 @@ class LaunchRulesEngineModuleTests {
     @Test
     fun `Do not reprocess cached events on a reset event from a different engine`() {
         repeat(10) {
-            launchRulesEngine.evaluate(
+            launchRulesEngine.processEvent(
                 Event.Builder("event-$it", "type", "source").build()
             )
         }
@@ -618,7 +618,7 @@ class LaunchRulesEngineModuleTests {
         val differentEngineResetEvent = Event.Builder("SomeOtherEngineName", EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
             .setEventData(mapOf(LaunchRulesEngine.RULES_ENGINE_NAME to "SomeOtherEngineName"))
             .build()
-        launchRulesEngine.evaluate(differentEngineResetEvent)
+        launchRulesEngine.processEvent(differentEngineResetEvent)
 
         // 10 cached events and this unmatched event is treated as any other event
         assertEquals(11, launchRulesEngine.cachedEventCount)
@@ -627,7 +627,7 @@ class LaunchRulesEngineModuleTests {
         val thisEngineResetEvent = Event.Builder("TestLaunchRulesEngine", EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
             .setEventData(mapOf(LaunchRulesEngine.RULES_ENGINE_NAME to "TestLaunchRulesEngine"))
             .build()
-        launchRulesEngine.evaluate(thisEngineResetEvent)
+        launchRulesEngine.processEvent(thisEngineResetEvent)
         assertEquals(0, launchRulesEngine.cachedEventCount)
     }
 
@@ -643,7 +643,7 @@ class LaunchRulesEngineModuleTests {
         )
 
         repeat(10) {
-            launchRulesEngine.evaluate(
+            launchRulesEngine.processEvent(
                 Event.Builder("event-$it", "type", "source").build()
             )
         }
@@ -666,11 +666,11 @@ class LaunchRulesEngineModuleTests {
         )
 
         // simulate incidence of reset rules event above
-        launchRulesEngine.evaluate(capturedResetRulesEvent)
+        launchRulesEngine.processEvent(capturedResetRulesEvent)
 
         val processedEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
         verify(mockLaunchRulesConsequence, Mockito.times(11))
-            .evaluate(processedEventCaptor.capture(), org.mockito.kotlin.any())
+            .process(processedEventCaptor.capture(), org.mockito.kotlin.any())
         assertEquals(11, processedEventCaptor.allValues.size)
 
         // 0 - 10 events to be processed are cached events in order
@@ -703,7 +703,7 @@ class LaunchRulesEngineModuleTests {
                 )
             )
 
-        val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateConsequence(defaultEvent)
+        val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateEvent(defaultEvent)
         assertEquals(3, matchedConsequences.size)
         for (consequence in matchedConsequences) {
             assertEquals("ajoInbound", consequence.type)
@@ -730,14 +730,14 @@ class LaunchRulesEngineModuleTests {
                 )
             )
 
-        val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateConsequence(defaultEvent)
+        val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateEvent(defaultEvent)
         assertEquals(0, matchedConsequences.size)
     }
 
     @Test
     fun `Do nothing on null rule replacement`() {
         repeat(10) {
-            launchRulesEngine.evaluate(
+            launchRulesEngine.processEvent(
                 Event.Builder("event-$it", "type", "source").build()
             )
         }

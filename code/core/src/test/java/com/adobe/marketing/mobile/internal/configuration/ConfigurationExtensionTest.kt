@@ -47,7 +47,6 @@ import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.firstValue
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -118,7 +117,7 @@ class ConfigurationExtensionTest {
         `when`(mockConfigStateManager.loadInitialConfig()).thenReturn(config)
         `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(config)
         val mockEvent: Event = Event.Builder("Verify preprocessor event", "name", "source").build()
-        `when`(mockLaunchRulesEngine.evaluate(mockEvent)).thenReturn(mockEvent)
+        `when`(mockLaunchRulesEngine.processEvent(mockEvent)).thenReturn(mockEvent)
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
@@ -161,7 +160,7 @@ class ConfigurationExtensionTest {
         // verify that the registered pre processor invokes rules engine evaluation
         val eventPreprocessor: EventPreprocessor = preprocessorCaptor.firstValue
         eventPreprocessor.process(mockEvent)
-        verify(mockLaunchRulesEngine).evaluate(mockEvent)
+        verify(mockLaunchRulesEngine).processEvent(mockEvent)
     }
 
     @Test
@@ -179,7 +178,7 @@ class ConfigurationExtensionTest {
         `when`(mockConfigStateManager.environmentAwareConfiguration).thenReturn(config)
 
         val mockEvent: Event = Event.Builder("Verify preprocessor event", "name", "source").build()
-        `when`(mockLaunchRulesEngine.evaluate(mockEvent)).thenReturn(mockEvent)
+        `when`(mockLaunchRulesEngine.processEvent(mockEvent)).thenReturn(mockEvent)
 
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
@@ -204,7 +203,7 @@ class ConfigurationExtensionTest {
         // verify that the registered pre processor invokes rules engine evaluation
         val eventPreprocessor: EventPreprocessor = preprocessorCaptor.firstValue
         eventPreprocessor.process(mockEvent)
-        verify(mockLaunchRulesEngine).evaluate(mockEvent)
+        verify(mockLaunchRulesEngine).processEvent(mockEvent)
     }
 
     @Test

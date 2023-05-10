@@ -59,7 +59,7 @@ internal class LaunchRulesConsequence(
      * @param matchedRules the rules against which the current events is to be processed
      * @return the token replaced [Event] after token replacement
      */
-    fun evaluate(event: Event, matchedRules: List<LaunchRule>): Event {
+    fun process(event: Event, matchedRules: List<LaunchRule>): Event {
         val dispatchChainCount = dispatchChainedEventsCount.remove(event.uniqueIdentifier) ?: 0
         val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
         var processedEvent: Event = event
@@ -127,7 +127,7 @@ internal class LaunchRulesConsequence(
      * @param matchedRules the rules whose consequences are to be processed
      * @return a token replaced list of [RuleConsequence]'s that match the supplied event.
      */
-    fun evaluateConsequence(event: Event, matchedRules: List<LaunchRule>): List<RuleConsequence> {
+    fun evaluate(event: Event, matchedRules: List<LaunchRule>): List<RuleConsequence> {
         val processedConsequences = mutableListOf<RuleConsequence>()
         val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
 

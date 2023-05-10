@@ -117,7 +117,7 @@ internal class ConfigurationExtension : Extension {
         loadInitialConfiguration()
 
         EventHub.shared.registerEventPreprocessor { e ->
-            launchRulesEngine.evaluate(e)
+            launchRulesEngine.processEvent(e)
         }
     }
 

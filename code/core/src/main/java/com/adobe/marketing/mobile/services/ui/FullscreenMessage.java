@@ -14,8 +14,8 @@ package com.adobe.marketing.mobile.services.ui;
 import android.webkit.WebView;
 import java.util.Map;
 
-/** Interface defining a Messaging extension in-app message. */
-public interface FullscreenMessage {
+/** Interface defining a fullscreen message. */
+public interface FullscreenMessage extends Presentable {
     /** Display the fullscreen message. */
     void show();
 

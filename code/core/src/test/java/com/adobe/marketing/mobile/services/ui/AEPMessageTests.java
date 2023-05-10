@@ -166,9 +166,7 @@ public class AEPMessageTests {
                 .thenCallRealMethod()
                 .thenReturn(true);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
+        Mockito.when(mockMessagingDelegate.shouldShowMessage(ArgumentMatchers.any(Showable.class)))
                 .thenReturn(true);
 
         try {
@@ -203,9 +201,7 @@ public class AEPMessageTests {
                 .thenCallRealMethod()
                 .thenReturn(true);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
+        Mockito.when(mockMessagingDelegate.shouldShowMessage(ArgumentMatchers.any(Showable.class)))
                 .thenReturn(true);
         Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
                 .thenReturn(mockViewGroup);
@@ -475,9 +471,7 @@ public class AEPMessageTests {
                 .thenReturn(MessageAnimation.BOTTOM);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
         Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
+        Mockito.when(mockMessagingDelegate.shouldShowMessage(ArgumentMatchers.any(Showable.class)))
                 .thenReturn(true);
         setupFragmentTransactionMocks();
 
@@ -509,8 +503,7 @@ public class AEPMessageTests {
         message.getAnimationListener().onAnimationEnd(mockAnimation);
         // verify listeners are called for a message dismiss
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
-        Mockito.verify(mockMessagingDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
+        Mockito.verify(mockMessagingDelegate, Mockito.times(1)).onDismiss(any(Showable.class));
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
                 .onDismiss(any(FullscreenMessage.class));
         Mockito.verify(mockCardView, Mockito.times(1))
@@ -574,9 +567,7 @@ public class AEPMessageTests {
                 .thenReturn(true);
         Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
+        Mockito.when(mockMessagingDelegate.shouldShowMessage(ArgumentMatchers.any(Showable.class)))
                 .thenReturn(true);
         setupFragmentTransactionMocks();
 
@@ -607,8 +598,7 @@ public class AEPMessageTests {
         message.dismiss();
         // verify listeners are called for a message dismiss
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
-        Mockito.verify(mockMessagingDelegate, Mockito.times(1))
-                .onDismiss(any(FullscreenMessage.class));
+        Mockito.verify(mockMessagingDelegate, Mockito.times(1)).onDismiss(any(Showable.class));
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
                 .onDismiss(any(FullscreenMessage.class));
         Mockito.verify(mockCardView, Mockito.times(0))

@@ -15,7 +15,7 @@ import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.MessagingDelegate;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.ui.FullscreenMessage;
+import com.adobe.marketing.mobile.services.ui.Showable;
 import com.adobe.marketing.mobile.services.ui.UIService;
 
 public class MessagesMonitor {
@@ -54,34 +54,33 @@ public class MessagesMonitor {
     }
 
     /**
-     * Determines whether the provided {@link FullscreenMessage} should be shown. If a UI message is
-     * already showing, this method will return false. If a {@link
+     * Determines whether the provided {@link Showable} should be shown. If a UI message is already
+     * showing, this method will return false. If a {@link
      * com.adobe.marketing.mobile.services.MessagingDelegate} exists, this method will call its
-     * {@link
-     * com.adobe.marketing.mobile.services.MessagingDelegate#shouldShowMessage(FullscreenMessage)}
+     * {@link com.adobe.marketing.mobile.services.MessagingDelegate#shouldShowMessage(Showable)}
      * method.
      *
-     * @param message {@code FullscreenMessage} to be shown
+     * @param message {@code Showable} message to be shown
      * @return {@code boolean} true if message needs to be shown
      */
-    public boolean show(final FullscreenMessage message) {
+    public boolean show(final Showable message) {
         return show(message, true);
     }
 
     /**
-     * Determines whether the provided {@link FullscreenMessage} should be shown. If a UI message is
-     * already showing, this method will return false. If a {@link
-     * com.adobe.marketing.mobile.services.MessagingDelegate} exists, this method will call its
-     * {@link
-     * com.adobe.marketing.mobile.services.MessagingDelegate#shouldShowMessage(FullscreenMessage)}
+     * Determines whether the provided {@link com.adobe.marketing.mobile.services.ui.Showable}
+     * should be shown. If a UI message is already showing, this method will return false. If a
+     * {@link com.adobe.marketing.mobile.services.MessagingDelegate} exists, this method will call
+     * its {@link
+     * com.adobe.marketing.mobile.services.MessagingDelegate#shouldShowMessage(com.adobe.marketing.mobile.services.ui.Showable)}
      * method.
      *
-     * @param message {@code FullscreenMessage} to be shown
+     * @param message {@code Showable} message to be shown
      * @param delegateControl {@code boolean} If true, the {@code FullscreenMessageDelegate} will
      *     control whether the message should be shown
      * @return {@code boolean} true if message needs to be shown
      */
-    public boolean show(final FullscreenMessage message, final boolean delegateControl) {
+    public boolean show(final Showable message, final boolean delegateControl) {
         if (isDisplayed()) {
             Log.debug(
                     ServiceConstants.LOG_TAG,

@@ -323,7 +323,8 @@ class AEPMessage implements FullscreenMessage {
         listener.onShow(this);
         final MessagingDelegate delegate = ServiceProvider.getInstance().getMessageDelegate();
         if (delegate != null) {
-            delegate.onShow(this);
+            final Showable message = (Showable) this;
+            delegate.onShow(message);
         }
     }
 
@@ -391,7 +392,8 @@ class AEPMessage implements FullscreenMessage {
 
             final MessagingDelegate delegate = ServiceProvider.getInstance().getMessageDelegate();
             if (delegate != null) {
-                delegate.onDismiss(this);
+                final Showable message = (Showable) this;
+                delegate.onDismiss(message);
             }
         }
 

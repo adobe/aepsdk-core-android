@@ -694,9 +694,13 @@ public abstract interface class com/adobe/marketing/mobile/services/Logging {
 
 public abstract interface class com/adobe/marketing/mobile/services/MessagingDelegate {
 	public fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
+	public fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/Showable;)V
 	public fun onShow (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
+	public fun onShow (Lcom/adobe/marketing/mobile/services/ui/Showable;)V
 	public abstract fun shouldShowMessage (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)Z
+	public fun shouldShowMessage (Lcom/adobe/marketing/mobile/services/ui/Showable;)Z
 	public fun urlLoaded (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
+	public fun urlLoaded (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/ui/Showable;)V
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/NamedCollection {
@@ -847,6 +851,10 @@ public class com/adobe/marketing/mobile/services/ui/AndroidUIService : com/adobe
 	public fun showUrl (Ljava/lang/String;)Z
 }
 
+public abstract interface class com/adobe/marketing/mobile/services/ui/Dismissible {
+	public abstract fun dismiss ()V
+}
+
 public abstract interface class com/adobe/marketing/mobile/services/ui/FloatingButton {
 	public abstract fun display ()V
 	public abstract fun remove ()V
@@ -864,7 +872,7 @@ public class com/adobe/marketing/mobile/services/ui/FloatingButtonView : android
 	public fun onTouch (Landroid/view/View;Landroid/view/MotionEvent;)Z
 }
 
-public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessage {
+public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessage : com/adobe/marketing/mobile/services/ui/Presentable {
 	public abstract fun dismiss ()V
 	public abstract fun getMessageSettings ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings;
 	public abstract fun getParent ()Ljava/lang/Object;
@@ -980,6 +988,13 @@ public class com/adobe/marketing/mobile/services/ui/NotificationSetting {
 	public fun getSound ()Ljava/lang/String;
 	public fun getTitle ()Ljava/lang/String;
 	public fun getUserInfo ()Ljava/util/Map;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/Presentable : com/adobe/marketing/mobile/services/ui/Dismissible, com/adobe/marketing/mobile/services/ui/Showable {
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/Showable {
+	public abstract fun show ()V
 }
 
 public final class com/adobe/marketing/mobile/services/ui/UIError : java/lang/Enum {

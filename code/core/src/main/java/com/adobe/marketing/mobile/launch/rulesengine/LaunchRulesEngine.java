@@ -131,7 +131,8 @@ public class LaunchRulesEngine {
         final List<LaunchRule> matchedRules =
                 ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
 
-        // if initial rule set has not been received, cache the event to handle
+        // if initial rule set has not been received, cache the event to be processed
+        // when rules are set
         if (!initialRulesReceived) {
             handleCaching(event);
         }

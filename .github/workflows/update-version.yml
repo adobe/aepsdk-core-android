@@ -63,7 +63,7 @@ jobs:
       run: (sh ./Script/update-versions.sh -n Signal -v ${{ github.event.inputs.signal-version }})
 
     - name: Compute commit message
-        run: |
+      run: |
           COMMIT_MSG=""
           if [-z "${{ github.event.inputs.core-version }}" ]; then
             echo "Core (${{ github.event.inputs.core-version }})" >> COMMIT_MSG

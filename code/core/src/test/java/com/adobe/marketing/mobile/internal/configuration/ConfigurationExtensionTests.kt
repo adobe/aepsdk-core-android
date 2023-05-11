@@ -25,10 +25,12 @@ import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventPreprocessor
+import com.adobe.marketing.mobile.internal.eventhub.extensionVersion
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -55,7 +57,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
-class ConfigurationExtensionTest {
+class ConfigurationExtensionTests {
+
+    private var EXTENSION_VERSION = "2.2.0"
 
     @Mock
     private lateinit var mockServiceProvider: ServiceProvider
@@ -102,6 +106,20 @@ class ConfigurationExtensionTest {
         mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
         mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
         `when`(mockServiceProvider.cacheService).thenReturn(mockCacheService)
+    }
+
+    @Test
+    fun `get extension version`() {
+        val configurationExtension = ConfigurationExtension(
+            mockExtensionApi,
+            mockAppIdManager,
+            mockLaunchRulesEvaluator,
+            mockExecutorService,
+            mockConfigStateManager,
+            mockConfigurationRulesManager
+        )
+
+        Assert.assertEquals(EXTENSION_VERSION, configurationExtension.extensionVersion)
     }
 
     @Test

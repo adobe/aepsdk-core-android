@@ -56,6 +56,8 @@ import java.util.concurrent.CountDownLatch
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class IdentityExtensionTests {
+    private var EXTENSION_VERSION = "2.0.1"
+
     private val appendToUrlEvent = Event.Builder("AppendToUrlRequest", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).setEventData(
         mapOf(
             "baseurl" to "https://example.com"
@@ -109,7 +111,7 @@ class IdentityExtensionTests {
     @Test
     fun `get extension version`() {
         val identityExtension = initializeSpiedIdentityExtension()
-        assertEquals("2.0.2", identityExtension.version)
+        assertEquals(EXTENSION_VERSION, identityExtension.version)
     }
 
     @Test

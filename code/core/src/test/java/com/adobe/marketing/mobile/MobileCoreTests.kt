@@ -24,6 +24,7 @@ import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.util.concurrent.CountDownLatch
@@ -31,9 +32,12 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.test.expect
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class MobileCoreTests {
+
+    private var EXTENSION_VERSION = "2.2.0"
 
     @Mock
     private lateinit var mockedEventHub: EventHub
@@ -48,6 +52,12 @@ class MobileCoreTests {
     fun teardown() {
         reset(mockedEventHub)
         EventHub.shared.shutdown()
+    }
+
+    @Test
+    fun testSDKVersion() {
+        EventHub.shared = EventHub()
+        assertEquals(EXTENSION_VERSION, MobileCore.extensionVersion())
     }
 
     @Test

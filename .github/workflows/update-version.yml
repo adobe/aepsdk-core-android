@@ -1,0 +1,72 @@
+# This is a basic workflow that is manually triggered
+
+# IMPORTANT!
+# For this repo which contains AEPCore, AEPIdentity, AEPLifecycle, AEPServices, and AEPSignal, it is assumed
+# that when the version is updated for AEPCore, all other extensions (excluding AEPServices) will also
+# have their minimum dependencies updated to the same new version.
+
+name: Update Versions
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      core-version:
+        description: 'New version to use for Core. Example: 3.0.2'
+        required: false
+
+      identity-version:
+        description: 'New version to use for Identity. Example: 3.0.2'
+        required: false
+
+      lifecycle-version:
+        description: 'New version to use for Lifecycle. Example: 3.0.2'
+        required: false
+
+      signal-version:
+        description: 'New version to use for Signal. Example: 3.0.2'
+        required: false
+              
+      branch:
+        description: 'Branch to be used when updating versions'
+        required: true
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  update-versions:
+    runs-on: macos-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    
+    - name: Checkout
+      uses: actions/checkout@v3.1.0
+      with:
+        ref: ${{ github.event.inputs.branch }}
+    
+    - if: ${{ github.event.inputs.core-version != '' }}
+      name: Update Core Version
+      run: (sh ./Script/update-versions.sh -n Core -v ${{ github.event.inputs.core-version }})
+
+    - if: ${{ github.event.inputs.identity-version != '' }}
+      name: Update Identity Version
+      run: (sh ./Script/update-versions.sh -n Identity -v ${{ github.event.inputs.identity-version }})
+
+    - if: ${{ github.event.inputs.lifecycle-version != '' }}
+      name: Update Lifecycle Version
+      run: (sh ./Script/update-versions.sh -n Lifecycle -v ${{ github.event.inputs.lifecycle-version }})
+
+    - if: ${{ github.event.inputs.signal-version != '' }}
+      name: Update Signal Version
+      run: (sh ./Script/update-versions.sh -n Signal -v ${{ github.event.inputs.signal-version }})
+
+    - name: Compute commit message
+        run: |
+          COMMIT_MSG=""
+          if [-z "${{ github.event.inputs.core-version }}" ]; then
+            echo "Core (${{ github.event.inputs.core-version }})" >> COMMIT_MSG
+          fi 
+          echo COMMIT_MSG >> GITHUB_ENV          
+          echo COMMIT_MSG          

@@ -50,7 +50,16 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_EVENT_NAME = "Rules Consequence Event"
     }
 
-    fun evaluateRulesConsequence(event: Event, matchedRules: List<LaunchRule>): Event {
+    /**
+     * Processes the [matchedRules] against the supplied [event]. This evaluation may result
+     * in dispatch of the supplied event after attachment, modification of its data or dispatch of
+     * a new event from the supplied event
+     *
+     * @param event the event to be processed
+     * @param matchedRules the rules against which the current events is to be processed
+     * @return the token replaced [Event] after token replacement
+     */
+    fun process(event: Event, matchedRules: List<LaunchRule>): Event {
         val dispatchChainCount = dispatchChainedEventsCount.remove(event.uniqueIdentifier) ?: 0
         val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
         var processedEvent: Event = event
@@ -109,6 +118,25 @@ internal class LaunchRulesConsequence(
             }
         }
         return processedEvent
+    }
+
+    /**
+     * Evaluates the supplied event against the matched rules and returns the [RuleConsequence]'s
+     *
+     * @param event the event to be evaluated
+     * @param matchedRules the rules whose consequences are to be processed
+     * @return a token replaced list of [RuleConsequence]'s that match the supplied event.
+     */
+    fun evaluate(event: Event, matchedRules: List<LaunchRule>): List<RuleConsequence> {
+        val processedConsequences = mutableListOf<RuleConsequence>()
+        val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
+
+        matchedRules.forEach { matchedRule ->
+            matchedRule.consequenceList.forEach { consequence ->
+                processedConsequences.add(replaceToken(consequence, launchTokenFinder))
+            }
+        }
+        return processedConsequences
     }
 
     /**

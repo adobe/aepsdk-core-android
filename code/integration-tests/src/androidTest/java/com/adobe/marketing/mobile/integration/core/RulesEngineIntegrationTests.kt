@@ -41,13 +41,17 @@ class RulesEngineIntegrationTests {
         const val TEST_APP_ID = "appId"
         const val TEST_CONFIG_URL = "https://assets.adobedtm.com/${TEST_APP_ID}.json"
         const val TEST_RULES_RESOURCE = "rules_integration.zip"
-        const val WAIT_TIME_MILLIS_LONG = 500L
-        const val WAIT_TIME_MILLIS_SHORT = 100L
+        const val WAIT_TIME_MILLIS_LONG = 1000L
+        const val WAIT_TIME_MILLIS_SHORT = 500L
     }
 
     @Before
     fun setup() {
         // Setup with only configuration extension
+        // Clear configuration datastore
+        ServiceProvider.getInstance().dataStoreService.getNamedCollection(
+            ConfigurationIntegrationTests.CONFIGURATION_DATA_STORE
+        )?.removeAll()
         SDKHelper.resetSDK()
 
         val initializationLatch = CountDownLatch(1)

@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.internal.configuration
 
 import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoadResult
 import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoader
 import com.adobe.marketing.mobile.services.DataStoring
@@ -48,7 +48,7 @@ import kotlin.test.assertTrue
 class ConfigurationRulesManagerTest {
 
     @Mock
-    private lateinit var mockLaunchRulesEvaluator: LaunchRulesEvaluator
+    private lateinit var mockLaunchRulesEngine: LaunchRulesEngine
 
     @Mock
     private lateinit var mockDataStoreService: DataStoring
@@ -97,7 +97,7 @@ class ConfigurationRulesManagerTest {
 
         `when`(mockDownloadedRulesDir.isDirectory).thenReturn(true)
 
-        configurationRulesManager = ConfigurationRulesManager(mockLaunchRulesEvaluator, mockRulesLoader)
+        configurationRulesManager = ConfigurationRulesManager(mockLaunchRulesEngine, mockRulesLoader)
     }
 
     @Test
@@ -112,7 +112,7 @@ class ConfigurationRulesManagerTest {
         assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
         verifyNoInteractions(mockCacheService)
-        verifyNoInteractions(mockLaunchRulesEvaluator)
+        verifyNoInteractions(mockLaunchRulesEngine)
     }
 
     @Test
@@ -127,7 +127,7 @@ class ConfigurationRulesManagerTest {
         assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
         verifyNoInteractions(mockCacheService)
-        verifyNoInteractions(mockLaunchRulesEvaluator)
+        verifyNoInteractions(mockLaunchRulesEngine)
     }
 
     @Test
@@ -148,7 +148,7 @@ class ConfigurationRulesManagerTest {
 
         assertFalse(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
-        verifyNoInteractions(mockLaunchRulesEvaluator)
+        verifyNoInteractions(mockLaunchRulesEngine)
     }
 
     @Test
@@ -171,7 +171,7 @@ class ConfigurationRulesManagerTest {
 
         assertTrue(configurationRulesManager.applyCachedRules(mockExtensionApi))
 
-        verify(mockLaunchRulesEvaluator, times(1)).replaceRules(any())
+        verify(mockLaunchRulesEngine, times(1)).replaceRules(any())
     }
 
     @Test
@@ -192,7 +192,7 @@ class ConfigurationRulesManagerTest {
             mockRulesLoader.loadFromCache(persistedRulesURL)
         ).thenReturn(rulesLoadResult)
 
-        verifyNoInteractions(mockLaunchRulesEvaluator)
+        verifyNoInteractions(mockLaunchRulesEngine)
     }
 
     @Test
@@ -239,7 +239,7 @@ class ConfigurationRulesManagerTest {
             )
         )
 
-        verifyNoInteractions(mockLaunchRulesEvaluator)
+        verifyNoInteractions(mockLaunchRulesEngine)
     }
 
     @Test
@@ -271,7 +271,7 @@ class ConfigurationRulesManagerTest {
             )
         )
 
-        verifyNoInteractions(mockLaunchRulesEvaluator)
+        verifyNoInteractions(mockLaunchRulesEngine)
     }
 
     @Test
@@ -302,7 +302,7 @@ class ConfigurationRulesManagerTest {
             )
         )
 
-        verify(mockLaunchRulesEvaluator, times(1)).replaceRules(any())
+        verify(mockLaunchRulesEngine, times(1)).replaceRules(any())
     }
 
     @Test
@@ -316,7 +316,7 @@ class ConfigurationRulesManagerTest {
 
         configurationRulesManager.applyBundledRules(mockExtensionApi)
 
-        verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
+        verify(mockLaunchRulesEngine, never()).replaceRules(any())
     }
 
     @Test
@@ -330,7 +330,7 @@ class ConfigurationRulesManagerTest {
 
         configurationRulesManager.applyBundledRules(mockExtensionApi)
 
-        verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
+        verify(mockLaunchRulesEngine, never()).replaceRules(any())
     }
 
     @Test
@@ -344,7 +344,7 @@ class ConfigurationRulesManagerTest {
 
         configurationRulesManager.applyBundledRules(mockExtensionApi)
 
-        verify(mockLaunchRulesEvaluator, never()).replaceRules(any())
+        verify(mockLaunchRulesEngine, never()).replaceRules(any())
     }
 
     @Test
@@ -358,7 +358,7 @@ class ConfigurationRulesManagerTest {
 
         configurationRulesManager.applyBundledRules(mockExtensionApi)
 
-        verify(mockLaunchRulesEvaluator, times(1)).replaceRules(any())
+        verify(mockLaunchRulesEngine, times(1)).replaceRules(any())
     }
 
     @After

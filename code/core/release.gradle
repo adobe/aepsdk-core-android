@@ -65,6 +65,11 @@ publishing {
                     appcompatDependencyNode.appendNode('groupId', 'androidx.appcompat')
                     appcompatDependencyNode.appendNode('artifactId', 'appcompat')
                     appcompatDependencyNode.appendNode('version', '1.0.0')
+
+                    def materialLibraryDependencyNode = dependenciesNode.appendNode('dependency')
+                    materialLibraryDependencyNode.appendNode('groupId', 'com.google.android.material')
+                    materialLibraryDependencyNode.appendNode('artifactId', 'material')
+                    materialLibraryDependencyNode.appendNode('version', '1.0.0')
                 }
             }
         }

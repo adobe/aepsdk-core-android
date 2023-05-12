@@ -12,6 +12,8 @@
 package com.adobe.marketing.mobile.services.ui;
 
 import android.content.Intent;
+import com.adobe.marketing.mobile.services.Log;
+import com.adobe.marketing.mobile.services.ServiceConstants;
 
 /** Interface for displaying alerts, local notifications, and fullscreen web views. */
 public interface UIService {
@@ -22,6 +24,14 @@ public interface UIService {
      * @param alertListener An {@link AlertListener} instance for alert message events
      */
     void showAlert(final AlertSetting alertSetting, final AlertListener alertListener);
+
+    default void showNativeAlert(final NativeAlert nativeAlert, final AlertListener alertListener) {
+        Log.debug(
+                ServiceConstants.LOG_TAG,
+                "UIService",
+                "Native alert to be shown: %s",
+                nativeAlert.getTitle());
+    }
 
     /**
      * Display a local notification.

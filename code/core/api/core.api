@@ -848,6 +848,7 @@ public class com/adobe/marketing/mobile/services/ui/AndroidUIService : com/adobe
 	public fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
 	public fun showAlert (Lcom/adobe/marketing/mobile/services/ui/AlertSetting;Lcom/adobe/marketing/mobile/services/ui/AlertListener;)V
 	public fun showLocalNotification (Lcom/adobe/marketing/mobile/services/ui/NotificationSetting;)V
+	public fun showNativeAlert (Lcom/adobe/marketing/mobile/services/ui/NativeAlert;Lcom/adobe/marketing/mobile/services/ui/AlertListener;)V
 	public fun showUrl (Ljava/lang/String;)Z
 }
 
@@ -978,6 +979,16 @@ public final class com/adobe/marketing/mobile/services/ui/MessageSettings$Messag
 	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
 }
 
+public abstract interface class com/adobe/marketing/mobile/services/ui/NativeAlert : com/adobe/marketing/mobile/services/ui/Presentable {
+	public abstract fun getCancelButton ()Ljava/lang/String;
+	public abstract fun getCancelButtonUrl ()Ljava/lang/String;
+	public abstract fun getDefaultButton ()Ljava/lang/String;
+	public abstract fun getDefaultButtonUrl ()Ljava/lang/String;
+	public abstract fun getMessage ()Ljava/lang/String;
+	public abstract fun getStyle ()Ljava/lang/String;
+	public abstract fun getTitle ()Ljava/lang/String;
+}
+
 public class com/adobe/marketing/mobile/services/ui/NotificationSetting {
 	public static fun build (Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/NotificationSetting;
 	public fun getContent ()Ljava/lang/String;
@@ -1010,6 +1021,7 @@ public abstract interface class com/adobe/marketing/mobile/services/ui/UIService
 	public abstract fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
 	public abstract fun showAlert (Lcom/adobe/marketing/mobile/services/ui/AlertSetting;Lcom/adobe/marketing/mobile/services/ui/AlertListener;)V
 	public abstract fun showLocalNotification (Lcom/adobe/marketing/mobile/services/ui/NotificationSetting;)V
+	public fun showNativeAlert (Lcom/adobe/marketing/mobile/services/ui/NativeAlert;Lcom/adobe/marketing/mobile/services/ui/AlertListener;)V
 	public abstract fun showUrl (Ljava/lang/String;)Z
 }
 

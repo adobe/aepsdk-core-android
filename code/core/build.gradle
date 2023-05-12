@@ -109,6 +109,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0'
     // androidx card view for customizable rounded corners
     implementation "androidx.cardview:cardview:1.0.0"
+    // material library for bottom sheet style alerts
+    implementation 'com.google.android.material:material:1.0.0'
     //noinspection GradleDependency
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     // unit tests

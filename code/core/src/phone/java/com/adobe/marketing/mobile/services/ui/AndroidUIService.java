@@ -21,15 +21,22 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.view.Gravity;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import com.adobe.marketing.mobile.LocalNotificationHandler;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -37,6 +44,8 @@ public class AndroidUIService implements UIService {
 
     private static final String LOG_TAG = AndroidUIService.class.getSimpleName();
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
+    private static final String DEFAULT_STYLE_ALERT = "alert";
+    private static final String ALERT_STYLE_ACTION_SHEET = "actionSheet";
 
     public static final String NOTIFICATION_CONTENT_KEY = "NOTIFICATION_CONTENT";
     public static final String NOTIFICATION_USER_INFO_KEY = "NOTIFICATION_USER_INFO";
@@ -137,6 +146,228 @@ public class AndroidUIService implements UIService {
     }
 
     /**
+     * Validates a {@link NativeAlert} payload and displays a default or action sheet style alert.
+     * Any alert interactions are handled by the passed in {@link AlertListener}.
+     *
+     * @param nativeAlert The {@code NativeAlert} containing an alert message payload.
+     * @param alertListener The {@code AlertListener} instance to handle alert message interactions.
+     */
+    @Override
+    public void showNativeAlert(final NativeAlert nativeAlert, final AlertListener alertListener) {
+        // verify that we can display a message
+        if (!messagesMonitor.show(
+                nativeAlert, ServiceProvider.getInstance().getMessageDelegate() != null)) {
+            return;
+        }
+
+        final Activity currentActivity =
+                ServiceProvider.getInstance().getAppContextService().getCurrentActivity();
+
+        if (currentActivity == null) {
+            Log.warning(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    String.format(
+                            "%s (current activity), unable to show alert", UNEXPECTED_NULL_VALUE));
+            return;
+        }
+
+        // default button text is required
+        if (isNullOrEmpty(nativeAlert.getDefaultButton())) {
+            Log.warning(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Unable to show alert, the default button text is invalid.");
+            return;
+        }
+
+        // alert style of "alert" or "actionSheet" is required
+        final String alertStyle = nativeAlert.getStyle();
+        if (isNullOrEmpty(alertStyle)
+                || (!alertStyle.equals(DEFAULT_STYLE_ALERT)
+                        && !alertStyle.equals(ALERT_STYLE_ACTION_SHEET))) {
+            Log.warning(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Unable to show alert, the alert style is invalid: %s",
+                    alertStyle);
+            return;
+        }
+
+        if (alertStyle.equals(DEFAULT_STYLE_ALERT)) {
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Attempting to show native style alert.");
+            showAlert(nativeAlert, alertListener, currentActivity);
+        } else {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Attempting to show bottom sheet style alert.");
+            showBottomSheetAlert(nativeAlert, alertListener, currentActivity);
+        }
+    }
+
+    /**
+     * Creates then shows a default style alert.
+     *
+     * @param nativeAlert The {@code NativeAlert} containing an alert message payload.
+     * @param alertListener The {@code AlertListener} instance to handle alert message interactions.
+     * @param currentActivity The current {@link Activity}.
+     */
+    private void showAlert(
+            final NativeAlert nativeAlert,
+            final AlertListener alertListener,
+            final Activity currentActivity) {
+        // Need to call the alertDialog.show() in a UI thread.
+        currentActivity.runOnUiThread(
+                () -> {
+                    final AlertDialog.Builder alertDialogBuilder =
+                            new AlertDialog.Builder(currentActivity);
+
+                    // set alert title
+                    if (!isNullOrEmpty(nativeAlert.getTitle())) {
+                        alertDialogBuilder.setTitle(nativeAlert.getTitle());
+                    }
+
+                    // set alert message body
+                    if (!isNullOrEmpty(nativeAlert.getMessage())) {
+                        alertDialogBuilder.setTitle(nativeAlert.getMessage());
+                    }
+
+                    // create onClickListener
+                    final DialogInterface.OnClickListener onClickListener =
+                            getAlertDialogOnClickListener(alertListener);
+
+                    // set onCancel listener
+                    alertDialogBuilder.setOnCancelListener(
+                            getAlertDialogOnCancelListener(alertListener));
+
+                    // set alert default button
+                    alertDialogBuilder.setPositiveButton(
+                            nativeAlert.getDefaultButton(), onClickListener);
+
+                    // set alert cancel button
+                    if (!isNullOrEmpty(nativeAlert.getCancelButton())) {
+                        alertDialogBuilder.setNegativeButton(
+                                nativeAlert.getCancelButton(), onClickListener);
+                    }
+
+                    // build alertDialog object
+                    final AlertDialog alertDialog = alertDialogBuilder.create();
+
+                    // set onShow listener
+                    alertDialog.setOnShowListener(getAlertDialogOnShowListener(alertListener));
+
+                    // don't allow a press outside the alert to dismiss it
+                    alertDialog.setCanceledOnTouchOutside(false);
+                    // show alert
+                    alertDialog.show();
+                });
+    }
+
+    /**
+     * Creates then shows an action sheet style alert.
+     *
+     * @param nativeAlert The {@code NativeAlert} containing an alert message payload.
+     * @param alertListener The {@code AlertListener} instance to handle alert message interactions.
+     * @param currentActivity The current {@link Activity}.
+     */
+    private void showBottomSheetAlert(
+            final NativeAlert nativeAlert,
+            final AlertListener alertListener,
+            final Activity currentActivity) {
+        // Need to call the bottomSheetDialog.show() in a UI thread.
+        currentActivity.runOnUiThread(
+                () -> {
+                    // use random to generate random integers to be used as resource id's
+                    final Random random = new Random();
+
+                    // use BottomSheetDialog to emulate action sheet style alerts
+                    final BottomSheetDialog bottomSheetDialog =
+                            new BottomSheetDialog(currentActivity);
+                    final LinearLayout bottomSheetAlertLayout = new LinearLayout(currentActivity);
+                    bottomSheetAlertLayout.setLayoutParams(
+                            new LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.MATCH_PARENT,
+                                    LinearLayout.LayoutParams.WRAP_CONTENT));
+                    bottomSheetAlertLayout.setOrientation(LinearLayout.VERTICAL);
+                    bottomSheetAlertLayout.setGravity(Gravity.CENTER);
+
+                    // set bottom sheet dialog title
+                    if (!isNullOrEmpty(nativeAlert.getTitle())) {
+                        final TextView titleTextView = new TextView(currentActivity);
+                        titleTextView.setText(nativeAlert.getTitle());
+                        titleTextView.setId(random.nextInt());
+                        bottomSheetAlertLayout.addView(
+                                titleTextView,
+                                new RelativeLayout.LayoutParams(
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                    }
+
+                    // set bottom sheet dialog message body
+                    if (!isNullOrEmpty(nativeAlert.getMessage())) {
+                        final TextView bodyTextView = new TextView(currentActivity);
+                        bodyTextView.setText(nativeAlert.getMessage());
+                        bodyTextView.setId(random.nextInt());
+                        bottomSheetAlertLayout.addView(
+                                bodyTextView,
+                                new RelativeLayout.LayoutParams(
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                    }
+
+                    // set onCancel listener
+                    bottomSheetDialog.setOnCancelListener(
+                            getAlertDialogOnCancelListener(alertListener));
+
+                    // set bottom sheet dialog default button
+                    final Button defaultButton = new Button(currentActivity);
+                    defaultButton.setText(nativeAlert.getDefaultButton());
+                    defaultButton.setId(random.nextInt());
+                    defaultButton.setOnClickListener(
+                            v -> {
+                                bottomSheetDialog.dismiss();
+                                messagesMonitor.dismiss();
+                                alertListener.onPositiveResponse();
+                            });
+                    bottomSheetAlertLayout.addView(
+                            defaultButton,
+                            new RelativeLayout.LayoutParams(
+                                    RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                    RelativeLayout.LayoutParams.WRAP_CONTENT));
+
+                    // set bottom sheet dialog cancel button
+                    if (!isNullOrEmpty(nativeAlert.getCancelButton())) {
+                        final Button cancelButtton = new Button(currentActivity);
+                        cancelButtton.setText(nativeAlert.getCancelButton());
+                        cancelButtton.setId(random.nextInt());
+                        cancelButtton.setOnClickListener(
+                                v -> {
+                                    bottomSheetDialog.dismiss();
+                                    messagesMonitor.dismiss();
+                                    alertListener.onNegativeResponse();
+                                });
+                        bottomSheetAlertLayout.addView(
+                                cancelButtton,
+                                new RelativeLayout.LayoutParams(
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT));
+                    }
+
+                    // set onShow listener
+                    bottomSheetDialog.setOnShowListener(
+                            getAlertDialogOnShowListener(alertListener));
+
+                    // don't allow a press outside the dialog to dismiss it
+                    bottomSheetDialog.setCanceledOnTouchOutside(false);
+
+                    // set the bottom sheet alert layout then show it
+                    bottomSheetDialog.setContentView(bottomSheetAlertLayout);
+                    bottomSheetDialog.show();
+                });
+    }
+
+    /**
      * Creates a new instance of {@code OnShowListener}.
      *
      * @param alertListener The {@link AlertListener} instance to provide a callback to the SDK
@@ -184,17 +415,14 @@ public class AndroidUIService implements UIService {
      */
     DialogInterface.OnClickListener getAlertDialogOnClickListener(
             final AlertListener alertListener) {
-        return new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog, final int which) {
-                messagesMonitor.dismissed();
+        return (dialog, which) -> {
+            messagesMonitor.dismissed();
 
-                if (alertListener != null) {
-                    if (which == DialogInterface.BUTTON_POSITIVE) {
-                        alertListener.onPositiveResponse();
-                    } else if (which == DialogInterface.BUTTON_NEGATIVE) {
-                        alertListener.onNegativeResponse();
-                    }
+            if (alertListener != null) {
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    alertListener.onPositiveResponse();
+                } else if (which == DialogInterface.BUTTON_NEGATIVE) {
+                    alertListener.onNegativeResponse();
                 }
             }
         };

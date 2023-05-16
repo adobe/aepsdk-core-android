@@ -50,6 +50,8 @@ internal class ConfigurationExtension : Extension {
         internal const val CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG = "config.getData"
         internal const val CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT =
             "config.isinternalevent"
+        internal const val CONFIGURATION_REQUEST_CONTENT_IS_INITIAL_LOAD_EVENT =
+            "config.isinitalloadevent"
         internal const val DATASTORE_KEY = "AdobeMobile_ConfigState"
         internal const val RULES_CONFIG_URL = "rules.url"
         internal const val CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS = 5000L
@@ -131,7 +133,8 @@ internal class ConfigurationExtension : Extension {
             val eventData: MutableMap<String, Any?> =
                 mutableMapOf(
                     CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
-                    CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
+                    CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true,
+                    CONFIGURATION_REQUEST_CONTENT_IS_INITIAL_LOAD_EVENT to true
                 )
             dispatchConfigurationRequest(eventData)
         }
@@ -245,6 +248,13 @@ internal class ConfigurationExtension : Extension {
         }
 
         if (!configurationStateManager.hasConfigExpired(appId)) {
+            sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
+            return
+        }
+
+        // Check if this is an initial request
+        if (isStaleAppIdUpdateRequest(appId, event)) {
+            Log.trace(TAG, TAG, "An explicit configure with AppId request has preceded this internal event.")
             sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
             return
         }
@@ -539,5 +549,27 @@ internal class ConfigurationExtension : Extension {
                 }
             }
         }
+    }
+
+    private fun isStaleAppIdUpdateRequest(newAppId: String, configureWithAppIdEvent: Event): Boolean {
+        val isInternalEvent = DataReader.optBoolean(
+            configureWithAppIdEvent.eventData,
+            CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT,
+            false
+        )
+        val isInitialEvent = DataReader.optBoolean(
+            configureWithAppIdEvent.eventData,
+            CONFIGURATION_REQUEST_CONTENT_IS_INITIAL_LOAD_EVENT,
+            false
+        )
+
+        // Because events are dispatched and processed serially, external config with app id events
+        // cannot be stale
+        if (!isInitialEvent || !isInternalEvent) return false
+
+        // Load the currently persisted app id for validation
+        val currentAppId = appIdManager.loadAppId()
+
+        return !currentAppId.isNullOrBlank() && newAppId != currentAppId
     }
 }

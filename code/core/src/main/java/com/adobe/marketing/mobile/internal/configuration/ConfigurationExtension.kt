@@ -253,7 +253,8 @@ internal class ConfigurationExtension : Extension {
         }
 
         // Check if this is an initial request
-        if (isStaleAppIdUpdateRequest(appId, event)) {
+        val isInitialEvent = DataReader.optBoolean(event.eventData, CONFIGURATION_REQUEST_CONTENT_IS_INITIAL_LOAD_EVENT, false)
+        if (isStaleAppIdUpdateRequest(appId, isInitialEvent)) {
             Log.trace(TAG, TAG, "An explicit configure with AppId request has preceded this internal event.")
             sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
             return
@@ -276,7 +277,7 @@ internal class ConfigurationExtension : Extension {
                 // If the configuration download fails, publish current configuration and retry download again.
                 sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
 
-                retryConfigTaskHandle = retryConfigDownload(appId)
+                retryConfigTaskHandle = retryConfigDownload(appId, isInitialEvent)
             }
 
             // Start event processing again
@@ -433,14 +434,15 @@ internal class ConfigurationExtension : Extension {
      * @param appId the appId for which the config download should be attempted
      * @return the [Future] associated with the runnable that dispatches the configuration request event
      */
-    private fun retryConfigDownload(appId: String): Future<*> {
+    private fun retryConfigDownload(appId: String, isInitialLoad: Boolean): Future<*> {
         val retryDelay = ++retryConfigurationCounter * CONFIG_DOWNLOAD_RETRY_ATTEMPT_DELAY_MS
         return retryWorker.schedule(
             {
                 dispatchConfigurationRequest(
                     mutableMapOf(
                         CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to appId,
-                        CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
+                        CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true,
+                        CONFIGURATION_REQUEST_CONTENT_IS_INITIAL_LOAD_EVENT to isInitialLoad
                     )
                 )
             },
@@ -551,21 +553,19 @@ internal class ConfigurationExtension : Extension {
         }
     }
 
-    private fun isStaleAppIdUpdateRequest(newAppId: String, configureWithAppIdEvent: Event): Boolean {
-        val isInternalEvent = DataReader.optBoolean(
-            configureWithAppIdEvent.eventData,
-            CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT,
-            false
-        )
-        val isInitialEvent = DataReader.optBoolean(
-            configureWithAppIdEvent.eventData,
-            CONFIGURATION_REQUEST_CONTENT_IS_INITIAL_LOAD_EVENT,
-            false
-        )
-
+    private fun isStaleAppIdUpdateRequest(newAppId: String, isInitialLoadEvent: Boolean): Boolean {
         // Because events are dispatched and processed serially, external config with app id events
-        // cannot be stale
-        if (!isInitialEvent || !isInternalEvent) return false
+        // cannot be stale. However, checking if this is an internal event is not sufficient due
+        // to the following scenario:
+        // - An implementer invokes configureWithAppId before the registerExtensions() callback,
+        //   and the download fails, retryConfigDownload() will schedule the dispatch a new internal
+        //   event.
+        // - Just during that time, an internal configureWithAppId event with a cached id may be
+        //   processed due to Configuration extension initialization.
+        // - Now, there is no way to disambiguate between the retry and the incorrect override with
+        //   cache.
+        // Checking the flag for whether this is an initial load event will allow disambiguation.
+        if (!isInitialLoadEvent) return false
 
         // Load the currently persisted app id for validation
         val currentAppId = appIdManager.loadAppId()

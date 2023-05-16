@@ -388,6 +388,15 @@ class AEPMessage implements FullscreenMessage {
 
     /** Tears down views and listeners used to display the {@link AEPMessage}. */
     void cleanup() {
+        if (webView == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Webview creation failed, cleanup will not be done as no message was"
+                            + " displayed.");
+            return;
+        }
+
         Log.trace(ServiceConstants.LOG_TAG, TAG, "Cleaning the AEPMessage.");
 
         // notify message listeners
@@ -504,6 +513,7 @@ class AEPMessage implements FullscreenMessage {
                     "Exception occurred when creating the webview: %s",
                     exception.getLocalizedMessage());
             listener.onShowFailure();
+            createWebviewTask.cancel(true);
             return null;
         }
     }

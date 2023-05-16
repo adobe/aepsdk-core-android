@@ -127,6 +127,15 @@ class MessageWebViewRunner implements Runnable {
 
             // load the in-app message in the webview
             messageWebView = message.getWebView();
+            if (messageWebView == null) {
+                Log.warning(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        "Failed to show the message, the webview is null.");
+                message.cleanup();
+                return;
+            }
+
             messageWebView.loadDataWithBaseURL(
                     BASE_URL,
                     message.getMessageHtml(),

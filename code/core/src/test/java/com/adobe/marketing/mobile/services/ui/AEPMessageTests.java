@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -18,6 +19,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
@@ -35,6 +38,7 @@ import android.webkit.WebView;
 import android.widget.FrameLayout;
 import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.AppContextService;
+import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.MessagingDelegate;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
@@ -47,9 +51,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -711,6 +717,71 @@ public class AEPMessageTests {
                             .onDismiss(any(FullscreenMessage.class));
                     Mockito.verify(mockCardView, Mockito.times(0))
                             .startAnimation(ArgumentMatchers.any(Animation.class));
+                });
+    }
+
+    @Test
+    public void aepMessageIsNotCleaned_When_WebViewCreationFailed() {
+        // setup
+        setupWebViewMockAndRunTest(
+                () -> {
+                    try (MockedStatic<Log> logMockedStatic = mockStatic(Log.class)) {
+                        ArgumentCaptor<String> logArgumentCaptor =
+                                ArgumentCaptor.forClass(String.class);
+                        mockMessageFragment.dismissedWithGesture = true;
+                        Mockito.when(mockAEPMessageSettings.getDismissAnimation())
+                                .thenReturn(MessageAnimation.BOTTOM);
+                        Mockito.when(
+                                        mockMessageMonitor.show(
+                                                any(FullscreenMessage.class), anyBoolean()))
+                                .thenReturn(true);
+                        Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
+                        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
+                        Mockito.when(
+                                        mockMessagingDelegate.shouldShowMessage(
+                                                ArgumentMatchers.any(AEPMessage.class)))
+                                .thenReturn(true);
+                        setupFragmentTransactionMocks();
+
+                        try {
+                            message =
+                                    new AEPMessage(
+                                            "html",
+                                            mockFullscreenMessageDelegate,
+                                            false,
+                                            mockMessageMonitor,
+                                            mockAEPMessageSettings,
+                                            mockExecutor);
+                        } catch (MessageCreationException ex) {
+                            Assert.fail(ex.getMessage());
+                        }
+
+                        message.setWebView(null);
+                        message.rootViewGroup = mockViewGroup;
+                        message.fragmentFrameLayout = mockFrameLayout;
+                        message.messageWebViewRunner = mockMessageWebViewRunner;
+                        message.messageFragment = mockMessageFragment;
+                        mockMessageWebViewRunner.backdrop = mockBackdrop;
+                        message.messageWebViewRunner.webViewFrame = mockCardView;
+                        message.setVisible(true);
+                        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+                        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+                        // test
+                        message.dismiss();
+                        // verify cleanup log message stating cleanup failed is shown
+                        // verify message display logging
+                        logMockedStatic.verify(
+                                () ->
+                                        Log.debug(
+                                                anyString(),
+                                                anyString(),
+                                                logArgumentCaptor.capture()),
+                                times(1));
+                        assertEquals(
+                                "Webview creation failed, cleanup will not be done as no message"
+                                        + " was displayed.",
+                                logArgumentCaptor.getValue());
+                    }
                 });
     }
 

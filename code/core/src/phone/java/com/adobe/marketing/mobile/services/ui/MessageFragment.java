@@ -264,16 +264,15 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
         final Dialog dialog = getDialog();
         if (dialog != null) {
-            // if ui takeover is disabled, dismiss the IAM if a touch occurs on the decor view
-            if (!isUiTakeOverEnabled()) {
-                dialog.getWindow().getDecorView().setOnTouchListener(this);
-            }
+            // set this fragment onTouchListener to dismiss the IAM if a touch occurs on the decor
+            // view
+            dialog.getWindow().getDecorView().setOnTouchListener(this);
 
             // handle on back pressed to dismiss the message
             dialog.setOnKeyListener(
                     (dialogInterface, keyCode, event) -> {
-                        if (keyCode == KeyEvent.KEYCODE_BACK) {
-                            return true;
+                        if (message != null && keyCode == KeyEvent.KEYCODE_BACK) {
+                            message.dismiss();
                         }
                         return false;
                     });

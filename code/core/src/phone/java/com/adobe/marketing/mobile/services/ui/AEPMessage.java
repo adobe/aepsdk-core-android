@@ -444,7 +444,7 @@ class AEPMessage implements FullscreenMessage {
      *
      * @return {@link WebView} to use for displaying the in-app message.
      */
-    WebView createWebView() {
+    private WebView createWebView() {
         final AtomicReference<WebView> webViewAtomicReference = new AtomicReference<>();
         @SuppressLint("SetJavaScriptEnabled")
         final Runnable createWebViewRunnable =
@@ -485,6 +485,7 @@ class AEPMessage implements FullscreenMessage {
                     "Exception occurred when creating the webview: %s",
                     exception.getLocalizedMessage());
             listener.onShowFailure();
+            createWebviewTask.cancel(true);
             return null;
         }
     }

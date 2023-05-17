@@ -74,11 +74,12 @@ public class WebViewGestureListenerTests {
         listener.setAccessible(true);
         listener.set(mockAEPMessage, mockFullscreenMessageDelegate);
 
-        mockAEPMessage.webView = mockWebView;
-        mockMessageWebViewRunner.webViewFrame = mockCardView;
+        Mockito.when(mockAEPMessage.getWebView()).thenReturn(mockWebView);
+        Mockito.when(mockAEPMessage.getFramedWebView()).thenReturn(mockCardView);
+        mockAEPMessage.setFramedWebView(mockCardView);
         mockAEPMessage.messageWebViewRunner = mockMessageWebViewRunner;
-        mockAEPMessage.baseRootViewHeight = 3000;
-        mockAEPMessage.baseRootViewWidth = 2000;
+        mockAEPMessage.parentViewHeight = 3000;
+        mockAEPMessage.parentViewWidth = 2000;
         mockMessageFragment.gestures = gestureMap;
         mockMessageFragment.message = mockAEPMessage;
 

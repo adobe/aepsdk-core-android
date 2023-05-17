@@ -14,17 +14,17 @@ package com.adobe.marketing.mobile.services.ui;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.FrameLayout;
+
 import androidx.cardview.widget.CardView;
+
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
@@ -32,6 +32,7 @@ import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.util.MapUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
+
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -39,28 +40,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The {@link Runnable} object running on the main thread that creates the webview and adds it to
- * the root view.
+ * The {@link Runnable} object running on the main thread that prepares the webview prior to the {@link android.app.DialogFragment} being attached.
  */
 class MessageWebViewRunner implements Runnable {
 
     private static final String TAG = "MessageWebViewRunner";
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
     private static final int ANIMATION_DURATION = 300;
-    private static final int FULLY_OPAQUE_ALPHA_VALUE = 255;
     private static final String BASE_URL = "file:///android_asset/";
     private static final String MIME_TYPE = "text/html";
     private static final String UTF_8 = "UTF-8";
 
     protected View backdrop = null;
-    protected CardView webViewFrame;
     private final AEPMessage message;
-    private WebSettings webviewSettings;
-    private WebView webView;
-    private MessageWebViewClient webViewClient;
-    private MessageSettings settings;
-    private int messageHeight, messageWidth, originX, originY;
+    private final MessageSettings settings;
+    private final int messageHeight;
+    private final int messageWidth;
+    private final int originX;
+    private final int originY;
     private Map<String, String> assetMap = Collections.emptyMap();
+    private WebView webView;
+    private WebSettings webviewSettings;
 
     /**
      * Constructor.
@@ -94,28 +94,6 @@ class MessageWebViewRunner implements Runnable {
                 return;
             }
 
-            if (message.rootViewGroup == null) {
-                Log.warning(
-                        ServiceConstants.LOG_TAG,
-                        TAG,
-                        UNEXPECTED_NULL_VALUE + " (root view group), failed to show the message.");
-                message.cleanup();
-                return;
-            }
-
-            int width = message.rootViewGroup.getWidth();
-            int height = message.rootViewGroup.getHeight();
-
-            // ensure the rootview has been measured before trying to display the message
-            if (width == 0 || height == 0) {
-                Log.warning(
-                        ServiceConstants.LOG_TAG,
-                        TAG,
-                        "Failed to show the message, root view group has not been measured.");
-                message.cleanup();
-                return;
-            }
-
             final Context context =
                     ServiceProvider.getInstance().getAppContextService().getApplicationContext();
 
@@ -128,47 +106,6 @@ class MessageWebViewRunner implements Runnable {
                 return;
             }
 
-            // create the webview and configure the settings
-            webView = new WebView(context);
-            webView.setVerticalScrollBarEnabled(true);
-            webView.setHorizontalScrollBarEnabled(true);
-            webView.setScrollbarFadingEnabled(true);
-            webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-            webView.setBackgroundColor(Color.TRANSPARENT);
-
-            webViewClient = new MessageWebViewClient(message);
-            webViewClient.setLocalAssetsMap(assetMap);
-            webView.setWebViewClient(webViewClient);
-
-            webviewSettings = webView.getSettings();
-            webviewSettings.setJavaScriptEnabled(true);
-            webviewSettings.setAllowFileAccess(false);
-            webviewSettings.setDomStorageEnabled(true);
-            webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
-
-            webviewSettings.setDefaultTextEncodingName(UTF_8);
-            webView.loadDataWithBaseURL(
-                    BASE_URL,
-                    message.getMessageHtml(),
-                    MIME_TYPE,
-                    StandardCharsets.UTF_8.name(),
-                    null);
-
-            message.rootViewGroup.setOnTouchListener(message.getMessageFragment());
-            message.fragmentFrameLayout.setOnTouchListener(message.getMessageFragment());
-            webView.setOnTouchListener(message.getMessageFragment());
-
-            // if swipe gestures are provided disable the scrollbars
-            if (!MapUtils.isNullOrEmpty(settings.getGestures())) {
-                webView.setVerticalScrollBarEnabled(false);
-                webView.setHorizontalScrollBarEnabled(false);
-            }
-
-            message.webView = webView;
-
-            // setup onTouchListeners for the webview and the rootview.
-            // the rootview touch listener is added to handle dismissing messages via tapping
-            // outside the IAM.
             final MessageFragment messageFragment = message.getMessageFragment();
 
             if (messageFragment == null) {
@@ -179,6 +116,24 @@ class MessageWebViewRunner implements Runnable {
                 message.cleanup();
                 return;
             }
+
+            // load the in-app message in the webview
+            webView = message.getWebView();
+            webView.setVerticalScrollBarEnabled(true);
+            webView.setHorizontalScrollBarEnabled(true);
+            webView.setScrollbarFadingEnabled(true);
+            webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+            webviewSettings = webView.getSettings();
+            webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
+
+            webviewSettings.setDefaultTextEncodingName(UTF_8);
+
+            webView.loadDataWithBaseURL(
+                    BASE_URL,
+                    message.getMessageHtml(),
+                    MIME_TYPE,
+                    StandardCharsets.UTF_8.name(),
+                    null);
 
             // Disallow need for a user gesture to play media.
             webviewSettings.setMediaPlaybackRequiresUserGesture(false);
@@ -195,11 +150,38 @@ class MessageWebViewRunner implements Runnable {
                 webviewSettings.setDatabaseEnabled(true);
             }
 
-            // if we are re-showing after an orientation change, no need to animate
-            final MessageSettings messageSettings = message.getSettings();
+            // use CardView to apply rounded corners
+            final CardView webViewFrame = new CardView(context);
+            final float calculatedRadius =
+                    TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            settings.getCornerRadius(),
+                            context.getResources().getDisplayMetrics());
+            webViewFrame.setRadius(calculatedRadius);
 
-            createMessageFrameAndAddMessageToRootView(messageSettings);
-            message.viewed();
+            // set a display animation for the ewbview
+            final Animation animation = setupDisplayAnimation();
+            if (animation == null) {
+                Log.debug(TAG, UNEXPECTED_NULL_VALUE, " (MessageAnimation), failed to setup a display animation.");
+                return;
+            }
+            webViewFrame.setAnimation(animation);
+            webViewFrame.setBackgroundColor(Color.TRANSPARENT);
+            webViewFrame.addView(webView);
+
+            // set touch listener
+            webView.setOnTouchListener(message.getMessageFragment());
+
+            // if swipe gestures are provided disable the scrollbars
+            if (!MapUtils.isNullOrEmpty(settings.getGestures())) {
+                webView.setVerticalScrollBarEnabled(false);
+                webView.setHorizontalScrollBarEnabled(false);
+            }
+
+            // add the created cardview containing the webview to the message object
+            message.setFramedWebView(webViewFrame);
+
+            setMessageLayoutParameters(message.getSettings());
         } catch (final Exception ex) {
             Log.warning(
                     ServiceConstants.LOG_TAG, TAG, "Failed to show the message " + ex.getMessage());
@@ -210,7 +192,7 @@ class MessageWebViewRunner implements Runnable {
      * Create a message display {@link Animation}.
      *
      * @return {@code Animation} object defining the animation that will be performed when the
-     *     message is displayed.
+     * message is displayed.
      */
     private Animation setupDisplayAnimation() {
         final MessageAnimation animation = message.getSettings().getDisplayAnimation();
@@ -227,7 +209,7 @@ class MessageWebViewRunner implements Runnable {
 
         switch (animation) {
             case TOP:
-                displayAnimation = new TranslateAnimation(0, 0, -message.baseRootViewHeight, 0);
+                displayAnimation = new TranslateAnimation(0, 0, -message.parentViewHeight, 0);
                 break;
             case FADE:
                 // fade in from 0% to 100%
@@ -235,20 +217,20 @@ class MessageWebViewRunner implements Runnable {
                 displayAnimation.setInterpolator(new DecelerateInterpolator());
                 break;
             case LEFT:
-                displayAnimation = new TranslateAnimation(-message.baseRootViewWidth, 0, 0, 0);
+                displayAnimation = new TranslateAnimation(-message.parentViewWidth, 0, 0, 0);
                 break;
             case RIGHT:
-                displayAnimation = new TranslateAnimation(message.baseRootViewWidth, 0, 0, 0);
+                displayAnimation = new TranslateAnimation(message.parentViewWidth, 0, 0, 0);
                 break;
             case BOTTOM:
                 displayAnimation =
                         new TranslateAnimation(
-                                0, 0, message.baseRootViewHeight * 2, message.webView.getTop());
+                                0, 0, message.parentViewHeight * 2, webView.getTop());
                 break;
             case CENTER:
                 displayAnimation =
                         new TranslateAnimation(
-                                message.baseRootViewWidth, 0, message.baseRootViewHeight, 0);
+                                message.parentViewWidth, 0, message.parentViewHeight, 0);
                 break;
             default:
                 // no animation
@@ -268,101 +250,23 @@ class MessageWebViewRunner implements Runnable {
     }
 
     /**
-     * Creates a {@link CardView} to frame the {@link WebView} and a {@link View} backdrop (if a UI
-     * takeover is needed) and adds them to the root view.
+     * Set the in-app message layout parameters in the {@code AEPMessage} object.
      *
      * @param settings The {@link MessageSettings} object containing customization settings for the
-     *     {@link AEPMessage}.
+     *                 {@link AEPMessage}.
      */
-    private void createMessageFrameAndAddMessageToRootView(final MessageSettings settings) {
-        FrameLayout.LayoutParams params =
-                generateLayoutParams(messageHeight, messageWidth, originX, originY);
-
+    private void setMessageLayoutParameters(
+            final MessageSettings settings) {
         // if we have non fullscreen messages, fill the webview
-        final int fullScreenMessageHeight = 100;
-        if (settings.getHeight() != fullScreenMessageHeight) {
+        if (settings.getHeight() != 100) {
             webviewSettings.setLoadWithOverviewMode(true);
             webviewSettings.setUseWideViewPort(true);
         }
 
-        // apply round corners to a CardView then add the webview
-        final Context context =
-                ServiceProvider.getInstance().getAppContextService().getApplicationContext();
-        if (context == null) {
-            Log.debug(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    UNEXPECTED_NULL_VALUE
-                            + " (createMessageFrameAndAddMessageToRootView) Context is null, can't"
-                            + " display the message.");
-            return;
-        }
-        webViewFrame = new CardView(context);
-        final float calculatedRadius =
-                TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP,
-                        settings.getCornerRadius(),
-                        context.getResources().getDisplayMetrics());
-        webViewFrame.setRadius(calculatedRadius);
-        webViewFrame.addView(message.webView);
-
-        // setup a display animation for the CardView
-        if (!message.isMessageVisible()) {
-            final Animation animation = setupDisplayAnimation();
-
-            if (animation == null) {
-                Log.debug(
-                        ServiceConstants.LOG_TAG,
-                        TAG,
-                        UNEXPECTED_NULL_VALUE
-                                + " (MessageAnimation), failed to setup a display animation.");
-                return;
-            }
-
-            message.messageWebViewRunner.webViewFrame.setAnimation(animation);
-        }
-
-        // add the webview overlaid on the backdrop if uitakeover is enabled
-        if (settings.getUITakeover()) {
-            // create a new view to apply a background dimming effect behind a displayed message
-            backdrop =
-                    new View(
-                            ServiceProvider.getInstance()
-                                    .getAppContextService()
-                                    .getApplicationContext());
-            backdrop.setLayoutParams(
-                    new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-            backdrop.setBackgroundColor(Color.parseColor(settings.getBackdropColor()));
-
-            // alpha values range from 0-255 (0 means fully transparent, 255 means fully opaque)
-            final int convertedAlpha =
-                    (int) (settings.getBackdropOpacity() * FULLY_OPAQUE_ALPHA_VALUE);
-            backdrop.getBackground().setAlpha(convertedAlpha);
-
-            message.rootViewGroup.addView(
-                    backdrop, message.baseRootViewWidth, message.baseRootViewHeight);
-        }
-        message.rootViewGroup.addView(webViewFrame, params);
-    }
-
-    /**
-     * Generates {@link FrameLayout.LayoutParams} for the {@link WebView} given the provided message
-     * height, width, origin x, and origin y.
-     *
-     * @param messageHeight a {@code int} specifying the height of the webview.
-     * @param messageWidth a {@code int} specifying the width of the webview.
-     * @param originX a {@code int} specifying the x origin of the webview.
-     * @param originY a {@code int} specifying the y origin of the webview.
-     * @return the generated {@code FrameLayout.LayoutParams} object.
-     */
-    private FrameLayout.LayoutParams generateLayoutParams(
-            final int messageHeight, final int messageWidth, final int originX, final int originY) {
-        final FrameLayout.LayoutParams params =
-                new FrameLayout.LayoutParams(messageWidth, messageHeight, Gravity.NO_GRAVITY);
+        final ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(messageWidth, messageHeight);
         params.topMargin = originY;
         params.leftMargin = originX;
-
-        return params;
+        message.setParams(params);
     }
 
     /**
@@ -373,7 +277,7 @@ class MessageWebViewRunner implements Runnable {
      */
     @SuppressWarnings("checkstyle:MagicNumber")
     private int getPixelValueForHeight(final float percentage) {
-        return (int) (message.baseRootViewHeight * (percentage / 100));
+        return (int) (message.parentViewHeight * (percentage / 100));
     }
 
     /**
@@ -384,7 +288,7 @@ class MessageWebViewRunner implements Runnable {
      */
     @SuppressWarnings("checkstyle:MagicNumber")
     private int getPixelValueForWidth(final float percentage) {
-        return (int) (message.baseRootViewWidth * (percentage / 100));
+        return (int) (message.parentViewWidth * (percentage / 100));
     }
 
     /**
@@ -397,7 +301,7 @@ class MessageWebViewRunner implements Runnable {
      * origin
      *
      * @param settings The {@link MessageSettings} object containing customization settings for the
-     *     {@link AEPMessage}.
+     *                 {@link AEPMessage}.
      * @return a {@code int} containing the left most point of the {@code MessageWebView}
      */
     private int getOriginX(final MessageSettings settings) {
@@ -406,7 +310,7 @@ class MessageWebViewRunner implements Runnable {
             return 0;
         }
 
-        final int screenWidth = message.baseRootViewWidth;
+        final int screenWidth = message.parentViewWidth;
 
         if (settings.getHorizontalAlign().equals(MessageAlignment.LEFT)) {
             // check for an inset, otherwise left alignment means return 0
@@ -444,7 +348,7 @@ class MessageWebViewRunner implements Runnable {
      * the inset will be calculated as a percentage height from the respective alignment origin.
      *
      * @param settings The {@link MessageSettings} object containing customization settings for the
-     *     {@link AEPMessage}.
+     *                 {@link AEPMessage}.
      * @return a {@code int} containing the top most point of the {@code MessageWebView}
      */
     private int getOriginY(final MessageSettings settings) {
@@ -453,7 +357,7 @@ class MessageWebViewRunner implements Runnable {
             return 0;
         }
 
-        final int screenHeight = message.baseRootViewHeight;
+        final int screenHeight = message.parentViewHeight;
 
         if (settings.getVerticalAlign().equals(MessageAlignment.TOP)) {
             // check for an inset, otherwise top alignment means return 0
@@ -487,7 +391,7 @@ class MessageWebViewRunner implements Runnable {
      * cached location.
      *
      * @param assetMap The {@code Map<String, String} object containing the mapping between a remote
-     *     asset url and its cached location.
+     *                 asset url and its cached location.
      */
     void setLocalAssetsMap(final Map<String, String> assetMap) {
         if (assetMap != null && !assetMap.isEmpty()) {

@@ -16,6 +16,9 @@ import android.animation.ObjectAnimator;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.webkit.WebView;
+
+import androidx.cardview.widget.CardView;
+
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
@@ -66,10 +69,10 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
      * "up" MotionEvent. The calculated velocity is supplied along the x and y axis in pixels per
      * second.
      *
-     * @param motionEvent The on down {@code MotionEvent}
+     * @param motionEvent  The on down {@code MotionEvent}
      * @param motionEvent2 The up {@code MotionEvent}
-     * @param velocityX The fling velocity along the x axis
-     * @param velocityY The fling velocity along the y axis
+     * @param velocityX    The fling velocity along the x axis
+     * @param velocityY    The fling velocity along the y axis
      * @return true if the event was consumed, false otherwise
      */
     @Override
@@ -129,39 +132,40 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
         }
 
         ObjectAnimator animation;
+        final CardView framedWebView = parentFragment.message.getFramedWebView();
 
         switch (gesture) {
             case SWIPE_RIGHT:
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.messageWebViewRunner.webViewFrame,
+                                framedWebView,
                                 "x",
-                                parentFragment.message.messageWebViewRunner.webViewFrame.getX(),
-                                parentFragment.message.baseRootViewWidth);
+                                framedWebView.getX(),
+                                parentFragment.message.parentViewWidth);
                 break;
             case SWIPE_LEFT:
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.messageWebViewRunner.webViewFrame,
+                                framedWebView,
                                 "x",
-                                parentFragment.message.messageWebViewRunner.webViewFrame.getX(),
-                                -parentFragment.message.baseRootViewWidth);
+                                framedWebView.getX(),
+                                -parentFragment.message.parentViewWidth);
                 break;
             case SWIPE_UP:
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.messageWebViewRunner.webViewFrame,
+                                framedWebView,
                                 "y",
-                                parentFragment.message.messageWebViewRunner.webViewFrame.getTop(),
-                                -parentFragment.message.baseRootViewHeight);
+                                framedWebView.getTop(),
+                                -parentFragment.message.parentViewHeight);
                 break;
             default: // default, dismiss to bottom if not a background tap
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.messageWebViewRunner.webViewFrame,
+                                framedWebView,
                                 "y",
-                                parentFragment.message.messageWebViewRunner.webViewFrame.getTop(),
-                                parentFragment.message.baseRootViewHeight);
+                                framedWebView.getTop(),
+                                parentFragment.message.parentViewHeight);
                 break;
         }
 
@@ -170,7 +174,8 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
             animatorListener =
                     new Animator.AnimatorListener() {
                         @Override
-                        public void onAnimationStart(final Animator animator) {}
+                        public void onAnimationStart(final Animator animator) {
+                        }
 
                         // wait for the animation to complete then dismiss the message
                         @Override
@@ -179,10 +184,12 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
                         }
 
                         @Override
-                        public void onAnimationCancel(final Animator animator) {}
+                        public void onAnimationCancel(final Animator animator) {
+                        }
 
                         @Override
-                        public void onAnimationRepeat(final Animator animator) {}
+                        public void onAnimationRepeat(final Animator animator) {
+                        }
                     };
             animation.addListener(animatorListener);
             animation.start();
@@ -194,9 +201,9 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
      * by calling the {@link FullscreenMessageDelegate#overrideUrlLoad} function present in the
      * parent {@link MessageFragment}'s message listener.
      *
-     * @param gesture The detected {@code MessageGesture} that occurred.
+     * @param gesture              The detected {@code MessageGesture} that occurred.
      * @param dismissedWithGesture true if a swipe gesture occurred, false if a background tap
-     *     occurred.
+     *                             occurred.
      */
     private void dismissMessage(final MessageGesture gesture, final boolean dismissedWithGesture) {
         parentFragment.dismissedWithGesture = dismissedWithGesture;

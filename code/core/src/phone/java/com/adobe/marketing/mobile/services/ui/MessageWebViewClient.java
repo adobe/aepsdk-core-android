@@ -21,7 +21,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-
 import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.MessagingDelegate;
@@ -155,7 +154,8 @@ class MessageWebViewClient extends WebViewClient {
             return true;
         }
 
-        final boolean urlLoaded = (message.listener == null || message.listener.overrideUrlLoad(message, url));
+        final boolean urlLoaded =
+                (message.listener == null || message.listener.overrideUrlLoad(message, url));
 
         // if true, notify messaging delegate that the url was loaded
         final MessagingDelegate messagingDelegate = MobileCore.getMessagingDelegate();

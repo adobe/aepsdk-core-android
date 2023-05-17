@@ -21,7 +21,6 @@ import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
-
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import org.junit.Assert;
@@ -101,7 +100,8 @@ public class MessageFragmentTests {
     }
 
     @Test
-    public void testOAnAttach_AndMessageNotNull_ThenMessageViewedAndMessageMonitorDisplayedCalled() {
+    public void
+            testOAnAttach_AndMessageNotNull_ThenMessageViewedAndMessageMonitorDisplayedCalled() {
         // setup
         messageFragment.setMessagesMonitor(mockMessagesMonitor);
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
@@ -115,7 +115,8 @@ public class MessageFragmentTests {
     }
 
     @Test
-    public void testOAnAttach_AndMessageNull_ThenMessageViewedAndMessageMonitorDisplayedNotCalled() {
+    public void
+            testOAnAttach_AndMessageNull_ThenMessageViewedAndMessageMonitorDisplayedNotCalled() {
         // setup
         messageFragment.setAEPMessage(null);
         messageFragment.setMessagesMonitor(mockMessagesMonitor);

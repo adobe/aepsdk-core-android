@@ -100,25 +100,26 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_ThenWebviewLoadDataCalled() {
-            // test
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+        // test
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromTop_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.TOP);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -126,18 +127,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromLeft_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.LEFT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -145,18 +148,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromRight_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.RIGHT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -164,18 +169,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromBottom_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.BOTTOM);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -183,17 +190,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_MessageAnimationFadesIn_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+    public void
+            testRunnable_WithValidAEPMessage_And_MessageAnimationFadesIn_ThenWebviewLoadDataCalled() {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.FADE);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -201,17 +211,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_NoMessageAnimation_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+    public void
+            testRunnable_WithValidAEPMessage_And_NoMessageAnimation_ThenWebviewLoadDataCalled() {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.NONE);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -219,17 +232,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_NonFullscreenMessage_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+    public void
+            testRunnable_WithValidAEPMessage_And_NonFullscreenMessage_ThenWebviewLoadDataCalled() {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setHeight(50);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -237,17 +253,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignLeft_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+    public void
+            testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignLeft_ThenWebviewLoadDataCalled() {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setHorizontalAlign(MessageAlignment.LEFT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -255,17 +274,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignRight_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+    public void
+            testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignRight_ThenWebviewLoadDataCalled() {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setHorizontalAlign(MessageAlignment.RIGHT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -273,17 +295,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_MessageVerticalAlignBottom_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+    public void
+            testRunnable_WithValidAEPMessage_And_MessageVerticalAlignBottom_ThenWebviewLoadDataCalled() {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setVerticalAlign(MessageAlignment.BOTTOM);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -291,17 +316,20 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_MessageVerticalAlignCenter_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+    public void
+            testRunnable_WithValidAEPMessage_And_MessageVerticalAlignCenter_ThenWebviewLoadDataCalled() {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setVerticalAlign(MessageAlignment.CENTER);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
@@ -309,42 +337,50 @@ public class MessageWebViewRunnerTests {
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
-    public void testRunnable_WithValidAEPMessage_And_BuildVersionLessThanAPI17_ThenWebviewLoadDataCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+    public void
+            testRunnable_WithValidAEPMessage_And_BuildVersionLessThanAPI17_ThenWebviewLoadDataCalled() {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(1)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(1)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(1)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(1)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(1))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(1))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 
     @Test
     public void testRunnable_WithInvalidAEPMessage_ThenWebviewLoadDataNotCalled() {
-            // setup
-        try (MockedConstruction<CardView> ignored =
-                     mockConstruction(CardView.class)) {
+        // setup
+        try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             when(mockAEPMessage.getMessageHtml()).thenReturn(null);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
             // verify
             Mockito.verify(mockWebview, Mockito.times(0)).getSettings();
-            Mockito.verify(mockWebview, Mockito.times(0)).loadDataWithBaseURL(any(), any(), any(), any(), any());
-            Mockito.verify(mockWebview, Mockito.times(0)).setOnTouchListener(any(MessageFragment.class));
-            Mockito.verify(mockAEPMessage, Mockito.times(0)).setParams(any(ViewGroup.MarginLayoutParams.class));
+            Mockito.verify(mockWebview, Mockito.times(0))
+                    .loadDataWithBaseURL(any(), any(), any(), any(), any());
+            Mockito.verify(mockWebview, Mockito.times(0))
+                    .setOnTouchListener(any(MessageFragment.class));
+            Mockito.verify(mockAEPMessage, Mockito.times(0))
+                    .setParams(any(ViewGroup.MarginLayoutParams.class));
         }
     }
 }

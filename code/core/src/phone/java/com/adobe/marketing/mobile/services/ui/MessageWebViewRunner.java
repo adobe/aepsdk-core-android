@@ -22,9 +22,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-
 import androidx.cardview.widget.CardView;
-
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
@@ -32,7 +30,6 @@ import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAlignment;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.util.MapUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -40,12 +37,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The {@link Runnable} object running on the main thread that prepares the webview prior to the {@link android.app.DialogFragment} being attached.
+ * The {@link Runnable} object running on the main thread that prepares the webview prior to the
+ * {@link android.app.DialogFragment} being attached.
  */
 class MessageWebViewRunner implements Runnable {
 
     private static final String TAG = "MessageWebViewRunner";
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
+    private static final int FULLSCREEN_PERCENTAGE = 100;
     private static final int ANIMATION_DURATION = 300;
     private static final String BASE_URL = "file:///android_asset/";
     private static final String MIME_TYPE = "text/html";
@@ -162,7 +161,10 @@ class MessageWebViewRunner implements Runnable {
             // set a display animation for the ewbview
             final Animation animation = setupDisplayAnimation();
             if (animation == null) {
-                Log.debug(TAG, UNEXPECTED_NULL_VALUE, " (MessageAnimation), failed to setup a display animation.");
+                Log.debug(
+                        TAG,
+                        UNEXPECTED_NULL_VALUE,
+                        " (MessageAnimation), failed to setup a display animation.");
                 return;
             }
             webViewFrame.setAnimation(animation);
@@ -192,7 +194,7 @@ class MessageWebViewRunner implements Runnable {
      * Create a message display {@link Animation}.
      *
      * @return {@code Animation} object defining the animation that will be performed when the
-     * message is displayed.
+     *     message is displayed.
      */
     private Animation setupDisplayAnimation() {
         final MessageAnimation animation = message.getSettings().getDisplayAnimation();
@@ -253,17 +255,17 @@ class MessageWebViewRunner implements Runnable {
      * Set the in-app message layout parameters in the {@code AEPMessage} object.
      *
      * @param settings The {@link MessageSettings} object containing customization settings for the
-     *                 {@link AEPMessage}.
+     *     {@link AEPMessage}.
      */
-    private void setMessageLayoutParameters(
-            final MessageSettings settings) {
+    private void setMessageLayoutParameters(final MessageSettings settings) {
         // if we have non fullscreen messages, fill the webview
-        if (settings.getHeight() != 100) {
+        if (settings.getHeight() != FULLSCREEN_PERCENTAGE) {
             webviewSettings.setLoadWithOverviewMode(true);
             webviewSettings.setUseWideViewPort(true);
         }
 
-        final ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(messageWidth, messageHeight);
+        final ViewGroup.MarginLayoutParams params =
+                new ViewGroup.MarginLayoutParams(messageWidth, messageHeight);
         params.topMargin = originY;
         params.leftMargin = originX;
         message.setParams(params);
@@ -301,7 +303,7 @@ class MessageWebViewRunner implements Runnable {
      * origin
      *
      * @param settings The {@link MessageSettings} object containing customization settings for the
-     *                 {@link AEPMessage}.
+     *     {@link AEPMessage}.
      * @return a {@code int} containing the left most point of the {@code MessageWebView}
      */
     private int getOriginX(final MessageSettings settings) {
@@ -348,7 +350,7 @@ class MessageWebViewRunner implements Runnable {
      * the inset will be calculated as a percentage height from the respective alignment origin.
      *
      * @param settings The {@link MessageSettings} object containing customization settings for the
-     *                 {@link AEPMessage}.
+     *     {@link AEPMessage}.
      * @return a {@code int} containing the top most point of the {@code MessageWebView}
      */
     private int getOriginY(final MessageSettings settings) {
@@ -391,7 +393,7 @@ class MessageWebViewRunner implements Runnable {
      * cached location.
      *
      * @param assetMap The {@code Map<String, String} object containing the mapping between a remote
-     *                 asset url and its cached location.
+     *     asset url and its cached location.
      */
     void setLocalAssetsMap(final Map<String, String> assetMap) {
         if (assetMap != null && !assetMap.isEmpty()) {

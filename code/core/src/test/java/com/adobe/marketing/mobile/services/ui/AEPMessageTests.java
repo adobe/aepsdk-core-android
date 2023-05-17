@@ -40,7 +40,6 @@ import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import java.util.HashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.FutureTask;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -124,11 +123,11 @@ public class AEPMessageTests {
 
         // Actually run the activity runnable - mocking the currentActivity.runOnUiThread()
         doAnswer(
-                invocation -> {
-                    Runnable r = invocation.getArgument(0);
-                    r.run();
-                    return null;
-                })
+                        invocation -> {
+                            Runnable r = invocation.getArgument(0);
+                            r.run();
+                            return null;
+                        })
                 .when(mockActivity)
                 .runOnUiThread(any(FutureTask.class));
     }

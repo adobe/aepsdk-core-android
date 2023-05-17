@@ -24,17 +24,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-
 import androidx.annotation.VisibleForTesting;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.DialogFragment;
-
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
-
 import java.util.Map;
 
 /**
@@ -61,18 +58,27 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     protected Map<MessageGesture, String> gestures;
 
     // layout change listener to listen for layout changes in parent activity's content ViewGroup.
-    // upon orientation change, wait until the re-layouting of the content view is completed before creating the webview.
-    private final View.OnLayoutChangeListener layoutChangeListener = new View.OnLayoutChangeListener() {
-        @Override
-        public void onLayoutChange(final View v, final int left, final int top, final int right, final int bottom,
-                                   final int oldLeft, final int oldTop, final int oldRight,
-                                   final int oldBottom) {
-            final int contentViewWidth = right - left;
-            final int contentViewHeight = bottom - top;
-            message.recreateWebViewFrame(contentViewWidth, contentViewHeight);
-            updateDialogView();
-        }
-    };
+    // upon orientation change, wait until the re-layouting of the content view is completed before
+    // creating the webview.
+    private final View.OnLayoutChangeListener layoutChangeListener =
+            new View.OnLayoutChangeListener() {
+                @Override
+                public void onLayoutChange(
+                        final View v,
+                        final int left,
+                        final int top,
+                        final int right,
+                        final int bottom,
+                        final int oldLeft,
+                        final int oldTop,
+                        final int oldRight,
+                        final int oldBottom) {
+                    final int contentViewWidth = right - left;
+                    final int contentViewHeight = bottom - top;
+                    message.recreateWebViewFrame(contentViewWidth, contentViewHeight);
+                    updateDialogView();
+                }
+            };
 
     /**
      * Setter for {@link AEPMessage}
@@ -93,9 +99,11 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
         // make sure we have a valid message before trying to proceed
         if (message == null) {
-            Log.debug(ServiceConstants.LOG_TAG,
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
                     TAG,
-                    "%s (Message Fragment), failed to show the message.",UNEXPECTED_NULL_VALUE );
+                    "%s (Message Fragment), failed to show the message.",
+                    UNEXPECTED_NULL_VALUE);
             return;
         }
 
@@ -120,10 +128,14 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
         // initialize the gesture detector and listener
         webViewGestureListener = new WebViewGestureListener(this);
-        gestureDetector = new GestureDetector(ServiceProvider.getInstance().getAppContextService().getApplicationContext(), webViewGestureListener);
+        gestureDetector =
+                new GestureDetector(
+                        ServiceProvider.getInstance()
+                                .getAppContextService()
+                                .getApplicationContext(),
+                        webViewGestureListener);
 
-        setStyle(DialogFragment.STYLE_NORMAL,
-                android.R.style.Theme_Translucent_NoTitleBar);
+        setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Translucent_NoTitleBar);
     }
 
     @Override
@@ -170,8 +182,10 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         if (message == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
-                    TAG, "%s (message), unable to handle the touch event on %s",
-                    UNEXPECTED_NULL_VALUE, view.getClass().getSimpleName());
+                    TAG,
+                    "%s (message), unable to handle the touch event on %s",
+                    UNEXPECTED_NULL_VALUE,
+                    view.getClass().getSimpleName());
             return true;
         }
 
@@ -190,12 +204,13 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
         // determine if the tap occurred outside the webview
         if ((motionEventAction == MotionEvent.ACTION_DOWN
-                || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
+                        || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
                 && view.getId() != message.getWebView().getId()) {
             Log.trace(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    "Detected tap on %s", view.getClass().getSimpleName());
+                    "Detected tap on %s",
+                    view.getClass().getSimpleName());
 
             final boolean uiTakeoverEnabled = message.getSettings().getUITakeover();
 
@@ -211,8 +226,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             }
 
             // ui takeover is true, consume the tap and ignore it
-            Log.trace(ServiceConstants.LOG_TAG,
-                    TAG, "UI takeover is true, ignoring the tap.");
+            Log.trace(ServiceConstants.LOG_TAG, TAG, "UI takeover is true, ignoring the tap.");
             return true;
         }
 
@@ -234,7 +248,8 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     }
 
     /**
-     * Adds the {@link android.view.View.OnLayoutChangeListener} and {@link android.view.View.OnTouchListener}
+     * Adds the {@link android.view.View.OnLayoutChangeListener} and {@link
+     * android.view.View.OnTouchListener}
      */
     private void addListeners() {
         final View contentView = getActivity().findViewById(android.R.id.content);
@@ -255,28 +270,24 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             }
 
             // handle on back pressed to dismiss the message
-            dialog.setOnKeyListener((dialogInterface, keyCode, event) -> {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    if (message != null) {
-                        message.dismiss();
-                    }
-                    return true;
-                }
-                return false;
-            });
+            dialog.setOnKeyListener(
+                    (dialogInterface, keyCode, event) -> {
+                        if (keyCode == KeyEvent.KEYCODE_BACK) {
+                            return true;
+                        }
+                        return false;
+                    });
         }
     }
 
-    /**
-     * Remove the {@link android.view.View.OnLayoutChangeListener}
-     */
+    /** Remove the {@link android.view.View.OnLayoutChangeListener} */
     private void removeListeners() {
-        getActivity().findViewById(android.R.id.content).removeOnLayoutChangeListener(layoutChangeListener);
+        getActivity()
+                .findViewById(android.R.id.content)
+                .removeOnLayoutChangeListener(layoutChangeListener);
     }
 
-    /**
-     * Apply the backdrop color and alpha on Dialog's window
-     */
+    /** Apply the backdrop color and alpha on Dialog's window */
     private void applyBackdropColor() {
         final Dialog dialog = getDialog();
 
@@ -293,17 +304,17 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         }
     }
 
-    /**
-     * Add the IAM WebView as the {@link MessageFragment} Dialog's content view.
-     */
+    /** Add the IAM WebView as the {@link MessageFragment} Dialog's content view. */
     private void updateDialogView() {
         final Dialog dialog = getDialog();
         final ViewGroup.LayoutParams params = message.getParams();
         final CardView framedWebView = message.getFramedWebView();
 
         if (dialog == null || framedWebView == null || params == null) {
-            Log.debug(ServiceConstants.LOG_TAG,
-                    TAG, "%s (Message Fragment), unable to update the MessageFragment Dialog.",
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (Message Fragment), unable to update the MessageFragment Dialog.",
                     UNEXPECTED_NULL_VALUE);
             return;
         }
@@ -313,29 +324,23 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         message.setFramedWebView(framedWebView);
     }
 
-    /**
-     * Show this {@link MessageFragment}
-     */
+    /** Show this {@link MessageFragment} */
     @Override
-    public int show(final FragmentTransaction transaction, String tag) {
-        Log.trace(ServiceConstants.LOG_TAG,
-                TAG, "MessageFragment was shown.");
+    public int show(final FragmentTransaction transaction, final String tag) {
+        Log.trace(ServiceConstants.LOG_TAG, TAG, "MessageFragment was shown.");
         return super.show(transaction, tag);
     }
 
-    /**
-     * Dismiss this {@link MessageFragment}
-     */
+    /** Dismiss this {@link MessageFragment} */
     @Override
     public void dismiss() {
-        Log.trace(ServiceConstants.LOG_TAG,
-                TAG, "MessageFragment was dismissed.");
+        Log.trace(ServiceConstants.LOG_TAG, TAG, "MessageFragment was dismissed.");
         super.dismiss();
     }
 
     /**
-     * Returns true if the {@link MessageFragment} should take over the UI and not allow touches outside the
-     * fragment to dismiss the message.
+     * Returns true if the {@link MessageFragment} should take over the UI and not allow touches
+     * outside the fragment to dismiss the message.
      *
      * @return {@code boolean} containing true if UI takeover is enabled and false otherwise
      */

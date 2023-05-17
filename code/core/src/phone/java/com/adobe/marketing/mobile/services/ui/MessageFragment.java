@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebView;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
@@ -61,12 +62,23 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
             return true;
         }
 
+        final WebView webView = message.getWebView();
+        if (webView == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    UNEXPECTED_NULL_VALUE
+                            + " (webview), unable to handle the touch event on "
+                            + view.getClass().getSimpleName());
+            return true;
+        }
+
         final int motionEventAction = motionEvent.getAction();
 
         // determine if the tap occurred outside the webview
         if ((motionEventAction == MotionEvent.ACTION_DOWN
                         || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
-                && view.getId() != message.webView.getId()) {
+                && view.getId() != webView.getId()) {
             Log.trace(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -91,7 +103,7 @@ public class MessageFragment extends android.app.Fragment implements View.OnTouc
         }
 
         // determine if the tapped view is the webview
-        if (view.getId() == message.webView.getId()) {
+        if (view.getId() == webView.getId()) {
             // if we have no gestures just pass the touch event to the webview
             if (message.getMessageSettings().getGestures() == null
                     || message.getMessageSettings().getGestures().isEmpty()) {

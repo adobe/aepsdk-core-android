@@ -1002,6 +1002,7 @@ public class com/adobe/marketing/mobile/services/ui/NotificationSetting {
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/Presentable : com/adobe/marketing/mobile/services/ui/Dismissible, com/adobe/marketing/mobile/services/ui/Showable {
+	public abstract fun getParent ()Ljava/lang/Object;
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/Showable {

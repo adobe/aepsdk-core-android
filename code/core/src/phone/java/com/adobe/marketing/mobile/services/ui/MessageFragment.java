@@ -279,11 +279,19 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         }
     }
 
-    /** Remove the {@link android.view.View.OnLayoutChangeListener} */
+    /**
+     * Remove the {@link android.view.View.OnLayoutChangeListener} and {@link
+     * android.view.View.OnTouchListener}
+     */
     private void removeListeners() {
         getActivity()
                 .findViewById(android.R.id.content)
                 .removeOnLayoutChangeListener(layoutChangeListener);
+
+        final Dialog dialog = getDialog();
+        if (dialog != null) {
+            dialog.getWindow().getDecorView().setOnTouchListener(null);
+        }
     }
 
     /** Apply the backdrop color and alpha on Dialog's window */
@@ -335,17 +343,6 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     public void dismiss() {
         Log.trace(ServiceConstants.LOG_TAG, TAG, "MessageFragment was dismissed.");
         super.dismiss();
-    }
-
-    /**
-     * Returns true if the {@link MessageFragment} should take over the UI and not allow touches
-     * outside the fragment to dismiss the message.
-     *
-     * @return {@code boolean} containing true if UI takeover is enabled and false otherwise
-     */
-    private boolean isUiTakeOverEnabled() {
-        final Bundle bundle = getArguments();
-        return bundle != null && bundle.getBoolean(ARGUMENT_KEY_IS_UI_TAKE_OVER, false);
     }
 
     /**

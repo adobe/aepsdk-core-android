@@ -205,10 +205,6 @@ class AEPMessage implements FullscreenMessage {
                     // create the webview if needed
                     if (webView == null) {
                         webView = createWebView();
-                        if (webView != null) {
-                            // assign a random resource id to identify this webview
-                            webView.setId(Math.abs(new Random().nextInt()));
-                        }
                     }
 
                     // bail if we shouldn't be displaying a message
@@ -366,8 +362,11 @@ class AEPMessage implements FullscreenMessage {
         Log.trace(ServiceConstants.LOG_TAG, TAG, "Cleaning the AEPMessage.");
 
         listener.onDismiss(this);
-        removeFullscreenMessage();
+        framedWebView.setOnTouchListener(null);
+        webView.setOnTouchListener(null);
+
         delegateFullscreenMessageDismiss();
+        removeFullscreenMessage();
     }
 
     /** Removes then cleans up the Messaging IAM. */
@@ -450,6 +449,8 @@ class AEPMessage implements FullscreenMessage {
         final Runnable createWebViewRunnable =
                 () -> {
                     final WebView newWebView = new WebView(getApplicationContext());
+                    // assign a random resource id to identify this webview
+                    newWebView.setId(Math.abs(new Random().nextInt()));
                     newWebView.setVerticalScrollBarEnabled(true);
                     newWebView.setHorizontalScrollBarEnabled(true);
                     newWebView.setScrollbarFadingEnabled(true);

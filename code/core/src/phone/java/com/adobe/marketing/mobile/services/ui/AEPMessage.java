@@ -36,6 +36,7 @@ import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import com.adobe.marketing.mobile.util.StringUtils;
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -467,6 +468,23 @@ class AEPMessage implements FullscreenMessage {
                     webviewSettings.setDomStorageEnabled(true);
                     webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
                     webviewSettings.setDefaultTextEncodingName(UTF_8);
+
+                    // Disallow need for a user gesture to play media.
+                    webviewSettings.setMediaPlaybackRequiresUserGesture(false);
+
+                    final Context appContext =
+                            ServiceProvider.getInstance()
+                                    .getAppContextService()
+                                    .getApplicationContext();
+                    File cacheDirectory = null;
+
+                    if (appContext != null) {
+                        cacheDirectory = appContext.getCacheDir();
+                    }
+
+                    if (cacheDirectory != null) {
+                        webviewSettings.setDatabaseEnabled(true);
+                    }
 
                     webViewAtomicReference.set(newWebView);
                 };

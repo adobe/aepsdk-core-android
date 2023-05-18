@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.internal.configuration
 
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoadResult
 import com.adobe.marketing.mobile.launch.rulesengine.download.RulesLoader
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
@@ -34,18 +34,18 @@ internal class ConfigurationRulesManager {
         internal const val BUNDLED_RULES_FILE_NAME = "ADBMobileConfig-rules.zip"
     }
 
-    private val launchRulesEvaluator: LaunchRulesEvaluator
+    private val launchRulesEngine: LaunchRulesEngine
     private val rulesLoader: RulesLoader
     private val configDataStore: NamedCollection?
 
-    constructor(launchRulesEvaluator: LaunchRulesEvaluator) : this(
-        launchRulesEvaluator,
+    constructor(launchRulesEngine: LaunchRulesEngine) : this(
+        launchRulesEngine,
         RulesLoader(RULES_CACHE_NAME)
     )
 
     @VisibleForTesting
-    constructor(launchRulesEvaluator: LaunchRulesEvaluator, rulesLoader: RulesLoader) {
-        this.launchRulesEvaluator = launchRulesEvaluator
+    constructor(launchRulesEngine: LaunchRulesEngine, rulesLoader: RulesLoader) {
+        this.launchRulesEngine = launchRulesEngine
         this.rulesLoader = rulesLoader
         configDataStore =
             ServiceProvider.getInstance().dataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)
@@ -200,7 +200,7 @@ internal class ConfigurationRulesManager {
                 LOG_TAG,
                 "Replacing rules."
             )
-            launchRulesEvaluator.replaceRules(rules)
+            launchRulesEngine.replaceRules(rules)
             true
         }
     }

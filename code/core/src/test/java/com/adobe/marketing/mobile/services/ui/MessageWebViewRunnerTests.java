@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +47,8 @@ public class MessageWebViewRunnerTests {
 
     @Mock private MessageWebViewRunner mockMessageWebViewRunner;
 
+    @Mock private WebView mockWebview;
+
     @Mock private CardView mockCardView;
 
     @Mock private FrameLayout mockFrameLayout;
@@ -66,7 +67,6 @@ public class MessageWebViewRunnerTests {
     private MessageSettings aepMessageSettings;
 
     private HashMap<MessageGesture, String> gestureMap = new HashMap<>();
-    private WebView mockWebview;
 
     @Before
     public void setup() throws Exception {
@@ -102,20 +102,14 @@ public class MessageWebViewRunnerTests {
         mockAEPMessage.fragmentFrameLayout = mockFrameLayout;
         mockMessageWebViewRunner.webViewFrame = mockCardView;
         mockAEPMessage.messageWebViewRunner = mockMessageWebViewRunner;
-        mockWebview = null;
+        when(mockWebview.getSettings()).thenReturn(mockWebSettings);
+        when(mockAEPMessage.getWebView()).thenReturn(mockWebview);
     }
 
     @Test
     public void testRunnable_WithValidAEPMessage_ThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // test
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             messageFragmentRunner.run();
@@ -131,15 +125,8 @@ public class MessageWebViewRunnerTests {
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromTop_ThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.TOP);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -158,15 +145,8 @@ public class MessageWebViewRunnerTests {
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromLeft_ThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.LEFT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -185,15 +165,8 @@ public class MessageWebViewRunnerTests {
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromRight_ThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.RIGHT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -212,15 +185,8 @@ public class MessageWebViewRunnerTests {
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_MessageAnimationStartsFromBottom_ThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.BOTTOM);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -238,15 +204,8 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageAnimationFadesIn_ThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.FADE);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -264,15 +223,8 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_NoMessageAnimation_ThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setDisplayAnimation(MessageAnimation.NONE);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -290,15 +242,8 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_NonFullscreenMessage_ThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setHeight(50);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -316,15 +261,8 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignLeftThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setHorizontalAlign(MessageAlignment.LEFT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -342,15 +280,8 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageHorizontalAlignRightThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setHorizontalAlign(MessageAlignment.RIGHT);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -368,15 +299,8 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageVerticalAlignBottomThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setVerticalAlign(MessageAlignment.BOTTOM);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -394,15 +318,8 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_MessageVerticalAlignCenterThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             aepMessageSettings.setVerticalAlign(MessageAlignment.CENTER);
             when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
@@ -420,15 +337,8 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_BuildVersionLessThanAPI17_ThenMessageShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
@@ -444,22 +354,14 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithValidAEPMessage_And_NullRootViewGroup_ThenMessageNotShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             mockAEPMessage.rootViewGroup = null;
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
             // verify
-            assertNull(mockWebview);
             Mockito.verify(mockViewGroup, Mockito.times(0)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(0)).isMessageVisible();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).cleanup();
@@ -469,22 +371,14 @@ public class MessageWebViewRunnerTests {
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_RootviewHasWidthEqualToZero_ThenMessageNotShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             when(mockViewGroup.getWidth()).thenReturn(0);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
             // verify
-            assertNull(mockWebview);
             Mockito.verify(mockViewGroup, Mockito.times(0)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(0)).isMessageVisible();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).cleanup();
@@ -494,22 +388,14 @@ public class MessageWebViewRunnerTests {
     @Test
     public void
             testRunnable_WithValidAEPMessage_And_RootviewHasHeightEqualToZero_ThenMessageNotShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             when(mockViewGroup.getHeight()).thenReturn(0);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
             // verify
-            assertNull(mockWebview);
             Mockito.verify(mockViewGroup, Mockito.times(0)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(0)).isMessageVisible();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).cleanup();
@@ -518,22 +404,14 @@ public class MessageWebViewRunnerTests {
 
     @Test
     public void testRunnable_WithInvalidAEPMessage_ThenMessageNotShown() {
-        try (MockedConstruction<WebView> constructionMock =
-                        mockConstruction(
-                                WebView.class,
-                                (mock, context) -> {
-                                    when(mock.getSettings()).thenReturn(mockWebSettings);
-                                    mockWebview = mock;
-                                });
-                MockedConstruction<CardView> cardViewMockedConstruction =
-                        mockConstruction(CardView.class)) {
+        try (MockedConstruction<CardView> cardViewMockedConstruction =
+                mockConstruction(CardView.class)) {
             // setup
             when(mockAEPMessage.getMessageHtml()).thenReturn(null);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
             // verify
-            assertNull(mockWebview);
             Mockito.verify(mockViewGroup, Mockito.times(0)).setOnTouchListener(mockMessageFragment);
             Mockito.verify(mockAEPMessage, Mockito.times(0)).isMessageVisible();
             Mockito.verify(mockAEPMessage, Mockito.times(1)).cleanup();

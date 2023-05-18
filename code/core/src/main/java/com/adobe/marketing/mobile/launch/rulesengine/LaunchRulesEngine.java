@@ -11,23 +11,67 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.Event;
+import com.adobe.marketing.mobile.EventSource;
+import com.adobe.marketing.mobile.EventType;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator;
 import com.adobe.marketing.mobile.rulesengine.RulesEngine;
+import com.adobe.marketing.mobile.util.DataReader;
+import com.adobe.marketing.mobile.util.StringUtils;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class LaunchRulesEngine {
 
+    private static final String DEFAULT_PREFIX = "LaunchRulesEngine";
+    @VisibleForTesting static final String RULES_ENGINE_NAME = "name";
+    private final String name;
     private final RulesEngine<LaunchRule> ruleRulesEngine;
     private final ExtensionApi extensionApi;
+    private final LaunchRulesConsequence launchRulesConsequence;
+    private final List<Event> cachedEvents = new ArrayList<>();
+    private boolean initialRulesReceived = false;
 
+    /**
+     * Creates a new LaunchRulesEngine with a default name.
+     *
+     * @deprecated Use {@link #LaunchRulesEngine(String, ExtensionApi)} instead.
+     * @param extensionApi the {@code ExtensionApi}
+     */
+    @Deprecated
     public LaunchRulesEngine(final ExtensionApi extensionApi) {
-        ruleRulesEngine =
+        this(String.format("%s-%s", DEFAULT_PREFIX, UUID.randomUUID()), extensionApi);
+    }
+
+    public LaunchRulesEngine(@NonNull final String name, @NonNull final ExtensionApi extensionApi) {
+        this(
+                name,
+                extensionApi,
                 new RulesEngine<>(
                         new ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE),
-                        LaunchRuleTransformer.INSTANCE.createTransforming());
+                        LaunchRuleTransformer.INSTANCE.createTransforming()),
+                new LaunchRulesConsequence(extensionApi));
+    }
+
+    @VisibleForTesting
+    LaunchRulesEngine(
+            final String name,
+            final ExtensionApi extensionApi,
+            final RulesEngine<LaunchRule> ruleEngine,
+            final LaunchRulesConsequence launchRulesConsequence) {
+        if (StringUtils.isNullOrEmpty(name)) {
+            throw new IllegalArgumentException("LaunchRulesEngine cannot have a null/empty name");
+        }
+
+        this.name = name;
+        this.launchRulesConsequence = launchRulesConsequence;
         this.extensionApi = extensionApi;
+        this.ruleRulesEngine = ruleEngine;
     }
 
     /**
@@ -36,7 +80,17 @@ public class LaunchRulesEngine {
      * @param rules a list of {@link LaunchRule}s
      */
     public void replaceRules(final List<LaunchRule> rules) {
+        if (rules == null) return;
+
         ruleRulesEngine.replaceRules(rules);
+
+        // send a reset request event for the current LaunchRulesEngine
+        final Event dispatchEvent =
+                new Event.Builder(name, EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
+                        .setEventData(Collections.singletonMap(RULES_ENGINE_NAME, name))
+                        .build();
+
+        extensionApi.dispatch(dispatchEvent);
     }
 
     /**
@@ -51,14 +105,88 @@ public class LaunchRulesEngine {
     /**
      * Evaluates all the current rules against the supplied {@link Event}.
      *
+     * @deprecated This method does NOT perform token replacement. Use {@link #processEvent(Event)}
+     *     or {@link #evaluateEvent(Event)} instead.
      * @param event the {@link Event} against which to evaluate the rules
      * @return the matched {@code List<LaunchRule>}
      */
+    @Deprecated
     public List<LaunchRule> process(final Event event) {
         return ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
     }
 
+    /**
+     * Processes the supplied event with all the rules that match it. This processing may result in
+     * dispatch of the supplied event after attachment, modification of its data or dispatch of a
+     * new event from the supplied event.
+     *
+     * @param event the event to be evaluated
+     * @return the processed [Event] after token replacement.
+     */
+    public Event processEvent(@NonNull final Event event) {
+        if (event == null) {
+            throw new IllegalArgumentException("Cannot evaluate null event.");
+        }
+
+        final List<LaunchRule> matchedRules =
+                ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
+
+        // if initial rule set has not been received, cache the event to be processed
+        // when rules are set
+        if (!initialRulesReceived) {
+            handleCaching(event);
+        }
+        return launchRulesConsequence.process(event, matchedRules);
+    }
+
+    /**
+     * Evaluates the supplied event against the all current rules and returns the {@link
+     * RuleConsequence}'s from the rules that matched the supplied event.
+     *
+     * @param event the event to be evaluated
+     * @return a {@code List<RuleConsequence>} that match the supplied event.
+     */
+    public List<RuleConsequence> evaluateEvent(@NonNull final Event event) {
+        if (event == null) {
+            throw new IllegalArgumentException("Cannot evaluate null event.");
+        }
+
+        final List<LaunchRule> matchedRules =
+                ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
+
+        // get token replaced consequences
+        return launchRulesConsequence.evaluate(event, matchedRules);
+    }
+
     List<LaunchRule> getRules() {
         return ruleRulesEngine.getRules();
+    }
+
+    @VisibleForTesting
+    int getCachedEventCount() {
+        return cachedEvents.size();
+    }
+
+    private void reprocessCachedEvents() {
+        for (Event cachedEvent : cachedEvents) {
+            final List<LaunchRule> matchedRules =
+                    ruleRulesEngine.evaluate(new LaunchTokenFinder(cachedEvent, extensionApi));
+            launchRulesConsequence.process(cachedEvent, matchedRules);
+        }
+        // clear cached events and set the flag to indicate that rules were set at least once
+        cachedEvents.clear();
+        initialRulesReceived = true;
+    }
+
+    private void handleCaching(final Event event) {
+        // If this is an event to start processing of cachedEvents reprocess cached events
+        // otherwise, add the event to cachedEvents till rules are set
+        if (EventType.RULES_ENGINE.equals(event.getType())
+                && EventSource.REQUEST_RESET.equals(event.getSource())
+                && name.equals(DataReader.optString(event.getEventData(), RULES_ENGINE_NAME, ""))) {
+            reprocessCachedEvents();
+        } else {
+            cachedEvents.add(event);
+        }
     }
 }

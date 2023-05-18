@@ -14,12 +14,16 @@ package com.adobe.marketing.mobile.launch.rulesengine
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResultHandler
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
+import com.adobe.marketing.mobile.rulesengine.RulesEngine
 import com.adobe.marketing.mobile.test.util.readTestResources
+import com.adobe.marketing.mobile.util.DataReader
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -27,7 +31,11 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.KArgumentCaptor
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.verify
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -51,8 +59,8 @@ class LaunchRulesEngineModuleTests {
 
     @Before
     fun setup() {
-        extensionApi = Mockito.mock(ExtensionApi::class.java)
-        launchRulesEngine = LaunchRulesEngine(extensionApi)
+        extensionApi = mock(ExtensionApi::class.java)
+        launchRulesEngine = LaunchRulesEngine("TestLaunchRulesEngine", extensionApi)
     }
 
     @Test
@@ -563,5 +571,179 @@ class LaunchRulesEngineModuleTests {
         assertEquals(2, launchRulesEngine.rules.size)
         launchRulesEngine.addRules(newRules)
         assertEquals(4, launchRulesEngine.rules.size)
+    }
+
+    @Test
+    fun `Cache incoming events if rules are not set`() {
+        repeat(100) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$it", "type", "source").build()
+            )
+        }
+        assertEquals(100, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Reprocess cached events when rules are ready`() {
+        repeat(10) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$it", "type", "source").build()
+            )
+        }
+        assertEquals(10, launchRulesEngine.cachedEventCount)
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        launchRulesEngine.replaceRules(listOf())
+
+        verify(extensionApi, Mockito.times(1)).dispatch(eventCaptor.capture())
+        assertNotNull(eventCaptor.firstValue)
+        assertEquals("TestLaunchRulesEngine", eventCaptor.firstValue.name)
+        assertEquals(EventType.RULES_ENGINE, eventCaptor.firstValue.type)
+        assertEquals(EventSource.REQUEST_RESET, eventCaptor.firstValue.source)
+
+        launchRulesEngine.processEvent(eventCaptor.firstValue)
+
+        assertEquals(0, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Do not reprocess cached events on a reset event from a different engine`() {
+        repeat(10) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$it", "type", "source").build()
+            )
+        }
+        assertEquals(10, launchRulesEngine.cachedEventCount)
+
+        // simulate incidence of reset event with a different name
+        val differentEngineResetEvent = Event.Builder("SomeOtherEngineName", EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
+            .setEventData(mapOf(LaunchRulesEngine.RULES_ENGINE_NAME to "SomeOtherEngineName"))
+            .build()
+        launchRulesEngine.processEvent(differentEngineResetEvent)
+
+        // 10 cached events and this unmatched event is treated as any other event
+        assertEquals(11, launchRulesEngine.cachedEventCount)
+
+        // incidence of reset event with correct name
+        val thisEngineResetEvent = Event.Builder("TestLaunchRulesEngine", EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
+            .setEventData(mapOf(LaunchRulesEngine.RULES_ENGINE_NAME to "TestLaunchRulesEngine"))
+            .build()
+        launchRulesEngine.processEvent(thisEngineResetEvent)
+        assertEquals(0, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Reprocess cached events in the right order`() {
+        val mockRulesEngine: RulesEngine<LaunchRule> = mock(RulesEngine::class.java) as RulesEngine<LaunchRule>
+        val mockLaunchRulesConsequence = mock(LaunchRulesConsequence::class.java)
+        val launchRulesEngine = LaunchRulesEngine(
+            "TestLaunchRulesEngine",
+            extensionApi,
+            mockRulesEngine,
+            mockLaunchRulesConsequence
+        )
+
+        repeat(10) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$it", "type", "source").build()
+            )
+        }
+        assertEquals(10, launchRulesEngine.cachedEventCount)
+
+        Mockito.reset(mockLaunchRulesConsequence)
+
+        // simulate reset event
+        launchRulesEngine.replaceRules(listOf())
+
+        val resetEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(extensionApi, Mockito.times(1)).dispatch(resetEventCaptor.capture())
+        val capturedResetRulesEvent = resetEventCaptor.firstValue
+        assertNotNull(capturedResetRulesEvent)
+        assertEquals(EventType.RULES_ENGINE, capturedResetRulesEvent.type)
+        assertEquals(EventSource.REQUEST_RESET, capturedResetRulesEvent.source)
+        assertEquals(
+            "TestLaunchRulesEngine",
+            DataReader.optString(capturedResetRulesEvent.eventData, LaunchRulesEngine.RULES_ENGINE_NAME, "")
+        )
+
+        // simulate incidence of reset rules event above
+        launchRulesEngine.processEvent(capturedResetRulesEvent)
+
+        val processedEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockLaunchRulesConsequence, Mockito.times(11))
+            .process(processedEventCaptor.capture(), org.mockito.kotlin.any())
+        assertEquals(11, processedEventCaptor.allValues.size)
+
+        // 0 - 10 events to be processed are cached events in order
+        for (index in 0 until processedEventCaptor.allValues.size - 1) {
+            assertEquals("event-$index", processedEventCaptor.allValues[index].name)
+        }
+        // final 11 th event to be processed is the reset event
+        assertEquals(capturedResetRulesEvent, processedEventCaptor.allValues[10])
+
+        // verify that all cached events are cleared
+        assertEquals(0, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Test evaluateConsequence when consequences are present`() {
+        val json = readTestResources("rules_module_tests/rules_testEvaluateConsequenceWithValidConsequences.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "key" to "value"
+                        )
+                    )
+                )
+            )
+
+        val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(3, matchedConsequences.size)
+        for (consequence in matchedConsequences) {
+            assertEquals("ajoInbound", consequence.type)
+            assertEquals("ajoFeedItem", consequence.detail?.get("type"))
+        }
+    }
+
+    @Test
+    fun `Test evaluateConsequence when no consequences are present`() {
+        val json = readTestResources("rules_module_tests/rules_testEvaluateConsequenceWithNoConsequences.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "key" to "value"
+                        )
+                    )
+                )
+            )
+
+        val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(0, matchedConsequences.size)
+    }
+
+    @Test
+    fun `Do nothing on null rule replacement`() {
+        repeat(10) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$it", "type", "source").build()
+            )
+        }
+        assertEquals(10, launchRulesEngine.cachedEventCount)
+        launchRulesEngine.replaceRules(null)
+        Mockito.verifyNoInteractions(extensionApi)
+        assertEquals(10, launchRulesEngine.cachedEventCount)
     }
 }

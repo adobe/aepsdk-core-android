@@ -183,12 +183,12 @@ public class MessageFragmentTests {
     public void
             testOnTouchListener_TouchOccurredOutsideWebview_And_UITakeoverFalse_ThenMessageDismissed() {
         // setup
-        mockAEPMessage.webView = mockWebView;
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
         messageFragment.gestureDetector = mockGestureDetector;
         Mockito.when(mockAEPMessageSettings.getUITakeover()).thenReturn(false);
         Mockito.when(mockWebView.getId()).thenReturn(12345);
         Mockito.when(mockViewGroup.getId()).thenReturn(67890);
+        Mockito.when(mockAEPMessage.getWebView()).thenReturn(mockWebView);
         // call onCreate to setup the gestures
         messageFragment.onCreate(mockSavedInstanceState);
         // test
@@ -205,12 +205,12 @@ public class MessageFragmentTests {
     public void
             testOnTouchListener_TouchOccurredOutsideWebview_And_UITakeoverTrue_ThenMessageNotDismissed() {
         // setup
-        mockAEPMessage.webView = mockWebView;
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
         messageFragment.gestureDetector = mockGestureDetector;
         Mockito.when(mockAEPMessageSettings.getUITakeover()).thenReturn(true);
         Mockito.when(mockWebView.getId()).thenReturn(12345);
         Mockito.when(mockViewGroup.getId()).thenReturn(67890);
+        Mockito.when(mockAEPMessage.getWebView()).thenReturn(mockWebView);
         // call onCreate to setup the gestures
         messageFragment.onCreate(mockSavedInstanceState);
         // test

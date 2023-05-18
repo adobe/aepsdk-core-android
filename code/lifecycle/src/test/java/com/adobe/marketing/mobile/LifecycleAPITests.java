@@ -14,9 +14,7 @@ package com.adobe.marketing.mobile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import com.adobe.marketing.mobile.Lifecycle;
 import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -28,6 +26,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class LifecycleAPITests {
 
     private static final String EXTENSION_VERSION = "2.0.1";
+
     @Test
     public void test_extensionVersion() {
         assertEquals(EXTENSION_VERSION, Lifecycle.extensionVersion());
@@ -42,7 +41,7 @@ public class LifecycleAPITests {
     @Test
     public void test_registerExtension() {
         try (MockedStatic<MobileCore> mobileCoreMockedStatic =
-                     Mockito.mockStatic(MobileCore.class)) {
+                Mockito.mockStatic(MobileCore.class)) {
             // mock MobileCore.registerExtension()
             ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
             ArgumentCaptor<ExtensionErrorCallback> callbackCaptor =

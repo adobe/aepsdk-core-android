@@ -25,6 +25,7 @@ import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventPreprocessor
+import com.adobe.marketing.mobile.internal.eventhub.extensionVersion
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
@@ -112,7 +113,7 @@ class ConfigurationExtensionTests {
         val configurationExtension = ConfigurationExtension(
             mockExtensionApi,
             mockAppIdManager,
-            mockLaunchRulesEvaluator,
+            mockLaunchRulesEngine,
             mockExecutorService,
             mockConfigStateManager,
             mockConfigurationRulesManager

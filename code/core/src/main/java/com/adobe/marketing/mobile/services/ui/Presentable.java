@@ -12,4 +12,7 @@
 package com.adobe.marketing.mobile.services.ui;
 
 /** Represents a UI element which is both showable and dismissible */
-public interface Presentable extends Showable, Dismissible {}
+public interface Presentable extends Showable, Dismissible {
+    /** Returns the object that created this {@link Presentable}. */
+    Object getParent();
+}

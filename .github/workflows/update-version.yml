@@ -48,25 +48,43 @@ jobs:
     
     - if: ${{ github.event.inputs.core-version != '' }}
       name: Update Core Version
-      run: (sh ./Script/update-versions.sh -n Core -v ${{ github.event.inputs.core-version }})
-
+      run: (sh ./scripts/update-versions.sh -n Core -v ${{ github.event.inputs.core-version }})
+    
     - if: ${{ github.event.inputs.identity-version != '' }}
       name: Update Identity Version
-      run: (sh ./Script/update-versions.sh -n Identity -v ${{ github.event.inputs.identity-version }})
+      run: (sh ./scripts/update-versions.sh -n Identity -v ${{ github.event.inputs.identity-version }})
 
     - if: ${{ github.event.inputs.lifecycle-version != '' }}
       name: Update Lifecycle Version
-      run: (sh ./Script/update-versions.sh -n Lifecycle -v ${{ github.event.inputs.lifecycle-version }})
+      run: (sh ./scripts/update-versions.sh -n Lifecycle -v ${{ github.event.inputs.lifecycle-version }})
 
     - if: ${{ github.event.inputs.signal-version != '' }}
       name: Update Signal Version
-      run: (sh ./Script/update-versions.sh -n Signal -v ${{ github.event.inputs.signal-version }})
+      run: (sh ./scripts/update-versions.sh -n Signal -v ${{ github.event.inputs.signal-version }})
 
-    - name: Compute commit message
+    - name: Generate Commit Message
+      shell: bash
       run: |
         COMMIT_MSG=""
-        if [-z "${{ github.event.inputs.core-version }}" ]; then
-          echo "Core (${{ github.event.inputs.core-version }})" >> COMMIT_MSG
+        if [ "${{ github.event.inputs.core-version }}" ]; then
+          COMMIT_MSG="[Core-${{ github.event.inputs.core-version }}]"
+        fi
+        if [ "${{ github.event.inputs.identity-version }}" ]; then
+          COMMIT_MSG="$COMMIT_MSG [Identity-${{ github.event.inputs.identity-version }}]"
         fi 
-        echo COMMIT_MSG >> GITHUB_ENV          
-        echo COMMIT_MSG          
+        if [ "${{ github.event.inputs.lifecycle-version }}" ]; then
+          COMMIT_MSG="$COMMIT_MSG [Lifecycle-${{ github.event.inputs.lifecycle-version }}]"
+        fi 
+        if [ "${{ github.event.inputs.signal-version }}" ]; then
+        COMMIT_MSG="$COMMIT_MSG [Signal-${{ github.event.inputs.signal-version }}]"
+        fi 
+        echo $COMMIT_MSG
+        echo COMMIT_MSG=$COMMIT_MSG >> $GITHUB_ENV
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        commit-message: Update versions ${{ env.COMMIT_MSG }}
+        title: Update versions ${{ env.COMMIT_MSG }}
+        body: Update versions ${{ env.COMMIT_MSG }}
+        base: ${{ github.event.inputs.branch }}

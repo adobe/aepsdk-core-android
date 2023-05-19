@@ -898,10 +898,6 @@ public class com/adobe/marketing/mobile/services/ui/MessageFragment : android/ap
 	public fun <init> ()V
 	public fun dismiss ()V
 	public fun getAEPMessage ()Lcom/adobe/marketing/mobile/services/ui/AEPMessage;
-	public fun getGestureDetector ()Landroid/view/GestureDetector;
-	public fun getGestures ()Ljava/util/Map;
-	public fun getWebViewGestureListener ()Lcom/adobe/marketing/mobile/services/ui/WebViewGestureListener;
-	public fun isDismissedWithGesture ()Z
 	public fun onActivityCreated (Landroid/os/Bundle;)V
 	public fun onAttach (Landroid/content/Context;)V
 	public fun onCreate (Landroid/os/Bundle;)V
@@ -909,7 +905,6 @@ public class com/adobe/marketing/mobile/services/ui/MessageFragment : android/ap
 	public fun onDetach ()V
 	public fun onTouch (Landroid/view/View;Landroid/view/MotionEvent;)Z
 	public fun setAEPMessage (Lcom/adobe/marketing/mobile/services/ui/AEPMessage;)V
-	public fun setMessagesMonitor (Lcom/adobe/marketing/mobile/services/ui/internal/MessagesMonitor;)V
 	public fun show (Landroid/app/FragmentTransaction;Ljava/lang/String;)I
 }
 

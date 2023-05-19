@@ -11,21 +11,18 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
-import android.app.Activity;
-import android.app.Application;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.FrameLayout;
-import com.adobe.marketing.mobile.MobileCore;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
+import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.Random;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,13 +41,11 @@ public class MessageFragmentTests {
 
     @Mock private MessageSettings mockAEPMessageSettings;
 
-    @Mock private Application mockApplication;
-
     @Mock private AppContextService mockAppContextService;
 
-    @Mock private Activity mockActivity;
+    @Mock private MessagesMonitor mockMessagesMonitor;
 
-    @Mock private FrameLayout mockFrameLayout;
+    @Mock private Context mockContext;
 
     @Mock private FullscreenMessageDelegate mockFullscreenMessageDelegate;
 
@@ -77,9 +72,12 @@ public class MessageFragmentTests {
         gestureMap.put(MessageGesture.SWIPE_UP, "adbinapp://dismiss");
         gestureMap.put(MessageGesture.SWIPE_DOWN, "adbinapp://dismiss");
 
-        Mockito.when(mockAEPMessage.getSettings()).thenReturn(mockAEPMessageSettings);
+        Mockito.when(mockAEPMessage.getMessageSettings()).thenReturn(mockAEPMessageSettings);
         Mockito.when(mockAEPMessageSettings.getGestures()).thenReturn(gestureMap);
         Mockito.when(mockMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_DOWN);
+        Mockito.when(mockWebView.getId()).thenReturn(12345);
+        Mockito.when(mockAEPMessage.getWebView()).thenReturn(mockWebView);
+        Mockito.when(mockAEPMessage.getMessageSettings()).thenReturn(mockAEPMessageSettings);
 
         // set the private fullscreen message delegate var using reflection
         final Field listener = mockAEPMessage.getClass().getDeclaredField("listener");
@@ -95,73 +93,43 @@ public class MessageFragmentTests {
         // test
         messageFragment.onCreate(mockSavedInstanceState);
         // verify
-        // get settings / get gestures called twice, once for null check then once for variable
-        // assignment
-        Mockito.verify(mockAEPMessage, Mockito.times(2)).getSettings();
-        Mockito.verify(mockAEPMessageSettings, Mockito.times(2)).getGestures();
+        Mockito.verify(mockAEPMessage, Mockito.times(1)).getMessageSettings();
+        Mockito.verify(mockAEPMessageSettings, Mockito.times(1)).getGestures();
         Assert.assertEquals(messageFragment.getGestures(), gestureMap);
         Assert.assertNotNull(messageFragment.getGestureDetector());
         Assert.assertNotNull(messageFragment.getWebViewGestureListener());
     }
 
     @Test
-    public void testOnCreate_WithNullAEPMessage_ThenGestureDetectorAndGestureListenerNotCreated() {
+    public void
+            testOAnAttach_AndMessageNotNull_ThenMessageViewedAndMessageMonitorDisplayedCalled() {
         // setup
-        messageFragment.setAEPMessage(null);
-        // test
-        messageFragment.onCreate(mockSavedInstanceState);
-        // verify
-        Mockito.verify(mockAEPMessage, Mockito.times(0)).getSettings();
-        Mockito.verify(mockAEPMessageSettings, Mockito.times(0)).getGestures();
-        Assert.assertNull(messageFragment.getGestureDetector());
-        Assert.assertNull(messageFragment.getWebViewGestureListener());
-    }
-
-    @Test
-    public void testOnResume_FrameLayoutExists_ThenShowInRootViewGroupCalled() {
-        // setup
-        mockAEPMessage.frameLayoutResourceId = new Random().nextInt();
+        messageFragment.setMessagesMonitor(mockMessagesMonitor);
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
         messageFragment.gestureDetector = mockGestureDetector;
 
-        Mockito.when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
-        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
-                .thenReturn(mockFrameLayout);
         // test
-        messageFragment.onResume();
+        messageFragment.onAttach(mockContext);
         // verify
-        Mockito.verify(mockAEPMessage, Mockito.times(1)).showInRootViewGroup();
-    }
-
-    @Test
-    public void testOnResume_FrameLayoutNull_ThenShowInRootViewGroupNotCalled() {
-        // setup
-        mockAEPMessage.frameLayoutResourceId = new Random().nextInt();
-        messageFragment.webViewGestureListener = mockWebViewGestureListener;
-        messageFragment.gestureDetector = mockGestureDetector;
-        MobileCore.setApplication(mockApplication);
-        // return a null frame layout
-        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt())).thenReturn(null);
-        // test
-        messageFragment.onResume();
-        // verify
-        Mockito.verify(mockAEPMessage, Mockito.times(0)).showInRootViewGroup();
+        Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
+        Mockito.verify(mockMessagesMonitor, Mockito.times(1)).displayed();
     }
 
     @Test
     public void
-            testOnResume_NullActivityWhenRetrievingFrameLayout_ThenShowInRootViewGroupNotCalled() {
+            testOAnAttach_AndMessageNull_ThenMessageViewedAndMessageMonitorDisplayedNotCalled() {
         // setup
-        mockAEPMessage.frameLayoutResourceId = new Random().nextInt();
+        messageFragment.setAEPMessage(null);
+        messageFragment.setMessagesMonitor(mockMessagesMonitor);
         messageFragment.webViewGestureListener = mockWebViewGestureListener;
         messageFragment.gestureDetector = mockGestureDetector;
 
-        Mockito.when(mockAppContextService.getApplication()).thenReturn(mockApplication);
-        Mockito.when(mockAppContextService.getCurrentActivity()).thenReturn(mockActivity);
         // test
-        messageFragment.onResume();
+        messageFragment.onAttach(mockContext);
+
         // verify
-        Mockito.verify(mockAEPMessage, Mockito.times(0)).showInRootViewGroup();
+        Mockito.verify(mockAEPMessage, Mockito.times(0)).viewed();
+        Mockito.verify(mockMessagesMonitor, Mockito.times(0)).displayed();
     }
 
     @Test

@@ -894,10 +894,10 @@ public class com/adobe/marketing/mobile/services/ui/MessageFragment : android/ap
 	protected field dismissedWithGesture Z
 	protected field gestureDetector Landroid/view/GestureDetector;
 	protected field gestures Ljava/util/Map;
-	protected field message Lcom/adobe/marketing/mobile/services/ui/AEPMessage;
 	protected field webViewGestureListener Lcom/adobe/marketing/mobile/services/ui/WebViewGestureListener;
 	public fun <init> ()V
 	public fun dismiss ()V
+	public fun getAEPMessage ()Lcom/adobe/marketing/mobile/services/ui/AEPMessage;
 	public static fun getArgumentKeyBackdropColor ()Ljava/lang/String;
 	public static fun getArgumentKeyBackdropOpacity ()Ljava/lang/String;
 	public static fun getArgumentKeyIsUiTakeOver ()Ljava/lang/String;

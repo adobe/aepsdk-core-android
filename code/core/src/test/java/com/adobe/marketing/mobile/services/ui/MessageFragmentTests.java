@@ -72,11 +72,12 @@ public class MessageFragmentTests {
         gestureMap.put(MessageGesture.SWIPE_UP, "adbinapp://dismiss");
         gestureMap.put(MessageGesture.SWIPE_DOWN, "adbinapp://dismiss");
 
-        Mockito.when(mockAEPMessage.getSettings()).thenReturn(mockAEPMessageSettings);
+        Mockito.when(mockAEPMessage.getMessageSettings()).thenReturn(mockAEPMessageSettings);
         Mockito.when(mockAEPMessageSettings.getGestures()).thenReturn(gestureMap);
         Mockito.when(mockMotionEvent.getAction()).thenReturn(MotionEvent.ACTION_DOWN);
         Mockito.when(mockWebView.getId()).thenReturn(12345);
         Mockito.when(mockAEPMessage.getWebView()).thenReturn(mockWebView);
+        Mockito.when(mockAEPMessage.getMessageSettings()).thenReturn(mockAEPMessageSettings);
 
         // set the private fullscreen message delegate var using reflection
         final Field listener = mockAEPMessage.getClass().getDeclaredField("listener");
@@ -92,7 +93,7 @@ public class MessageFragmentTests {
         // test
         messageFragment.onCreate(mockSavedInstanceState);
         // verify
-        Mockito.verify(mockAEPMessage, Mockito.times(1)).getSettings();
+        Mockito.verify(mockAEPMessage, Mockito.times(1)).getMessageSettings();
         Mockito.verify(mockAEPMessageSettings, Mockito.times(1)).getGestures();
         Assert.assertEquals(messageFragment.getGestures(), gestureMap);
         Assert.assertNotNull(messageFragment.getGestureDetector());

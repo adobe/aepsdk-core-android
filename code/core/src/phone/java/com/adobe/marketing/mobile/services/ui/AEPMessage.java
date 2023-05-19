@@ -17,7 +17,6 @@ import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
@@ -70,11 +69,10 @@ class AEPMessage implements FullscreenMessage {
 
     // private vars
     private WebView webView;
-    private CardView framedWebView;
+    private CardView webViewFrame;
     private ViewGroup.LayoutParams params;
     private final String html;
     private MessageSettings settings;
-    private final boolean isLocalImageUsed;
     private Animation dismissAnimation;
     private Animation.AnimationListener animationListener;
     private Map<String, String> assetMap = Collections.emptyMap();
@@ -117,7 +115,6 @@ class AEPMessage implements FullscreenMessage {
         this.messagesMonitor = messagesMonitor;
         this.settings = settings;
         this.html = html;
-        this.isLocalImageUsed = isLocalImageUsed;
         this.executor = executor;
     }
 
@@ -126,12 +123,12 @@ class AEPMessage implements FullscreenMessage {
         return webView;
     }
 
-    @Nullable CardView getFramedWebView() {
-        return framedWebView;
+    @Nullable CardView getWebViewFrame() {
+        return webViewFrame;
     }
 
-    void setFramedWebView(final CardView framedWebView) {
-        this.framedWebView = framedWebView;
+    void setWebViewFrame(final CardView webViewFrame) {
+        this.webViewFrame = webViewFrame;
     }
 
     @Override
@@ -213,22 +210,11 @@ class AEPMessage implements FullscreenMessage {
                         return;
                     }
 
-                    final Bundle iamArguments = new Bundle();
-                    iamArguments.putBoolean(
-                            MessageFragment.getArgumentKeyIsUiTakeOver(), settings.getUITakeover());
-                    iamArguments.putString(
-                            MessageFragment.getArgumentKeyBackdropColor(),
-                            settings.getBackdropColor());
-                    iamArguments.putFloat(
-                            MessageFragment.getArgumentKeyBackdropOpacity(),
-                            settings.getBackdropOpacity());
-
                     if (messageFragment == null) {
                         messageFragment = new MessageFragment();
                     }
 
                     messageFragment.setAEPMessage(AEPMessage.this);
-                    messageFragment.setArguments(iamArguments);
 
                     currentActivity.runOnUiThread(
                             () -> {
@@ -255,26 +241,23 @@ class AEPMessage implements FullscreenMessage {
         // add a dismiss animation if the webview wasn't previously removed via a swipe gesture
         if (!messageFragment.dismissedWithGesture) {
             dismissAnimation = setupDismissAnimation();
+            animationListener =
+                    new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(final Animation animation) {}
 
-            if (dismissAnimation != null) {
-                animationListener =
-                        new Animation.AnimationListener() {
-                            @Override
-                            public void onAnimationStart(final Animation animation) {}
+                        @Override
+                        public void onAnimationEnd(final Animation animation) {
+                            // wait for the animation to end then clean the views
+                            cleanup();
+                        }
 
-                            @Override
-                            public void onAnimationEnd(final Animation animation) {
-                                // wait for the animation to end then clean the views
-                                cleanup();
-                            }
-
-                            @Override
-                            public void onAnimationRepeat(final Animation animation) {}
-                        };
-                dismissAnimation.setAnimationListener(animationListener);
-                framedWebView.startAnimation(dismissAnimation);
-                return;
-            }
+                        @Override
+                        public void onAnimationRepeat(final Animation animation) {}
+                    };
+            dismissAnimation.setAnimationListener(animationListener);
+            webViewFrame.startAnimation(dismissAnimation);
+            return;
         } // otherwise, just clean the views
 
         cleanup();
@@ -320,15 +303,6 @@ class AEPMessage implements FullscreenMessage {
         return this.settings.getParent();
     }
 
-    /**
-     * Returns the {@link MessageSettings} passed in the {@link AEPMessage} constructor.
-     *
-     * @return {@code MessageSettings} object defining layout and behavior of the new message
-     */
-    MessageSettings getSettings() {
-        return this.settings;
-    }
-
     /** Invoked after the message is successfully shown. */
     void viewed() {
         // notify listeners
@@ -362,7 +336,7 @@ class AEPMessage implements FullscreenMessage {
         Log.trace(ServiceConstants.LOG_TAG, TAG, "Cleaning the AEPMessage.");
 
         listener.onDismiss(this);
-        framedWebView.setOnTouchListener(null);
+        webViewFrame.setOnTouchListener(null);
         webView.setOnTouchListener(null);
         if (dismissAnimation != null) {
             dismissAnimation.setAnimationListener(null);
@@ -376,7 +350,7 @@ class AEPMessage implements FullscreenMessage {
     /** Removes then cleans up the Messaging IAM. */
     void removeFullscreenMessage() {
         messageFragment.dismiss();
-        framedWebView = null;
+        webViewFrame = null;
         webView = null;
         messageFragment = null;
     }
@@ -431,7 +405,6 @@ class AEPMessage implements FullscreenMessage {
 
         try {
             MessageWebViewRunner messageWebViewRunner = new MessageWebViewRunner(this);
-            messageWebViewRunner.setLocalAssetsMap(assetMap);
             messageWebViewRunner.run();
         } catch (final Exception exception) {
             Log.warning(
@@ -519,7 +492,7 @@ class AEPMessage implements FullscreenMessage {
      *     message is dismissed.
      */
     private Animation setupDismissAnimation() {
-        final MessageSettings.MessageAnimation animation = getSettings().getDismissAnimation();
+        final MessageSettings.MessageAnimation animation = settings.getDismissAnimation();
 
         if (animation == null) {
             Log.trace(

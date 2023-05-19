@@ -86,12 +86,12 @@ public class MessageWebViewRunnerTests {
         aepMessageSettings.setHorizontalInset(5);
         aepMessageSettings.setVerticalAlign(MessageAlignment.TOP);
         aepMessageSettings.setVerticalInset(10);
-        when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+        when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
         when(mockAEPMessage.getMessageFragment()).thenReturn(mockMessageFragment);
         when(mockAEPMessage.getMessageHtml()).thenReturn("some html");
         when(mockWebview.getSettings()).thenReturn(mockWebSettings);
         when(mockAEPMessage.getWebView()).thenReturn(mockWebview);
-        when(mockAEPMessage.getFramedWebView()).thenReturn(mockCardView);
+        when(mockAEPMessage.getWebViewFrame()).thenReturn(mockCardView);
     }
 
     @Test
@@ -117,7 +117,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.TOP);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -138,7 +138,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.LEFT);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -159,7 +159,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.RIGHT);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -180,7 +180,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.BOTTOM);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -201,7 +201,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.FADE);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -222,7 +222,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setDisplayAnimation(MessageAnimation.NONE);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -243,7 +243,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setHeight(50);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -264,7 +264,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setHorizontalAlign(MessageAlignment.LEFT);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -285,7 +285,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setHorizontalAlign(MessageAlignment.RIGHT);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -306,7 +306,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setVerticalAlign(MessageAlignment.BOTTOM);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();
@@ -327,7 +327,7 @@ public class MessageWebViewRunnerTests {
         // setup
         try (MockedConstruction<CardView> ignored = mockConstruction(CardView.class)) {
             aepMessageSettings.setVerticalAlign(MessageAlignment.CENTER);
-            when(mockAEPMessage.getSettings()).thenReturn(aepMessageSettings);
+            when(mockAEPMessage.getMessageSettings()).thenReturn(aepMessageSettings);
             messageFragmentRunner = new MessageWebViewRunner(mockAEPMessage);
             // test
             messageFragmentRunner.run();

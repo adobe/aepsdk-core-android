@@ -30,9 +30,6 @@ import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.util.MapUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The {@link Runnable} object running on the main thread that prepares the webview prior to the
@@ -53,7 +50,6 @@ class MessageWebViewRunner implements Runnable {
     private final int messageWidth;
     private final int originX;
     private final int originY;
-    private Map<String, String> assetMap = Collections.emptyMap();
     private WebSettings webviewSettings;
 
     /**
@@ -63,7 +59,8 @@ class MessageWebViewRunner implements Runnable {
      */
     MessageWebViewRunner(final AEPMessage message) {
         this.message = message;
-        this.settings = message.getSettings();
+        this.settings = message.getMessageSettings();
+
         // calculate the dimensions of the webview to be displayed
         messageHeight = getPixelValueForHeight(settings.getHeight());
         messageWidth = getPixelValueForWidth(settings.getWidth());
@@ -154,7 +151,7 @@ class MessageWebViewRunner implements Runnable {
             webViewFrame.addView(webView);
 
             // add the created cardview containing the webview to the message object
-            message.setFramedWebView(webViewFrame);
+            message.setWebViewFrame(webViewFrame);
 
             setMessageLayoutParameters(webView);
         } catch (final Exception ex) {
@@ -170,7 +167,7 @@ class MessageWebViewRunner implements Runnable {
      *     message is displayed.
      */
     private Animation setupDisplayAnimation(final WebView webView) {
-        final MessageAnimation animation = message.getSettings().getDisplayAnimation();
+        final MessageAnimation animation = message.getMessageSettings().getDisplayAnimation();
 
         if (animation == null) {
             return null;
@@ -355,18 +352,5 @@ class MessageWebViewRunner implements Runnable {
 
         // handle center alignment, y is (screen height - message height) / 2
         return (screenHeight - getPixelValueForHeight(settings.getHeight())) / 2;
-    }
-
-    /**
-     * Sets the asset map which contains the mapping between a remote image asset url and it's
-     * cached location.
-     *
-     * @param assetMap The {@code Map<String, String} object containing the mapping between a remote
-     *     asset url and its cached location.
-     */
-    void setLocalAssetsMap(final Map<String, String> assetMap) {
-        if (assetMap != null && !assetMap.isEmpty()) {
-            this.assetMap = new HashMap<>(assetMap);
-        }
     }
 }

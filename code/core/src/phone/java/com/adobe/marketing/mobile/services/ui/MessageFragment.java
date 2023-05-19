@@ -32,7 +32,7 @@ import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
-import java.lang.ref.WeakReference;
+import com.adobe.marketing.mobile.util.MapUtils;
 import java.util.Map;
 
 /**
@@ -45,17 +45,12 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
     private static final int FULLY_OPAQUE_ALPHA_VALUE = 255;
 
-    // keys for Arguments Bundle
-    private static final String ARGUMENT_KEY_BACKDROP_COLOR = "backdropColor";
-    private static final String ARGUMENT_KEY_BACKDROP_OPACITY = "backdropOpacity";
-    private static final String ARGUMENT_KEY_IS_UI_TAKE_OVER = "isUiTakeOver";
-
     protected boolean dismissedWithGesture = false;
     protected GestureDetector gestureDetector;
     protected WebViewGestureListener webViewGestureListener;
     protected Map<MessageGesture, String> gestures;
     private MessagesMonitor messagesMonitor;
-    private WeakReference<AEPMessage> message;
+    private AEPMessage message;
 
     // layout change listener to listen for layout changes in parent activity's content ViewGroup.
     // upon orientation change, wait until the re-layouting of the content view is completed before
@@ -75,7 +70,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                         final int oldBottom) {
                     final int contentViewWidth = right - left;
                     final int contentViewHeight = bottom - top;
-                    message.get().recreateWebViewFrame(contentViewWidth, contentViewHeight);
+                    message.recreateWebViewFrame(contentViewWidth, contentViewHeight);
                     updateDialogView();
                 }
             };
@@ -86,7 +81,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
      * @param message instance of {@code AEPMessage}
      */
     public void setAEPMessage(final AEPMessage message) {
-        this.message = new WeakReference<>(message);
+        this.message = message;
 
         if (message != null) {
             this.messagesMonitor = message.messagesMonitor;
@@ -99,7 +94,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
      * @return {@link AEPMessage} instance
      */
     public AEPMessage getAEPMessage() {
-        return message != null ? message.get() : null;
+        return message;
     }
 
     @Override
@@ -107,16 +102,16 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         super.onAttach(context);
 
         // make sure we have a valid message before trying to proceed
-        if (message == null || message.get() == null) {
+        if (message == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    "%s (Message Fragment), failed to show the message.get().",
+                    "%s (Message Fragment), failed to attach the fragment.",
                     UNEXPECTED_NULL_VALUE);
             return;
         }
 
-        message.get().viewed();
+        message.viewed();
 
         if (messagesMonitor != null) {
             messagesMonitor.displayed();
@@ -128,11 +123,20 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
 
-        // store message gestures if available
-        final Map<MessageGesture, String> retrievedGestures =
-                message.get().getSettings().getGestures();
+        final MessageSettings messageSettings = message.getMessageSettings();
+        if (messageSettings == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (Message Settings), failed to create the fragment.",
+                    UNEXPECTED_NULL_VALUE);
+            return;
+        }
 
-        if (retrievedGestures != null && !retrievedGestures.isEmpty()) {
+        // store message gestures if available
+        final Map<MessageGesture, String> retrievedGestures = messageSettings.getGestures();
+
+        if (!MapUtils.isNullOrEmpty(retrievedGestures)) {
             gestures = retrievedGestures;
         }
 
@@ -181,36 +185,43 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         removeListeners();
 
         // clean webview parent in case the detach is occurring due to an orientation change
-        final WebView webView = message.get().getWebView();
-        if (webView != null && message.get().getWebView().getParent() != null) {
-            ((ViewGroup) message.get().getWebView().getParent())
-                    .removeView(message.get().getWebView());
+        final WebView webView = message.getWebView();
+        if (webView != null && webView.getParent() != null) {
+            ((ViewGroup) webView.getParent()).removeView(webView);
         }
-
-        // clean the message weak reference
-        message.clear();
     }
 
     @Override
     public boolean onTouch(final View view, final MotionEvent motionEvent) {
-        if (message == null || message.get() == null) {
+        if (message == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    "%s (message), unable to handle the touch event on %s",
+                    "%s (AEPMessage), unable to handle the touch event on %s.",
                     UNEXPECTED_NULL_VALUE,
                     view.getClass().getSimpleName());
             return true;
         }
 
-        final WebView webView = message.get().getWebView();
+        final WebView webView = message.getWebView();
         if (webView == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    UNEXPECTED_NULL_VALUE
-                            + " (webview), unable to handle the touch event on "
-                            + view.getClass().getSimpleName());
+                    "%s (WebView), unable to handle the touch event on %s.",
+                    UNEXPECTED_NULL_VALUE,
+                    view.getClass().getSimpleName());
+            return true;
+        }
+
+        final MessageSettings messageSettings = message.getMessageSettings();
+        if (messageSettings == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (MessageSettings), unable to handle the touch event on %s.",
+                    UNEXPECTED_NULL_VALUE,
+                    view.getClass().getSimpleName());
             return true;
         }
 
@@ -219,21 +230,21 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         // determine if the tap occurred outside the webview
         if ((motionEventAction == MotionEvent.ACTION_DOWN
                         || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
-                && view.getId() != message.get().getWebView().getId()) {
+                && view.getId() != webView.getId()) {
             Log.trace(
                     ServiceConstants.LOG_TAG,
                     TAG,
                     "Detected tap on %s",
                     view.getClass().getSimpleName());
 
-            final boolean uiTakeoverEnabled = message.get().getSettings().getUITakeover();
+            final boolean uiTakeoverEnabled = messageSettings.getUITakeover();
 
             // if ui takeover is false, dismiss the message
             if (!uiTakeoverEnabled) {
                 Log.trace(
                         ServiceConstants.LOG_TAG,
                         TAG,
-                        "UI takeover is false, dismissing the message.get().");
+                        "UI takeover is false, dismissing the message.");
                 webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
                 // perform the tap to allow interaction with ui elements outside the webview
                 return view.onTouchEvent(motionEvent);
@@ -245,10 +256,9 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         }
 
         // determine if the tapped view is the webview
-        if (view.getId() == message.get().getWebView().getId()) {
+        if (view.getId() == webView.getId()) {
             // if we have no gestures just pass the touch event to the webview
-            if (message.get().getMessageSettings().getGestures() == null
-                    || message.get().getMessageSettings().getGestures().isEmpty()) {
+            if (MapUtils.isNullOrEmpty(messageSettings.getGestures())) {
                 return view.onTouchEvent(motionEvent);
             }
             // otherwise, pass the event to the gesture detector to determine if a motion event
@@ -272,7 +282,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         if (contentView.getHeight() == 0 || contentView.getWidth() == 0) {
             contentView.addOnLayoutChangeListener(layoutChangeListener);
         } else { // just create the webview and add it to the DialogView
-            message.get().recreateWebViewFrame(contentView.getWidth(), contentView.getHeight());
+            message.recreateWebViewFrame(contentView.getWidth(), contentView.getHeight());
             updateDialogView();
         }
 
@@ -286,17 +296,14 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             dialog.setOnKeyListener(
                     (dialogInterface, keyCode, event) -> {
                         if (message != null && keyCode == KeyEvent.KEYCODE_BACK) {
-                            message.get().dismiss();
+                            message.dismiss();
                         }
                         return false;
                     });
         }
     }
 
-    /**
-     * Remove the {@link android.view.View.OnLayoutChangeListener} and {@link
-     * android.view.View.OnTouchListener}
-     */
+    /** Remove set listeners. */
     private void removeListeners() {
         getActivity()
                 .findViewById(android.R.id.content)
@@ -305,18 +312,37 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         final Dialog dialog = getDialog();
         if (dialog != null) {
             dialog.getWindow().getDecorView().setOnTouchListener(null);
+            dialog.setOnKeyListener(null);
         }
     }
 
     /** Apply the backdrop color and alpha on Dialog's window */
     private void applyBackdropColor() {
+        if (message == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (AEPMessage), unable to apply backdrop color.",
+                    UNEXPECTED_NULL_VALUE);
+            return;
+        }
+
+        final MessageSettings messageSettings = message.getMessageSettings();
+
+        if (messageSettings == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (Message Settings), unable to apply backdrop color.",
+                    UNEXPECTED_NULL_VALUE);
+            return;
+        }
+
         final Dialog dialog = getDialog();
 
         if (dialog != null) {
-            final Bundle bundle = getArguments();
-
-            final String backdropColor = bundle.getString(ARGUMENT_KEY_BACKDROP_COLOR);
-            final float backdropOpacity = bundle.getFloat(ARGUMENT_KEY_BACKDROP_OPACITY);
+            final String backdropColor = messageSettings.getBackdropColor();
+            final float backdropOpacity = messageSettings.getBackdropOpacity();
             // alpha values range from 0-255 (0 means fully transparent, 255 means fully opaque)
             final int convertedAlpha = (int) (backdropOpacity * FULLY_OPAQUE_ALPHA_VALUE);
             final Drawable dialogBgDrawable = new ColorDrawable(Color.parseColor(backdropColor));
@@ -328,8 +354,8 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     /** Add the IAM WebView as the {@link MessageFragment} Dialog's content view. */
     private void updateDialogView() {
         final Dialog dialog = getDialog();
-        final ViewGroup.LayoutParams params = message.get().getParams();
-        final CardView framedWebView = message.get().getFramedWebView();
+        final ViewGroup.LayoutParams params = message.getParams();
+        final CardView framedWebView = message.getWebViewFrame();
 
         if (dialog == null || framedWebView == null || params == null) {
             Log.debug(
@@ -342,7 +368,6 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
         dialog.setContentView(framedWebView, params);
         framedWebView.setOnTouchListener(this);
-        message.get().setFramedWebView(framedWebView);
     }
 
     /** Show this {@link MessageFragment} */
@@ -357,33 +382,6 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     public void dismiss() {
         Log.trace(ServiceConstants.LOG_TAG, TAG, "MessageFragment was dismissed.");
         super.dismiss();
-    }
-
-    /**
-     * Return the {@code String} containing the backdrop color key name.
-     *
-     * @return a {@code String} containing the backdrop color key name.
-     */
-    public static String getArgumentKeyBackdropColor() {
-        return ARGUMENT_KEY_BACKDROP_COLOR;
-    }
-
-    /**
-     * Return the {@code String} containing the backdrop opacity key name.
-     *
-     * @return a {@code String} containing the backdrop opacity key name.
-     */
-    public static String getArgumentKeyBackdropOpacity() {
-        return ARGUMENT_KEY_BACKDROP_OPACITY;
-    }
-
-    /**
-     * Return the {@code String} containing the ui takeover key name.
-     *
-     * @return a {@code String} containing the ui takeover key name.
-     */
-    public static String getArgumentKeyIsUiTakeOver() {
-        return ARGUMENT_KEY_IS_UI_TAKE_OVER;
     }
 
     // for unit tests

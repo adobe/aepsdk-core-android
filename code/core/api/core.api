@@ -898,9 +898,6 @@ public class com/adobe/marketing/mobile/services/ui/MessageFragment : android/ap
 	public fun <init> ()V
 	public fun dismiss ()V
 	public fun getAEPMessage ()Lcom/adobe/marketing/mobile/services/ui/AEPMessage;
-	public static fun getArgumentKeyBackdropColor ()Ljava/lang/String;
-	public static fun getArgumentKeyBackdropOpacity ()Ljava/lang/String;
-	public static fun getArgumentKeyIsUiTakeOver ()Ljava/lang/String;
 	public fun getGestureDetector ()Landroid/view/GestureDetector;
 	public fun getGestures ()Ljava/util/Map;
 	public fun getWebViewGestureListener ()Lcom/adobe/marketing/mobile/services/ui/WebViewGestureListener;

@@ -142,7 +142,7 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
         }
 
         ObjectAnimator animation;
-        final CardView framedWebView = message.getFramedWebView();
+        final CardView framedWebView = message.getWebViewFrame();
 
         switch (gesture) {
             case SWIPE_RIGHT:

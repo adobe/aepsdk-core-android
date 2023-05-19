@@ -453,7 +453,7 @@ public class AEPMessageTests {
 
         message.messageFragment = mockMessageFragment;
         message.setWebView(mockWebView);
-        message.setFramedWebView(mockCardView);
+        message.setWebViewFrame(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
@@ -496,7 +496,7 @@ public class AEPMessageTests {
 
         message.messageFragment = mockMessageFragment;
         message.setWebView(mockWebView);
-        message.setFramedWebView(mockCardView);
+        message.setWebViewFrame(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
@@ -542,7 +542,7 @@ public class AEPMessageTests {
 
         message.messageFragment = mockMessageFragment;
         message.setWebView(mockWebView);
-        message.setFramedWebView(mockCardView);
+        message.setWebViewFrame(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test
@@ -588,7 +588,7 @@ public class AEPMessageTests {
 
         message.messageFragment = mockMessageFragment;
         message.setWebView(mockWebView);
-        message.setFramedWebView(mockCardView);
+        message.setWebViewFrame(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
         Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
         // test

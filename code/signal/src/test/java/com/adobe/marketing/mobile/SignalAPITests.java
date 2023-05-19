@@ -23,11 +23,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class SignalAPITest {
+public class SignalAPITests {
+
+    private static final String EXTENSION_VERSION = "2.0.1";
 
     @Test
     public void test_extensionVersion() {
-        assertEquals("2.0.1", Signal.extensionVersion());
+        assertEquals(EXTENSION_VERSION, Signal.extensionVersion());
     }
 
     @Test

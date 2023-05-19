@@ -53,7 +53,7 @@ class MessageWebViewUtil {
      * @param message {@link AEPMessage} containing the in-app message payload
      */
     @SuppressWarnings("SetJavaScriptEnabled")
-    public void show(final AEPMessage message) {
+    void show(final AEPMessage message) {
         try {
 
             if (message == null) {
@@ -247,7 +247,7 @@ class MessageWebViewUtil {
      * @return a {@code int} containing the percentage converted to pixels
      */
     @SuppressWarnings("checkstyle:MagicNumber")
-    private int getPixelValueForHeight(final int parentViewHeight, float percentage) {
+    private int getPixelValueForHeight(final int parentViewHeight, final float percentage) {
         return (int) (parentViewHeight * (percentage / 100));
     }
 

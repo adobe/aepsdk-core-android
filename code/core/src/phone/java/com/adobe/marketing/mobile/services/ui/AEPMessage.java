@@ -75,6 +75,7 @@ class AEPMessage implements FullscreenMessage {
     private Animation.AnimationListener animationListener;
     private Map<String, String> assetMap = Collections.emptyMap();
     private final Executor executor;
+    private final MessageWebViewUtil messageWebViewUtil;
     private MessageWebViewClient webViewClient;
     private MessageFragment messageFragment;
 
@@ -115,6 +116,7 @@ class AEPMessage implements FullscreenMessage {
         this.settings = settings;
         this.html = html;
         this.executor = executor;
+        messageWebViewUtil = new MessageWebViewUtil();
     }
 
     @Override
@@ -423,7 +425,6 @@ class AEPMessage implements FullscreenMessage {
         this.parentViewHeight = parentViewHeight;
 
         try {
-            MessageWebViewUtil messageWebViewUtil = new MessageWebViewUtil();
             messageWebViewUtil.show(this);
         } catch (final Exception exception) {
             Log.warning(

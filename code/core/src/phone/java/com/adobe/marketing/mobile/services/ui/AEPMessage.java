@@ -62,7 +62,6 @@ class AEPMessage implements FullscreenMessage {
     private static final String UTF_8 = "UTF-8";
 
     // package private vars
-    MessageWebViewRunner messageWebViewRunner;
     int parentViewHeight;
     int parentViewWidth;
     final FullscreenMessageDelegate listener;
@@ -365,6 +364,10 @@ class AEPMessage implements FullscreenMessage {
         listener.onDismiss(this);
         framedWebView.setOnTouchListener(null);
         webView.setOnTouchListener(null);
+        if (dismissAnimation != null) {
+            dismissAnimation.setAnimationListener(null);
+            dismissAnimation = null;
+        }
 
         delegateFullscreenMessageDismiss();
         removeFullscreenMessage();
@@ -427,7 +430,7 @@ class AEPMessage implements FullscreenMessage {
         this.parentViewHeight = parentViewHeight;
 
         try {
-            messageWebViewRunner = new MessageWebViewRunner(this);
+            MessageWebViewRunner messageWebViewRunner = new MessageWebViewRunner(this);
             messageWebViewRunner.setLocalAssetsMap(assetMap);
             messageWebViewRunner.run();
         } catch (final Exception exception) {

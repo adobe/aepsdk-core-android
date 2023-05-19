@@ -26,7 +26,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.webkit.WebView;
@@ -66,8 +65,6 @@ public class AEPMessageTests {
 
     @Mock private ViewGroup mockViewGroup;
 
-    @Mock private View mockBackdrop;
-
     @Mock private CardView mockCardView;
 
     @Mock private WebView mockWebView;
@@ -75,8 +72,6 @@ public class AEPMessageTests {
     @Mock private MotionEvent mockMotionEvent;
 
     @Mock private MessagesMonitor mockMessageMonitor;
-
-    @Mock private MessageWebViewRunner mockMessageWebViewRunner;
 
     @Mock private FragmentManager mockFragmentManager;
 
@@ -457,8 +452,6 @@ public class AEPMessageTests {
         }
 
         message.messageFragment = mockMessageFragment;
-        message.messageWebViewRunner = mockMessageWebViewRunner;
-        mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.setWebView(mockWebView);
         message.setFramedWebView(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
@@ -502,8 +495,6 @@ public class AEPMessageTests {
         }
 
         message.messageFragment = mockMessageFragment;
-        message.messageWebViewRunner = mockMessageWebViewRunner;
-        mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.setWebView(mockWebView);
         message.setFramedWebView(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
@@ -549,9 +540,7 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        message.messageWebViewRunner = mockMessageWebViewRunner;
         message.messageFragment = mockMessageFragment;
-        mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.setWebView(mockWebView);
         message.setFramedWebView(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
@@ -597,9 +586,7 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        message.messageWebViewRunner = mockMessageWebViewRunner;
         message.messageFragment = mockMessageFragment;
-        mockMessageWebViewRunner.backdrop = mockBackdrop;
         message.setWebView(mockWebView);
         message.setFramedWebView(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);

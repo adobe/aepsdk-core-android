@@ -41,8 +41,6 @@ public class WebViewGestureListenerTests {
 
     @Mock private CardView mockCardView;
 
-    @Mock private MessageWebViewRunner mockMessageWebViewRunner;
-
     @Mock private MotionEvent mockMotionEvent2;
 
     @Mock private MotionEvent mockMotionEvent;
@@ -77,11 +75,10 @@ public class WebViewGestureListenerTests {
         Mockito.when(mockAEPMessage.getWebView()).thenReturn(mockWebView);
         Mockito.when(mockAEPMessage.getFramedWebView()).thenReturn(mockCardView);
         mockAEPMessage.setFramedWebView(mockCardView);
-        mockAEPMessage.messageWebViewRunner = mockMessageWebViewRunner;
         mockAEPMessage.parentViewHeight = 3000;
         mockAEPMessage.parentViewWidth = 2000;
+        Mockito.when(mockMessageFragment.getAEPMessage()).thenReturn(mockAEPMessage);
         mockMessageFragment.gestures = gestureMap;
-        mockMessageFragment.message = mockAEPMessage;
 
         gestureListener = new WebViewGestureListener(mockMessageFragment);
     }
@@ -218,8 +215,7 @@ public class WebViewGestureListenerTests {
 
     @Test
     public void
-            testOnFling_HorizontalSwipe_And_FlingVelocityUnderThreshold_Then_MessageNotDismissed()
-                    throws InterruptedException {
+            testOnFling_HorizontalSwipe_And_FlingVelocityUnderThreshold_Then_MessageNotDismissed() {
         // setup
         Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
         Mockito.when(mockMotionEvent2.getX()).thenReturn(-300.0f);
@@ -235,8 +231,8 @@ public class WebViewGestureListenerTests {
     }
 
     @Test
-    public void testOnFling_VerticalSwipe_And_FlingVelocityUnderThreshold_Then_MessageNotDismissed()
-            throws InterruptedException {
+    public void
+            testOnFling_VerticalSwipe_And_FlingVelocityUnderThreshold_Then_MessageNotDismissed() {
         // setup
         Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
         Mockito.when(mockMotionEvent2.getX()).thenReturn(0f);
@@ -252,8 +248,7 @@ public class WebViewGestureListenerTests {
     }
 
     @Test
-    public void testHandleGesture_BackgroundTap_Then_MessageDismissed()
-            throws InterruptedException {
+    public void testHandleGesture_BackgroundTap_Then_MessageDismissed() {
         // setup
         Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
         Mockito.when(mockMotionEvent2.getX()).thenReturn(0f);

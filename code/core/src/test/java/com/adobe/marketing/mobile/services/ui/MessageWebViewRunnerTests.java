@@ -43,8 +43,6 @@ public class MessageWebViewRunnerTests {
 
     @Mock private MessageFragment mockMessageFragment;
 
-    @Mock private MessageWebViewRunner mockMessageWebViewRunner;
-
     @Mock private WebView mockWebview;
 
     @Mock private CardView mockCardView;
@@ -94,8 +92,6 @@ public class MessageWebViewRunnerTests {
         when(mockWebview.getSettings()).thenReturn(mockWebSettings);
         when(mockAEPMessage.getWebView()).thenReturn(mockWebview);
         when(mockAEPMessage.getFramedWebView()).thenReturn(mockCardView);
-
-        mockAEPMessage.messageWebViewRunner = mockMessageWebViewRunner;
     }
 
     @Test

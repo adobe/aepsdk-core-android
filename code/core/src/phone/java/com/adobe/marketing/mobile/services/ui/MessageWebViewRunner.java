@@ -14,7 +14,6 @@ package com.adobe.marketing.mobile.services.ui;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.TypedValue;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -47,9 +46,7 @@ class MessageWebViewRunner implements Runnable {
     private static final int ANIMATION_DURATION = 300;
     private static final String BASE_URL = "file:///android_asset/";
     private static final String MIME_TYPE = "text/html";
-    private static final String UTF_8 = "UTF-8";
 
-    protected View backdrop = null;
     private final AEPMessage message;
     private final MessageSettings settings;
     private final int messageHeight;
@@ -57,7 +54,6 @@ class MessageWebViewRunner implements Runnable {
     private final int originX;
     private final int originY;
     private Map<String, String> assetMap = Collections.emptyMap();
-    private WebView webView;
     private WebSettings webviewSettings;
 
     /**
@@ -116,7 +112,7 @@ class MessageWebViewRunner implements Runnable {
             }
 
             // load the in-app message in the webview
-            webView = message.getWebView();
+            final WebView webView = message.getWebView();
 
             webView.loadDataWithBaseURL(
                     BASE_URL,
@@ -135,7 +131,7 @@ class MessageWebViewRunner implements Runnable {
             webViewFrame.setRadius(calculatedRadius);
 
             // set a display animation for the ewbview
-            final Animation animation = setupDisplayAnimation();
+            final Animation animation = setupDisplayAnimation(webView);
             if (animation == null) {
                 Log.debug(
                         TAG,
@@ -160,7 +156,7 @@ class MessageWebViewRunner implements Runnable {
             // add the created cardview containing the webview to the message object
             message.setFramedWebView(webViewFrame);
 
-            setMessageLayoutParameters();
+            setMessageLayoutParameters(webView);
         } catch (final Exception ex) {
             Log.warning(
                     ServiceConstants.LOG_TAG, TAG, "Failed to show the message " + ex.getMessage());
@@ -173,7 +169,7 @@ class MessageWebViewRunner implements Runnable {
      * @return {@code Animation} object defining the animation that will be performed when the
      *     message is displayed.
      */
-    private Animation setupDisplayAnimation() {
+    private Animation setupDisplayAnimation(final WebView webView) {
         final MessageAnimation animation = message.getSettings().getDisplayAnimation();
 
         if (animation == null) {
@@ -229,7 +225,7 @@ class MessageWebViewRunner implements Runnable {
     }
 
     /** Set the in-app message layout parameters in the {@code AEPMessage} object. */
-    private void setMessageLayoutParameters() {
+    private void setMessageLayoutParameters(final WebView webView) {
         // if we have non fullscreen messages, fill the webview
         webviewSettings = webView.getSettings();
         if (settings.getHeight() != FULLSCREEN_PERCENTAGE) {

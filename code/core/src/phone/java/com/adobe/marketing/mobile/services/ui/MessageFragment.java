@@ -305,7 +305,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             dialog.setOnKeyListener(
                     (dialogInterface, keyCode, event) -> {
                         if (message != null && keyCode == KeyEvent.KEYCODE_BACK) {
-                            message.dismiss();
+                            message.dismiss(true);
                         }
                         return false;
                     });

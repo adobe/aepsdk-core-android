@@ -260,7 +260,7 @@ public class AEPMessageTests {
         }
 
         message.setWebView(mockWebView);
-        message.messageFragment = mockMessageFragment;
+        message.setMessageFragment(mockMessageFragment);
 
         // test
         message.show();
@@ -296,7 +296,7 @@ public class AEPMessageTests {
         }
 
         message.setWebView(mockWebView);
-        message.messageFragment = mockMessageFragment;
+        message.setMessageFragment(mockMessageFragment);
 
         // test
         message.show(false);
@@ -329,7 +329,7 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
         message.setWebView(mockWebView);
-        message.messageFragment = mockMessageFragment;
+        message.setMessageFragment(mockMessageFragment);
 
         // test
         message.show();
@@ -356,7 +356,7 @@ public class AEPMessageTests {
         } catch (MessageCreationException ex) {
             Assert.fail(ex.getMessage());
         }
-        message.messageFragment = mockMessageFragment;
+        message.setMessageFragment(mockMessageFragment);
 
         // test
         message.openUrl(url);
@@ -386,7 +386,7 @@ public class AEPMessageTests {
         }
 
         message.setWebView(mockWebView);
-        message.messageFragment = mockMessageFragment;
+        message.setMessageFragment(mockMessageFragment);
 
         // test
         message.openUrl(url);
@@ -414,7 +414,7 @@ public class AEPMessageTests {
         }
 
         message.setWebView(mockWebView);
-        message.messageFragment = mockMessageFragment;
+        message.setMessageFragment(mockMessageFragment);
 
         // test
         message.openUrl(url);
@@ -427,7 +427,6 @@ public class AEPMessageTests {
     @Test
     public void aepMessageIsDismissed_When_MessagingDelegateSet_And_MessageDismissCalled() {
         // setup
-        mockMessageFragment.dismissedWithGesture = false;
         Mockito.when(mockAEPMessageSettings.getDismissAnimation())
                 .thenReturn(MessageAnimation.BOTTOM);
         Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
@@ -451,7 +450,8 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        message.messageFragment = mockMessageFragment;
+        Mockito.when(mockMessageFragment.isDismissedWithGesture()).thenReturn(false);
+        message.setMessageFragment(mockMessageFragment);
         message.setWebView(mockWebView);
         message.setWebViewFrame(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
@@ -494,7 +494,8 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        message.messageFragment = mockMessageFragment;
+        Mockito.when(mockMessageFragment.isDismissedWithGesture()).thenReturn(false);
+        message.setMessageFragment(mockMessageFragment);
         message.setWebView(mockWebView);
         message.setWebViewFrame(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
@@ -514,7 +515,6 @@ public class AEPMessageTests {
     @Test
     public void aepMessageIsDismissed_When_MessagingDelegateSet_And_MessageDismissedWithGesture() {
         // setup
-        mockMessageFragment.dismissedWithGesture = true;
         Mockito.when(mockAEPMessageSettings.getDismissAnimation())
                 .thenReturn(MessageAnimation.BOTTOM);
         Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
@@ -540,7 +540,8 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        message.messageFragment = mockMessageFragment;
+        Mockito.when(mockMessageFragment.isDismissedWithGesture()).thenReturn(true);
+        message.setMessageFragment(mockMessageFragment);
         message.setWebView(mockWebView);
         message.setWebViewFrame(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
@@ -562,7 +563,6 @@ public class AEPMessageTests {
             aepMessageIsDismissed_When_NoMessagingDelegateSet_And_MessageDismissedWithGesture() {
         // setup
         ServiceProviderModifier.setMessagingDelegate(null);
-        mockMessageFragment.dismissedWithGesture = true;
         Mockito.when(mockAEPMessageSettings.getDismissAnimation())
                 .thenReturn(MessageAnimation.BOTTOM);
         Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
@@ -586,7 +586,8 @@ public class AEPMessageTests {
             Assert.fail(ex.getMessage());
         }
 
-        message.messageFragment = mockMessageFragment;
+        Mockito.when(mockMessageFragment.isDismissedWithGesture()).thenReturn(true);
+        message.setMessageFragment(mockMessageFragment);
         message.setWebView(mockWebView);
         message.setWebViewFrame(mockCardView);
         Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);

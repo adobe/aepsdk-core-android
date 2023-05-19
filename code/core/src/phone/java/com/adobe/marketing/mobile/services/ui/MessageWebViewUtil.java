@@ -31,11 +31,8 @@ import com.adobe.marketing.mobile.util.MapUtils;
 import com.adobe.marketing.mobile.util.StringUtils;
 import java.nio.charset.StandardCharsets;
 
-/**
- * The {@link Runnable} object running on the main thread that prepares the webview prior to the
- * {@link android.app.DialogFragment} being attached.
- */
-class MessageWebViewRunner implements Runnable {
+/** Prepares the {@link WebView} prior to the {@link android.app.DialogFragment} being attached. */
+class MessageWebViewUtil {
 
     private static final String TAG = "MessageWebViewRunner";
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
@@ -44,44 +41,35 @@ class MessageWebViewRunner implements Runnable {
     private static final String BASE_URL = "file:///android_asset/";
     private static final String MIME_TYPE = "text/html";
 
-    private final AEPMessage message;
-    private final MessageSettings settings;
-    private final int messageHeight;
-    private final int messageWidth;
-    private final int originX;
-    private final int originY;
-    private WebSettings webviewSettings;
+    private int messageHeight;
+    private int messageWidth;
+    private int originX;
+    private int originY;
 
     /**
-     * Constructor.
-     *
-     * @param message the {@link AEPMessage} which created the {@link MessageWebViewRunner} object.
-     */
-    MessageWebViewRunner(final AEPMessage message) {
-        this.message = message;
-        this.settings = message.getMessageSettings();
-
-        // calculate the dimensions of the webview to be displayed
-        messageHeight = getPixelValueForHeight(settings.getHeight());
-        messageWidth = getPixelValueForWidth(settings.getWidth());
-        originX = getOriginX(settings);
-        originY = getOriginY(settings);
-    }
-
-    /**
-     * Validates the message passed in the constructor. If valid, the webview is created and an
+     * Validates the passed in {@code AEPMessage}. If valid, the {@link WebView} is created and an
      * attempt is made to show the message.
+     *
+     * @param message {@link AEPMessage} containing the in-app message payload
      */
     @SuppressWarnings("SetJavaScriptEnabled")
-    @Override
-    public void run() {
+    public void show(final AEPMessage message) {
         try {
+
+            if (message == null) {
+                Log.warning(
+                        ServiceConstants.LOG_TAG,
+                        TAG,
+                        UNEXPECTED_NULL_VALUE + " (message), failed to show the message.");
+                return;
+            }
+
             if (StringUtils.isNullOrEmpty(message.getMessageHtml())) {
                 Log.warning(
                         ServiceConstants.LOG_TAG,
                         TAG,
                         UNEXPECTED_NULL_VALUE + " (message html), failed to show the message.");
-                message.cleanup();
+                message.cleanup(false);
                 return;
             }
 
@@ -93,7 +81,7 @@ class MessageWebViewRunner implements Runnable {
                         ServiceConstants.LOG_TAG,
                         TAG,
                         "Failed to show the message, the app context is null.");
-                message.cleanup();
+                message.cleanup(false);
                 return;
             }
 
@@ -104,9 +92,17 @@ class MessageWebViewRunner implements Runnable {
                         ServiceConstants.LOG_TAG,
                         TAG,
                         "Failed to show the message, the message fragment is null.");
-                message.cleanup();
+                message.cleanup(false);
                 return;
             }
+
+            final MessageSettings settings = message.getMessageSettings();
+
+            // calculate the dimensions of the webview to be displayed
+            messageHeight = getPixelValueForHeight(message.parentViewHeight, settings.getHeight());
+            messageWidth = getPixelValueForWidth(message.parentViewWidth, settings.getWidth());
+            originX = getOriginX(message.parentViewWidth, settings);
+            originY = getOriginY(message.parentViewHeight, settings);
 
             // load the in-app message in the webview
             final WebView webView = message.getWebView();
@@ -128,7 +124,7 @@ class MessageWebViewRunner implements Runnable {
             webViewFrame.setRadius(calculatedRadius);
 
             // set a display animation for the ewbview
-            final Animation animation = setupDisplayAnimation(webView);
+            final Animation animation = setupDisplayAnimation(message, webView);
             if (animation == null) {
                 Log.debug(
                         TAG,
@@ -148,12 +144,19 @@ class MessageWebViewRunner implements Runnable {
                 webView.setHorizontalScrollBarEnabled(false);
             }
 
+            // if we have non fullscreen messages, fill the webview
+            final WebSettings webviewSettings = webView.getSettings();
+            if (settings.getHeight() != FULLSCREEN_PERCENTAGE) {
+                webviewSettings.setLoadWithOverviewMode(true);
+                webviewSettings.setUseWideViewPort(true);
+            }
+
             webViewFrame.addView(webView);
 
             // add the created cardview containing the webview to the message object
             message.setWebViewFrame(webViewFrame);
 
-            setMessageLayoutParameters(webView);
+            setMessageLayoutParameters(message);
         } catch (final Exception ex) {
             Log.warning(
                     ServiceConstants.LOG_TAG, TAG, "Failed to show the message " + ex.getMessage());
@@ -163,10 +166,12 @@ class MessageWebViewRunner implements Runnable {
     /**
      * Create a message display {@link Animation}.
      *
+     * @param message {@link AEPMessage} containing the in-app message payload
+     * @param webView {@link WebView} containing the in-app message
      * @return {@code Animation} object defining the animation that will be performed when the
      *     message is displayed.
      */
-    private Animation setupDisplayAnimation(final WebView webView) {
+    private Animation setupDisplayAnimation(final AEPMessage message, final WebView webView) {
         final MessageAnimation animation = message.getMessageSettings().getDisplayAnimation();
 
         if (animation == null) {
@@ -221,16 +226,13 @@ class MessageWebViewRunner implements Runnable {
         return displayAnimation;
     }
 
-    /** Set the in-app message layout parameters in the {@code AEPMessage} object. */
-    private void setMessageLayoutParameters(final WebView webView) {
-        // if we have non fullscreen messages, fill the webview
-        webviewSettings = webView.getSettings();
-        if (settings.getHeight() != FULLSCREEN_PERCENTAGE) {
-            webviewSettings.setLoadWithOverviewMode(true);
-            webviewSettings.setUseWideViewPort(true);
-        }
-
-        final ViewGroup.MarginLayoutParams params =
+    /**
+     * Set the in-app message layout parameters in the {@code AEPMessage} object.
+     *
+     * @param message {@link AEPMessage} containing the in-app message payload
+     */
+    private void setMessageLayoutParameters(final AEPMessage message) {
+        ViewGroup.MarginLayoutParams params =
                 new ViewGroup.MarginLayoutParams(messageWidth, messageHeight);
         params.topMargin = originY;
         params.leftMargin = originX;
@@ -240,23 +242,25 @@ class MessageWebViewRunner implements Runnable {
     /**
      * Converts the percentage into pixels based on the total screen height in pixels.
      *
+     * @param parentViewHeight A {@code int} containing the parent view height in pixels
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
     @SuppressWarnings("checkstyle:MagicNumber")
-    private int getPixelValueForHeight(final float percentage) {
-        return (int) (message.parentViewHeight * (percentage / 100));
+    private int getPixelValueForHeight(final int parentViewHeight, float percentage) {
+        return (int) (parentViewHeight * (percentage / 100));
     }
 
     /**
      * Converts the percentage into pixels based on the total screen width in pixels.
      *
+     * @param parentViewWidth A {@code int} containing the parent view width in pixels
      * @param percentage A {@code float} percentage to be converted to pixels
      * @return a {@code int} containing the percentage converted to pixels
      */
     @SuppressWarnings("checkstyle:MagicNumber")
-    private int getPixelValueForWidth(final float percentage) {
-        return (int) (message.parentViewWidth * (percentage / 100));
+    private int getPixelValueForWidth(final int parentViewWidth, final float percentage) {
+        return (int) (parentViewWidth * (percentage / 100));
     }
 
     /**
@@ -268,24 +272,23 @@ class MessageWebViewRunner implements Runnable {
      * or right, the inset will be calculated as a percentage width from the respective alignment
      * origin
      *
+     * @param parentViewWidth A {@code int} containing the parent view width in pixels
      * @param settings The {@link MessageSettings} object containing customization settings for the
      *     {@link AEPMessage}.
      * @return a {@code int} containing the left most point of the {@code MessageWebView}
      */
-    private int getOriginX(final MessageSettings settings) {
+    private int getOriginX(final int parentViewWidth, final MessageSettings settings) {
         // default to 0 for x origin if unspecified
         if (settings == null) {
             return 0;
         }
-
-        final int screenWidth = message.parentViewWidth;
 
         if (settings.getHorizontalAlign().equals(MessageAlignment.LEFT)) {
             // check for an inset, otherwise left alignment means return 0
             if (settings.getHorizontalInset() != 0) {
                 // since x alignment starts at 0 on the left, this value just needs to be
                 // the percentage value translated to actual pixels
-                return getPixelValueForWidth(settings.getHorizontalInset());
+                return getPixelValueForWidth(parentViewWidth, settings.getHorizontalInset());
             } else {
                 return 0;
             }
@@ -294,17 +297,18 @@ class MessageWebViewRunner implements Runnable {
             if (settings.getHorizontalInset() != 0) {
                 // x alignment here is screen width - message width - inset value converted from
                 // percentage to pixels
-                return (screenWidth
-                        - getPixelValueForWidth(settings.getWidth())
-                        - getPixelValueForWidth(settings.getHorizontalInset()));
+                return (parentViewWidth
+                        - getPixelValueForWidth(parentViewWidth, settings.getWidth())
+                        - getPixelValueForWidth(parentViewWidth, settings.getHorizontalInset()));
             } else {
                 // no inset, right x alignment means screen width - message width
-                return screenWidth - getPixelValueForWidth(settings.getWidth());
+                return parentViewWidth
+                        - getPixelValueForWidth(parentViewWidth, settings.getWidth());
             }
         }
 
         // handle center alignment, x is (screen width - message width) / 2
-        return (screenWidth - getPixelValueForWidth(settings.getWidth())) / 2;
+        return (parentViewWidth - getPixelValueForWidth(parentViewWidth, settings.getWidth())) / 2;
     }
 
     /**
@@ -315,24 +319,23 @@ class MessageWebViewRunner implements Runnable {
      * the message will be centered according to its height. If vertical alignment is top or bottom,
      * the inset will be calculated as a percentage height from the respective alignment origin.
      *
+     * @param parentViewHeight A {@code int} containing the parent view height in pixels
      * @param settings The {@link MessageSettings} object containing customization settings for the
      *     {@link AEPMessage}.
      * @return a {@code int} containing the top most point of the {@code MessageWebView}
      */
-    private int getOriginY(final MessageSettings settings) {
+    private int getOriginY(final int parentViewHeight, final MessageSettings settings) {
         // default to 0 for y origin if unspecified
         if (settings == null) {
             return 0;
         }
-
-        final int screenHeight = message.parentViewHeight;
 
         if (settings.getVerticalAlign().equals(MessageAlignment.TOP)) {
             // check for an inset, otherwise top alignment means return 0
             if (settings.getVerticalInset() != 0) {
                 // since y alignment starts at 0 on the top, this value just needs to be
                 // the percentage value translated to actual pixels
-                return getPixelValueForHeight(settings.getVerticalInset());
+                return getPixelValueForHeight(parentViewHeight, settings.getVerticalInset());
             } else {
                 return 0;
             }
@@ -341,16 +344,18 @@ class MessageWebViewRunner implements Runnable {
             if (settings.getVerticalInset() != 0) {
                 // y alignment here is screen height - message height - inset value converted from
                 // percentage to pixels
-                return (screenHeight
-                        - getPixelValueForHeight(settings.getHeight())
-                        - getPixelValueForHeight(settings.getVerticalInset()));
+                return (parentViewHeight
+                        - getPixelValueForHeight(parentViewHeight, settings.getHeight())
+                        - getPixelValueForHeight(parentViewHeight, settings.getVerticalInset()));
             } else {
                 // no inset, bottom y alignment means screen height - message height
-                return screenHeight - getPixelValueForHeight(settings.getHeight());
+                return parentViewHeight
+                        - getPixelValueForHeight(parentViewHeight, settings.getHeight());
             }
         }
 
         // handle center alignment, y is (screen height - message height) / 2
-        return (screenHeight - getPixelValueForHeight(settings.getHeight())) / 2;
+        return (parentViewHeight - getPixelValueForHeight(parentViewHeight, settings.getHeight()))
+                / 2;
     }
 }

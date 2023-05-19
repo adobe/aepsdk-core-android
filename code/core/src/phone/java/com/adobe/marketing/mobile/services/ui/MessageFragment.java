@@ -97,6 +97,15 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         return message;
     }
 
+    /**
+     * Getter for gesture dismissal status.
+     *
+     * @return {@code boolean} if true then the fragment was dismissed via a swipe gesture
+     */
+    public boolean isDismissedWithGesture() {
+        return this.dismissedWithGesture;
+    }
+
     @Override
     public void onAttach(final Context context) {
         super.onAttach(context);
@@ -366,8 +375,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             return;
         }
 
-        webViewFrame.addView(message.getWebView());
-        dialog.setContentView(webViewFrame);
+        dialog.setContentView(webViewFrame, params);
         webViewFrame.setOnTouchListener(this);
     }
 
@@ -394,11 +402,6 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     @VisibleForTesting
     public GestureDetector getGestureDetector() {
         return gestureDetector;
-    }
-
-    @VisibleForTesting
-    public boolean isDismissedWithGesture() {
-        return this.dismissedWithGesture;
     }
 
     @VisibleForTesting

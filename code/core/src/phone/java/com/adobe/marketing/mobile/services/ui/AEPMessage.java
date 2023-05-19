@@ -64,7 +64,6 @@ class AEPMessage implements FullscreenMessage {
     int parentViewWidth;
     final FullscreenMessageDelegate listener;
     final MessagesMonitor messagesMonitor;
-    MessageFragment messageFragment;
 
     // private vars
     private WebView webView;
@@ -77,6 +76,7 @@ class AEPMessage implements FullscreenMessage {
     private Map<String, String> assetMap = Collections.emptyMap();
     private final Executor executor;
     private MessageWebViewClient webViewClient;
+    private MessageFragment messageFragment;
 
     /**
      * Constructor.
@@ -234,11 +234,21 @@ class AEPMessage implements FullscreenMessage {
     /** Dismisses the message. */
     @Override
     public void dismiss() {
+        dismiss(false);
+    }
+
+    /**
+     * Dismisses the message.
+     *
+     * @param dismissedWithBackTouch {@code boolean} signaling if the dismiss was triggered by a
+     *     back button press
+     */
+    public void dismiss(final boolean dismissedWithBackTouch) {
         if (!messagesMonitor.dismiss()) {
             return;
         }
         // add a dismiss animation if the webview wasn't previously removed via a swipe gesture
-        if (!messageFragment.dismissedWithGesture) {
+        if (!messageFragment.isDismissedWithGesture()) {
             dismissAnimation = setupDismissAnimation();
             animationListener =
                     new Animation.AnimationListener() {
@@ -248,7 +258,7 @@ class AEPMessage implements FullscreenMessage {
                         @Override
                         public void onAnimationEnd(final Animation animation) {
                             // wait for the animation to end then clean the views
-                            cleanup();
+                            cleanup(dismissedWithBackTouch);
                         }
 
                         @Override
@@ -257,9 +267,10 @@ class AEPMessage implements FullscreenMessage {
             dismissAnimation.setAnimationListener(animationListener);
             webViewFrame.startAnimation(dismissAnimation);
             return;
-        } // otherwise, just clean the views
+        }
 
-        cleanup();
+        // otherwise, just clean the views
+        cleanup(dismissedWithBackTouch);
     }
 
     /**
@@ -330,11 +341,20 @@ class AEPMessage implements FullscreenMessage {
         return html;
     }
 
-    /** Tears down views and listeners used to display the {@link AEPMessage}. */
-    void cleanup() {
+    /**
+     * Tears down views and listeners used to display the {@link AEPMessage}.
+     *
+     * @param dismissedWithBackTouch {@code boolean} signaling if the dismiss was triggered by a
+     *     back button press
+     */
+    void cleanup(final boolean dismissedWithBackTouch) {
         Log.trace(ServiceConstants.LOG_TAG, TAG, "Cleaning the AEPMessage.");
 
-        listener.onDismiss(this);
+        if (dismissedWithBackTouch) {
+            listener.onBackPressed(this);
+        } else {
+            listener.onDismiss(this);
+        }
         webViewFrame.setOnTouchListener(null);
         webView.setOnTouchListener(null);
         if (dismissAnimation != null) {
@@ -393,7 +413,7 @@ class AEPMessage implements FullscreenMessage {
 
     /**
      * Recreates the {@link WebView} frame used for displaying the Messaging IAM using the {@link
-     * MessageWebViewRunner}. This method should be called after a device orientation change occurs.
+     * MessageWebViewUtil}. This method should be called after a device orientation change occurs.
      *
      * @param parentViewWidth {@code int} containing the width of the parent activity
      * @param parentViewHeight {@code int} containing the height of the parent activity
@@ -403,8 +423,8 @@ class AEPMessage implements FullscreenMessage {
         this.parentViewHeight = parentViewHeight;
 
         try {
-            MessageWebViewRunner messageWebViewRunner = new MessageWebViewRunner(this);
-            messageWebViewRunner.run();
+            MessageWebViewUtil messageWebViewUtil = new MessageWebViewUtil();
+            messageWebViewUtil.show(this);
         } catch (final Exception exception) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
@@ -564,5 +584,10 @@ class AEPMessage implements FullscreenMessage {
     @VisibleForTesting
     Animation.AnimationListener getAnimationListener() {
         return animationListener;
+    }
+
+    @VisibleForTesting
+    void setMessageFragment(final MessageFragment messageFragment) {
+        this.messageFragment = messageFragment;
     }
 }

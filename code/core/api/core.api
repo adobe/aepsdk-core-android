@@ -880,6 +880,7 @@ public abstract interface class com/adobe/marketing/mobile/services/ui/Fullscree
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate {
+	public fun onBackPressed (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
 	public abstract fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
 	public abstract fun onShow (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
 	public abstract fun onShowFailure ()V

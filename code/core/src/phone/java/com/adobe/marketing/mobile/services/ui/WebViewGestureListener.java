@@ -142,34 +142,31 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
         }
 
         ObjectAnimator animation;
-        final CardView framedWebView = message.getWebViewFrame();
+        final CardView webViewFrame = message.getWebViewFrame();
 
         switch (gesture) {
             case SWIPE_RIGHT:
                 animation =
                         ObjectAnimator.ofFloat(
-                                framedWebView, "x", framedWebView.getX(), message.parentViewWidth);
+                                webViewFrame, "x", webViewFrame.getX(), message.parentViewWidth);
                 break;
             case SWIPE_LEFT:
                 animation =
                         ObjectAnimator.ofFloat(
-                                framedWebView, "x", framedWebView.getX(), -message.parentViewWidth);
+                                webViewFrame, "x", webViewFrame.getX(), -message.parentViewWidth);
                 break;
             case SWIPE_UP:
                 animation =
                         ObjectAnimator.ofFloat(
-                                framedWebView,
+                                webViewFrame,
                                 "y",
-                                framedWebView.getTop(),
+                                webViewFrame.getTop(),
                                 -message.parentViewHeight);
                 break;
             default: // default, dismiss to bottom if not a background tap
                 animation =
                         ObjectAnimator.ofFloat(
-                                framedWebView,
-                                "y",
-                                framedWebView.getTop(),
-                                message.parentViewHeight);
+                                webViewFrame, "y", webViewFrame.getTop(), message.parentViewHeight);
                 break;
         }
 

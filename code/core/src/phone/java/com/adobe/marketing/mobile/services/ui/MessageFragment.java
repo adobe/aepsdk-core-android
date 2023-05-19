@@ -355,9 +355,9 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     private void updateDialogView() {
         final Dialog dialog = getDialog();
         final ViewGroup.LayoutParams params = message.getParams();
-        final CardView framedWebView = message.getWebViewFrame();
+        final CardView webViewFrame = message.getWebViewFrame();
 
-        if (dialog == null || framedWebView == null || params == null) {
+        if (dialog == null || webViewFrame == null || params == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -366,8 +366,9 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             return;
         }
 
-        dialog.setContentView(framedWebView, params);
-        framedWebView.setOnTouchListener(this);
+        webViewFrame.addView(message.getWebView());
+        dialog.setContentView(webViewFrame);
+        webViewFrame.setOnTouchListener(this);
     }
 
     /** Show this {@link MessageFragment} */

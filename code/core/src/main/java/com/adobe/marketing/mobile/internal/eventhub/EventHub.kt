@@ -44,20 +44,12 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * EventHub class is responsible for delivering events to listeners and maintaining registered extension's lifecycle.
  */
-internal class EventHub(val eventHistory: EventHistory?) {
+internal class EventHub {
 
     companion object {
         const val LOG_TAG = "EventHub"
         var shared = EventHub()
     }
-
-    constructor() : this(
-        try {
-            AndroidEventHistory()
-        } catch (ex: Exception) {
-            null
-        }
-    )
 
     /**
      * Executor for eventhub callbacks and response listeners
@@ -183,6 +175,11 @@ internal class EventHub(val eventHistory: EventHistory?) {
     private val eventDispatcher: SerialWorkDispatcher<Event> =
         SerialWorkDispatcher("EventHub", dispatchJob)
 
+    /**
+     * Responsible for managing event history.
+     */
+    var eventHistory: EventHistory? = null
+
     init {
         registerExtension(EventHubPlaceholderExtension::class.java)
     }
@@ -217,6 +214,26 @@ internal class EventHub(val eventHistory: EventHistory?) {
                 }
             ).get()
         }
+
+    /**
+     * Initializes event history. This must be called after the SDK has application context.
+     */
+    fun initializeEventHistory() {
+        if (eventHistory != null) {
+            return
+        }
+
+        eventHistory = try {
+            AndroidEventHistory()
+        } catch (ex: Exception) {
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Event history initialization failed with exception ${ex.message}"
+            )
+            null
+        }
+    }
 
     /**
      * `EventHub` will begin processing `Event`s when this API is invoked.

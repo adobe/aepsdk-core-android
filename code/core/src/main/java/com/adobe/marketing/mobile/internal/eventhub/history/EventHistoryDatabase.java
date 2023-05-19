@@ -23,7 +23,7 @@ interface EventHistoryDatabase {
      *     data
      * @return a {@code boolean} which will contain the status of the database insert operation
      */
-    boolean insert(final long hash);
+    boolean insert(final long hash, final long timestampMS);
 
     /**
      * Queries the event history database to search for the existence of an event.

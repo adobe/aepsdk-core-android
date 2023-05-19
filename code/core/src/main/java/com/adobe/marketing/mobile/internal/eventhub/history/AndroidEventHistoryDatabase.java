@@ -122,14 +122,14 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
      * @return a {@code boolean} which will contain the status of the database insert operation
      */
     @Override
-    public boolean insert(final long hash) {
+    public boolean insert(final long hash, final long timestampMS) {
         boolean result;
         synchronized (dbMutex) {
             try {
                 openDatabase();
                 final ContentValues contentValues = new ContentValues();
                 contentValues.put(COLUMN_HASH, hash);
-                contentValues.put(COLUMN_TIMESTAMP, System.currentTimeMillis());
+                contentValues.put(COLUMN_TIMESTAMP, timestampMS);
                 result = database.insert(TABLE_NAME, null, contentValues) != -1;
             } catch (final SQLException e) {
                 Log.warning(

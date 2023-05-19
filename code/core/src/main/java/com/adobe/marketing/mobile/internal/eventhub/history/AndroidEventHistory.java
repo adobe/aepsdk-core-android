@@ -66,7 +66,9 @@ public class AndroidEventHistory implements EventHistory {
                             @Override
                             public void run() {
                                 notifyHandler(
-                                        handler, androidEventHistoryDatabase.insert(fnv1aHash));
+                                        handler,
+                                        androidEventHistoryDatabase.insert(
+                                                fnv1aHash, event.getTimestamp()));
                             }
                         });
     }

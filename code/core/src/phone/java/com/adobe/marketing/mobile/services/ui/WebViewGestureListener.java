@@ -229,7 +229,7 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
     }
 
     // added for testing
-    Animator.AnimatorListener getAnimationListener() {
+    public Animator.AnimatorListener getAnimationListener() {
         return animatorListener;
     }
 }

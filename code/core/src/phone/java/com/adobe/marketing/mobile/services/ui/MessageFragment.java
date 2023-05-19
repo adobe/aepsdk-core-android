@@ -387,22 +387,22 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
     // for unit tests
     @VisibleForTesting
-    Map<MessageGesture, String> getGestures() {
+    public Map<MessageGesture, String> getGestures() {
         return gestures;
     }
 
     @VisibleForTesting
-    GestureDetector getGestureDetector() {
+    public GestureDetector getGestureDetector() {
         return gestureDetector;
     }
 
     @VisibleForTesting
-    boolean isDismissedWithGesture() {
+    public boolean isDismissedWithGesture() {
         return this.dismissedWithGesture;
     }
 
     @VisibleForTesting
-    WebViewGestureListener getWebViewGestureListener() {
+    public WebViewGestureListener getWebViewGestureListener() {
         return this.webViewGestureListener;
     }
 

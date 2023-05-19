@@ -220,6 +220,11 @@ internal class EventHub {
      */
     fun initializeEventHistory() {
         if (eventHistory != null) {
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Event history is already initialized"
+            )
             return
         }
 

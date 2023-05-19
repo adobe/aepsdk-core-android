@@ -33,9 +33,9 @@ object SDKHelper {
     }
 
     private const val CONFIG_URL_PREFIX = "https://assets.adobedtm.com"
-    const val TEST_RULES_URL = "https://rules.com/rules.zip"
+    private const val TEST_RULES_URL = "https://rules.com/rules.zip"
     private const val CONFIG_RULES_KEY = "rules.url"
-    private const val WAIT_TIME_MILLIS = 5000L
+    private const val WAIT_TIME_MILLIS = 1000L
     private const val CONFIGURATION_DATA_STORE = "AdobeMobile_ConfigState"
     private const val LIFECYCLE_DATA_STORE = "AdobeMobile_Lifecycle"
 
@@ -109,14 +109,14 @@ object SDKHelper {
         }
 
         MobileCore.configureWithAppID(appId)
-        var ret = configUrlValidationLatch.await(WAIT_TIME_MILLIS, TimeUnit.MILLISECONDS)
+        var ret = configUrlValidationLatch.await(waitTime, TimeUnit.MILLISECONDS)
         if (ret && rulesURL != null) {
-            ret = rulesUrlValidationLatch.await(WAIT_TIME_MILLIS, TimeUnit.MILLISECONDS)
+            ret = rulesUrlValidationLatch.await(waitTime, TimeUnit.MILLISECONDS)
         }
         Assert.assertTrue(ret)
     }
 
-    fun initializeSDK(extensions: List<Class<out Extension>>) {
+    fun initializeSDK(extensions: List<Class<out Extension>>, waitTime: Long = WAIT_TIME_MILLIS) {
         val initializationLatch = CountDownLatch(1)
 
         MobileCore.setApplication(ApplicationProvider.getApplicationContext())
@@ -127,7 +127,7 @@ object SDKHelper {
 
         Assert.assertTrue(
             initializationLatch.await(
-                EventHistoryIntegrationTests.WAIT_TIME_MILLIS,
+                waitTime,
                 TimeUnit.MILLISECONDS
             )
         )

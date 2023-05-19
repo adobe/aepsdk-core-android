@@ -50,7 +50,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
         databaseFile = openOrMigrateEventHistoryDatabaseFile();
         if (databaseFile == null) {
             throw new EventHistoryDatabaseCreationException(
-                    "An error occurred while creating the \"Events\" tablein the Android Event"
+                    "An error occurred while creating the \"Events\" table in the Android Event"
                             + " History database, error message: ApplicationContext is null");
         }
         final String tableCreationQuery =
@@ -119,6 +119,7 @@ class AndroidEventHistoryDatabase implements EventHistoryDatabase {
      *
      * @param hash {@code long} containing the 32-bit FNV-1a hashed representation of an Event's
      *     data
+     * @param timestampMS {@code long} Event's timestamp in milliseconds
      * @return a {@code boolean} which will contain the status of the database insert operation
      */
     @Override

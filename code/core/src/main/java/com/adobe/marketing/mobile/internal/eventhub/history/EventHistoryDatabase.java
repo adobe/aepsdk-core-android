@@ -21,9 +21,10 @@ interface EventHistoryDatabase {
      *
      * @param hash {@code long} containing the 32-bit FNV-1a hashed representation of an Event's
      *     data
+     * @param timestampMS {@code long} Event's timestamp in milliseconds
      * @return a {@code boolean} which will contain the status of the database insert operation
      */
-    boolean insert(final long hash);
+    boolean insert(final long hash, final long timestampMS);
 
     /**
      * Queries the event history database to search for the existence of an event.

@@ -69,7 +69,8 @@ public class AndroidEventHistoryDatabaseTests {
         long startTimestamp = System.currentTimeMillis();
 
         for (int i = 0; i < 10; i++) {
-            assertTrue(androidEventHistoryDatabase.insert(1234567890 + i));
+            assertTrue(
+                    androidEventHistoryDatabase.insert(1234567890 + i, System.currentTimeMillis()));
         }
 
         long endTimestamp = System.currentTimeMillis();
@@ -92,11 +93,11 @@ public class AndroidEventHistoryDatabaseTests {
         long startTimestamp = System.currentTimeMillis();
 
         for (int i = 0; i < 15; i++) {
-            assertTrue(androidEventHistoryDatabase.insert(1111111111));
+            assertTrue(androidEventHistoryDatabase.insert(1111111111, System.currentTimeMillis()));
         }
 
         for (int i = 0; i < 10; i++) {
-            assertTrue(androidEventHistoryDatabase.insert(222222222));
+            assertTrue(androidEventHistoryDatabase.insert(222222222, System.currentTimeMillis()));
         }
 
         String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
@@ -125,7 +126,7 @@ public class AndroidEventHistoryDatabaseTests {
         mockAppContextService.appContext = null;
         ServiceProviderModifier.setAppContextService(mockAppContextService);
 
-        new AndroidEventHistoryDatabase().insert(1111111111);
+        new AndroidEventHistoryDatabase().insert(1111111111, System.currentTimeMillis());
     }
 
     @Test
@@ -136,7 +137,7 @@ public class AndroidEventHistoryDatabaseTests {
 
             // create new event history database
             AndroidEventHistoryDatabase eventHistoryDatabase = new AndroidEventHistoryDatabase();
-            assertTrue(eventHistoryDatabase.insert(222222222));
+            assertTrue(eventHistoryDatabase.insert(222222222, System.currentTimeMillis()));
 
             final Cursor cursor2 =
                     eventHistoryDatabase.select(222222222, 0, System.currentTimeMillis());
@@ -157,7 +158,7 @@ public class AndroidEventHistoryDatabaseTests {
 
             // create new event history database
             AndroidEventHistoryDatabase eventHistoryDatabase = new AndroidEventHistoryDatabase();
-            assertTrue(eventHistoryDatabase.insert(222222222));
+            assertTrue(eventHistoryDatabase.insert(222222222, System.currentTimeMillis()));
 
             // assert cache event history database content is copied to new event history database
             String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
@@ -193,7 +194,7 @@ public class AndroidEventHistoryDatabaseTests {
 
             // create new event history database
             AndroidEventHistoryDatabase eventHistoryDatabase = new AndroidEventHistoryDatabase();
-            assertTrue(eventHistoryDatabase.insert(222222222));
+            assertTrue(eventHistoryDatabase.insert(222222222, System.currentTimeMillis()));
 
             // assert cache event history database content is copied to new event history database
             String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();
@@ -222,11 +223,11 @@ public class AndroidEventHistoryDatabaseTests {
     public void testInsert_DatabaseExists() {
         try {
             // insert into existing event history database
-            assertTrue(androidEventHistoryDatabase.insert(1111111111));
+            assertTrue(androidEventHistoryDatabase.insert(1111111111, System.currentTimeMillis()));
 
             // create new event history database instance
             AndroidEventHistoryDatabase eventHistoryDatabase = new AndroidEventHistoryDatabase();
-            assertTrue(eventHistoryDatabase.insert(222222222));
+            assertTrue(eventHistoryDatabase.insert(222222222, System.currentTimeMillis()));
 
             // assert contents of event history database
             String dbPath = context.getDatabasePath(DATABASE_NAME).getPath();

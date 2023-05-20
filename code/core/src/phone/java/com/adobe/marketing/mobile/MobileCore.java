@@ -129,6 +129,8 @@ public final class MobileCore {
                     "V4 to V5 migration failed - " + e.getLocalizedMessage());
         }
 
+        // Initialize event history
+        EventHub.Companion.getShared().initializeEventHistory();
         // Register configuration extension
         EventHub.Companion.getShared().registerExtension(ConfigurationExtension.class);
     }

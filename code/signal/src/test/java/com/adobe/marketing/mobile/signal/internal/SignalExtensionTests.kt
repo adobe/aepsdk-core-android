@@ -35,9 +35,10 @@ import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner.Silent::class)
-class SignalExtensionProtectedMethodsTests {
+class SignalExtensionTests {
     private lateinit var signalExtension: Extension
     private lateinit var extensionApi: ExtensionApi
+    private var EXTENSION_VERSION = "2.0.1"
 
     companion object {
         @BeforeClass
@@ -112,7 +113,7 @@ class SignalExtensionProtectedMethodsTests {
 
     @Test
     fun `Test getVersion() `() {
-        assertEquals("2.0.1", ExtensionHelper.getVersion(signalExtension))
+        assertEquals(EXTENSION_VERSION, ExtensionHelper.getVersion(signalExtension))
     }
 
     @Test

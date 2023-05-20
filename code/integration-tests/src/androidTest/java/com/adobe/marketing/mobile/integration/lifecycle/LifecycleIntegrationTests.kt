@@ -151,7 +151,7 @@ class LifecycleIntegrationTests {
         Thread.sleep(2000)
 
         // restart
-        SDKHelper.resetSDK()
+        SDKHelper.resetSDK(false)
         ServiceProviderModifier.reset()
         overrideNetworkService()
 
@@ -222,7 +222,7 @@ class LifecycleIntegrationTests {
         Assert.assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
 
         // restart
-        SDKHelper.resetSDK()
+        SDKHelper.resetSDK(false)
         ServiceProviderModifier.reset()
         overrideNetworkService()
 
@@ -326,7 +326,7 @@ class LifecycleIntegrationTests {
         Thread.sleep(2000)
 
         // restart
-        SDKHelper.resetSDK()
+        SDKHelper.resetSDK(false)
         ServiceProviderModifier.reset()
         overrideNetworkService()
 

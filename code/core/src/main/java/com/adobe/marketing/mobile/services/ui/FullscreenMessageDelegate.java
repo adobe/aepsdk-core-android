@@ -11,8 +11,12 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
+
 /** Fullscreen message listener for {@link FullscreenMessage} lifecycle events. */
 public interface FullscreenMessageDelegate {
+
     /**
      * Invoked when the fullscreen message is displayed.
      *
@@ -26,6 +30,16 @@ public interface FullscreenMessageDelegate {
      * @param message {@link FullscreenMessage} message which is dismissed
      */
     void onDismiss(final FullscreenMessage message);
+
+    /**
+     * Invoked when the device back button is pressed.
+     *
+     * @param message {@link FullscreenMessage} message which is currently shown
+     */
+    default void onBackPressed(final FullscreenMessage message) {
+        Log.debug(
+                CoreConstants.LOG_TAG, "FullscreenMessageDelegate", "Device back button pressed.");
+    }
 
     /**
      * Invoked when the fullscreen message is attempting to load a url.

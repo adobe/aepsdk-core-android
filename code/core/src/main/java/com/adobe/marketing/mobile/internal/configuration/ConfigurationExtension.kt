@@ -21,7 +21,6 @@ import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
-import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEvaluator
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.DataReader
 import java.util.concurrent.Executors
@@ -69,7 +68,7 @@ internal class ConfigurationExtension : Extension {
     }
 
     private val appIdManager: AppIdManager
-    private val launchRulesEvaluator: LaunchRulesEvaluator
+    private val launchRulesEngine: LaunchRulesEngine
     private val configurationStateManager: ConfigurationStateManager
     private val configurationRulesManager: ConfigurationRulesManager
     private val retryWorker: ScheduledExecutorService
@@ -79,7 +78,7 @@ internal class ConfigurationExtension : Extension {
     constructor(extensionApi: ExtensionApi) : this(
         extensionApi,
         AppIdManager(),
-        LaunchRulesEvaluator("Configuration", LaunchRulesEngine(extensionApi), extensionApi),
+        LaunchRulesEngine("Configuration", extensionApi),
         Executors.newSingleThreadScheduledExecutor()
     )
 
@@ -89,36 +88,36 @@ internal class ConfigurationExtension : Extension {
     private constructor(
         extensionApi: ExtensionApi,
         appIdManager: AppIdManager,
-        launchRulesEvaluator: LaunchRulesEvaluator,
+        launchRulesEngine: LaunchRulesEngine,
         retryWorker: ScheduledExecutorService
     ) : this(
         extensionApi,
         appIdManager,
-        launchRulesEvaluator,
+        launchRulesEngine,
         retryWorker,
         ConfigurationStateManager(appIdManager),
-        ConfigurationRulesManager(launchRulesEvaluator)
+        ConfigurationRulesManager(launchRulesEngine)
     )
 
     @VisibleForTesting
     internal constructor(
         extensionApi: ExtensionApi,
         appIdManager: AppIdManager,
-        launchRulesEvaluator: LaunchRulesEvaluator,
+        launchRulesEngine: LaunchRulesEngine,
         retryWorker: ScheduledExecutorService,
         configurationStateManager: ConfigurationStateManager,
         configurationRulesManager: ConfigurationRulesManager
     ) : super(extensionApi) {
         this.appIdManager = appIdManager
-        this.launchRulesEvaluator = launchRulesEvaluator
+        this.launchRulesEngine = launchRulesEngine
         this.retryWorker = retryWorker
         this.configurationStateManager = configurationStateManager
         this.configurationRulesManager = configurationRulesManager
 
         loadInitialConfiguration()
 
-        EventHub.shared.registerEventPreprocessor {
-            launchRulesEvaluator.process(it)
+        EventHub.shared.registerEventPreprocessor { e ->
+            launchRulesEngine.processEvent(e)
         }
     }
 

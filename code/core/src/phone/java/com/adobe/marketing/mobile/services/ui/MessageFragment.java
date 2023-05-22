@@ -294,8 +294,16 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         } else { // just create the webview and add it to the DialogView
             final DisplayMetrics displayMetrics = new DisplayMetrics();
             getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-            message.recreateWebViewFrame(
-                    displayMetrics.widthPixels, displayMetrics.heightPixels - contentView.getTop());
+            int height = contentView.getBottom();
+            int width = contentView.getRight();
+            // account for any system ui elements on the screen
+            if (contentView.getBottom() >= displayMetrics.heightPixels) {
+                height = contentView.getBottom() - contentView.getTop();
+            }
+            if (contentView.getWidth() >= displayMetrics.widthPixels) {
+                width = contentView.getRight() - contentView.getLeft();
+            }
+            message.recreateWebViewFrame(width, height);
             updateDialogView();
         }
 

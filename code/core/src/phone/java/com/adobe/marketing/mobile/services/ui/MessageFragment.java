@@ -70,7 +70,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                         final int oldBottom) {
                     final int contentViewWidth = right - left;
                     final int contentViewHeight = bottom - top;
-                    message.recreateWebViewFrame(contentViewWidth, contentViewHeight);
+                    message.recreateWebViewFrame(right, bottom);
                     updateDialogView();
                 }
             };

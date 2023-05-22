@@ -18,6 +18,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -70,7 +71,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                         final int oldBottom) {
                     final int contentViewWidth = right - left;
                     final int contentViewHeight = bottom - top;
-                    message.recreateWebViewFrame(right, bottom);
+                    message.recreateWebViewFrame(contentViewWidth, contentViewHeight);
                     updateDialogView();
                 }
             };
@@ -291,7 +292,10 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         if (contentView.getHeight() == 0 || contentView.getWidth() == 0) {
             contentView.addOnLayoutChangeListener(layoutChangeListener);
         } else { // just create the webview and add it to the DialogView
-            message.recreateWebViewFrame(contentView.getWidth(), contentView.getHeight());
+            final DisplayMetrics displayMetrics = new DisplayMetrics();
+            getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            message.recreateWebViewFrame(
+                    displayMetrics.widthPixels, displayMetrics.heightPixels - contentView.getTop());
             updateDialogView();
         }
 

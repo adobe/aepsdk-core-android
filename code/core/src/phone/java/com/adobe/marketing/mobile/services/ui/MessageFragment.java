@@ -297,10 +297,10 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             int height = contentView.getBottom();
             int width = contentView.getRight();
             // account for any system ui elements on the screen
-            if (contentView.getBottom() >= displayMetrics.heightPixels) {
+            if (contentView.getBottom() > displayMetrics.heightPixels) {
                 height = height - contentView.getTop();
             }
-            if (contentView.getWidth() >= displayMetrics.widthPixels) {
+            if (contentView.getWidth() > displayMetrics.widthPixels) {
                 width = width - contentView.getLeft();
             }
             message.recreateWebViewFrame(width, height);

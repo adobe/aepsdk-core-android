@@ -297,9 +297,9 @@ class MessageWebViewUtil {
             if (settings.getHorizontalInset() != 0) {
                 // x alignment here is screen width - message width - inset value converted from
                 // percentage to pixels
-                return (parentViewWidth
+                return parentViewWidth
                         - getPixelValueForWidth(parentViewWidth, settings.getWidth())
-                        - getPixelValueForWidth(parentViewWidth, settings.getHorizontalInset()));
+                        - getPixelValueForWidth(parentViewWidth, settings.getHorizontalInset());
             } else {
                 // no inset, right x alignment means screen width - message width
                 return parentViewWidth
@@ -344,9 +344,12 @@ class MessageWebViewUtil {
             if (settings.getVerticalInset() != 0) {
                 // y alignment here is screen height - message height - inset value converted from
                 // percentage to pixels
-                return (parentViewHeight
-                        - getPixelValueForHeight(parentViewHeight, settings.getHeight())
-                        - getPixelValueForHeight(parentViewHeight, settings.getVerticalInset()));
+                return parentViewHeight
+                        - getPixelValueForHeight(
+                                parentViewHeight,
+                                settings.getHeight()
+                                        - getPixelValueForHeight(
+                                                parentViewHeight, settings.getVerticalInset()));
             } else {
                 // no inset, bottom y alignment means screen height - message height
                 return parentViewHeight

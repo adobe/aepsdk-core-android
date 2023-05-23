@@ -28,6 +28,7 @@ public class EventCoder {
     private static final String DATA = "data";
     private static final String TIMESTAMP = "timestamp";
     private static final String RESPONSE_ID = "responseId";
+    private static final String PARENT_ID = "parentId";
     private static final String MASK = "mask";
 
     private EventCoder() {}
@@ -52,6 +53,7 @@ public class EventCoder {
             final Map<String, Object> data = JSONUtils.toMap(json.optJSONObject(DATA));
             final long timestamp = json.optLong(TIMESTAMP, 0);
             final String responseId = optString(json, RESPONSE_ID, null);
+            final String parentId = optString(json, PARENT_ID, null);
             final JSONArray maskJsonArray = json.optJSONArray(MASK);
 
             String[] mask = null;
@@ -65,6 +67,7 @@ public class EventCoder {
                             .setTimestamp(timestamp)
                             .setEventData(data)
                             .setResponseId(responseId)
+                            .setParentId(parentId)
                             .build();
             return ret;
         } catch (JSONException e) {
@@ -93,6 +96,7 @@ public class EventCoder {
             json.put(TIMESTAMP, event.getTimestamp());
             json.put(DATA, JSONObject.wrap(event.getEventData()));
             json.put(RESPONSE_ID, event.getResponseID());
+            json.put(PARENT_ID, event.getParentID());
             json.put(MASK, JSONObject.wrap(event.getMask()));
         } catch (JSONException e) {
             return null;

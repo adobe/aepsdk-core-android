@@ -22,6 +22,7 @@ public final class com/adobe/marketing/mobile/Event {
 	public fun getEventData ()Ljava/util/Map;
 	public fun getMask ()[Ljava/lang/String;
 	public fun getName ()Ljava/lang/String;
+	public fun getParentID ()Ljava/lang/String;
 	public fun getResponseID ()Ljava/lang/String;
 	public fun getSource ()Ljava/lang/String;
 	public fun getTimestamp ()J
@@ -35,6 +36,7 @@ public class com/adobe/marketing/mobile/Event$Builder {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V
 	public fun build ()Lcom/adobe/marketing/mobile/Event;
+	public fun chainToParentEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event$Builder;
 	public fun inResponseToEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event$Builder;
 	public fun setEventData (Ljava/util/Map;)Lcom/adobe/marketing/mobile/Event$Builder;
 }
@@ -59,6 +61,7 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field APPLICATION_CLOSE Ljava/lang/String;
 	public static final field APPLICATION_LAUNCH Ljava/lang/String;
 	public static final field CONSENT_PREFERENCE Ljava/lang/String;
+	public static final field CREATE_TRACKER Ljava/lang/String;
 	public static final field ERROR_RESPONSE_CONTENT Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
@@ -72,6 +75,7 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field RESPONSE_IDENTITY Ljava/lang/String;
 	public static final field RESPONSE_PROFILE Ljava/lang/String;
 	public static final field SHARED_STATE Ljava/lang/String;
+	public static final field TRACK_MEDIA Ljava/lang/String;
 	public static final field UPDATE_CONSENT Ljava/lang/String;
 	public static final field UPDATE_IDENTITY Ljava/lang/String;
 	public static final field WILDCARD Ljava/lang/String;
@@ -88,6 +92,7 @@ public final class com/adobe/marketing/mobile/EventType {
 	public static final field CUSTOM Ljava/lang/String;
 	public static final field EDGE Ljava/lang/String;
 	public static final field EDGE_IDENTITY Ljava/lang/String;
+	public static final field EDGE_MEDIA Ljava/lang/String;
 	public static final field GENERIC_DATA Ljava/lang/String;
 	public static final field GENERIC_IDENTITY Ljava/lang/String;
 	public static final field GENERIC_LIFECYCLE Ljava/lang/String;
@@ -337,8 +342,11 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRule : co
 
 public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
+	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionApi;)V
 	public fun addRules (Ljava/util/List;)V
+	public fun evaluateEvent (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
 	public fun process (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
+	public fun processEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event;
 	public fun replaceRules (Ljava/util/List;)V
 }
 
@@ -872,6 +880,7 @@ public abstract interface class com/adobe/marketing/mobile/services/ui/Fullscree
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate {
+	public fun onBackPressed (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
 	public abstract fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
 	public abstract fun onShow (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
 	public abstract fun onShowFailure ()V
@@ -882,21 +891,26 @@ public class com/adobe/marketing/mobile/services/ui/MessageCreationException : j
 	public fun <init> (Ljava/lang/String;)V
 }
 
-public class com/adobe/marketing/mobile/services/ui/MessageFragment : android/app/Fragment, android/view/View$OnTouchListener {
+public class com/adobe/marketing/mobile/services/ui/MessageFragment : android/app/DialogFragment, android/view/View$OnTouchListener {
 	protected field dismissedWithGesture Z
 	protected field gestureDetector Landroid/view/GestureDetector;
 	protected field gestures Ljava/util/Map;
-	protected field message Lcom/adobe/marketing/mobile/services/ui/AEPMessage;
 	protected field webViewGestureListener Lcom/adobe/marketing/mobile/services/ui/WebViewGestureListener;
 	public fun <init> ()V
+	public fun dismiss ()V
+	public fun getAEPMessage ()Lcom/adobe/marketing/mobile/services/ui/AEPMessage;
 	public fun getGestureDetector ()Landroid/view/GestureDetector;
 	public fun getGestures ()Ljava/util/Map;
 	public fun getWebViewGestureListener ()Lcom/adobe/marketing/mobile/services/ui/WebViewGestureListener;
 	public fun isDismissedWithGesture ()Z
+	public fun onActivityCreated (Landroid/os/Bundle;)V
+	public fun onAttach (Landroid/content/Context;)V
 	public fun onCreate (Landroid/os/Bundle;)V
-	public fun onResume ()V
+	public fun onDestroyView ()V
+	public fun onDetach ()V
 	public fun onTouch (Landroid/view/View;Landroid/view/MotionEvent;)Z
 	public fun setAEPMessage (Lcom/adobe/marketing/mobile/services/ui/AEPMessage;)V
+	public fun show (Landroid/app/FragmentTransaction;Ljava/lang/String;)I
 }
 
 public class com/adobe/marketing/mobile/services/ui/MessageSettings {

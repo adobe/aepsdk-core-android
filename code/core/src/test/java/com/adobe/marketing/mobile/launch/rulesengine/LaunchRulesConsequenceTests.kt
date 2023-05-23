@@ -15,7 +15,10 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
+import com.adobe.marketing.mobile.launch.rulesengine.LaunchRuleTransformer.createTransforming
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
+import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator
+import com.adobe.marketing.mobile.rulesengine.RulesEngine
 import com.adobe.marketing.mobile.test.util.readTestResources
 import org.junit.Before
 import org.junit.Test
@@ -30,6 +33,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.reset
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -38,7 +42,9 @@ import kotlin.test.assertNull
 class LaunchRulesConsequenceTests {
 
     private lateinit var extensionApi: ExtensionApi
-    private lateinit var launchRulesEngine: LaunchRulesEngine
+
+    // private lateinit var launchRulesEngine: LaunchRulesEngine
+    private lateinit var rulesEngine: RulesEngine<LaunchRule>
     private lateinit var launchRulesConsequence: LaunchRulesConsequence
     private var defaultEvent = Event.Builder(
         "event",
@@ -55,7 +61,10 @@ class LaunchRulesConsequenceTests {
     @Before
     fun setup() {
         extensionApi = Mockito.mock(ExtensionApi::class.java)
-        launchRulesEngine = LaunchRulesEngine(extensionApi)
+        rulesEngine = RulesEngine(
+            ConditionEvaluator(ConditionEvaluator.Option.CASE_INSENSITIVE),
+            createTransforming()
+        )
         launchRulesConsequence = LaunchRulesConsequence(extensionApi)
     }
 
@@ -93,9 +102,9 @@ class LaunchRulesConsequenceTests {
             )
         )
 
-        val matchedRules = launchRulesEngine.process(defaultEvent)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(defaultEvent, extensionApi))
         val processedEvent =
-            launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+            launchRulesConsequence.process(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -124,9 +133,9 @@ class LaunchRulesConsequenceTests {
         resetRulesEngine("rules_module_tests/consequence_rules_testAttachData_invalidJson.json")
 
         // / When: evaluating a launch event
-        val matchedRules = launchRulesEngine.process(defaultEvent)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(defaultEvent, extensionApi))
         val processedEvent =
-            launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+            launchRulesConsequence.process(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -171,9 +180,9 @@ class LaunchRulesConsequenceTests {
             )
         )
 
-        val matchedRules = launchRulesEngine.process(defaultEvent)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(defaultEvent, extensionApi))
         val processedEvent =
-            launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+            launchRulesConsequence.process(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -202,9 +211,9 @@ class LaunchRulesConsequenceTests {
         resetRulesEngine("rules_module_tests/consequence_rules_testModifyData_invalidJson.json")
 
         // / When: evaluating a launch event
-        val matchedRules = launchRulesEngine.process(defaultEvent)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(defaultEvent, extensionApi))
         val processedEvent =
-            launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+            launchRulesConsequence.process(defaultEvent, matchedRules)
 
         // / Then: no consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -237,8 +246,8 @@ class LaunchRulesConsequenceTests {
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
-        val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        val processedEvent = launchRulesConsequence.process(event, matchedRules)
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
@@ -247,6 +256,7 @@ class LaunchRulesConsequenceTests {
         assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals(event.eventData, dispatchedEventCaptor.value.eventData)
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -273,8 +283,8 @@ class LaunchRulesConsequenceTests {
             .setEventData(null)
             .build()
 
-        val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        val processedEvent = launchRulesConsequence.process(event, matchedRules)
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
@@ -283,6 +293,7 @@ class LaunchRulesConsequenceTests {
         assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals(null, dispatchedEventCaptor.value.eventData)
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -315,8 +326,8 @@ class LaunchRulesConsequenceTests {
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
-        val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        val processedEvent = launchRulesConsequence.process(event, matchedRules)
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
@@ -326,6 +337,7 @@ class LaunchRulesConsequenceTests {
         assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals("value", dispatchedEventCaptor.value.eventData["key"])
         assertEquals("subvalue", dispatchedEventCaptor.value.eventData["key.subkey"])
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -353,8 +365,8 @@ class LaunchRulesConsequenceTests {
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
-        val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        val processedEvent = launchRulesConsequence.process(event, matchedRules)
 
         // / Then: One consequence event will be dispatched
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
@@ -363,6 +375,7 @@ class LaunchRulesConsequenceTests {
         assertEquals("com.adobe.eventType.edge", dispatchedEventCaptor.value.type)
         assertEquals("com.adobe.eventSource.requestContent", dispatchedEventCaptor.value.source)
         assertEquals(null, dispatchedEventCaptor.value.eventData)
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // verify original event is unchanged
         assertEquals(event, processedEvent)
@@ -389,8 +402,8 @@ class LaunchRulesConsequenceTests {
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
-        val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        val processedEvent = launchRulesConsequence.process(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -419,8 +432,8 @@ class LaunchRulesConsequenceTests {
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
-        val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        val processedEvent = launchRulesConsequence.process(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -448,8 +461,8 @@ class LaunchRulesConsequenceTests {
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
-        val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        val processedEvent = launchRulesConsequence.process(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -477,8 +490,8 @@ class LaunchRulesConsequenceTests {
             .setEventData(mapOf("xdm" to "test data"))
             .build()
 
-        val matchedRules = launchRulesEngine.process(event)
-        val processedEvent = launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        val processedEvent = launchRulesConsequence.process(event, matchedRules)
 
         // / Then: No consequence event will be dispatched
         verify(extensionApi, never()).dispatch(any())
@@ -532,16 +545,17 @@ class LaunchRulesConsequenceTests {
             .build()
 
         // Process original event; dispatch chain count = 0
-        val matchedRules = launchRulesEngine.process(event)
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to not be called max allowed chained events is 1
-        val matchedRulesDDispatchedEvent = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        val matchedRulesDDispatchedEvent = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDDispatchedEvent
         )
@@ -593,34 +607,45 @@ class LaunchRulesConsequenceTests {
             .build()
 
         // Process original event; dispatch chain count = 0
-        val matchedRules = launchRulesEngine.process(event)
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchedEvent = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        val matchedRulesDispatchedEvent = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
         )
-        verify(extensionApi, times(1)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect event to be processed as if first time
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
-        verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
+        launchRulesConsequence.process(event, matchedRules)
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchedEvent2 = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        val matchedRulesDispatchedEvent2 = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent2
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
     }
 
     @Test
@@ -668,37 +693,47 @@ class LaunchRulesConsequenceTests {
             .build()
 
         // Process original event; dispatch chain count = 0
-        val matchedRules = launchRulesEngine.process(event)
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.value.parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchedEvent = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        val matchedRulesDispatchedEvent = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
         )
-        verify(extensionApi, times(1)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect event to be processed as if first time
-        launchRulesConsequence.evaluateRulesConsequence(
+        launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
         )
-        verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchedEvent2 = launchRulesEngine.process(dispatchedEventCaptor.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        val matchedRulesDispatchedEvent2 = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent2
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
     }
 
     @Test
@@ -787,39 +822,43 @@ class LaunchRulesConsequenceTests {
             .build()
 
         // Process original event; dispatch chain count = 0
-        val matchedRulesEdgeRequestEvent = launchRulesEngine.process(eventEdgeRequest)
-        launchRulesConsequence.evaluateRulesConsequence(
+        val matchedRulesEdgeRequestEvent = rulesEngine.evaluate(LaunchTokenFinder(eventEdgeRequest, extensionApi))
+        launchRulesConsequence.process(
             eventEdgeRequest,
             matchedRulesEdgeRequestEvent
         )
         val dispatchedEventCaptor1: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor1.capture())
+        assertEquals(eventEdgeRequest.uniqueIdentifier, dispatchedEventCaptor1.value.parentID)
 
         // Process launch event
-        val matchedRulesLaunchEvent = launchRulesEngine.process(eventLaunch)
-        launchRulesConsequence.evaluateRulesConsequence(eventLaunch, matchedRulesLaunchEvent)
+        val matchedRulesLaunchEvent = rulesEngine.evaluate(LaunchTokenFinder(eventLaunch, extensionApi))
+        launchRulesConsequence.process(eventLaunch, matchedRulesLaunchEvent)
         val dispatchedEventCaptor2: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor2.capture())
+        assertEquals(eventLaunch.uniqueIdentifier, dispatchedEventCaptor2.value.parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process first dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchEvent1 = launchRulesEngine.process(dispatchedEventCaptor1.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        val matchedRulesDispatchEvent1 = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor1.value, extensionApi))
+        launchRulesConsequence.process(
             dispatchedEventCaptor1.value,
             matchedRulesDispatchEvent1
         )
-        verify(extensionApi, times(2)).dispatch(any())
 
         // Process second dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchEvent2 = launchRulesEngine.process(dispatchedEventCaptor2.value)
-        launchRulesConsequence.evaluateRulesConsequence(
+        val matchedRulesDispatchEvent2 = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor2.value, extensionApi))
+        launchRulesConsequence.process(
             dispatchedEventCaptor2.value,
             matchedRulesDispatchEvent2
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
     }
 
     @Test
@@ -889,31 +928,36 @@ class LaunchRulesConsequenceTests {
             .build()
 
         // Process original event, expect 2 dispatched events
-        val matchedRules = launchRulesEngine.process(event)
-        launchRulesConsequence.evaluateRulesConsequence(event, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(2)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.allValues[0].parentID)
+        assertEquals(event.uniqueIdentifier, dispatchedEventCaptor.allValues[1].parentID)
+
+        // reset calls to extension api for exclusively verifying next dispatch
+        reset(extensionApi)
 
         // Process dispatched event 1, expect 0 dispatch events
         // chain count = 1, which is max chained events
         val matchedRulesDispatchEvent1 =
-            launchRulesEngine.process(dispatchedEventCaptor.allValues[0])
-        launchRulesConsequence.evaluateRulesConsequence(
+            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.allValues[0], extensionApi))
+        launchRulesConsequence.process(
             dispatchedEventCaptor.allValues[0],
             matchedRulesDispatchEvent1
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
 
         // Process dispatched event 2, expect 0 dispatch events
         // chain count = 1, which is max chained events
         val matchedRulesDispatchEvent2 =
-            launchRulesEngine.process(dispatchedEventCaptor.allValues[1])
-        launchRulesConsequence.evaluateRulesConsequence(
+            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.allValues[1], extensionApi))
+        launchRulesConsequence.process(
             dispatchedEventCaptor.allValues[1],
             matchedRulesDispatchEvent2
         )
-        verify(extensionApi, times(2)).dispatch(any())
+        verify(extensionApi, times(0)).dispatch(any())
     }
 
     @Test
@@ -939,8 +983,8 @@ class LaunchRulesConsequenceTests {
             )
         )
 
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(defaultEvent, extensionApi))
+        launchRulesConsequence.process(defaultEvent, matchedRules)
 
         val consequenceEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
@@ -977,8 +1021,8 @@ class LaunchRulesConsequenceTests {
             )
         )
 
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        launchRulesConsequence.evaluateRulesConsequence(defaultEvent, matchedRules)
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(defaultEvent, extensionApi))
+        launchRulesConsequence.process(defaultEvent, matchedRules)
 
         val consequenceEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
@@ -995,6 +1039,7 @@ class LaunchRulesConsequenceTests {
     private fun resetRulesEngine(rulesFileName: String) {
         val json = readTestResources(rulesFileName)
         val rules = json?.let { JSONRulesParser.parse(it, extensionApi) }
-        launchRulesEngine.replaceRules(rules)
+        rulesEngine.replaceRules(rules)
+        reset(extensionApi)
     }
 }

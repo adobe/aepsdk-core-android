@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit
 private typealias NetworkMonitor = (url: String) -> Unit
 
 @RunWith(AndroidJUnit4::class)
-class SignalExtensionIntegrationTests {
+class SignalIntegrationTests {
 
     companion object {
         private var networkMonitor: NetworkMonitor? = null

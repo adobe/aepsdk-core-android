@@ -50,7 +50,16 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_EVENT_NAME = "Rules Consequence Event"
     }
 
-    fun evaluateRulesConsequence(event: Event, matchedRules: List<LaunchRule>): Event {
+    /**
+     * Processes the [matchedRules] against the supplied [event]. This evaluation may result
+     * in dispatch of the supplied event after attachment, modification of its data or dispatch of
+     * a new event from the supplied event
+     *
+     * @param event the event to be processed
+     * @param matchedRules the rules against which the current events is to be processed
+     * @return the token replaced [Event] after token replacement
+     */
+    fun process(event: Event, matchedRules: List<LaunchRule>): Event {
         val dispatchChainCount = dispatchChainedEventsCount.remove(event.uniqueIdentifier) ?: 0
         val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
         var processedEvent: Event = event
@@ -85,7 +94,7 @@ internal class LaunchRulesConsequence(
                         }
                         val dispatchEvent = processDispatchConsequence(
                             consequenceWithConcreteValue,
-                            processedEvent.eventData
+                            processedEvent
                         ) ?: continue
 
                         Log.trace(
@@ -97,7 +106,7 @@ internal class LaunchRulesConsequence(
                         dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] = dispatchChainCount + 1
                     }
                     else -> {
-                        val consequenceEvent = generateConsequenceEvent(consequenceWithConcreteValue)
+                        val consequenceEvent = generateConsequenceEvent(consequenceWithConcreteValue, processedEvent)
                         Log.trace(
                             LaunchRulesEngineConstants.LOG_TAG,
                             logTag,
@@ -109,6 +118,25 @@ internal class LaunchRulesConsequence(
             }
         }
         return processedEvent
+    }
+
+    /**
+     * Evaluates the supplied event against the matched rules and returns the [RuleConsequence]'s
+     *
+     * @param event the event to be evaluated
+     * @param matchedRules the rules whose consequences are to be processed
+     * @return a token replaced list of [RuleConsequence]'s that match the supplied event.
+     */
+    fun evaluate(event: Event, matchedRules: List<LaunchRule>): List<RuleConsequence> {
+        val processedConsequences = mutableListOf<RuleConsequence>()
+        val launchTokenFinder = LaunchTokenFinder(event, extensionApi)
+
+        matchedRules.forEach { matchedRule ->
+            matchedRule.consequenceList.forEach { consequence ->
+                processedConsequences.add(replaceToken(consequence, launchTokenFinder))
+            }
+        }
+        return processedConsequences
     }
 
     /**
@@ -226,10 +254,10 @@ internal class LaunchRulesConsequence(
      * Process a dispatch consequence event. Generates a new [Event] from the details contained within the [RuleConsequence]
      *
      * @param consequence the [RuleConsequence] which contains details on the new [Event] to generate
-     * @param eventData the triggering Event data
+     * @param parentEvent the triggering Event for which a consequence is being generated
      * @return a new [Event] to be dispatched to the [EventHub], or null if the processing failed.
      */
-    private fun processDispatchConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Event? {
+    private fun processDispatchConsequence(consequence: RuleConsequence, parentEvent: Event): Event? {
         val type = consequence.eventType ?: run {
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,
@@ -257,7 +285,7 @@ internal class LaunchRulesConsequence(
         val dispatchEventData: Map<String, Any?>?
         when (action) {
             CONSEQUENCE_DETAIL_ACTION_COPY -> {
-                dispatchEventData = eventData
+                dispatchEventData = parentEvent.eventData
             }
             CONSEQUENCE_DETAIL_ACTION_NEW -> {
                 val data = EventDataUtils.castFromGenericType(consequence.eventData)
@@ -274,15 +302,17 @@ internal class LaunchRulesConsequence(
         }
         return Event.Builder(CONSEQUENCE_DISPATCH_EVENT_NAME, type, source)
             .setEventData(dispatchEventData)
+            .chainToParentEvent(parentEvent)
             .build()
     }
 
     /**
      * Generate a consequence event with provided consequence data
      * @param consequence [RuleConsequence] of the rule
+     * @param parentEvent the event for which the consequence is to be generated
      * @return a consequence [Event]
      */
-    private fun generateConsequenceEvent(consequence: RuleConsequence): Event {
+    private fun generateConsequenceEvent(consequence: RuleConsequence, parentEvent: Event): Event {
         val eventData = mutableMapOf<String, Any?>()
         eventData[CONSEQUENCE_EVENT_DATA_KEY_DETAIL] = consequence.detail
         eventData[CONSEQUENCE_EVENT_DATA_KEY_ID] = consequence.id
@@ -293,6 +323,7 @@ internal class LaunchRulesConsequence(
             EventSource.RESPONSE_CONTENT
         )
             .setEventData(mapOf(CONSEQUENCE_EVENT_DATA_KEY_CONSEQUENCE to eventData))
+            .chainToParentEvent(parentEvent)
             .build()
     }
 }

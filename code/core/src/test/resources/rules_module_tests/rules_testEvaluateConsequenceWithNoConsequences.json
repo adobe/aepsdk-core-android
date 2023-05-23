@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "rules": [{
+    "condition": {
+      "type": "group",
+      "definition": {
+        "logic": "and",
+        "conditions": [{
+            "type": "group",
+            "definition": {
+              "logic": "or",
+              "conditions": [{
+                "type": "group",
+                "definition": {
+                  "logic": "and",
+                  "conditions": [{
+                      "type": "matcher",
+                      "definition": {
+                        "key": "~type",
+                        "matcher": "eq",
+                        "values": [
+                          "com.adobe.eventType.lifecycle"
+                        ]
+                      }
+                    },
+                    {
+                      "type": "matcher",
+                      "definition": {
+                        "key": "~source",
+                        "matcher": "eq",
+                        "values": [
+                          "com.adobe.eventSource.responseContent"
+                        ]
+                      }
+                    },
+                    {
+                      "type": "matcher",
+                      "definition": {
+                        "key": "lifecyclecontextdata.launchevent",
+                        "matcher": "ex",
+                        "values": []
+                      }
+                    }
+                  ]
+                }
+              }]
+            }
+          },
+          {
+            "type": "matcher",
+            "definition": {
+              "key": "~timestampu",
+              "matcher": "ge",
+              "values": [
+                1680555536
+              ]
+            }
+          },
+          {
+            "type": "matcher",
+            "definition": {
+              "key": "~timestampu",
+              "matcher": "le",
+              "values": [
+                1790873200
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "consequences": []
+  }]
+}

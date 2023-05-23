@@ -287,11 +287,16 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     private void addListeners() {
         final View contentView = getActivity().findViewById(android.R.id.content);
 
-        // we have an orientation change, wait for it to complete then proceed with webview creation
+        // if we have an orientation change, wait for it to complete then proceed with webview
+        // creation
         if (contentView.getHeight() == 0 || contentView.getWidth() == 0) {
             contentView.addOnLayoutChangeListener(layoutChangeListener);
-        } else { // just create the webview and add it to the DialogView
-            message.recreateWebViewFrame(contentView.getWidth(), contentView.getHeight());
+        } else { // otherwise re-measure the webview and add it to the DialogView
+            // we want to measure the dialog's parent view
+            final View parentView = (View) contentView.getParent();
+            final int height = parentView.getHeight() - parentView.getPaddingTop();
+            final int width = parentView.getWidth() - parentView.getPaddingLeft();
+            message.recreateWebViewFrame(width, height);
             updateDialogView();
         }
 

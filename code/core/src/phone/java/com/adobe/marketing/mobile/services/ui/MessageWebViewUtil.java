@@ -345,11 +345,8 @@ class MessageWebViewUtil {
                 // y alignment here is screen height - message height - inset value converted from
                 // percentage to pixels
                 return parentViewHeight
-                        - getPixelValueForHeight(
-                                parentViewHeight,
-                                settings.getHeight()
-                                        - getPixelValueForHeight(
-                                                parentViewHeight, settings.getVerticalInset()));
+                        - getPixelValueForHeight(parentViewHeight, settings.getHeight())
+                        - getPixelValueForHeight(parentViewHeight, settings.getVerticalInset());
             } else {
                 // no inset, bottom y alignment means screen height - message height
                 return parentViewHeight

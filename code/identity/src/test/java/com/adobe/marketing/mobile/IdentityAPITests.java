@@ -33,10 +33,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class IdentityAPITests {
+    private static final String EXTENSION_VERSION = "2.0.2";
 
     @Test
     public void test_extensionVersion() {
-        assertEquals("2.0.2", Identity.extensionVersion());
+        assertEquals(EXTENSION_VERSION, Identity.extensionVersion());
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

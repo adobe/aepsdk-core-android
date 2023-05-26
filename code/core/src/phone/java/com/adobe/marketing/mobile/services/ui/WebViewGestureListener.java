@@ -16,6 +16,7 @@ import android.animation.ObjectAnimator;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.webkit.WebView;
+import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
@@ -29,6 +30,7 @@ import com.adobe.marketing.mobile.util.StringUtils;
 class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 
     private static final String TAG = "WebViewGestureListener";
+    private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
 
     private static final int ANIMATION_DURATION = 300;
     // the number of pixels that define a swipe on the message
@@ -128,40 +130,43 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
             return;
         }
 
+        final AEPMessage message = parentFragment.getAEPMessage();
+
+        if (message == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (AEPMessage), unable to handle the MessageGesture.",
+                    UNEXPECTED_NULL_VALUE);
+            return;
+        }
+
         ObjectAnimator animation;
+        final CardView webViewFrame = message.getWebViewFrame();
 
         switch (gesture) {
             case SWIPE_RIGHT:
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.messageWebViewRunner.webViewFrame,
-                                "x",
-                                parentFragment.message.messageWebViewRunner.webViewFrame.getX(),
-                                parentFragment.message.baseRootViewWidth);
+                                webViewFrame, "x", webViewFrame.getX(), message.parentViewWidth);
                 break;
             case SWIPE_LEFT:
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.messageWebViewRunner.webViewFrame,
-                                "x",
-                                parentFragment.message.messageWebViewRunner.webViewFrame.getX(),
-                                -parentFragment.message.baseRootViewWidth);
+                                webViewFrame, "x", webViewFrame.getX(), -message.parentViewWidth);
                 break;
             case SWIPE_UP:
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.messageWebViewRunner.webViewFrame,
+                                webViewFrame,
                                 "y",
-                                parentFragment.message.messageWebViewRunner.webViewFrame.getTop(),
-                                -parentFragment.message.baseRootViewHeight);
+                                webViewFrame.getTop(),
+                                -message.parentViewHeight);
                 break;
             default: // default, dismiss to bottom if not a background tap
                 animation =
                         ObjectAnimator.ofFloat(
-                                parentFragment.message.messageWebViewRunner.webViewFrame,
-                                "y",
-                                parentFragment.message.messageWebViewRunner.webViewFrame.getTop(),
-                                parentFragment.message.baseRootViewHeight);
+                                webViewFrame, "y", webViewFrame.getTop(), message.parentViewHeight);
                 break;
         }
 
@@ -201,17 +206,25 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
     private void dismissMessage(final MessageGesture gesture, final boolean dismissedWithGesture) {
         parentFragment.dismissedWithGesture = dismissedWithGesture;
 
-        if (parentFragment.message != null && parentFragment.message.listener != null) {
-            final String behavior =
-                    parentFragment.gestures == null ? null : parentFragment.gestures.get(gesture);
+        final AEPMessage message = parentFragment.getAEPMessage();
+        if (message == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (AEPMessage), unable to dismiss the message.",
+                    UNEXPECTED_NULL_VALUE);
+            return;
+        }
 
-            // if we have a gesture mapping with behaviors, use the specified behavior. otherwise,
-            // just dismiss the message.
-            if (!StringUtils.isNullOrEmpty(behavior)) {
-                parentFragment.message.listener.overrideUrlLoad(parentFragment.message, behavior);
-            } else {
-                parentFragment.message.dismiss();
-            }
+        final String behavior =
+                parentFragment.gestures == null ? null : parentFragment.gestures.get(gesture);
+
+        // if we have a gesture mapping with behaviors, use the specified behavior. otherwise,
+        // just dismiss the message.
+        if (!StringUtils.isNullOrEmpty(behavior)) {
+            message.listener.overrideUrlLoad(message, behavior);
+        } else {
+            message.dismiss();
         }
     }
 

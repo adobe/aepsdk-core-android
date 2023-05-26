@@ -11,23 +11,16 @@
 
 package com.adobe.marketing.mobile.integration.core
 
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.Event
-import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SDKHelper
 import com.adobe.marketing.mobile.Signal
-import com.adobe.marketing.mobile.integration.MockNetworkResponse
-import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.services.ServiceProvider
-import java.net.HttpURLConnection
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
-import org.json.JSONObject
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -37,59 +30,20 @@ import org.junit.runner.RunWith
 class RulesEngineIntegrationTests {
 
     companion object {
-        const val TEST_RULES_URL = "https://rules.com/rules.zip"
         const val TEST_APP_ID = "appId"
-        const val TEST_CONFIG_URL = "https://assets.adobedtm.com/${TEST_APP_ID}.json"
         const val TEST_RULES_RESOURCE = "rules_integration.zip"
-        const val WAIT_TIME_MILLIS_LONG = 1000L
         const val WAIT_TIME_MILLIS_SHORT = 500L
     }
 
     @Before
     fun setup() {
-        // Setup with only configuration extension
-        // Clear configuration datastore
-        ServiceProvider.getInstance().dataStoreService.getNamedCollection(
-            ConfigurationIntegrationTests.CONFIGURATION_DATA_STORE
-        )?.removeAll()
+        SDKHelper.initializeSDK(listOf(Signal.EXTENSION))
+        SDKHelper.setupConfiguration(TEST_APP_ID, mapOf("global.privacy" to "optedin"), TEST_RULES_RESOURCE)
+    }
+
+    @After
+    fun cleanup() {
         SDKHelper.resetSDK()
-
-        val initializationLatch = CountDownLatch(1)
-        val configUrlValidationLatch = CountDownLatch(1)
-        val rulesUrlValidationLatch = CountDownLatch(1)
-
-        // Sets up a network service to respond with a mock config and rules
-        setupNetworkService(
-            mapOf(
-                "global.privacy" to "optedin",
-                "rules.url" to "https://rules.com/rules.zip"
-            ),
-            TEST_RULES_RESOURCE
-        ) {
-            when (it) {
-                TEST_CONFIG_URL -> configUrlValidationLatch.countDown()
-                TEST_RULES_URL -> rulesUrlValidationLatch.countDown()
-            }
-        }
-
-        MobileCore.setApplication(ApplicationProvider.getApplicationContext())
-        MobileCore.setLogLevel(LoggingMode.VERBOSE)
-
-        // Start event processing by registering extensions. Just register one extension because,
-        // at least one extension is required for the completion callback to be invoked.
-        MobileCore.registerExtensions(mutableListOf(Signal.EXTENSION)) {
-            // Wait for the registration to complete
-            initializationLatch.countDown()
-
-            // Now configure with a app id to simulate mock config and rule download
-            MobileCore.configureWithAppID(TEST_APP_ID)
-        }
-
-        assertTrue(initializationLatch.await(WAIT_TIME_MILLIS_LONG, TimeUnit.MILLISECONDS))
-        // Validate that the configuration url is hit
-        assertTrue(configUrlValidationLatch.await(WAIT_TIME_MILLIS_LONG, TimeUnit.MILLISECONDS))
-        // Validate that the rules url from config is hit
-        assertTrue(rulesUrlValidationLatch.await(WAIT_TIME_MILLIS_LONG, TimeUnit.MILLISECONDS))
     }
 
     @Test
@@ -252,51 +206,6 @@ class RulesEngineIntegrationTests {
         val expectedEventData = mapOf("modify" to "yes", "keyToModify" to "modifiedValue")
         capturedEvents.forEach { e ->
             assertEquals(expectedEventData, e.eventData)
-        }
-    }
-
-    @After
-    fun cleanup() {
-        SDKHelper.resetSDK()
-    }
-
-    private fun setupNetworkService(
-        mockConfigResponse: Map<String, String>,
-        mockRulesResource: String,
-        urlMonitor: (String) -> Unit
-    ) {
-        ServiceProvider.getInstance().networkService = Networking { request, callback ->
-            var connection: MockNetworkResponse? = null
-            when (request.url) {
-                TEST_CONFIG_URL -> {
-                    val configStream =
-                        JSONObject(mockConfigResponse).toString().byteInputStream()
-                    connection = MockNetworkResponse(
-                        HttpURLConnection.HTTP_OK,
-                        "OK",
-                        emptyMap(),
-                        configStream,
-                        urlMonitor
-                    )
-                }
-
-                TEST_RULES_URL -> {
-                    val rulesStream =
-                        this::class.java.classLoader?.getResource(
-                            mockRulesResource
-                        )
-                            ?.openStream()!!
-                    connection = MockNetworkResponse(
-                        HttpURLConnection.HTTP_OK, "OK", emptyMap(), rulesStream, urlMonitor
-                    )
-                }
-            }
-
-            if (callback != null && connection != null) {
-                callback.call(connection)
-            }
-            connection?.urlMonitor?.invoke(request.url)
-            connection?.close()
         }
     }
 }

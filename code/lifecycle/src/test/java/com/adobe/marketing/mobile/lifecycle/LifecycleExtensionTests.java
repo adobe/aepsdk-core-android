@@ -36,7 +36,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class LifecycleExtensionTest {
+public class LifecycleExtensionTests {
+
+    private static final String EXTENSION_VERSION = "2.0.2";
 
     @Mock ExtensionApi extensionApi;
 
@@ -92,7 +94,7 @@ public class LifecycleExtensionTest {
 
     @Test
     public void testGetVersion() {
-        assertEquals("2.0.2", lifecycle.getVersion());
+        assertEquals(EXTENSION_VERSION, lifecycle.getVersion());
     }
 
     @Test

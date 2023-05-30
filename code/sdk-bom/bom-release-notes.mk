@@ -1,4 +1,4 @@
-| Extension artifact | BOM (1.0.0) | BOM (1.1.0) | 
+| Extension artifact | BOM (1.0.0-beta1) | BOM (1.0.0) | 
 |-----|-----|-----| 
 | **com.adobe.marketing.mobile:lifecycle** | **2.0.1** | **2.0.2**| 
 | **com.adobe.marketing.mobile:campaign** | **2.0.2** | **2.0.4**| 

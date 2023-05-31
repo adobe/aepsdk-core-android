@@ -118,10 +118,8 @@ task bom_release_notes() {
                 def oldValue = oldMap.remove(entity.key)
                 if (oldValue == entity.value) {
                     unchangedExtension.add("| ${extensionName} | ${oldValue} | ${entity.value} | \n")
-//                    markdownTable <<= "| ${extensionName} | ${oldValue} | ${entity.value} | \n"
                 }else{
                     changedExtension.add("| **${extensionName}** | **${oldValue}** | **${entity.value}**| \n")
-//                    markdownTable <<= "| **${extensionName}** | **${oldValue}** | **${entity.value}**| \n"
                 }
             }else{
                 markdownTable <<= "| **${extensionName}** |  | **${entity.value}** | \n"

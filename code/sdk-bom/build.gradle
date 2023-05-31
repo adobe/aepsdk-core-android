@@ -110,24 +110,34 @@ task bom_release_notes() {
         def newBomVersion = nextBomVersion()
         markdownTable <<= "| Extension artifact | BOM (${oldBomVersion}) | BOM (${newBomVersion}) | \n"
         markdownTable <<= "|-----|-----|-----| \n"
+        def changedExtension = []
+        def unchangedExtension = []
         newMap.each { entity ->
             def extensionName = "com.adobe.marketing.mobile:${entity.key}"
             if (oldMap.containsKey(entity.key)) {
                 def oldValue = oldMap.remove(entity.key)
                 if (oldValue == entity.value) {
-                    markdownTable <<= "| ${extensionName} | ${oldValue} | ${entity.value} | \n"
+                    unchangedExtension.add("| ${extensionName} | ${oldValue} | ${entity.value} | \n")
+//                    markdownTable <<= "| ${extensionName} | ${oldValue} | ${entity.value} | \n"
                 }else{
-                    markdownTable <<= "| **${extensionName}** | **${oldValue}** | **${entity.value}**| \n"
+                    changedExtension.add("| **${extensionName}** | **${oldValue}** | **${entity.value}**| \n")
+//                    markdownTable <<= "| **${extensionName}** | **${oldValue}** | **${entity.value}**| \n"
                 }
             }else{
                 markdownTable <<= "| **${extensionName}** |  | **${entity.value}** | \n"
             }
         }
-        oldMap.each{markdownTable <<= "| **com.adobe.marketing.mobile:${it.key}** | **${it.value}** |  | \n"}
-        println(newMap)
-        println("----")
-        println(oldMap)
-        new File("${projectDir}/bom-release-notes.mk").text = markdownTable.toString()
+        if(changedExtension.size() >0) {
+            markdownTable <<= changedExtension.sort().join()
+            markdownTable <<= unchangedExtension.sort().join()
+            oldMap.each{markdownTable <<= "| **com.adobe.marketing.mobile:${it.key}** | **${it.value}** |  | \n"}
+            println(newMap)
+            println("----")
+            println(oldMap)
+            new File("${projectDir}/bom-release-notes.mk").text = markdownTable.toString()
+        }else {
+            println("No extension version changed, no need to update bom-release-notes.mk")
+        }
     }
 }
 

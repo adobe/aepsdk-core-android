@@ -99,7 +99,7 @@ task testIt() {
 }
 
 /**
- * Generates the release notes for the next BOM build, the release notes will be stored in bom-release-notes.mk
+ * Generates the release notes for the next BOM build, the release notes will be stored in bom-release-notes.md
  */
 task bom_release_notes() {
     doLast {
@@ -132,9 +132,9 @@ task bom_release_notes() {
             println(newMap)
             println("----")
             println(oldMap)
-            new File("${projectDir}/bom-release-notes.mk").text = markdownTable.toString()
+            new File("${projectDir}/bom-release-notes.md").text = markdownTable.toString()
         }else {
-            println("No extension version changed, no need to update bom-release-notes.mk")
+            println("No extension version changed, no need to update bom-release-notes.md")
         }
     }
 }

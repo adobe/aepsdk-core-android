@@ -13,7 +13,6 @@ package com.adobe.marketing.mobile.services.ui;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -114,16 +113,10 @@ class MessageWebViewUtil {
                     StandardCharsets.UTF_8.name(),
                     null);
 
-            // use CardView to apply rounded corners
+            // use CardView so rounded corners can be applied
             final CardView webViewFrame = new CardView(context);
-            final float calculatedRadius =
-                    TypedValue.applyDimension(
-                            TypedValue.COMPLEX_UNIT_DIP,
-                            settings.getCornerRadius(),
-                            context.getResources().getDisplayMetrics());
-            webViewFrame.setRadius(calculatedRadius);
 
-            // set a display animation for the ewbview
+            // set a display animation for the webview
             final Animation animation = setupDisplayAnimation(message, webView);
             if (animation == null) {
                 Log.debug(

@@ -394,9 +394,6 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
         dialog.setContentView(webViewFrame, params);
         webViewFrame.setOnTouchListener(this);
-
-        dialog.setContentView(webViewFrame, params);
-        webViewFrame.setOnTouchListener(this);
     }
 
     /** Show this {@link MessageFragment} */

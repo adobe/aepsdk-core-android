@@ -476,7 +476,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS)
-                        .setEventData(marshalledData)
+                        .setEventData(marshalledData, true)
                         .build();
         dispatchEvent(event);
     }

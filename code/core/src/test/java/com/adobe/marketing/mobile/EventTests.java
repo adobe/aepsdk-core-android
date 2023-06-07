@@ -14,6 +14,7 @@ package com.adobe.marketing.mobile;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
@@ -175,6 +176,35 @@ public class EventTests {
                         .build();
 
         assertNull(event.getEventData());
+    }
+
+    @Test
+    public void Event_setEventDataMap_hasUnsupportedDataTypes() {
+        class Data {}
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("data", new Data());
+        Event event =
+                new Event.Builder(mockEventName, mockEventType, mockEventSource)
+                        .setEventData(map, true)
+                        .build();
+
+        assertEquals(Collections.EMPTY_MAP, event.getEventData());
+    }
+
+    @Test
+    public void Event_setEventDataMap_skipUnsupportedTypes_hasUnsupportedDataTypes() {
+        class Data {}
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("data", new Data());
+        map.put("string", "myString");
+        Event event =
+                new Event.Builder(mockEventName, mockEventType, mockEventSource)
+                        .setEventData(map, true)
+                        .build();
+
+        assertEquals(Collections.singletonMap("string", "myString"), event.getEventData());
     }
 
     @Test

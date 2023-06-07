@@ -96,8 +96,8 @@ public final class Event {
         /**
          * Sets the data for this {@code Event}. The keys should be of type {@code String}.
          *
-         * <p>Note: Custom classes are not supported as value types. These values will be skipped
-         * from the {@code Event} data.
+         * <p>Note: Custom classes are not supported as value types. Empty data will be set if
+         * unsupported value types exist in the provided {@code Map}.
          *
          * <p>The accepted value types are:
          *
@@ -123,9 +123,45 @@ public final class Event {
          */
         public Builder setEventData(final Map<String, Object> data) {
             throwIfAlreadyBuilt();
+            return setEventData(data, false);
+        }
+
+        /**
+         * Sets the data for this {@code Event}. The keys should be of type {@code String}.
+         *
+         * <p>Note: Custom classes are not supported as value types. These values will be skipped
+         * from the {@code Event} data based on the {@code skipUnsupportedTypes} flag.
+         *
+         * <p>The accepted value types are:
+         *
+         * <ul>
+         *   <li>{@code Boolean}
+         *   <li>{@code Byte}
+         *   <li>{@code Collection<Object>}
+         *   <li>{@code Double}
+         *   <li>{@code Float}
+         *   <li>{@code Integer}
+         *   <li>{@code String}
+         *   <li>{@code List<Object>}
+         *   <li>{@code Long}
+         *   <li>{@code Map<String, Object>}
+         *   <li>{@code Short}
+         *   <li>null
+         * </ul>
+         *
+         * @param data Data associated with this {@link Event}
+         * @param skipUnsupportedTypes flag to control whether unsupported types from the {@code
+         *     Event} data should be skipped instead of falling back with empty data
+         * @return this Event {@link Builder}
+         * @throws UnsupportedOperationException if this method is called after {@link
+         *     Builder#build()} was called
+         */
+        public Builder setEventData(
+                final Map<String, Object> data, final boolean skipUnsupportedTypes) {
+            throwIfAlreadyBuilt();
 
             try {
-                event.data = EventDataUtils.immutableClone(data);
+                event.data = EventDataUtils.immutableClone(data, skipUnsupportedTypes);
             } catch (final Exception e) {
                 Log.warning(
                         CoreConstants.LOG_TAG,

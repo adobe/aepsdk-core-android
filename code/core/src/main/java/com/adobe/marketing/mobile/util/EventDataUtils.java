@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.util;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -32,6 +34,7 @@ import java.util.UUID;
 public class EventDataUtils {
 
     private static final int MAX_DEPTH = 256;
+    private static final String LOG_SOURCE = "EventDataUtils";
 
     private enum CloneMode {
         ImmutableContainer,
@@ -58,8 +61,12 @@ public class EventDataUtils {
 
     private EventDataUtils() {}
 
-    private static Object cloneObject(final Object obj, final CloneMode mode, final int depth)
-            throws CloneFailedException {
+    private static Object cloneObject(
+            final Object obj,
+            final CloneMode mode,
+            final int depth,
+            final boolean skipUnsupportedTypes)
+            throws CloneFailedException, CloneNotSupportedException {
         if (obj == null) {
             return null;
         }
@@ -73,18 +80,25 @@ public class EventDataUtils {
         }
 
         if (obj instanceof Map) {
-            return cloneMap((Map<?, ?>) obj, mode, depth);
+            return cloneMap((Map<?, ?>) obj, mode, depth, skipUnsupportedTypes);
         } else if (obj instanceof Collection) {
-            return cloneCollection((Collection<?>) obj, mode, depth);
+            return cloneCollection((Collection<?>) obj, mode, depth, skipUnsupportedTypes);
         } else if (obj.getClass().isArray()) {
-            return cloneArray(obj, mode, depth);
+            return cloneArray(obj, mode, depth, skipUnsupportedTypes);
         } else {
-            throw new CloneFailedException("Object is of unsupported type");
+            if (skipUnsupportedTypes) {
+                throw new CloneNotSupportedException("Object is of unsupported type");
+            } else {
+                throw new CloneFailedException("Object is of unsupported type");
+            }
         }
     }
 
     private static Map<String, Object> cloneMap(
-            final Map<?, ?> map, final CloneMode mode, final int depth)
+            final Map<?, ?> map,
+            final CloneMode mode,
+            final int depth,
+            final boolean skipUnsupportedTypes)
             throws CloneFailedException {
         if (map == null) return null;
 
@@ -92,35 +106,79 @@ public class EventDataUtils {
         for (Map.Entry<?, ?> kv : map.entrySet()) {
             Object key = kv.getKey();
             if (key != null && key instanceof String) {
-                Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
-                ret.put(key.toString(), clonedValue);
+                try {
+                    Object clonedValue =
+                            cloneObject(kv.getValue(), mode, depth + 1, skipUnsupportedTypes);
+                    ret.put(key.toString(), clonedValue);
+                } catch (CloneNotSupportedException e) {
+                    if (!skipUnsupportedTypes) {
+                        throw new CloneFailedException("Object is of unsupported type");
+                    }
+
+                    Log.trace(
+                            CoreConstants.LOG_TAG,
+                            LOG_SOURCE,
+                            "Cannot clone unsupported object for key: %s",
+                            key);
+                }
             }
         }
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableMap(ret) : ret;
     }
 
     private static Collection<Object> cloneCollection(
-            final Collection<?> collection, final CloneMode mode, final int depth)
+            final Collection<?> collection,
+            final CloneMode mode,
+            final int depth,
+            final boolean skipUnsupportedTypes)
             throws CloneFailedException {
         if (collection == null) return null;
 
         List<Object> ret = new ArrayList<>();
         for (Object element : collection) {
-            Object clonedElement = cloneObject(element, mode, depth + 1);
-            ret.add(clonedElement);
+            try {
+                Object clonedElement = cloneObject(element, mode, depth + 1, skipUnsupportedTypes);
+                ret.add(clonedElement);
+            } catch (CloneNotSupportedException e) {
+                if (!skipUnsupportedTypes) {
+                    throw new CloneFailedException("Object is of unsupported type");
+                }
+                Log.trace(
+                        CoreConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "Cannot clone unsupported object %s",
+                        element);
+            }
         }
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret) : ret;
     }
 
     private static Collection<Object> cloneArray(
-            final Object array, final CloneMode mode, final int depth) throws CloneFailedException {
+            final Object array,
+            final CloneMode mode,
+            final int depth,
+            final boolean skipUnsupportedTypes)
+            throws CloneFailedException {
         if (array == null) return null;
 
         List<Object> ret = new ArrayList<>();
 
         int length = Array.getLength(array);
         for (int i = 0; i < length; ++i) {
-            ret.add(cloneObject(Array.get(array, i), mode, depth + 1));
+            Object toClone = Array.get(array, i);
+            try {
+                ret.add(cloneObject(toClone, mode, depth + 1, skipUnsupportedTypes));
+            } catch (CloneNotSupportedException e) {
+                if (!skipUnsupportedTypes) {
+                    throw new CloneFailedException("Object is of unsupported type");
+                }
+
+                Log.trace(
+                        CoreConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "Cannot clone unsupported object %s",
+                        toClone);
+            }
         }
 
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret) : ret;
@@ -145,7 +203,33 @@ public class EventDataUtils {
      *     contains unsupported type.
      */
     public static Map<String, Object> clone(final Map<String, ?> map) throws CloneFailedException {
-        return cloneMap(map, CloneMode.MutableContainer, 0);
+        return immutableClone(map, false);
+    }
+
+    /**
+     * Deep clones the provided map. Support cloning values which are basic types, maps and
+     * collections. <br>
+     * Values which are {@code Map<?, ?>} are cloned as {@code HashMap<String, Object>}.
+     *
+     * <ul>
+     *   <li>Entry with null key is dropped.
+     *   <li>Entry with non {@code String} key is converted to entry with {@code String} key by
+     *       calling {@link Object#toString()} method.
+     * </ul>
+     *
+     * Values which are {@code Collection<?>} are cloned as {@code ArrayList<Object>}.
+     *
+     * @param map map to be cloned
+     * @param skipUnsupportedTypes if true, unsupported types are skipped, otherwise entire cloning
+     *     is aborted
+     * @return Cloned map
+     * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or
+     *     contains unsupported type.
+     */
+    public static Map<String, Object> clone(
+            final Map<String, ?> map, final boolean skipUnsupportedTypes)
+            throws CloneFailedException {
+        return cloneMap(map, CloneMode.MutableContainer, 0, skipUnsupportedTypes);
     }
 
     /**
@@ -169,7 +253,34 @@ public class EventDataUtils {
      */
     public static Map<String, Object> immutableClone(final Map<String, ?> map)
             throws CloneFailedException {
-        return cloneMap(map, CloneMode.ImmutableContainer, 0);
+        return immutableClone(map, false);
+    }
+
+    /**
+     * Deep clones the provided map. Support cloning values which are basic types, maps and
+     * collections. <br>
+     * Values which are {@code Map<?, ?>} are cloned as unmodifiable {@code HashMap<String,
+     * Object>}.
+     *
+     * <ul>
+     *   <li>Entry with null key is dropped.
+     *   <li>Entry with non {@code String} key is converted to entry with {@code String} key by
+     *       calling {@link Object#toString()} method.
+     * </ul>
+     *
+     * Values which are {@code Collection<?>} are cloned as unmodifiable {@code ArrayList<Object>}.
+     *
+     * @param map map to be cloned
+     * @param skipUnsupportedTypes if true, unsupported types are skipped, otherwise entire cloning
+     *     is aborted
+     * @return Cloned immutable map
+     * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or
+     *     contains unsupported type.
+     */
+    public static Map<String, Object> immutableClone(
+            final Map<String, ?> map, final boolean skipUnsupportedTypes)
+            throws CloneFailedException {
+        return cloneMap(map, CloneMode.ImmutableContainer, 0, skipUnsupportedTypes);
     }
 
     /**

@@ -12,12 +12,15 @@
 package com.adobe.marketing.mobile;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.rule.ActivityTestRule;
 import java.util.Map;
@@ -49,22 +52,13 @@ public class DataMarshallerTests {
             new ActivityTestRule<TestActivity>(TestActivity.class, false, false);
 
     @Test
-    public void getDataIsNonNull() {
-        DataMarshaller marshaller = new DataMarshaller();
-        assertNotNull(marshaller.getData());
-    }
-
-    @Test
     public void marshalDeepLinkData() {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse("android-app://deeplink.uri?hello=world&goodnight=moon"));
 
         Activity activity = activityTestRule.launchActivity(intent);
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-
-        Map<String, Object> result = marshaller.getData();
+        Map<String, Object> result = DataMarshaller.marshal(activity);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertTrue(result.containsKey(DEEPLINK_KEY));
@@ -80,16 +74,49 @@ public class DataMarshallerTests {
 
         Activity activity = activityTestRule.launchActivity(intent);
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-
-        Map<String, Object> result = marshaller.getData();
+        Map<String, Object> result = DataMarshaller.marshal(activity);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertTrue(result.containsKey(DEEPLINK_KEY));
         assertEquals(
                 "android-app://deeplink.uri?hello=world&product=xyz&product=abc",
                 String.valueOf(result.get(DEEPLINK_KEY)));
+    }
+
+    @Test
+    public void marshalDeepLinkDataWithCustomData() {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("android-app://deeplink.uri?hello=world&product=xyz&product=abc"));
+        intent.putExtra("customObjectExtra", new CustomObject());
+
+        Activity activity = activityTestRule.launchActivity(intent);
+
+        Map<String, Object> result = DataMarshaller.marshal(activity);
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey(DEEPLINK_KEY));
+        assertEquals(
+                "android-app://deeplink.uri?hello=world&product=xyz&product=abc",
+                String.valueOf(result.get(DEEPLINK_KEY)));
+        assertFalse(result.containsKey("customObjectExtra"));
+    }
+
+    @Test
+    public void marshalDeepLinkDataWithValidEventSupportedData() {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("android-app://deeplink.uri?hello=world&product=xyz&product=abc"));
+        intent.putExtra("validIntExtra", 1);
+
+        Activity activity = activityTestRule.launchActivity(intent);
+
+        Map<String, Object> result = DataMarshaller.marshal(activity);
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.containsKey(DEEPLINK_KEY));
+        assertEquals(
+                "android-app://deeplink.uri?hello=world&product=xyz&product=abc",
+                String.valueOf(result.get(DEEPLINK_KEY)));
+        assertEquals(1, result.get("validIntExtra"));
     }
 
     @Test
@@ -101,10 +128,7 @@ public class DataMarshallerTests {
 
         Activity activity = activityTestRule.launchActivity(intent);
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-
-        Map<String, Object> result = marshaller.getData();
+        Map<String, Object> result = DataMarshaller.marshal(activity);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertTrue(result.containsKey(DEEPLINK_KEY));
@@ -126,10 +150,7 @@ public class DataMarshallerTests {
 
         Activity activity = activityTestRule.launchActivity(intent);
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-
-        Map<String, Object> result = marshaller.getData();
+        Map<String, Object> result = DataMarshaller.marshal(activity);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertTrue(result.containsKey(DEEPLINK_KEY));
@@ -151,10 +172,7 @@ public class DataMarshallerTests {
 
         Activity activity = activityTestRule.launchActivity(intent);
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-
-        Map<String, Object> result = marshaller.getData();
+        Map<String, Object> result = DataMarshaller.marshal(activity);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertTrue(result.containsKey(PUSH_MESSAGE_ID_KEY));
@@ -168,10 +186,7 @@ public class DataMarshallerTests {
 
         Activity activity = activityTestRule.launchActivity(intent);
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-
-        Map<String, Object> result = marshaller.getData();
+        Map<String, Object> result = DataMarshaller.marshal(activity);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertTrue(result.containsKey(LOCAL_NOTIFICATION_ID_KEY));
@@ -186,10 +201,7 @@ public class DataMarshallerTests {
 
         Activity activity = activityTestRule.launchActivity(intent);
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-
-        Map<String, Object> result = marshaller.getData();
+        Map<String, Object> result = DataMarshaller.marshal(activity);
         assertNotNull(result);
         assertEquals(2, result.size());
     }
@@ -203,10 +215,7 @@ public class DataMarshallerTests {
 
         Activity activity = activityTestRule.launchActivity(intent);
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-
-        Map<String, Object> result = marshaller.getData();
+        Map<String, Object> result = DataMarshaller.marshal(activity);
         assertNotNull(result);
         assertEquals(0, result.size());
     }
@@ -218,12 +227,38 @@ public class DataMarshallerTests {
 
         Activity activity = activityTestRule.launchActivity(intent);
 
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-
-        Map<String, Object> result = marshaller.getData();
+        Map<String, Object> result = DataMarshaller.marshal(activity);
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("abc:abc", String.valueOf(result.get(DEEPLINK_KEY)));
     }
+}
+
+class CustomObject implements Parcelable {
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {}
+
+    public void readFromParcel(Parcel source) {}
+
+    public CustomObject() {}
+
+    protected CustomObject(Parcel in) {}
+
+    public static final Parcelable.Creator<CustomObject> CREATOR =
+            new Parcelable.Creator<CustomObject>() {
+                @Override
+                public CustomObject createFromParcel(Parcel source) {
+                    return new CustomObject(source);
+                }
+
+                @Override
+                public CustomObject[] newArray(int size) {
+                    return new CustomObject[size];
+                }
+            };
 }

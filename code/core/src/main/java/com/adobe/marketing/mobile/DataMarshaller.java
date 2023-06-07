@@ -18,7 +18,11 @@ import android.os.Bundle;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
+import com.adobe.marketing.mobile.util.CloneFailedException;
+import com.adobe.marketing.mobile.util.EventDataUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,66 +32,65 @@ import java.util.Set;
 class DataMarshaller {
 
     private static final String TAG = DataMarshaller.class.getSimpleName();
-    static final String DEEPLINK_KEY = "deeplink";
 
+    private static final String DEEPLINK_KEY = "deeplink";
     // legacy
-    static final String LEGACY_PUSH_MESSAGE_ID = "adb_m_id";
+    private static final String LEGACY_PUSH_MESSAGE_ID = "adb_m_id";
     // acquisition
-    static final String PUSH_MESSAGE_ID_KEY = "pushmessageid";
-    static final String LOCAL_NOTIFICATION_ID_KEY = "notificationid";
-
-    private final Map<String, Object> launchData = new HashMap<>();
-    private final List<String> adobeQueryKeys = new ArrayList<>();
+    private static final String PUSH_MESSAGE_ID_KEY = "pushmessageid";
+    private static final String LOCAL_NOTIFICATION_ID_KEY = "notificationid";
 
     private static final String ADOBE_QUERY_KEYS_PREVIEW_TOKEN = "at_preview_token";
     private static final String ADOBE_QUERY_KEYS_PREVIEW_URL = "at_preview_endpoint";
     private static final String ADOBE_QUERY_KEYS_DEEPLINK_ID = "a.deeplink.id";
+    private static final List<String> adobeQueryKeys =
+            Arrays.asList(
+                    ADOBE_QUERY_KEYS_DEEPLINK_ID,
+                    ADOBE_QUERY_KEYS_PREVIEW_TOKEN,
+                    ADOBE_QUERY_KEYS_PREVIEW_URL);
 
-    /** Constructor. */
-    DataMarshaller() {
-        adobeQueryKeys.add(ADOBE_QUERY_KEYS_DEEPLINK_ID);
-        adobeQueryKeys.add(ADOBE_QUERY_KEYS_PREVIEW_TOKEN);
-        adobeQueryKeys.add(ADOBE_QUERY_KEYS_PREVIEW_URL);
-    }
+    private DataMarshaller() {}
 
     /**
-     * Marshal an {@code Activity} instance into a generic data map.
+     * Marshal an {@code Activity} instance into a generic data map that is compatible with types
+     * supported with event data. If the extras of the {@code Activity} contains types unsupported
+     * by event data, the entire extras will be dropped from the returned map.
      *
      * @param activity Instance of an {@code Activity}.
-     * @return An instance of this same marshaller, to help with chaining calls.
+     * @return a generic data map containing the marshalled data from the {@code Activity}.
      */
-    DataMarshaller marshal(final Activity activity) {
-        do {
-            if (activity == null) {
-                break;
-            }
+    static Map<String, Object> marshal(final Activity activity) {
+        final Map<String, Object> launchData = new HashMap<>();
+        if (activity == null) {
+            return launchData;
+        }
 
-            if (activity.getIntent() == null) {
-                break;
-            }
+        if (activity.getIntent() == null) {
+            return launchData;
+        }
 
-            Intent intent = activity.getIntent();
-            marshalIntentExtras(intent.getExtras());
-            Uri data = intent.getData();
+        Intent intent = activity.getIntent();
+        final Map<String, Object> marshalledExtras = marshalIntentExtras(intent.getExtras());
+        launchData.putAll(marshalledExtras);
 
-            if (data == null || data.toString().isEmpty()) {
-                break;
-            }
+        Uri data = intent.getData();
 
-            Log.trace(
-                    CoreConstants.LOG_TAG, TAG, "Receiving the Activity Uri (%s)", data.toString());
-            launchData.put(DEEPLINK_KEY, data.toString());
+        if (data == null || data.toString().isEmpty()) {
+            return launchData;
+        }
 
-            // This will remove the adobe specific keys from the intent data
-            // This ensures that if this intent is marshaled again, we will not track
-            // duplicate data
-            if (containAdobeQueryKeys(data)) {
-                Uri cleanDataUri = cleanUpUri(data);
-                intent.setData(cleanDataUri);
-            }
-        } while (false);
+        Log.trace(CoreConstants.LOG_TAG, TAG, "Receiving the Activity Uri (%s)", data.toString());
+        launchData.put(DEEPLINK_KEY, data.toString());
 
-        return this;
+        // This will remove the adobe specific keys from the intent data
+        // This ensures that if this intent is marshaled again, we will not track
+        // duplicate data
+        if (containAdobeQueryKeys(data)) {
+            Uri cleanDataUri = cleanUpUri(data);
+            intent.setData(cleanDataUri);
+        }
+
+        return launchData;
     }
 
     /**
@@ -96,7 +99,7 @@ class DataMarshaller {
      * @param data The {@link java.net.URI} to be verified.
      * @return true if the URI contains the Adobe specific query parameters
      */
-    private boolean containAdobeQueryKeys(final Uri data) {
+    private static boolean containAdobeQueryKeys(final Uri data) {
         if (!data.isHierarchical()) {
             return false;
         }
@@ -112,20 +115,12 @@ class DataMarshaller {
     }
 
     /**
-     * Get the data map created by the marshaller instance.
-     *
-     * @return map of marshalled data
-     */
-    Map<String, Object> getData() {
-        return launchData;
-    }
-
-    /**
      * Marshal an {@code Intent}'s {@code Bundle} of extras into a generic data map.
      *
      * @param extraBundle {@code Bundle} containing all the extras data
      */
-    private void marshalIntentExtras(final Bundle extraBundle) {
+    private static Map<String, Object> marshalIntentExtras(final Bundle extraBundle) {
+        final Map<String, Object> extraData = new HashMap<>();
         if (extraBundle != null) {
             for (String key : extraBundle.keySet()) {
                 String newKey = key;
@@ -141,13 +136,23 @@ class DataMarshaller {
                 Object value = extraBundle.get(key);
 
                 if (value != null && value.toString().length() > 0) {
-                    this.launchData.put(newKey, value);
+                    extraData.put(newKey, value);
                 }
             }
 
             extraBundle.remove(LEGACY_PUSH_MESSAGE_ID);
             extraBundle.remove(AndroidUIService.NOTIFICATION_IDENTIFIER_KEY);
         }
+
+        // Verify if the extra data map can be cloned to be compatible with event data
+        try {
+            EventDataUtils.clone(extraData);
+        } catch (CloneFailedException e) {
+            Log.warning(CoreConstants.LOG_TAG, TAG, "Cannot intent extras as event data.");
+            return Collections.EMPTY_MAP;
+        }
+
+        return extraData;
     }
 
     /**
@@ -156,7 +161,7 @@ class DataMarshaller {
      * @param data The {@link java.net.URI} to be cleaned
      * @return The cleaned URI
      */
-    private Uri cleanUpUri(final Uri data) {
+    private static Uri cleanUpUri(final Uri data) {
         if (!data.isHierarchical()) {
             return data;
         }

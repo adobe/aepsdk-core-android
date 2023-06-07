@@ -463,9 +463,7 @@ public final class MobileCore {
      */
     @VisibleForTesting
     static void collectLaunchInfo(final Activity activity) {
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-        final Map<String, Object> marshalledData = marshaller.getData();
+        final Map<String, Object> marshalledData = DataMarshaller.marshal(activity);
         if (marshalledData == null || marshalledData.isEmpty()) {
             Log.debug(
                     CoreConstants.LOG_TAG,

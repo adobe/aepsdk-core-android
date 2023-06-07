@@ -43,7 +43,7 @@ class DataMarshaller {
     private static final String ADOBE_QUERY_KEYS_PREVIEW_TOKEN = "at_preview_token";
     private static final String ADOBE_QUERY_KEYS_PREVIEW_URL = "at_preview_endpoint";
     private static final String ADOBE_QUERY_KEYS_DEEPLINK_ID = "a.deeplink.id";
-    private static final List<String> adobeQueryKeys =
+    private static final List<String> ADOBE_QUERY_KEYS =
             Arrays.asList(
                     ADOBE_QUERY_KEYS_DEEPLINK_ID,
                     ADOBE_QUERY_KEYS_PREVIEW_TOKEN,
@@ -94,7 +94,7 @@ class DataMarshaller {
     }
 
     /**
-     * Check if the URI contains the {@link #adobeQueryKeys} keys
+     * Check if the URI contains the {@link #ADOBE_QUERY_KEYS} keys
      *
      * @param data The {@link java.net.URI} to be verified.
      * @return true if the URI contains the Adobe specific query parameters
@@ -110,7 +110,7 @@ class DataMarshaller {
             return false;
         }
 
-        keys.retainAll(adobeQueryKeys);
+        keys.retainAll(ADOBE_QUERY_KEYS);
         return keys.size() != 0;
     }
 
@@ -156,7 +156,7 @@ class DataMarshaller {
     }
 
     /**
-     * Remove the {@link #adobeQueryKeys} keys from the URI if found.
+     * Remove the {@link #ADOBE_QUERY_KEYS} keys from the URI if found.
      *
      * @param data The {@link java.net.URI} to be cleaned
      * @return The cleaned URI
@@ -177,7 +177,7 @@ class DataMarshaller {
             cleanUriBuilder.clearQuery();
 
             for (String key : keys) {
-                if (!adobeQueryKeys.contains(key)) {
+                if (!ADOBE_QUERY_KEYS.contains(key)) {
                     for (String value : data.getQueryParameters(key)) {
                         cleanUriBuilder.appendQueryParameter(key, value);
                     }

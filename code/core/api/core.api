@@ -39,6 +39,7 @@ public class com/adobe/marketing/mobile/Event$Builder {
 	public fun chainToParentEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event$Builder;
 	public fun inResponseToEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event$Builder;
 	public fun setEventData (Ljava/util/Map;)Lcom/adobe/marketing/mobile/Event$Builder;
+	public fun setEventData (Ljava/util/Map;Z)Lcom/adobe/marketing/mobile/Event$Builder;
 }
 
 public class com/adobe/marketing/mobile/EventCoder {
@@ -1048,7 +1049,9 @@ public class com/adobe/marketing/mobile/util/DataReaderException : java/lang/Exc
 public class com/adobe/marketing/mobile/util/EventDataUtils {
 	public static fun castFromGenericType (Ljava/util/Map;)Ljava/util/Map;
 	public static fun clone (Ljava/util/Map;)Ljava/util/Map;
+	public static fun clone (Ljava/util/Map;Z)Ljava/util/Map;
 	public static fun immutableClone (Ljava/util/Map;)Ljava/util/Map;
+	public static fun immutableClone (Ljava/util/Map;Z)Ljava/util/Map;
 }
 
 public final class com/adobe/marketing/mobile/util/JSONUtils {

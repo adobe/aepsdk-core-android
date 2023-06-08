@@ -224,7 +224,7 @@ public class EventDataUtils {
      *     is aborted
      * @return Cloned map
      * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or
-     *     contains unsupported type.
+     *     contains unsupported type when unsupported types cannot be skipped.
      */
     public static Map<String, Object> clone(
             final Map<String, ?> map, final boolean skipUnsupportedTypes)
@@ -275,7 +275,7 @@ public class EventDataUtils {
      *     is aborted
      * @return Cloned immutable map
      * @throws CloneFailedException if object depth exceeds {@value EventDataUtils#MAX_DEPTH} or
-     *     contains unsupported type.
+     *     contains unsupported type when unsupported types cannot be skipped.
      */
     public static Map<String, Object> immutableClone(
             final Map<String, ?> map, final boolean skipUnsupportedTypes)

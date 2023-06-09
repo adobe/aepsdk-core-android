@@ -65,7 +65,7 @@ public class EventDataUtils {
         }
 
         if (depth > MAX_DEPTH) {
-            throw new CloneFailedException("Max depth reached");
+            throw new CloneFailedException(CloneFailedException.Reason.MAX_DEPTH_REACHED);
         }
 
         if (immutableClasses.contains(obj.getClass())) {
@@ -79,7 +79,7 @@ public class EventDataUtils {
         } else if (obj.getClass().isArray()) {
             return cloneArray(obj, mode, depth);
         } else {
-            throw new CloneFailedException("Object is of unsupported type");
+            throw new CloneFailedException(CloneFailedException.Reason.UNSUPPORTED_TYPE);
         }
     }
 
@@ -92,8 +92,15 @@ public class EventDataUtils {
         for (Map.Entry<?, ?> kv : map.entrySet()) {
             Object key = kv.getKey();
             if (key != null && key instanceof String) {
-                Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
-                ret.put(key.toString(), clonedValue);
+                try {
+                    Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
+                    ret.put(key.toString(), clonedValue);
+                } catch (CloneFailedException e) {
+                    if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
+                        throw e;
+                    }
+                    // otherwise skip cloning of unsupported type
+                }
             }
         }
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableMap(ret) : ret;
@@ -106,8 +113,15 @@ public class EventDataUtils {
 
         List<Object> ret = new ArrayList<>();
         for (Object element : collection) {
-            Object clonedElement = cloneObject(element, mode, depth + 1);
-            ret.add(clonedElement);
+            try {
+                Object clonedElement = cloneObject(element, mode, depth + 1);
+                ret.add(clonedElement);
+            } catch (CloneFailedException e) {
+                if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
+                    throw e;
+                }
+                // otherwise skip cloning of unsupported type
+            }
         }
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret) : ret;
     }
@@ -120,7 +134,14 @@ public class EventDataUtils {
 
         int length = Array.getLength(array);
         for (int i = 0; i < length; ++i) {
-            ret.add(cloneObject(Array.get(array, i), mode, depth + 1));
+            try {
+                ret.add(cloneObject(Array.get(array, i), mode, depth + 1));
+            } catch (CloneFailedException e) {
+                if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
+                    throw e;
+                }
+                // otherwise skip cloning of unsupported type
+            }
         }
 
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret) : ret;

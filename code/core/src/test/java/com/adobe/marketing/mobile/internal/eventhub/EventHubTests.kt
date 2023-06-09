@@ -1060,7 +1060,9 @@ internal class EventHubTests {
             )
         }
 
-        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+        // Verify that the state does not contain custom object
+        val expectedSharedState: Map<String, Any?> = mutableMapOf("One" to 1)
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, expectedSharedState))
     }
 
     @Test
@@ -1352,7 +1354,9 @@ internal class EventHubTests {
 
         resolver?.resolve(stateAtEvent1)
 
-        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+        // Verify that the state does not contain custom object
+        val expectedSharedState: Map<String, Any?> = mutableMapOf("One" to 1)
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, expectedSharedState))
     }
 
     @Test

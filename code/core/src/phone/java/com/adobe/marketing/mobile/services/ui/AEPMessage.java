@@ -231,7 +231,12 @@ class AEPMessage implements FullscreenMessage {
                                 try {
                                     messageFragment.show(fragmentManager, FRAGMENT_TAG);
                                 } catch (final Exception exception) {
-                                    Log.warning(ServiceConstants.LOG_TAG, TAG, "Exception occurred when attempting to show the message fragment: %s.", exception.getLocalizedMessage());
+                                    Log.warning(
+                                            ServiceConstants.LOG_TAG,
+                                            TAG,
+                                            "Exception occurred when attempting to show the message"
+                                                    + " fragment: %s.",
+                                            exception.getLocalizedMessage());
                                     messagesMonitor.dismissed();
                                 }
                             });

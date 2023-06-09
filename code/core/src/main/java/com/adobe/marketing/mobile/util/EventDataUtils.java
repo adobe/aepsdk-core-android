@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.util;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -32,6 +34,7 @@ import java.util.UUID;
 public class EventDataUtils {
 
     private static final int MAX_DEPTH = 256;
+    private static final String LOG_SOURCE = "EventDataUtils";
 
     private enum CloneMode {
         ImmutableContainer,
@@ -68,7 +71,8 @@ public class EventDataUtils {
             throw new CloneFailedException(CloneFailedException.Reason.MAX_DEPTH_REACHED);
         }
 
-        if (immutableClasses.contains(obj.getClass())) {
+        final Class<?> objClass = obj.getClass();
+        if (immutableClasses.contains(objClass)) {
             return obj;
         }
 
@@ -79,6 +83,11 @@ public class EventDataUtils {
         } else if (obj.getClass().isArray()) {
             return cloneArray(obj, mode, depth);
         } else {
+            Log.trace(
+                    CoreConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Cannot clone object of type: %s",
+                    objClass.getSimpleName());
             throw new CloneFailedException(CloneFailedException.Reason.UNSUPPORTED_TYPE);
         }
     }
@@ -96,10 +105,11 @@ public class EventDataUtils {
                     Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
                     ret.put(key.toString(), clonedValue);
                 } catch (CloneFailedException e) {
-                    if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
+                    if (e.getReason() == CloneFailedException.Reason.UNSUPPORTED_TYPE) {
+                        Log.trace(CoreConstants.LOG_TAG, LOG_SOURCE, "Skipped cloning key %s", key);
+                    } else {
                         throw e;
                     }
-                    // otherwise skip cloning of unsupported type
                 }
             }
         }

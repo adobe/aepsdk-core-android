@@ -23,6 +23,7 @@ import com.adobe.marketing.mobile.services.NamedCollection;
 import com.adobe.marketing.mobile.util.DataReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 class LifecycleV1Extension {
 
@@ -77,9 +78,10 @@ class LifecycleV1Extension {
         if (previousSessionInfo == null) {
             // Analytics extension needs adjusted start date to calculate timeSinceLaunch param.
             if (dataStore != null) {
-                final long startTime =
+                final long adjustedStartTimeInSeconds =
                         dataStore.getLong(LifecycleConstants.DataStoreKeys.START_DATE, 0L);
-                updateLifecycleSharedState(startEvent, startTime, lifecycleState.getContextData());
+                updateLifecycleSharedState(
+                        startEvent, adjustedStartTimeInSeconds, lifecycleState.getContextData());
                 return;
             }
         }
@@ -163,28 +165,29 @@ class LifecycleV1Extension {
             final Map<String, String> contextData) {
         Map<String, Object> lifecycleSharedState = new HashMap<>();
         lifecycleSharedState.put(
-                LifecycleConstants.EventDataKeys.Lifecycle.SESSION_START_TIMESTAMP,
-                startTimestampInSeconds);
-        lifecycleSharedState.put(
                 LifecycleConstants.EventDataKeys.Lifecycle.MAX_SESSION_LENGTH,
                 LifecycleConstants.MAX_SESSION_LENGTH_SECONDS);
         lifecycleSharedState.put(
                 LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_CONTEXT_DATA, contextData);
         extensionApi.createSharedState(lifecycleSharedState, event);
+        // Convert these timestamps to milliseconds.
+        lifecycleSharedState.put(
+                LifecycleConstants.EventDataKeys.Lifecycle.SESSION_START_TIMESTAMP,
+                TimeUnit.SECONDS.toMillis(startTimestampInSeconds));
     }
 
     /**
      * Dispatches a Lifecycle response content event with appropriate event data
      *
      * @param startTimestampInSeconds session start time
-     * @param previousStartTime start time of previous session
-     * @param previousPauseTime pause time of previous session
+     * @param previousStartTimeInSeconds start time of previous session
+     * @param previousPauseTimeInSeconds pause time of previous session
      * @param parentEvent the lifecycle event that triggered start
      */
     private void dispatchSessionStart(
             final long startTimestampInSeconds,
-            final long previousStartTime,
-            final long previousPauseTime,
+            final long previousStartTimeInSeconds,
+            final long previousPauseTimeInSeconds,
             final Event parentEvent) {
         // Dispatch a new event with session related data
         Map<String, Object> eventDataMap = new HashMap<>();
@@ -195,17 +198,18 @@ class LifecycleV1Extension {
                 LifecycleConstants.EventDataKeys.Lifecycle.SESSION_EVENT,
                 LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_START);
         eventDataMap.put(
-                LifecycleConstants.EventDataKeys.Lifecycle.SESSION_START_TIMESTAMP,
-                startTimestampInSeconds);
-        eventDataMap.put(
                 LifecycleConstants.EventDataKeys.Lifecycle.MAX_SESSION_LENGTH,
                 LifecycleConstants.MAX_SESSION_LENGTH_SECONDS);
+        // Convert these timestamps to milliseconds.
+        eventDataMap.put(
+                LifecycleConstants.EventDataKeys.Lifecycle.SESSION_START_TIMESTAMP,
+                TimeUnit.SECONDS.toMillis(startTimestampInSeconds));
         eventDataMap.put(
                 LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_SESSION_START_TIMESTAMP,
-                previousStartTime);
+                TimeUnit.SECONDS.toMillis(previousStartTimeInSeconds));
         eventDataMap.put(
                 LifecycleConstants.EventDataKeys.Lifecycle.PREVIOUS_SESSION_PAUSE_TIMESTAMP,
-                previousPauseTime);
+                TimeUnit.SECONDS.toMillis(previousPauseTimeInSeconds));
 
         final Event startEvent =
                 new Event.Builder(

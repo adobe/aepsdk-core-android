@@ -170,7 +170,7 @@ public class LifecycleV1ExtensionTest {
                     .createSharedState(
                             lifecycleSharedState.capture(), lifecycleStartEventCaptor.capture());
             assertEquals(lifecycleStartEvent, lifecycleStartEventCaptor.getValue());
-            assertEquals(1234L, lifecycleSharedState.getValue().get(SESSION_START_TIMESTAMP));
+            assertEquals(1234000L, lifecycleSharedState.getValue().get(SESSION_START_TIMESTAMP));
             assertEquals(
                     MAX_SESSION_LENGTH_SECONDS,
                     lifecycleSharedState.getValue().get(MAX_SESSION_LENGTH));
@@ -222,7 +222,7 @@ public class LifecycleV1ExtensionTest {
                             lifecycleSharedState.capture(), lifecycleStartEventCaptor.capture());
             assertEquals(lifecycleStartEvent, lifecycleStartEventCaptor.getValue());
             assertEquals(
-                    TimeUnit.MILLISECONDS.toSeconds(currentTimestampInMilliSeconds),
+                    roundedToNearestSecond(currentTimestampInMilliSeconds),
                     lifecycleSharedState.getValue().get(SESSION_START_TIMESTAMP));
             assertEquals(
                     MAX_SESSION_LENGTH_SECONDS,
@@ -236,12 +236,12 @@ public class LifecycleV1ExtensionTest {
             assertEquals(contextData, lifecycleResponseEventData.get(LIFECYCLE_CONTEXT_DATA));
             assertEquals(LIFECYCLE_START, lifecycleResponseEventData.get(SESSION_EVENT));
             assertEquals(
-                    TimeUnit.MILLISECONDS.toSeconds(currentTimestampInMilliSeconds),
+                    roundedToNearestSecond(currentTimestampInMilliSeconds),
                     lifecycleResponseEventData.get(SESSION_START_TIMESTAMP));
             assertEquals(
                     MAX_SESSION_LENGTH_SECONDS, lifecycleResponseEventData.get(MAX_SESSION_LENGTH));
-            assertEquals(111L, lifecycleResponseEventData.get(PREVIOUS_SESSION_START_TIMESTAMP));
-            assertEquals(222L, lifecycleResponseEventData.get(PREVIOUS_SESSION_PAUSE_TIMESTAMP));
+            assertEquals(111000L, lifecycleResponseEventData.get(PREVIOUS_SESSION_START_TIMESTAMP));
+            assertEquals(222000L, lifecycleResponseEventData.get(PREVIOUS_SESSION_PAUSE_TIMESTAMP));
             assertEquals(
                     lifecycleStartEvent.getUniqueIdentifier(),
                     lifecycleResponseEvent.getValue().getParentID());
@@ -448,5 +448,9 @@ public class LifecycleV1ExtensionTest {
                     lifecycleSharedState.getValue().get(MAX_SESSION_LENGTH));
             assertEquals(bootData, lifecycleSharedState.getValue().get(LIFECYCLE_CONTEXT_DATA));
         }
+    }
+
+    private long roundedToNearestSecond(long timestampMills) {
+        return TimeUnit.MILLISECONDS.toSeconds(timestampMills) * 1000;
     }
 }

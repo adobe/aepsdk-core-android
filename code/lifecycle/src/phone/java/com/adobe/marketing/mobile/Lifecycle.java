@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
 import com.adobe.marketing.mobile.services.Log;
+import java.util.List;
 
 public class Lifecycle {
 

@@ -553,6 +553,15 @@ internal class ConfigurationExtension : Extension {
         }
     }
 
+    /**
+     * Determines if the current AppID update request is stale.
+     * A request is considered stale if it is an initial configuration request sent internally
+     * and there is a newer request that has been sent externally via {@link MobileCore#configureWithAppId(String)}
+     *
+     * @param newAppId the new app ID with which the configuration update is being requested
+     * @param isInitialLoadEvent whether the current request is an initial configuration request
+     * @return true if the current request is stale, false otherwise
+     */
     private fun isStaleAppIdUpdateRequest(newAppId: String, isInitialLoadEvent: Boolean): Boolean {
         // Because events are dispatched and processed serially, external config with app id events
         // cannot be stale. However, checking if this is an internal event is not sufficient due

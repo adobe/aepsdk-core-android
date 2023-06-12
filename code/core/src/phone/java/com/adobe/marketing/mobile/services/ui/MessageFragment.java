@@ -17,7 +17,9 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -379,6 +381,16 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                     UNEXPECTED_NULL_VALUE);
             return;
         }
+
+        // use a gradient drawable to set the rounded corners on the message
+        final GradientDrawable roundedDrawable = new GradientDrawable();
+        final float calculatedRadius =
+                TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP,
+                        message.getMessageSettings().getCornerRadius(),
+                        dialog.getContext().getResources().getDisplayMetrics());
+        roundedDrawable.setCornerRadius(calculatedRadius);
+        webViewFrame.setBackground(roundedDrawable);
 
         dialog.setContentView(webViewFrame, params);
         webViewFrame.setOnTouchListener(this);

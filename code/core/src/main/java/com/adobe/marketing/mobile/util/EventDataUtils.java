@@ -111,7 +111,7 @@ public class EventDataUtils {
                         Log.trace(
                                 CoreConstants.LOG_TAG,
                                 LOG_SOURCE,
-                                "Skipped cloning key %s due to %s",
+                                "cloneMap - Skipped cloning key %s due to %s",
                                 key,
                                 e.getMessage());
                     }

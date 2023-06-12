@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -150,15 +151,29 @@ public class EventDataUtilsTests {
     }
 
     @Test
-    public void testClone_FailUnsupportedTypes() {
+    public void testClone_UnsupportedTypes() throws CloneFailedException {
         class Data {}
 
         Map<String, Object> map = new HashMap<>();
         map.put("data", new Data());
 
-        Exception ex = assertThrows(CloneFailedException.class, () -> EventDataUtils.clone(map));
+        assertEquals(Collections.EMPTY_MAP, EventDataUtils.clone(map));
+    }
 
-        assertEquals(ex.getMessage(), "Object is of unsupported type");
+    @Test
+    public void testClone_SupportedTypesCombinedWithUnsupportedTypes() throws CloneFailedException {
+        class Data {}
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("data", new Data());
+        map.put("boolean", true);
+        map.put("integer", 1);
+
+        Map<String, Object> expectedClone = new HashMap<>();
+        expectedClone.put("boolean", true);
+        expectedClone.put("integer", 1);
+
+        assertEquals(expectedClone, EventDataUtils.clone(map));
     }
 
     @Test
@@ -169,9 +184,29 @@ public class EventDataUtilsTests {
 
         map.put("list", list);
 
-        Exception ex = assertThrows(CloneFailedException.class, () -> EventDataUtils.clone(map));
+        CloneFailedException ex =
+                assertThrows(CloneFailedException.class, () -> EventDataUtils.clone(map));
 
-        assertEquals(ex.getMessage(), "Max depth reached");
+        assertEquals(ex.getMessage(), CloneFailedException.Reason.MAX_DEPTH_REACHED.toString());
+        assertEquals(ex.getReason(), CloneFailedException.Reason.MAX_DEPTH_REACHED);
+    }
+
+    @Test
+    public void testClone_WithUnsupportedTypesAndCircularReference() {
+        class Data {}
+
+        Map<String, Object> map = new HashMap<>();
+        List<Object> list = new ArrayList<>();
+        list.add(map);
+
+        map.put("list", list);
+        map.put("data", new Data());
+
+        CloneFailedException ex =
+                assertThrows(CloneFailedException.class, () -> EventDataUtils.clone(map));
+
+        assertEquals(ex.getMessage(), CloneFailedException.Reason.MAX_DEPTH_REACHED.toString());
+        assertEquals(ex.getReason(), CloneFailedException.Reason.MAX_DEPTH_REACHED);
     }
 
     @Test

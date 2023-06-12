@@ -675,11 +675,7 @@ public final class IdentityExtension extends Extension {
         customerIds = newCustomerIDs == null || newCustomerIDs.isEmpty() ? null : newCustomerIDs;
         int customerIdsSize =
                 newCustomerIDs == null || newCustomerIDs.isEmpty() ? 0 : customerIds.size();
-        Log.trace(
-                IdentityConstants.LOG_TAG,
-                LOG_SOURCE,
-                "Load the store VisitorIDs from persistence: size = %s",
-                customerIdsSize);
+
         locationHint =
                 namedCollection.getString(IdentityConstants.DataStoreKeys.LOCATION_HINT, null);
         blob = namedCollection.getString(IdentityConstants.DataStoreKeys.BLOB, null);
@@ -697,7 +693,9 @@ public final class IdentityExtension extends Extension {
                 IdentityConstants.LOG_TAG,
                 LOG_SOURCE,
                 "loadVariablesFromPersistentData : Successfully loaded the Identity data from"
-                        + " persistence.");
+                        + " persistence. Loaded %d VisitorIds. ECID is set to %s. ",
+                customerIdsSize,
+                mid);
     }
 
     @VisibleForTesting
@@ -1216,8 +1214,18 @@ public final class IdentityExtension extends Extension {
         final long most = uuid.getMostSignificantBits();
         final long least = uuid.getLeastSignificantBits();
         // return formatted string, flip negatives if they're set.
-        return String.format(
-                Locale.US, "%019d%019d", most < 0 ? -most : most, least < 0 ? -least : least);
+        final String ecid =
+                String.format(
+                        Locale.US,
+                        "%019d%019d",
+                        most < 0 ? -most : most,
+                        least < 0 ? -least : least);
+        Log.trace(
+                IdentityConstants.LOG_TAG,
+                LOG_SOURCE,
+                "generateMID : Generating new ECID %s",
+                ecid);
+        return ecid;
     }
 
     /**
@@ -2046,6 +2054,11 @@ public final class IdentityExtension extends Extension {
         if (!StringUtils.isNullOrEmpty(mid) && !hasIdentifiers && !hasDpids && !needResync) {
             syncForIds = false;
         } else if (StringUtils.isNullOrEmpty(mid)) {
+            Log.trace(
+                    IdentityConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "shouldSync : ECID is null when sync identifiers event received. Generate new"
+                            + " ECID value.");
             mid = generateMID(); // generate ID before network call
         }
 
@@ -2330,6 +2343,11 @@ public final class IdentityExtension extends Extension {
             // should never happen bc we generate mid locally before n/w request.
             // Still, generate mid locally if there's none yet.
             if (mid == null) {
+                Log.trace(
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "handleNetworkResponseMap : ECID is null when network response error"
+                                + " received. Generate new ECID value.");
                 // no valid id, generate locally
                 mid = generateMID();
                 requiresSharedStateUpdate = true;

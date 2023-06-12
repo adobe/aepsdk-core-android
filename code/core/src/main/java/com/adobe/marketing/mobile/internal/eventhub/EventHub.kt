@@ -913,7 +913,7 @@ internal class EventHub {
         createSharedStateInternal(
             SharedStateType.STANDARD,
             EventHubConstants.NAME,
-            EventDataUtils.clone(data),
+            EventDataUtils.immutableClone(data),
             null
         )
     }

@@ -185,8 +185,7 @@ class AEPMessage implements FullscreenMessage {
             return;
         }
 
-        final Activity currentActivity = getCurrentActivity();
-        if (currentActivity == null) {
+        if (getCurrentActivity() == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -217,6 +216,20 @@ class AEPMessage implements FullscreenMessage {
 
                     messageFragment.setAEPMessage(AEPMessage.this);
 
+                    final Activity currentActivity = getCurrentActivity();
+                    if (currentActivity == null) {
+                        Log.debug(
+                                ServiceConstants.LOG_TAG,
+                                TAG,
+                                "%s (current activity), failed to show the message.",
+                                UNEXPECTED_NULL_VALUE);
+                        // message monitor notification is needed because messageMonitor.show()
+                        // precedes this call
+                        messagesMonitor.dismissed();
+                        listener.onShowFailure();
+                        return;
+                    }
+
                     currentActivity.runOnUiThread(
                             () -> {
                                 Log.debug(
@@ -228,7 +241,20 @@ class AEPMessage implements FullscreenMessage {
                                 // Show the MessageFragment with iam.
                                 final FragmentManager fragmentManager =
                                         currentActivity.getFragmentManager();
-                                messageFragment.show(fragmentManager, FRAGMENT_TAG);
+                                try {
+                                    messageFragment.show(fragmentManager, FRAGMENT_TAG);
+                                } catch (Exception exception) {
+                                    Log.warning(
+                                            ServiceConstants.LOG_TAG,
+                                            TAG,
+                                            "Exception occurred when attempting to show the message"
+                                                    + " fragment: %s.",
+                                            exception.getLocalizedMessage());
+                                    // message monitor notification is needed because
+                                    // messageMonitor.show() precedes this call
+                                    messagesMonitor.dismissed();
+                                    listener.onShowFailure();
+                                }
                             });
                 });
     }

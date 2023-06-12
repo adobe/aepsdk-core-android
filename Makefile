@@ -223,6 +223,9 @@ bump-bom-version-and-update-bom-properties:
 	(./code/gradlew -p code/sdk-bom bumpBomVersion)
 	(./code/gradlew -p code/sdk-bom storeLatestExtensionInfo)
 
+generate-bom-release-notes:
+	(./code/gradlew -p code/sdk-bom bom_release_notes)
+
 print-bom-version:
 	(grep "^bomVersion=" ./code/gradle.properties | sed -e 's/.*=//')
 

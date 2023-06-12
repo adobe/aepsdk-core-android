@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.util;
 
+import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.services.Log;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -32,6 +34,7 @@ import java.util.UUID;
 public class EventDataUtils {
 
     private static final int MAX_DEPTH = 256;
+    private static final String LOG_SOURCE = "EventDataUtils";
 
     private enum CloneMode {
         ImmutableContainer,
@@ -65,10 +68,11 @@ public class EventDataUtils {
         }
 
         if (depth > MAX_DEPTH) {
-            throw new CloneFailedException("Max depth reached");
+            throw new CloneFailedException(CloneFailedException.Reason.MAX_DEPTH_REACHED);
         }
 
-        if (immutableClasses.contains(obj.getClass())) {
+        final Class<?> objClass = obj.getClass();
+        if (immutableClasses.contains(objClass)) {
             return obj;
         }
 
@@ -79,7 +83,12 @@ public class EventDataUtils {
         } else if (obj.getClass().isArray()) {
             return cloneArray(obj, mode, depth);
         } else {
-            throw new CloneFailedException("Object is of unsupported type");
+            Log.trace(
+                    CoreConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Cannot clone object of type: %s",
+                    objClass.getSimpleName());
+            throw new CloneFailedException(CloneFailedException.Reason.UNSUPPORTED_TYPE);
         }
     }
 
@@ -92,8 +101,20 @@ public class EventDataUtils {
         for (Map.Entry<?, ?> kv : map.entrySet()) {
             Object key = kv.getKey();
             if (key != null && key instanceof String) {
-                Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
-                ret.put(key.toString(), clonedValue);
+                try {
+                    Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
+                    ret.put(key.toString(), clonedValue);
+                } catch (CloneFailedException e) {
+                    if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
+                        throw e;
+                    }
+                    Log.trace(
+                            CoreConstants.LOG_TAG,
+                            LOG_SOURCE,
+                            "cloneMap - Skipped cloning key %s due to %s",
+                            key,
+                            e.getMessage());
+                }
             }
         }
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableMap(ret) : ret;
@@ -106,8 +127,19 @@ public class EventDataUtils {
 
         List<Object> ret = new ArrayList<>();
         for (Object element : collection) {
-            Object clonedElement = cloneObject(element, mode, depth + 1);
-            ret.add(clonedElement);
+            try {
+                Object clonedElement = cloneObject(element, mode, depth + 1);
+                ret.add(clonedElement);
+            } catch (CloneFailedException e) {
+                if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
+                    throw e;
+                }
+                Log.trace(
+                        CoreConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "cloneCollection - Skipped cloning element due to %s",
+                        e.getMessage());
+            }
         }
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret) : ret;
     }
@@ -120,7 +152,18 @@ public class EventDataUtils {
 
         int length = Array.getLength(array);
         for (int i = 0; i < length; ++i) {
-            ret.add(cloneObject(Array.get(array, i), mode, depth + 1));
+            try {
+                ret.add(cloneObject(Array.get(array, i), mode, depth + 1));
+            } catch (CloneFailedException e) {
+                if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
+                    throw e;
+                }
+                Log.trace(
+                        CoreConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "cloneArray - Skipped cloning element due to %s",
+                        e.getMessage());
+            }
         }
 
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret) : ret;

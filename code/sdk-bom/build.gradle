@@ -55,6 +55,11 @@ dependencies {
 
 configurations.implementation.canBeResolved = true
 
+/**
+ * Retrieves the latest extension version from the resolved artifacts
+ * Return example: [com.adobe.marketing.mobile-lifecycle:2.0.1, com.adobe.marketing.mobile-identity:2.0.2, ....]
+ * @return Map<String, String> - map of extension name and version
+ */
 Map<String, String> retrieveLatestExtensionInfo() {
     def map = [:]
     configurations.implementation.resolvedConfiguration.resolvedArtifacts.each {
@@ -68,6 +73,24 @@ Map<String, String> retrieveLatestExtensionInfo() {
     return map
 }
 
+/**
+ * Retrieves the latest extension version from the resolved artifacts
+ * Return example: [com.adobe.marketing.mobile-lifecycle:2.0.1, com.adobe.marketing.mobile-identity:2.0.2, ....]
+ * @return Map<String, String> - map of extension name and version
+ */
+Map<String, String> retrieveLatestExtensionInfoWithoutPrefix() {
+    def map = [:]
+    configurations.implementation.resolvedConfiguration.resolvedArtifacts.each {
+        def group = it.moduleVersion.id.group
+        def name = it.moduleVersion.id.name
+        def version = it.moduleVersion.id.version
+        if (group == "com.adobe.marketing.mobile") {
+            map[name] = version
+        }
+    }
+    return map
+}
+
 task testIt() {
     doLast {
         println(retrieveLatestExtensionInfo())
@@ -75,6 +98,52 @@ task testIt() {
     }
 }
 
+/**
+ * Generates the release notes for the next BOM build, the release notes will be stored in bom-release-notes.md
+ */
+task bom_release_notes() {
+    doLast {
+        def newMap = retrieveLatestExtensionInfoWithoutPrefix()
+        def oldMap = retrieveExtensionVersionFromBomProperties()
+        def markdownTable = StringBuilder.newInstance()
+        def oldBomVersion = rootProject.bomVersion.toString()
+        def newBomVersion = nextBomVersion()
+        markdownTable <<= "| Extension artifact | BOM (${oldBomVersion}) | BOM (${newBomVersion}) | \n"
+        markdownTable <<= "|-----|-----|-----| \n"
+        def changedExtension = []
+        def unchangedExtension = []
+        newMap.each { entity ->
+            def extensionName = "com.adobe.marketing.mobile:${entity.key}"
+            if (oldMap.containsKey(entity.key)) {
+                def oldValue = oldMap.remove(entity.key)
+                if (oldValue == entity.value) {
+                    unchangedExtension.add("| ${extensionName} | ${oldValue} | ${entity.value} | \n")
+                }else{
+                    changedExtension.add("| **${extensionName}** | **${oldValue}** | **${entity.value}**| \n")
+                }
+            }else{
+                markdownTable <<= "| **${extensionName}** |  | **${entity.value}** | \n"
+            }
+        }
+        if(changedExtension.size() >0) {
+            markdownTable <<= changedExtension.sort().join()
+            markdownTable <<= unchangedExtension.sort().join()
+            oldMap.each{markdownTable <<= "| **com.adobe.marketing.mobile:${it.key}** | **${it.value}** |  | \n"}
+            println(newMap)
+            println("----")
+            println(oldMap)
+            new File("${projectDir}/bom-release-notes.md").text = markdownTable.toString()
+        }else {
+            println("No extension version changed, no need to update bom-release-notes.md")
+        }
+    }
+}
+
+/**
+ * Retrieve extension versions stored in bom.properties
+ * Return example: [core:2.1.1, edge:2.0.0, signal:2.0.1, ....]
+ * @return Map<String, String> - map of extension name and version
+ */
 Map<String, String> retrieveExtensionVersionFromBomProperties() {
     Map<String, String> map = [:]
     def props = new Properties()
@@ -119,36 +188,40 @@ task computeSdkSize() {
         println(out)
     }
 }
+String nextBomVersion(){
+    def extensionVersionsInReleasedBom = retrieveExtensionVersionFromBomProperties()
+    def latestExtensionVersions = retrieveLatestExtensionInfo()
+    def bumpType = bumpBomVersionType(latestExtensionVersions, extensionVersionsInReleasedBom)
+    def bomVersion = rootProject.bomVersion.toString()
+    def digits = bomVersion.split("\\.")
+    if (digits.size() != 3) {
+        throw IllegalArgumentException("bom versoin (${bomVersion}) is not valid.")
+    }
+    def newBomVersion = bomVersion
+    switch (bumpType) {
+        case 0:
+            break
+        case 1:
+            def newPatch = digits[2].toInteger() + 1
+            newBomVersion = "${digits[0]}.${digits[1]}.${newPatch}".toString()
+            break
+        case 2:
+            def newMinor = digits[1].toInteger() + 1
+            newBomVersion = "${digits[0]}.${newMinor}.${digits[2]}".toString()
+            break
+        case 3:
+            def newMajor = digits[0].toInteger() + 1
+            newBomVersion = "${newMajor}.${digits[1]}.${digits[2]}".toString()
+            break
+        default:
+            break
+    }
+    return newBomVersion
+}
 
 task bumpBomVersion() {
     doLast {
-        def extensionVersionsInReleasedBom = retrieveExtensionVersionFromBomProperties()
-        def latestExtensionVersions = retrieveLatestExtensionInfo()
-        def bumpType = bumpBomVersionType(latestExtensionVersions, extensionVersionsInReleasedBom)
-        def bomVersion = rootProject.bomVersion.toString()
-        def digits = bomVersion.split("\\.")
-        if (digits.size() != 3) {
-            throw IllegalArgumentException("bom versoin (${bomVersion}) is not valid.")
-        }
-        def newBomVersion = bomVersion
-        switch (bumpType) {
-            case 0:
-                break
-            case 1:
-                def newPatch = digits[2].toInteger() + 1
-                newBomVersion = "${digits[0]}.${digits[1]}.${newPatch}".toString()
-                break
-            case 2:
-                def newMinor = digits[1].toInteger() + 1
-                newBomVersion = "${digits[0]}.${newMinor}.${digits[2]}".toString()
-                break
-            case 3:
-                def newMajor = digits[0].toInteger() + 1
-                newBomVersion = "${newMajor}.${digits[1]}.${digits[2]}".toString()
-                break
-            default:
-                break
-        }
+        def newBomVersion = nextBomVersion()
         ant.propertyfile(file: "../gradle.properties") {
             entry(key: "bomVersion", value: newBomVersion)
         }

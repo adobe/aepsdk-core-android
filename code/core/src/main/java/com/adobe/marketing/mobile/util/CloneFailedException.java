@@ -11,11 +11,22 @@
 
 package com.adobe.marketing.mobile.util;
 
+import androidx.annotation.NonNull;
+
 /**
  * Exception thrown by {@link EventDataUtils} to indicate that an exception occurred during deep
  * clone.
  */
 public class CloneFailedException extends Exception {
+
+    private final Reason reason;
+
+    /** Enum to indicate the reason for the exception. */
+    enum Reason {
+        MAX_DEPTH_REACHED,
+        UNSUPPORTED_TYPE,
+        UNKNOWN
+    }
 
     /**
      * Constructor.
@@ -23,6 +34,35 @@ public class CloneFailedException extends Exception {
      * @param message {@code String} message for the exception
      */
     public CloneFailedException(final String message) {
+        this(message, Reason.UNKNOWN);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param reason the {@link Reason} for the exception
+     */
+    CloneFailedException(@NonNull final Reason reason) {
+        this(reason.toString(), reason);
+    }
+
+    /**
+     * Private constructor to unify public constructors and allow cascading.
+     *
+     * @param message {@code String} message for the exception
+     * @param reason the {@link Reason} for the exception
+     */
+    private CloneFailedException(@NonNull final String message, @NonNull final Reason reason) {
         super(message);
+        this.reason = reason;
+    }
+
+    /**
+     * Returns the {@link Reason} for the exception.
+     *
+     * @return rteturns the {@link Reason} for the exception
+     */
+    @NonNull Reason getReason() {
+        return reason;
     }
 }

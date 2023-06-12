@@ -33,7 +33,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class IdentityAPITests {
-    private static final String EXTENSION_VERSION = "2.0.2";
+    private static final String EXTENSION_VERSION = "2.0.3";
 
     @Test
     public void test_extensionVersion() {

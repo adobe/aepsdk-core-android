@@ -209,7 +209,7 @@ public class LifecycleFunctionalTest {
                         put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
                         put(
                                 SESSION_START_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(currentTimestampMillis));
+                                roundedToNearestSecond(currentTimestampMillis));
                         put(SESSION_EVENT, LIFECYCLE_START);
                         put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
                     }
@@ -220,7 +220,7 @@ public class LifecycleFunctionalTest {
                         put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
                         put(
                                 SESSION_START_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(currentTimestampMillis));
+                                roundedToNearestSecond(currentTimestampMillis));
                         put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
                     }
                 };
@@ -287,14 +287,14 @@ public class LifecycleFunctionalTest {
         Map<String, Object> firstSessionStartSharedState =
                 mockExtensionApi.createdSharedState.get(0);
         assertEquals(
-                TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis),
+                roundedToNearestSecond(firstSessionStartTimeMillis),
                 firstSessionStartSharedState.get(SESSION_START_TIMESTAMP));
 
         Map<String, Object> secondSessionStartSharedState =
                 mockExtensionApi.createdSharedState.get(1);
         // Adjusted start time =  previous start time + new start time - previous pause time
         assertEquals(
-                TimeUnit.MILLISECONDS.toSeconds(
+                roundedToNearestSecond(
                         firstSessionStartTimeMillis
                                 + secondSessionStartTimeMillis
                                 - firstSessionPauseTimeMillis),
@@ -410,14 +410,14 @@ public class LifecycleFunctionalTest {
                     {
                         put(
                                 PREVIOUS_SESSION_START_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis));
+                                roundedToNearestSecond(firstSessionStartTimeMillis));
                         put(
                                 PREVIOUS_SESSION_PAUSE_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(firstSessionPauseTimeMillis));
+                                roundedToNearestSecond(firstSessionPauseTimeMillis));
                         put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
                         put(
                                 SESSION_START_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis));
+                                roundedToNearestSecond(secondSessionStartTimeMillis));
                         put(SESSION_EVENT, LIFECYCLE_START);
                         put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
                     }
@@ -429,7 +429,7 @@ public class LifecycleFunctionalTest {
                         put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
                         put(
                                 SESSION_START_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis));
+                                roundedToNearestSecond(secondSessionStartTimeMillis));
                         put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
                     }
                 };
@@ -577,14 +577,14 @@ public class LifecycleFunctionalTest {
                     {
                         put(
                                 PREVIOUS_SESSION_START_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis));
+                                roundedToNearestSecond(firstSessionStartTimeMillis));
                         put(
                                 PREVIOUS_SESSION_PAUSE_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(firstSessionPauseTimeMillis));
+                                roundedToNearestSecond(firstSessionPauseTimeMillis));
                         put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
                         put(
                                 SESSION_START_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis));
+                                roundedToNearestSecond(secondSessionStartTimeMillis));
                         put(SESSION_EVENT, LIFECYCLE_START);
                         put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
                     }
@@ -595,7 +595,7 @@ public class LifecycleFunctionalTest {
                         put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
                         put(
                                 SESSION_START_TIMESTAMP,
-                                TimeUnit.MILLISECONDS.toSeconds(secondSessionStartTimeMillis));
+                                roundedToNearestSecond(secondSessionStartTimeMillis));
                         put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
                     }
                 };
@@ -811,5 +811,9 @@ public class LifecycleFunctionalTest {
                 (Map<String, String>)
                         mockExtensionApi2.createdSharedState.get(1).get(LIFECYCLE_CONTEXT_DATA);
         assertEquals(expectedContextData, secondSessionStartResponseEventContextData);
+    }
+
+    private long roundedToNearestSecond(long timestampMills) {
+        return TimeUnit.MILLISECONDS.toSeconds(timestampMills) * 1000;
     }
 }

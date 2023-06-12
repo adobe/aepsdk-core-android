@@ -27,6 +27,7 @@ import com.adobe.marketing.mobile.WrapperType
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import org.junit.After
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,6 +37,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
+import java.lang.UnsupportedOperationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
@@ -776,6 +778,40 @@ internal class EventHubTests {
     }
 
     @Test
+    fun testGetSharedState_AfterSet_StoresImmutableCopy() {
+        val sharedStateMap: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
+        val stateAtEvent1 = sharedStateMap.toMap()
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        eventHub.createSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            sharedStateMap,
+            event1
+        )
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1)
+        )
+
+        // Once set, changes to the initial object should not have any effect on shared state
+        sharedStateMap.clear()
+        assertThrows(UnsupportedOperationException::class.java) {
+            val sharedState = eventHub.getSharedState(SharedStateType.STANDARD, TestExtension.EXTENSION_NAME, event1, false, SharedStateResolution.ANY)
+            sharedState?.value?.clear()
+        }
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1)
+        )
+    }
+
+    @Test
     fun testGetSharedState_CaseInsensitive() {
         val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
         eventHub.start()
@@ -847,6 +883,41 @@ internal class EventHubTests {
             event1,
             SharedStateResult(SharedStateStatus.SET, stateAtEvent1),
             resolution = SharedStateResolution.LAST_SET
+        )
+    }
+
+    @Test
+    fun testGetSharedState_AfterPendingResolved_StoresImmutableCopy() {
+        val sharedStateMap: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to true)
+        val stateAtEvent1 = sharedStateMap.toMap()
+
+        eventHub.start()
+        eventHub.dispatch(event1)
+        val resolver = eventHub.createPendingSharedState(
+            SharedStateType.STANDARD,
+            TestExtension.EXTENSION_NAME,
+            event1
+        )
+
+        resolver?.resolve(sharedStateMap)
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1)
+        )
+
+        // Once set, changes to the initial object should not have any effect on shared state
+        sharedStateMap.clear()
+        assertThrows(UnsupportedOperationException::class.java) {
+            val sharedState = eventHub.getSharedState(SharedStateType.STANDARD, TestExtension.EXTENSION_NAME, event1, false, SharedStateResolution.ANY)
+            sharedState?.value?.clear()
+        }
+
+        verifySharedState(
+            SharedStateType.STANDARD,
+            event1,
+            SharedStateResult(SharedStateStatus.SET, stateAtEvent1)
         )
     }
 
@@ -1060,7 +1131,9 @@ internal class EventHubTests {
             )
         }
 
-        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+        // Verify that the state does not contain custom object
+        val expectedSharedState: Map<String, Any?> = mutableMapOf("One" to 1)
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, expectedSharedState))
     }
 
     @Test
@@ -1335,6 +1408,62 @@ internal class EventHubTests {
     }
 
     @Test
+    fun testEventHubRegisteredExtensionSharesStateIsImmutable() {
+        val latch = CountDownLatch(1)
+
+        val capturedEvents = mutableListOf<Event>()
+        eventHub.getExtensionContainer(EventHubPlaceholderExtension::class.java)?.registerEventListener(EventType.HUB, EventSource.SHARED_STATE) {
+            capturedEvents.add(it)
+            latch.countDown()
+        }
+
+        eventHub.wrapperType = WrapperType.FLUTTER
+        registerExtension(TestExtension2::class.java)
+        eventHub.start()
+        latch.await(250, TimeUnit.MILLISECONDS)
+
+        val expectedData = mapOf(
+            EventHubConstants.EventDataKeys.VERSION to EventHubConstants.VERSION_NUMBER,
+            EventHubConstants.EventDataKeys.WRAPPER to mapOf(
+                EventHubConstants.EventDataKeys.TYPE to WrapperType.FLUTTER.wrapperTag,
+                EventHubConstants.EventDataKeys.FRIENDLY_NAME to WrapperType.FLUTTER.friendlyName
+            ),
+            EventHubConstants.EventDataKeys.EXTENSIONS to mapOf(
+                TestExtension.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension.VERSION
+                ),
+                TestExtension2.EXTENSION_NAME to mapOf(
+                    EventHubConstants.EventDataKeys.FRIENDLY_NAME to TestExtension2.FRIENDLY_NAME,
+                    EventHubConstants.EventDataKeys.VERSION to TestExtension2.VERSION,
+                    EventHubConstants.EventDataKeys.METADATA to TestExtension2.METADATA
+                )
+            )
+        )
+        var sharedStateResult = eventHub.getSharedState(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            null,
+            false,
+            SharedStateResolution.ANY
+        )
+        assertEquals(expectedData, sharedStateResult?.value)
+
+        assertThrows(UnsupportedOperationException::class.java) {
+            sharedStateResult?.value?.clear()
+        }
+
+        sharedStateResult = eventHub.getSharedState(
+            SharedStateType.STANDARD,
+            EventHubConstants.NAME,
+            null,
+            false,
+            SharedStateResolution.ANY
+        )
+        assertEquals(expectedData, sharedStateResult?.value)
+    }
+
+    @Test
     fun testGetSharedState_AfterResolvingWithInvalidState() {
         class CustomClass
         val stateAtEvent1: MutableMap<String, Any?> = mutableMapOf("One" to 1, "Yes" to CustomClass())
@@ -1352,7 +1481,9 @@ internal class EventHubTests {
 
         resolver?.resolve(stateAtEvent1)
 
-        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+        // Verify that the state does not contain custom object
+        val expectedSharedState: Map<String, Any?> = mutableMapOf("One" to 1)
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, expectedSharedState))
     }
 
     @Test

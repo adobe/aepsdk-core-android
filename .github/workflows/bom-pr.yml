@@ -23,6 +23,9 @@ jobs:
         with:
           java-version: 11
 
+      - name: Generate BOM release notes
+        run: make generate-bom-release-notes
+
       - name: Bump up BOM version and update extension versions
         run: make bump-bom-version-and-update-bom-properties
 

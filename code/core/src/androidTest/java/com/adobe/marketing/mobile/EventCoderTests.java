@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
@@ -203,8 +204,10 @@ public class EventCoderTests {
                         .build();
 
         Event decodedEvent = EventCoder.decode(EventCoder.encode(event));
-        assertNull(event.getEventData());
-        assertNull(decodedEvent.getEventData());
+        assertNotNull(event.getEventData());
+        assertTrue(event.getEventData().isEmpty());
+        assertNotNull(decodedEvent.getEventData());
+        assertTrue(decodedEvent.getEventData().isEmpty());
     }
 
     @Test

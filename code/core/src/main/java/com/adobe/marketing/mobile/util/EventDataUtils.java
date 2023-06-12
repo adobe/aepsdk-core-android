@@ -83,7 +83,7 @@ public class EventDataUtils {
         } else if (obj.getClass().isArray()) {
             return cloneArray(obj, mode, depth);
         } else {
-            Log.debug(
+            Log.trace(
                     CoreConstants.LOG_TAG,
                     LOG_SOURCE,
                     "Cannot clone object of type: %s",
@@ -107,14 +107,13 @@ public class EventDataUtils {
                 } catch (CloneFailedException e) {
                     if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
                         throw e;
-                    } else {
-                        Log.debug(
-                                CoreConstants.LOG_TAG,
-                                LOG_SOURCE,
-                                "cloneMap - Skipped cloning key %s due to %s",
-                                key,
-                                e.getMessage());
                     }
+                    Log.trace(
+                            CoreConstants.LOG_TAG,
+                            LOG_SOURCE,
+                            "cloneMap - Skipped cloning key %s due to %s",
+                            key,
+                            e.getMessage());
                 }
             }
         }
@@ -135,7 +134,7 @@ public class EventDataUtils {
                 if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
                     throw e;
                 }
-                Log.debug(
+                Log.trace(
                         CoreConstants.LOG_TAG,
                         LOG_SOURCE,
                         "cloneCollection - Skipped cloning element due to %s",
@@ -159,7 +158,7 @@ public class EventDataUtils {
                 if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
                     throw e;
                 }
-                Log.debug(
+                Log.trace(
                         CoreConstants.LOG_TAG,
                         LOG_SOURCE,
                         "cloneArray - Skipped cloning element due to %s",

@@ -83,7 +83,7 @@ public class EventDataUtils {
         } else if (obj.getClass().isArray()) {
             return cloneArray(obj, mode, depth);
         } else {
-            Log.trace(
+            Log.error(
                     CoreConstants.LOG_TAG,
                     LOG_SOURCE,
                     "Cannot clone object of type: %s",
@@ -105,10 +105,15 @@ public class EventDataUtils {
                     Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
                     ret.put(key.toString(), clonedValue);
                 } catch (CloneFailedException e) {
-                    if (e.getReason() == CloneFailedException.Reason.UNSUPPORTED_TYPE) {
-                        Log.trace(CoreConstants.LOG_TAG, LOG_SOURCE, "Skipped cloning key %s", key);
-                    } else {
+                    if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
                         throw e;
+                    } else {
+                        Log.trace(
+                                CoreConstants.LOG_TAG,
+                                LOG_SOURCE,
+                                "Skipped cloning key %s due to %s",
+                                key,
+                                e.getMessage());
                     }
                 }
             }
@@ -130,7 +135,11 @@ public class EventDataUtils {
                 if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
                     throw e;
                 }
-                // otherwise skip cloning of unsupported type
+                Log.trace(
+                        CoreConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "cloneCollection - Skipped cloning element due to %s",
+                        e.getMessage());
             }
         }
         return mode == CloneMode.ImmutableContainer ? Collections.unmodifiableList(ret) : ret;
@@ -150,7 +159,11 @@ public class EventDataUtils {
                 if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
                     throw e;
                 }
-                // otherwise skip cloning of unsupported type
+                Log.trace(
+                        CoreConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "cloneArray - Skipped cloning element due to %s",
+                        e.getMessage());
             }
         }
 

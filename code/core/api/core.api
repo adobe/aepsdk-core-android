@@ -1012,9 +1012,7 @@ public abstract interface class com/adobe/marketing/mobile/services/ui/URIHandle
 }
 
 public class com/adobe/marketing/mobile/util/CloneFailedException : java/lang/Exception {
-	public fun <init> (Lcom/adobe/marketing/mobile/util/CloneFailedException$Reason;)V
 	public fun <init> (Ljava/lang/String;)V
-	public fun getReason ()Lcom/adobe/marketing/mobile/util/CloneFailedException$Reason;
 }
 
 public class com/adobe/marketing/mobile/util/DataReader {

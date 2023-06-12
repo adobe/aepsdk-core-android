@@ -42,7 +42,7 @@ public class CloneFailedException extends Exception {
      *
      * @param reason the {@link Reason} for the exception
      */
-    public CloneFailedException(@NonNull final Reason reason) {
+    CloneFailedException(@NonNull final Reason reason) {
         this(reason.toString(), reason);
     }
 
@@ -62,7 +62,7 @@ public class CloneFailedException extends Exception {
      *
      * @return rteturns the {@link Reason} for the exception
      */
-    @NonNull public Reason getReason() {
+    @NonNull Reason getReason() {
         return reason;
     }
 }

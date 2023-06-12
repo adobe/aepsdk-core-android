@@ -169,11 +169,11 @@ class LifecycleV1Extension {
                 LifecycleConstants.MAX_SESSION_LENGTH_SECONDS);
         lifecycleSharedState.put(
                 LifecycleConstants.EventDataKeys.Lifecycle.LIFECYCLE_CONTEXT_DATA, contextData);
-        extensionApi.createSharedState(lifecycleSharedState, event);
         // Convert these timestamps to milliseconds.
         lifecycleSharedState.put(
                 LifecycleConstants.EventDataKeys.Lifecycle.SESSION_START_TIMESTAMP,
                 TimeUnit.SECONDS.toMillis(startTimestampInSeconds));
+        extensionApi.createSharedState(lifecycleSharedState, event);
     }
 
     /**

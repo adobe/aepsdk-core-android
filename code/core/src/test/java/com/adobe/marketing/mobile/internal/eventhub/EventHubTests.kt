@@ -1060,7 +1060,9 @@ internal class EventHubTests {
             )
         }
 
-        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+        // Verify that the state does not contain custom object
+        val expectedSharedState: Map<String, Any?> = mutableMapOf("One" to 1)
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, expectedSharedState))
     }
 
     @Test
@@ -1352,7 +1354,9 @@ internal class EventHubTests {
 
         resolver?.resolve(stateAtEvent1)
 
-        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, null))
+        // Verify that the state does not contain custom object
+        val expectedSharedState: Map<String, Any?> = mutableMapOf("One" to 1)
+        verifySharedState(SharedStateType.STANDARD, event1, SharedStateResult(SharedStateStatus.SET, expectedSharedState))
     }
 
     @Test
@@ -2025,8 +2029,8 @@ internal class EventHubTests {
     // Event History tests
     @Test
     fun testEventHistory_recordsEventWithMask() {
-        val eventHistory = mock(EventHistory::class.java)
-        val eventHub = EventHub(eventHistory)
+        val eventHub = EventHub()
+        eventHub.eventHistory = mock(EventHistory::class.java)
 
         val event = Event.Builder("name", "type", "source", arrayOf("key"))
             .setEventData(mapOf("key" to "value"))
@@ -2048,7 +2052,7 @@ internal class EventHubTests {
         latch.await(1000, TimeUnit.MILLISECONDS)
 
         val captor = ArgumentCaptor.forClass(Event::class.java)
-        verify(eventHistory, times(2)).recordEvent(captor.capture(), any())
+        verify(eventHub.eventHistory, times(2))?.recordEvent(captor.capture(), any())
         assertEquals(listOf(event, event2), captor.allValues)
     }
 }

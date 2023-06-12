@@ -35,6 +35,8 @@ import kotlin.test.assertTrue
 @RunWith(MockitoJUnitRunner.Silent::class)
 class MobileCoreTests {
 
+    private var EXTENSION_VERSION = "2.2.1"
+
     @Mock
     private lateinit var mockedEventHub: EventHub
 
@@ -48,6 +50,12 @@ class MobileCoreTests {
     fun teardown() {
         reset(mockedEventHub)
         EventHub.shared.shutdown()
+    }
+
+    @Test
+    fun testSDKVersion() {
+        EventHub.shared = EventHub()
+        assertEquals(EXTENSION_VERSION, MobileCore.extensionVersion())
     }
 
     @Test

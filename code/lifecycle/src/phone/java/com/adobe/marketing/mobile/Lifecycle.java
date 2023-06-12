@@ -13,10 +13,11 @@ package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
 import com.adobe.marketing.mobile.services.Log;
+import java.util.List;
 
 public class Lifecycle {
 
-    private static final String EXTENSION_VERSION = "2.0.2";
+    private static final String EXTENSION_VERSION = "2.0.3";
 
     public static final Class<? extends Extension> EXTENSION = LifecycleExtension.class;
 

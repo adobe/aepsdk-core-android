@@ -83,7 +83,7 @@ public class EventDataUtils {
         } else if (obj.getClass().isArray()) {
             return cloneArray(obj, mode, depth);
         } else {
-            Log.error(
+            Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_SOURCE,
                     "Cannot clone object of type: %s",
@@ -108,7 +108,7 @@ public class EventDataUtils {
                     if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
                         throw e;
                     } else {
-                        Log.trace(
+                        Log.debug(
                                 CoreConstants.LOG_TAG,
                                 LOG_SOURCE,
                                 "cloneMap - Skipped cloning key %s due to %s",
@@ -135,7 +135,7 @@ public class EventDataUtils {
                 if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
                     throw e;
                 }
-                Log.trace(
+                Log.debug(
                         CoreConstants.LOG_TAG,
                         LOG_SOURCE,
                         "cloneCollection - Skipped cloning element due to %s",
@@ -159,7 +159,7 @@ public class EventDataUtils {
                 if (e.getReason() != CloneFailedException.Reason.UNSUPPORTED_TYPE) {
                     throw e;
                 }
-                Log.trace(
+                Log.debug(
                         CoreConstants.LOG_TAG,
                         LOG_SOURCE,
                         "cloneArray - Skipped cloning element due to %s",

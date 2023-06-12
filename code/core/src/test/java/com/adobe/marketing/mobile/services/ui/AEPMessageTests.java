@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 import android.app.Activity;
 import android.app.FragmentManager;
@@ -336,6 +337,46 @@ public class AEPMessageTests {
         // verify
         Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
+    }
+
+    @Test
+    public void aepMessageIsShownWithCurrentlyVisibleActivity() {
+        // setup
+        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
+        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
+                .thenCallRealMethod();
+        Mockito.when(mockActivity.findViewById(ArgumentMatchers.anyInt()))
+                .thenReturn(mockViewGroup);
+        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+        setupFragmentTransactionMocks();
+
+        try {
+            message =
+                    new AEPMessage(
+                            "html",
+                            mockFullscreenMessageDelegate,
+                            false,
+                            mockMessageMonitor,
+                            mockAEPMessageSettings,
+                            mockExecutor);
+        } catch (MessageCreationException ex) {
+            Assert.fail(ex.getMessage());
+        }
+
+        message.setWebView(mockWebView);
+        message.setMessageFragment(mockMessageFragment);
+
+        final Activity mockUpdatedActivity = Mockito.mock(Activity.class);
+        when(mockAppContextService.getCurrentActivity())
+                .thenReturn(mockActivity)
+                .thenReturn(mockUpdatedActivity);
+
+        // test
+        message.show(false);
+        // verify
+        Mockito.verify(mockUpdatedActivity).runOnUiThread(any());
+        Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
     }
 
     // openUrl tests

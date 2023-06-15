@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 import android.app.Activity;
@@ -126,6 +127,16 @@ public class AEPMessageTests {
                         })
                 .when(mockActivity)
                 .runOnUiThread(any(FutureTask.class));
+
+        // Trigger activity.runOnUiThread() immediately
+        doAnswer(
+                        invocation -> {
+                            Runnable r = invocation.getArgument(0);
+                            r.run();
+                            return null;
+                        })
+                .when(mockActivity)
+                .runOnUiThread(any(Runnable.class));
     }
 
     // AEPMessage creation tests
@@ -197,6 +208,10 @@ public class AEPMessageTests {
         Mockito.verify(mockMessageMonitor, Mockito.times(1))
                 .show(any(FullscreenMessage.class), eq(true));
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
+
+        // Verify that the message delegates are notified
+        Mockito.verify(mockFullscreenMessageDelegate).onShow(message);
+        Mockito.verify(mockMessagingDelegate).onShow(message);
     }
 
     @Test
@@ -230,6 +245,10 @@ public class AEPMessageTests {
         Mockito.verify(mockMessageMonitor, Mockito.times(1))
                 .show(any(FullscreenMessage.class), eq(true));
         Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
+
+        // Verify that the message delegates are never notified about showing
+        Mockito.verify(mockFullscreenMessageDelegate, never()).onShow(message);
+        Mockito.verify(mockMessagingDelegate, never()).onShow(message);
     }
 
     @Test
@@ -268,6 +287,10 @@ public class AEPMessageTests {
         // verify
         Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
         Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1)).onShowFailure();
+
+        // Verify that the message delegates are never notified about showing
+        Mockito.verify(mockFullscreenMessageDelegate, never()).onShow(message);
+        Mockito.verify(mockMessagingDelegate, never()).onShow(message);
     }
 
     @Test
@@ -303,6 +326,9 @@ public class AEPMessageTests {
         message.show(false);
         // verify
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
+
+        // Verify that the message delegate is notified about showing
+        Mockito.verify(mockFullscreenMessageDelegate).onShow(message);
     }
 
     @Test
@@ -372,11 +398,25 @@ public class AEPMessageTests {
                 .thenReturn(mockActivity)
                 .thenReturn(mockUpdatedActivity);
 
+        // Trigger mockUpdatedActivity.runOnUiThread() immediately
+        doAnswer(
+                        invocation -> {
+                            Runnable r = invocation.getArgument(0);
+                            r.run();
+                            return null;
+                        })
+                .when(mockUpdatedActivity)
+                .runOnUiThread(any(Runnable.class));
+
         // test
         message.show(false);
         // verify
         Mockito.verify(mockUpdatedActivity).runOnUiThread(any());
         Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
+
+        // Verify that the message delegates are never notified about showing
+        Mockito.verify(mockFullscreenMessageDelegate).onShow(message);
+        Mockito.verify(mockMessagingDelegate).onShow(message);
     }
 
     // openUrl tests

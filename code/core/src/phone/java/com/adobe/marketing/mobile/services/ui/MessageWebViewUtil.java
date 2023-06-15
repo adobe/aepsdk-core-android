@@ -110,7 +110,7 @@ class MessageWebViewUtil {
             // If the WebView was a child of another view, remove it from that previous view
             final ViewParent previousParent = webView.getParent();
             if (previousParent != null) {
-                Log.debug(ServiceConstants.LOG_TAG, TAG, "Removing formold parent view");
+                Log.debug(ServiceConstants.LOG_TAG, TAG, "Removing from old parent view.");
                 ((ViewGroup) previousParent).removeView(webView);
             }
 

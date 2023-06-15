@@ -240,6 +240,11 @@ class AEPMessage implements FullscreenMessage {
                                         currentActivity.getFragmentManager();
                                 try {
                                     messageFragment.show(fragmentManager, FRAGMENT_TAG);
+                                    message.viewed();
+                                    Log.trace(
+                                            ServiceConstants.LOG_TAG,
+                                            TAG,
+                                            "In-app message successfully shown.");
                                 } catch (Exception exception) {
                                     Log.warning(
                                             ServiceConstants.LOG_TAG,
@@ -338,7 +343,10 @@ class AEPMessage implements FullscreenMessage {
         return this.settings.getParent();
     }
 
-    /** Invoked after the message is successfully shown. */
+    /**
+     * Invoked after the message is successfully shown. This should be called ONLY once between
+     * {@link #show()} and {@link #dismiss()}.
+     */
     void viewed() {
         // notify listeners
         listener.onShow(this);

@@ -122,8 +122,6 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             return;
         }
 
-        message.viewed();
-
         Log.trace(
                 ServiceConstants.LOG_TAG,
                 TAG,

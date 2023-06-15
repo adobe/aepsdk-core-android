@@ -204,6 +204,17 @@ class AEPMessage implements FullscreenMessage {
                         webView = createWebView();
                     }
 
+                    final Activity currentActivity = getCurrentActivity();
+                    if (currentActivity == null) {
+                        Log.debug(
+                                ServiceConstants.LOG_TAG,
+                                TAG,
+                                "%s (current activity), failed to show the message.",
+                                UNEXPECTED_NULL_VALUE);
+                        listener.onShowFailure();
+                        return;
+                    }
+
                     // bail if we shouldn't be displaying a message
                     if (!messagesMonitor.show(message, withMessagingDelegateControl)) {
                         listener.onShowFailure();
@@ -215,20 +226,6 @@ class AEPMessage implements FullscreenMessage {
                     }
 
                     messageFragment.setAEPMessage(AEPMessage.this);
-
-                    final Activity currentActivity = getCurrentActivity();
-                    if (currentActivity == null) {
-                        Log.debug(
-                                ServiceConstants.LOG_TAG,
-                                TAG,
-                                "%s (current activity), failed to show the message.",
-                                UNEXPECTED_NULL_VALUE);
-                        // message monitor notification is needed because messageMonitor.show()
-                        // precedes this call
-                        messagesMonitor.dismissed();
-                        listener.onShowFailure();
-                        return;
-                    }
 
                     currentActivity.runOnUiThread(
                             () -> {
@@ -243,6 +240,11 @@ class AEPMessage implements FullscreenMessage {
                                         currentActivity.getFragmentManager();
                                 try {
                                     messageFragment.show(fragmentManager, FRAGMENT_TAG);
+                                    message.viewed();
+                                    Log.trace(
+                                            ServiceConstants.LOG_TAG,
+                                            TAG,
+                                            "In-app message successfully shown.");
                                 } catch (Exception exception) {
                                     Log.warning(
                                             ServiceConstants.LOG_TAG,
@@ -341,7 +343,10 @@ class AEPMessage implements FullscreenMessage {
         return this.settings.getParent();
     }
 
-    /** Invoked after the message is successfully shown. */
+    /**
+     * Invoked after the message is successfully shown. This should be called ONLY once between
+     * {@link #show()} and {@link #dismiss()}.
+     */
     void viewed() {
         // notify listeners
         listener.onShow(this);

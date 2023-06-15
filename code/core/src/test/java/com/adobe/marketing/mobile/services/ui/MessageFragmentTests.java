@@ -110,8 +110,10 @@ public class MessageFragmentTests {
 
         // test
         messageFragment.onAttach(mockContext);
+
         // verify
-        Mockito.verify(mockAEPMessage, Mockito.times(1)).viewed();
+        // verify that should not be called on attach
+        Mockito.verify(mockAEPMessage, Mockito.times(0)).viewed();
         Mockito.verify(mockMessagesMonitor, Mockito.times(1)).displayed();
     }
 

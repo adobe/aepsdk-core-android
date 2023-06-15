@@ -204,6 +204,17 @@ class AEPMessage implements FullscreenMessage {
                         webView = createWebView();
                     }
 
+                    final Activity currentActivity = getCurrentActivity();
+                    if (currentActivity == null) {
+                        Log.debug(
+                                ServiceConstants.LOG_TAG,
+                                TAG,
+                                "%s (current activity), failed to show the message.",
+                                UNEXPECTED_NULL_VALUE);
+                        listener.onShowFailure();
+                        return;
+                    }
+
                     // bail if we shouldn't be displaying a message
                     if (!messagesMonitor.show(message, withMessagingDelegateControl)) {
                         listener.onShowFailure();
@@ -215,20 +226,6 @@ class AEPMessage implements FullscreenMessage {
                     }
 
                     messageFragment.setAEPMessage(AEPMessage.this);
-
-                    final Activity currentActivity = getCurrentActivity();
-                    if (currentActivity == null) {
-                        Log.debug(
-                                ServiceConstants.LOG_TAG,
-                                TAG,
-                                "%s (current activity), failed to show the message.",
-                                UNEXPECTED_NULL_VALUE);
-                        // message monitor notification is needed because messageMonitor.show()
-                        // precedes this call
-                        messagesMonitor.dismissed();
-                        listener.onShowFailure();
-                        return;
-                    }
 
                     currentActivity.runOnUiThread(
                             () -> {

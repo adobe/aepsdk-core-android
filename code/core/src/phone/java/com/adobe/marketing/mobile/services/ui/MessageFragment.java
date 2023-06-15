@@ -124,6 +124,11 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
         message.viewed();
 
+        Log.trace(
+                ServiceConstants.LOG_TAG,
+                TAG,
+                "Fragment attached to host activity. Notifying MessageMonitor.");
+
         if (messagesMonitor != null) {
             messagesMonitor.displayed();
         }
@@ -167,6 +172,14 @@ public class MessageFragment extends android.app.DialogFragment implements View.
     public void onActivityCreated(final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         final Dialog dialog = getDialog();
+
+        if (messagesMonitor != null) {
+            Log.trace(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Host activity created. Notifying MessageMonitor.");
+            messagesMonitor.displayed();
+        }
 
         if (dialog != null) {
             dialog.setCancelable(false);

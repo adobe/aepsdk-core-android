@@ -14,6 +14,7 @@ package com.adobe.marketing.mobile.services.ui;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
@@ -105,6 +106,13 @@ class MessageWebViewUtil {
 
             // load the in-app message in the webview
             final WebView webView = message.getWebView();
+
+            // If the WebView was a child of another view, remove it from that previous view
+            final ViewParent previousParent = webView.getParent();
+            if (previousParent != null) {
+                Log.debug(ServiceConstants.LOG_TAG, TAG, "Removing from old parent view.");
+                ((ViewGroup) previousParent).removeView(webView);
+            }
 
             webView.loadDataWithBaseURL(
                     BASE_URL,

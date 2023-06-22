@@ -42,6 +42,7 @@ class MessageWebViewUtil {
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
     private static final int FULLSCREEN_PERCENTAGE = 100;
     private static final int ANIMATION_DURATION = 300;
+    private static final float WORKAROUND_ALPHA_VALUE = 0.99f;
     private static final String BASE_URL = "file:///android_asset/";
     private static final String MIME_TYPE = "text/html";
 
@@ -168,7 +169,7 @@ class MessageWebViewUtil {
 
             // if API < 22 then set webview alpha to 99% to fix rounded corners on messages
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
-                webView.setAlpha(0.99f);
+                webView.setAlpha(WORKAROUND_ALPHA_VALUE);
             }
 
             webViewFrame.addView(webView);

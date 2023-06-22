@@ -13,6 +13,9 @@ package com.adobe.marketing.mobile.services.ui;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
+import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.AlphaAnimation;
@@ -21,6 +24,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
 import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
@@ -152,6 +156,21 @@ class MessageWebViewUtil {
                 webviewSettings.setUseWideViewPort(true);
             }
 
+            // use a gradient drawable to set the rounded corners on the message
+            final GradientDrawable roundedDrawable = new GradientDrawable();
+            final float calculatedRadius =
+                    TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            message.getMessageSettings().getCornerRadius(),
+                            context.getResources().getDisplayMetrics());
+            roundedDrawable.setCornerRadius(calculatedRadius);
+            webViewFrame.setBackground(roundedDrawable);
+
+            // if API < 22 then set webview alpha to 99% to fix rounded corners on messages
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                webView.setAlpha(0.99f);
+            }
+
             webViewFrame.addView(webView);
 
             // add the created cardview containing the webview to the message object
@@ -233,8 +252,7 @@ class MessageWebViewUtil {
      * @param message {@link AEPMessage} containing the in-app message payload
      */
     private void setMessageLayoutParameters(final AEPMessage message) {
-        ViewGroup.MarginLayoutParams params =
-                new ViewGroup.MarginLayoutParams(messageWidth, messageHeight);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(messageWidth, messageHeight);
         params.topMargin = originY;
         params.leftMargin = originX;
         message.setParams(params);

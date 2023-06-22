@@ -18,13 +18,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.cardview.widget.CardView;
@@ -68,7 +68,7 @@ class AEPMessage implements FullscreenMessage {
     // private vars
     private WebView webView;
     private CardView webViewFrame;
-    private ViewGroup.LayoutParams params;
+    private FrameLayout.LayoutParams params;
     private final String html;
     private MessageSettings settings;
     private Animation dismissAnimation;
@@ -143,20 +143,20 @@ class AEPMessage implements FullscreenMessage {
     }
 
     /**
-     * Returns the {@link ViewGroup.LayoutParams} created for this message.
+     * Returns the {@link FrameLayout.LayoutParams} created for this message.
      *
-     * @return the created {@code ViewGroup.LayoutParams}
+     * @return the created {@code FrameLayout.LayoutParams}
      */
-    ViewGroup.LayoutParams getParams() {
+    FrameLayout.LayoutParams getParams() {
         return params;
     }
 
     /**
-     * Sets the {@link ViewGroup.LayoutParams} for this message.
+     * Sets the {@link FrameLayout.LayoutParams} for this message.
      *
-     * @param params the {@code ViewGroup.LayoutParams} to be set
+     * @param params the {@code FrameLayout.LayoutParams} to be set
      */
-    void setParams(final ViewGroup.LayoutParams params) {
+    void setParams(final FrameLayout.LayoutParams params) {
         this.params = params;
     }
 

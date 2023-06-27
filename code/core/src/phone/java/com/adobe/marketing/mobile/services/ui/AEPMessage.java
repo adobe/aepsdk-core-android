@@ -388,6 +388,7 @@ class AEPMessage implements FullscreenMessage {
         if (dismissedWithBackTouch) {
             listener.onBackPressed(this);
         }
+        listener.onDismiss(this);
 
         if (webViewFrame != null) {
             webViewFrame.setOnTouchListener(null);

@@ -295,7 +295,9 @@ class AEPMessage implements FullscreenMessage {
                         public void onAnimationRepeat(final Animation animation) {}
                     };
             dismissAnimation.setAnimationListener(animationListener);
-            webViewFrame.startAnimation(dismissAnimation);
+            if (webViewFrame != null) {
+                webViewFrame.startAnimation(dismissAnimation);
+            }
             return;
         }
 
@@ -386,10 +388,15 @@ class AEPMessage implements FullscreenMessage {
         if (dismissedWithBackTouch) {
             listener.onBackPressed(this);
         }
-        listener.onDismiss(this);
 
-        webViewFrame.setOnTouchListener(null);
-        webView.setOnTouchListener(null);
+        if (webViewFrame != null) {
+            webViewFrame.setOnTouchListener(null);
+        }
+
+        if (webView != null) {
+            webView.setOnTouchListener(null);
+        }
+
         if (dismissAnimation != null) {
             dismissAnimation.setAnimationListener(null);
             dismissAnimation = null;

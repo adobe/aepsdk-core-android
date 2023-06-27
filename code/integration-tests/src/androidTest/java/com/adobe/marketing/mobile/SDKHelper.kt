@@ -40,7 +40,7 @@ object SDKHelper {
     private const val LIFECYCLE_DATA_STORE = "AdobeMobile_Lifecycle"
 
 
-    private fun setupNetworkService(
+    fun setupNetworkService(
         configURL: String,
         mockConfigResponse: Map<String, String>,
         rulesURL: String?,
@@ -71,6 +71,9 @@ object SDKHelper {
                     connection = MockNetworkResponse(
                         HttpURLConnection.HTTP_OK, "OK", emptyMap(), rulesStream, urlMonitor
                     )
+                }
+                else -> {
+                    connection = MockNetworkResponse(HttpURLConnection.HTTP_NOT_FOUND, "NOT FOUND", emptyMap(), "".byteInputStream(), urlMonitor)
                 }
             }
 

@@ -18,6 +18,7 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG
+import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH
@@ -159,7 +160,7 @@ class ConfigurationExtensionTests {
             EventSource.REQUEST_CONTENT,
             mapOf(
                 CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
-                ConfigurationExtension.CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
+                CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
             ),
             null
         )
@@ -252,7 +253,7 @@ class ConfigurationExtensionTests {
             EventSource.REQUEST_CONTENT,
             mapOf(
                 CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
-                "config.isinternalevent" to true
+                CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
             ),
             null
         )
@@ -461,7 +462,7 @@ class ConfigurationExtensionTests {
             EventSource.REQUEST_CONTENT,
             mapOf(
                 CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID to "SampleAppID",
-                "config.isinternalevent" to true
+                CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT to true
             ),
             null
         )

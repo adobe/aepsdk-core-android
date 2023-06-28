@@ -277,30 +277,31 @@ class AEPMessage implements FullscreenMessage {
         if (!messagesMonitor.dismiss()) {
             return;
         }
-        // add a dismiss animation if the webview wasn't previously removed via a swipe gesture
-        if (!messageFragment.isDismissedWithGesture()) {
-            dismissAnimation = setupDismissAnimation();
-            animationListener =
-                    new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(final Animation animation) {}
 
-                        @Override
-                        public void onAnimationEnd(final Animation animation) {
-                            // wait for the animation to end then clean the views
-                            cleanup(dismissedWithBackTouch);
-                        }
-
-                        @Override
-                        public void onAnimationRepeat(final Animation animation) {}
-                    };
-            dismissAnimation.setAnimationListener(animationListener);
-            webViewFrame.startAnimation(dismissAnimation);
+        if (messageFragment.isDismissedWithGesture() || webViewFrame == null) {
+            // just clean the views
+            cleanup(dismissedWithBackTouch);
             return;
         }
 
-        // otherwise, just clean the views
-        cleanup(dismissedWithBackTouch);
+        // add a dismiss animation if the webview wasn't previously removed via a swipe gesture
+        dismissAnimation = setupDismissAnimation();
+        animationListener =
+                new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(final Animation animation) {}
+
+                    @Override
+                    public void onAnimationEnd(final Animation animation) {
+                        // wait for the animation to end then clean the views
+                        cleanup(dismissedWithBackTouch);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(final Animation animation) {}
+                };
+        dismissAnimation.setAnimationListener(animationListener);
+        webViewFrame.startAnimation(dismissAnimation);
     }
 
     /**
@@ -385,11 +386,17 @@ class AEPMessage implements FullscreenMessage {
 
         if (dismissedWithBackTouch) {
             listener.onBackPressed(this);
-        } else {
-            listener.onDismiss(this);
         }
-        webViewFrame.setOnTouchListener(null);
-        webView.setOnTouchListener(null);
+        listener.onDismiss(this);
+
+        if (webViewFrame != null) {
+            webViewFrame.setOnTouchListener(null);
+        }
+
+        if (webView != null) {
+            webView.setOnTouchListener(null);
+        }
+
         if (dismissAnimation != null) {
             dismissAnimation.setAnimationListener(null);
             dismissAnimation = null;

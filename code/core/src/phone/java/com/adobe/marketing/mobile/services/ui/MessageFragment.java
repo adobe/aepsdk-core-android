@@ -321,7 +321,9 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             // handle on back pressed to dismiss the message
             dialog.setOnKeyListener(
                     (dialogInterface, keyCode, event) -> {
-                        if (message != null && keyCode == KeyEvent.KEYCODE_BACK) {
+                        if (message != null
+                                && keyCode == KeyEvent.KEYCODE_BACK
+                                && event.getAction() == KeyEvent.ACTION_UP) {
                             message.dismiss(true);
                         }
                         return false;

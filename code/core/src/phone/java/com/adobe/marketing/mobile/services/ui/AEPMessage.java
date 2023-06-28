@@ -295,9 +295,10 @@ class AEPMessage implements FullscreenMessage {
                         public void onAnimationRepeat(final Animation animation) {}
                     };
             dismissAnimation.setAnimationListener(animationListener);
-            if (webViewFrame != null) {
-                webViewFrame.startAnimation(dismissAnimation);
+            if (webViewFrame == null) {
+                cleanup(dismissedWithBackTouch);
             }
+            webViewFrame.startAnimation(dismissAnimation);
             return;
         }
 

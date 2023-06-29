@@ -1,6 +1,6 @@
-| Extension artifact | BOM (1.0.1) | BOM (2.0.0) |
+| Extension artifact | BOM (2.0.0) | BOM (2.0.1) |
 |-----|-----|-----|
-| **com.adobe.marketing.mobile:core** | **2.2.1** | **2.2.2**|
+| **com.adobe.marketing.mobile:core** | **2.2.2** | **2.2.3**|
 | com.adobe.marketing.mobile:analytics | 2.0.2 | 2.0.2 |
 | com.adobe.marketing.mobile:assurance | 2.1.0 | 2.1.0 |
 | com.adobe.marketing.mobile:audience | 2.0.0 | 2.0.0 |

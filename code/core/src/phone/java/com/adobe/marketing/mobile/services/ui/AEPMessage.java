@@ -278,7 +278,8 @@ class AEPMessage implements FullscreenMessage {
             return;
         }
 
-        if (messageFragment == null || messageFragment.isDismissedWithGesture()
+        if (messageFragment == null
+                || messageFragment.isDismissedWithGesture()
                 || webViewFrame == null) {
             // just clean the views
             cleanup(dismissedWithBackTouch);

@@ -48,7 +48,7 @@ dependencies {
     implementation project(path: ':identity')
     implementation project(path: ':lifecycle')
 
-    androidTestImplementation('com.adobe.marketing.mobile:analytics:2.0.0-SNAPSHOT') {
+    androidTestImplementation('com.adobe.marketing.mobile:analytics:2.0.0') {
         transitive = false
     }
 

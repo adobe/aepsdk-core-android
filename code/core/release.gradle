@@ -26,8 +26,8 @@ publishing {
             artifact("$buildDir/outputs/aar/${rootProject.coreExtensionAARName}")
             artifact javadocJar
             pom {
-                name = rootProject.mavenRepoName
-                description = rootProject.mavenRepoDescription
+                name = rootProject.coreMavenRepoName
+                description = rootProject.coreMavenRepoDescription
                 url = 'https://developer.adobe.com/client-sdks'
                 licenses {
                     license {

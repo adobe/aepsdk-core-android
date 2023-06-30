@@ -105,8 +105,8 @@ publishing {
             artifact javadocPublish
 
             pom {
-                name = rootProject.mavenRepoName
-                description = rootProject.mavenRepoDescription
+                name = rootProject.identityMavenRepoName
+                description = rootProject.identityMavenRepoDescription
                 url = 'https://developer.adobe.com/client-sdks'
                 licenses {
                     license {

@@ -14,7 +14,6 @@ package com.adobe.marketing.mobile.services.ui;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
-import android.os.Build;
 import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -167,7 +166,8 @@ class MessageWebViewUtil {
             roundedDrawable.setCornerRadius(calculatedRadius);
             webViewFrame.setBackground(roundedDrawable);
 
-            // set webview alpha to 99% to allow rounded corners to be applied on messages on API22 and below
+            // set webview alpha to 99% to allow rounded corners to be applied on messages on API22
+            // and below
             webView.setAlpha(WORKAROUND_ALPHA_VALUE);
 
             // add the created cardview containing the webview to the message object

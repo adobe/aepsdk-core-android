@@ -167,14 +167,11 @@ class MessageWebViewUtil {
             roundedDrawable.setCornerRadius(calculatedRadius);
             webViewFrame.setBackground(roundedDrawable);
 
-            // if API < 22 then set webview alpha to 99% to fix rounded corners on messages
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
-                webView.setAlpha(WORKAROUND_ALPHA_VALUE);
-            }
-
-            webViewFrame.addView(webView);
+            // set webview alpha to 99% to allow rounded corners to be applied on messages on API22 and below
+            webView.setAlpha(WORKAROUND_ALPHA_VALUE);
 
             // add the created cardview containing the webview to the message object
+            webViewFrame.addView(webView);
             message.setWebViewFrame(webViewFrame);
 
             setMessageLayoutParameters(message);

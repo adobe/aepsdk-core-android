@@ -18,9 +18,9 @@ import static org.mockito.Mockito.when;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.DisplayMetrics;
-import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
 import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
@@ -107,7 +107,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -128,7 +128,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -149,7 +149,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -170,7 +170,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -191,7 +191,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -212,7 +212,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -233,7 +233,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -254,7 +254,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -275,7 +275,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -296,7 +296,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -317,7 +317,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -338,7 +338,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -357,7 +357,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(1))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(1))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 
@@ -376,7 +376,7 @@ public class MessageWebViewUtilTests {
             Mockito.verify(mockWebview, Mockito.times(0))
                     .setOnTouchListener(any(MessageFragment.class));
             Mockito.verify(mockAEPMessage, Mockito.times(0))
-                    .setParams(any(ViewGroup.MarginLayoutParams.class));
+                    .setParams(any(FrameLayout.LayoutParams.class));
         }
     }
 }

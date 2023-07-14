@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile.services.ui;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.AlphaAnimation;
@@ -21,6 +23,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
 import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
@@ -38,6 +41,7 @@ class MessageWebViewUtil {
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
     private static final int FULLSCREEN_PERCENTAGE = 100;
     private static final int ANIMATION_DURATION = 300;
+    private static final float WORKAROUND_ALPHA_VALUE = 0.99f;
     private static final String BASE_URL = "file:///android_asset/";
     private static final String MIME_TYPE = "text/html";
 
@@ -152,9 +156,22 @@ class MessageWebViewUtil {
                 webviewSettings.setUseWideViewPort(true);
             }
 
-            webViewFrame.addView(webView);
+            // use a gradient drawable to set the rounded corners on the message
+            final GradientDrawable roundedDrawable = new GradientDrawable();
+            final float calculatedRadius =
+                    TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            message.getMessageSettings().getCornerRadius(),
+                            context.getResources().getDisplayMetrics());
+            roundedDrawable.setCornerRadius(calculatedRadius);
+            webViewFrame.setBackground(roundedDrawable);
+
+            // set webview alpha to 99% to allow rounded corners to be applied on messages on API22
+            // and below
+            webView.setAlpha(WORKAROUND_ALPHA_VALUE);
 
             // add the created cardview containing the webview to the message object
+            webViewFrame.addView(webView);
             message.setWebViewFrame(webViewFrame);
 
             setMessageLayoutParameters(message);
@@ -233,8 +250,7 @@ class MessageWebViewUtil {
      * @param message {@link AEPMessage} containing the in-app message payload
      */
     private void setMessageLayoutParameters(final AEPMessage message) {
-        ViewGroup.MarginLayoutParams params =
-                new ViewGroup.MarginLayoutParams(messageWidth, messageHeight);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(messageWidth, messageHeight);
         params.topMargin = originY;
         params.leftMargin = originX;
         message.setParams(params);

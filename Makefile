@@ -210,39 +210,3 @@ identity-publish-maven-local:
 identity-publish-maven-local-jitpack:
 		(./code/gradlew -p code/identity assemblePhone)
 		(./code/gradlew -p code/identity publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
-
-# SDK size
-sdk-size:
-	(./code/gradlew -p code/sdk-bom computeSdkSize)
-
-bom-project-refresh-dependencies:
-	(./code/gradlew -p code/sdk-bom build --refresh-dependencies)
-
-# SDK BOM artifact
-bump-bom-version-and-update-bom-properties:
-	(./code/gradlew -p code/sdk-bom bumpBomVersion)
-	(./code/gradlew -p code/sdk-bom storeLatestExtensionInfo)
-
-generate-bom-release-notes:
-	(./code/gradlew -p code/sdk-bom bom_release_notes)
-
-print-bom-version:
-	(grep "^bomVersion=" ./code/gradle.properties | sed -e 's/.*=//')
-
-generate-bom-pom:
-	(./code/gradlew -p code/sdk-bom generatePomFileForReleasePublication)
-
-print-bom-pom:
-	(xmllint --format ./code/sdk-bom/build/publications/release/pom-default.xml)
-
-bom-publish-maven-local:
-	(./code/gradlew -p code/sdk-bom publishReleasePublicationToMavenLocal -x signReleasePublication)
-
-bom-assemble-release:
-	(./code/gradlew -p code/sdk-bom assembleRelease --stacktrace)
-
-bom-publish-snapshot: clean bom-assemble-release
-	(./code/gradlew -p code/sdk-bom publishReleasePublicationToSonatypeRepository --stacktrace)
-
-bom-publish-main: clean bom-assemble-release
-	(./code/gradlew -p code/sdk-bom publishReleasePublicationToSonatypeRepository -Prelease)

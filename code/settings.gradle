@@ -17,5 +17,4 @@ include ':core',
         ':integration-tests',
         ':test-third-party-extension',
         ':macrobenchmark',
-        ':microbenchmark',
-        ':sdk-bom'
+        ':microbenchmark'

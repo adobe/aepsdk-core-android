@@ -98,8 +98,8 @@ publishing {
             artifact("$buildDir/outputs/aar/${rootProject.lifecycleExtensionAARName}")
             artifact javadocPublish
             pom {
-                name = rootProject.mavenRepoName
-                description = rootProject.mavenRepoDescription
+                name = rootProject.lifecycleMavenRepoName
+                description = rootProject.lifecycleMavenRepoDescription
                 url = 'https://developer.adobe.com/client-sdks'
                 licenses {
                     license {

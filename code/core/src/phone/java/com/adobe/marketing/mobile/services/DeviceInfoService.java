@@ -56,23 +56,7 @@ class DeviceInfoService implements DeviceInforming {
             return null;
         }
 
-        final Resources resources = context.getResources();
-
-        if (resources == null) {
-            return null;
-        }
-
-        final Configuration configuration = resources.getConfiguration();
-
-        if (configuration == null) {
-            return null;
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return configuration.locale;
-        } else {
-            return configuration.getLocales().get(0);
-        }
+        return getLocaleFromResources(context.getResources());
     }
 
     /**
@@ -83,23 +67,7 @@ class DeviceInfoService implements DeviceInforming {
      */
     @Override
     public Locale getSystemLocale() {
-        final Resources resources = Resources.getSystem();
-
-        if (resources == null) {
-            return null;
-        }
-
-        final Configuration configuration = resources.getConfiguration();
-
-        if (configuration == null) {
-            return null;
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return configuration.locale;
-        } else {
-            return configuration.getLocales().get(0);
-        }
+        return getLocaleFromResources(Resources.getSystem());
     }
 
     @Override
@@ -606,6 +574,29 @@ class DeviceInfoService implements DeviceInforming {
         }
 
         return result;
+    }
+
+    /**
+     * Returns the preferred locale value from the Resources object.
+     *
+     * @return A {@link Locale} value, if available, null otherwise
+     */
+    private Locale getLocaleFromResources(final Resources resources) {
+        if (resources == null) {
+            return null;
+        }
+
+        final Configuration configuration = resources.getConfiguration();
+
+        if (configuration == null) {
+            return null;
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return configuration.locale;
+        } else {
+            return configuration.getLocales().get(0);
+        }
     }
 
     /**

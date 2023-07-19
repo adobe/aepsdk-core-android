@@ -142,11 +142,19 @@ public interface DeviceInforming {
     String getApplicationVersionCode();
 
     /**
-     * Returns the currently selected / active locale value (as set by the user on the system).
+     * Returns the currently selected / active locale value with respect to the application context.
      *
      * @return A {@link Locale} value, if available, null otherwise
      */
     Locale getActiveLocale();
+
+    /**
+     * Returns the currently selected / active locale value on the device settings as set by the
+     * user.
+     *
+     * @return A {@link Locale} value, if available, null otherwise
+     */
+    Locale getSystemLocale();
 
     /**
      * Returns information about the display hardware, as returned by the underlying OS.

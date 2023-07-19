@@ -45,9 +45,9 @@ class DeviceInfoService implements DeviceInforming {
     DeviceInfoService() {}
 
     /**
-     * Returns the currently selected / active locale value (as set by the user on the system).
+     * Returns the currently selected / active locale value with respect to the application context.
      *
-     * @return A {@link Locale} value, if available, null otherwise.
+     * @return A {@link Locale} value, if available, null otherwise
      */
     public Locale getActiveLocale() {
         final Context context = getApplicationContext();
@@ -57,6 +57,33 @@ class DeviceInfoService implements DeviceInforming {
         }
 
         final Resources resources = context.getResources();
+
+        if (resources == null) {
+            return null;
+        }
+
+        final Configuration configuration = resources.getConfiguration();
+
+        if (configuration == null) {
+            return null;
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return configuration.locale;
+        } else {
+            return configuration.getLocales().get(0);
+        }
+    }
+
+    /**
+     * Returns the currently selected / active locale value on the device settings as set by the
+     * user.
+     *
+     * @return A {@link Locale} value, if available, null otherwise
+     */
+    @Override
+    public Locale getSystemLocale() {
+        final Resources resources = Resources.getSystem();
 
         if (resources == null) {
             return null;

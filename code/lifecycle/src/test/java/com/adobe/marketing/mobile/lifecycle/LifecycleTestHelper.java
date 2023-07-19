@@ -46,6 +46,7 @@ class LifecycleTestHelper {
         when(deviceInfoService.getOperatingSystemVersion()).thenReturn("5.55");
         when(deviceInfoService.getMobileCarrierName()).thenReturn("TEST_CARRIER");
         when(deviceInfoService.getActiveLocale()).thenReturn(new Locale("en", "US"));
+        when(deviceInfoService.getSystemLocale()).thenReturn(new Locale("fr", "FR"));
         when(deviceInfoService.getRunMode()).thenReturn("APPLICATION");
     }
 }

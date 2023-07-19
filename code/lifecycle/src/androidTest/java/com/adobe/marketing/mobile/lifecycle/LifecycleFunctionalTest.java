@@ -76,6 +76,8 @@ public class LifecycleFunctionalTest {
     private static final String RUN_MODE = "runmode";
     private static final String SESSION_EVENT = "sessionevent";
     private static final String SESSION_START_TIMESTAMP = "starttimestampmillis";
+
+    private static final String SYSTEM_LOCALE = "systemlocale";
     private static final String UPGRADE_EVENT = "upgradeevent";
     private static final String DATA_STORE_NAME = "AdobeMobile_Lifecycle";
     private static final String LIFECYCLE_CONFIG_SESSION_TIMEOUT = "lifecycle.sessionTimeout";
@@ -141,7 +143,8 @@ public class LifecycleFunctionalTest {
         mockDeviceInfoService.operatingSystemName = "TEST_OS";
         mockDeviceInfoService.operatingSystemVersion = "5.55";
         mockDeviceInfoService.mobileCarrierName = "TEST_CARRIER";
-        mockDeviceInfoService.activeLocale = new Locale("en", "US");
+        mockDeviceInfoService.activeLocale = Locale.US;
+        mockDeviceInfoService.systemLocale = Locale.FRANCE;
         mockDeviceInfoService.runMode = "APPLICATION";
     }
 
@@ -192,6 +195,7 @@ public class LifecycleFunctionalTest {
                         put(LAUNCHES, "1");
                         put(OPERATING_SYSTEM, "TEST_OS 5.55");
                         put(LOCALE, "en-US");
+                        put(SYSTEM_LOCALE, "fr-FR");
                         put(DEVICE_RESOLUTION, "100x100");
                         put(CARRIER_NAME, "TEST_CARRIER");
                         put(DEVICE_NAME, "deviceName");
@@ -331,6 +335,7 @@ public class LifecycleFunctionalTest {
                         put(PREVIOUS_OS, "TEST_OS 5.55");
                         put(OPERATING_SYSTEM, "TEST_OS 5.55");
                         put(LOCALE, "en-US");
+                        put(SYSTEM_LOCALE, "fr-FR");
                         put(DEVICE_RESOLUTION, "100x100");
                         put(CARRIER_NAME, "TEST_CARRIER");
                         put(DEVICE_NAME, "deviceName");
@@ -393,6 +398,7 @@ public class LifecycleFunctionalTest {
                         put(LAUNCHES, "2");
                         put(OPERATING_SYSTEM, "TEST_OS 5.55");
                         put(LOCALE, "en-US");
+                        put(SYSTEM_LOCALE, "fr-FR");
                         put(DEVICE_RESOLUTION, "100x100");
                         put(CARRIER_NAME, "TEST_CARRIER");
                         put(DEVICE_NAME, "deviceName");
@@ -559,6 +565,7 @@ public class LifecycleFunctionalTest {
                         put(LAUNCHES, "2");
                         put(OPERATING_SYSTEM, "TEST_OS 5.55");
                         put(LOCALE, "en-US");
+                        put(SYSTEM_LOCALE, "fr-FR");
                         put(DEVICE_RESOLUTION, "100x100");
                         put(CARRIER_NAME, "TEST_CARRIER");
                         put(DEVICE_NAME, "deviceName");
@@ -798,6 +805,7 @@ public class LifecycleFunctionalTest {
                         put(LAUNCHES, "1");
                         put(OPERATING_SYSTEM, "TEST_OS 5.55");
                         put(LOCALE, "en-US");
+                        put(SYSTEM_LOCALE, "fr-FR");
                         put(DEVICE_RESOLUTION, "100x100");
                         put(CARRIER_NAME, "TEST_CARRIER");
                         put(DEVICE_NAME, "deviceName");

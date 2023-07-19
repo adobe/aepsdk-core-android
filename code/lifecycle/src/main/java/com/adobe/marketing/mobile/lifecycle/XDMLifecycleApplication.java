@@ -200,7 +200,7 @@ class XDMLifecycleApplication {
      * @return {@link String} value or null if the property is not set
      */
     String getLanguage() {
-        return this.language.getLanguage();
+        return this.language != null ? this.language.getLanguage() : null;
     }
 
     /**

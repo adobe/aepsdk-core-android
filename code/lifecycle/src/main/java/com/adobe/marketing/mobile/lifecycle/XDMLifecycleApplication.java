@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
+import com.adobe.marketing.mobile.services.Log;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,12 +19,14 @@ import java.util.Map;
 @SuppressWarnings("unused")
 class XDMLifecycleApplication {
 
+    private final String LOG_SOURCE = "XDMLifecycleApplication";
     private XDMLifecycleCloseTypeEnum closeType;
     private String id;
     private boolean isClose;
     private boolean isInstall;
     private boolean isLaunch;
     private boolean isUpgrade;
+    private XDMLanguage language;
     private String name;
     private int sessionLength;
     private String version;
@@ -67,6 +70,10 @@ class XDMLifecycleApplication {
 
         if (this.sessionLength > 0) {
             map.put("sessionLength", this.sessionLength);
+        }
+
+        if (this.language != null) {
+            map.put("_dc", this.language.serializeToXdm());
         }
 
         return map;
@@ -184,6 +191,36 @@ class XDMLifecycleApplication {
      */
     void setIsUpgrade(final boolean newValue) {
         this.isUpgrade = newValue;
+    }
+
+    /**
+     * Returns the Language property The language of the environment to represent the user's
+     * linguistic, geographical, or cultural preferences for data presentation.
+     *
+     * @return {@link String} value or null if the property is not set
+     */
+    String getLanguage() {
+        return this.language.getLanguage();
+    }
+
+    /**
+     * Sets the Language property The language of the environment to represent the user's
+     * linguistic, geographical, or cultural preferences for data presentation (according to IETF
+     * RFC 3066).
+     *
+     * @param newValue the new Language value
+     */
+    void setLanguage(final String newValue) {
+        try {
+            this.language = new XDMLanguage(newValue);
+        } catch (IllegalArgumentException ex) {
+            Log.warning(
+                    LifecycleConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Language tag '%s' failed validation and will be dropped. Values for XDM"
+                            + " field 'application._dc.language' must conform to BCP 47.",
+                    newValue);
+        }
     }
 
     /**

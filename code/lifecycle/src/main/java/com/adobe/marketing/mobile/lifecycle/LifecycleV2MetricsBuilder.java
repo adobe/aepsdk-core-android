@@ -135,6 +135,8 @@ class LifecycleV2MetricsBuilder {
         xdmApplicationInfoLaunch.setName(deviceInfoService.getApplicationName());
         xdmApplicationInfoLaunch.setId(deviceInfoService.getApplicationPackageName());
         xdmApplicationInfoLaunch.setVersion(getAppVersion());
+        xdmApplicationInfoLaunch.setLanguage(
+                LifecycleUtil.formatLocaleXDM(deviceInfoService.getActiveLocale()));
 
         return xdmApplicationInfoLaunch;
     }
@@ -194,7 +196,7 @@ class LifecycleV2MetricsBuilder {
         xdmEnvironmentInfo.setOperatingSystem(deviceInfoService.getOperatingSystemName());
         xdmEnvironmentInfo.setOperatingSystemVersion(deviceInfoService.getOperatingSystemVersion());
         xdmEnvironmentInfo.setLanguage(
-                LifecycleUtil.formatLocaleXDM(deviceInfoService.getActiveLocale()));
+                LifecycleUtil.formatLocaleXDM(deviceInfoService.getSystemLocale()));
 
         return xdmEnvironmentInfo;
     }

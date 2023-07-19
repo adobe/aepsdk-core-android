@@ -322,6 +322,12 @@ final class LifecycleMetricsBuilder {
             lifecycleData.put(LifecycleConstants.EventDataKeys.Lifecycle.LOCALE, locale);
         }
 
+        final String systemLocale = LifecycleUtil.formatLocale(deviceInfoService.getSystemLocale());
+        if (!StringUtils.isNullOrEmpty(systemLocale)) {
+            lifecycleData.put(
+                    LifecycleConstants.EventDataKeys.Lifecycle.SYSTEM_LOCALE, systemLocale);
+        }
+
         final String runMode = deviceInfoService.getRunMode();
 
         if (!StringUtils.isNullOrEmpty(runMode)) {

@@ -142,7 +142,7 @@ public class SqliteDataQueueTests {
         Assert.assertTrue(isDatabaseCorrupt());
 
         // After detecting db is corrupt, resets the database.
-        Assert.assertFalse(dataQueue.clear());
+        Assert.assertTrue(dataQueue.clear());
         Assert.assertEquals(0, dataQueue.count());
         Assert.assertFalse(isDatabaseCorrupt());
     }

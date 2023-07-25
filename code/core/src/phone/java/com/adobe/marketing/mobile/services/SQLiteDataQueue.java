@@ -280,7 +280,7 @@ final class SQLiteDataQueue implements DataQueue {
             if (!result) {
                 resetDatabase();
             }
-            return result;
+            return true;
         }
     }
 

@@ -90,6 +90,13 @@ public class MockDeviceInfoService implements DeviceInforming {
         return activeLocale;
     }
 
+    public Locale systemLocale = Locale.FRANCE;
+
+    @Override
+    public Locale getSystemLocale() {
+        return systemLocale;
+    }
+
     public DeviceInforming.DisplayInformation displayInformation;
 
     @Override

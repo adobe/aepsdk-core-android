@@ -249,6 +249,14 @@ internal class ConfigurationExtension : Extension {
             return
         }
 
+        // Check if this is an internal request ovewriting explicit configure with appId request.
+        val isInternalEvent = DataReader.optBoolean(event.eventData, CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT, false)
+        if (isStaleAppIdUpdateRequest(appId, isInternalEvent)) {
+            Log.trace(TAG, TAG, "An explicit configure with AppId request has preceded this internal event.")
+            sharedStateResolver?.resolve(configurationStateManager.environmentAwareConfiguration)
+            return
+        }
+
         // Stop all event processing for the extension until new configuration download is attempted
         api.stopEvents()
 
@@ -539,5 +547,25 @@ internal class ConfigurationExtension : Extension {
                 }
             }
         }
+    }
+
+    /**
+     * Determines if the current AppID update request is stale.
+     * A request is considered stale if it is a configuration request sent internally
+     * and there is a newer request that has been sent externally via {@link MobileCore#configureWithAppId(String)}
+     *
+     * @param newAppId the new app ID with which the configuration update is being requested
+     * @param isInternalEvent whether the current request is an initial configuration request
+     * @return true if the current request is stale, false otherwise
+     */
+    private fun isStaleAppIdUpdateRequest(newAppId: String, isInternalEvent: Boolean): Boolean {
+        // Because events are dispatched and processed serially, external config with app id events
+        // cannot be stale.
+        if (!isInternalEvent) return false
+
+        // Load the currently persisted app id for validation
+        val persistedAppId = appIdManager.getAppIDFromPersistence()
+
+        return !persistedAppId.isNullOrBlank() && newAppId != persistedAppId
     }
 }

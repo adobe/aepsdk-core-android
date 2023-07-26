@@ -89,9 +89,13 @@ public class LifecycleV2FunctionalTest {
         expectedEnvironmentInfo.put("operatingSystemVersion", "5.55");
         expectedEnvironmentInfo.put("operatingSystem", "TEST_OS");
         expectedEnvironmentInfo.put("type", "application");
-        Map<String, Object> localeMap = new HashMap<>();
-        localeMap.put("language", "en-US");
-        expectedEnvironmentInfo.put("_dc", localeMap);
+        expectedEnvironmentInfo.put(
+                "_dc",
+                new HashMap<String, Object>() {
+                    {
+                        put("language", "fr-FR");
+                    }
+                });
 
         expectedDeviceInfo.put("manufacturer", "Android");
         expectedDeviceInfo.put("model", "deviceName");
@@ -128,7 +132,8 @@ public class LifecycleV2FunctionalTest {
         mockDeviceInfoService.operatingSystemName = "TEST_OS";
         mockDeviceInfoService.operatingSystemVersion = "5.55";
         mockDeviceInfoService.mobileCarrierName = "TEST_CARRIER";
-        mockDeviceInfoService.activeLocale = new Locale("en", "US");
+        mockDeviceInfoService.activeLocale = Locale.US;
+        mockDeviceInfoService.systemLocale = Locale.FRANCE;
         mockDeviceInfoService.runMode = "APPLICATION";
         mockDeviceInfoService.deviceManufacturer = "Android";
         mockDeviceInfoService.applicationPackageName = "TEST_PACKAGE_NAME";
@@ -164,6 +169,13 @@ public class LifecycleV2FunctionalTest {
         expectedApplicationInfo.put("isInstall", true);
         expectedApplicationInfo.put("isLaunch", true);
         expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
+        expectedApplicationInfo.put(
+                "_dc",
+                new HashMap<String, Object>() {
+                    {
+                        put("language", "en-US");
+                    }
+                });
 
         Map<String, Object> expectedXDMData =
                 new HashMap<String, Object>() {
@@ -287,6 +299,13 @@ public class LifecycleV2FunctionalTest {
         expectedApplicationInfo.put("isUpgrade", true);
         expectedApplicationInfo.put("isLaunch", true);
         expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
+        expectedApplicationInfo.put(
+                "_dc",
+                new HashMap<String, Object>() {
+                    {
+                        put("language", "en-US");
+                    }
+                });
 
         Map<String, Object> expectedXDMData =
                 new HashMap<String, Object>() {
@@ -353,6 +372,13 @@ public class LifecycleV2FunctionalTest {
         expectedApplicationInfo.put("version", "1.1 (12345)");
         expectedApplicationInfo.put("isLaunch", true);
         expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
+        expectedApplicationInfo.put(
+                "_dc",
+                new HashMap<String, Object>() {
+                    {
+                        put("language", "en-US");
+                    }
+                });
 
         Map<String, Object> expectedXDMData =
                 new HashMap<String, Object>() {

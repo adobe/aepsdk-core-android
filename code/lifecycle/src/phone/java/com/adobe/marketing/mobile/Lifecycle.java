@@ -17,7 +17,7 @@ import java.util.List;
 
 public class Lifecycle {
 
-    private static final String EXTENSION_VERSION = "2.0.3";
+    private static final String EXTENSION_VERSION = "2.0.4";
 
     public static final Class<? extends Extension> EXTENSION = LifecycleExtension.class;
 

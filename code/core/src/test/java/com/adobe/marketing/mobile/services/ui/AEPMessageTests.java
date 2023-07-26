@@ -686,6 +686,54 @@ public class AEPMessageTests {
                 .startAnimation(ArgumentMatchers.any(Animation.class));
     }
 
+    @Test
+    public void
+            aepMessageIsDismissed_When_MessagingDelegateSet_And_MessageDismissedWithBackButton() {
+        // setup
+        Mockito.when(mockAEPMessageSettings.getDismissAnimation())
+                .thenReturn(MessageAnimation.BOTTOM);
+        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
+        Mockito.when(mockMessageMonitor.dismiss()).thenReturn(true);
+        Mockito.when(
+                        mockMessagingDelegate.shouldShowMessage(
+                                ArgumentMatchers.any(AEPMessage.class)))
+                .thenReturn(true);
+        setupFragmentTransactionMocks();
+
+        try {
+            message =
+                    new AEPMessage(
+                            "html",
+                            mockFullscreenMessageDelegate,
+                            false,
+                            mockMessageMonitor,
+                            mockAEPMessageSettings,
+                            mockExecutor);
+        } catch (MessageCreationException ex) {
+            Assert.fail(ex.getMessage());
+        }
+
+        Mockito.when(mockMessageFragment.isDismissedWithGesture()).thenReturn(false);
+        message.setMessageFragment(mockMessageFragment);
+        message.setWebView(mockWebView);
+        message.setWebViewFrame(mockCardView);
+        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+        // test
+        message.dismiss(true);
+        message.getAnimationListener().onAnimationEnd(mockAnimation);
+        // verify listeners are called for a message dismiss and device back button press
+        Mockito.verify(mockMessageMonitor, Mockito.times(1)).dismiss();
+        Mockito.verify(mockMessagingDelegate, Mockito.times(1))
+                .onDismiss(any(FullscreenMessage.class));
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                .onBackPressed(any(FullscreenMessage.class));
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                .onDismiss(any(FullscreenMessage.class));
+        Mockito.verify(mockCardView, Mockito.times(1))
+                .startAnimation(ArgumentMatchers.any(Animation.class));
+    }
+
     // mock fragment setup helper
     void setupFragmentTransactionMocks() {
         Mockito.when(mockActivity.getFragmentManager()).thenReturn(mockFragmentManager);

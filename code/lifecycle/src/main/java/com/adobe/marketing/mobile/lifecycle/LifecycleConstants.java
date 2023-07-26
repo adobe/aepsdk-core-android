@@ -118,6 +118,7 @@ class LifecycleConstants {
             static final String RUN_MODE = "runmode";
             static final String SESSION_EVENT = "sessionevent";
             static final String SESSION_START_TIMESTAMP = "starttimestampmillis";
+            static final String SYSTEM_LOCALE = "systemlocale";
             static final String UPGRADE_EVENT = "upgradeevent";
 
             private Lifecycle() {}

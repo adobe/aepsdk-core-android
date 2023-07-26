@@ -12,9 +12,11 @@
 package com.adobe.marketing.mobile.services;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
@@ -25,19 +27,19 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class SqliteDataQueueTests {
 
-    private File dbFile;
     private DataQueue dataQueue;
     private static final String QUEUE_NAME = "test.dataQueue";
 
     @Before
     public void setUp() {
         Context context = ApplicationProvider.getApplicationContext();
-        dbFile = context.getDatabasePath(QUEUE_NAME);
         dataQueue = new SQLiteDataQueue(context.getDatabasePath(QUEUE_NAME).getPath());
     }
 
     @After
     public void tearDown() {
+        Context context = ApplicationProvider.getApplicationContext();
+        File dbFile = getDatabase();
         if (dbFile != null && dbFile.exists()) {
             dbFile.delete();
         }
@@ -97,5 +99,85 @@ public class SqliteDataQueueTests {
         dataQueue.clear();
         List<DataEntity> results = dataQueue.peek(4);
         Assert.assertEquals(0, results.size());
+    }
+
+    @Test
+    public void testAddToCorruptedDatabase() {
+        dataQueue.add(new DataEntity("test_data_1"));
+        dataQueue.add(new DataEntity("test_data_2"));
+        Assert.assertEquals(2, dataQueue.count());
+
+        corruptDatabase();
+        Assert.assertTrue(isDatabaseCorrupt());
+
+        // After detecting db is corrupt, resets the database and then adds the new entry.
+        Assert.assertTrue(dataQueue.add(new DataEntity("test_data_3")));
+        Assert.assertEquals(1, dataQueue.count());
+        Assert.assertEquals("test_data_3", dataQueue.peek().getData());
+        Assert.assertFalse(isDatabaseCorrupt());
+    }
+
+    @Test
+    public void testRemoveFromCorruptedDatabase() {
+        dataQueue.add(new DataEntity("test_data_1"));
+        dataQueue.add(new DataEntity("test_data_2"));
+        Assert.assertEquals(2, dataQueue.count());
+
+        corruptDatabase();
+        Assert.assertTrue(isDatabaseCorrupt());
+
+        // After detecting db is corrupt, resets the database.
+        Assert.assertFalse(dataQueue.remove());
+        Assert.assertEquals(0, dataQueue.count());
+        Assert.assertFalse(isDatabaseCorrupt());
+    }
+
+    @Test
+    public void testClearCorruptedDatabase() {
+        dataQueue.add(new DataEntity("test_data_1"));
+        dataQueue.add(new DataEntity("test_data_2"));
+        Assert.assertEquals(2, dataQueue.count());
+
+        corruptDatabase();
+        Assert.assertTrue(isDatabaseCorrupt());
+
+        // After detecting db is corrupt, resets the database.
+        Assert.assertTrue(dataQueue.clear());
+        Assert.assertEquals(0, dataQueue.count());
+        Assert.assertFalse(isDatabaseCorrupt());
+    }
+
+    private File getDatabase() {
+        Context context = ApplicationProvider.getApplicationContext();
+        return context.getDatabasePath(QUEUE_NAME);
+    }
+
+    private void corruptDatabase() {
+        File dbFile = getDatabase();
+        if (dbFile == null) {
+            return;
+        }
+        try {
+            FileOutputStream fos = new FileOutputStream(getDatabase());
+            fos.write(new byte[1024]);
+            fos.close();
+        } catch (Exception e) {
+
+        }
+    }
+
+    private boolean isDatabaseCorrupt() {
+        File dbFile = getDatabase();
+        if (dbFile == null) {
+            return true;
+        }
+        try {
+            SQLiteDatabase database =
+                    SQLiteDatabase.openDatabase(
+                            dbFile.getPath(), null, SQLiteDatabase.OPEN_READONLY);
+            return database == null || !database.isDatabaseIntegrityOk();
+        } catch (Exception e) {
+            return true;
+        }
     }
 }

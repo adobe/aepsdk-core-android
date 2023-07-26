@@ -610,6 +610,7 @@ public abstract interface class com/adobe/marketing/mobile/services/DeviceInform
 	public abstract fun getOperatingSystemVersion ()Ljava/lang/String;
 	public abstract fun getPropertyFromManifest (Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun getRunMode ()Ljava/lang/String;
+	public abstract fun getSystemLocale ()Ljava/util/Locale;
 	public abstract fun registerOneTimeNetworkConnectionActiveListener (Lcom/adobe/marketing/mobile/services/DeviceInforming$NetworkConnectionActiveListener;)Z
 }
 

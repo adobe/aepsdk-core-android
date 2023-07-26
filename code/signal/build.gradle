@@ -97,8 +97,8 @@ publishing {
             artifact javadocJar
 
             pom {
-                name = rootProject.mavenRepoName
-                description = rootProject.mavenRepoDescription
+                name = rootProject.signalMavenRepoName
+                description = rootProject.signalMavenRepoDescription
                 url = 'https://developer.adobe.com/client-sdks'
                 licenses {
                     license {

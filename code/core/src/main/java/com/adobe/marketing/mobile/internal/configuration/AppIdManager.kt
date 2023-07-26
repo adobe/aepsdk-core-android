@@ -84,7 +84,7 @@ internal class AppIdManager {
      * @return the existing appId stored in shared preferences if it exists,
      *         null otherwise.
      */
-    private fun getAppIDFromPersistence(): String? {
+    internal fun getAppIDFromPersistence(): String? {
         return configStateStoreCollection?.getString(
             ConfigurationStateManager.PERSISTED_APPID,
             null

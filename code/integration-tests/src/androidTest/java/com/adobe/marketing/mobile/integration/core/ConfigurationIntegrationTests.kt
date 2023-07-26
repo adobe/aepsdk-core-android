@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.integration.core
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.MobilePrivacyStatus
@@ -28,6 +30,7 @@ import org.junit.runner.RunWith
 class ConfigurationIntegrationTests {
     companion object {
         const val TEST_APP_ID = "appId"
+        const val CONFIGURATION_STATE_PREF = "AdobeMobile_ConfigState"
         const val TEST_RULES_RESOURCE = "rules_configuration_tests.zip"
         const val WAIT_TIME_MILLIS = 5000L
     }
@@ -110,6 +113,45 @@ class ConfigurationIntegrationTests {
 
         // Verify configuration is retained
         validatePrivacyStatus(MobilePrivacyStatus.OPT_IN)
+    }
+
+    @Test
+    fun testConfigurationWithAppIDIsNotOverwrittenByCache() {
+        SDKHelper.setupConfiguration(TEST_APP_ID, emptyMap(), TEST_RULES_RESOURCE)
+
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        // get config state
+        val configSharedPreference = context.getSharedPreferences(CONFIGURATION_STATE_PREF, 0)
+        val persistedAppId = configSharedPreference.getString("config.appID", null)
+        Assert.assertEquals(TEST_APP_ID, persistedAppId)
+
+        //Simulate shut down and initialize SDK again. Ensure that the cached configuration is retained
+        SDKHelper.resetSDK(false)
+
+        // === Custom initialization with new app id===
+        val newAppID = "NEW_APP_ID"
+        val newConfigURL = "https://assets.adobedtm.com/$newAppID.json"
+        val newRulesURL = "https://assets.adobedtm.com/$newAppID-rules.zip"
+
+        // Configure with new app id before registering extensions
+        MobileCore.configureWithAppID("NEW_APP_ID")
+        SDKHelper.initializeSDK(listOf(Signal.EXTENSION))
+
+        val newConfigUrlValidationLatch = CountDownLatch(1)
+        val newRulesUrlValidationLatch = CountDownLatch(1)
+        SDKHelper.setupNetworkService(newConfigURL, emptyMap(), newRulesURL, TEST_RULES_RESOURCE) {
+            when(it) {
+                newConfigURL -> newConfigUrlValidationLatch.countDown()
+                newRulesURL -> newRulesUrlValidationLatch.countDown()
+            }
+        }
+        newConfigUrlValidationLatch.await(WAIT_TIME_MILLIS, TimeUnit.MILLISECONDS)
+        newRulesUrlValidationLatch.await(WAIT_TIME_MILLIS, TimeUnit.MILLISECONDS)
+
+        // Verify configuration is updated and cached appId does not overwrite the new configuration
+        val newConfigSharedPreference = context.getSharedPreferences(CONFIGURATION_STATE_PREF, 0)
+        val newPersistedAppId = newConfigSharedPreference.getString("config.appID", null)
+        Assert.assertEquals(newAppID, newPersistedAppId)
     }
 
     @Test

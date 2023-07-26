@@ -39,6 +39,7 @@ class DeviceInfoServiceTests {
         ServiceProviderModifier.setAppContextService(MockAppContextService())
         deviceInfoService = ServiceProvider.getInstance().deviceInfoService
         assertNull(deviceInfoService.activeLocale)
+        assertTrue(deviceInfoService.systemLocale.displayLanguage.isNotEmpty())
         assertNull(deviceInfoService.displayInformation)
         assertEquals(
             DeviceInforming.DeviceType.UNKNOWN,
@@ -71,6 +72,11 @@ class DeviceInfoServiceTests {
     @Test
     fun testGetActiveLocale() {
         assertTrue(deviceInfoService.activeLocale.displayLanguage.isNotEmpty())
+    }
+
+    @Test
+    fun testGetSystemLocale() {
+        assertTrue(deviceInfoService.systemLocale.displayLanguage.isNotEmpty())
     }
 
     @Test

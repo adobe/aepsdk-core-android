@@ -48,7 +48,7 @@ public class LifecycleV2MetricsBuilderTest {
                                 "_dc",
                                 new HashMap<String, Object>() {
                                     {
-                                        put("language", "en-US");
+                                        put("language", "fr-FR");
                                     }
                                 });
                     }
@@ -92,6 +92,13 @@ public class LifecycleV2MetricsBuilderTest {
                         put("version", "1.1 (12345)");
                         put("isInstall", true);
                         put("isLaunch", true);
+                        put(
+                                "_dc",
+                                new HashMap<String, Object>() {
+                                    {
+                                        put("language", "en-US");
+                                    }
+                                });
                     }
                 });
         expectedData.put("eventType", "application.launch");
@@ -117,6 +124,13 @@ public class LifecycleV2MetricsBuilderTest {
                         put("version", "1.1 (12345)");
                         put("isUpgrade", true);
                         put("isLaunch", true);
+                        put(
+                                "_dc",
+                                new HashMap<String, Object>() {
+                                    {
+                                        put("language", "en-US");
+                                    }
+                                });
                     }
                 });
         expectedData.put("eventType", "application.launch");
@@ -164,6 +178,13 @@ public class LifecycleV2MetricsBuilderTest {
                         put("id", "test.package.name");
                         put("version", "1.1 (12345)");
                         put("isLaunch", true);
+                        put(
+                                "_dc",
+                                new HashMap<String, Object>() {
+                                    {
+                                        put("language", "en-US");
+                                    }
+                                });
                     }
                 });
         expectedData.put("eventType", "application.launch");

@@ -215,7 +215,7 @@ public class SqliteDataQueueTests {
             boolean result = dataQueue.clear();
 
             // Assertions
-            Assert.assertFalse(result);
+            Assert.assertTrue(result);
         }
     }
 

@@ -16,7 +16,9 @@ import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
+import com.adobe.marketing.mobile.internal.util.FileUtils;
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -57,39 +59,15 @@ final class SQLiteDataQueue implements DataQueue {
                 return false;
             }
 
-            return SQLiteDatabaseHelper.process(
-                    databasePath,
-                    SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
-                    database -> {
-                        if (database == null) {
-                            return false;
-                        }
-                        final int INDEX_UUID = 1;
-                        final int INDEX_TIMESTAMP = 2;
-                        final int INDEX_DATA = 3;
-                        try (SQLiteStatement insertStatement =
-                                database.compileStatement(
-                                        "INSERT INTO "
-                                                + TABLE_NAME
-                                                + " (uniqueIdentifier, timestamp, data) VALUES (?,"
-                                                + " ?, ?)")) {
-                            insertStatement.bindString(
-                                    INDEX_UUID, dataEntity.getUniqueIdentifier());
-                            insertStatement.bindLong(
-                                    INDEX_TIMESTAMP, dataEntity.getTimestamp().getTime());
-                            insertStatement.bindString(
-                                    INDEX_DATA,
-                                    dataEntity.getData() != null ? dataEntity.getData() : "");
-                            long rowId = insertStatement.executeInsert();
-                            return rowId >= 0;
-                        } catch (Exception e) {
-                            Log.debug(
-                                    ServiceConstants.LOG_TAG,
-                                    LOG_PREFIX,
-                                    "add - Returning false: " + e.getLocalizedMessage());
-                            return false;
-                        }
-                    });
+            boolean result = tryAddEntity(dataEntity);
+
+            if (!result) {
+                resetDatabase();
+                // Retry adding the data after resetting the database.
+                result = tryAddEntity(dataEntity);
+            }
+
+            return result;
         }
     }
 
@@ -226,44 +204,52 @@ final class SQLiteDataQueue implements DataQueue {
                 return false;
             }
 
-            return SQLiteDatabaseHelper.process(
-                    databasePath,
-                    SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
-                    database -> {
-                        int deletedRowsCount = -1;
-                        if (database == null) {
-                            return false;
-                        }
-                        String builder =
-                                "DELETE FROM "
-                                        + TABLE_NAME
-                                        + " WHERE id in ("
-                                        + "SELECT id from "
-                                        + TABLE_NAME
-                                        + " order by id ASC"
-                                        + " limit "
-                                        + n
-                                        + ')';
-                        try (SQLiteStatement statement = database.compileStatement(builder)) {
-                            deletedRowsCount = statement.executeUpdateDelete();
-                            Log.trace(
-                                    ServiceConstants.LOG_TAG,
-                                    LOG_PREFIX,
-                                    String.format(
-                                            "remove n - Removed %d DataEntities",
-                                            deletedRowsCount));
-                            return deletedRowsCount > -1;
-                        } catch (final SQLiteException e) {
-                            Log.warning(
-                                    ServiceConstants.LOG_TAG,
-                                    LOG_PREFIX,
-                                    String.format(
-                                            "removeRows - Error in deleting rows from table(%s)."
-                                                    + " Returning 0. Error: (%s)",
-                                            TABLE_NAME, e.getMessage()));
-                            return false;
-                        }
-                    });
+            boolean result =
+                    SQLiteDatabaseHelper.process(
+                            databasePath,
+                            SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
+                            database -> {
+                                int deletedRowsCount = -1;
+                                if (database == null) {
+                                    return false;
+                                }
+                                String builder =
+                                        "DELETE FROM "
+                                                + TABLE_NAME
+                                                + " WHERE id in ("
+                                                + "SELECT id from "
+                                                + TABLE_NAME
+                                                + " order by id ASC"
+                                                + " limit "
+                                                + n
+                                                + ')';
+                                try (SQLiteStatement statement =
+                                        database.compileStatement(builder)) {
+                                    deletedRowsCount = statement.executeUpdateDelete();
+                                    Log.trace(
+                                            ServiceConstants.LOG_TAG,
+                                            LOG_PREFIX,
+                                            String.format(
+                                                    "remove n - Removed %d DataEntities",
+                                                    deletedRowsCount));
+                                    return deletedRowsCount > -1;
+                                } catch (final SQLiteException e) {
+                                    Log.warning(
+                                            ServiceConstants.LOG_TAG,
+                                            LOG_PREFIX,
+                                            String.format(
+                                                    "removeRows - Error in deleting rows from"
+                                                        + " table(%s). Returning 0. Error: (%s)",
+                                                    TABLE_NAME, e.getMessage()));
+                                    return false;
+                                }
+                            });
+
+            if (!result) {
+                resetDatabase();
+            }
+
+            return result;
         }
     }
 
@@ -290,7 +276,11 @@ final class SQLiteDataQueue implements DataQueue {
                     String.format(
                             "clear - %s in clearing Table %s",
                             (result ? "Successful" : "Failed"), TABLE_NAME));
-            return result;
+
+            if (!result) {
+                resetDatabase();
+            }
+            return true;
         }
     }
 
@@ -348,5 +338,64 @@ final class SQLiteDataQueue implements DataQueue {
                 String.format(
                         "createTableIfNotExists - Error creating/accessing table (%s)  ",
                         TABLE_NAME));
+    }
+
+    /**
+     * Add a new {@link DataEntity} Object to {@link DataQueue}. NOTE: The caller must hold the
+     * dbMutex.
+     */
+    private boolean tryAddEntity(final DataEntity dataEntity) {
+        return SQLiteDatabaseHelper.process(
+                databasePath,
+                SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
+                database -> {
+                    if (database == null) {
+                        return false;
+                    }
+                    final int INDEX_UUID = 1;
+                    final int INDEX_TIMESTAMP = 2;
+                    final int INDEX_DATA = 3;
+                    try (SQLiteStatement insertStatement =
+                            database.compileStatement(
+                                    "INSERT INTO "
+                                            + TABLE_NAME
+                                            + " (uniqueIdentifier, timestamp, data) VALUES (?,"
+                                            + " ?, ?)")) {
+                        insertStatement.bindString(INDEX_UUID, dataEntity.getUniqueIdentifier());
+                        insertStatement.bindLong(
+                                INDEX_TIMESTAMP, dataEntity.getTimestamp().getTime());
+                        insertStatement.bindString(
+                                INDEX_DATA,
+                                dataEntity.getData() != null ? dataEntity.getData() : "");
+                        long rowId = insertStatement.executeInsert();
+                        return rowId >= 0;
+                    } catch (Exception e) {
+                        Log.debug(
+                                ServiceConstants.LOG_TAG,
+                                LOG_PREFIX,
+                                "add - Returning false: " + e.getLocalizedMessage());
+                        return false;
+                    }
+                });
+    }
+
+    /** Resets the database. NOTE: The caller must hold the dbMutex. */
+    private void resetDatabase() {
+        Log.warning(
+                ServiceConstants.LOG_TAG,
+                LOG_PREFIX,
+                "resetDatabase - Resetting database (%s) as it is corrupted",
+                databasePath);
+
+        try {
+            FileUtils.deleteFile(new File(databasePath), false);
+            createTableIfNotExists();
+        } catch (Exception ex) {
+            Log.warning(
+                    ServiceConstants.LOG_TAG,
+                    LOG_PREFIX,
+                    "resetDatabase - Error resetting database (%s)  ",
+                    databasePath);
+        }
     }
 }

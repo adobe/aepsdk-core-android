@@ -341,8 +341,8 @@ final class SQLiteDataQueue implements DataQueue {
     }
 
     /**
-     * Adds a a Table with name {@link #TABLE_NAME}, if not already exists in database at path
-     * {@link #databasePath}.
+     * Add a new {@link DataEntity} Object to {@link DataQueue}. NOTE: The caller must hold the
+     * dbMutex.
      */
     private boolean tryAddEntity(final DataEntity dataEntity) {
         return SQLiteDatabaseHelper.process(
@@ -379,6 +379,7 @@ final class SQLiteDataQueue implements DataQueue {
                 });
     }
 
+    /** Resets the database. NOTE: The caller must hold the dbMutex. */
     private void resetDatabase() {
         Log.warning(
                 ServiceConstants.LOG_TAG,

@@ -38,7 +38,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class LifecycleExtensionTests {
 
-    private static final String EXTENSION_VERSION = "2.0.3";
+    private static final String EXTENSION_VERSION = "2.0.4";
 
     @Mock ExtensionApi extensionApi;
 

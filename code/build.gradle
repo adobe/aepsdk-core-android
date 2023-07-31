@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        kotlin_version = '1.4.0'
+        kotlin_version = '1.5.10'
         dokka_version = '1.7.10'
     }
     repositories {
@@ -39,11 +39,11 @@ allprojects {
 }
 
 ext {
-    minSdkVersion = 19
+    minSdkVersion = 21
     targetSdkVersion = 33
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
     kotlinJvmTarget = JavaVersion.VERSION_1_8
-    kotlinLanguageVersion = "1.4"
-    kotlinApiVersion = "1.4"
+    kotlinLanguageVersion = "1.5"
+    kotlinApiVersion = "1.5"
 }

@@ -327,6 +327,7 @@ public final class com/adobe/marketing/mobile/WrapperType : java/lang/Enum {
 }
 
 public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRule : com/adobe/marketing/mobile/rulesengine/Rule {
+	public static final field $stable I
 	public fun <init> (Lcom/adobe/marketing/mobile/rulesengine/Evaluable;Ljava/util/List;)V
 	public final fun component1 ()Lcom/adobe/marketing/mobile/rulesengine/Evaluable;
 	public final fun component2 ()Ljava/util/List;
@@ -351,6 +352,7 @@ public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 }
 
 public final class com/adobe/marketing/mobile/launch/rulesengine/RuleConsequence {
+	public static final field $stable I
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
@@ -392,6 +394,7 @@ public class com/adobe/marketing/mobile/launch/rulesengine/download/RulesLoader 
 }
 
 public final class com/adobe/marketing/mobile/launch/rulesengine/json/JSONRulesParser {
+	public static final field $stable I
 	public static final field INSTANCE Lcom/adobe/marketing/mobile/launch/rulesengine/json/JSONRulesParser;
 	public static final fun parse (Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionApi;)Ljava/util/List;
 }
@@ -1069,6 +1072,7 @@ public class com/adobe/marketing/mobile/util/SQLiteUtils {
 }
 
 public class com/adobe/marketing/mobile/util/SerialWorkDispatcher {
+	public static final field $stable I
 	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$WorkHandler;)V
 	protected fun canWork ()Z
 	public final fun getState ()Lcom/adobe/marketing/mobile/util/SerialWorkDispatcher$State;
@@ -1104,6 +1108,7 @@ public final class com/adobe/marketing/mobile/util/StringUtils {
 }
 
 public final class com/adobe/marketing/mobile/util/TimeUtils {
+	public static final field $stable I
 	public static final field INSTANCE Lcom/adobe/marketing/mobile/util/TimeUtils;
 	public static final fun getISO8601Date ()Ljava/lang/String;
 	public static final fun getISO8601Date (Ljava/util/Date;)Ljava/lang/String;

@@ -4,12 +4,13 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    namespace 'com.adobe.marketing.mobile.testapp.kotlin'
+    compileSdk rootProject.ext.compileSdkVersion
 
     defaultConfig {
         applicationId "com.adobe.marketing.mobile.app.kotlin"
-        minSdk 21
-        targetSdk 33
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
 
@@ -41,7 +42,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.0.2'
+        kotlinCompilerExtensionVersion '1.0.5'
     }
     packagingOptions {
         resources {
@@ -56,7 +57,7 @@ dependencies {
     implementation "androidx.compose.material:material:${compose_version}"
     implementation "androidx.compose.ui:ui-tooling-preview:${compose_version}"
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.0.0'
-    implementation "androidx.activity:activity-compose:1.3.0"
+    implementation "androidx.activity:activity-compose:1.5.0"
     implementation 'androidx.navigation:navigation-compose:2.4.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 

@@ -4,7 +4,8 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    namespace 'com.adobe.marketing.mobile.macrobenchmark'
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -17,7 +18,7 @@ android {
 
     defaultConfig {
         minSdk 26
-        targetSdk 33
+        targetSdk rootProject.ext.targetSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

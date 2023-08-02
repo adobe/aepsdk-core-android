@@ -16,7 +16,7 @@ apiValidation {
     ]
 
     ignoredClasses += [
-        "com.adobe.marketing.mobile.BuildConfig"
+        "com.adobe.marketing.mobile.core.BuildConfig"
     ]
 }
 

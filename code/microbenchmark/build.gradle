@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace 'com.adobe.marketing.mobile.microbenchmark'
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.targetSdkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

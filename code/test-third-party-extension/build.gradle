@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     namespace 'com.adobe.marketing.mobile.sample.thirdparyextension'
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.targetSdkVersion
 
     defaultConfig {
         minSdk rootProject.ext.minSdkVersion

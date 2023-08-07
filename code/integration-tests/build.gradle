@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'com.adobe.marketing.mobile.integration'
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.targetSdkVersion
 
     defaultConfig {
         minSdk rootProject.ext.minSdkVersion

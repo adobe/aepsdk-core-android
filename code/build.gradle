@@ -42,7 +42,6 @@ allprojects {
 ext {
     minSdkVersion = 21
     targetSdkVersion = 33
-    compileSdkVersion = 33
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
     kotlinJvmTarget = JavaVersion.VERSION_1_8

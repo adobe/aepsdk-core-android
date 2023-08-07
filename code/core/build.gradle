@@ -22,7 +22,7 @@ apiValidation {
 
 android {
     namespace 'com.adobe.marketing.mobile.core'
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.targetSdkVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion

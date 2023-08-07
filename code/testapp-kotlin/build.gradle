@@ -4,8 +4,8 @@ plugins {
 }
 
 android {
-    namespace 'com.adobe.marketing.mobile.testapp.kotlin'
-    compileSdk rootProject.ext.compileSdkVersion
+    namespace 'com.adobe.marketing.mobile.app.kotlin'
+    compileSdk rootProject.ext.targetSdkVersion
 
     defaultConfig {
         applicationId "com.adobe.marketing.mobile.app.kotlin"

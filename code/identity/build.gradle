@@ -6,7 +6,7 @@ apply plugin: 'signing'
 
 android {
     namespace 'com.adobe.marketing.mobile.identity'
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdkVersion rootProject.ext.targetSdkVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion

@@ -4,11 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    namespace 'com.adobe.marketing.mobile.integration'
+    compileSdkVersion rootProject.ext.targetSdkVersion
 
     defaultConfig {
-        minSdk 19
-        targetSdk 33
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -41,14 +42,14 @@ dependencies {
 
 //    implementation fileTree(include: ['*.aar'], dir: 'libs')
 
-    implementation 'androidx.core:core-ktx:1.8.0'
-    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.core:core-ktx:1.3.2'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation project(path: ':core')
     implementation project(path: ':signal')
     implementation project(path: ':identity')
     implementation project(path: ':lifecycle')
 
-    androidTestImplementation('com.adobe.marketing.mobile:analytics:2.0.0') {
+    androidTestImplementation('com.adobe.marketing.mobile:analytics:2.0.3') {
         transitive = false
     }
 

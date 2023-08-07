@@ -1,6 +1,7 @@
 buildscript {
     ext {
-        kotlin_version = '1.4.0'
+        kotlin_version = '1.5.31'
+        compose_version = '1.0.5'
         dokka_version = '1.7.10'
     }
     repositories {
@@ -14,7 +15,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:7.3.1'
         classpath "org.jacoco:org.jacoco.core:0.8.7"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}"
         classpath 'org.jetbrains.kotlinx:binary-compatibility-validator:0.11.1'
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"        
         classpath 'androidx.benchmark:benchmark-gradle-plugin:1.2.0-alpha06'
@@ -39,11 +40,11 @@ allprojects {
 }
 
 ext {
-    minSdkVersion = 19
+    minSdkVersion = 21
     targetSdkVersion = 33
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
     kotlinJvmTarget = JavaVersion.VERSION_1_8
-    kotlinLanguageVersion = "1.4"
-    kotlinApiVersion = "1.4"
+    kotlinLanguageVersion = "1.5"
+    kotlinApiVersion = "1.5"
 }

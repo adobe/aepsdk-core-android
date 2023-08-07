@@ -15,6 +15,28 @@ def isReleaseBuild() {
 
 def groupIdForPublish = isJitPackBuild()? 'com.github.adobe.aepsdk-core-android': 'com.adobe.marketing.mobile'
 
+// A class to represent a dependency node to be attached to POM
+class DependencyNode {
+    final String groupId
+    final String artifactId
+    final String version
+
+    DependencyNode(final String groupId, final String artifactId, final String version) {
+        this.groupId = groupId
+        this.artifactId = artifactId
+        this.version = version
+    }
+}
+
+// A list of Dependency objects representing dependencies to be attached to POM
+def dependencyList = [
+        new DependencyNode("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", "${rootProject.kotlin_version}"),
+        new DependencyNode("androidx.appcompat", "appcompat", "1.0.0"),
+        new DependencyNode("androidx.compose.runtime", "runtime", "${rootProject.compose_version}"),
+        new DependencyNode("androidx.compose.material", "material", "${rootProject.compose_version}"),
+        new DependencyNode("androidx.activity", "activity-compose", "1.5.0")
+]
+
 version = isReleaseBuild() ? rootProject.coreExtensionVersion : rootProject.coreExtensionVersion+"-SNAPSHOT"
 
 publishing {
@@ -51,20 +73,13 @@ publishing {
                 withXml {
                     def dependenciesNode = asNode().appendNode('dependencies')
 
-                    def kotlinDependencyNode = dependenciesNode.appendNode('dependency')
-                    kotlinDependencyNode.appendNode('groupId', 'org.jetbrains.kotlin')
-                    kotlinDependencyNode.appendNode('artifactId', 'kotlin-stdlib-jdk8')
-                    kotlinDependencyNode.appendNode('version', rootProject.kotlin_version)
-
-                    def cardviewDependencyNode = dependenciesNode.appendNode('dependency')
-                    cardviewDependencyNode.appendNode('groupId', 'androidx.cardview')
-                    cardviewDependencyNode.appendNode('artifactId', 'cardview')
-                    cardviewDependencyNode.appendNode('version', '1.0.0')
-
-                    def appcompatDependencyNode = dependenciesNode.appendNode('dependency')
-                    appcompatDependencyNode.appendNode('groupId', 'androidx.appcompat')
-                    appcompatDependencyNode.appendNode('artifactId', 'appcompat')
-                    appcompatDependencyNode.appendNode('version', '1.0.0')
+                    // loop dependencyList and add each dependency to POM as a node
+                    dependencyList.each { dependency ->
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', dependency.groupId)
+                        dependencyNode.appendNode('artifactId', dependency.artifactId)
+                        dependencyNode.appendNode('version', dependency.version)
+                    }
                 }
             }
         }

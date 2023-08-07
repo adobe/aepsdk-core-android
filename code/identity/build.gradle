@@ -5,11 +5,11 @@ apply plugin: 'signing'
 
 
 android {
+    namespace 'com.adobe.marketing.mobile.identity'
     compileSdkVersion rootProject.ext.targetSdkVersion
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
-        //noinspection OldTargetApi
         targetSdkVersion rootProject.ext.targetSdkVersion
         //Include the Proguard rules for Core Extension in the aar
         consumerProguardFiles 'lib-proguard-rules.pro'

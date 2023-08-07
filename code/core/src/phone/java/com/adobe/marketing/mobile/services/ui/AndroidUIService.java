@@ -246,7 +246,9 @@ public class AndroidUIService implements UIService {
                 !MapUtils.isNullOrEmpty(notificationSetting.getUserInfo())
                         ? new HashMap<>(notificationSetting.getUserInfo())
                         : null;
-        intent.putExtra(NOTIFICATION_USER_INFO_KEY, userInfo);
+        if (!MapUtils.isNullOrEmpty(userInfo)) {
+            intent.putExtra(NOTIFICATION_USER_INFO_KEY, userInfo);
+        }
         intent.putExtra(NOTIFICATION_SOUND_KEY, notificationSetting.getSound());
         intent.putExtra(NOTIFICATION_TITLE, notificationSetting.getTitle());
 

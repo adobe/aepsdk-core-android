@@ -15,6 +15,7 @@ import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.services.caching.CacheService;
 import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
 import com.adobe.marketing.mobile.services.internal.context.App;
+import com.adobe.marketing.mobile.services.ui.vnext.AEPUIService;
 import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 import com.adobe.marketing.mobile.services.ui.UIService;
 import com.adobe.marketing.mobile.services.ui.URIHandler;
@@ -59,6 +60,7 @@ public class ServiceProvider {
         messageDelegate = null;
         defaultLoggingService = new AndroidLoggingService();
         defaultCacheService = new FileCacheService();
+        vNextUiService = new AEPUIService();
     }
 
     /**
@@ -202,6 +204,11 @@ public class ServiceProvider {
      */
     public void setURIHandler(final URIHandler uriHandler) {
         this.getUIService().setURIHandler(uriHandler);
+    }
+
+    com.adobe.marketing.mobile.services.ui.vnext.UIService vNextUiService;
+    public com.adobe.marketing.mobile.services.ui.vnext.UIService getNewUIService() {
+        return vNextUiService;
     }
 
     /**

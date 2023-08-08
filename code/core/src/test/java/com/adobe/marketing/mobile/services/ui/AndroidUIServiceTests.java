@@ -39,6 +39,9 @@ import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -351,6 +354,46 @@ public class AndroidUIServiceTests {
         // static call
         // to PendingIntent.getBroadcast() without using additional libraries - which is a no-no
         verify(mockAlarmManager, times(0)).set(eq(AlarmManager.RTC_WAKEUP), anyLong(), isNull());
+    }
+
+    @Test
+    public void localNotificationIsShown_When_UnmodifiableUserInfoMapIsProvided() {
+        // setup
+        Map<String, Object> userInfo =
+                new HashMap<String, Object>() {
+                    {
+                        put("key1", "value1");
+                        put("key2", "value2");
+                    }
+                };
+        when(mockMessagesMonitor.isDisplayed()).thenReturn(false);
+        androidUIService.messagesMonitor = mockMessagesMonitor;
+
+        when(mockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mockAlarmManager);
+        when(mockContext.getApplicationContext()).thenReturn(mockContext);
+
+        when(mockAppContextService.getApplicationContext()).thenReturn(mockContext);
+        // test
+        androidUIService.showLocalNotification(
+                NotificationSetting.build(
+                        "id",
+                        "content",
+                        123456,
+                        123,
+                        "myscheme://link",
+                        Collections.unmodifiableMap(userInfo),
+                        "sound.wav",
+                        null));
+        // verify that the Alarm was set
+        ArgumentCaptor<Long> triggerTimeCaptor = ArgumentCaptor.forClass(long.class);
+        // The Pending Intent is null matched only because in this test we are not able to mock a
+        // static call
+        // to PendingIntent.getBroadcast() without using additional libraries - which is a no-no
+        verify(mockAlarmManager)
+                .set(eq(AlarmManager.RTC_WAKEUP), triggerTimeCaptor.capture(), isNull());
+        // verify that the alarm time is within the delta of 50ms :)
+        long expectedTriggerTime = getTriggerTimeForFireDate(123456);
+        assertTrue(triggerTimeCaptor.getValue() - expectedTriggerTime < 50);
     }
 
     @Test

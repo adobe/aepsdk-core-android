@@ -26,6 +26,7 @@ import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.ui.internal.MessagesMonitor;
+import com.adobe.marketing.mobile.util.MapUtils;
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
 import java.util.Calendar;
@@ -241,9 +242,13 @@ public class AndroidUIService implements UIService {
         intent.putExtra(NOTIFICATION_REQUEST_CODE_KEY, requestCode);
         intent.putExtra(NOTIFICATION_DEEPLINK_KEY, notificationSetting.getDeeplink());
         intent.putExtra(NOTIFICATION_CONTENT_KEY, notificationSetting.getContent());
-        intent.putExtra(
-                NOTIFICATION_USER_INFO_KEY,
-                (HashMap<String, Object>) notificationSetting.getUserInfo());
+        final HashMap<String, Object> userInfo =
+                !MapUtils.isNullOrEmpty(notificationSetting.getUserInfo())
+                        ? new HashMap<>(notificationSetting.getUserInfo())
+                        : null;
+        if (!MapUtils.isNullOrEmpty(userInfo)) {
+            intent.putExtra(NOTIFICATION_USER_INFO_KEY, userInfo);
+        }
         intent.putExtra(NOTIFICATION_SOUND_KEY, notificationSetting.getSound());
         intent.putExtra(NOTIFICATION_TITLE, notificationSetting.getTitle());
 

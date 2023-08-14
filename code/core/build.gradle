@@ -122,7 +122,7 @@ dependencies {
 
     // Jetpack Compose runtime
     implementation "androidx.compose.runtime:runtime:${compose_version}"
-
+    // Jetpack compose animation (for animated visibility)
     implementation("androidx.compose.animation:animation:1.1.0")
     // Material UI 1.x
     implementation "androidx.compose.material:material:${compose_version}"

@@ -26,6 +26,9 @@ import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
  * Mapper class to map [InAppMessageSettings.MessageAnimation] to a Compose [EnterTransition] and [ExitTransition]
  */
 internal object MessageAnimationMapper {
+
+    private const val DEFAULT_ANIMATION_DURATION_MS = 300
+
     /**
      * Map of [InAppMessageSettings.MessageAnimation] to [EnterTransition]`
      */
@@ -33,25 +36,25 @@ internal object MessageAnimationMapper {
         mapOf(
             InAppMessageSettings.MessageAnimation.LEFT to slideInHorizontally(
                 initialOffsetX = { -it },
-                animationSpec = tween(300)
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS)
             ),
 
             InAppMessageSettings.MessageAnimation.RIGHT to slideInHorizontally(
                 initialOffsetX = { it },
-                animationSpec = tween(300)
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS)
             ),
 
             InAppMessageSettings.MessageAnimation.TOP to slideInVertically(
                 initialOffsetY = { -it },
-                animationSpec = tween(300)
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS)
             ),
 
             InAppMessageSettings.MessageAnimation.BOTTOM to slideInVertically(
                 initialOffsetY = { it },
-                animationSpec = tween(300)
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS)
             ),
             InAppMessageSettings.MessageAnimation.FADE to fadeIn(
-                animationSpec = tween(300)
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS)
             )
         )
 
@@ -61,60 +64,59 @@ internal object MessageAnimationMapper {
     private val exitAnimationMap: Map<InAppMessageSettings.MessageAnimation, ExitTransition> =
         mapOf(
             InAppMessageSettings.MessageAnimation.LEFT to slideOutHorizontally(
-                animationSpec = tween(300),
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS),
                 targetOffsetX = { -it }
             ),
             InAppMessageSettings.MessageAnimation.RIGHT to slideOutHorizontally(
-                animationSpec = tween(300),
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS),
                 targetOffsetX = { it }
             ),
             InAppMessageSettings.MessageAnimation.TOP to slideOutVertically(
-                animationSpec = tween(300),
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS),
                 targetOffsetY = { -it }
             ),
 
             InAppMessageSettings.MessageAnimation.BOTTOM to slideOutVertically(
-                animationSpec = tween(300),
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS),
                 targetOffsetY = { it }
             ),
             InAppMessageSettings.MessageAnimation.FADE to fadeOut(
-                animationSpec = tween(300)
+                animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS)
             )
-
         )
 
     private val gestureAnimationMap: Map<InAppMessageSettings.MessageGesture, ExitTransition> = mapOf(
         InAppMessageSettings.MessageGesture.SWIPE_UP to slideOutVertically(
-            animationSpec = tween(300),
+            animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS),
             targetOffsetY = { -it }
         ),
 
         InAppMessageSettings.MessageGesture.SWIPE_DOWN to slideOutVertically(
-            animationSpec = tween(300),
+            animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS),
             targetOffsetY = { it }
         ),
         InAppMessageSettings.MessageGesture.SWIPE_LEFT to slideOutHorizontally(
-            animationSpec = tween(300),
+            animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS),
             targetOffsetX = { -it }
         ),
         InAppMessageSettings.MessageGesture.SWIPE_RIGHT to slideOutHorizontally(
-            animationSpec = tween(300),
+            animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS),
             targetOffsetX = { it }
         ),
         InAppMessageSettings.MessageGesture.BACKGROUND_TAP to fadeOut(
-            animationSpec = tween(300)
+            animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS)
         )
     )
 
     /**
      * Get the [EnterTransition] for the given [InAppMessageSettings.MessageAnimation]
      */
-    fun getEnterTransitionFor(animation: InAppMessageSettings.MessageAnimation): EnterTransition = enterAnimationMap[animation] ?: fadeIn()
+    fun getEnterTransitionFor(animation: InAppMessageSettings.MessageAnimation): EnterTransition = enterAnimationMap[animation] ?: EnterTransition.None
 
     /**
      * Get the [ExitTransition] for the given [InAppMessageSettings.MessageAnimation]
      */
-    fun getExitTransitionFor(animation: InAppMessageSettings.MessageAnimation): ExitTransition = exitAnimationMap[animation] ?: fadeOut()
+    fun getExitTransitionFor(animation: InAppMessageSettings.MessageAnimation): ExitTransition = exitAnimationMap[animation] ?: ExitTransition.None
 
-    fun getExitTransitionFor(gesture: InAppMessageSettings.MessageGesture): ExitTransition = gestureAnimationMap[gesture] ?: fadeOut()
+    fun getExitTransitionFor(gesture: InAppMessageSettings.MessageGesture): ExitTransition = gestureAnimationMap[gesture] ?: ExitTransition.None
 }

@@ -15,38 +15,59 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 
+/**
+ * A singleton class that provides [Presentable]s a way to register for app lifecycle events.
+ * This is primarily used [Presentable]s to know when to show or hide themselves in response to
+ * configuration changes.
+ */
 internal class AppLifecycleProvider private constructor() {
-
-    companion object {
-        val INSTANCE  by lazy { AppLifecycleProvider() }
-    }
-
     internal interface AppLifecycleListener {
         fun onActivityResumed(activity: Activity)
         fun onActivityDestroyed(activity: Activity)
     }
 
+    companion object {
+        val INSTANCE by lazy { AppLifecycleProvider() }
+    }
+
     private val listeners: MutableSet<AppLifecycleListener> = mutableSetOf()
     private var started = false
 
+    /**
+     * Starts the [AppLifecycleProvider] by registering an [InternalAppLifecycleListener] with the
+     * [app] to receive app lifecycle events.
+     * @param app the [Application] to register the [InternalAppLifecycleListener] with
+     */
     @Synchronized
     internal fun start(app: Application) {
-        if(started) {
+        if (started) {
             return
         }
         started = true
         app.registerActivityLifecycleCallbacks(InternalAppLifecycleListener(this))
-
     }
 
+    /**
+     * Registers a [listener] to receive app lifecycle events.
+     * @param listener the [AppLifecycleListener] to register
+     */
     internal fun registerListener(listener: AppLifecycleListener) {
         listeners.add(listener)
     }
 
+    /**
+     * Unregisters a [listener] from receiving app lifecycle events.
+     * @param listener the [AppLifecycleListener] to unregister
+     */
     internal fun unregisterListener(listener: AppLifecycleListener) {
         listeners.remove(listener)
     }
 
+    /**
+     * Internal implementation of [Application.ActivityLifecycleCallbacks] that forwards
+     * lifecycle events to [AppLifecycleProvider.AppLifecycleListener]. Allows registering a single Application.ActivityLifecycleCallback
+     * with the Application instead of one per [Presentable].
+     */
     private class InternalAppLifecycleListener(private val appLifecycleProvider: AppLifecycleProvider) :
         Application.ActivityLifecycleCallbacks {
         override fun onActivityResumed(activity: Activity) {

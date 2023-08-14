@@ -14,8 +14,14 @@ package com.adobe.marketing.mobile.services.ui.vnext.message.mapping
 import androidx.compose.foundation.layout.Arrangement
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
 
+/**
+ * Maps the [InAppMessageSettings.MessageAlignment] to a compose [Arrangement.Horizontal] and [Arrangement.Vertical] arrangement
+ */
 internal object MessageArrangementMapper {
 
+    /**
+     * Maps the [InAppMessageSettings.MessageAlignment] to compose [Arrangement.Horizontal] arrangement
+     */
     private val horizontalArrangementMap: Map<InAppMessageSettings.MessageAlignment, Arrangement.Horizontal> = mapOf(
         InAppMessageSettings.MessageAlignment.LEFT to Arrangement.Start,
         InAppMessageSettings.MessageAlignment.RIGHT to Arrangement.End,
@@ -23,6 +29,9 @@ internal object MessageArrangementMapper {
         // Horizontal alignment is not supported for TOP and BOTTOM
     )
 
+    /**
+     * Maps the [InAppMessageSettings.MessageAlignment] to compose [Arrangement.Vertical] arrangement
+     */
     private val verticalArrangementMap: Map<InAppMessageSettings.MessageAlignment, Arrangement.Vertical> = mapOf(
         InAppMessageSettings.MessageAlignment.TOP to Arrangement.Top,
         InAppMessageSettings.MessageAlignment.BOTTOM to Arrangement.Bottom,
@@ -30,10 +39,20 @@ internal object MessageArrangementMapper {
         // Vertical alignment is not supported for LEFT and RIGHT
     )
 
+    /**
+     * Returns the compose [Arrangement.Horizontal] arrangement for the given [InAppMessageSettings.MessageAlignment]
+     * @param alignment the [InAppMessageSettings.MessageAlignment] whose compose [Arrangement.Horizontal] arrangement is needed
+     * @return the compose [Arrangement.Horizontal] arrangement for the given [InAppMessageSettings.MessageAlignment]
+     */
     internal fun getHorizontalArrangement(alignment: InAppMessageSettings.MessageAlignment): Arrangement.Horizontal {
         return horizontalArrangementMap[alignment] ?: Arrangement.Center
     }
 
+    /**
+     * Returns the compose [Arrangement.Vertical] arrangement for the given [InAppMessageSettings.MessageAlignment]
+     * @param alignment the [InAppMessageSettings.MessageAlignment] whose compose [Arrangement.Vertical] arrangement is needed
+     * @return the compose [Arrangement.Vertical] arrangement for the given [InAppMessageSettings.MessageAlignment]
+     */
     internal fun getVerticalArrangement(alignment: InAppMessageSettings.MessageAlignment): Arrangement.Vertical {
         return verticalArrangementMap[alignment] ?: Arrangement.Center
     }

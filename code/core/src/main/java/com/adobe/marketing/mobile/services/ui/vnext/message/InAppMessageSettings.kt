@@ -11,6 +11,28 @@
 
 package com.adobe.marketing.mobile.services.ui.vnext.message
 
+/**
+ * An immutable class that holds the settings and configuration for the InAppMessage.
+ *
+ * @param content the HTML content for the message
+ * @param width the width of the message as a percentage of the screen width
+ * @param height the height of the message as a percentage of the screen height
+ * @param verticalInset the vertical inset of the message. This is the padding from the top and bottom of the screen
+ * expressed as a percentage of the screen height
+ * @param horizontalInset the horizontal inset of the message. This is the padding from the left and right of the screen
+ * expressed as a percentage of the screen width
+ * @param verticalAlignment the vertical alignment of the message on the screen
+ * @param horizontalAlignment the horizontal alignment of the message on the screen
+ * @param displayAnimation the animation to use when displaying the message
+ * @param dismissAnimation the animation to use when dismissing the message
+ * @param backdropColor the color of the backdrop behind the message. This the color behind the message when the message is taking over the UI.
+ * @param backdropOpacity the opacity of the backdrop behind the message. This the opacity behind the message when the message is taking over the UI.
+ * @param cornerRadius the corner radius of the message
+ * @param shouldTakeOverUi whether interactions with the elements outside the message should be disabled.
+ * Should be set to true if the message should take over the UI, false otherwise.
+ * @param assetMap a map of asset names to asset URLs
+ * @param gestureMap a map of gestures to the names of the actions to be performed when the gesture is detected
+ */
 class InAppMessageSettings private constructor(
     val content: String,
     val width: Int,
@@ -25,8 +47,8 @@ class InAppMessageSettings private constructor(
     val backdropOpacity: Float,
     val cornerRadius: Float,
     val shouldTakeOverUi: Boolean,
-    val assetMap: Map<String, String>
-
+    val assetMap: Map<String, String>,
+    val gestureMap: Map<MessageGesture, String>
 ) {
     /** Enum representing Message alignment.  */
     enum class MessageAlignment {
@@ -49,12 +71,14 @@ class InAppMessageSettings private constructor(
             private val gestureToEnumMap: Map<String, MessageGesture> =
                 values().associateBy { it.gestureName }
 
-            fun forName(gestureName: String): MessageGesture? {
-                return gestureToEnumMap[gestureName]
-            }
+            internal fun getGestureForName(gestureName: String): MessageGesture? =
+                gestureToEnumMap[gestureName]
         }
     }
 
+    /**
+     * Builder class for [InAppMessageSettings].
+     */
     class Builder {
         private var content: String = ""
         private var width: Int = 100
@@ -70,42 +94,115 @@ class InAppMessageSettings private constructor(
         private var cornerRadius: Float = 0.0f
         private var shouldTakeOverUi: Boolean = false
         private var assetMap: MutableMap<String, String> = mutableMapOf()
+        private var gestures: MutableMap<MessageGesture, String> = mutableMapOf()
 
+        /**
+         * Sets the HTML content for the message.
+         * @param content the HTML content for the message
+         */
         fun content(content: String) = apply { this.content = content }
 
-        fun width(width: Int) = apply { this.width = width }
+        /**
+         * Sets the width of the message as a percentage of the screen width.
+         * @param width the width of the message as a percentage of the screen width
+         */
+        fun width(width: Int) = apply { this.width = clipToPercent(width) }
 
-        fun height(height: Int) = apply { this.height = height }
+        /**
+         * Sets the height of the message as a percentage of the screen height.
+         * @param height the height of the message as a percentage of the screen height
+         */
+        fun height(height: Int) = apply { this.height = clipToPercent(height) }
 
-        fun verticalInset(verticalInset: Int) = apply { this.verticalInset = verticalInset }
+        /**
+         * Sets the vertical inset of the message. This is the padding from the top and bottom
+         * of the screen as a percentage of the screen height.
+         * @param verticalInset the vertical inset of the message
+         */
+        fun verticalInset(verticalInset: Int) = apply { this.verticalInset = clipToPercent(verticalInset) }
 
-        fun horizontalInset(horizontalInset: Int) = apply { this.horizontalInset = horizontalInset }
+        /**
+         * Sets the horizontal inset of the message. This is the padding from the left and right
+         * of the screen as a percentage of the screen width.
+         */
+        fun horizontalInset(horizontalInset: Int) = apply { this.horizontalInset = clipToPercent(horizontalInset) }
 
+        /**
+         * Sets the vertical alignment of the message on the screen.
+         * @param verticalAlignment the vertical [MessageAlignment] of the message on the screen
+         */
         fun verticalAlignment(verticalAlignment: MessageAlignment) =
             apply { this.verticalAlignment = verticalAlignment }
 
+        /**
+         * Sets the horizontal alignment of the message on the screen.
+         * @param horizontalAlignment the horizontal [MessageAlignment] of the message on the screen
+         */
         fun horizontalAlignment(horizontalAlignment: MessageAlignment) =
             apply { this.horizontalAlignment = horizontalAlignment }
 
+        /**
+         * Sets the animation to use when displaying the message.
+         * @param displayAnimation the [MessageAnimation] to use when displaying the message
+         */
         fun displayAnimation(displayAnimation: MessageAnimation) =
             apply { this.displayAnimation = displayAnimation }
 
+        /**
+         * Sets the animation to use when dismissing the message.
+         * @param dismissAnimation the [MessageAnimation] to use when dismissing the message
+         */
         fun dismissAnimation(dismissAnimation: MessageAnimation) =
             apply { this.dismissAnimation = dismissAnimation }
 
+        /**
+         * Sets the color of the backdrop behind the message. This is the color behind the message when the message is taking over the UI.
+         * @param backgroundColor the hex color of the backdrop behind the message.
+         */
         fun backgroundColor(backgroundColor: String) =
             apply { this.backgroundColor = backgroundColor }
 
+        /**
+         * Sets the opacity of the backdrop behind the message. This is the opacity behind the message when the message is taking over the UI.
+         * @param backdropOpacity the opacity of the backdrop behind the message. This should be a value between 0.0f (transparent) and 1.0f(opaque).
+         */
         fun backdropOpacity(backdropOpacity: Float) =
             apply { this.backdropOpacity = backdropOpacity }
 
+        /**
+         * Sets the corner radius of the message.
+         * @param cornerRadius the corner radius of the message
+         */
         fun cornerRadius(cornerRadius: Float) = apply { this.cornerRadius = cornerRadius }
 
+        /**
+         * Configures whether the message should take over the UI.
+         * @param shouldTakeOverUi whether the message should take over the UI. Should be set to true if the message should take over the UI, false otherwise.
+         */
         fun shouldTakeOverUi(shouldTakeOverUi: Boolean) =
             apply { this.shouldTakeOverUi = shouldTakeOverUi }
 
+        /**
+         * Sets the asset map for the message. This is a map of asset names to asset URLs.
+         * @param assetMap the asset map for the message
+         */
         fun assetMap(assetMap: MutableMap<String, String>) =
             apply { this.assetMap = assetMap }
+
+        /**
+         * Sets the gesture map for the message. This is a map of gesture names
+         * (as defined by [InAppMessageSettings.MessageGesture]'s) to gesture actions.
+         * @param gestureMap the gesture map for the message
+         */
+        fun gestureMap(gestureMap: Map<String, String>) =
+            apply {
+                for ((key, value) in gestureMap) {
+                    val gesture: MessageGesture? = MessageGesture.getGestureForName(key)
+                    gesture?.apply {
+                        this@Builder.gestures[gesture] = value
+                    }
+                }
+            }
 
         fun build() = InAppMessageSettings(
             content,
@@ -121,7 +218,17 @@ class InAppMessageSettings private constructor(
             backdropOpacity,
             cornerRadius,
             shouldTakeOverUi,
-            assetMap
+            assetMap,
+            gestures
         )
+
+        private companion object {
+            /**
+             * Clips a value to a percentage. This is used to ensure that values are between 0 and 100.
+             * @param toClip the value to clip
+             * @return the clipped value
+             */
+            fun clipToPercent(toClip: Int) = toClip % 100
+        }
     }
 }

@@ -15,6 +15,10 @@ import com.adobe.marketing.mobile.services.ui.vnext.InAppMessage
 import com.adobe.marketing.mobile.services.ui.vnext.Presentable
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationEventListener
 
+/**
+ * Interface for listening to events related to an InAppMessage presentation.
+ * @see PresentationEventListener
+ */
 interface InAppMessageEventListener : PresentationEventListener<Presentable<InAppMessage>> {
 
     /**

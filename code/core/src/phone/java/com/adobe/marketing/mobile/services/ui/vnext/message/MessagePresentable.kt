@@ -12,122 +12,164 @@
 package com.adobe.marketing.mobile.services.ui.vnext.message
 
 import android.content.Context
-import android.view.GestureDetector
 import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
-import androidx.activity.compose.BackHandler
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.platform.ComposeView
-import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ServiceConstants
+import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.vnext.InAppMessage
 import com.adobe.marketing.mobile.services.ui.vnext.Presentable
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationListener
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationUtilityProvider
+import com.adobe.marketing.mobile.services.ui.vnext.common.AEPPresentable
 import com.adobe.marketing.mobile.services.ui.vnext.common.AppLifecycleProvider
-import com.adobe.marketing.mobile.services.ui.vnext.common.BasePresentable
-import com.adobe.marketing.mobile.services.ui.vnext.message.views.Message
+import com.adobe.marketing.mobile.services.ui.vnext.message.views.MessageScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import java.nio.charset.StandardCharsets
 
 internal class MessagePresentable(
     private val inAppMessage: InAppMessage,
     private val presentationDelegate: PresentationDelegate?,
     private val presentationUtilityProvider: PresentationUtilityProvider,
     appLifecycleProvider: AppLifecycleProvider
-) : BasePresentable<InAppMessage>(inAppMessage, presentationUtilityProvider, presentationDelegate, appLifecycleProvider) {
+) : AEPPresentable<InAppMessage>(
+    inAppMessage,
+    presentationUtilityProvider,
+    presentationDelegate,
+    appLifecycleProvider
+) {
 
-    private var webView: WebView? = null
+    companion object {
+        private const val LOG_SOURCE = "MessagePresentable"
+        internal const val TEXT_HTML_MIME_TYPE = "text/html"
+        internal const val BASE_URL = "file:///android_asset/"
+    }
+
+    private val inAppMessageEventHandler: DefaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
+        mutableMapOf(),
+        CoroutineScope(Dispatchers.Main)
+    )
+
+    private var animationCompleteCallback: (() -> Unit)? = null
+    init {
+        inAppMessage.eventHandler = inAppMessageEventHandler
+    }
 
     override fun getPresentation(): InAppMessage {
         return inAppMessage
     }
 
-    override fun getContent(context: Context): ComposeView {
-        return ComposeView(context).apply {
+    override fun getContent(activityContext: Context): ComposeView {
+        return ComposeView(activityContext).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
 
             setContent {
-                BackHandler(enabled = getState() == Presentable.State.VISIBLE) {
-                    dismiss()
-                }
+                MessageScreen(
+                    presentationStateManager = presentationStateManager,
+                    inAppMessageSettings = inAppMessage.settings,
+                    onCreated = {
+                        applyWebViewSettings(it)
+                        // Notify the event handler that there is a new webview ready
+                        inAppMessageEventHandler.onNewWebView(webView = it)
+                    },
+                    onDisposed = {
+                        if (getState() != Presentable.State.DETACHED) {
+                            // If the state is not DETACHED, the the presentable will be reattached
+                            // again, so don't cleanup
+                            return@MessageScreen
+                        }
+                        animationCompleteCallback?.invoke()
+                        animationCompleteCallback = null
+                    },
+                    onBackPressed = {
+                        inAppMessage.eventListener.onBackPressed(this@MessagePresentable)
+                        dismiss()
+                    },
+                    onGestureDetected = { gesture ->
+                        // The message creation wizard only allows gesture association with message dismissal
+                        // So always dismiss the message when a gesture is detected
+                        dismiss()
 
-                val visibility = derivedStateOf { visibilityStateManager.presentableState.value == Presentable.State.VISIBLE  }
-
-                Message(isVisible = visibility, inAppMessageSettings = inAppMessage.settings) {
-                    webView = it
-                    it.webViewClient = createWebViewClient()
-                    Log.debug(ServiceConstants.LOG_TAG, "MessagePresentable", "Created Frame")
-
-                    // apply web settings
-                    // applyWebSettings(it)
-                    // apply web ui settings
-                    // applyWebUiSettings(it)
-                    // apply listeners
-                    // applyListeners(it)
-
-                }
+                        // If a gesture mapping exists, the notify the listener about the url associated with the gesture
+                        inAppMessage.settings.gestureMap[gesture]?.let { link ->
+                            handleInAppUrl(link)
+                        }
+                    }
+                )
             }
-            Log.debug(ServiceConstants.LOG_TAG, "MessagePresentable", "Created compose view")
         }
     }
 
     override fun gateDisplay(): Boolean {
-        return false // change to true
+        return true
     }
 
-    private fun applyWebSettings(webView: WebView) {
-        webView.apply {
+    override fun awaitExitAnimation(onAnimationComplete: () -> Unit) {
+        animationCompleteCallback = onAnimationComplete
+        // now wait for onDisposed to be called on the composable
+    }
+
+    private fun applyWebViewSettings(webView: WebView): WebView {
+        webView.settings.apply {
             // base settings
-            settings.javaScriptEnabled = true
-            settings.allowFileAccess = false
-            settings.domStorageEnabled = true
-            settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
-            settings.defaultTextEncodingName = "UTF-8"
-            settings.mediaPlaybackRequiresUserGesture = false
-            settings.databaseEnabled = true
+            javaScriptEnabled = true
+            allowFileAccess = false
+            domStorageEnabled = true
+            layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
+            defaultTextEncodingName = StandardCharsets.UTF_8.name()
+            mediaPlaybackRequiresUserGesture = false
+            databaseEnabled = true
         }
-    }
 
-    private fun applyWebUiSettings(webView: WebView) {
         webView.apply {
-            isVerticalScrollBarEnabled = true
-            isHorizontalScrollBarEnabled = true // do not enable if gestures have to be handled
+            // do not enable if gestures have to be handled
+            isVerticalScrollBarEnabled = inAppMessage.settings.gestureMap.isEmpty()
+            isHorizontalScrollBarEnabled = inAppMessage.settings.gestureMap.isEmpty()
+
             isScrollbarFadingEnabled = true
             scrollBarStyle = WebView.SCROLLBARS_INSIDE_OVERLAY
             setBackgroundColor(0)
         }
-    }
 
-    private fun applyListeners(context: Context, webView: WebView, gestureTracker: GestureTracker) {
-        webView.apply {
-            // listeners to handle gesture events
-            val gestureListener = InAppMessageGestureListener(gestureTracker = gestureTracker)
-            val gestureDetector = GestureDetector(context, gestureListener)
-            setOnTouchListener { v, event ->
-                performClick()
-                gestureDetector.onTouchEvent(event)
-            }
-        }
+        webView.webViewClient = createWebViewClient()
+        return webView
     }
 
     private fun createWebViewClient(): InAppMessageWebViewClient {
         return InAppMessageWebViewClient(
             inAppMessage.settings,
             presentationUtilityProvider
-        ) { url ->
-            val handled =
-                inAppMessage.inAppMessageEventListener.onUrlLoading(this@MessagePresentable, url)
-            if (handled) {
-                presentationDelegate?.onContentLoaded(
-                    this@MessagePresentable,
-                    PresentationListener.PresentationContent.UrlContent(url)
-                )
-            }
-            handled
+        ) { url -> handleInAppUrl(url) }
+    }
+
+    /**
+     * Handles the in-app url. Does so by first checking if the component that created this message
+     * is able to handle the url.
+     * @param url the url to handle
+     */
+    private fun handleInAppUrl(url: String): Boolean {
+        // Check if the component that created this message is able to handle the url
+        val handledByListener =
+            inAppMessage.eventListener.onUrlLoading(this@MessagePresentable, url)
+        val handled = handledByListener || if (InAppMessageWebViewClient.isValidUrl(url)) {
+            // TODO: open this url using a proxy for URLOpening.
+            ServiceProvider.getInstance().uiService.showUrl(url)
+            true
+        } else {
+            false
         }
+        if (handled) {
+            presentationDelegate?.onContentLoaded(
+                this@MessagePresentable,
+                PresentationListener.PresentationContent.UrlContent(url)
+            )
+        }
+
+        return handled
     }
 }

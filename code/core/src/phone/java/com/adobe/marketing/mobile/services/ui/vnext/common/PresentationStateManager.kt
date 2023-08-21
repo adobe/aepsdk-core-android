@@ -24,16 +24,28 @@ internal class PresentationStateManager {
     val presentableState: State<Presentable.State> = _presentableState
     val visibilityState = MutableTransitionState(false)
 
+    /**
+     * Transition the presentable state to [Presentable.State.VISIBLE] and set the visibility state to true.
+     * This is to be called to trigger the presentable to show itself.
+     */
     fun onShown() {
         _presentableState.value = Presentable.State.VISIBLE
         visibilityState.targetState = true
     }
 
+    /**
+     * Transition the presentable state to [Presentable.State.HIDDEN] and set the visibility state to false.
+     * This is to be called to trigger the presentable to hide itself.
+     */
     fun onHidden() {
         _presentableState.value = Presentable.State.HIDDEN
         visibilityState.targetState = false
     }
 
+    /**
+     * Transition the presentable state to [Presentable.State.DETACHED] and set the visibility state to false.
+     * This is to be called to trigger the presentable to detach itself.
+     */
     fun onDetached() {
         _presentableState.value = Presentable.State.DETACHED
         visibilityState.targetState = false

@@ -29,6 +29,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.nio.charset.StandardCharsets
 
+/**
+ * Presentable for InAppMessage visuals.
+ * @param inAppMessage the in-app message that this presentable will be tied to
+ * @param presentationDelegate the presentation delegate to use for lifecycle events
+ * @param presentationUtilityProvider the presentation utility provider to use for the presentable
+ */
 internal class MessagePresentable(
     private val inAppMessage: InAppMessage,
     private val presentationDelegate: PresentationDelegate?,
@@ -52,15 +58,21 @@ internal class MessagePresentable(
         CoroutineScope(Dispatchers.Main)
     )
 
-    private var animationCompleteCallback: (() -> Unit)? = null
     init {
+        // Set the event handler for the in-app message right at creation
         inAppMessage.eventHandler = inAppMessageEventHandler
     }
+
+    private var animationCompleteCallback: (() -> Unit)? = null
 
     override fun getPresentation(): InAppMessage {
         return inAppMessage
     }
 
+    /**
+     * Returns the content of the Message presentable  i.e MessageScreen as a ComposeView.
+     * @param activityContext the context of the activity
+     */
     override fun getContent(activityContext: Context): ComposeView {
         return ComposeView(activityContext).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -106,6 +118,7 @@ internal class MessagePresentable(
     }
 
     override fun gateDisplay(): Boolean {
+        // InAppMessages require consulting the presentation delegate to determine if they should be displayed
         return true
     }
 
@@ -114,6 +127,12 @@ internal class MessagePresentable(
         // now wait for onDisposed to be called on the composable
     }
 
+    /**
+     * Applies the default webview configuration to the webview and attaches an internal webview client for
+     * handling in-app urls.
+     * @param webView the webview to apply the settings to
+     * @return the webview with the settings applied
+     */
     private fun applyWebViewSettings(webView: WebView): WebView {
         webView.settings.apply {
             // base settings
@@ -151,11 +170,14 @@ internal class MessagePresentable(
      * Handles the in-app url. Does so by first checking if the component that created this message
      * is able to handle the url.
      * @param url the url to handle
+     * @return true if the url was handled internally by the web-view client, false otherwise
      */
     private fun handleInAppUrl(url: String): Boolean {
         // Check if the component that created this message is able to handle the url
         val handledByListener =
             inAppMessage.eventListener.onUrlLoading(this@MessagePresentable, url)
+
+        // Check if this URL can be opened by the URLOpening
         val handled = handledByListener || if (InAppMessageWebViewClient.isValidUrl(url)) {
             // TODO: open this url using a proxy for URLOpening.
             ServiceProvider.getInstance().uiService.showUrl(url)

@@ -14,6 +14,9 @@ package com.adobe.marketing.mobile.services.ui.vnext
 import com.adobe.marketing.mobile.services.ui.vnext.common.AppLifecycleProvider
 import com.adobe.marketing.mobile.services.ui.vnext.message.MessagePresentable
 
+/**
+ * UI Service implementation for AEP SDK
+ */
 class AEPUIService : UIService {
     private var presentationDelegate: PresentationDelegate? = null
 
@@ -22,7 +25,7 @@ class AEPUIService : UIService {
         presentation: T,
         presentationUtilityProvider: PresentationUtilityProvider
     ): Presentable<T> {
-        // start the app lifecycle provider if not started
+        // start the app lifecycle provider if not started. Calling this multiple times is safe.
         AppLifecycleProvider.INSTANCE.start(presentationUtilityProvider.getApplication())
 
         when (presentation) {

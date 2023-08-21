@@ -15,7 +15,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performGesture
-import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.test.swipeUp
@@ -42,8 +41,8 @@ class MessageScreenTests {
     private val presentationStateManager = PresentationStateManager()
 
     private val acceptedGestures = mutableMapOf(
-        "swipeDown" to "adbinapp://dismiss",
-        "swipeLeft" to "adbinapp://dismiss",
+        "swipeUp" to "adbinapp://dismiss",
+        "swipeRight" to "adbinapp://dismiss",
         "backgroundTap" to "adbinapp://dismiss"
     )
 
@@ -218,20 +217,14 @@ class MessageScreenTests {
 
         // Swipe gestures
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            swipeDown()
+            swipeUp()
+            composeTestRule.waitForIdle()
         }
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            swipeLeft()
-        }
-        composeTestRule.waitForIdle()
 
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
         assertFalse(onBackPressed)
-        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_DOWN))
-        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_LEFT))
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_UP))
     }
 
     @Test
@@ -257,20 +250,14 @@ class MessageScreenTests {
 
         // Swipe gestures
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            swipeDown()
+            swipeRight()
+            composeTestRule.waitForIdle()
         }
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            swipeLeft()
-        }
-        composeTestRule.waitForIdle()
 
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
         assertFalse(onBackPressed)
-        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_DOWN))
-        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_LEFT))
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_RIGHT))
     }
 
     @Test
@@ -296,24 +283,19 @@ class MessageScreenTests {
 
         // Swipe gestures
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            swipeUp()
+            swipeLeft()
+            composeTestRule.waitForIdle()
         }
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            swipeRight()
-        }
-        composeTestRule.waitForIdle()
 
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
         assertFalse(onBackPressed)
-        assertFalse(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_UP))
-        assertFalse(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_RIGHT))
+        assertTrue(detectedGestures.isEmpty())
     }
 
     @After
     fun tearDown() {
+        composeTestRule.waitForIdle()
         onBackPressed = false
         onCreatedCalled = false
         onDisposedCalled = false

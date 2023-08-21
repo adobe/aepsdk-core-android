@@ -64,6 +64,9 @@ internal class GestureTracker(
         }
     }
 
+    /**
+     * To be invoked when a gesture is detected. Responsible for changing the exit transition.
+     */
     internal fun onGesture(gesture: InAppMessageSettings.MessageGesture) {
         Log.trace(ServiceConstants.LOG_TAG, LOG_SOURCE, "Gesture detected: $gesture")
 
@@ -74,6 +77,10 @@ internal class GestureTracker(
         onGestureDetected(gesture)
     }
 
+    /**
+     * Returns the most recent exit transition to be used for the exit animation, based on
+     * the gestures detected.
+     */
     internal fun getExitTransition(): ExitTransition {
         return currentExitTransition
     }

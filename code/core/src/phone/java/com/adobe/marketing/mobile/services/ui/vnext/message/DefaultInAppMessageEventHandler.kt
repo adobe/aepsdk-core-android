@@ -192,6 +192,9 @@ internal class DefaultInAppMessageEventHandler internal constructor(
         }
     }
 
+    /**
+     * A wrapper class for annotating the [callback] as a javascript interface for adding to the web view.
+     */
     internal class WebViewJavascriptInterface(private val callback: (String) -> Unit) {
         @JavascriptInterface
         fun run(js: String) {

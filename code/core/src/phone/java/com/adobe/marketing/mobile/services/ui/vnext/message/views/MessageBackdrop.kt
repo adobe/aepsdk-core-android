@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.core.graphics.toColorInt
 import com.adobe.marketing.mobile.services.ui.vnext.message.GestureTracker
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
@@ -56,6 +57,7 @@ internal fun MessageBackdrop(
                         gestureTracker.onGesture(InAppMessageSettings.MessageGesture.BACKGROUND_TAP)
                     }
                 )
+                .testTag(MessageTestTags.MESSAGE_BACKDROP)
         )
     }
 }

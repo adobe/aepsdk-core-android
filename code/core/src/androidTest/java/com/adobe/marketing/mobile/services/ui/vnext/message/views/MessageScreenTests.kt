@@ -11,16 +11,21 @@
 
 package com.adobe.marketing.mobile.services.ui.vnext.message.views
 
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performGesture
 import androidx.compose.ui.test.swipeDown
+import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.test.swipeUp
+import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.services.ui.vnext.common.PresentationStateManager
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,8 +33,21 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class MessageScreenTests {
     @get: Rule
-    val composeTestRule = createComposeRule() // compose rule is required to get access to the composable component
-    val HTML_TEXT_SAMPLE = "<html>\n" +
+    val composeTestRule = createComposeRule()
+
+    private var onCreatedCalled = false
+    private var onDisposedCalled = false
+    private var onBackPressed = false
+    private val detectedGestures = mutableListOf<InAppMessageSettings.MessageGesture>()
+    private val presentationStateManager = PresentationStateManager()
+
+    private val acceptedGestures = mutableMapOf(
+        "swipeDown" to "adbinapp://dismiss",
+        "swipeLeft" to "adbinapp://dismiss",
+        "backgroundTap" to "adbinapp://dismiss"
+    )
+
+    private val HTML_TEXT_SAMPLE = "<html>\n" +
         "<head>\n" +
         "<title>A Sample HTML Page</title>\n" +
         "</head>\n" +
@@ -40,61 +58,292 @@ class MessageScreenTests {
         "</body>\n" +
         "</html>"
 
-    private val inAppMessageSettings = InAppMessageSettings.Builder()
-        .backdropOpacity(0.5f)
-        .backgroundColor("#000000")
-        .cornerRadius(10f)
-        .displayAnimation(InAppMessageSettings.MessageAnimation.BOTTOM)
-        .dismissAnimation(InAppMessageSettings.MessageAnimation.TOP)
-        .height(60)
-        .width(80)
-        .horizontalAlignment(InAppMessageSettings.MessageAlignment.CENTER)
-        .shouldTakeOverUi(false)
-        .content(HTML_TEXT_SAMPLE)
-        .gestureMap(mapOf("swipeDown" to "adbinapp://dismiss"))
-        .build()
-
-    private var onCreatedCalled = false
-    private var onDisposedCalled = false
-    private var onBackPressed = false
-    private val detectedGestures = mutableListOf<InAppMessageSettings.MessageGesture>()
-    private val presentationStateManager = PresentationStateManager()
-
-    @Before
-    fun setUp() {
+    @Test
+    fun testMessageScreenIsNotDisplayedWhenFirstAttached() {
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
                 presentationStateManager = presentationStateManager,
-                inAppMessageSettings = inAppMessageSettings,
+                inAppMessageSettings = getSettings(false),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
                 onBackPressed = { onBackPressed = true }
             )
         }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
     }
 
     @Test
-    fun testMessage() {
-        presentationStateManager.onShown()
-        composeTestRule.waitForIdle()
-        assertTrue(onCreatedCalled)
-        composeTestRule.onNodeWithTag("MessageFrame").assertExists()
-
-        composeTestRule.onNodeWithTag("MessageFrame").performGesture {
-            swipeDown()
+    fun testMessageScreenIsDisplayedWhenPresentationVisibilityStateIsTrue() {
+        composeTestRule.setContent { // setting our composable as content for test
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = getSettings(false),
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
         }
 
         composeTestRule.waitForIdle()
-        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_DOWN))
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
 
-        presentationStateManager.onDetached()
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(false)
+
+        assertTrue(onCreatedCalled)
+        assertFalse(onDisposedCalled)
+        assertFalse(onBackPressed)
+        assertTrue(detectedGestures.isEmpty())
+    }
+
+    @Test
+    fun testMessageScreenIsRemovedWhenPresentationVisibilityStateChangesToFalse() {
+        composeTestRule.setContent { // setting our composable as content for test
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = getSettings(false),
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(false)
+
+        // Change the state of the presentation state manager to hidden to remove the message
+        presentationStateManager.onHidden()
         composeTestRule.waitForIdle()
 
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).assertDoesNotExist()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).assertDoesNotExist()
+
+        assertTrue(onCreatedCalled)
         assertTrue(onDisposedCalled)
+        assertFalse(onBackPressed)
+        assertTrue(detectedGestures.isEmpty())
+    }
+
+    @Test
+    fun testMessageScreenHasBackdropWhenUITakeOverIsEnabled() {
+        composeTestRule.setContent { // setting our composable as content for test
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = getSettings(true),
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(true)
+
+        assertTrue(onCreatedCalled)
+        assertFalse(onDisposedCalled)
+        assertFalse(onBackPressed)
+        assertTrue(detectedGestures.isEmpty())
+    }
+
+    @Test
+    fun testMessageScreenRegistersBackPressWhenBackPressed() {
+        composeTestRule.setContent { // setting our composable as content for test
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = getSettings(true),
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(true)
+
+        // Press back
+        Espresso.pressBack()
+        Espresso.onIdle()
+
+        assertTrue(onCreatedCalled)
+        assertFalse(onDisposedCalled)
+        assertTrue(onBackPressed)
+        assertTrue(detectedGestures.isEmpty())
+    }
+
+    @Test
+    fun testMessageScreenRegistersAcceptedGesturesWhenUiTakeOverIsEnabled() {
+        composeTestRule.setContent { // setting our composable as content for test
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = getSettings(true),
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(true)
+
+        // Swipe gestures
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+            swipeDown()
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+            swipeLeft()
+        }
+        composeTestRule.waitForIdle()
+
+        assertTrue(onCreatedCalled)
+        assertFalse(onDisposedCalled)
+        assertFalse(onBackPressed)
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_DOWN))
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_LEFT))
+    }
+
+    @Test
+    fun testMessageScreenRegistersAcceptedGesturesWhenUiTakeOverIsDisabled() {
+        composeTestRule.setContent { // setting our composable as content for test
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = getSettings(false),
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(false)
+
+        // Swipe gestures
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+            swipeDown()
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+            swipeLeft()
+        }
+        composeTestRule.waitForIdle()
+
+        assertTrue(onCreatedCalled)
+        assertFalse(onDisposedCalled)
+        assertFalse(onBackPressed)
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_DOWN))
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_LEFT))
+    }
+
+    @Test
+    fun testMessageScreenDoesNotRegisterUnAcceptedGestures() {
+        composeTestRule.setContent { // setting our composable as content for test
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = getSettings(true),
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(true)
+
+        // Swipe gestures
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+            swipeUp()
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+            swipeRight()
+        }
+        composeTestRule.waitForIdle()
+
+        assertTrue(onCreatedCalled)
+        assertFalse(onDisposedCalled)
+        assertFalse(onBackPressed)
+        assertFalse(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_UP))
+        assertFalse(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_RIGHT))
     }
 
     @After
     fun tearDown() {
+        onBackPressed = false
+        onCreatedCalled = false
+        onDisposedCalled = false
+        detectedGestures.clear()
+    }
+
+    private fun validateMessageAppeared(withBackdrop: Boolean) {
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertExists().assertIsDisplayed()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).assertExists().assertIsDisplayed()
+        if (withBackdrop) {
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).assertExists().assertIsDisplayed()
+                .assertIsDisplayed()
+        } else {
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).assertDoesNotExist()
+        }
+    }
+
+    private fun getSettings(withUiTakeOver: Boolean): InAppMessageSettings {
+        return InAppMessageSettings.Builder()
+            .backdropOpacity(0.5f)
+            .backgroundColor("#000000")
+            .cornerRadius(10f)
+            .displayAnimation(InAppMessageSettings.MessageAnimation.BOTTOM)
+            .dismissAnimation(InAppMessageSettings.MessageAnimation.TOP)
+            .height(60)
+            .width(80)
+            .horizontalAlignment(InAppMessageSettings.MessageAlignment.CENTER)
+            .shouldTakeOverUi(withUiTakeOver)
+            .content(HTML_TEXT_SAMPLE)
+            .gestureMap(acceptedGestures)
+            .build()
     }
 }

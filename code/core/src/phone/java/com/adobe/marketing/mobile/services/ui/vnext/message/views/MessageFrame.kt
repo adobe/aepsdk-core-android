@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.adobe.marketing.mobile.services.ui.vnext.message.GestureTracker
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
@@ -67,7 +68,8 @@ internal fun MessageFrame(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = horizontalPadding, vertical = verticalPadding)
-                .background(Color.Transparent),
+                .background(Color.Transparent)
+                .testTag(MessageTestTags.MESSAGE_FRAME),
             horizontalArrangement = MessageArrangementMapper.getHorizontalArrangement(
                 inAppMessageSettings.horizontalAlignment
             ),

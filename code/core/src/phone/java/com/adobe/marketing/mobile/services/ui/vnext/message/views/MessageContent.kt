@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -107,7 +108,7 @@ internal fun MessageContent(
                     offsetY.value = 0f
                     offsetX.value = 0f
                 }
-            )
+            ).testTag(MessageTestTags.MESSAGE_CONTENT)
 
     )
 }

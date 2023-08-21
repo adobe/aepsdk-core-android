@@ -150,6 +150,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:${compose_version}"
     androidTestImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+    androidTestImplementation 'androidx.test.espresso:espresso-core:2.0.0'
 
     dokkaGfmPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:${dokka_version}")
 }

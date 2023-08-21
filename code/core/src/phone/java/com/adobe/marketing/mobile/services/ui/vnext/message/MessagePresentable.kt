@@ -159,15 +159,10 @@ internal class MessagePresentable(
         val handled = handledByListener || if (InAppMessageWebViewClient.isValidUrl(url)) {
             // TODO: open this url using a proxy for URLOpening.
             ServiceProvider.getInstance().uiService.showUrl(url)
+            presentationDelegate?.onContentLoaded(this@MessagePresentable, PresentationListener.PresentationContent.UrlContent(url))
             true
         } else {
             false
-        }
-        if (handled) {
-            presentationDelegate?.onContentLoaded(
-                this@MessagePresentable,
-                PresentationListener.PresentationContent.UrlContent(url)
-            )
         }
 
         return handled

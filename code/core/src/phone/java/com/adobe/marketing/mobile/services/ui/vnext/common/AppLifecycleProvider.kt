@@ -14,6 +14,7 @@ package com.adobe.marketing.mobile.services.ui.vnext.common
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import androidx.annotation.VisibleForTesting
 
 /**
  * A singleton class that provides [Presentable]s a way to register for app lifecycle events.
@@ -61,6 +62,16 @@ internal class AppLifecycleProvider private constructor() {
      */
     internal fun unregisterListener(listener: AppLifecycleListener) {
         listeners.remove(listener)
+    }
+
+    /** TESTS ONLY **/
+    @VisibleForTesting
+    internal fun stop(app: Application) {
+        if (!started) {
+            return
+        }
+        started = false
+        app.unregisterActivityLifecycleCallbacks(InternalAppLifecycleListener(this))
     }
 
     /**

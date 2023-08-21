@@ -29,7 +29,7 @@ import com.adobe.marketing.mobile.util.StringUtils;
  */
 class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
 
-    private static final String TAG = "InAppMessageGestureListener";
+    private static final String TAG = "WebViewGestureListener";
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
 
     private static final int ANIMATION_DURATION = 300;

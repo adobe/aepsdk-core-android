@@ -19,6 +19,6 @@ sealed interface PresentationError
 /**
  * Types of Presentation errors and each of these classes represent their type hierarchies as needed.
  */
-class ShowFailed(val reason: String) : PresentationError
-class HideFailed(val reason: String) : PresentationError
-class DismissFailed(val reason: String) : PresentationError
+sealed class ShowFailed(val reason: String) : PresentationError
+sealed class HideFailed(val reason: String) : PresentationError
+sealed class DismissFailed(val reason: String) : PresentationError

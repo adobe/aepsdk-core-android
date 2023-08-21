@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.services.ui.vnext.message
 
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
@@ -23,7 +24,11 @@ import java.io.UnsupportedEncodingException
 import java.lang.ref.WeakReference
 import java.net.URLDecoder
 
-class DefaultInAppMessageEventHandler internal constructor(
+/**
+ * Default implementation of [InAppMessageEventHandler] that handles inbound interactions with the web view
+ * associated with an in-app message.
+ */
+internal class DefaultInAppMessageEventHandler internal constructor(
     private val scriptHandlers: MutableMap<String, WebViewJavascriptInterface>,
     private val mainScope: CoroutineScope
 ) : InAppMessageEventHandler {
@@ -31,7 +36,9 @@ class DefaultInAppMessageEventHandler internal constructor(
         private const val LOG_SOURCE = "DefaultInAppMessageEventHandler"
     }
 
-    private var webView: WeakReference<WebView?> = WeakReference(null)
+    internal var webView: WeakReference<WebView?> = WeakReference(null)
+        @VisibleForTesting get
+        private set
 
     override fun handleJavascriptMessage(handlerName: String, callback: AdobeCallback<String>) {
         val javascriptInterface = WebViewJavascriptInterface { js ->
@@ -142,7 +149,7 @@ class DefaultInAppMessageEventHandler internal constructor(
             Log.warning(
                 ServiceConstants.LOG_TAG,
                 LOG_SOURCE,
-                "Unsupported encoding exception while decoding javascript conten. ${encodingException.message}"
+                "Unsupported encoding exception while decoding javascript content. ${encodingException.message}"
             )
             return
         }
@@ -159,21 +166,28 @@ class DefaultInAppMessageEventHandler internal constructor(
         }
     }
 
+    /**
+     * Called when the web view associated with the in-app message is reset.
+     * This will re-add all the javascript interfaces to the new web view.
+     * @param webView the new web view associated with the in-app message
+     */
     internal fun onNewWebView(webView: WebView?) {
         Log.debug(ServiceConstants.LOG_TAG, LOG_SOURCE, "Internal web view was reset.")
         mainScope.coroutineContext.cancelChildren()
 
-        webView?.let {
-            this.webView = WeakReference(it)
+        mainScope.launch {
+            webView?.let {
+                this@DefaultInAppMessageEventHandler.webView = WeakReference(it)
 
-            // re-add all the javascript interfaces
-            scriptHandlers.forEach { (handlerName, javascriptInterface) ->
-                Log.debug(
-                    ServiceConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "Re Adding javascript interface for handler: $handlerName"
-                )
-                it.addJavascriptInterface(javascriptInterface, handlerName)
+                // re-add all the javascript interfaces
+                scriptHandlers.forEach { (handlerName, javascriptInterface) ->
+                    Log.debug(
+                        ServiceConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "Re Adding javascript interface for handler: $handlerName"
+                    )
+                    it.addJavascriptInterface(javascriptInterface, handlerName)
+                }
             }
         }
     }

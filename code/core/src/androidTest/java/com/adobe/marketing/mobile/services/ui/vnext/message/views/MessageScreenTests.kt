@@ -11,13 +11,13 @@
 
 package com.adobe.marketing.mobile.services.ui.vnext.message.views
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performGesture
-import androidx.compose.ui.test.swipeLeft
-import androidx.compose.ui.test.swipeRight
-import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.swipeWithVelocity
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.services.ui.vnext.common.PresentationStateManager
@@ -43,6 +43,7 @@ class MessageScreenTests {
     private val acceptedGestures = mutableMapOf(
         "swipeUp" to "adbinapp://dismiss",
         "swipeRight" to "adbinapp://dismiss",
+        "swipeLeft" to "adbinapp://dismiss",
         "backgroundTap" to "adbinapp://dismiss"
     )
 
@@ -217,14 +218,30 @@ class MessageScreenTests {
 
         // Swipe gestures
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            swipeUp()
-            composeTestRule.waitForIdle()
+            // create a swipe up gesture
+            swipeWithVelocity(
+                start = Offset(0f, 10f),
+                end = Offset(0f, -600f),
+                endVelocity = 1000f
+            )
         }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+            // create a swipe left gesture
+            swipeWithVelocity(
+                start = Offset(600f, 10f),
+                end = Offset(10f, 10f),
+                endVelocity = 1000f
+            )
+        }
+        composeTestRule.waitForIdle()
 
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
         assertFalse(onBackPressed)
         assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_UP))
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_LEFT))
     }
 
     @Test
@@ -250,9 +267,14 @@ class MessageScreenTests {
 
         // Swipe gestures
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            swipeRight()
-            composeTestRule.waitForIdle()
+            // create a swipe right gesture
+            swipeWithVelocity(
+                start = Offset(100f, 10f),
+                end = Offset(800f, 10f),
+                endVelocity = 1000f
+            )
         }
+        composeTestRule.waitForIdle()
 
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
@@ -283,14 +305,27 @@ class MessageScreenTests {
 
         // Swipe gestures
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            swipeLeft()
-            composeTestRule.waitForIdle()
+            // create a swipe down gesture
+            swipeWithVelocity(
+                start = Offset(0f, 10f),
+                end = Offset(0f, 600f),
+                endVelocity = 1000f
+            )
         }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).performGesture {
+            click(
+                Offset(100f, 10f)
+            )
+        }
+        composeTestRule.waitForIdle()
 
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
         assertFalse(onBackPressed)
-        assertTrue(detectedGestures.isEmpty())
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.BACKGROUND_TAP))
+        assertFalse(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_DOWN))
     }
 
     @After

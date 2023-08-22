@@ -60,6 +60,7 @@ internal class GestureTracker(
         }
 
         gesture?.let {
+            Log.trace(ServiceConstants.LOG_TAG, LOG_SOURCE, "Gesture detected: $gesture with $x, $y, $velocity")
             onGesture(it)
         }
     }

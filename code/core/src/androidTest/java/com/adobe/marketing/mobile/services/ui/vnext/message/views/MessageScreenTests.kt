@@ -221,7 +221,7 @@ class MessageScreenTests {
             // create a swipe up gesture
             swipeWithVelocity(
                 start = Offset(0f, 10f),
-                end = Offset(0f, -600f),
+                end = Offset(0f, -800f),
                 endVelocity = 1000f
             )
         }
@@ -230,7 +230,7 @@ class MessageScreenTests {
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
             // create a swipe left gesture
             swipeWithVelocity(
-                start = Offset(600f, 10f),
+                start = Offset(800f, 10f),
                 end = Offset(10f, 10f),
                 endVelocity = 1000f
             )

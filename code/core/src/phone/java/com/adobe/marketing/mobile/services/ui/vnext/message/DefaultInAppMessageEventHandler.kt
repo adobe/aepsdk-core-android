@@ -67,62 +67,6 @@ internal class DefaultInAppMessageEventHandler internal constructor(
         }
     }
 
-    override fun evaluateJavascript(jsContent: String) {
-        if (jsContent.isEmpty()) {
-            Log.debug(
-                ServiceConstants.LOG_TAG,
-                LOG_SOURCE,
-                "Javascript content is empty. Cannot evaluate javascript."
-            )
-            return
-        }
-
-        if (scriptHandlers.isEmpty()) {
-            Log.debug(
-                ServiceConstants.LOG_TAG,
-                LOG_SOURCE,
-                "No javascript interfaces are registered. Cannot evaluate javascript."
-            )
-            return
-        }
-
-        val activeWebView = webView.get()
-        if (activeWebView == null) {
-            Log.debug(
-                ServiceConstants.LOG_TAG,
-                LOG_SOURCE,
-                "Web view is null. Cannot evaluate javascript."
-            )
-            return
-        }
-
-        val urlDecodedString = try {
-            URLDecoder.decode(jsContent, "UTF-8")
-        } catch (encodingException: UnsupportedEncodingException) {
-            Log.warning(
-                ServiceConstants.LOG_TAG,
-                LOG_SOURCE,
-                "Unsupported encoding exception while decoding javascript conten. ${encodingException.message}"
-            )
-            return
-        }
-
-        mainScope.launch {
-            scriptHandlers.forEach { entry ->
-                activeWebView.evaluateJavascript(
-                    urlDecodedString
-                ) { result ->
-                    Log.trace(
-                        ServiceConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "Invoking script handler ${entry.key} with result: $result"
-                    )
-                    entry.value.run(result)
-                }
-            }
-        }
-    }
-
     override fun evaluateJavascript(jsContent: String, callback: AdobeCallback<String>) {
         if (jsContent.isEmpty()) {
             Log.debug(

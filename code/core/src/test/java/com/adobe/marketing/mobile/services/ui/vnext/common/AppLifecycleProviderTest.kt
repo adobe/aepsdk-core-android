@@ -55,9 +55,6 @@ class AppLifecycleProviderTest {
 
     @Test
     fun `Test that #start invoked multiple times does not register multiple InternalAppLifecycleListeners with the Application`() {
-        // setup
-        val appLifecycleProvider = AppLifecycleProvider.INSTANCE
-
         // test
         AppLifecycleProvider.INSTANCE.start(mockApplication)
         AppLifecycleProvider.INSTANCE.start(mockApplication)
@@ -127,6 +124,7 @@ class AppLifecycleProviderTest {
     @Test
     fun `Test that unregisterListeners are not notified on activity callbacks`() {
         // setup
+        AppLifecycleProvider.INSTANCE.stop(mockApplication)
         AppLifecycleProvider.INSTANCE.start(mockApplication)
         val lifecycleCallbackCaptor = argumentCaptor<Application.ActivityLifecycleCallbacks>()
         verify(

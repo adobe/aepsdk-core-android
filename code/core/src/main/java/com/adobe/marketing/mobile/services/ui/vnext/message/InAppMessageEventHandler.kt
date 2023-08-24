@@ -20,22 +20,12 @@ interface InAppMessageEventHandler {
 
     /**
      * Registers a {@link JavascriptInterface} for the provided handler name to the {@link WebView}
-     * associated with the InAppMessage presentation to handle Javascript messages. Each of the registered
-     * handlers will executed with the content provided through [#evaluateJavascript] and the result
-     * will be passed back to the []callback].
+     * associated with the InAppMessage presentation to handle Javascript messages. When the registered
+     * handlers are executed via the HTML the result will be passed back to the associated [callback].
      * @param handlerName the name of the handler to register
      * @param callback the callback to be invoked with the result of the javascript execution
      */
     fun handleJavascriptMessage(handlerName: String, callback: AdobeCallback<String>)
-
-    /**
-     * Evaluates the provided javascript content in the {@link WebView} maintained by the InAppMessage.
-     * Any output from the javascript execution will be passed back to the registered handlers previously
-     * set through [handleJavascriptMessage].
-     *
-     * @param jsContent the javascript content to be executed
-     */
-    fun evaluateJavascript(jsContent: String)
 
     /**
      * Evaluates the provided javascript content in the {@link WebView} maintained by the InAppMessage

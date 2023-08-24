@@ -12,6 +12,9 @@
 package com.adobe.marketing.mobile.services.ui.vnext
 
 import android.app.Application
+import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonEventListener
+import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonPresentable
+import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonSettings
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventListener
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessagePresentable
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
@@ -52,5 +55,20 @@ class AEPUIServiceTest {
         assertEquals(iamSettings, messagePresentable.getPresentation().settings)
         assertEquals(iamEventListener, messagePresentable.getPresentation().eventListener)
         assertNotNull(messagePresentable.getPresentation().eventListener)
+    }
+
+    @Test
+    fun `Test #create FloatingButton`() {
+        val floatingButtonSettings: FloatingButtonSettings = FloatingButtonSettings.Builder().build()
+        val floatingButtonEventListener: FloatingButtonEventListener = Mockito.mock(FloatingButtonEventListener::class.java)
+        val floatingButtonPresentation = FloatingButton(floatingButtonSettings, floatingButtonEventListener)
+        val floatingButtonPresentable = aepUiService.create(floatingButtonPresentation, mockPresentationUtilityProvider)
+
+        assertNotNull(floatingButtonPresentable)
+        assertTrue(floatingButtonPresentable is FloatingButtonPresentable)
+        assertEquals(floatingButtonPresentation, floatingButtonPresentable.getPresentation())
+        assertEquals(floatingButtonSettings, floatingButtonPresentable.getPresentation().settings)
+        assertEquals(floatingButtonEventListener, floatingButtonPresentable.getPresentation().eventListener)
+        assertNotNull(floatingButtonPresentable.getPresentation().eventListener)
     }
 }

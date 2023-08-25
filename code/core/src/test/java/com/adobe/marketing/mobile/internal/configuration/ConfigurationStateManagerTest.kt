@@ -881,10 +881,6 @@ class ConfigurationStateManagerTest {
     }
 
     @Test
-    fun `Test updateProgrammaticConfig persists config being aware of current environment`() {
-    }
-
-    @Test
     fun `Test mapToEnvironmentAwareKeys when environment is dev and dev keys exist`() {
         // do not use any predefined setup config. We will setup the config manually
         prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)

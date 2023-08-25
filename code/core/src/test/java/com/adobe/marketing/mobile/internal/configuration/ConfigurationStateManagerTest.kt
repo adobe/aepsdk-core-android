@@ -19,6 +19,7 @@ import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheResult
 import com.adobe.marketing.mobile.services.caching.CacheService
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -94,25 +95,33 @@ class ConfigurationStateManagerTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
+    }
 
+    private fun prepareWith(persistedProgrammaticConfig: Boolean, bundledConfig: Boolean) {
         `when`(mockDataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)).thenReturn(
             mockNamedCollection
         )
-        `when`(
-            mockNamedCollection.getString(
-                ConfigurationStateManager.PERSISTED_OVERRIDDEN_CONFIG,
-                null
-            )
-        ).thenReturn(mockPersistedProgrammaticConfigJson)
 
-        `when`(mockDeviceInfoService.getAsset(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)).thenReturn(
-            mockBundledConfigJson.byteInputStream()
-        )
+        if (persistedProgrammaticConfig) {
+            `when`(
+                mockNamedCollection.getString(
+                    ConfigurationStateManager.PERSISTED_OVERRIDDEN_CONFIG,
+                    null
+                )
+            ).thenReturn(mockPersistedProgrammaticConfigJson)
+        }
+
+        if (bundledConfig) {
+            `when`(mockDeviceInfoService.getAsset(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)).thenReturn(
+                mockBundledConfigJson.byteInputStream()
+            )
+        }
 
         mockFileUtils = Mockito.mockStatic(FileUtils::class.java)
 
         mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
-        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }
+            .thenReturn(mockServiceProvider)
         `when`(mockServiceProvider.dataStoreService).thenReturn(mockDataStoreService)
         `when`(mockServiceProvider.deviceInfoService).thenReturn(mockDeviceInfoService)
         `when`(mockServiceProvider.networkService).thenReturn(mockNetworkService)
@@ -124,13 +133,12 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Load Initial Config - loads bundled config when app id is null`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = true)
+
         `when`(mockAppIdManager.loadAppId()).thenReturn(null)
 
         val expectedInitialConfig = mapOf<String, Any?>(
-            "Key" to true,
-            "Key1" to "persisted_Key1Value",
-            "Key2" to 0,
-            "Key3" to false
+            "Key" to true
         )
 
         configurationStateManager.loadInitialConfig()
@@ -141,6 +149,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Load Initial Config - loads cached config when app id is not null`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
 
         val mockCacheResult = mock(CacheResult::class.java)
@@ -153,9 +163,6 @@ class ConfigurationStateManagerTest {
         ).thenReturn(mockCacheResult)
 
         val expectedInitialConfig = mapOf<String, Any?>(
-            "Key1" to "persisted_Key1Value",
-            "Key2" to 0,
-            "Key3" to false,
             "Key4" to "cached_Key4Value",
             "Key5" to 1,
             "Key6" to true
@@ -169,6 +176,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Load Initial Config - loads bundled config when cached config is invalid`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = true)
+
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
         val mockCacheResult = mock(CacheResult::class.java)
 
@@ -182,10 +191,7 @@ class ConfigurationStateManagerTest {
         ).thenReturn(mockCacheResult)
 
         val expectedInitialConfig = mapOf<String, Any?>(
-            "Key" to true,
-            "Key1" to "persisted_Key1Value",
-            "Key2" to 0,
-            "Key3" to false
+            "Key" to true
         )
 
         configurationStateManager.loadInitialConfig()
@@ -196,6 +202,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Load Initial Config - loads bundled config when cached config is null`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = true)
+
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
         `when`(
             mockCacheService.get(
@@ -204,12 +212,7 @@ class ConfigurationStateManagerTest {
             )
         ).thenReturn(null)
 
-        val expectedInitialConfig = mapOf<String, Any?>(
-            "Key" to true,
-            "Key1" to "persisted_Key1Value",
-            "Key2" to 0,
-            "Key3" to false
-        )
+        val expectedInitialConfig = mapOf<String, Any?>("Key" to true)
 
         configurationStateManager.loadInitialConfig()
 
@@ -219,6 +222,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Get bundled config - returns null when asset does not exist`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val assetFileName = "SampleAssetFile"
         `when`(mockDeviceInfoService.getAsset(assetFileName)).thenReturn(null)
 
@@ -228,6 +233,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Get bundled config - returns null when asset content is malformed`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val assetFileName = "SampleAssetFile"
         val malformedInputStream = "{SomeMalformedContent}".byteInputStream()
         `when`(mockDeviceInfoService.getAsset(assetFileName)).thenReturn(malformedInputStream)
@@ -238,6 +245,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Get bundled config - returns valid config when asset content is valid`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val assetFileName = "SampleAssetFile"
         val malformedInputStream = mockBundledConfigJson.byteInputStream()
         `when`(mockDeviceInfoService.getAsset(assetFileName)).thenReturn(malformedInputStream)
@@ -248,6 +257,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Get config from file - returns null when file content is null`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val mockFile = mock(File::class.java)
         `when`(mockFile.absolutePath).thenReturn("some/path/to/file.txt")
 
@@ -261,6 +272,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Get config from file - returns null when file content is empty`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val mockFile = mock(File::class.java)
         `when`(mockFile.absolutePath).thenReturn("some/path/to/file.txt")
 
@@ -274,6 +287,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Update Config with AppID - when config download fails`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         configurationStateManager.updateConfigWithAppId("NewAppID", mockCompletionCallback)
         val expectedURL = "https://assets.adobedtm.com/NewAppID.json"
         val callbackCaptor: KArgumentCaptor<(Map<String, Any?>?) -> Unit> = argumentCaptor()
@@ -290,8 +305,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Update Config with AppID - when config download succeeds`() {
-        // reset any programmatic config
-        configurationStateManager.clearProgrammaticConfig()
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         assertTrue(configurationStateManager.hasConfigExpired("NewAppID"))
 
         configurationStateManager.updateConfigWithAppId("NewAppID", mockCompletionCallback)
@@ -316,6 +331,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Clear programmatic config - programmatic config exists`() {
+        prepareWith(persistedProgrammaticConfig = true, bundledConfig = false)
+
         // Setup with initial config
         `when`(mockAppIdManager.loadAppId()).thenReturn("SampleAppId")
 
@@ -362,22 +379,7 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Clear programmatic config - programmatic config does not exist`() {
-        // Setup with empty programmatic config and load initial config
-        `when`(mockDataStoreService.getNamedCollection(ConfigurationExtension.DATASTORE_KEY)).thenReturn(
-            mockNamedCollection
-        )
-        `when`(
-            mockNamedCollection.getString(
-                ConfigurationStateManager.PERSISTED_OVERRIDDEN_CONFIG,
-                null
-            )
-        ).thenReturn(null)
-        `when`(mockDeviceInfoService.getAsset(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)).thenReturn(
-            mockBundledConfigJson.byteInputStream()
-        )
-
-        configurationStateManager =
-            ConfigurationStateManager(mockAppIdManager, mockConfigurationDownloader)
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = true)
 
         configurationStateManager.loadInitialConfig()
 
@@ -402,6 +404,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Replace configuration - retains programmatic config`() {
+        prepareWith(persistedProgrammaticConfig = true, bundledConfig = false)
+
         // Setup to load programmatic config + cached config
         val mockCacheResult = mock(CacheResult::class.java)
         `when`(mockCacheResult.data).thenReturn(mockCachedConfigJson.byteInputStream())
@@ -463,6 +467,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Replace configuration - when replacing config is empty`() {
+        prepareWith(persistedProgrammaticConfig = true, bundledConfig = false)
+
         // Setup to load programmatic config + cached config
         val mockCacheResult = mock(CacheResult::class.java)
         `when`(mockCacheResult.data).thenReturn(mockCachedConfigJson.byteInputStream())
@@ -512,7 +518,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Replace configuration - when config is null`() {
-        // Setup to load programmatic config + cached config
+        // Setup to with programmatic config + cached config
+        prepareWith(persistedProgrammaticConfig = true, bundledConfig = false)
         val mockCacheResult = mock(CacheResult::class.java)
         `when`(mockCacheResult.data).thenReturn(mockCachedConfigJson.byteInputStream())
 
@@ -560,6 +567,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Compute dev environment aware config when environment specific key does not exist`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val configurationUpdate = mapOf<String, Any?>(
             "build.environment" to "dev",
             "global.ssl" to true,
@@ -577,12 +586,7 @@ class ConfigurationStateManagerTest {
             "global.ssl" to true,
             "rules.url" to "https://assets.adobedtm.com/launch-rules.zip",
             "experienceCloud.org" to "B1F855165B4C9EA50A495E06@AdobeOrg",
-            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-campaignkey",
-
-            // Persisted programmatic config
-            "Key1" to "persisted_Key1Value",
-            "Key2" to 0,
-            "Key3" to false
+            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-campaignkey"
         )
 
         assertEquals(
@@ -593,6 +597,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Compute dev environment aware config when environment specific key exists`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val configurationUpdate = mapOf<String, Any?>(
             "build.environment" to "dev",
             "global.ssl" to true,
@@ -611,12 +617,7 @@ class ConfigurationStateManagerTest {
             "global.ssl" to true,
             "rules.url" to "https://assets.adobedtm.com/launch-rules.zip",
             "experienceCloud.org" to "B1F855165B4C9EA50A495E06@AdobeOrg",
-            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-dev-campaignkey",
-
-            // Persisted programmatic config
-            "Key1" to "persisted_Key1Value",
-            "Key2" to 0,
-            "Key3" to false
+            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-dev-campaignkey"
         )
 
         assertEquals(
@@ -627,6 +628,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Compute stage environment aware config when environment specific key exists`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val configurationUpdate = mapOf<String, Any?>(
             "build.environment" to "stage",
             "global.ssl" to true,
@@ -645,12 +648,7 @@ class ConfigurationStateManagerTest {
             "global.ssl" to true,
             "rules.url" to "https://assets.adobedtm.com/launch-rules.zip",
             "experienceCloud.org" to "B1F855165B4C9EA50A495E06@AdobeOrg",
-            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-stage-campaignkey",
-
-            // Persisted programmatic config
-            "Key1" to "persisted_Key1Value",
-            "Key2" to 0,
-            "Key3" to false
+            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-stage-campaignkey"
         )
 
         assertEquals(
@@ -661,6 +659,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Compute stage environment aware config when environment specific key does not exist`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val configurationUpdate = mapOf<String, Any?>(
             "build.environment" to "stage",
             "global.ssl" to true,
@@ -678,12 +678,7 @@ class ConfigurationStateManagerTest {
             "global.ssl" to true,
             "rules.url" to "https://assets.adobedtm.com/launch-rules.zip",
             "experienceCloud.org" to "B1F855165B4C9EA50A495E06@AdobeOrg",
-            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-campaignkey",
-
-            // Persisted programmatic config
-            "Key1" to "persisted_Key1Value",
-            "Key2" to 0,
-            "Key3" to false
+            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-campaignkey"
         )
 
         assertEquals(
@@ -694,6 +689,8 @@ class ConfigurationStateManagerTest {
 
     @Test
     fun `Compute prod environment aware config when environment overrides exist`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
         val configurationUpdate = mapOf<String, Any?>(
             "build.environment" to "prod",
             "global.ssl" to true,
@@ -712,12 +709,7 @@ class ConfigurationStateManagerTest {
             "global.ssl" to true,
             "rules.url" to "https://assets.adobedtm.com/launch-rules.zip",
             "experienceCloud.org" to "B1F855165B4C9EA50A495E06@AdobeOrg",
-            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-campaignkey",
-
-            // Persisted programmatic config
-            "Key1" to "persisted_Key1Value",
-            "Key2" to 0,
-            "Key3" to false
+            "campaign.pkey" to "@BoOkfxbtfRRqALRp3rL7KOM5Xd2M4M-campaignkey"
         )
 
         assertNotNull(configurationStateManager.environmentAwareConfiguration)
@@ -725,6 +717,297 @@ class ConfigurationStateManagerTest {
             expectedEnvAwareConfig,
             configurationStateManager.environmentAwareConfiguration
         )
+    }
+
+    @Test
+    fun `Test updateProgrammaticConfig when environment is dev`() {
+        // do not use any predefined setup config. We will setup the config manually
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        // Setup existing config with dev environment
+        val existingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "rsid1,rsid2",
+            "__dev__analytics.rsids" to "devrsid1,devrsid2"
+        )
+        `when`(mockDeviceInfoService.getAsset(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)).thenReturn(
+            JSONObject(existingConfig).toString().byteInputStream()
+        )
+        configurationStateManager.loadInitialConfig()
+
+        // verify that the environment aware config is setup as expected
+        val expectedExistingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "devrsid1,devrsid2"
+        )
+        assertEquals(
+            expectedExistingConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
+
+        // Test
+        val configUpdate = mapOf<String, Any?>(
+            "analytics.rsids" to "updated_devrsid1,updated_devrsid2"
+        )
+        configurationStateManager.updateProgrammaticConfig(configUpdate)
+
+        // verify that the update is environment aware i.e. it updates the dev specific key
+        assertEquals(
+            "rsid1,rsid2",
+            configurationStateManager.currentConfiguration["analytics.rsids"]
+        )
+        assertEquals(
+            "updated_devrsid1,updated_devrsid2",
+            configurationStateManager.currentConfiguration["__dev__analytics.rsids"]
+        )
+
+        // Verify that the environment aware config returns dev values
+        val expectedUpdatedConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "updated_devrsid1,updated_devrsid2"
+        )
+        assertEquals(expectedUpdatedConfig, configurationStateManager.environmentAwareConfiguration)
+    }
+
+    @Test
+    fun `Test updateProgrammaticConfig when environment is stage but dev keys also exist`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        // Setup existing config with stage environment
+        val existingConfig = mapOf<String, Any?>(
+            "build.environment" to "stage",
+            "analytics.rsids" to "rsid1,rsid2",
+            "__dev__analytics.rsids" to "devrsid1,devrsid2",
+            "__stage__analytics.rsids" to "stagersid1,stagersid2"
+        )
+        `when`(mockDeviceInfoService.getAsset(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)).thenReturn(
+            JSONObject(existingConfig).toString().byteInputStream()
+        )
+        configurationStateManager.loadInitialConfig()
+
+        // verify that the environment aware config is setup as expected
+        val expectedExistingConfig = mapOf<String, Any?>(
+            "build.environment" to "stage",
+            "analytics.rsids" to "stagersid1,stagersid2"
+        )
+        assertEquals(
+            expectedExistingConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
+
+        // Test
+        val configUpdate = mapOf<String, Any?>(
+            "analytics.rsids" to "updated_stagersid1,updated_stagersid2"
+        )
+        configurationStateManager.updateProgrammaticConfig(configUpdate)
+
+        // verify that the update is environment aware i.e. it updates the stage specific key and other keys are not affected
+        assertEquals(
+            "rsid1,rsid2",
+            configurationStateManager.currentConfiguration["analytics.rsids"]
+        )
+        assertEquals(
+            "updated_stagersid1,updated_stagersid2",
+            configurationStateManager.currentConfiguration["__stage__analytics.rsids"]
+        )
+        assertEquals(
+            "devrsid1,devrsid2",
+            configurationStateManager.currentConfiguration["__dev__analytics.rsids"]
+        )
+
+        // Verify that the environment aware config returns updated stage values
+        val expectedUpdatedConfig = mapOf<String, Any?>(
+            "build.environment" to "stage",
+            "analytics.rsids" to "updated_stagersid1,updated_stagersid2"
+        )
+        assertEquals(expectedUpdatedConfig, configurationStateManager.environmentAwareConfiguration)
+    }
+
+    @Test
+    fun `Test updateProgrammaticConfig when environment is dev but some keys are absent`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        // Setup existing config with dev environment
+        val existingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "rsid1,rsid2",
+            "__dev__analytics.rsids" to "devrsid1,devrsid2",
+            "analytics.server" to "old-server.com"
+        )
+        `when`(mockDeviceInfoService.getAsset(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)).thenReturn(
+            JSONObject(existingConfig).toString().byteInputStream()
+        )
+        configurationStateManager.loadInitialConfig()
+
+        // verify that the environment aware config is setup as expected
+        val expectedExistingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "devrsid1,devrsid2",
+            "analytics.server" to "old-server.com"
+        )
+        assertEquals(
+            expectedExistingConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
+
+        // Test
+        val configUpdate = mapOf<String, Any?>(
+            "analytics.rsids" to "updated_devrsid1,updated_devrsid2",
+            "analytics.server" to "server.com"
+        )
+        configurationStateManager.updateProgrammaticConfig(configUpdate)
+
+        // verify that the update is environment aware i.e. it updates the stage specific key and other keys are not affected
+        assertEquals(
+            "rsid1,rsid2",
+            configurationStateManager.currentConfiguration["analytics.rsids"]
+        )
+        assertEquals(
+            "updated_devrsid1,updated_devrsid2",
+            configurationStateManager.currentConfiguration["__dev__analytics.rsids"]
+        )
+        assertEquals(
+            "server.com",
+            configurationStateManager.currentConfiguration["analytics.server"]
+        )
+
+        // Verify that the environment aware config returns updated stage values
+        val expectedUpdatedConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "updated_devrsid1,updated_devrsid2",
+            "analytics.server" to "server.com"
+        )
+        assertEquals(expectedUpdatedConfig, configurationStateManager.environmentAwareConfiguration)
+    }
+
+    @Test
+    fun `Test updateProgrammaticConfig persists config being aware of current environment`() {
+    }
+
+    @Test
+    fun `Test mapToEnvironmentAwareKeys when environment is dev and dev keys exist`() {
+        // do not use any predefined setup config. We will setup the config manually
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        // Setup existing config with dev environment
+        val existingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "rsid1,rsid2",
+            "__dev__analytics.rsids" to "devrsid1,devrsid2"
+        )
+        `when`(mockDeviceInfoService.getAsset(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)).thenReturn(
+            JSONObject(existingConfig).toString().byteInputStream()
+        )
+        configurationStateManager.loadInitialConfig()
+
+        // verify that the environment aware config is setup as expected
+        val expectedExistingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "devrsid1,devrsid2"
+        )
+        assertEquals(
+            expectedExistingConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
+
+        // Test
+        val testConfigToMap = mapOf<String, Any?>(
+            "analytics.rsids" to "updated_devrsid1,updated_devrsid2"
+        )
+
+        // Expect that the dev keys are updated with the new values
+        val expectedMappedConfig =
+            mapOf<String, Any?>("__dev__analytics.rsids" to "updated_devrsid1,updated_devrsid2")
+
+        // Verify
+        val mappedConfig = configurationStateManager.mapToEnvironmentAwareKeys(testConfigToMap)
+        assertEquals(expectedMappedConfig, mappedConfig)
+    }
+
+    @Test
+    fun `Test mapToEnvironmentAwareKeys when environment is dev but dev keys do not exist`() {
+        // do not use any predefined setup config. We will setup the config manually
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        // Setup existing config with dev environment
+        val existingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "rsid1,rsid2",
+            "__dev__analytics.rsids" to "devrsid1,devrsid2"
+        )
+        `when`(mockDeviceInfoService.getAsset(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)).thenReturn(
+            JSONObject(existingConfig).toString().byteInputStream()
+        )
+        configurationStateManager.loadInitialConfig()
+
+        // verify that the environment aware config is setup as expected
+        val expectedExistingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "devrsid1,devrsid2"
+        )
+
+        assertEquals(
+            expectedExistingConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
+
+        // Test
+        val testConfigToMap = mapOf<String, Any?>(
+            "analytics.server" to "server.com"
+        )
+        val mappedConfig = configurationStateManager.mapToEnvironmentAwareKeys(testConfigToMap)
+
+        // Expect that no mapping happens since there is no dev key for analytics.server
+        val expectedMappedConfig = mapOf<String, Any?>("analytics.server" to "server.com")
+
+        // Verify
+        assertEquals(expectedMappedConfig, mappedConfig)
+    }
+
+    @Test
+    fun `Test mapToEnvironmentAwareKeys when environment is dev and environment aware key existence is mixed`() {
+        // do not use any predefined setup config. We will setup the config manually
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        // Setup existing config with dev environment
+        val existingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "rsid1,rsid2",
+            "__dev__analytics.rsids" to "devrsid1,devrsid2",
+            "analytics.server" to "old-server.com"
+        )
+
+        `when`(mockDeviceInfoService.getAsset(ConfigurationStateManager.CONFIG_BUNDLED_FILE_NAME)).thenReturn(
+            JSONObject(existingConfig).toString().byteInputStream()
+        )
+        configurationStateManager.loadInitialConfig()
+
+        // verify that the environment aware config is setup as expected
+        val expectedExistingConfig = mapOf<String, Any?>(
+            "build.environment" to "dev",
+            "analytics.rsids" to "devrsid1,devrsid2",
+            "analytics.server" to "old-server.com"
+        )
+        assertEquals(
+            expectedExistingConfig,
+            configurationStateManager.environmentAwareConfiguration
+        )
+
+        // Test
+        val testConfigToMap = mapOf<String, Any?>(
+            "analytics.rsids" to "updated_devrsid1,updated_devrsid2",
+            "analytics.server" to "server.com"
+        )
+
+        // Expect that the dev keys are updated for analytics.rsids but not for analytics.server
+        val expectedMappedConfig = mapOf<String, Any?>(
+            "__dev__analytics.rsids" to "updated_devrsid1,updated_devrsid2",
+            "analytics.server" to "server.com"
+        )
+
+        // Verify
+        val mappedConfig = configurationStateManager.mapToEnvironmentAwareKeys(testConfigToMap)
+        assertEquals(expectedMappedConfig, mappedConfig)
     }
 
     @After

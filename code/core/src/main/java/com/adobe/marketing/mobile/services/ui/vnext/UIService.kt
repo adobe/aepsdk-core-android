@@ -22,7 +22,7 @@ interface UIService {
      *        that should be used for creating the presentation.
      * @return a [Presentable] that is associated with the [presentation].
      */
-    fun <T : Presentation<*>> create(
+    fun <T : Presentation<T>> create(
         presentation: T,
         presentationUtilityProvider: PresentationUtilityProvider
     ): Presentable<T>

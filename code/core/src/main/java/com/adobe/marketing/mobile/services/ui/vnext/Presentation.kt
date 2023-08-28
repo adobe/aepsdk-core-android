@@ -15,4 +15,4 @@ package com.adobe.marketing.mobile.services.ui.vnext
  * Defines types of [Presentable]s supported by the AEP SDK.
  * Holds the [PresentationEventListener] for the presentation.
  */
-sealed class Presentation<T : Presentation<T>>(val listener: PresentationEventListener<Presentable<T>>)
+sealed class Presentation<T : Presentation<T>>(val listener: PresentationEventListener<T>)

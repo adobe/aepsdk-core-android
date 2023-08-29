@@ -350,7 +350,10 @@ class FloatingButtonManager implements FloatingButton {
                                         rootViewGroup.findViewWithTag(FloatingButtonView.VIEW_TAG);
 
                         if (floatingButton != null) {
+                            floatingButton.setFloatingButtonListener(null);
+                            floatingButton.setOnPositionChangedListener(null);
                             floatingButton.setVisibility(ViewGroup.GONE);
+                            rootViewGroup.removeView(floatingButton);
                         } else {
                             Log.debug(
                                     ServiceConstants.LOG_TAG,

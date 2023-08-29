@@ -19,7 +19,7 @@ import com.adobe.marketing.mobile.services.ui.vnext.PresentationEventListener
  * Interface for listening to events related to an InAppMessage presentation.
  * @see PresentationEventListener
  */
-interface InAppMessageEventListener : PresentationEventListener<Presentable<InAppMessage>> {
+interface InAppMessageEventListener : PresentationEventListener<InAppMessage> {
 
     /**
      * Invoked when the back button is pressed via a button or a gesture while

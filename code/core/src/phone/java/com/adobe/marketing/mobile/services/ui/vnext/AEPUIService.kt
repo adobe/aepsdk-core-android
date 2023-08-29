@@ -21,7 +21,7 @@ class AEPUIService : UIService {
     private var presentationDelegate: PresentationDelegate? = null
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : Presentation<*>> create(
+    override fun <T : Presentation<T>> create(
         presentation: T,
         presentationUtilityProvider: PresentationUtilityProvider
     ): Presentable<T> {

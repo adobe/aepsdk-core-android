@@ -15,24 +15,29 @@ package com.adobe.marketing.mobile.services.ui.vnext
  * A notification mechanism for the component that created the associated [Presentable] to receive events
  * about a presentation in response to user interaction, system events, or operations performed programmatically.
  */
-interface PresentationEventListener<T : Presentable<*>> {
+interface PresentationEventListener<T : Presentation<T>> {
     /**
      * Invoked when the presentable is shown.
      * @param presentable the presentable that was shown
      */
-    fun onShow(presentable: T)
+    fun onShow(presentable: Presentable<T>)
 
     /**
      * Invoked when the presentable is hidden.
      * @param presentable the presentable that was hidden
      */
-    fun onHide(presentable: T)
+    fun onHide(presentable: Presentable<T>)
 
     /**
      * Invoked when the presentable is dismissed.
      * @param presentable the presentable that was dismissed
      */
-    fun onDismiss(presentable: T)
+    fun onDismiss(presentable: Presentable<T>)
 
-    fun onError(presentable: T, error: PresentationError)
+    /**
+     * Invoked when an error occurs while managing the presentable.
+     * @param presentable the presentable that encountered the error
+     * @param error the error that occurred
+     */
+    fun onError(presentable: Presentable<T>, error: PresentationError)
 }

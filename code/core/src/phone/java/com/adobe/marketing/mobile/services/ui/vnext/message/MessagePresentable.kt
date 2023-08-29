@@ -26,7 +26,6 @@ import com.adobe.marketing.mobile.services.ui.vnext.common.AEPPresentable
 import com.adobe.marketing.mobile.services.ui.vnext.common.AppLifecycleProvider
 import com.adobe.marketing.mobile.services.ui.vnext.message.views.MessageScreen
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import java.nio.charset.StandardCharsets
 
 /**
@@ -39,7 +38,8 @@ internal class MessagePresentable(
     private val inAppMessage: InAppMessage,
     private val presentationDelegate: PresentationDelegate?,
     private val presentationUtilityProvider: PresentationUtilityProvider,
-    appLifecycleProvider: AppLifecycleProvider
+    appLifecycleProvider: AppLifecycleProvider,
+    mainScope: CoroutineScope
 ) : AEPPresentable<InAppMessage>(
     inAppMessage,
     presentationUtilityProvider,
@@ -54,8 +54,8 @@ internal class MessagePresentable(
     }
 
     private val inAppMessageEventHandler: DefaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
-        mutableMapOf(),
-        CoroutineScope(Dispatchers.Main)
+        scriptHandlers = mutableMapOf(),
+        mainScope = mainScope
     )
 
     init {

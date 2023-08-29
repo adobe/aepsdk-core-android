@@ -52,6 +52,7 @@ internal class AppLifecycleProvider private constructor() {
      * Registers a [listener] to receive app lifecycle events.
      * @param listener the [AppLifecycleListener] to register
      */
+    @Synchronized
     internal fun registerListener(listener: AppLifecycleListener) {
         listeners.add(listener)
     }
@@ -60,6 +61,7 @@ internal class AppLifecycleProvider private constructor() {
      * Unregisters a [listener] from receiving app lifecycle events.
      * @param listener the [AppLifecycleListener] to unregister
      */
+    @Synchronized
     internal fun unregisterListener(listener: AppLifecycleListener) {
         listeners.remove(listener)
     }

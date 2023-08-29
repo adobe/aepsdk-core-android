@@ -186,8 +186,8 @@ class InAppMessageSettings private constructor(
          * Sets the asset map for the message. This is a map of asset names to asset URLs.
          * @param assetMap the asset map for the message
          */
-        fun assetMap(assetMap: MutableMap<String, String>) =
-            apply { this.assetMap = assetMap }
+        fun assetMap(assetMap: Map<String, String>) =
+            apply { this.assetMap = assetMap.toMutableMap() }
 
         /**
          * Sets the gesture map for the message. This is a map of gesture names
@@ -198,7 +198,7 @@ class InAppMessageSettings private constructor(
             apply {
                 for ((key, value) in gestureMap) {
                     val gesture: MessageGesture? = MessageGesture.getGestureForName(key)
-                    gesture?.apply {
+                    gesture?.let {
                         this@Builder.gestures[gesture] = value
                     }
                 }

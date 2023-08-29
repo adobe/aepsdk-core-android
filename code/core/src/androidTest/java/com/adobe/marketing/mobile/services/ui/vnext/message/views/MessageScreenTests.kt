@@ -215,23 +215,12 @@ class MessageScreenTests {
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
         validateMessageAppeared(true)
-
         // Swipe gestures
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            // create a swipe up gesture
+            // create a swipe right gesture
             swipeWithVelocity(
-                start = Offset(0f, 10f),
-                end = Offset(0f, -800f),
-                endVelocity = 1000f
-            )
-        }
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
-            // create a swipe left gesture
-            swipeWithVelocity(
-                start = Offset(800f, 10f),
-                end = Offset(10f, 10f),
+                start = Offset(100f, 10f),
+                end = Offset(800f, 10f),
                 endVelocity = 1000f
             )
         }
@@ -240,8 +229,7 @@ class MessageScreenTests {
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
         assertFalse(onBackPressed)
-        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_UP))
-        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_LEFT))
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_RIGHT))
     }
 
     @Test

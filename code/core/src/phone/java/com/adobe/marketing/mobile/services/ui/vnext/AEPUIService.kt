@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile.services.ui.vnext
 
 import com.adobe.marketing.mobile.services.ui.vnext.common.AppLifecycleProvider
 import com.adobe.marketing.mobile.services.ui.vnext.message.MessagePresentable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 /**
  * UI Service implementation for AEP SDK
@@ -34,7 +36,8 @@ class AEPUIService : UIService {
                     presentation,
                     presentationDelegate,
                     presentationUtilityProvider,
-                    AppLifecycleProvider.INSTANCE
+                    AppLifecycleProvider.INSTANCE,
+                    CoroutineScope(Dispatchers.Main)
                 ) as Presentable<T>
             }
             else -> {

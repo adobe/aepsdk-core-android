@@ -84,6 +84,7 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v5
       with:
+        delete-branch: true
         commit-message: Update versions ${{ env.COMMIT_MSG }}
         title: Update versions ${{ env.COMMIT_MSG }}
         body: Update versions ${{ env.COMMIT_MSG }}

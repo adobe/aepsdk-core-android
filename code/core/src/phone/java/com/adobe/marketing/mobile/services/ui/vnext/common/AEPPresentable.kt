@@ -124,7 +124,9 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
 
             // Show the presentable on the current activity
             show(currentActivity)
-            // Register for app lifecycle events
+
+            // Register for app lifecycle events. AppLifecycleProvider maintains a set of listeners, so
+            // registering multiple times is safe
             appLifecycleProvider.registerListener(this@AEPPresentable)
 
             // At this point show(currentActivity) would have attached the view if one existed, or just bailed out

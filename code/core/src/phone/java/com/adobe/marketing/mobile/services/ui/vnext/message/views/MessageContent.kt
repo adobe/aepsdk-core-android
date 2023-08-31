@@ -31,8 +31,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.vnext.message.GestureTracker
+import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessagePresentable
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
-import com.adobe.marketing.mobile.services.ui.vnext.message.MessagePresentable
 import java.nio.charset.StandardCharsets
 
 /**
@@ -73,9 +73,9 @@ internal fun MessageContent(
                 onCreated(this)
 
                 loadDataWithBaseURL(
-                    MessagePresentable.BASE_URL,
+                    InAppMessagePresentable.BASE_URL,
                     inAppMessageSettings.content,
-                    MessagePresentable.TEXT_HTML_MIME_TYPE,
+                    InAppMessagePresentable.TEXT_HTML_MIME_TYPE,
                     StandardCharsets.UTF_8.name(),
                     null
                 )

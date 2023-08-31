@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets
  * @param presentationDelegate the presentation delegate to use for lifecycle events
  * @param presentationUtilityProvider the presentation utility provider to use for the presentable
  */
-internal class MessagePresentable(
+internal class InAppMessagePresentable(
     private val inAppMessage: InAppMessage,
     private val presentationDelegate: PresentationDelegate?,
     private val presentationUtilityProvider: PresentationUtilityProvider,
@@ -48,7 +48,7 @@ internal class MessagePresentable(
 ) {
 
     companion object {
-        private const val LOG_SOURCE = "MessagePresentable"
+        private const val LOG_SOURCE = "InAppMessagePresentable"
         internal const val TEXT_HTML_MIME_TYPE = "text/html"
         internal const val BASE_URL = "file:///android_asset/"
     }
@@ -99,7 +99,7 @@ internal class MessagePresentable(
                         animationCompleteCallback = null
                     },
                     onBackPressed = {
-                        inAppMessage.eventListener.onBackPressed(this@MessagePresentable)
+                        inAppMessage.eventListener.onBackPressed(this@InAppMessagePresentable)
                         dismiss()
                     },
                     onGestureDetected = { gesture ->
@@ -175,13 +175,13 @@ internal class MessagePresentable(
     private fun handleInAppUrl(url: String): Boolean {
         // Check if the component that created this message is able to handle the url
         val handledByListener =
-            inAppMessage.eventListener.onUrlLoading(this@MessagePresentable, url)
+            inAppMessage.eventListener.onUrlLoading(this@InAppMessagePresentable, url)
 
         // Check if this URL can be opened by the URLOpening
         val handled = handledByListener || if (InAppMessageWebViewClient.isValidUrl(url)) {
             // TODO: open this url using a proxy for URLOpening.
             ServiceProvider.getInstance().uiService.showUrl(url)
-            presentationDelegate?.onContentLoaded(this@MessagePresentable, PresentationListener.PresentationContent.UrlContent(url))
+            presentationDelegate?.onContentLoaded(this@InAppMessagePresentable, PresentationListener.PresentationContent.UrlContent(url))
             true
         } else {
             false

@@ -13,8 +13,8 @@ package com.adobe.marketing.mobile.services.ui.vnext
 
 import android.app.Application
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventListener
+import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessagePresentable
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
-import com.adobe.marketing.mobile.services.ui.vnext.message.MessagePresentable
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
@@ -47,7 +47,7 @@ class AEPUIServiceTest {
         val messagePresentable = aepUiService.create(iamPresentation, mockPresentationUtilityProvider)
 
         assertNotNull(messagePresentable)
-        assertTrue(messagePresentable is MessagePresentable)
+        assertTrue(messagePresentable is InAppMessagePresentable)
         assertEquals(iamPresentation, messagePresentable.getPresentation())
         assertEquals(iamSettings, messagePresentable.getPresentation().settings)
         assertEquals(iamEventListener, messagePresentable.getPresentation().eventListener)

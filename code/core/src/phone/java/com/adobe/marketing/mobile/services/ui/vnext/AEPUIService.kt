@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile.services.ui.vnext
 
 import com.adobe.marketing.mobile.services.ui.vnext.common.AppLifecycleProvider
-import com.adobe.marketing.mobile.services.ui.vnext.message.MessagePresentable
+import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessagePresentable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
@@ -32,7 +32,7 @@ class AEPUIService : UIService {
 
         when (presentation) {
             is InAppMessage -> {
-                return MessagePresentable(
+                return InAppMessagePresentable(
                     presentation,
                     presentationDelegate,
                     presentationUtilityProvider,

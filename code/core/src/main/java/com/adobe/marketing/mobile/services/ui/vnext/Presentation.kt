@@ -11,8 +11,31 @@
 
 package com.adobe.marketing.mobile.services.ui.vnext
 
+import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventHandler
+import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventListener
+import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
+
 /**
  * Defines types of [Presentable]s supported by the AEP SDK.
  * Holds the [PresentationEventListener] for the presentation.
  */
 sealed class Presentation<T : Presentation<T>>(val listener: PresentationEventListener<T>)
+
+// ---- Presentation Types ---- //
+
+/**
+ * Represents an InAppMessage presentation.
+ * @param settings the settings for the InAppMessage
+ * @param eventListener the listener for the getting notified about InAppMessage lifecycle events
+ * @param eventHandler the event handler performing operations on the InAppMessage
+ */
+class InAppMessage(
+    val settings: InAppMessageSettings,
+    val eventListener: InAppMessageEventListener
+) : Presentation<InAppMessage>(eventListener) {
+
+    /**
+     * The event handler for the InAppMessage.
+     */
+    lateinit var eventHandler: InAppMessageEventHandler
+}

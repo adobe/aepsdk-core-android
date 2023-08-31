@@ -34,6 +34,7 @@ def dependencyList = [
         new DependencyNode("androidx.appcompat", "appcompat", "1.0.0"),
         new DependencyNode("androidx.compose.runtime", "runtime", "${rootProject.compose_version}"),
         new DependencyNode("androidx.compose.material", "material", "${rootProject.compose_version}"),
+        new DependencyNode("androidx.compose.animation", "animation", "1.1.0"),
         new DependencyNode("androidx.activity", "activity-compose", "1.5.0")
 ]
 

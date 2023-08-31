@@ -30,7 +30,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.AlertSetting
 import com.adobe.marketing.mobile.services.ui.MessageSettings
 import com.adobe.marketing.mobile.services.ui.NotificationSetting
-import java.util.*
+import java.util.Timer
 import kotlin.concurrent.schedule
 
 
@@ -86,7 +86,6 @@ fun ServicesView(navController: NavHostController) {
                 }) {
                     Text(text = "FULL SCREEN MESSAGE")
                 }
-
             }
         }
 

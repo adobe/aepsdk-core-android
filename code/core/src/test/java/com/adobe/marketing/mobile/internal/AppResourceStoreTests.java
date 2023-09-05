@@ -96,6 +96,27 @@ public class AppResourceStoreTests {
     }
 
     @Test
+    public void testGetSmallIconResourceId_ValidIdSet() {
+        // Setup
+        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_SMALL_ICON), anyInt()))
+                .thenReturn(123456);
+
+        // Test
+        int actualResourceId = AppResourceStore.INSTANCE.getSmallIconResourceID();
+        assertEquals(123456, actualResourceId);
+    }
+
+    @Test
+    public void testGetSmallIconResourceId_NoIdSet() {
+        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_SMALL_ICON), anyInt()))
+                .thenReturn(-1);
+
+        // Test
+        int actualResourceId = AppResourceStore.INSTANCE.getSmallIconResourceID();
+        assertEquals(actualResourceId,-1);
+    }
+
+    @Test
     public void testSetLargeIconResourceId_ValidIdSetTwice() {
         // Setup
         final int expectedValueStored = 123456;

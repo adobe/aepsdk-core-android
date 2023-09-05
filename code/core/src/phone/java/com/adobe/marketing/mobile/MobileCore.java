@@ -319,6 +319,15 @@ public final class MobileCore {
     }
 
     /**
+     * Returns the resource Id for small icon if it was set by `setSmallIconResourceID`.
+     *
+     * @return a `int` value if it has been set, otherwise -1
+     */
+    public static int getSmallIconResourceID() {
+        return AppResourceStore.INSTANCE.getSmallIconResourceID();
+    }
+
+    /**
      * Sets the resource Id for small icon.
      *
      * @param resourceID the resource Id of the icon

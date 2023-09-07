@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.vnext
 
+import com.adobe.marketing.mobile.services.ui.vnext.alert.AlertPresentable
 import com.adobe.marketing.mobile.services.ui.vnext.common.AppLifecycleProvider
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessagePresentable
 import kotlinx.coroutines.CoroutineScope
@@ -38,6 +39,15 @@ class AEPUIService : UIService {
                     presentationUtilityProvider,
                     AppLifecycleProvider.INSTANCE,
                     CoroutineScope(Dispatchers.Main)
+                ) as Presentable<T>
+            }
+
+            is Alert -> {
+                return AlertPresentable(
+                    presentation,
+                    presentationDelegate,
+                    presentationUtilityProvider,
+                    AppLifecycleProvider.INSTANCE
                 ) as Presentable<T>
             }
             else -> {

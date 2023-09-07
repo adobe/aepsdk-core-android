@@ -11,7 +11,8 @@
 
 package com.adobe.marketing.mobile.services.ui.vnext.floatingbutton
 
-import java.io.InputStream
+import android.graphics.Bitmap
+import java.lang.IllegalArgumentException
 
 /**
  * Settings for the FloatingButton
@@ -23,13 +24,13 @@ import java.io.InputStream
 class FloatingButtonSettings private constructor(
     val height: Int,
     val width: Int,
-    val initialGraphic: InputStream?,
+    val initialGraphic: Bitmap,
     val cornerRadius: Float
 ) {
     class Builder {
         private var height: Int = 56 // default height per material design spec
         private var width: Int = 56 // default width per material design spec
-        private var initialGraphic: InputStream? = null
+        private var initialGraphic: Bitmap? = null
         private var cornerRadius: Float = 5f
 
         /**
@@ -52,12 +53,15 @@ class FloatingButtonSettings private constructor(
 
         /**
          * Sets the initial graphic to be displayed on the floating button.
-         * @param initialContent initial graphic to be displayed on the button
+         * @param initialGraphic initial graphic to be displayed on the button
          */
-        fun initialGraphic(initialContent: InputStream?) =
-            apply { this.initialGraphic = initialContent }
+        fun initialGraphic(initialGraphic: Bitmap) =
+            apply { this.initialGraphic = initialGraphic }
 
-        fun build() =
-            FloatingButtonSettings(height, width, initialGraphic, cornerRadius)
+        fun build() = run {
+            initialGraphic?.let { graphic ->
+                FloatingButtonSettings(height, width, graphic, cornerRadius)
+            } ?: throw IllegalArgumentException("Initial graphic must be set")
+        }
     }
 }

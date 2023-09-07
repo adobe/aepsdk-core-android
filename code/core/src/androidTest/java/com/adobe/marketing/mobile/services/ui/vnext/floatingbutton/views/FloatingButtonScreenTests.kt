@@ -11,6 +11,11 @@
 
 package com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.views
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.test.assertAny
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.hasTestTag
@@ -28,10 +33,14 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.InputStream
 
 @RunWith(AndroidJUnit4::class)
 internal class FloatingButtonScreenTests {
+    companion object {
+        private const val TEST_GRAPHIC_RESOURCE =
+            "uiservice_fab_tests/floatingButtonTestGraphic.txt"
+    }
+
     @get: Rule
     val composeTestRule = createComposeRule()
 
@@ -46,7 +55,9 @@ internal class FloatingButtonScreenTests {
             .width(100)
             .initialGraphic(getFloatingButtonGraphic())
             .build()
-        val floatingButtonViewModel = FloatingButtonViewModel()
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings.Builder().initialGraphic(getFloatingButtonGraphic()).build()
+        )
 
         composeTestRule.setContent {
             FloatingButtonScreen(
@@ -67,7 +78,9 @@ internal class FloatingButtonScreenTests {
             .width(100)
             .initialGraphic(getFloatingButtonGraphic())
             .build()
-        val floatingButtonViewModel = FloatingButtonViewModel()
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings.Builder().initialGraphic(getFloatingButtonGraphic()).build()
+        )
 
         composeTestRule.setContent {
             FloatingButtonScreen(
@@ -93,7 +106,9 @@ internal class FloatingButtonScreenTests {
             .width(100)
             .initialGraphic(getFloatingButtonGraphic())
             .build()
-        val floatingButtonViewModel = FloatingButtonViewModel()
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings.Builder().initialGraphic(getFloatingButtonGraphic()).build()
+        )
 
         composeTestRule.setContent {
             FloatingButtonScreen(
@@ -127,7 +142,9 @@ internal class FloatingButtonScreenTests {
         val floatingButtonSettings = FloatingButtonSettings.Builder()
             .initialGraphic(getFloatingButtonGraphic())
             .build()
-        val floatingButtonViewModel = FloatingButtonViewModel()
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings.Builder().initialGraphic(getFloatingButtonGraphic()).build()
+        )
 
         composeTestRule.setContent {
             FloatingButtonScreen(
@@ -164,7 +181,9 @@ internal class FloatingButtonScreenTests {
             .width(100)
             .initialGraphic(getFloatingButtonGraphic())
             .build()
-        val floatingButtonViewModel = FloatingButtonViewModel()
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings.Builder().initialGraphic(getFloatingButtonGraphic()).build()
+        )
 
         composeTestRule.setContent {
             FloatingButtonScreen(
@@ -199,10 +218,12 @@ internal class FloatingButtonScreenTests {
         onTapDetected = false
     }
 
-    private fun getFloatingButtonGraphic(): InputStream? {
+    private fun getFloatingButtonGraphic(): Bitmap {
         val graphicBase64 = this.javaClass.classLoader
-            ?.getResource("uiservice_fab_tests/floatingButtonTestGraphic.txt")?.readText()
-        return graphicBase64?.byteInputStream()
+            ?.getResource(TEST_GRAPHIC_RESOURCE)?.readText()
+        val graphicBase64Bytes = Base64.decode(graphicBase64, Base64.DEFAULT)
+        return BitmapFactory.decodeStream(graphicBase64Bytes.inputStream()).asImageBitmap()
+            .asAndroidBitmap()
     }
 
     private fun validateFloatingButtonIsShown() {

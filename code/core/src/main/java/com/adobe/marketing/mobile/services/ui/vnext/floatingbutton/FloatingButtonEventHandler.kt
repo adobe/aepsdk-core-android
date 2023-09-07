@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.vnext.floatingbutton
 
-import java.io.InputStream
+import android.graphics.Bitmap
 
 /**
  * Interface for taking actions on an FloatingButton presentation.
@@ -21,5 +21,5 @@ interface FloatingButtonEventHandler {
      * Updates the current content of the floating button.
      * @param graphic the new content of the floating button
      */
-    fun updateGraphic(graphic: InputStream)
+    fun updateGraphic(graphic: Bitmap)
 }

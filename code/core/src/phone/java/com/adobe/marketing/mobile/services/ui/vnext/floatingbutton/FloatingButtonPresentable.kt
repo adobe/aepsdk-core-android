@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.services.ui.vnext.floatingbutton
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.compose.ui.platform.ComposeView
 import com.adobe.marketing.mobile.services.ui.vnext.FloatingButton
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
@@ -19,7 +20,6 @@ import com.adobe.marketing.mobile.services.ui.vnext.PresentationUtilityProvider
 import com.adobe.marketing.mobile.services.ui.vnext.common.AEPPresentable
 import com.adobe.marketing.mobile.services.ui.vnext.common.AppLifecycleProvider
 import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.views.FloatingButtonScreen
-import java.io.InputStream
 
 /**
  * Represents a presentable floating button presentation
@@ -43,7 +43,7 @@ internal class FloatingButtonPresentable(
 ) {
     // event handler for the floating button
     private val floatingButtonEventHandler = object : FloatingButtonEventHandler {
-        override fun updateGraphic(graphic: InputStream) {
+        override fun updateGraphic(graphic: Bitmap) {
             floatingButtonViewModel.onGraphicUpdate(graphic)
         }
     }
@@ -51,8 +51,8 @@ internal class FloatingButtonPresentable(
     init {
         floatingButton.eventHandler = floatingButtonEventHandler
 
-        // update the graphic on the view model if it is already set
-        floatingButton.settings.initialGraphic?.let {
+        // update the initial graphic on the view model
+        floatingButton.settings.initialGraphic.let {
             floatingButtonViewModel.onGraphicUpdate(it)
         }
     }

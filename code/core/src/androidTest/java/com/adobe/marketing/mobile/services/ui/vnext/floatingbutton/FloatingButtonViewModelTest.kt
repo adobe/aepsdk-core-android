@@ -19,113 +19,41 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertTrue
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class FloatingButtonViewModelTest {
     companion object {
         private const val TEST_GRAPHIC_RESOURCE =
             "uiservice_fab_tests/floatingButtonTestGraphic.txt"
+        private const val TEST_GRAPHIC_RESOURCE_UPDATE =
+            "uiservice_fab_tests/floatingButtonTestGraphicUpdate.txt"
     }
 
     @Test
     fun testOnGraphicUpdateChangesTheFloatingButtonGraphic() {
-        val graphicBase64 = this.javaClass.classLoader
-            ?.getResource(TEST_GRAPHIC_RESOURCE)?.readText()
-        val graphicBase64Bytes = Base64.decode(graphicBase64, Base64.DEFAULT)
-        val expectedBitmap: Bitmap =
-            BitmapFactory.decodeStream(graphicBase64Bytes.inputStream()).asImageBitmap()
-                .asAndroidBitmap()
+        val expectedBitmap: Bitmap = getFloatingButtonGraphic(TEST_GRAPHIC_RESOURCE)
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings
+                .Builder()
+                .initialGraphic(getFloatingButtonGraphic(TEST_GRAPHIC_RESOURCE))
+                .build()
+        )
+        assertTrue(expectedBitmap.asImageBitmap().asAndroidBitmap().sameAs(floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()))
 
-        runTest {
-            val floatingButtonViewModel =
-                FloatingButtonViewModel(CoroutineScope(Dispatchers.Unconfined))
-            assertTrue(
-                floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()
-                    .sameAs(FloatingButtonViewModel.NO_GRAPHIC.asAndroidBitmap())
-            )
-
-            val graphicToUpdateWith = graphicBase64?.byteInputStream()
-            assertNotNull(graphicToUpdateWith)
-            floatingButtonViewModel.onGraphicUpdate(graphicToUpdateWith!!)
-
-            assertNotNull(floatingButtonViewModel.currentGraphic.value)
-            assertTrue(
-                floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()
-                    .sameAs(expectedBitmap)
-            )
-        }
-    }
-
-    @Test
-    fun testGraphicUpdateWhenUpdatedGraphicIsEmpty() {
-        val graphicBase64 = ""
-        runTest {
-            val floatingButtonViewModel =
-                FloatingButtonViewModel(CoroutineScope(Dispatchers.Unconfined))
-            assertTrue(
-                floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()
-                    .sameAs(FloatingButtonViewModel.NO_GRAPHIC.asAndroidBitmap())
-            )
-
-            val graphicToUpdateWith = graphicBase64.byteInputStream()
-            floatingButtonViewModel.onGraphicUpdate(graphicToUpdateWith)
-
-            assertTrue(
-                floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()
-                    .sameAs(FloatingButtonViewModel.NO_GRAPHIC.asAndroidBitmap())
-            )
-        }
-    }
-
-    @Test
-    fun testGraphicUpdateWhenUpdatedGraphicIsBlank() {
-        val graphicBase64 = "                 "
-        runTest {
-            val floatingButtonViewModel =
-                FloatingButtonViewModel(CoroutineScope(Dispatchers.Unconfined))
-            assertTrue(
-                floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()
-                    .sameAs(FloatingButtonViewModel.NO_GRAPHIC.asAndroidBitmap())
-            )
-
-            val graphicToUpdateWith = graphicBase64.byteInputStream()
-            floatingButtonViewModel.onGraphicUpdate(graphicToUpdateWith)
-
-            assertTrue(
-                floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()
-                    .sameAs(FloatingButtonViewModel.NO_GRAPHIC.asAndroidBitmap())
-            )
-        }
-    }
-
-    @Test
-    fun testGraphicUpdateDoesNotUpdateWhenUpdatedGraphicIsInputCannotBeDecoded() {
-        val graphicBase64 = "~~~~~~"
-        runTest {
-            val floatingButtonViewModel =
-                FloatingButtonViewModel(CoroutineScope(Dispatchers.Unconfined))
-            assertTrue(
-                floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()
-                    .sameAs(FloatingButtonViewModel.NO_GRAPHIC.asAndroidBitmap())
-            )
-
-            val graphicToUpdateWith = graphicBase64.byteInputStream()
-            floatingButtonViewModel.onGraphicUpdate(graphicToUpdateWith)
-            assertTrue(
-                floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()
-                    .sameAs(FloatingButtonViewModel.NO_GRAPHIC.asAndroidBitmap())
-            )
-        }
+        val updatedBitmap: Bitmap = getFloatingButtonGraphic(TEST_GRAPHIC_RESOURCE_UPDATE)
+        floatingButtonViewModel.onGraphicUpdate(updatedBitmap)
+        assertTrue(updatedBitmap.asImageBitmap().asAndroidBitmap().sameAs(floatingButtonViewModel.currentGraphic.value.asAndroidBitmap()))
     }
 
     @Test
     fun testOnPositionUpdatedWhenOffsetsAreOutOfBounds() {
-        val floatingButtonViewModel = FloatingButtonViewModel(CoroutineScope(Dispatchers.Unconfined))
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings
+                .Builder()
+                .initialGraphic(getFloatingButtonGraphic(TEST_GRAPHIC_RESOURCE))
+                .build()
+        )
         // verify initial state
         assertEquals(Offset.Unspecified, floatingButtonViewModel.landscapeOffSet)
         assertEquals(Offset.Unspecified, floatingButtonViewModel.portraitOffSet)
@@ -148,7 +76,12 @@ class FloatingButtonViewModelTest {
     @Test
     fun testOnPositionUpdatedWhenOrientationIsPortrait() {
         // setup
-        val floatingButtonViewModel = FloatingButtonViewModel(CoroutineScope(Dispatchers.Unconfined))
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings
+                .Builder()
+                .initialGraphic(getFloatingButtonGraphic(TEST_GRAPHIC_RESOURCE))
+                .build()
+        )
         assertEquals(Offset.Unspecified, floatingButtonViewModel.landscapeOffSet)
         assertEquals(Offset.Unspecified, floatingButtonViewModel.portraitOffSet)
 
@@ -163,7 +96,12 @@ class FloatingButtonViewModelTest {
     @Test
     fun testOnPositionUpdatedWhenOrientationIsLandscape() {
         // setup
-        val floatingButtonViewModel = FloatingButtonViewModel(CoroutineScope(Dispatchers.Unconfined))
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings
+                .Builder()
+                .initialGraphic(getFloatingButtonGraphic(TEST_GRAPHIC_RESOURCE))
+                .build()
+        )
         assertEquals(Offset.Unspecified, floatingButtonViewModel.landscapeOffSet)
         assertEquals(Offset.Unspecified, floatingButtonViewModel.portraitOffSet)
 
@@ -178,7 +116,12 @@ class FloatingButtonViewModelTest {
     @Test
     fun testOnPositionUpdatedRetainsOrientationSpecificOffsets() {
         // setup
-        val floatingButtonViewModel = FloatingButtonViewModel(CoroutineScope(Dispatchers.Unconfined))
+        val floatingButtonViewModel = FloatingButtonViewModel(
+            FloatingButtonSettings
+                .Builder()
+                .initialGraphic(getFloatingButtonGraphic(TEST_GRAPHIC_RESOURCE))
+                .build()
+        )
         assertEquals(Offset.Unspecified, floatingButtonViewModel.landscapeOffSet)
         assertEquals(Offset.Unspecified, floatingButtonViewModel.portraitOffSet)
 
@@ -199,5 +142,13 @@ class FloatingButtonViewModelTest {
         // verify offsets are retained
         assertEquals(Offset(30f, 70f), floatingButtonViewModel.landscapeOffSet)
         assertEquals(Offset(40f, 80f), floatingButtonViewModel.portraitOffSet)
+    }
+
+    private fun getFloatingButtonGraphic(resourcePath: String): Bitmap {
+        val graphicBase64 = this.javaClass.classLoader
+            ?.getResource(resourcePath)?.readText()
+        val graphicBase64Bytes = Base64.decode(graphicBase64, Base64.DEFAULT)
+        return BitmapFactory.decodeStream(graphicBase64Bytes.inputStream()).asImageBitmap()
+            .asAndroidBitmap()
     }
 }

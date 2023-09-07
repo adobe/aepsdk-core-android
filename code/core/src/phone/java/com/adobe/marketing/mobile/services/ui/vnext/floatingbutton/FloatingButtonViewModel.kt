@@ -13,38 +13,26 @@ package com.adobe.marketing.mobile.services.ui.vnext.floatingbutton
 
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.Base64
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ServiceConstants
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.nio.charset.StandardCharsets
 
 /**
  * A simple view model for the FloatingButton screen. Maintains the state for the Floating Button and has
  * auxiliary methods for updating the state. Responsible for ensuring the state of the button is
  * maintained and updated across orientation changes.
  */
-internal class FloatingButtonViewModel(private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)) {
+internal class FloatingButtonViewModel(settings: FloatingButtonSettings) {
     companion object {
         private const val LOG_TAG = "FloatingButtonViewModel"
-        internal val NO_GRAPHIC = ImageBitmap(1, 1)
     }
 
     // Current graphic as a state to be displayed on the floating button.
     // ImageBitmap should at least have a size of 1x1 to be created.
-    private val _currentGraphic: MutableState<ImageBitmap> = mutableStateOf(NO_GRAPHIC)
+    private val _currentGraphic: MutableState<ImageBitmap> = mutableStateOf(settings.initialGraphic.asImageBitmap())
     internal val currentGraphic: State<ImageBitmap> = _currentGraphic
 
     // Offsets of the floating button in landscape and portrait mode
@@ -55,31 +43,8 @@ internal class FloatingButtonViewModel(private val coroutineScope: CoroutineScop
      * Updates the current graphic of the floating button.
      * @param graphic the new content of the floating button
      */
-    internal fun onGraphicUpdate(graphic: InputStream) {
-        coroutineScope.launch {
-            try {
-                val graphicString = readAsString(graphic)
-
-                if (graphicString.isNullOrBlank()) {
-                    Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Failed to update graphic. Graphic is null or blank.")
-                    return@launch
-                }
-
-                val backgroundImage = Base64.decode(graphicString, Base64.DEFAULT) ?: kotlin.run {
-                    Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Failed to update graphic. Cannot decode graphic as Base64.")
-                    return@launch
-                }
-
-                val bitmap: Bitmap = BitmapFactory.decodeStream(backgroundImage.inputStream()) ?: kotlin.run {
-                    Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Failed to update graphic. Cannot decode graphic stream.")
-                    return@launch
-                }
-
-                _currentGraphic.value = bitmap.asImageBitmap()
-            } catch (e: Exception) {
-                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Failed to update floating button graphic.", e)
-            }
-        }
+    internal fun onGraphicUpdate(graphic: Bitmap) {
+        _currentGraphic.value = graphic.asImageBitmap()
     }
 
     /**
@@ -96,38 +61,6 @@ internal class FloatingButtonViewModel(private val coroutineScope: CoroutineScop
             landscapeOffSet = offset
         } else {
             portraitOffSet = offset
-        }
-    }
-
-    /**
-     * Reads the contents of `InputStream` as String
-     *
-     * @param inputStream [InputStream] to read
-     * @return [String] representation of the input stream
-     */
-    private fun readAsString(inputStream: InputStream?): String? {
-        if (inputStream == null) {
-            return null
-        }
-        val buffer = ByteArrayOutputStream()
-        val data = ByteArray(1024)
-        var bytesRead: Int
-        return try {
-            while (inputStream.read(data, 0, data.size).also { bytesRead = it } != -1) {
-                buffer.write(data, 0, bytesRead)
-            }
-            val byteArray = buffer.toByteArray()
-            String(byteArray, StandardCharsets.UTF_8)
-        } catch (ex: IOException) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Error reading input stream as string.", ex)
-            null
-        } finally {
-            try {
-                inputStream.close()
-                buffer.close()
-            } catch (ex: IOException) {
-                Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Error closing buffer.", ex)
-            }
         }
     }
 }

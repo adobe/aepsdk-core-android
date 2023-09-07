@@ -46,14 +46,15 @@ class AEPUIService : UIService {
             is FloatingButton -> {
                 return FloatingButtonPresentable(
                     presentation,
-                    FloatingButtonViewModel(),
+                    FloatingButtonViewModel(presentation.settings),
                     presentationDelegate,
                     presentationUtilityProvider,
                     AppLifecycleProvider.INSTANCE
                 ) as Presentable<T>
             }
+
             else -> {
-                throw IllegalArgumentException("Presentation type not supported")
+                throw IllegalArgumentException("Presentation type: $presentation not supported")
             }
         }
     }

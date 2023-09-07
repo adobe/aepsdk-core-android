@@ -12,9 +12,6 @@
 package com.adobe.marketing.mobile.services.ui.vnext
 
 import android.app.Application
-import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonEventListener
-import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonPresentable
-import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonSettings
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventListener
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessagePresentable
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
@@ -22,6 +19,7 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import kotlin.test.assertEquals
@@ -57,18 +55,6 @@ class AEPUIServiceTest {
         assertNotNull(messagePresentable.getPresentation().eventListener)
     }
 
-    @Test
-    fun `Test #create FloatingButton`() {
-        val floatingButtonSettings: FloatingButtonSettings = FloatingButtonSettings.Builder().build()
-        val floatingButtonEventListener: FloatingButtonEventListener = Mockito.mock(FloatingButtonEventListener::class.java)
-        val floatingButtonPresentation = FloatingButton(floatingButtonSettings, floatingButtonEventListener)
-        val floatingButtonPresentable = aepUiService.create(floatingButtonPresentation, mockPresentationUtilityProvider)
-
-        assertNotNull(floatingButtonPresentable)
-        assertTrue(floatingButtonPresentable is FloatingButtonPresentable)
-        assertEquals(floatingButtonPresentation, floatingButtonPresentable.getPresentation())
-        assertEquals(floatingButtonSettings, floatingButtonPresentable.getPresentation().settings)
-        assertEquals(floatingButtonEventListener, floatingButtonPresentable.getPresentation().eventListener)
-        assertNotNull(floatingButtonPresentable.getPresentation().eventListener)
-    }
+    // See AEPUIServiceTest.kt in the androidTest directory for the FloatingButton test
+    // as it requires Android specific api's that are not straightforward to mock in unit tests.
 }

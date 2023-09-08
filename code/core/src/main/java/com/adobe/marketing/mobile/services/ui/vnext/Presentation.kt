@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services.ui.vnext
 
+import com.adobe.marketing.mobile.services.ui.vnext.alert.AlertEventListener
+import com.adobe.marketing.mobile.services.ui.vnext.alert.AlertSettings
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventHandler
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventListener
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
@@ -39,3 +41,13 @@ class InAppMessage(
      */
     lateinit var eventHandler: InAppMessageEventHandler
 }
+
+/**
+ * Represents an Alert presentation.
+ * @param settings the settings for the Alert
+ * @param eventListener the listener for the getting notified about Alert lifecycle events
+ */
+class Alert(
+    val settings: AlertSettings,
+    val eventListener: AlertEventListener
+) : Presentation<Alert>(eventListener)

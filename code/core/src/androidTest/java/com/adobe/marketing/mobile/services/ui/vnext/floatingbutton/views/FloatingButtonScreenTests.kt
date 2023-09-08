@@ -29,7 +29,6 @@ import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButto
 import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonViewModel
 import junit.framework.TestCase.assertTrue
 import org.junit.After
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -173,7 +172,6 @@ internal class FloatingButtonScreenTests {
         validateFloatingButtonIsNotShown()
     }
 
-    @Ignore("Cannot seem to get the test to pass, but the functionality works as expected when tested manually")
     @Test
     fun testFloatingButtonNotifiesTaps() {
         val floatingButtonSettings = FloatingButtonSettings.Builder()

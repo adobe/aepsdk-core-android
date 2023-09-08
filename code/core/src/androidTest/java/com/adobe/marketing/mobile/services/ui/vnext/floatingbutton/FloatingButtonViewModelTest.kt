@@ -58,19 +58,24 @@ class FloatingButtonViewModelTest {
         assertEquals(Offset.Unspecified, floatingButtonViewModel.landscapeOffSet)
         assertEquals(Offset.Unspecified, floatingButtonViewModel.portraitOffSet)
 
-        // update landscape offsets with out of bounds values
-        floatingButtonViewModel.onPositionUpdate(Offset(-10f, -1f), Configuration.ORIENTATION_LANDSCAPE)
-        floatingButtonViewModel.onPositionUpdate(Offset(10f, -1f), Configuration.ORIENTATION_LANDSCAPE)
-        floatingButtonViewModel.onPositionUpdate(Offset(-1f, 10f), Configuration.ORIENTATION_LANDSCAPE)
+        // offsets with out of bounds values
+        val offsetList = listOf(
+            Offset(-10f, -1f),
+            Offset(10f, -1f),
+            Offset(-1f, 10f)
+        )
 
-        // update portrait offsets with out of bounds values
-        floatingButtonViewModel.onPositionUpdate(Offset(-10f, -1f), Configuration.ORIENTATION_PORTRAIT)
-        floatingButtonViewModel.onPositionUpdate(Offset(10f, -1f), Configuration.ORIENTATION_PORTRAIT)
-        floatingButtonViewModel.onPositionUpdate(Offset(-1f, 10f), Configuration.ORIENTATION_PORTRAIT)
+        offsetList.forEach { offset ->
+            // update landscape offsets with out of bounds values
+            floatingButtonViewModel.onPositionUpdate(offset, Configuration.ORIENTATION_LANDSCAPE)
+            // verify offsets are not updated
+            assertEquals(Offset.Unspecified, floatingButtonViewModel.landscapeOffSet)
 
-        // verify offsets are not updated
-        assertEquals(Offset.Unspecified, floatingButtonViewModel.portraitOffSet)
-        assertEquals(Offset.Unspecified, floatingButtonViewModel.landscapeOffSet)
+            // update portrait offsets with out of bounds values
+            floatingButtonViewModel.onPositionUpdate(offset, Configuration.ORIENTATION_PORTRAIT)
+            // verify offsets are not updated
+            assertEquals(Offset.Unspecified, floatingButtonViewModel.portraitOffSet)
+        }
     }
 
     @Test

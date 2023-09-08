@@ -43,6 +43,7 @@ class InAppMessage(
      * The event handler for the InAppMessage.
      */
     lateinit var eventHandler: InAppMessageEventHandler
+        internal set
 }
 
 /**
@@ -59,6 +60,7 @@ class FloatingButton(
      * The event handler for the FloatingButton.
      */
     lateinit var eventHandler: FloatingButtonEventHandler
+        internal set
 }
 
 /**

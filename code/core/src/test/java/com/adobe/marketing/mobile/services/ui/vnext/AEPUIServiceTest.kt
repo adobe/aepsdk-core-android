@@ -13,6 +13,9 @@ package com.adobe.marketing.mobile.services.ui.vnext
 
 import android.app.Application
 import android.graphics.Bitmap
+import com.adobe.marketing.mobile.services.ui.vnext.alert.AlertEventListener
+import com.adobe.marketing.mobile.services.ui.vnext.alert.AlertPresentable
+import com.adobe.marketing.mobile.services.ui.vnext.alert.AlertSettings
 import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonEventListener
 import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonPresentable
 import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonSettings
@@ -58,6 +61,7 @@ class AEPUIServiceTest {
         assertEquals(iamSettings, messagePresentable.getPresentation().settings)
         assertEquals(iamEventListener, messagePresentable.getPresentation().eventListener)
         assertNotNull(messagePresentable.getPresentation().eventListener)
+        assertNotNull(messagePresentable.getPresentation().eventHandler)
     }
 
     @Test
@@ -73,5 +77,21 @@ class AEPUIServiceTest {
         assertEquals(floatingButtonSettings, floatingButtonPresentable.getPresentation().settings)
         assertEquals(floatingButtonEventListener, floatingButtonPresentable.getPresentation().eventListener)
         assertNotNull(floatingButtonPresentable.getPresentation().eventListener)
+        assertNotNull(floatingButtonPresentable.getPresentation().eventHandler)
+    }
+
+    @Test
+    fun `Test #create Alert`() {
+        val alertSettings: AlertSettings = AlertSettings.Builder().positiveButtonText("").build()
+        val alertEventListener: AlertEventListener = mock(AlertEventListener::class.java)
+        val alertPresentation = Alert(alertSettings, alertEventListener)
+        val alertPresentable = aepUiService.create(alertPresentation, mockPresentationUtilityProvider)
+
+        assertNotNull(alertPresentable)
+        assertTrue(alertPresentable is AlertPresentable)
+        assertEquals(alertPresentation, alertPresentable.getPresentation())
+        assertEquals(alertSettings, alertPresentable.getPresentation().settings)
+        assertEquals(alertEventListener, alertPresentable.getPresentation().eventListener)
+        assertNotNull(alertPresentable.getPresentation().eventListener)
     }
 }

@@ -21,13 +21,13 @@ import com.adobe.marketing.mobile.services.ui.vnext.PresentationEventListener
 interface AlertEventListener : PresentationEventListener<Alert> {
 
     /**
-     * Called when the clicks the positive button on the alert.
+     * Called when positive button on the alert is clicked.
      * @param alert the alert that was clicked
      */
     fun onPositiveResponse(alert: Presentable<Alert>)
 
     /**
-     * Called when the clicks the negative button on the alert.
+     * Called when negative button on the alert is clicked.
      * @param alert the alert that was clicked
      */
     fun onNegativeResponse(alert: Presentable<Alert>)

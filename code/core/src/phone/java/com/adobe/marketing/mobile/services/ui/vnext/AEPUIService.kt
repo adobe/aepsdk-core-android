@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile.services.ui.vnext
 
 import com.adobe.marketing.mobile.services.ui.vnext.alert.AlertPresentable
 import com.adobe.marketing.mobile.services.ui.vnext.common.AppLifecycleProvider
+import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonPresentable
+import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonViewModel
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessagePresentable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,8 +52,19 @@ class AEPUIService : UIService {
                     AppLifecycleProvider.INSTANCE
                 ) as Presentable<T>
             }
+
+            is FloatingButton -> {
+                return FloatingButtonPresentable(
+                    presentation,
+                    FloatingButtonViewModel(presentation.settings),
+                    presentationDelegate,
+                    presentationUtilityProvider,
+                    AppLifecycleProvider.INSTANCE
+                ) as Presentable<T>
+            }
+
             else -> {
-                throw IllegalArgumentException("Presentation type not supported")
+                throw IllegalArgumentException("Presentation type: $presentation not supported")
             }
         }
     }

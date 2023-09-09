@@ -13,6 +13,9 @@ package com.adobe.marketing.mobile.services.ui.vnext
 
 import com.adobe.marketing.mobile.services.ui.vnext.alert.AlertEventListener
 import com.adobe.marketing.mobile.services.ui.vnext.alert.AlertSettings
+import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonEventHandler
+import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonEventListener
+import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButtonSettings
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventHandler
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventListener
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
@@ -40,6 +43,24 @@ class InAppMessage(
      * The event handler for the InAppMessage.
      */
     lateinit var eventHandler: InAppMessageEventHandler
+        internal set
+}
+
+/**
+ * Represents a FloatingButton presentation.
+ * @param eventListener the listener for the getting notified about FloatingButton lifecycle events
+ * @param settings the settings for the FloatingButton
+ */
+class FloatingButton(
+    val settings: FloatingButtonSettings,
+    val eventListener: FloatingButtonEventListener
+) : Presentation<FloatingButton>(eventListener) {
+
+    /**
+     * The event handler for the FloatingButton.
+     */
+    lateinit var eventHandler: FloatingButtonEventHandler
+        internal set
 }
 
 /**

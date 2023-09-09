@@ -9,26 +9,25 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.vnext.alert
+package com.adobe.marketing.mobile.services.ui.vnext.floatingbutton
 
-import com.adobe.marketing.mobile.services.ui.vnext.Alert
+import com.adobe.marketing.mobile.services.ui.vnext.FloatingButton
 import com.adobe.marketing.mobile.services.ui.vnext.Presentable
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationEventListener
 
 /**
- *  Interface for listening to events related to an Alert presentation.
+ * Interface for listening to events on a floating button presentation.
  */
-interface AlertEventListener : PresentationEventListener<Alert> {
+interface FloatingButtonEventListener : PresentationEventListener<FloatingButton> {
+    /**
+     * Called when a tap is detected on the floating button.
+     * @param presentable the floating button presentable on which the tap was detected
+     */
+    fun onTapDetected(presentable: Presentable<FloatingButton>)
 
     /**
-     * Called when positive button on the alert is clicked.
-     * @param alert the alert that was clicked
+     * Called when a pan is detected on the floating button.
+     * @param presentable the floating button presentable on which the pan was detected
      */
-    fun onPositiveResponse(alert: Presentable<Alert>)
-
-    /**
-     * Called when negative button on the alert is clicked.
-     * @param alert the alert that was clicked
-     */
-    fun onNegativeResponse(alert: Presentable<Alert>)
+    fun onPanDetected(presentable: Presentable<FloatingButton>)
 }

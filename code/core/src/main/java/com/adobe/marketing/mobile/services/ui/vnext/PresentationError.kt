@@ -22,3 +22,41 @@ sealed interface PresentationError
 sealed class ShowFailed(val reason: String) : PresentationError
 sealed class HideFailed(val reason: String) : PresentationError
 sealed class DismissFailed(val reason: String) : PresentationError
+
+// ---- ShowFailed types ---- //
+/**
+ * Represents a failure to show a Presentable because a conflicting presentation is already shown.
+ */
+object ConflictingPresentation : ShowFailed("Conflicting presentation is visible.")
+
+/**
+ * Represents a failure to show a Presentable because there is no activity to show it on.
+ */
+object NoAttachableActivity : ShowFailed("No attachable activity available.")
+
+/**
+ * Represents a failure to show a Presentable because the delegate gate was not met.
+ */
+object DelegateGateNotMet : ShowFailed("PresentationDelegate requirement not met.")
+
+/**
+ * Represents a failure to show a Presentable because it is already shown.
+ */
+object AlreadyShown : ShowFailed("Presentable is already being shown.")
+
+// ---- HideFailed types ---- //
+/**
+ * Represents a failure to hide a Presentable because there is no activity to hide it from.
+ */
+object AlreadyHidden : HideFailed("Presentable is already hidden.")
+
+// ---- DismissFailed types ---- //
+/**
+ * Represents a failure to dismiss a Presentable because there is no activity to dismiss it from.
+ */
+object NoActivityToDetachFrom : DismissFailed("No activity available to detach from.")
+
+/**
+ * Represents a failure to dismiss a Presentable because it is not shown.
+ */
+object AlreadyDismissed : DismissFailed("Presentable is already dismissed.")

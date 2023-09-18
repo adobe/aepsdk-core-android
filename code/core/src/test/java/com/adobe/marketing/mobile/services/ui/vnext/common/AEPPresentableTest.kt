@@ -16,7 +16,13 @@ import android.content.Context
 import android.view.ViewGroup
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
+import com.adobe.marketing.mobile.services.ui.vnext.AlreadyDismissed
+import com.adobe.marketing.mobile.services.ui.vnext.AlreadyHidden
+import com.adobe.marketing.mobile.services.ui.vnext.AlreadyShown
+import com.adobe.marketing.mobile.services.ui.vnext.DelegateGateNotMet
 import com.adobe.marketing.mobile.services.ui.vnext.InAppMessage
+import com.adobe.marketing.mobile.services.ui.vnext.NoActivityToDetachFrom
+import com.adobe.marketing.mobile.services.ui.vnext.NoAttachableActivity
 import com.adobe.marketing.mobile.services.ui.vnext.Presentable
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationUtilityProvider
@@ -150,6 +156,9 @@ internal class AEPPresentableTest {
             // verify that the presentation delegate is called because display is gated
             verify(mockPresentationDelegate).canShow(aepPresentableWithGatedDisplay)
 
+            // verify that the listener is notified of the error
+            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, DelegateGateNotMet)
+
             // verify that the lifecycle provider is called to register the listener
             verify(mockAppLifecycleProvider, never()).registerListener(
                 aepPresentableWithGatedDisplay
@@ -250,6 +259,9 @@ internal class AEPPresentableTest {
             // verify that the listener, delegate, and state manager are never notified of anything
             verify(mockPresentationListener, never()).onShow(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onShown()
+
+            // verify that the listener is notified of the error
+            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, AlreadyShown)
         }
     }
 
@@ -312,6 +324,9 @@ internal class AEPPresentableTest {
         // simulate a null activity being the current activity
         `when`(mockPresentationUtilityProvider.getCurrentActivity()).thenReturn(null)
 
+        // simulate DETACHED state when show is called
+        `when`(mockPresentationStateManager.presentableState).thenReturn(mutableStateOf(Presentable.State.DETACHED))
+
         runTest {
             // test
             aepPresentableWithGatedDisplay.show()
@@ -324,10 +339,13 @@ internal class AEPPresentableTest {
             // verify that the presentation delegate is never queried
             verify(mockPresentationDelegate, never()).canShow(aepPresentableWithGatedDisplay)
 
-            // verify that the listener, delegate, and state manager are never notified of anything
+            // verify that the listener, delegate, and state manager are never notified of show
             verify(mockPresentationListener, never()).onShow(aepPresentableWithGatedDisplay)
             verify(mockPresentationDelegate, never()).onShow(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onShown()
+
+            // verify that the listener is notified of the error
+            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, NoAttachableActivity)
         }
     }
 
@@ -346,6 +364,9 @@ internal class AEPPresentableTest {
         // simulate a null activity being the current activity
         `when`(mockPresentationUtilityProvider.getCurrentActivity()).thenReturn(null)
 
+        // simulate VISIBLE state when show is called
+        `when`(mockPresentationStateManager.presentableState).thenReturn(mutableStateOf(Presentable.State.VISIBLE))
+
         runTest {
             // test
             aepPresentableWithGatedDisplay.dismiss()
@@ -353,10 +374,13 @@ internal class AEPPresentableTest {
             // verify that the lifecycle provider listener is unregistered
             verify(mockAppLifecycleProvider).unregisterListener(aepPresentableWithGatedDisplay)
 
-            // verify that the listener, delegate, and state manager are never notified of anything
+            // verify that the listener, delegate, and state manager are never notified of any dismissal
             verify(mockPresentationListener, never()).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationDelegate, never()).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onDetached()
+
+            // verify that the listener is notified of the error
+            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, NoActivityToDetachFrom)
         }
     }
 
@@ -474,10 +498,13 @@ internal class AEPPresentableTest {
             // verify that viewgroup is never altered
             verify(mockViewGroup, never()).removeView(mockComposeView)
 
-            // verify that the listener, delegate, and state manager are not notified of anything
+            // verify that the listener, delegate, and state manager are not notified of dismissal
             verify(mockPresentationListener, never()).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationDelegate, never()).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onDetached()
+
+            // verify that the listener is notified of the error
+            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, AlreadyDismissed)
         }
     }
 
@@ -507,6 +534,9 @@ internal class AEPPresentableTest {
             verify(mockPresentationListener, never()).onHide(aepPresentableWithGatedDisplay)
             verify(mockPresentationDelegate, never()).onHide(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onHidden()
+
+            // verify that the listener is notified of the error
+            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, AlreadyHidden)
         }
     }
 

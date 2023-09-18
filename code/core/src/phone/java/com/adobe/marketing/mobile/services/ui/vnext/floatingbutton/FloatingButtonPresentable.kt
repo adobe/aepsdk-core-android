@@ -15,6 +15,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.ui.platform.ComposeView
 import com.adobe.marketing.mobile.services.ui.vnext.FloatingButton
+import com.adobe.marketing.mobile.services.ui.vnext.Presentation
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationUtilityProvider
 import com.adobe.marketing.mobile.services.ui.vnext.common.AEPPresentable
@@ -78,5 +79,10 @@ internal class FloatingButtonPresentable(
 
     override fun getPresentation(): FloatingButton {
         return floatingButton
+    }
+
+    override fun hasConflicts(visiblePresentations: List<Presentation<*>>): Boolean {
+        // Floating button presentation can be shown irrespective of other visible presentations
+        return false
     }
 }

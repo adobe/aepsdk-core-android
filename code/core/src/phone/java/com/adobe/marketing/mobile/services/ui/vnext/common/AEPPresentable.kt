@@ -27,6 +27,7 @@ import com.adobe.marketing.mobile.services.ui.vnext.PresentationUtilityProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 import java.util.Random
 
 /**
@@ -45,6 +46,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
     private val presentationDelegate: PresentationDelegate?
     private val mainScope: CoroutineScope
     private val appLifecycleProvider: AppLifecycleProvider
+    private val presentationObserver: PresentationObserver
     protected val presentationStateManager: PresentationStateManager
 
     @VisibleForTesting internal val contentIdentifier: Int = Random().nextInt()
@@ -66,7 +68,8 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         presentationDelegate,
         appLifecycleProvider,
         PresentationStateManager(),
-        CoroutineScope(Dispatchers.Main)
+        CoroutineScope(Dispatchers.Main),
+        PresentationObserver.INSTANCE
     )
 
     /**
@@ -84,7 +87,8 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         presentationDelegate: PresentationDelegate?,
         appLifecycleProvider: AppLifecycleProvider,
         presentationStateManager: PresentationStateManager,
-        mainScope: CoroutineScope
+        mainScope: CoroutineScope,
+        presentationObserver: PresentationObserver
     ) {
         this.presentation = presentation
         this.presentationUtilityProvider = presentationUtilityProvider
@@ -92,6 +96,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         this.appLifecycleProvider = appLifecycleProvider
         this.presentationStateManager = presentationStateManager
         this.mainScope = mainScope
+        this.presentationObserver = presentationObserver
     }
 
     override fun show() {
@@ -116,8 +121,18 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
                 return@launch
             }
 
+            val hasConflicts = hasConflicts(presentationObserver.getVisiblePresentations())
+            if (hasConflicts) {
+                Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Presentable has conflicts with other visible presentations. Ignoring show request."
+                )
+                return@launch
+            }
+
             // If all basic conditions are met, check with the delegate if the presentable can be shown
-            if (gateDisplay()) { // TODO :should also include PresentationObserver gate
+            if (gateDisplay()) {
                 val canShow = (presentationDelegate?.canShow(this@AEPPresentable) ?: true)
                 if (!canShow) return@launch
             }
@@ -134,6 +149,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
             // delegate about the presentable being shown
             presentation.listener.onShow(this@AEPPresentable)
             presentationDelegate?.onShow(this@AEPPresentable)
+            presentationObserver.onPresentationVisible(getPresentation())
         }
     }
 
@@ -169,6 +185,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
             // delegate about the presentable being dismissed
             presentation.listener.onDismiss(this@AEPPresentable)
             presentationDelegate?.onDismiss(this@AEPPresentable)
+            presentationObserver.onPresentationInvisible(getPresentation())
         }
     }
 
@@ -191,6 +208,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
             // Notify listeners
             presentation.listener.onHide(this@AEPPresentable)
             presentationDelegate?.onHide(this@AEPPresentable)
+            presentationObserver.onPresentationInvisible(getPresentation())
         }
     }
 
@@ -239,6 +257,13 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
      * @return true if the presentable should be shown, false otherwise.
      */
     abstract fun gateDisplay(): Boolean
+
+    /**
+     * Determines whether the presentable has any conflicts with the given list of visible presentations
+     * on the screen.
+     * @param visiblePresentations list of visible presentations on the screen.
+     */
+    abstract fun hasConflicts(visiblePresentations: List<Presentation<*>>): Boolean
 
     /**
      * Makes the presentable visible on the given activity by attaching it to the activity's content view.
@@ -326,5 +351,61 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         existingComposeView.removeAllViews()
         rootViewGroup.removeView(existingComposeView)
         Log.trace(ServiceConstants.LOG_TAG, LOG_SOURCE, "Detached ${contentIdentifier}from $activityToDetach.")
+    }
+}
+
+/**
+ * Responsible for tracking the currently visible presentations. Methods of this class should be invoked
+ * from the same thread across presentables to ensure serialization of the operations. Since this is managed
+ * from [AEPPresentable], this guarantee is already provided (due to calls from main thread). This class should
+ * be moved to the API layer and appropriate serialization mechanisms should be added in case we want to add the
+ * ability to have custom implementation of [Presentable]s.
+ */
+@VisibleForTesting
+internal class PresentationObserver private constructor() {
+
+    companion object {
+        internal val INSTANCE by lazy { PresentationObserver() }
+    }
+
+    /**
+     * A map of presentation IDs to weak references of the presentation.
+     * This map is used to keep track of the currently visible presentations.
+     */
+    private val visiblePresentations: MutableMap<String, WeakReference<Presentation<*>>> = mutableMapOf()
+
+    /**
+     * Called when a presentation becomes visible.
+     * @param presentation The presentation that became visible.
+     */
+    @VisibleForTesting
+    @MainThread
+    internal fun onPresentationVisible(presentation: Presentation<*>) {
+        visiblePresentations[presentation.id] = WeakReference(presentation)
+    }
+
+    /**
+     * Called when a presentation becomes invisible from the screen either due to being hidden or dismissed.
+     * @param presentation The presentation that became invisible from the screen.
+     */
+    @VisibleForTesting
+    @MainThread
+    internal fun onPresentationInvisible(presentation: Presentation<*>) {
+        visiblePresentations.remove(presentation.id)
+    }
+
+    /**
+     * Returns the list of currently visible presentations.
+     * @return The list of currently visible presentations.
+     */
+    @VisibleForTesting
+    @MainThread
+    internal fun getVisiblePresentations(): List<Presentation<*>> {
+        // Use this opportunity to clean up the map of any lost references
+        val lostRefs = visiblePresentations.filterValues { it.get() == null }.keys
+        lostRefs.forEach { visiblePresentations.remove(it) }
+
+        // Return the list of visible presentations
+        return visiblePresentations.values.mapNotNull { it.get() }
     }
 }

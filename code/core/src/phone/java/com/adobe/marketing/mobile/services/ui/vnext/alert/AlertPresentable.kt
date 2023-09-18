@@ -14,6 +14,8 @@ package com.adobe.marketing.mobile.services.ui.vnext.alert
 import android.content.Context
 import androidx.compose.ui.platform.ComposeView
 import com.adobe.marketing.mobile.services.ui.vnext.Alert
+import com.adobe.marketing.mobile.services.ui.vnext.InAppMessage
+import com.adobe.marketing.mobile.services.ui.vnext.Presentation
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationUtilityProvider
 import com.adobe.marketing.mobile.services.ui.vnext.alert.views.AlertScreen
@@ -66,5 +68,10 @@ internal class AlertPresentable(
 
     override fun getPresentation(): Alert {
         return alert
+    }
+
+    override fun hasConflicts(visiblePresentations: List<Presentation<*>>): Boolean {
+        // Only show if there are no other alerts or in-app messages visible
+        return visiblePresentations.any { (it is Alert || it is InAppMessage) }
     }
 }

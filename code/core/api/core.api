@@ -227,10 +227,12 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun dispatchResponseEvent (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public static fun extensionVersion ()Ljava/lang/String;
 	public static fun getApplication ()Landroid/app/Application;
+	public static fun getLargeIconResourceID ()I
 	public static fun getLogLevel ()Lcom/adobe/marketing/mobile/LoggingMode;
 	public static fun getMessagingDelegate ()Lcom/adobe/marketing/mobile/services/MessagingDelegate;
 	public static fun getPrivacyStatus (Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun getSdkIdentities (Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public static fun getSmallIconResourceID ()I
 	public static fun lifecyclePause ()V
 	public static fun lifecycleStart (Ljava/util/Map;)V
 	public static fun log (Lcom/adobe/marketing/mobile/LoggingMode;Ljava/lang/String;Ljava/lang/String;)V

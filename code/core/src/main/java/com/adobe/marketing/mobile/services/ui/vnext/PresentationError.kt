@@ -37,7 +37,7 @@ object NoAttachableActivity : ShowFailed("No attachable activity available.")
 /**
  * Represents a failure to show a Presentable because the delegate gate was not met.
  */
-object DelegateGateNotMet : ShowFailed("PresentationDelegate requirement not met.")
+object DelegateGateNotMet : ShowFailed("PresentationDelegate suppressed the presentation from being shown.")
 
 /**
  * Represents a failure to show a Presentable because it is already shown.

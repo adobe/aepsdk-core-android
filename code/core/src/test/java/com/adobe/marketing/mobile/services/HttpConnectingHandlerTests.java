@@ -11,22 +11,16 @@
 
 package com.adobe.marketing.mobile.services;
 
-import android.os.Build;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSocketFactory;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,8 +41,6 @@ public class HttpConnectingHandlerTests {
 
     @Before
     public void setup() throws Exception {
-        setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 22);
-
         // Since URL is a final class - it cannot be mocked by Mockito.
         // Hence, create an instance of URL that will allow us to pass out mock URLConnection
         // upon calling openConnection().
@@ -417,45 +409,5 @@ public class HttpConnectingHandlerTests {
         connectionHandler.setConnectTimeout(100);
         // Verify
         Assert.assertEquals(100, connectTimeoutValue.get());
-    }
-
-    @Test
-    public void testSSLSocketFactory_UseTLSSocketFactory_When_APIIsLowerThan20() throws Exception {
-        setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 19);
-        final List<Object> sslSocketFactoryList = new ArrayList<>();
-        Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                sslSocketFactoryList.add(invocation.getArguments()[0]);
-                                return null;
-                            }
-                        })
-                .when(httspURLConnection)
-                .setSSLSocketFactory(ArgumentMatchers.any(SSLSocketFactory.class));
-        // Test
-        HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
-        // Verify
-        Assert.assertEquals(TLSSocketFactory.getInstance(), sslSocketFactoryList.get(0));
-        Mockito.verify(httspURLConnection, Mockito.times(1))
-                .setSSLSocketFactory(ArgumentMatchers.any(SSLSocketFactory.class));
-    }
-
-    @Test
-    public void testSSLSocketFactory_NotUseTLSSocketFactory_When_APIEquals20() throws Exception {
-        setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 20);
-        // Test
-        HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
-        // Verify
-        Mockito.verify(httspURLConnection, Mockito.times(0))
-                .setSSLSocketFactory(ArgumentMatchers.any(SSLSocketFactory.class));
-    }
-
-    static void setFinalStatic(Field field, Object newValue) throws Exception {
-        field.setAccessible(true);
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-        field.set(null, newValue);
     }
 }

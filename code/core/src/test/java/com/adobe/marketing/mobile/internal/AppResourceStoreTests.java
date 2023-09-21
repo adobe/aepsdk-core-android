@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,12 +81,11 @@ public class AppResourceStoreTests {
 
     @Test
     public void testGetSmallIconResourceId_NoIdSet() {
-        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_SMALL_ICON), anyInt()))
-                .thenReturn(-1);
+        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_SMALL_ICON), anyInt())).thenReturn(-1);
 
         // Test
         int actualResourceId = AppResourceStore.INSTANCE.getSmallIconResourceID();
-        assertEquals(actualResourceId,-1);
+        assertEquals(actualResourceId, -1);
     }
 
     @Test
@@ -151,13 +149,13 @@ public class AppResourceStoreTests {
 
     @Test
     public void testGetLargeIconResourceId_NoIdSet() {
-        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_LARGE_ICON), anyInt()))
-                .thenReturn(-1);
+        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_LARGE_ICON), anyInt())).thenReturn(-1);
 
         // Test
         int actualResourceId = AppResourceStore.INSTANCE.getLargeIconResourceID();
-        assertEquals(actualResourceId,-1);
+        assertEquals(actualResourceId, -1);
     }
+
     @Test
     public void testSetLargeIconResourceId_ValidIdSet() {
         // Setup

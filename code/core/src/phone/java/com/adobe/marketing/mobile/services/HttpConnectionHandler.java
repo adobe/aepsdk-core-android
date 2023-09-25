@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.services;
 
-import android.os.Build;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -74,12 +73,6 @@ class HttpConnectionHandler {
      */
     HttpConnectionHandler(final URL url) throws IOException {
         httpsUrlConnection = (HttpsURLConnection) url.openConnection();
-        final int buildVersion = Build.VERSION.SDK_INT;
-
-        // https://developer.android.com/reference/javax/net/ssl/SSLSocket#default-configuration-for-different-android-versions
-        if (buildVersion < Build.VERSION_CODES.KITKAT_WATCH) { // 20
-            httpsUrlConnection.setSSLSocketFactory(TLSSocketFactory.getInstance());
-        }
     }
 
     /**

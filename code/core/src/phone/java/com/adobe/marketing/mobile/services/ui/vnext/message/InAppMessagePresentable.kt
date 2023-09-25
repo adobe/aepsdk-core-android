@@ -16,7 +16,6 @@ import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
 import androidx.compose.ui.platform.ComposeView
-import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.vnext.InAppMessage
 import com.adobe.marketing.mobile.services.ui.vnext.Presentable
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
@@ -179,9 +178,13 @@ internal class InAppMessagePresentable(
 
         // Check if this URL can be opened by the URLOpening
         val handled = handledByListener || if (InAppMessageWebViewClient.isValidUrl(url)) {
-            // TODO: open this url using a proxy for URLOpening.
-            ServiceProvider.getInstance().uiService.showUrl(url)
-            presentationDelegate?.onContentLoaded(this@InAppMessagePresentable, PresentationListener.PresentationContent.UrlContent(url))
+            val uriOpened = presentationUtilityProvider.openUri(url)
+            if (uriOpened) {
+                presentationDelegate?.onContentLoaded(
+                    this@InAppMessagePresentable,
+                    PresentationListener.PresentationContent.UrlContent(url)
+                )
+            }
             true
         } else {
             false

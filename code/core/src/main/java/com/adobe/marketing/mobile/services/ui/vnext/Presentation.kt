@@ -19,12 +19,18 @@ import com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.FloatingButto
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventHandler
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventListener
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageSettings
+import java.util.UUID
 
 /**
  * Defines types of [Presentable]s supported by the AEP SDK.
  * Holds the [PresentationEventListener] for the presentation.
  */
-sealed class Presentation<T : Presentation<T>>(val listener: PresentationEventListener<T>)
+sealed class Presentation<T : Presentation<T>>(val listener: PresentationEventListener<T>) {
+    /**
+     * The unique identifier for this presentation.
+     */
+    val id: String = UUID.randomUUID().toString()
+}
 
 // ---- Presentation Types ---- //
 

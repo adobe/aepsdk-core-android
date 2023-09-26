@@ -16,25 +16,27 @@ import android.content.Context
 import android.view.ViewGroup
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
+import com.adobe.marketing.mobile.services.ui.vnext.Alert
 import com.adobe.marketing.mobile.services.ui.vnext.AlreadyDismissed
 import com.adobe.marketing.mobile.services.ui.vnext.AlreadyHidden
 import com.adobe.marketing.mobile.services.ui.vnext.AlreadyShown
 import com.adobe.marketing.mobile.services.ui.vnext.DelegateGateNotMet
+import com.adobe.marketing.mobile.services.ui.vnext.FloatingButton
 import com.adobe.marketing.mobile.services.ui.vnext.InAppMessage
 import com.adobe.marketing.mobile.services.ui.vnext.NoActivityToDetachFrom
-import com.adobe.marketing.mobile.services.ui.vnext.NoAttachableActivity
 import com.adobe.marketing.mobile.services.ui.vnext.Presentable
+import com.adobe.marketing.mobile.services.ui.vnext.Presentation
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationUtilityProvider
 import com.adobe.marketing.mobile.services.ui.vnext.message.InAppMessageEventListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
@@ -69,6 +71,9 @@ internal class AEPPresentableTest {
     @Mock
     private lateinit var mockComposeView: ComposeView
 
+    @Mock
+    private lateinit var mockPresentationObserver: PresentationObserver
+
     private var mockMainScope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined)
 
     @Mock
@@ -89,7 +94,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate initial detached state
@@ -135,7 +141,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate initial detached state
@@ -183,7 +190,8 @@ internal class AEPPresentableTest {
             null, // simulate null presentation delegate
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate initial detached state
@@ -223,7 +231,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate that the presentation delegate allows the presentation to be shown
@@ -274,7 +283,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate that the presentation delegate allows the presentation to be shown
@@ -306,6 +316,9 @@ internal class AEPPresentableTest {
             // verify that the listener, delegate, and state manager are never notified of anything
             verify(mockPresentationListener, never()).onShow(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onShown()
+
+            // verify that the presentation observer is not notified
+            verify(mockPresentationObserver, never()).onPresentationVisible(aepPresentableWithGatedDisplay.getPresentation())
         }
     }
 
@@ -318,7 +331,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate a null activity being the current activity
@@ -344,8 +358,119 @@ internal class AEPPresentableTest {
             verify(mockPresentationDelegate, never()).onShow(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onShown()
 
-            // verify that the listener is notified of the error
-            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, NoAttachableActivity)
+            // verify that the presentation observer is not notified
+            verify(mockPresentationObserver, never()).onPresentationVisible(aepPresentableWithGatedDisplay.getPresentation())
+        }
+    }
+
+    @Test
+    fun `Test that AEPPresentable#show bails when current presentable has conflicts`() {
+        // setup
+        val aepPresentableWithGatedDisplay = TestAEPPresentableGatedDisplay(
+            mockPresentation,
+            mockPresentationUtilityProvider,
+            mockPresentationDelegate,
+            mockAppLifecycleProvider,
+            mockPresentationStateManager,
+            mockMainScope,
+            mockPresentationObserver,
+            conflictLogic = { visible ->
+                visible.any { it is Alert }
+            }
+        )
+
+        // simulate initial detached state
+        `when`(mockPresentationStateManager.presentableState).thenReturn(mutableStateOf(Presentable.State.DETACHED))
+        // simulate that the presentation delegate allows the presentation to be shown
+        `when`(mockPresentationDelegate.canShow(aepPresentableWithGatedDisplay)).thenReturn(true)
+        // simulate a valid activity being present
+        `when`(mockPresentationUtilityProvider.getCurrentActivity()).thenReturn(mockActivity)
+        // simulate no existing ComposeView being present
+        `when`(mockActivity.findViewById<ComposeView?>(aepPresentableWithGatedDisplay.contentIdentifier)).thenReturn(
+            null
+        )
+        `when`(mockActivity.findViewById<ViewGroup>(eq(android.R.id.content))).thenReturn(
+            mockViewGroup
+        )
+
+        `when`(mockPresentationObserver.getVisiblePresentations()).thenReturn(
+            mutableListOf(mock(Alert::class.java))
+        )
+
+        runTest {
+            // test
+            aepPresentableWithGatedDisplay.show()
+
+            // verify that the lifecycle provider is never called to register the listener
+            verify(mockAppLifecycleProvider, never()).registerListener(
+                aepPresentableWithGatedDisplay
+            )
+
+            // verify that the presentation delegate is never queried
+            verify(mockPresentationDelegate, never()).canShow(aepPresentableWithGatedDisplay)
+
+            // verify that the listener, delegate, and state manager are never notified of anything
+            verify(mockPresentationListener, never()).onShow(aepPresentableWithGatedDisplay)
+            verify(mockPresentationDelegate, never()).onShow(aepPresentableWithGatedDisplay)
+            verify(mockPresentationStateManager, never()).onShown()
+            verify(mockPresentationObserver, never()).onPresentationVisible(aepPresentableWithGatedDisplay.getPresentation())
+        }
+    }
+
+    @Test
+    fun `Test that AEPPresentable#show shows when current presentable has no conflicts`() {
+        // setup
+        val aepPresentableWithGatedDisplay = TestAEPPresentableGatedDisplay(
+            mockPresentation,
+            mockPresentationUtilityProvider,
+            mockPresentationDelegate,
+            mockAppLifecycleProvider,
+            mockPresentationStateManager,
+            mockMainScope,
+            mockPresentationObserver,
+            conflictLogic = { visible ->
+                visible.any { it is Alert }
+            }
+        )
+
+        // simulate initial detached state
+        `when`(mockPresentationStateManager.presentableState).thenReturn(mutableStateOf(Presentable.State.DETACHED))
+        // simulate that the presentation delegate allows the presentation to be shown
+        `when`(mockPresentationDelegate.canShow(aepPresentableWithGatedDisplay)).thenReturn(true)
+        // simulate a valid activity being present
+        `when`(mockPresentationUtilityProvider.getCurrentActivity()).thenReturn(mockActivity)
+        // simulate no existing ComposeView being present
+        `when`(mockActivity.findViewById<ComposeView?>(aepPresentableWithGatedDisplay.contentIdentifier)).thenReturn(
+            null
+        )
+        `when`(mockActivity.findViewById<ViewGroup>(eq(android.R.id.content))).thenReturn(
+            mockViewGroup
+        )
+
+        `when`(mockPresentationObserver.getVisiblePresentations()).thenReturn(
+            mutableListOf(mock(FloatingButton::class.java))
+        )
+
+        runTest {
+            // test
+            aepPresentableWithGatedDisplay.show()
+
+            // verify that the presentation delegate is called because display is gated
+            verify(mockPresentationDelegate).canShow(aepPresentableWithGatedDisplay)
+
+            // verify that the lifecycle provider is called to register the listener
+            verify(mockAppLifecycleProvider).registerListener(aepPresentableWithGatedDisplay)
+
+            // Verify that the compose view is added to the viewgroup
+            verify(mockViewGroup).addView(any<ComposeView>())
+
+            // verify that the listener, delegate, and state manager are notified of content show
+            verify(mockPresentationDelegate).onShow(aepPresentableWithGatedDisplay)
+            verify(mockPresentationListener).onShow(aepPresentableWithGatedDisplay)
+            verify(mockPresentationStateManager).onShown()
+
+            // verify that the presentation observer is notified of the new presentation
+            verify(mockPresentationObserver).onPresentationVisible(aepPresentableWithGatedDisplay.getPresentation())
         }
     }
 
@@ -358,7 +483,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate a null activity being the current activity
@@ -379,6 +505,8 @@ internal class AEPPresentableTest {
             verify(mockPresentationDelegate, never()).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onDetached()
 
+            // verify that the presentation observer is never notified of anything
+            verify(mockPresentationObserver, never()).onPresentationInvisible(aepPresentableWithGatedDisplay.getPresentation())
             // verify that the listener is notified of the error
             verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, NoActivityToDetachFrom)
         }
@@ -393,7 +521,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate VISIBLE state when show is called
@@ -424,6 +553,7 @@ internal class AEPPresentableTest {
             verify(mockPresentationListener).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationDelegate).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager).onDetached()
+            verify(mockPresentationObserver).onPresentationInvisible(aepPresentableWithGatedDisplay.getPresentation())
         }
     }
 
@@ -436,7 +566,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate a valid activity being present
@@ -467,6 +598,7 @@ internal class AEPPresentableTest {
             verify(mockPresentationListener).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationDelegate).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager).onDetached()
+            verify(mockPresentationObserver).onPresentationInvisible(aepPresentableWithGatedDisplay.getPresentation())
         }
     }
 
@@ -479,7 +611,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate a valid activity being present
@@ -502,6 +635,7 @@ internal class AEPPresentableTest {
             verify(mockPresentationListener, never()).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationDelegate, never()).onDismiss(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onDetached()
+            verify(mockPresentationObserver, never()).onPresentationInvisible(aepPresentableWithGatedDisplay.getPresentation())
 
             // verify that the listener is notified of the error
             verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, AlreadyDismissed)
@@ -517,7 +651,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate the presentable state being not visible
@@ -534,6 +669,7 @@ internal class AEPPresentableTest {
             verify(mockPresentationListener, never()).onHide(aepPresentableWithGatedDisplay)
             verify(mockPresentationDelegate, never()).onHide(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager, never()).onHidden()
+            verify(mockPresentationObserver, never()).onPresentationInvisible(aepPresentableWithGatedDisplay.getPresentation())
 
             // verify that the listener is notified of the error
             verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, AlreadyHidden)
@@ -549,7 +685,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate the presentable state being visible
@@ -566,6 +703,7 @@ internal class AEPPresentableTest {
             verify(mockPresentationListener).onHide(aepPresentableWithGatedDisplay)
             verify(mockPresentationDelegate).onHide(aepPresentableWithGatedDisplay)
             verify(mockPresentationStateManager).onHidden()
+            verify(mockPresentationObserver).onPresentationInvisible(aepPresentableWithGatedDisplay.getPresentation())
         }
     }
 
@@ -578,7 +716,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate the presentable state being visible
@@ -618,7 +757,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate the presentable state being visible
@@ -658,7 +798,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate the presentable state being hidden
@@ -698,7 +839,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate the presentable state being DETACHED
@@ -734,7 +876,8 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
-            mockMainScope
+            mockMainScope,
+            mockPresentationObserver
         )
 
         // simulate the presentable state being visible
@@ -761,24 +904,23 @@ internal class AEPPresentableTest {
         }
     }
 
-    @After
-    fun tearDown() {
-    }
-
     class TestAEPPresentableGatedDisplay(
         private val presentation: InAppMessage,
         presentationUtilityProvider: PresentationUtilityProvider,
         presentationDelegate: PresentationDelegate?,
         appLifecycleProvider: AppLifecycleProvider,
         presentationStateManager: PresentationStateManager,
-        mainScope: CoroutineScope
+        mainScope: CoroutineScope,
+        presentationObserver: PresentationObserver,
+        val conflictLogic: (visiblePresentations: List<Presentation<*>>) -> Boolean = { false }
     ) : AEPPresentable<InAppMessage>(
         presentation,
         presentationUtilityProvider,
         presentationDelegate,
         appLifecycleProvider,
         presentationStateManager,
-        mainScope
+        mainScope,
+        presentationObserver
     ) {
         override fun getPresentation(): InAppMessage {
             return presentation
@@ -790,6 +932,10 @@ internal class AEPPresentableTest {
 
         override fun gateDisplay(): Boolean {
             return true
+        }
+
+        override fun hasConflicts(visiblePresentations: List<Presentation<*>>): Boolean {
+            return conflictLogic(visiblePresentations)
         }
     }
 }

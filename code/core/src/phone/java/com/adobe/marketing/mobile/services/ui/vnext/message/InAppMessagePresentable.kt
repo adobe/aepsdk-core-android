@@ -16,8 +16,10 @@ import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
 import androidx.compose.ui.platform.ComposeView
+import com.adobe.marketing.mobile.services.ui.vnext.Alert
 import com.adobe.marketing.mobile.services.ui.vnext.InAppMessage
 import com.adobe.marketing.mobile.services.ui.vnext.Presentable
+import com.adobe.marketing.mobile.services.ui.vnext.Presentation
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationListener
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationUtilityProvider
@@ -124,6 +126,11 @@ internal class InAppMessagePresentable(
     override fun awaitExitAnimation(onAnimationComplete: () -> Unit) {
         animationCompleteCallback = onAnimationComplete
         // now wait for onDisposed to be called on the composable
+    }
+
+    override fun hasConflicts(visiblePresentations: List<Presentation<*>>): Boolean {
+        // InAppMessages can be shown if there are no other visible in-app messages or alerts
+        return visiblePresentations.any { (it is InAppMessage || it is Alert) }
     }
 
     /**

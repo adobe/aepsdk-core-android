@@ -35,6 +35,16 @@ interface PresentationUtilityProvider {
 
     /**
      * Retrieves any cached content for the given cache name and key.
+     * @param cacheName the name of the cache to retrieve content from
+     * @param key the key of the content to retrieve
+     * @return an [InputStream] containing the cached content if it exists, null otherwise.
      */
     fun getCachedContent(cacheName: String, key: String): InputStream?
+
+    /**
+     * Opens the given [uri].
+     * @param uri the URI to open
+     * @return true if the URI was opened successfully, false otherwise.
+     */
+    fun openUri(uri: String): Boolean
 }

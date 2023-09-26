@@ -20,6 +20,12 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.platform.ComposeView
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
+import com.adobe.marketing.mobile.services.ui.vnext.AlreadyDismissed
+import com.adobe.marketing.mobile.services.ui.vnext.AlreadyHidden
+import com.adobe.marketing.mobile.services.ui.vnext.AlreadyShown
+import com.adobe.marketing.mobile.services.ui.vnext.DelegateGateNotMet
+import com.adobe.marketing.mobile.services.ui.vnext.NoActivityToDetachFrom
+import com.adobe.marketing.mobile.services.ui.vnext.NoAttachableActivity
 import com.adobe.marketing.mobile.services.ui.vnext.Presentable
 import com.adobe.marketing.mobile.services.ui.vnext.Presentation
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
@@ -108,6 +114,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
                     LOG_SOURCE,
                     "Presentable is already shown. Ignoring show request."
                 )
+                presentation.listener.onError(this@AEPPresentable, AlreadyShown)
                 return@launch
             }
 
@@ -118,6 +125,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
                     LOG_SOURCE,
                     "Current activity is null. Cannot show presentable."
                 )
+                presentation.listener.onError(this@AEPPresentable, NoAttachableActivity)
                 return@launch
             }
 
@@ -134,7 +142,10 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
             // If all basic conditions are met, check with the delegate if the presentable can be shown
             if (gateDisplay()) {
                 val canShow = (presentationDelegate?.canShow(this@AEPPresentable) ?: true)
-                if (!canShow) return@launch
+                if (!canShow) {
+                    presentation.listener.onError(this@AEPPresentable, DelegateGateNotMet)
+                    return@launch
+                }
             }
 
             // Show the presentable on the current activity
@@ -164,6 +175,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
                     LOG_SOURCE,
                     "Presentable is already detached. Ignoring dismiss request."
                 )
+                presentation.listener.onError(this@AEPPresentable, AlreadyDismissed)
                 return@launch
             }
 
@@ -174,6 +186,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
                     LOG_SOURCE,
                     "Current activity is null. Cannot dismiss presentable."
                 )
+                presentation.listener.onError(this@AEPPresentable, NoActivityToDetachFrom)
                 return@launch
             }
 
@@ -197,6 +210,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
                     LOG_SOURCE,
                     "Presentable is already hidden. Ignoring hide request."
                 )
+                presentation.listener.onError(this@AEPPresentable, AlreadyHidden)
                 return@launch
             }
 

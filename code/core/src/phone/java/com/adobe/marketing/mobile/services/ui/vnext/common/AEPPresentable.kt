@@ -23,6 +23,7 @@ import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.vnext.AlreadyDismissed
 import com.adobe.marketing.mobile.services.ui.vnext.AlreadyHidden
 import com.adobe.marketing.mobile.services.ui.vnext.AlreadyShown
+import com.adobe.marketing.mobile.services.ui.vnext.ConflictingPresentation
 import com.adobe.marketing.mobile.services.ui.vnext.DelegateGateNotMet
 import com.adobe.marketing.mobile.services.ui.vnext.NoActivityToDetachFrom
 import com.adobe.marketing.mobile.services.ui.vnext.NoAttachableActivity
@@ -136,6 +137,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
                     LOG_SOURCE,
                     "Presentable has conflicts with other visible presentations. Ignoring show request."
                 )
+                presentation.listener.onError(this@AEPPresentable, ConflictingPresentation)
                 return@launch
             }
 

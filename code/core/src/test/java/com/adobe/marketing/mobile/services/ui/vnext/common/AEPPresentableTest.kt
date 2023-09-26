@@ -17,14 +17,13 @@ import android.view.ViewGroup
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import com.adobe.marketing.mobile.services.ui.vnext.Alert
-import com.adobe.marketing.mobile.services.ui.vnext.FloatingButton
 import com.adobe.marketing.mobile.services.ui.vnext.AlreadyDismissed
 import com.adobe.marketing.mobile.services.ui.vnext.AlreadyHidden
 import com.adobe.marketing.mobile.services.ui.vnext.AlreadyShown
 import com.adobe.marketing.mobile.services.ui.vnext.DelegateGateNotMet
+import com.adobe.marketing.mobile.services.ui.vnext.FloatingButton
 import com.adobe.marketing.mobile.services.ui.vnext.InAppMessage
 import com.adobe.marketing.mobile.services.ui.vnext.NoActivityToDetachFrom
-import com.adobe.marketing.mobile.services.ui.vnext.NoAttachableActivity
 import com.adobe.marketing.mobile.services.ui.vnext.Presentable
 import com.adobe.marketing.mobile.services.ui.vnext.Presentation
 import com.adobe.marketing.mobile.services.ui.vnext.PresentationDelegate
@@ -472,9 +471,6 @@ internal class AEPPresentableTest {
 
             // verify that the presentation observer is notified of the new presentation
             verify(mockPresentationObserver).onPresentationVisible(aepPresentableWithGatedDisplay.getPresentation())
-
-            // verify that the listener is notified of the error
-            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, NoAttachableActivity)
         }
     }
 

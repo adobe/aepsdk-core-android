@@ -41,7 +41,7 @@ class UriServiceTest {
     private lateinit var mockAppContextService: AppContextService
 
     @Mock
-    private lateinit var mockUriHandler: UriHandler
+    private lateinit var mockURIHandler: URIHandler
 
     @Before
     fun setUp() {
@@ -109,11 +109,11 @@ class UriServiceTest {
         // setup
         val uri = "https://www.adobe.com"
 
-        // setup mock UriHandler to return an intent for the uri
+        // setup mock URIHandler to return an intent for the uri
         val intent = Intent(Intent.ACTION_VIEW).apply { setPackage("some.random.package.name") }
         `when`(mockAppContextService.currentActivity).thenReturn(mockCurrentActivity)
-        `when`(mockUriHandler.getUriDestination(uri)).thenReturn(intent)
-        uriService.setUriHandler(mockUriHandler)
+        `when`(mockURIHandler.getURIDestination(uri)).thenReturn(intent)
+        uriService.setUriHandler(mockURIHandler)
 
         // test
         val result = uriService.openUri(uri)
@@ -128,8 +128,8 @@ class UriServiceTest {
         // setup
         val uri = "https://www.adobe.com"
         `when`(mockAppContextService.currentActivity).thenReturn(mockCurrentActivity)
-        // setup mock UriHandler to return null intent for the uri
-        `when`(mockUriHandler.getUriDestination(uri)).thenReturn(null)
+        // setup mock URIHandler to return null intent for the uri
+        `when`(mockURIHandler.getURIDestination(uri)).thenReturn(null)
 
         // test
         val result = uriService.openUri(uri)

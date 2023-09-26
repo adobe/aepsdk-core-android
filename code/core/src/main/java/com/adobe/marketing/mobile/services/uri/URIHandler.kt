@@ -14,12 +14,12 @@ package com.adobe.marketing.mobile.services.uri
 import android.content.Intent
 
 /** Interface for handling fetching destination intents for URI's  */
-interface UriHandler {
+interface URIHandler {
     /**
      * Returns a destination of the given URI.
      *
      * @param uri the URI to open
      * @return an [Intent] for the given URI, or null if no destination is found.
      */
-    fun getUriDestination(uri: String): Intent?
+    fun getURIDestination(uri: String): Intent?
 }

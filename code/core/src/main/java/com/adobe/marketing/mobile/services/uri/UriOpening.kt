@@ -16,14 +16,14 @@ package com.adobe.marketing.mobile.services.uri
  */
 interface UriOpening {
     /**
-     * Opens the given [uri] after consulting the [UriHandler] if one is set.
+     * Opens the given [uri] after consulting the [URIHandler] if one is set.
      * @param uri the URI to open
      * @return true if the URI was opened successfully, false otherwise.
      */
     fun openUri(uri: String): Boolean
 
     /**
-     * Sets the [UriHandler] to be used for fetching destination intents when opening URIs.
+     * Sets the [URIHandler] to be used for fetching destination intents when opening URIs.
      */
-    fun setUriHandler(handler: UriHandler)
+    fun setUriHandler(handler: URIHandler)
 }

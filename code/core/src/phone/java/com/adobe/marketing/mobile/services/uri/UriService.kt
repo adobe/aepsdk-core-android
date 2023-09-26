@@ -28,7 +28,7 @@ class UriService : UriOpening {
     }
 
     private val serviceProvider: ServiceProvider
-    private var uriHandler: UriHandler? = null
+    private var uriHandler: URIHandler? = null
 
     constructor() : this(ServiceProvider.getInstance())
 
@@ -49,7 +49,7 @@ class UriService : UriOpening {
                 return false
             }
 
-        val configuredDestination: Intent? = uriHandler?.getUriDestination(uri)
+        val configuredDestination: Intent? = uriHandler?.getURIDestination(uri)
 
         return try {
             val intent = configuredDestination ?: Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(uri) }
@@ -61,7 +61,7 @@ class UriService : UriOpening {
         }
     }
 
-    override fun setUriHandler(handler: UriHandler) {
+    override fun setUriHandler(handler: URIHandler) {
         uriHandler = handler
     }
 }

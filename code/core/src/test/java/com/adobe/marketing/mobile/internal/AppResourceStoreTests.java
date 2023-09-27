@@ -15,12 +15,14 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import com.adobe.marketing.mobile.services.AppContextService;
 import com.adobe.marketing.mobile.services.ServiceProviderModifier;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,66 +57,35 @@ public class AppResourceStoreTests {
         ServiceProviderModifier.setAppContextService(mockAppContextService);
     }
 
+    @After
+    public void afterEach() {
+        reset(mockSharedPreferences);
+        AppResourceStore.INSTANCE.setLargeIconResourceID(-1);
+        AppResourceStore.INSTANCE.setSmallIconResourceID(-1);
+    }
+
+    // ******************************************************************************************
+    // SmallIconResourceId Tests
+    // ******************************************************************************************
+
     @Test
-    public void testSetLargeIconResourceId_ValidIdSet() {
+    public void testGetSmallIconResourceId_ValidIdSet() {
         // Setup
-        final int expectedValueStored = 123456;
-        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_LARGE_ICON), anyInt()))
-                .thenAnswer(
-                        new Answer<SharedPreferences.Editor>() {
-                            @Override
-                            public SharedPreferences.Editor answer(InvocationOnMock invocation)
-                                    throws Throwable {
-                                int actualValueStored = invocation.getArgument(1);
-                                assertEquals(expectedValueStored, actualValueStored);
-                                return mockPreferenceEditor;
-                            }
-                        });
+        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_SMALL_ICON), anyInt()))
+                .thenReturn(123456);
 
         // Test
-        AppResourceStore.INSTANCE.setLargeIconResourceID(expectedValueStored);
+        int actualResourceId = AppResourceStore.INSTANCE.getSmallIconResourceID();
+        assertEquals(123456, actualResourceId);
     }
 
     @Test
-    public void testSetSmallIconResourceId_ValidIdSet() {
-        // Setup
-        final int expectedValueStored = 123456;
-        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_SMALL_ICON), anyInt()))
-                .thenAnswer(
-                        new Answer<SharedPreferences.Editor>() {
-                            @Override
-                            public SharedPreferences.Editor answer(InvocationOnMock invocation)
-                                    throws Throwable {
-                                int actualValueStored = invocation.getArgument(1);
-                                assertEquals(expectedValueStored, actualValueStored);
-                                return mockPreferenceEditor;
-                            }
-                        });
+    public void testGetSmallIconResourceId_NoIdSet() {
+        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_SMALL_ICON), anyInt())).thenReturn(-1);
 
         // Test
-        AppResourceStore.INSTANCE.setSmallIconResourceID(expectedValueStored);
-    }
-
-    @Test
-    public void testSetLargeIconResourceId_ValidIdSetTwice() {
-        // Setup
-        final int expectedValueStored = 123456;
-        AppResourceStore.INSTANCE.setLargeIconResourceID(111111);
-
-        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_LARGE_ICON), anyInt()))
-                .thenAnswer(
-                        new Answer<SharedPreferences.Editor>() {
-                            @Override
-                            public SharedPreferences.Editor answer(InvocationOnMock invocation)
-                                    throws Throwable {
-                                int actualValueStored = invocation.getArgument(1);
-                                assertEquals(expectedValueStored, actualValueStored);
-                                return mockPreferenceEditor;
-                            }
-                        });
-
-        // Test
-        AppResourceStore.INSTANCE.setLargeIconResourceID(expectedValueStored);
+        int actualResourceId = AppResourceStore.INSTANCE.getSmallIconResourceID();
+        assertEquals(actualResourceId, -1);
     }
 
     @Test
@@ -137,5 +108,93 @@ public class AppResourceStoreTests {
 
         // Test
         AppResourceStore.INSTANCE.setSmallIconResourceID(expectedValueStored);
+    }
+
+    @Test
+    public void testSetSmallIconResourceId_ValidIdSet() {
+        // Setup
+        final int expectedValueStored = 123456;
+        AppResourceStore.INSTANCE.setSmallIconResourceID(11111);
+
+        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_SMALL_ICON), anyInt()))
+                .thenAnswer(
+                        new Answer<SharedPreferences.Editor>() {
+                            @Override
+                            public SharedPreferences.Editor answer(InvocationOnMock invocation)
+                                    throws Throwable {
+                                int actualValueStored = invocation.getArgument(1);
+                                assertEquals(expectedValueStored, actualValueStored);
+                                return mockPreferenceEditor;
+                            }
+                        });
+
+        // Test
+        AppResourceStore.INSTANCE.setSmallIconResourceID(expectedValueStored);
+    }
+
+    // ******************************************************************************************
+    // LargeIconResourceId Tests
+    // ******************************************************************************************
+
+    @Test
+    public void testLargeIconResourceId_ValidIdSet() {
+        // Setup
+        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_LARGE_ICON), anyInt()))
+                .thenReturn(123456);
+
+        // Test
+        int actualResourceId = AppResourceStore.INSTANCE.getLargeIconResourceID();
+        assertEquals(123456, actualResourceId);
+    }
+
+    @Test
+    public void testGetLargeIconResourceId_NoIdSet() {
+        when(mockSharedPreferences.getInt(eq(DATASTORE_KEY_LARGE_ICON), anyInt())).thenReturn(-1);
+
+        // Test
+        int actualResourceId = AppResourceStore.INSTANCE.getLargeIconResourceID();
+        assertEquals(actualResourceId, -1);
+    }
+
+    @Test
+    public void testSetLargeIconResourceId_ValidIdSet() {
+        // Setup
+        final int expectedValueStored = 123456;
+        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_LARGE_ICON), anyInt()))
+                .thenAnswer(
+                        new Answer<SharedPreferences.Editor>() {
+                            @Override
+                            public SharedPreferences.Editor answer(InvocationOnMock invocation)
+                                    throws Throwable {
+                                int actualValueStored = invocation.getArgument(1);
+                                assertEquals(expectedValueStored, actualValueStored);
+                                return mockPreferenceEditor;
+                            }
+                        });
+
+        // Test
+        AppResourceStore.INSTANCE.setLargeIconResourceID(expectedValueStored);
+    }
+
+    @Test
+    public void testSetLargeIconResourceId_ValidIdSetTwice() {
+        // Setup
+        final int expectedValueStored = 123456;
+        AppResourceStore.INSTANCE.setLargeIconResourceID(111111);
+
+        when(mockPreferenceEditor.putInt(eq(DATASTORE_KEY_LARGE_ICON), anyInt()))
+                .thenAnswer(
+                        new Answer<SharedPreferences.Editor>() {
+                            @Override
+                            public SharedPreferences.Editor answer(InvocationOnMock invocation)
+                                    throws Throwable {
+                                int actualValueStored = invocation.getArgument(1);
+                                assertEquals(expectedValueStored, actualValueStored);
+                                return mockPreferenceEditor;
+                            }
+                        });
+
+        // Test
+        AppResourceStore.INSTANCE.setLargeIconResourceID(expectedValueStored);
     }
 }

@@ -10,28 +10,31 @@
  */
 package com.adobe.marketing.mobile.app.kotlin
 
+import android.app.Activity
+import android.app.Application
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Button
-import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.adobe.marketing.mobile.app.kotlin.ui.theme.AepsdkcoreandroidTheme
+import com.adobe.marketing.mobile.app.kotlin.uiservices.alert.AlertCard
+import com.adobe.marketing.mobile.app.kotlin.uiservices.alert.AlertCreator
+import com.adobe.marketing.mobile.app.kotlin.uiservices.floatingbutton.FloatingButtonCard
+import com.adobe.marketing.mobile.app.kotlin.uiservices.floatingbutton.FloatingButtonCreator
+import com.adobe.marketing.mobile.app.kotlin.uiservices.inappmessage.InAppMessageCard
+import com.adobe.marketing.mobile.app.kotlin.uiservices.inappmessage.InAppMessageCreator
 import com.adobe.marketing.mobile.services.ServiceProvider
-import java.util.Timer
-import kotlin.concurrent.schedule
-
-
-private val uiService = ServiceProvider.getInstance().uiService
+import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
+import java.io.InputStream
 
 @Composable
 fun ServicesView(navController: NavHostController) {
@@ -42,99 +45,53 @@ fun ServicesView(navController: NavHostController) {
             Text(text = "Home")
         }
         Spacer(modifier = Modifier.size(10.dp))
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(15.dp),
-            elevation = 10.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = "UI Service")
-                Button(onClick = {
-                    showAlert()
-                }) {
-                    Text(text = "ALERT")
-                }
-                Button(onClick = {
-                    openUrl()
-                }) {
-                    Text(text = "OPEN URL")
-                }
-                Button(onClick = {
-                    //TODO: not showing
-                    showLocalNotification()
-                }) {
-                    Text(text = "LOCAL NOTIFICATION")
-                }
 
-                Button(onClick = {
-                    showFloatingButton()
-                }) {
-                    Text(text = "FLOATING BUTTON (5s)")
-                }
-
-                Button(onClick = {
-                    //TODO: not showing
-                    showFullScreenMessage()
-                }) {
-                    Text(text = "FULL SCREEN MESSAGE")
-                }
-            }
-        }
-
+        InAppMessageDemo()
+        AlertDemo()
+        FloatingButtonDemo()
     }
 }
 
-private fun showAlert() {
-//    uiService.showAlert(
-//        AlertSetting.build(
-//            "title",
-//            "message",
-//            "positive",
-//            "negative"
-//        ), null
-//    )
+@Composable
+internal fun InAppMessageDemo() {
+    val inAppMessage = InAppMessageCreator.create()
+    InAppMessageCard(iamPresentable = inAppMessage)
 }
 
-private fun openUrl() {
-//    uiService.showUrl("https://adobe.com")
+
+@Composable
+internal fun AlertDemo() {
+    val alert = AlertCreator.create()
+    AlertCard(alertPresentable = alert)
 }
 
-private fun showLocalNotification() {
-//    uiService.showLocalNotification(
-//        NotificationSetting.build(
-//            "id",
-//            "Content",
-//            System.currentTimeMillis() / 1000,
-//            0,
-//            "myscheme://link",
-//            null,
-//            "sound.wav",
-//            "title"
-//        )
-//    )
+@Composable
+internal fun FloatingButtonDemo() {
+    val context = LocalContext.current
+    val floatingButton = FloatingButtonCreator(context).create()
+    FloatingButtonCard(floatingButtonPresentable = floatingButton)
 }
 
-private fun showFloatingButton() {
-//    val floatingButton = uiService.createFloatingButton(null)
-//    floatingButton.display()
-//    Timer("SettingUp", false).schedule(2000) {
-//        floatingButton.remove()
-//    }
+
+val presentationUtilityProvider = object : PresentationUtilityProvider {
+    override fun getApplication(): Application {
+        return ServiceProvider.getInstance().appContextService.application!!
+    }
+
+    override fun getCurrentActivity(): Activity? {
+        return ServiceProvider.getInstance().appContextService.currentActivity
+    }
+
+    override fun getCachedContent(cacheName: String, key: String): InputStream? {
+        return null
+    }
+
+    override fun openUri(uri: String): Boolean {
+        ServiceProvider.getInstance().uriService.openUri(uri)
+        return true
+    }
 }
 
-private fun showFullScreenMessage() {
-//    uiService.createFullscreenMessage(
-//        "xx",
-//        null,
-//        false,
-//        MessageSettings()
-//    )
-}
 
 @Preview(showBackground = true)
 @Composable

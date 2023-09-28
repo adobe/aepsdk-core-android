@@ -11,13 +11,6 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
-import com.adobe.marketing.mobile.services.ui.AlertSetting;
-import com.adobe.marketing.mobile.services.ui.AndroidUIService;
-import com.adobe.marketing.mobile.services.ui.FloatingButton;
-import com.adobe.marketing.mobile.services.ui.FloatingButtonView;
-import com.adobe.marketing.mobile.services.ui.FullscreenMessage;
-import com.adobe.marketing.mobile.services.ui.NotificationSetting;
-
 import java.util.Map;
 
 public class TestAppUIServices {

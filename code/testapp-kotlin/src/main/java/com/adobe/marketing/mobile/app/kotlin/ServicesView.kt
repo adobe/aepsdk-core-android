@@ -27,9 +27,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.adobe.marketing.mobile.app.kotlin.ui.theme.AepsdkcoreandroidTheme
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ui.AlertSetting
-import com.adobe.marketing.mobile.services.ui.MessageSettings
-import com.adobe.marketing.mobile.services.ui.NotificationSetting
 import java.util.Timer
 import kotlin.concurrent.schedule
 
@@ -93,50 +90,50 @@ fun ServicesView(navController: NavHostController) {
 }
 
 private fun showAlert() {
-    uiService.showAlert(
-        AlertSetting.build(
-            "title",
-            "message",
-            "positive",
-            "negative"
-        ), null
-    )
+//    uiService.showAlert(
+//        AlertSetting.build(
+//            "title",
+//            "message",
+//            "positive",
+//            "negative"
+//        ), null
+//    )
 }
 
 private fun openUrl() {
-    uiService.showUrl("https://adobe.com")
+//    uiService.showUrl("https://adobe.com")
 }
 
 private fun showLocalNotification() {
-    uiService.showLocalNotification(
-        NotificationSetting.build(
-            "id",
-            "Content",
-            System.currentTimeMillis() / 1000,
-            0,
-            "myscheme://link",
-            null,
-            "sound.wav",
-            "title"
-        )
-    )
+//    uiService.showLocalNotification(
+//        NotificationSetting.build(
+//            "id",
+//            "Content",
+//            System.currentTimeMillis() / 1000,
+//            0,
+//            "myscheme://link",
+//            null,
+//            "sound.wav",
+//            "title"
+//        )
+//    )
 }
 
 private fun showFloatingButton() {
-    val floatingButton = uiService.createFloatingButton(null)
-    floatingButton.display()
-    Timer("SettingUp", false).schedule(2000) {
-        floatingButton.remove()
-    }
+//    val floatingButton = uiService.createFloatingButton(null)
+//    floatingButton.display()
+//    Timer("SettingUp", false).schedule(2000) {
+//        floatingButton.remove()
+//    }
 }
 
 private fun showFullScreenMessage() {
-    uiService.createFullscreenMessage(
-        "xx",
-        null,
-        false,
-        MessageSettings()
-    )
+//    uiService.createFullscreenMessage(
+//        "xx",
+//        null,
+//        false,
+//        MessageSettings()
+//    )
 }
 
 @Preview(showBackground = true)

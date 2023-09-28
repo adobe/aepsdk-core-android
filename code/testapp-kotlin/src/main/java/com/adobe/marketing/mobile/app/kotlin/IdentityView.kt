@@ -21,9 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.adobe.marketing.mobile.*
-import com.adobe.marketing.mobile.MobileCore.setAdvertisingIdentifier
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ui.AlertSetting
 import java.lang.StringBuilder
 
 @Composable
@@ -115,12 +113,12 @@ fun IdentityView(navController: NavHostController) {
 }
 
 private fun showCoreVersion() {
-    ServiceProvider.getInstance().uiService.showAlert(
-        AlertSetting.build(
-            "show Identity version",
-            "Identity: ${Identity.extensionVersion()}",
-            "OK",
-            "Cancel"
-        ), null
-    )
+//    ServiceProvider.getInstance().uiService.showAlert(
+//        AlertSetting.build(
+//            "show Identity version",
+//            "Identity: ${Identity.extensionVersion()}",
+//            "OK",
+//            "Cancel"
+//        ), null
+//    )
 }

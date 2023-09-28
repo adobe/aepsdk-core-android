@@ -15,9 +15,10 @@ import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.services.caching.CacheService;
 import com.adobe.marketing.mobile.services.internal.caching.FileCacheService;
 import com.adobe.marketing.mobile.services.internal.context.App;
-import com.adobe.marketing.mobile.services.ui.AndroidUIService;
+import com.adobe.marketing.mobile.services.ui.AEPUIService;
 import com.adobe.marketing.mobile.services.ui.UIService;
-import com.adobe.marketing.mobile.services.ui.URIHandler;
+import com.adobe.marketing.mobile.services.uri.UriOpening;
+import com.adobe.marketing.mobile.services.uri.UriService;
 
 /** Maintains the current set of provided services and any potential service overrides */
 public class ServiceProvider {
@@ -43,22 +44,23 @@ public class ServiceProvider {
     private DataQueuing dataQueueService;
     private DataStoring defaultDataStoreService;
     private UIService defaultUIService;
-    private MessagingDelegate messageDelegate;
     private Logging defaultLoggingService;
     private Logging overrideLoggingService;
     private CacheService defaultCacheService;
     private AppContextService defaultAppContextService;
     private AppContextService overrideAppContextService;
 
+    private UriOpening defaultUriOpeningService;
+
     private ServiceProvider() {
         defaultNetworkService = new NetworkService();
         defaultDeviceInfoService = new DeviceInfoService();
         dataQueueService = new DataQueueService();
         defaultDataStoreService = new LocalDataStoreService();
-        defaultUIService = new AndroidUIService();
-        messageDelegate = null;
+        defaultUIService = new AEPUIService();
         defaultLoggingService = new AndroidLoggingService();
         defaultCacheService = new FileCacheService();
+        defaultUriOpeningService = new UriService();
     }
 
     /**
@@ -167,6 +169,15 @@ public class ServiceProvider {
     }
 
     /**
+     * Gets the {@link UriOpening} service
+     *
+     * @return the {@link UriOpening} service
+     */
+    public UriOpening getUriOpeningService() {
+        return defaultUriOpeningService;
+    }
+
+    /**
      * For testing purpose. Overrides the default {@link AppContextService} service
      *
      * @param appContextService new {@link AppContextService} service
@@ -174,34 +185,6 @@ public class ServiceProvider {
     @VisibleForTesting
     void setAppContextService(final AppContextService appContextService) {
         overrideAppContextService = appContextService;
-    }
-
-    /**
-     * Gets the custom {@link MessagingDelegate}.
-     *
-     * @return the custom {@code MessagingDelegate} if set, null otherwise
-     */
-    public MessagingDelegate getMessageDelegate() {
-        return this.messageDelegate;
-    }
-
-    /**
-     * Sets a custom {@link MessagingDelegate}.
-     *
-     * @param messageDelegate the custom {@link MessagingDelegate} to message visibility updates
-     */
-    public void setMessageDelegate(final MessagingDelegate messageDelegate) {
-        this.messageDelegate = messageDelegate;
-    }
-
-    /**
-     * Provides an {@link URIHandler} to decide the destination of the given URI
-     *
-     * @param uriHandler An {@link URIHandler} instance used to decide the Android link's
-     *     destination
-     */
-    public void setURIHandler(final URIHandler uriHandler) {
-        this.getUIService().setURIHandler(uriHandler);
     }
 
     /**
@@ -214,12 +197,12 @@ public class ServiceProvider {
         dataQueueService = new DataQueueService();
         defaultDataStoreService = new LocalDataStoreService();
         defaultLoggingService = new AndroidLoggingService();
-        defaultUIService = new AndroidUIService();
+        defaultUIService = new AEPUIService();
         defaultCacheService = new FileCacheService();
+        defaultUriOpeningService = new UriService();
 
         overrideDeviceInfoService = null;
         overrideNetworkService = null;
         overrideAppContextService = null;
-        messageDelegate = null;
     }
 }

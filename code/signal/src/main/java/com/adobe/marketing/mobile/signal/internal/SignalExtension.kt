@@ -126,7 +126,7 @@ class SignalExtension : Extension {
             return
         }
         Log.debug(SignalConstants.LOG_TAG, CLASS_NAME, "Opening URL $url.")
-        ServiceProvider.getInstance().uiService.showUrl(url)
+        ServiceProvider.getInstance().uriOpeningService.openUri(url)
     }
 
     @VisibleForTesting

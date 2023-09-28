@@ -33,7 +33,6 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.app.kotlin.ui.theme.AepsdkcoreandroidTheme
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ui.AlertSetting
 
 @Composable
 fun CoreView(navController: NavHostController) {
@@ -162,14 +161,14 @@ fun CoreView(navController: NavHostController) {
 }
 
 private fun showCoreVersion() {
-    ServiceProvider.getInstance().uiService.showAlert(
-        AlertSetting.build(
-            "show core version",
-            "core: ${MobileCore.extensionVersion()}",
-            "OK",
-            "Cancel"
-        ), null
-    )
+//    ServiceProvider.getInstance().uiService.showAlert(
+//        AlertSetting.build(
+//            "show core version",
+//            "core: ${MobileCore.extensionVersion()}",
+//            "OK",
+//            "Cancel"
+//        ), null
+//    )
 }
 
 private fun updateConfiguration() {

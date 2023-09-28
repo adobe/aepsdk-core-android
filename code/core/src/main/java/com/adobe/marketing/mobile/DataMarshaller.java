@@ -17,7 +17,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.services.ui.AndroidUIService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +41,8 @@ class DataMarshaller {
     private static final String ADOBE_QUERY_KEYS_PREVIEW_TOKEN = "at_preview_token";
     private static final String ADOBE_QUERY_KEYS_PREVIEW_URL = "at_preview_endpoint";
     private static final String ADOBE_QUERY_KEYS_DEEPLINK_ID = "a.deeplink.id";
+
+    private static final String NOTIFICATION_IDENTIFIER_KEY = "NOTIFICATION_IDENTIFIER";
 
     /** Constructor. */
     DataMarshaller() {
@@ -134,7 +135,7 @@ class DataMarshaller {
                     newKey = PUSH_MESSAGE_ID_KEY;
                 }
 
-                if (AndroidUIService.NOTIFICATION_IDENTIFIER_KEY.equals(key)) {
+                if (NOTIFICATION_IDENTIFIER_KEY.equals(key)) {
                     newKey = LOCAL_NOTIFICATION_ID_KEY;
                 }
 
@@ -146,7 +147,7 @@ class DataMarshaller {
             }
 
             extraBundle.remove(LEGACY_PUSH_MESSAGE_ID);
-            extraBundle.remove(AndroidUIService.NOTIFICATION_IDENTIFIER_KEY);
+            extraBundle.remove(NOTIFICATION_IDENTIFIER_KEY);
         }
     }
 

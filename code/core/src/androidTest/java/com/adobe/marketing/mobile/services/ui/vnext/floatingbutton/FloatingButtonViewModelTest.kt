@@ -18,6 +18,8 @@ import android.util.Base64
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonSettings
+import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonViewModel
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import org.junit.Test

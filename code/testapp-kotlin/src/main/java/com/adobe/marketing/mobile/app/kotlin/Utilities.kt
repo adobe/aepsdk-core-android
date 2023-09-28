@@ -15,7 +15,6 @@ import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ui.AlertSetting
 import java.lang.RuntimeException
 
 internal fun registerEventListener(
@@ -40,23 +39,23 @@ internal fun registerEventListener(
 }
 
 internal fun showAlert(event: Event) {
-    ServiceProvider.getInstance().uiService.showAlert(
-        AlertSetting.build(
-            "show event",
-            "$event",
-            "OK",
-            "Cancel"
-        ), null
-    )
+//    ServiceProvider.getInstance().uiService.showAlert(
+//        AlertSetting.build(
+//            "show event",
+//            "$event",
+//            "OK",
+//            "Cancel"
+//        ), null
+//    )
 }
 
 internal fun showAlert(message: String) {
-    ServiceProvider.getInstance().uiService.showAlert(
-        AlertSetting.build(
-            "message",
-            message,
-            "OK",
-            "Cancel"
-        ), null
-    )
+//    ServiceProvider.getInstance().uiService.showAlert(
+//        AlertSetting.build(
+//            "message",
+//            message,
+//            "OK",
+//            "Cancel"
+//        ), null
+//    )
 }

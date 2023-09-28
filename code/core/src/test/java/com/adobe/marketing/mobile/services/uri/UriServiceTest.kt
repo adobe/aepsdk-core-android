@@ -17,9 +17,12 @@ import com.adobe.marketing.mobile.services.AppContextService
 import com.adobe.marketing.mobile.services.ServiceProvider
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
+import org.mockito.MockedStatic
+import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
@@ -37,6 +40,8 @@ class UriServiceTest {
     @Mock
     private lateinit var mockServiceProvider: ServiceProvider
 
+    private lateinit var mockedStaticServiceProvider: MockedStatic<ServiceProvider>
+
     @Mock
     private lateinit var mockAppContextService: AppContextService
 
@@ -46,9 +51,11 @@ class UriServiceTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
+        mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
 
         `when`(mockServiceProvider.appContextService).thenReturn(mockAppContextService)
-        uriService = UriService(mockServiceProvider)
+        uriService = UriService()
     }
 
     @Test
@@ -137,5 +144,10 @@ class UriServiceTest {
         // verify
         assertTrue(result)
         verify(mockCurrentActivity).startActivity(any<Intent>())
+    }
+
+    @After
+    fun tearDown() {
+        mockedStaticServiceProvider.close()
     }
 }

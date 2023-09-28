@@ -14,7 +14,6 @@ package com.adobe.marketing.mobile.services.uri
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ServiceProvider
@@ -27,15 +26,7 @@ class UriService : UriOpening {
         private const val LOG_TAG = "UriService"
     }
 
-    private val serviceProvider: ServiceProvider
     private var uriHandler: URIHandler? = null
-
-    constructor() : this(ServiceProvider.getInstance())
-
-    @VisibleForTesting
-    constructor(serviceProvider: ServiceProvider) {
-        this.serviceProvider = serviceProvider
-    }
 
     override fun openUri(uri: String): Boolean {
         if (uri.isNullOrBlank()) {
@@ -43,7 +34,7 @@ class UriService : UriOpening {
             return false
         }
 
-        val currentActivity: Activity = serviceProvider.appContextService.currentActivity
+        val currentActivity: Activity = ServiceProvider.getInstance().appContextService.currentActivity
             ?: kotlin.run {
                 Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Cannot open URI: $uri. No current activity found.")
                 return false

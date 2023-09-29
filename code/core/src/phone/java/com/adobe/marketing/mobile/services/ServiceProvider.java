@@ -49,8 +49,7 @@ public class ServiceProvider {
     private CacheService defaultCacheService;
     private AppContextService defaultAppContextService;
     private AppContextService overrideAppContextService;
-
-    private UriOpening defaultUriOpeningService;
+    private UriOpening defaultUriService;
 
     private ServiceProvider() {
         defaultNetworkService = new NetworkService();
@@ -60,7 +59,7 @@ public class ServiceProvider {
         defaultUIService = new AEPUIService();
         defaultLoggingService = new AndroidLoggingService();
         defaultCacheService = new FileCacheService();
-        defaultUriOpeningService = new UriService();
+        defaultUriService = new UriService();
     }
 
     /**
@@ -173,8 +172,8 @@ public class ServiceProvider {
      *
      * @return the {@link UriOpening} service
      */
-    public UriOpening getUriOpeningService() {
-        return defaultUriOpeningService;
+    public UriOpening getUriService() {
+        return defaultUriService;
     }
 
     /**
@@ -199,7 +198,7 @@ public class ServiceProvider {
         defaultLoggingService = new AndroidLoggingService();
         defaultUIService = new AEPUIService();
         defaultCacheService = new FileCacheService();
-        defaultUriOpeningService = new UriService();
+        defaultUriService = new UriService();
 
         overrideDeviceInfoService = null;
         overrideNetworkService = null;

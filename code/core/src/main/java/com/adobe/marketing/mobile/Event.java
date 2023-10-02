@@ -277,18 +277,6 @@ public final class Event {
     private Event() {}
 
     /**
-     * Copies an {@code Event}.
-     *
-     * @deprecated Use the {#link Builder} to create a new event. The current API returns {@code
-     *     this}.
-     * @return {@code this}
-     */
-    @Deprecated
-    public Event copy() {
-        return this;
-    }
-
-    /**
      * Clones the current {@link Event} with updated data
      *
      * @param newData data associated with the new {@code Event}
@@ -374,12 +362,6 @@ public final class Event {
      */
     public String getParentID() {
         return parentID;
-    }
-
-    /** Pair ID for events dispatched by the receiver(s) in response to this event */
-    @Deprecated
-    void setResponseID(final String responseID) {
-        this.responseID = responseID;
     }
 
     /**

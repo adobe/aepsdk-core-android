@@ -11,8 +11,6 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.signal.internal.SignalConstants;
 import com.adobe.marketing.mobile.signal.internal.SignalExtension;
 
 public class Signal {
@@ -31,27 +29,5 @@ public class Signal {
      */
     public static String extensionVersion() {
         return EXTENSION_VERSION;
-    }
-
-    /**
-     * Registers the extension with the Mobile SDK. This method should be called only once in your
-     * application class.
-     *
-     * @deprecated as of 2.0.0, use {@link MobileCore#registerExtensions(List, AdobeCallback)} with
-     *     {@link Signal#EXTENSION} instead.
-     */
-    @Deprecated
-    public static void registerExtension() {
-        MobileCore.registerExtension(
-                SignalExtension.class,
-                extensionError -> {
-                    Log.error(
-                            SignalConstants.LOG_TAG,
-                            CLASS_NAME,
-                            "%s - There was an error when registering the UserProfile extension:"
-                                    + " %s",
-                            CLASS_NAME,
-                            extensionError.getErrorName());
-                });
     }
 }

@@ -45,29 +45,6 @@ public class Identity {
     }
 
     /**
-     * Registers the extension with the Mobile SDK. This method should be called only once in your
-     * application class.
-     *
-     * @deprecated as of 2.0.0, use {@link MobileCore#registerExtensions(List, AdobeCallback)} with
-     *     {@link Identity#EXTENSION} instead.
-     */
-    @Deprecated
-    public static void registerExtension() {
-        MobileCore.registerExtension(
-                IdentityExtension.class,
-                errorCode -> {
-                    if (errorCode == null) {
-                        return;
-                    }
-                    Log.error(
-                            LOG_TAG,
-                            CLASS_NAME,
-                            "There was an error when registering the UserProfile extension: %s",
-                            errorCode.getErrorName());
-                });
-    }
-
-    /**
      * Updates the given customer IDs with the Adobe Experience Cloud ID Service.
      *
      * <p>Synchronizes the provided customer identifiers to the Adobe Experience Cloud ID Service.

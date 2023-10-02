@@ -18,7 +18,6 @@ public class com/adobe/marketing/mobile/AdobeError : java/io/Serializable {
 
 public final class com/adobe/marketing/mobile/Event {
 	public fun cloneWithEventData (Ljava/util/Map;)Lcom/adobe/marketing/mobile/Event;
-	public fun copy ()Lcom/adobe/marketing/mobile/Event;
 	public fun getEventData ()Ljava/util/Map;
 	public fun getMask ()[Ljava/lang/String;
 	public fun getName ()Ljava/lang/String;
@@ -122,48 +121,24 @@ public abstract class com/adobe/marketing/mobile/Extension {
 	protected abstract fun getName ()Ljava/lang/String;
 	protected fun getVersion ()Ljava/lang/String;
 	protected fun onRegistered ()V
-	protected fun onUnexpectedError (Lcom/adobe/marketing/mobile/ExtensionUnexpectedError;)V
 	protected fun onUnregistered ()V
 	public fun readyForEvent (Lcom/adobe/marketing/mobile/Event;)Z
 }
 
 public abstract class com/adobe/marketing/mobile/ExtensionApi {
 	public fun <init> ()V
-	public abstract fun clearSharedEventStates (Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
-	public abstract fun clearXDMSharedEventStates (Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public abstract fun createPendingSharedState (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/SharedStateResolver;
 	public abstract fun createPendingXDMSharedState (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/SharedStateResolver;
 	public abstract fun createSharedState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;)V
 	public abstract fun createXDMSharedState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;)V
 	public abstract fun dispatch (Lcom/adobe/marketing/mobile/Event;)V
 	public abstract fun getHistoricalEvents ([Lcom/adobe/marketing/mobile/EventHistoryRequest;ZLcom/adobe/marketing/mobile/EventHistoryResultHandler;)V
-	public abstract fun getSharedEventState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Ljava/util/Map;
 	public abstract fun getSharedState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;ZLcom/adobe/marketing/mobile/SharedStateResolution;)Lcom/adobe/marketing/mobile/SharedStateResult;
-	public abstract fun getXDMSharedEventState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Ljava/util/Map;
 	public abstract fun getXDMSharedState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;ZLcom/adobe/marketing/mobile/SharedStateResolution;)Lcom/adobe/marketing/mobile/SharedStateResult;
 	public abstract fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionEventListener;)V
-	public abstract fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
-	public abstract fun registerWildcardListener (Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
-	public abstract fun setSharedEventState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
-	public abstract fun setXDMSharedEventState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public abstract fun startEvents ()V
 	public abstract fun stopEvents ()V
 	public abstract fun unregisterExtension ()V
-}
-
-public class com/adobe/marketing/mobile/ExtensionError : com/adobe/marketing/mobile/AdobeError {
-	public static final field BAD_NAME Lcom/adobe/marketing/mobile/ExtensionError;
-	public static final field CALLBACK_NULL Lcom/adobe/marketing/mobile/ExtensionError;
-	public static final field DUPLICATE_NAME Lcom/adobe/marketing/mobile/ExtensionError;
-	public static final field EVENT_DATA_NOT_SUPPORTED Lcom/adobe/marketing/mobile/ExtensionError;
-	public static final field EVENT_SOURCE_NOT_SUPPORTED Lcom/adobe/marketing/mobile/ExtensionError;
-	public static final field EVENT_TYPE_NOT_SUPPORTED Lcom/adobe/marketing/mobile/ExtensionError;
-	public static final field LISTENER_TIMEOUT Lcom/adobe/marketing/mobile/ExtensionError;
-	public static final field UNEXPECTED_ERROR Lcom/adobe/marketing/mobile/ExtensionError;
-}
-
-public abstract interface class com/adobe/marketing/mobile/ExtensionErrorCallback {
-	public abstract fun error (Ljava/lang/Object;)V
 }
 
 public abstract interface class com/adobe/marketing/mobile/ExtensionEventListener {
@@ -175,25 +150,8 @@ public class com/adobe/marketing/mobile/ExtensionHelper {
 	public static fun getMetadata (Lcom/adobe/marketing/mobile/Extension;)Ljava/util/Map;
 	public static fun getName (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;
 	public static fun getVersion (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;
-	public static fun notifyError (Lcom/adobe/marketing/mobile/Extension;Lcom/adobe/marketing/mobile/ExtensionUnexpectedError;)V
 	public static fun notifyRegistered (Lcom/adobe/marketing/mobile/Extension;)V
 	public static fun notifyUnregistered (Lcom/adobe/marketing/mobile/Extension;)V
-}
-
-public abstract class com/adobe/marketing/mobile/ExtensionListener {
-	protected fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;Ljava/lang/String;Ljava/lang/String;)V
-	protected fun getParentExtension ()Lcom/adobe/marketing/mobile/Extension;
-	public abstract fun hear (Lcom/adobe/marketing/mobile/Event;)V
-	public fun onUnregistered ()V
-}
-
-public class com/adobe/marketing/mobile/ExtensionUnexpectedError : java/lang/Exception {
-	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionError;)V
-	public fun getErrorCode ()Lcom/adobe/marketing/mobile/ExtensionError;
-}
-
-public class com/adobe/marketing/mobile/InvalidInitException : java/lang/RuntimeException {
-	public fun <init> ()V
 }
 
 public class com/adobe/marketing/mobile/LocalNotificationHandler : android/content/BroadcastReceiver {
@@ -219,11 +177,7 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun configureWithFileInAssets (Ljava/lang/String;)V
 	public static fun configureWithFileInPath (Ljava/lang/String;)V
 	public static fun dispatchEvent (Lcom/adobe/marketing/mobile/Event;)V
-	public static fun dispatchEvent (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public static fun dispatchEventWithResponseCallback (Lcom/adobe/marketing/mobile/Event;JLcom/adobe/marketing/mobile/AdobeCallbackWithError;)V
-	public static fun dispatchEventWithResponseCallback (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/AdobeCallback;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
-	public static fun dispatchEventWithResponseCallback (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/AdobeCallbackWithError;)V
-	public static fun dispatchResponseEvent (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public static fun extensionVersion ()Ljava/lang/String;
 	public static fun getApplication ()Landroid/app/Application;
 	public static fun getLogLevel ()Lcom/adobe/marketing/mobile/LoggingMode;
@@ -232,9 +186,7 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun getSdkIdentities (Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun lifecyclePause ()V
 	public static fun lifecycleStart (Ljava/util/Map;)V
-	public static fun log (Lcom/adobe/marketing/mobile/LoggingMode;Ljava/lang/String;Ljava/lang/String;)V
 	public static fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
-	public static fun registerExtension (Ljava/lang/Class;Lcom/adobe/marketing/mobile/ExtensionErrorCallback;)Z
 	public static fun registerExtensions (Ljava/util/List;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun resetIdentities ()V
 	public static fun setAdvertisingIdentifier (Ljava/lang/String;)V
@@ -246,7 +198,6 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun setPushIdentifier (Ljava/lang/String;)V
 	public static fun setSmallIconResourceID (I)V
 	public static fun setWrapperType (Lcom/adobe/marketing/mobile/WrapperType;)V
-	public static fun start (Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun trackAction (Ljava/lang/String;Ljava/util/Map;)V
 	public static fun trackState (Ljava/lang/String;Ljava/util/Map;)V
 	public static fun updateConfiguration (Ljava/util/Map;)V
@@ -342,11 +293,9 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/LaunchRule : co
 }
 
 public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
-	public fun <init> (Lcom/adobe/marketing/mobile/ExtensionApi;)V
 	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionApi;)V
 	public fun addRules (Ljava/util/List;)V
 	public fun evaluateEvent (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
-	public fun process (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
 	public fun processEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event;
 	public fun replaceRules (Ljava/util/List;)V
 }

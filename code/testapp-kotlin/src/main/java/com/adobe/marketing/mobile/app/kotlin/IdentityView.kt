@@ -10,6 +10,7 @@
  */
 package com.adobe.marketing.mobile.app.kotlin
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -113,12 +114,10 @@ fun IdentityView(navController: NavHostController) {
 }
 
 private fun showCoreVersion() {
-//    ServiceProvider.getInstance().uiService.showAlert(
-//        AlertSetting.build(
-//            "show Identity version",
-//            "Identity: ${Identity.extensionVersion()}",
-//            "OK",
-//            "Cancel"
-//        ), null
-//    )
+    Toast.makeText(
+        ServiceProvider.getInstance().appContextService.applicationContext,
+        "Core version: ${MobileCore.extensionVersion()}",
+        Toast.LENGTH_SHORT
+    )
+        .show()
 }

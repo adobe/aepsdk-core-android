@@ -73,26 +73,6 @@ internal fun FloatingButtonDemo() {
 }
 
 
-val presentationUtilityProvider = object : PresentationUtilityProvider {
-    override fun getApplication(): Application {
-        return ServiceProvider.getInstance().appContextService.application!!
-    }
-
-    override fun getCurrentActivity(): Activity? {
-        return ServiceProvider.getInstance().appContextService.currentActivity
-    }
-
-    override fun getCachedContent(cacheName: String, key: String): InputStream? {
-        return null
-    }
-
-    override fun openUri(uri: String): Boolean {
-        ServiceProvider.getInstance().uriService.openUri(uri)
-        return true
-    }
-}
-
-
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreviewForServicesView() {

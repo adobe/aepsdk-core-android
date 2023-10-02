@@ -14,7 +14,7 @@ apiValidation {
         "com.adobe.marketing.mobile.services.internal",
         "com.adobe.marketing.mobile.services.ui.internal",
         // TODO: Remove this once we finalize the UI VNext APIs
-        "com.adobe.marketing.mobile.services.ui.vnext",
+        "com.adobe.marketing.mobile.services.ui",
         // TODO: Remove this once we finalize the URI APIs
         "com.adobe.marketing.mobile.services.uri"
     ]

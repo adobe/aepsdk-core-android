@@ -62,30 +62,21 @@ object InAppMessageCreator {
         )
 
     private val iamEventListener = object : InAppMessageEventListener {
-        override fun onBackPressed(message: Presentable<InAppMessage>) {
-            Log.debug("UIServicesView", "InAppMessage", "onBackPressed")
-        }
-
+        override fun onBackPressed(message: Presentable<InAppMessage>) {}
         override fun onUrlLoading(message: Presentable<InAppMessage>, url: String): Boolean {
-            Log.debug("UIServicesView", "InAppMessage", "onUrlLoading")
             return false
         }
 
         override fun onShow(presentable: Presentable<InAppMessage>) {
-            Log.debug("UIServicesView", "InAppMessage", "onShow")
             val message = presentable.getPresentation()
             message.eventHandler.handleJavascriptMessage("Android") {
-                Log.debug("UIServicesView", "InAppMessage", "Message from InAppMessage: $it")
+                Log.debug("UIServicesView", LOG_TAG, "Message from InAppMessage: $it")
             }
         }
 
         override fun onHide(presentable: Presentable<InAppMessage>) {}
-
-        override fun onDismiss(presentable: Presentable<InAppMessage>) {
-        }
-
-        override fun onError(presentable: Presentable<InAppMessage>, error: PresentationError) {
-        }
+        override fun onDismiss(presentable: Presentable<InAppMessage>) {}
+        override fun onError(presentable: Presentable<InAppMessage>, error: PresentationError) {}
     }
 
     fun create(): Presentable<InAppMessage> = ServiceProvider.getInstance().uiService.create(

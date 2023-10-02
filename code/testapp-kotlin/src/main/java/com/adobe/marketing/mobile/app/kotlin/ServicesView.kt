@@ -10,8 +10,6 @@
  */
 package com.adobe.marketing.mobile.app.kotlin
 
-import android.app.Activity
-import android.app.Application
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -32,9 +30,6 @@ import com.adobe.marketing.mobile.app.kotlin.uiservices.floatingbutton.FloatingB
 import com.adobe.marketing.mobile.app.kotlin.uiservices.floatingbutton.FloatingButtonCreator
 import com.adobe.marketing.mobile.app.kotlin.uiservices.inappmessage.InAppMessageCard
 import com.adobe.marketing.mobile.app.kotlin.uiservices.inappmessage.InAppMessageCreator
-import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
-import java.io.InputStream
 
 @Composable
 fun ServicesView(navController: NavHostController) {

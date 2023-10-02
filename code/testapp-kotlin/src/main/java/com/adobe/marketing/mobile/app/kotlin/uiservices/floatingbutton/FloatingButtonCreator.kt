@@ -24,29 +24,12 @@ class FloatingButtonCreator(context: Context) {
         .build()
 
     private val floatingButtonEventListener = object : FloatingButtonEventListener {
-        override fun onTapDetected(presentable: Presentable<FloatingButton>) {
-
-        }
-
-        override fun onPanDetected(presentable: Presentable<FloatingButton>) {
-
-        }
-
-        override fun onShow(presentable: Presentable<FloatingButton>) {
-
-        }
-
-        override fun onHide(presentable: Presentable<FloatingButton>) {
-
-        }
-
-        override fun onDismiss(presentable: Presentable<FloatingButton>) {
-
-        }
-
-        override fun onError(presentable: Presentable<FloatingButton>, error: PresentationError) {
-
-        }
+        override fun onTapDetected(presentable: Presentable<FloatingButton>) {}
+        override fun onPanDetected(presentable: Presentable<FloatingButton>) {}
+        override fun onShow(presentable: Presentable<FloatingButton>) {}
+        override fun onHide(presentable: Presentable<FloatingButton>) {}
+        override fun onDismiss(presentable: Presentable<FloatingButton>) {}
+        override fun onError(presentable: Presentable<FloatingButton>, error: PresentationError) {}
     }
 
     fun create(): Presentable<FloatingButton> = ServiceProvider.getInstance().uiService.create(

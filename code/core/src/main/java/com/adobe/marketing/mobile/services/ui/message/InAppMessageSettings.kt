@@ -67,7 +67,7 @@ class InAppMessageSettings private constructor(
         SWIPE_RIGHT("swipeRight"),
         BACKGROUND_TAP("backgroundTap");
 
-        companion object {
+        internal companion object {
             private val gestureToEnumMap: Map<String, MessageGesture> =
                 values().associateBy { it.gestureName }
 

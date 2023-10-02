@@ -31,7 +31,7 @@ import java.net.URL
  * @param onUrlLoading a callback invoked when a url is intercepted by the webview. The callback returns true if the
  * url was handled by the SDK or false if the url will not be handled.
  */
-class InAppMessageWebViewClient(
+internal class InAppMessageWebViewClient(
     private val messageSettings: InAppMessageSettings,
     private val presentationUtilityProvider: PresentationUtilityProvider,
     private val onUrlLoading: (String) -> Boolean

@@ -22,7 +22,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
  * Represents a component capable of opening URIs.
  */
 class UriService : UriOpening {
-    companion object {
+    internal companion object {
         private const val LOG_TAG = "UriService"
     }
 

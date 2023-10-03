@@ -16,7 +16,7 @@ import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonSetti
 class FloatingButtonCreator(context: Context) {
 
     private val drawable: Drawable =
-        ContextCompat.getDrawable(context, R.drawable.ic_launcher_foreground)!!
+        ContextCompat.getDrawable(context, R.drawable.ic_floating_button)!!
 
     private val floatingButtonSettings = FloatingButtonSettings.Builder()
         .initialGraphic(drawable.toBitmap())

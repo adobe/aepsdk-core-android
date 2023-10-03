@@ -18,7 +18,6 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -30,6 +29,12 @@ import com.adobe.marketing.mobile.app.kotlin.uiservices.floatingbutton.FloatingB
 import com.adobe.marketing.mobile.app.kotlin.uiservices.floatingbutton.FloatingButtonCreator
 import com.adobe.marketing.mobile.app.kotlin.uiservices.inappmessage.InAppMessageCard
 import com.adobe.marketing.mobile.app.kotlin.uiservices.inappmessage.InAppMessageCreator
+import com.adobe.marketing.mobile.services.ServiceProvider
+
+val inAppMessage = InAppMessageCreator.create()
+val alert = AlertCreator.create()
+val floatingButton =
+    FloatingButtonCreator(ServiceProvider.getInstance().appContextService.applicationContext!!).create()
 
 @Composable
 fun ServicesView(navController: NavHostController) {
@@ -41,32 +46,11 @@ fun ServicesView(navController: NavHostController) {
         }
         Spacer(modifier = Modifier.size(10.dp))
 
-        InAppMessageDemo()
-        AlertDemo()
-        FloatingButtonDemo()
+        InAppMessageCard(iamPresentable = inAppMessage)
+        AlertCard(alertPresentable = alert)
+        FloatingButtonCard(floatingButtonPresentable = floatingButton)
     }
 }
-
-@Composable
-internal fun InAppMessageDemo() {
-    val inAppMessage = InAppMessageCreator.create()
-    InAppMessageCard(iamPresentable = inAppMessage)
-}
-
-
-@Composable
-internal fun AlertDemo() {
-    val alert = AlertCreator.create()
-    AlertCard(alertPresentable = alert)
-}
-
-@Composable
-internal fun FloatingButtonDemo() {
-    val context = LocalContext.current
-    val floatingButton = FloatingButtonCreator(context).create()
-    FloatingButtonCard(floatingButtonPresentable = floatingButton)
-}
-
 
 @Preview(showBackground = true)
 @Composable

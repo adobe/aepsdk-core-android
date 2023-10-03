@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.vnext.alert.views
+package com.adobe.marketing.mobile.services.ui.alert.views
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextContains

@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.vnext.message.views
+package com.adobe.marketing.mobile.services.ui.message.views
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.assertIsDisplayed
@@ -22,8 +22,6 @@ import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
-import com.adobe.marketing.mobile.services.ui.message.views.MessageScreen
-import com.adobe.marketing.mobile.services.ui.message.views.MessageTestTags
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

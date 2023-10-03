@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.vnext.floatingbutton.views
+package com.adobe.marketing.mobile.services.ui.floatingbutton.views
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.services.ui.message
 
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
+import androidx.annotation.MainThread
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.services.Log
@@ -115,23 +116,22 @@ internal class DefaultInAppMessageEventHandler internal constructor(
      * This will re-add all the javascript interfaces to the new web view.
      * @param webView the new web view associated with the in-app message
      */
+    @MainThread
     internal fun onNewWebView(webView: WebView?) {
         Log.debug(ServiceConstants.LOG_TAG, LOG_SOURCE, "Internal web view was reset.")
         mainScope.coroutineContext.cancelChildren()
 
-        mainScope.launch {
-            webView?.let {
-                this@DefaultInAppMessageEventHandler.webView = WeakReference(it)
+        webView?.let {
+            this@DefaultInAppMessageEventHandler.webView = WeakReference(it)
 
-                // re-add all the javascript interfaces
-                scriptHandlers.forEach { (handlerName, javascriptInterface) ->
-                    Log.debug(
-                        ServiceConstants.LOG_TAG,
-                        LOG_SOURCE,
-                        "Re Adding javascript interface for handler: $handlerName"
-                    )
-                    it.addJavascriptInterface(javascriptInterface, handlerName)
-                }
+            // re-add all the javascript interfaces
+            scriptHandlers.forEach { (handlerName, javascriptInterface) ->
+                Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Re-adding javascript interface for handler: $handlerName"
+                )
+                it.addJavascriptInterface(javascriptInterface, handlerName)
             }
         }
     }

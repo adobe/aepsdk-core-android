@@ -190,6 +190,7 @@ public class ServiceProvider {
      * Reset the {@code ServiceProvider} to its default state. Any previously set services are reset
      * to their default state.
      */
+    @VisibleForTesting
     void resetServices() {
         defaultDeviceInfoService = new DeviceInfoService();
         defaultNetworkService = new NetworkService();

@@ -19,8 +19,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import com.adobe.marketing.mobile.services.ui.alert.AlertSettings
-import com.adobe.marketing.mobile.services.ui.alert.views.AlertScreen
-import com.adobe.marketing.mobile.services.ui.alert.views.AlertTestTags
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
 import junit.framework.TestCase.assertTrue
 import org.junit.After

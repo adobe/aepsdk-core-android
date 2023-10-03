@@ -27,8 +27,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
 import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonSettings
 import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonViewModel
-import com.adobe.marketing.mobile.services.ui.floatingbutton.views.FloatingButtonScreen
-import com.adobe.marketing.mobile.services.ui.floatingbutton.views.FloatingButtonTestTags
 import junit.framework.TestCase.assertTrue
 import org.junit.After
 import org.junit.Rule

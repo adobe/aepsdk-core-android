@@ -807,13 +807,6 @@ public abstract interface class com/adobe/marketing/mobile/services/caching/Cach
 	public abstract fun set (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/services/caching/CacheEntry;)Z
 }
 
-public final class com/adobe/marketing/mobile/services/ui/AEPUIService : com/adobe/marketing/mobile/services/ui/UIService {
-	public static final field $stable I
-	public fun <init> ()V
-	public fun create (Lcom/adobe/marketing/mobile/services/ui/Presentation;Lcom/adobe/marketing/mobile/services/ui/PresentationUtilityProvider;)Lcom/adobe/marketing/mobile/services/ui/Presentable;
-	public fun setPresentationDelegate (Lcom/adobe/marketing/mobile/services/ui/PresentationDelegate;)V
-}
-
 public final class com/adobe/marketing/mobile/services/ui/Alert : com/adobe/marketing/mobile/services/ui/Presentation {
 	public static final field $stable I
 	public fun <init> (Lcom/adobe/marketing/mobile/services/ui/alert/AlertSettings;Lcom/adobe/marketing/mobile/services/ui/alert/AlertEventListener;)V
@@ -1101,13 +1094,6 @@ public abstract interface class com/adobe/marketing/mobile/services/uri/URIHandl
 public abstract interface class com/adobe/marketing/mobile/services/uri/UriOpening {
 	public abstract fun openUri (Ljava/lang/String;)Z
 	public abstract fun setUriHandler (Lcom/adobe/marketing/mobile/services/uri/URIHandler;)V
-}
-
-public final class com/adobe/marketing/mobile/services/uri/UriService : com/adobe/marketing/mobile/services/uri/UriOpening {
-	public static final field $stable I
-	public fun <init> ()V
-	public fun openUri (Ljava/lang/String;)Z
-	public fun setUriHandler (Lcom/adobe/marketing/mobile/services/uri/URIHandler;)V
 }
 
 public class com/adobe/marketing/mobile/util/CloneFailedException : java/lang/Exception {

@@ -22,7 +22,7 @@ import kotlinx.coroutines.Dispatchers
 /**
  * UI Service implementation for AEP SDK
  */
-class AEPUIService : UIService {
+internal class AEPUIService : UIService {
     private var presentationDelegate: PresentationDelegate? = null
 
     @Suppress("UNCHECKED_CAST")

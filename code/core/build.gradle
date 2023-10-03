@@ -12,11 +12,7 @@ apiValidation {
     ignoredPackages += [
         "com.adobe.marketing.mobile.internal",
         "com.adobe.marketing.mobile.services.internal",
-        "com.adobe.marketing.mobile.services.ui.internal",
-        // TODO: Remove this once we finalize the UI VNext APIs
-        "com.adobe.marketing.mobile.services.ui.vnext",
-        // TODO: Remove this once we finalize the URI APIs
-        "com.adobe.marketing.mobile.services.uri"
+        "com.adobe.marketing.mobile.services.ui.internal"
     ]
 
     ignoredClasses += [
@@ -117,8 +113,6 @@ dokkaJavadoc.configure {
 dependencies {
     //noinspection GradleDependency,GradleCompatible
     implementation 'androidx.appcompat:appcompat:1.0.0'
-    // androidx card view for customizable rounded corners
-    implementation "androidx.cardview:cardview:1.0.0"
     //noinspection GradleDependency
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 

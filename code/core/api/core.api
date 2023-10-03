@@ -227,7 +227,6 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun extensionVersion ()Ljava/lang/String;
 	public static fun getApplication ()Landroid/app/Application;
 	public static fun getLogLevel ()Lcom/adobe/marketing/mobile/LoggingMode;
-	public static fun getMessagingDelegate ()Lcom/adobe/marketing/mobile/services/MessagingDelegate;
 	public static fun getPrivacyStatus (Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun getSdkIdentities (Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun lifecyclePause ()V
@@ -241,7 +240,6 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun setApplication (Landroid/app/Application;)V
 	public static fun setLargeIconResourceID (I)V
 	public static fun setLogLevel (Lcom/adobe/marketing/mobile/LoggingMode;)V
-	public static fun setMessagingDelegate (Lcom/adobe/marketing/mobile/services/MessagingDelegate;)V
 	public static fun setPrivacyStatus (Lcom/adobe/marketing/mobile/MobilePrivacyStatus;)V
 	public static fun setPushIdentifier (Ljava/lang/String;)V
 	public static fun setSmallIconResourceID (I)V
@@ -699,13 +697,6 @@ public abstract interface class com/adobe/marketing/mobile/services/Logging {
 	public abstract fun warning (Ljava/lang/String;Ljava/lang/String;)V
 }
 
-public abstract interface class com/adobe/marketing/mobile/services/MessagingDelegate {
-	public fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
-	public fun onShow (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
-	public abstract fun shouldShowMessage (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)Z
-	public fun urlLoaded (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
-}
-
 public abstract interface class com/adobe/marketing/mobile/services/NamedCollection {
 	public abstract fun contains (Ljava/lang/String;)Z
 	public abstract fun getBoolean (Ljava/lang/String;Z)Z
@@ -782,13 +773,11 @@ public class com/adobe/marketing/mobile/services/ServiceProvider {
 	public fun getDeviceInfoService ()Lcom/adobe/marketing/mobile/services/DeviceInforming;
 	public static fun getInstance ()Lcom/adobe/marketing/mobile/services/ServiceProvider;
 	public fun getLoggingService ()Lcom/adobe/marketing/mobile/services/Logging;
-	public fun getMessageDelegate ()Lcom/adobe/marketing/mobile/services/MessagingDelegate;
 	public fun getNetworkService ()Lcom/adobe/marketing/mobile/services/Networking;
 	public fun getUIService ()Lcom/adobe/marketing/mobile/services/ui/UIService;
+	public fun getUriService ()Lcom/adobe/marketing/mobile/services/uri/UriOpening;
 	public fun setLoggingService (Lcom/adobe/marketing/mobile/services/Logging;)V
-	public fun setMessageDelegate (Lcom/adobe/marketing/mobile/services/MessagingDelegate;)V
 	public fun setNetworkService (Lcom/adobe/marketing/mobile/services/Networking;)V
-	public fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
 }
 
 public class com/adobe/marketing/mobile/services/caching/CacheEntry {
@@ -818,201 +807,293 @@ public abstract interface class com/adobe/marketing/mobile/services/caching/Cach
 	public abstract fun set (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/services/caching/CacheEntry;)Z
 }
 
-public abstract interface class com/adobe/marketing/mobile/services/ui/AlertListener {
-	public abstract fun onDismiss ()V
-	public abstract fun onError (Lcom/adobe/marketing/mobile/services/ui/UIError;)V
-	public abstract fun onNegativeResponse ()V
-	public abstract fun onPositiveResponse ()V
-	public abstract fun onShow ()V
+public final class com/adobe/marketing/mobile/services/ui/Alert : com/adobe/marketing/mobile/services/ui/Presentation {
+	public static final field $stable I
+	public fun <init> (Lcom/adobe/marketing/mobile/services/ui/alert/AlertSettings;Lcom/adobe/marketing/mobile/services/ui/alert/AlertEventListener;)V
+	public final fun getEventListener ()Lcom/adobe/marketing/mobile/services/ui/alert/AlertEventListener;
+	public final fun getSettings ()Lcom/adobe/marketing/mobile/services/ui/alert/AlertSettings;
 }
 
-public class com/adobe/marketing/mobile/services/ui/AlertSetting {
-	public static fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/AlertSetting;
-	public fun getMessage ()Ljava/lang/String;
-	public fun getNegativeButtonText ()Ljava/lang/String;
-	public fun getPositiveButtonText ()Ljava/lang/String;
-	public fun getTitle ()Ljava/lang/String;
+public final class com/adobe/marketing/mobile/services/ui/AlreadyDismissed : com/adobe/marketing/mobile/services/ui/DismissFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/AlreadyDismissed;
 }
 
-public class com/adobe/marketing/mobile/services/ui/AndroidUIService : com/adobe/marketing/mobile/services/ui/UIService {
-	public static final field NOTIFICATION_CONTENT_KEY Ljava/lang/String;
-	public static final field NOTIFICATION_DEEPLINK_KEY Ljava/lang/String;
-	public static final field NOTIFICATION_IDENTIFIER_KEY Ljava/lang/String;
-	public static final field NOTIFICATION_REQUEST_CODE_KEY Ljava/lang/String;
-	public static final field NOTIFICATION_SENDER_CODE I
-	public static final field NOTIFICATION_SENDER_CODE_KEY Ljava/lang/String;
-	public static final field NOTIFICATION_SOUND_KEY Ljava/lang/String;
-	public static final field NOTIFICATION_TITLE Ljava/lang/String;
-	public static final field NOTIFICATION_USER_INFO_KEY Ljava/lang/String;
-	public fun <init> ()V
-	public fun createFloatingButton (Lcom/adobe/marketing/mobile/services/ui/FloatingButtonListener;)Lcom/adobe/marketing/mobile/services/ui/FloatingButton;
-	public fun createFullscreenMessage (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;ZLcom/adobe/marketing/mobile/services/ui/MessageSettings;)Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;
-	public fun getIntentWithURI (Ljava/lang/String;)Landroid/content/Intent;
-	public fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
-	public fun showAlert (Lcom/adobe/marketing/mobile/services/ui/AlertSetting;Lcom/adobe/marketing/mobile/services/ui/AlertListener;)V
-	public fun showLocalNotification (Lcom/adobe/marketing/mobile/services/ui/NotificationSetting;)V
-	public fun showUrl (Ljava/lang/String;)Z
+public final class com/adobe/marketing/mobile/services/ui/AlreadyHidden : com/adobe/marketing/mobile/services/ui/HideFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/AlreadyHidden;
 }
 
-public abstract interface class com/adobe/marketing/mobile/services/ui/FloatingButton {
-	public abstract fun display ()V
-	public abstract fun remove ()V
+public final class com/adobe/marketing/mobile/services/ui/AlreadyShown : com/adobe/marketing/mobile/services/ui/ShowFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/AlreadyShown;
 }
 
-public abstract interface class com/adobe/marketing/mobile/services/ui/FloatingButtonListener {
-	public abstract fun onPanDetected ()V
-	public abstract fun onTapDetected ()V
+public final class com/adobe/marketing/mobile/services/ui/ConflictingPresentation : com/adobe/marketing/mobile/services/ui/ShowFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/ConflictingPresentation;
 }
 
-public class com/adobe/marketing/mobile/services/ui/FloatingButtonView : android/widget/Button, android/view/View$OnTouchListener {
-	public fun <init> (Landroid/content/Context;)V
-	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;)V
-	public fun <init> (Landroid/content/Context;Landroid/util/AttributeSet;I)V
-	public fun onTouch (Landroid/view/View;Landroid/view/MotionEvent;)Z
+public final class com/adobe/marketing/mobile/services/ui/DelegateGateNotMet : com/adobe/marketing/mobile/services/ui/ShowFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/DelegateGateNotMet;
 }
 
-public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessage {
+public abstract class com/adobe/marketing/mobile/services/ui/DismissFailed : com/adobe/marketing/mobile/services/ui/PresentationError {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getReason ()Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/FloatingButton : com/adobe/marketing/mobile/services/ui/Presentation {
+	public static final field $stable I
+	public fun <init> (Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonSettings;Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonEventListener;)V
+	public final fun getEventHandler ()Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonEventHandler;
+	public final fun getEventListener ()Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonEventListener;
+	public final fun getSettings ()Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonSettings;
+}
+
+public abstract class com/adobe/marketing/mobile/services/ui/HideFailed : com/adobe/marketing/mobile/services/ui/PresentationError {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getReason ()Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/InAppMessage : com/adobe/marketing/mobile/services/ui/Presentation {
+	public static final field $stable I
+	public fun <init> (Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageEventListener;)V
+	public final fun getEventHandler ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageEventHandler;
+	public final fun getEventListener ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageEventListener;
+	public final fun getSettings ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/NoActivityToDetachFrom : com/adobe/marketing/mobile/services/ui/DismissFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/NoActivityToDetachFrom;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/NoAttachableActivity : com/adobe/marketing/mobile/services/ui/ShowFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/NoAttachableActivity;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/Presentable {
 	public abstract fun dismiss ()V
-	public abstract fun getMessageSettings ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings;
-	public abstract fun getParent ()Ljava/lang/Object;
-	public abstract fun getWebView ()Landroid/webkit/WebView;
-	public abstract fun openUrl (Ljava/lang/String;)V
-	public abstract fun setLocalAssetsMap (Ljava/util/Map;)V
-	public abstract fun setMessageSetting (Lcom/adobe/marketing/mobile/services/ui/MessageSettings;)V
+	public abstract fun getPresentation ()Lcom/adobe/marketing/mobile/services/ui/Presentation;
+	public abstract fun getState ()Lcom/adobe/marketing/mobile/services/ui/Presentable$State;
+	public abstract fun hide ()V
 	public abstract fun show ()V
-	public abstract fun show (Z)V
 }
 
-public abstract interface class com/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate {
-	public fun onBackPressed (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
-	public abstract fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
-	public abstract fun onShow (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;)V
-	public abstract fun onShowFailure ()V
-	public abstract fun overrideUrlLoad (Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;Ljava/lang/String;)Z
+public final class com/adobe/marketing/mobile/services/ui/Presentable$State : java/lang/Enum {
+	public static final field DETACHED Lcom/adobe/marketing/mobile/services/ui/Presentable$State;
+	public static final field HIDDEN Lcom/adobe/marketing/mobile/services/ui/Presentable$State;
+	public static final field VISIBLE Lcom/adobe/marketing/mobile/services/ui/Presentable$State;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/Presentable$State;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/Presentable$State;
 }
 
-public class com/adobe/marketing/mobile/services/ui/MessageCreationException : java/lang/Exception {
+public abstract class com/adobe/marketing/mobile/services/ui/Presentation {
+	public static final field $stable I
+	public synthetic fun <init> (Lcom/adobe/marketing/mobile/services/ui/PresentationEventListener;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getId ()Ljava/lang/String;
+	public final fun getListener ()Lcom/adobe/marketing/mobile/services/ui/PresentationEventListener;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/PresentationDelegate : com/adobe/marketing/mobile/services/ui/PresentationLever, com/adobe/marketing/mobile/services/ui/PresentationListener {
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/PresentationError {
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/PresentationEventListener {
+	public abstract fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+	public abstract fun onError (Lcom/adobe/marketing/mobile/services/ui/Presentable;Lcom/adobe/marketing/mobile/services/ui/PresentationError;)V
+	public abstract fun onHide (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+	public abstract fun onShow (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/PresentationLever {
+	public abstract fun canShow (Lcom/adobe/marketing/mobile/services/ui/Presentable;)Z
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/PresentationListener {
+	public abstract fun onContentLoaded (Lcom/adobe/marketing/mobile/services/ui/Presentable;Lcom/adobe/marketing/mobile/services/ui/PresentationListener$PresentationContent;)V
+	public abstract fun onDismiss (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+	public abstract fun onHide (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+	public abstract fun onShow (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+}
+
+public abstract class com/adobe/marketing/mobile/services/ui/PresentationListener$PresentationContent {
+	public static final field $stable I
+}
+
+public final class com/adobe/marketing/mobile/services/ui/PresentationListener$PresentationContent$UrlContent : com/adobe/marketing/mobile/services/ui/PresentationListener$PresentationContent {
+	public static final field $stable I
 	public fun <init> (Ljava/lang/String;)V
+	public final fun getUrl ()Ljava/lang/String;
 }
 
-public class com/adobe/marketing/mobile/services/ui/MessageFragment : android/app/DialogFragment, android/view/View$OnTouchListener {
-	protected field dismissedWithGesture Z
-	protected field gestureDetector Landroid/view/GestureDetector;
-	protected field gestures Ljava/util/Map;
-	protected field webViewGestureListener Lcom/adobe/marketing/mobile/services/ui/WebViewGestureListener;
-	public fun <init> ()V
-	public fun dismiss ()V
-	public fun getAEPMessage ()Lcom/adobe/marketing/mobile/services/ui/AEPMessage;
-	public fun getGestureDetector ()Landroid/view/GestureDetector;
-	public fun getGestures ()Ljava/util/Map;
-	public fun getWebViewGestureListener ()Lcom/adobe/marketing/mobile/services/ui/WebViewGestureListener;
-	public fun isDismissedWithGesture ()Z
-	public fun onActivityCreated (Landroid/os/Bundle;)V
-	public fun onAttach (Landroid/content/Context;)V
-	public fun onCreate (Landroid/os/Bundle;)V
-	public fun onDestroyView ()V
-	public fun onDetach ()V
-	public fun onTouch (Landroid/view/View;Landroid/view/MotionEvent;)Z
-	public fun setAEPMessage (Lcom/adobe/marketing/mobile/services/ui/AEPMessage;)V
-	public fun show (Landroid/app/FragmentTransaction;Ljava/lang/String;)I
+public abstract interface class com/adobe/marketing/mobile/services/ui/PresentationUtilityProvider {
+	public abstract fun getApplication ()Landroid/app/Application;
+	public abstract fun getCachedContent (Ljava/lang/String;Ljava/lang/String;)Ljava/io/InputStream;
+	public abstract fun getCurrentActivity ()Landroid/app/Activity;
+	public abstract fun openUri (Ljava/lang/String;)Z
 }
 
-public class com/adobe/marketing/mobile/services/ui/MessageSettings {
-	public fun <init> ()V
-	public fun getBackdropColor ()Ljava/lang/String;
-	public fun getBackdropOpacity ()F
-	public fun getCornerRadius ()F
-	public fun getDismissAnimation ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public fun getDisplayAnimation ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public fun getGestures ()Ljava/util/Map;
-	public fun getHeight ()I
-	public fun getHorizontalAlign ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
-	public fun getHorizontalInset ()I
-	public fun getParent ()Ljava/lang/Object;
-	public fun getUITakeover ()Z
-	public fun getVerticalAlign ()Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
-	public fun getVerticalInset ()I
-	public fun getWidth ()I
-	public fun setBackdropColor (Ljava/lang/String;)V
-	public fun setBackdropOpacity (F)V
-	public fun setCornerRadius (F)V
-	public fun setDismissAnimation (Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;)V
-	public fun setDisplayAnimation (Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;)V
-	public fun setGestures (Ljava/util/Map;)V
-	public fun setHeight (I)V
-	public fun setHorizontalAlign (Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;)V
-	public fun setHorizontalInset (I)V
-	public fun setParent (Ljava/lang/Object;)V
-	public fun setUiTakeover (Z)V
-	public fun setVerticalAlign (Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;)V
-	public fun setVerticalInset (I)V
-	public fun setWidth (I)V
-}
-
-public final class com/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment : java/lang/Enum {
-	public static final field BOTTOM Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
-	public static final field CENTER Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
-	public static final field LEFT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
-	public static final field RIGHT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
-	public static final field TOP Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
-	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
-	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAlignment;
-}
-
-public final class com/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation : java/lang/Enum {
-	public static final field BOTTOM Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public static final field CENTER Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public static final field FADE Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public static final field LEFT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public static final field NONE Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public static final field RIGHT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public static final field TOP Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageAnimation;
-}
-
-public final class com/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture : java/lang/Enum {
-	public static final field BACKGROUND_TAP Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
-	public static final field SWIPE_DOWN Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
-	public static final field SWIPE_LEFT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
-	public static final field SWIPE_RIGHT Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
-	public static final field SWIPE_UP Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
-	public static fun get (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
-	public fun toString ()Ljava/lang/String;
-	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
-	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/MessageSettings$MessageGesture;
-}
-
-public class com/adobe/marketing/mobile/services/ui/NotificationSetting {
-	public static fun build (Ljava/lang/String;Ljava/lang/String;JILjava/lang/String;Ljava/util/Map;Ljava/lang/String;Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/NotificationSetting;
-	public fun getContent ()Ljava/lang/String;
-	public fun getDeeplink ()Ljava/lang/String;
-	public fun getDelaySeconds ()I
-	public fun getFireDate ()J
-	public fun getIdentifier ()Ljava/lang/String;
-	public fun getSound ()Ljava/lang/String;
-	public fun getTitle ()Ljava/lang/String;
-	public fun getUserInfo ()Ljava/util/Map;
-}
-
-public final class com/adobe/marketing/mobile/services/ui/UIError : java/lang/Enum {
-	public static final field ANOTHER_MESSAGE_IS_DISPLAYED Lcom/adobe/marketing/mobile/services/ui/UIError;
-	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/UIError;
-	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/UIError;
+public abstract class com/adobe/marketing/mobile/services/ui/ShowFailed : com/adobe/marketing/mobile/services/ui/PresentationError {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getReason ()Ljava/lang/String;
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/UIService {
-	public abstract fun createFloatingButton (Lcom/adobe/marketing/mobile/services/ui/FloatingButtonListener;)Lcom/adobe/marketing/mobile/services/ui/FloatingButton;
-	public abstract fun createFullscreenMessage (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/ui/FullscreenMessageDelegate;ZLcom/adobe/marketing/mobile/services/ui/MessageSettings;)Lcom/adobe/marketing/mobile/services/ui/FullscreenMessage;
-	public abstract fun getIntentWithURI (Ljava/lang/String;)Landroid/content/Intent;
-	public abstract fun setURIHandler (Lcom/adobe/marketing/mobile/services/ui/URIHandler;)V
-	public abstract fun showAlert (Lcom/adobe/marketing/mobile/services/ui/AlertSetting;Lcom/adobe/marketing/mobile/services/ui/AlertListener;)V
-	public abstract fun showLocalNotification (Lcom/adobe/marketing/mobile/services/ui/NotificationSetting;)V
-	public abstract fun showUrl (Ljava/lang/String;)Z
+	public abstract fun create (Lcom/adobe/marketing/mobile/services/ui/Presentation;Lcom/adobe/marketing/mobile/services/ui/PresentationUtilityProvider;)Lcom/adobe/marketing/mobile/services/ui/Presentable;
+	public abstract fun setPresentationDelegate (Lcom/adobe/marketing/mobile/services/ui/PresentationDelegate;)V
 }
 
-public abstract interface class com/adobe/marketing/mobile/services/ui/URIHandler {
+public abstract interface class com/adobe/marketing/mobile/services/ui/alert/AlertEventListener : com/adobe/marketing/mobile/services/ui/PresentationEventListener {
+	public abstract fun onNegativeResponse (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+	public abstract fun onPositiveResponse (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+}
+
+public final class com/adobe/marketing/mobile/services/ui/alert/AlertSettings {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getNegativeButtonText ()Ljava/lang/String;
+	public final fun getPositiveButtonText ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/alert/AlertSettings$Builder {
+	public static final field $stable I
+	public fun <init> ()V
+	public final fun build ()Lcom/adobe/marketing/mobile/services/ui/alert/AlertSettings;
+	public final fun message (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/alert/AlertSettings$Builder;
+	public final fun negativeButtonText (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/alert/AlertSettings$Builder;
+	public final fun positiveButtonText (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/alert/AlertSettings$Builder;
+	public final fun title (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/alert/AlertSettings$Builder;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonEventHandler {
+	public abstract fun updateGraphic (Landroid/graphics/Bitmap;)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonEventListener : com/adobe/marketing/mobile/services/ui/PresentationEventListener {
+	public abstract fun onPanDetected (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+	public abstract fun onTapDetected (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+}
+
+public final class com/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonSettings {
+	public static final field $stable I
+	public synthetic fun <init> (IILandroid/graphics/Bitmap;FLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getCornerRadius ()F
+	public final fun getHeight ()I
+	public final fun getInitialGraphic ()Landroid/graphics/Bitmap;
+	public final fun getWidth ()I
+}
+
+public final class com/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonSettings$Builder {
+	public static final field $stable I
+	public fun <init> ()V
+	public final fun build ()Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonSettings;
+	public final fun cornerRadius (F)Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonSettings$Builder;
+	public final fun height (I)Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonSettings$Builder;
+	public final fun initialGraphic (Landroid/graphics/Bitmap;)Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonSettings$Builder;
+	public final fun width (I)Lcom/adobe/marketing/mobile/services/ui/floatingbutton/FloatingButtonSettings$Builder;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/message/InAppMessageEventHandler {
+	public abstract fun evaluateJavascript (Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public abstract fun handleJavascriptMessage (Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/ui/message/InAppMessageEventListener : com/adobe/marketing/mobile/services/ui/PresentationEventListener {
+	public abstract fun onBackPressed (Lcom/adobe/marketing/mobile/services/ui/Presentable;)V
+	public abstract fun onUrlLoading (Lcom/adobe/marketing/mobile/services/ui/Presentable;Ljava/lang/String;)Z
+}
+
+public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSettings {
+	public static final field $stable I
+	public synthetic fun <init> (Ljava/lang/String;IIIILcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Ljava/lang/String;FFZLjava/util/Map;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAssetMap ()Ljava/util/Map;
+	public final fun getBackdropColor ()Ljava/lang/String;
+	public final fun getBackdropOpacity ()F
+	public final fun getContent ()Ljava/lang/String;
+	public final fun getCornerRadius ()F
+	public final fun getDismissAnimation ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public final fun getDisplayAnimation ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public final fun getGestureMap ()Ljava/util/Map;
+	public final fun getHeight ()I
+	public final fun getHorizontalAlignment ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
+	public final fun getHorizontalInset ()I
+	public final fun getShouldTakeOverUi ()Z
+	public final fun getVerticalAlignment ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
+	public final fun getVerticalInset ()I
+	public final fun getWidth ()I
+}
+
+public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder {
+	public static final field $stable I
+	public fun <init> ()V
+	public final fun assetMap (Ljava/util/Map;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun backdropOpacity (F)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun backgroundColor (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun build ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings;
+	public final fun content (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun cornerRadius (F)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun dismissAnimation (Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun displayAnimation (Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun gestureMap (Ljava/util/Map;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun height (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun horizontalAlignment (Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun horizontalInset (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun shouldTakeOverUi (Z)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun verticalAlignment (Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun verticalInset (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun width (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment : java/lang/Enum {
+	public static final field BOTTOM Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
+	public static final field CENTER Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
+	public static final field LEFT Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
+	public static final field RIGHT Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
+	public static final field TOP Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation : java/lang/Enum {
+	public static final field BOTTOM Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public static final field CENTER Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public static final field FADE Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public static final field LEFT Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public static final field NONE Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public static final field RIGHT Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public static final field TOP Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture : java/lang/Enum {
+	public static final field BACKGROUND_TAP Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
+	public static final field SWIPE_DOWN Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
+	public static final field SWIPE_LEFT Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
+	public static final field SWIPE_RIGHT Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
+	public static final field SWIPE_UP Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/uri/URIHandler {
 	public abstract fun getURIDestination (Ljava/lang/String;)Landroid/content/Intent;
+}
+
+public abstract interface class com/adobe/marketing/mobile/services/uri/UriOpening {
+	public abstract fun openUri (Ljava/lang/String;)Z
+	public abstract fun setUriHandler (Lcom/adobe/marketing/mobile/services/uri/URIHandler;)V
 }
 
 public class com/adobe/marketing/mobile/util/CloneFailedException : java/lang/Exception {

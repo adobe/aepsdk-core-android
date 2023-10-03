@@ -68,7 +68,6 @@ fun HomeView(navController: NavHostController) {
         }) {
             Text(text = "PerformanceTest")
         }
-
     }
 
 }

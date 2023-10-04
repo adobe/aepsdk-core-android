@@ -24,7 +24,7 @@ interface PresentationUtilityProvider {
      *
      * @return the [Application] instance for the host application
      */
-    fun getApplication(): Application
+    fun getApplication(): Application?
 
     /**
      * Retrieves the current activity being shown to the user.

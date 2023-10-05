@@ -10,13 +10,48 @@
  */
 package com.adobe.marketing.mobile.app.kotlin
 
+import android.app.Activity
+import android.app.Application
 import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ui.AlertSetting
-import java.lang.RuntimeException
+import com.adobe.marketing.mobile.services.ui.Alert
+import com.adobe.marketing.mobile.services.ui.Presentable
+import com.adobe.marketing.mobile.services.ui.PresentationError
+import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
+import com.adobe.marketing.mobile.services.ui.alert.AlertEventListener
+import com.adobe.marketing.mobile.services.ui.alert.AlertSettings
+import java.io.InputStream
+
+internal val presentationUtilityProvider = object : PresentationUtilityProvider {
+    override fun getApplication(): Application {
+        return ServiceProvider.getInstance().appContextService.application!!
+    }
+
+    override fun getCurrentActivity(): Activity? {
+        return ServiceProvider.getInstance().appContextService.currentActivity
+    }
+
+    override fun getCachedContent(cacheName: String, key: String): InputStream? {
+        return null
+    }
+
+    override fun openUri(uri: String): Boolean {
+        ServiceProvider.getInstance().uriService.openUri(uri)
+        return true
+    }
+}
+
+internal val alertEventListener = object : AlertEventListener {
+    override fun onPositiveResponse(alert: Presentable<Alert>) {}
+    override fun onNegativeResponse(alert: Presentable<Alert>) {}
+    override fun onShow(presentable: Presentable<Alert>) {}
+    override fun onHide(presentable: Presentable<Alert>) {}
+    override fun onDismiss(presentable: Presentable<Alert>) {}
+    override fun onError(presentable: Presentable<Alert>, error: PresentationError) {}
+}
 
 internal fun registerEventListener(
     eventType: String,
@@ -40,23 +75,23 @@ internal fun registerEventListener(
 }
 
 internal fun showAlert(event: Event) {
-    ServiceProvider.getInstance().uiService.showAlert(
-        AlertSetting.build(
-            "show event",
-            "$event",
-            "OK",
-            "Cancel"
-        ), null
-    )
+    val alert = Alert(AlertSettings.Builder()
+        .title("Event")
+        .message(event.toString())
+        .positiveButtonText("OK")
+        .build()
+        , alertEventListener)
+
+   ServiceProvider.getInstance().uiService.create(alert, presentationUtilityProvider)
 }
 
 internal fun showAlert(message: String) {
-    ServiceProvider.getInstance().uiService.showAlert(
-        AlertSetting.build(
-            "message",
-            message,
-            "OK",
-            "Cancel"
-        ), null
-    )
+    val alert = Alert(AlertSettings.Builder()
+        .title("Message")
+        .message(message)
+        .positiveButtonText("OK")
+        .build()
+        , alertEventListener)
+
+    ServiceProvider.getInstance().uiService.create(alert, presentationUtilityProvider)
 }

@@ -10,6 +10,7 @@
  */
 package com.adobe.marketing.mobile.app.kotlin
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -33,7 +35,6 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.app.kotlin.ui.theme.AepsdkcoreandroidTheme
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ui.AlertSetting
 
 @Composable
 fun CoreView(navController: NavHostController) {
@@ -162,14 +163,11 @@ fun CoreView(navController: NavHostController) {
 }
 
 private fun showCoreVersion() {
-    ServiceProvider.getInstance().uiService.showAlert(
-        AlertSetting.build(
-            "show core version",
-            "core: ${MobileCore.extensionVersion()}",
-            "OK",
-            "Cancel"
-        ), null
-    )
+    Toast.makeText(
+        ServiceProvider.getInstance().appContextService.applicationContext,
+        "Core Version: ${MobileCore.extensionVersion()}",
+        Toast.LENGTH_SHORT
+    ).show()
 }
 
 private fun updateConfiguration() {

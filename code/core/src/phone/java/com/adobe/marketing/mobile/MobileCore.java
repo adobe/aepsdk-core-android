@@ -318,12 +318,30 @@ public final class MobileCore {
     }
 
     /**
-     * Sets the resource Id for small icon.
+     * Returns the resource Id for small icon if it was set by `setSmallIconResourceID`.
+     *
+     * @return a `int` value if it has been set, otherwise -1
+     */
+    public static int getSmallIconResourceID() {
+        return AppResourceStore.INSTANCE.getSmallIconResourceID();
+    }
+
+    /**
+     * Sets the resource Id for large icon.
      *
      * @param resourceID the resource Id of the icon
      */
     public static void setLargeIconResourceID(final int resourceID) {
         AppResourceStore.INSTANCE.setLargeIconResourceID(resourceID);
+    }
+
+    /**
+     * Returns the resource Id for large icon if it was set by `setLargeIconResourceID`.
+     *
+     * @return a `int` value if it has been set, otherwise -1
+     */
+    public static int getLargeIconResourceID() {
+        return AppResourceStore.INSTANCE.getLargeIconResourceID();
     }
 
     // ========================================================

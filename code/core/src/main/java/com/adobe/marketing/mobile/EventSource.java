@@ -45,4 +45,5 @@ public final class EventSource {
             "com.adobe.eventSource.errorResponseContent";
     public static final String CREATE_TRACKER = "com.adobe.eventSource.createTracker";
     public static final String TRACK_MEDIA = "com.adobe.eventSource.trackMedia";
+    public static final String CONTENT_COMPLETE = "com.adobe.eventSource.contentComplete";
 }

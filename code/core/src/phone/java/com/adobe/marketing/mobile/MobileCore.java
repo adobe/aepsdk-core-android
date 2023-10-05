@@ -945,7 +945,6 @@ public final class MobileCore {
         dispatchEvent(event);
     }
 
-
     @VisibleForTesting
     static void resetSDK() {
         EventHub.Companion.getShared().shutdown();

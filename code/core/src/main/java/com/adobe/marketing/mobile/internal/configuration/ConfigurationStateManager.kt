@@ -66,7 +66,8 @@ internal class ConfigurationStateManager {
     /**
      * Maintains the entire config (i.e with environment keys).
      */
-    private val currentConfiguration: MutableMap<String, Any?> = mutableMapOf()
+    @VisibleForTesting
+    internal val currentConfiguration: MutableMap<String, Any?> = mutableMapOf()
 
     /**
      * Maintains the configuration associated with the current environment.
@@ -430,7 +431,10 @@ internal class ConfigurationStateManager {
      * @param config the entries which must be updated in the programmatic configuration
      */
     internal fun updateProgrammaticConfig(config: Map<String, Any?>) {
-        programmaticConfiguration.putAll(config)
+        // Map any config keys to their corresponding environment aware keys
+        val mappedConfig = mapToEnvironmentAwareKeys(config)
+
+        programmaticConfiguration.putAll(mappedConfig)
 
         // Save the new/modified programmatic config to persistence
         val configStore: NamedCollection =
@@ -492,6 +496,32 @@ internal class ConfigurationStateManager {
         }
 
         environmentAwareConfiguration = rollingEnvironmentAwareMap
+    }
+
+    /**
+     * Maps config keys to their respective build environment. Note that the values are not altered.
+     * @param config the configuration to map
+     * @return the mapped configuration with all the keys mapped to their respective build environment equivalents
+     */
+    @VisibleForTesting
+    internal fun mapToEnvironmentAwareKeys(config: Map<String, Any?>): Map<String, Any?> {
+        val buildEnvironment: String = currentConfiguration[BUILD_ENVIRONMENT] as? String ?: return config
+
+        val environmentAwareConfigMap = mutableMapOf<String, Any?>()
+        config.entries.forEach { entry ->
+            val key = entry.key
+            val environmentAwareKey = getKeyForEnvironment(key, buildEnvironment)
+
+            val keyToUse = if (currentConfiguration[environmentAwareKey] != null) {
+                environmentAwareKey
+            } else {
+                key
+            }
+            // Do not alter the value, just map the key
+            environmentAwareConfigMap[keyToUse] = entry.value
+        }
+
+        return environmentAwareConfigMap
     }
 
     /**

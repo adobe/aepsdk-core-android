@@ -1,13 +1,12 @@
 package com.adobe.marketing.mobile.app.kotlin.uiservices.alert
 
-import com.adobe.marketing.mobile.app.kotlin.presentationUtilityProvider
-import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.Alert
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.PresentationError
 import com.adobe.marketing.mobile.services.ui.alert.AlertEventListener
 import com.adobe.marketing.mobile.services.ui.alert.AlertSettings
+import com.adobe.marketing.mobile.util.DefaultPresentationUtilityProvider
 
 object AlertCreator {
     private val alertSettings = AlertSettings.Builder()
@@ -27,7 +26,5 @@ object AlertCreator {
     }
 
     fun create(): Presentable<Alert> = ServiceProvider.getInstance().uiService.create(
-        Alert(alertSettings, alertEventListener),
-        presentationUtilityProvider
-    )
+        Alert(alertSettings, alertEventListener), DefaultPresentationUtilityProvider())
 }

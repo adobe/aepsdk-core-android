@@ -29,6 +29,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.verify
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class DefaultPresentationUtilityProviderTest {
 
@@ -96,6 +97,22 @@ class DefaultPresentationUtilityProviderTest {
         // verify
         verify(mockCacheService).get(testCacheName, testCacheKey)
         assertEquals(mockCacheResult.data, cachedContent)
+    }
+
+    @Test
+    fun `Test #getCachedContent proxies CacheService when data is null`() {
+        val testCacheName = "testCacheName"
+        val testCacheKey = "testCacheKey"
+        val mockCacheResult = Mockito.mock(CacheResult::class.java)
+        `when`(mockCacheResult.data).thenReturn(null)
+        `when`(mockCacheService.get(testCacheName, testCacheKey)).thenReturn(mockCacheResult)
+        // test
+        val cachedContent =
+            defaultPresentationUtilityProvider.getCachedContent(testCacheName, testCacheKey)
+
+        // verify
+        verify(mockCacheService).get(testCacheName, testCacheKey)
+        assertNull(cachedContent)
     }
 
     @Test

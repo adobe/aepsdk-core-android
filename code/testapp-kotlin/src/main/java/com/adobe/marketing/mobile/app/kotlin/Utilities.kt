@@ -10,8 +10,6 @@
  */
 package com.adobe.marketing.mobile.app.kotlin
 
-import android.app.Activity
-import android.app.Application
 import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
@@ -20,29 +18,9 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.Alert
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.PresentationError
-import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
 import com.adobe.marketing.mobile.services.ui.alert.AlertEventListener
 import com.adobe.marketing.mobile.services.ui.alert.AlertSettings
-import java.io.InputStream
-
-internal val presentationUtilityProvider = object : PresentationUtilityProvider {
-    override fun getApplication(): Application {
-        return ServiceProvider.getInstance().appContextService.application!!
-    }
-
-    override fun getCurrentActivity(): Activity? {
-        return ServiceProvider.getInstance().appContextService.currentActivity
-    }
-
-    override fun getCachedContent(cacheName: String, key: String): InputStream? {
-        return null
-    }
-
-    override fun openUri(uri: String): Boolean {
-        ServiceProvider.getInstance().uriService.openUri(uri)
-        return true
-    }
-}
+import com.adobe.marketing.mobile.util.DefaultPresentationUtilityProvider
 
 internal val alertEventListener = object : AlertEventListener {
     override fun onPositiveResponse(alert: Presentable<Alert>) {}
@@ -82,7 +60,7 @@ internal fun showAlert(event: Event) {
         .build()
         , alertEventListener)
 
-   ServiceProvider.getInstance().uiService.create(alert, presentationUtilityProvider)
+   ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
 }
 
 internal fun showAlert(message: String) {
@@ -93,5 +71,5 @@ internal fun showAlert(message: String) {
         .build()
         , alertEventListener)
 
-    ServiceProvider.getInstance().uiService.create(alert, presentationUtilityProvider)
+    ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
 }

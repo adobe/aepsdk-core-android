@@ -1133,6 +1133,15 @@ public class com/adobe/marketing/mobile/util/DataReaderException : java/lang/Exc
 	public fun <init> (Ljava/lang/String;)V
 }
 
+public final class com/adobe/marketing/mobile/util/DefaultPresentationUtilityProvider : com/adobe/marketing/mobile/services/ui/PresentationUtilityProvider {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun getApplication ()Landroid/app/Application;
+	public fun getCachedContent (Ljava/lang/String;Ljava/lang/String;)Ljava/io/InputStream;
+	public fun getCurrentActivity ()Landroid/app/Activity;
+	public fun openUri (Ljava/lang/String;)Z
+}
+
 public class com/adobe/marketing/mobile/util/EventDataUtils {
 	public static fun castFromGenericType (Ljava/util/Map;)Ljava/util/Map;
 	public static fun clone (Ljava/util/Map;)Ljava/util/Map;

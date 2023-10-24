@@ -11,10 +11,8 @@
 package com.adobe.marketing.mobile
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.test.core.app.ApplicationProvider
 import com.adobe.marketing.mobile.integration.MockNetworkResponse
-import com.adobe.marketing.mobile.integration.core.EventHistoryIntegrationTests
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
 import org.json.JSONObject

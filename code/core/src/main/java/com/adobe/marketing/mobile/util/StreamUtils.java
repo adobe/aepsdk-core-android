@@ -26,7 +26,8 @@ public final class StreamUtils {
     private StreamUtils() {}
 
     /**
-     * Reads the contents of {@code InputStream} as String
+     * Reads the contents of the {@code InputStream} as a String. The input stream provided will be
+     * closed after contents are read.
      *
      * @param inputStream {@link InputStream} to read
      * @return {@link String} representation of the input stream

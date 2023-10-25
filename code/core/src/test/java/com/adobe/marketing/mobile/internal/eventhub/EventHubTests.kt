@@ -2090,7 +2090,6 @@ internal class EventHubTests {
         assertEquals(listOf(processedEvent1), capturedEvents)
     }
 
-
     @Captor
     lateinit var eventCaptor: ArgumentCaptor<Event>
 

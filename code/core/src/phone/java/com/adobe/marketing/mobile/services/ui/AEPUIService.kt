@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui
 
+import android.app.Application
 import com.adobe.marketing.mobile.services.ui.alert.AlertPresentable
 import com.adobe.marketing.mobile.services.ui.common.AppLifecycleProvider
 import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonPresentable
@@ -31,7 +32,10 @@ internal class AEPUIService : UIService {
         presentationUtilityProvider: PresentationUtilityProvider
     ): Presentable<T> {
         // start the app lifecycle provider if not started. Calling this multiple times is safe.
-        AppLifecycleProvider.INSTANCE.start(presentationUtilityProvider.getApplication())
+        val application: Application = presentationUtilityProvider.getApplication()
+            ?: throw IllegalStateException("Application is null. Please provide a valid application instance.")
+
+        AppLifecycleProvider.INSTANCE.start(application)
 
         when (presentation) {
             is InAppMessage -> {

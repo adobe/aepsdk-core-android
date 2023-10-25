@@ -1,6 +1,5 @@
 package com.adobe.marketing.mobile.app.kotlin.uiservices.inappmessage
 
-import com.adobe.marketing.mobile.app.kotlin.presentationUtilityProvider
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.InAppMessage
@@ -8,6 +7,7 @@ import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.PresentationError
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageEventListener
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
+import com.adobe.marketing.mobile.util.DefaultPresentationUtilityProvider
 
 object InAppMessageCreator {
     private const val LOG_TAG = "InAppMessageCreator"
@@ -81,6 +81,6 @@ object InAppMessageCreator {
 
     fun create(): Presentable<InAppMessage> = ServiceProvider.getInstance().uiService.create(
         InAppMessage(iamSettings.build(), iamEventListener),
-        presentationUtilityProvider
+        DefaultPresentationUtilityProvider()
     )
 }

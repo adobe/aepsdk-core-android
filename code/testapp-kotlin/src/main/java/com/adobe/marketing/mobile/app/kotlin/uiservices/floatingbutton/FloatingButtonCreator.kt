@@ -5,13 +5,13 @@ import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.adobe.marketing.mobile.app.kotlin.R
-import com.adobe.marketing.mobile.app.kotlin.presentationUtilityProvider
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.FloatingButton
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.PresentationError
 import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonEventListener
 import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonSettings
+import com.adobe.marketing.mobile.util.DefaultPresentationUtilityProvider
 
 class FloatingButtonCreator(context: Context) {
 
@@ -36,6 +36,6 @@ class FloatingButtonCreator(context: Context) {
         FloatingButton(
             floatingButtonSettings,
             floatingButtonEventListener
-        ), presentationUtilityProvider
+        ), DefaultPresentationUtilityProvider()
     )
 }

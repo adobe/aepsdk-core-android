@@ -31,6 +31,7 @@ import org.mockito.MockitoAnnotations
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class AEPUIServiceTest {
 
@@ -95,5 +96,21 @@ class AEPUIServiceTest {
         assertEquals(alertSettings, alertPresentable.getPresentation().settings)
         assertEquals(alertEventListener, alertPresentable.getPresentation().eventListener)
         assertNotNull(alertPresentable.getPresentation().eventListener)
+    }
+
+    @Test
+    fun `Test that #create throws an exception when application is null`() {
+        val iamSettings: InAppMessageSettings = InAppMessageSettings.Builder().build()
+        val iamEventListener: InAppMessageEventListener = mock(InAppMessageEventListener::class.java)
+        val iamPresentation = InAppMessage(iamSettings, iamEventListener)
+
+        `when`(mockPresentationUtilityProvider.getApplication()).thenReturn(null)
+
+        try {
+            aepUiService.create(iamPresentation, mockPresentationUtilityProvider)
+            fail("Expected exception to be thrown")
+        } catch (e: IllegalStateException) {
+            // expected
+        }
     }
 }

@@ -33,11 +33,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.Captor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.capture
 import java.lang.UnsupportedOperationException
+import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
@@ -46,9 +49,10 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 object MockExtensions {
-    class MockExtensionInvalidConstructor(api: ExtensionApi, name: String?) : Extension(api) {
+
+    class MockExtensionInvalidConstructor(api: ExtensionApi, private val extensionName: String?) : Extension(api) {
         override fun getName(): String {
-            return MockExtensionInvalidConstructor::javaClass.name
+            return extensionName ?: ""
         }
     }
 
@@ -240,11 +244,6 @@ internal class EventHubTests {
         eventHub.shutdown()
     }
 
-    private fun resetEventHub() {
-        eventHub.shutdown()
-        eventHub = EventHub()
-    }
-
     // Register, Unregister tests
     @Test
     fun testRegisterExtensionSuccess() {
@@ -361,7 +360,7 @@ internal class EventHubTests {
         assertTrue {
             eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                TestExtension.EXTENSION_NAME.toUpperCase(),
+                TestExtension.EXTENSION_NAME.uppercase(Locale.getDefault()),
                 stateAtEvent1,
                 event1
             )
@@ -402,7 +401,7 @@ internal class EventHubTests {
         assertTrue {
             eventHub.createSharedState(
                 SharedStateType.STANDARD,
-                TestExtension.EXTENSION_NAME.toUpperCase(),
+                TestExtension.EXTENSION_NAME.uppercase(Locale.getDefault()),
                 stateAtEvent1,
                 event1
             )
@@ -777,7 +776,7 @@ internal class EventHubTests {
 
         val res = eventHub.getSharedState(
             SharedStateType.STANDARD,
-            TestExtension.EXTENSION_NAME.toUpperCase(),
+            TestExtension.EXTENSION_NAME.uppercase(Locale.getDefault()),
             event1,
             false,
             SharedStateResolution.ANY
@@ -1322,12 +1321,12 @@ internal class EventHubTests {
         eventHub.start()
         latch.await(250, TimeUnit.MILLISECONDS)
 
-        assertEquals(EventHubConstants.STATE_CHANGE, capturedEvents[0]?.name)
+        assertEquals(EventHubConstants.STATE_CHANGE, capturedEvents[0].name)
         assertEquals(
             mapOf(
                 EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
             ),
-            capturedEvents[0]?.eventData
+            capturedEvents[0].eventData
         )
 
         val expectedData = mapOf(
@@ -1457,9 +1456,9 @@ internal class EventHubTests {
         latch.await(250, TimeUnit.MILLISECONDS)
 
         // Shared state published after start
-        assertEquals(capturedEvents[0]?.name, EventHubConstants.STATE_CHANGE)
+        assertEquals(capturedEvents[0].name, EventHubConstants.STATE_CHANGE)
         assertEquals(
-            capturedEvents[0]?.eventData,
+            capturedEvents[0].eventData,
             mapOf(
                 EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
             )
@@ -1492,12 +1491,12 @@ internal class EventHubTests {
         assertEquals(expectedData1, sharedStateResult1?.value)
 
         // Shared state published after unregister
-        assertEquals(EventHubConstants.STATE_CHANGE, capturedEvents[1]?.name)
+        assertEquals(EventHubConstants.STATE_CHANGE, capturedEvents[1].name)
         assertEquals(
             mapOf(
                 EventHubConstants.EventDataKeys.Configuration.EVENT_STATE_OWNER to EventHubConstants.NAME
             ),
-            capturedEvents[1]?.eventData
+            capturedEvents[1].eventData
         )
 
         val expectedData2 = mapOf(
@@ -1885,7 +1884,7 @@ internal class EventHubTests {
         eventHub.dispatch(testEvent1)
         latch.await(1000, TimeUnit.MILLISECONDS)
 
-        assertEquals(capturedEvents, listOf<Pair<Event?, AdobeError?>>(Pair(testResponseEvent, null), Pair(null, AdobeError.CALLBACK_TIMEOUT)))
+        assertEquals(capturedEvents, listOf(Pair(testResponseEvent, null), Pair(null, AdobeError.CALLBACK_TIMEOUT)))
     }
 
     @Test
@@ -1985,14 +1984,11 @@ internal class EventHubTests {
         val event = Event.Builder("evt1", "type", "source").build()
         val processedEvent = Event.Builder("evt2", "processedtype", "processedsource").build()
 
-        val processor = object :
-            EventPreprocessor {
-            override fun process(it: Event): Event {
-                if (it == event) {
-                    return processedEvent
-                } else {
-                    return it
-                }
+        val processor = EventPreprocessor {
+            if (it == event) {
+                processedEvent
+            } else {
+                it
             }
         }
 
@@ -2024,25 +2020,19 @@ internal class EventHubTests {
         val processedEvent1 = Event.Builder("evt2", "processedtype", "processedsource").build()
         val processedEvent2 = Event.Builder("evt3", "processedtype2", "processedsource2").build()
 
-        val processor1 = object :
-            EventPreprocessor {
-            override fun process(it: Event): Event {
-                if (it == event) {
-                    return processedEvent1
-                } else {
-                    return it
-                }
+        val processor1 = EventPreprocessor {
+            if (it == event) {
+                processedEvent1
+            } else {
+                it
             }
         }
 
-        val processor2 = object :
-            EventPreprocessor {
-            override fun process(it: Event): Event {
-                if (it == processedEvent1) {
-                    return processedEvent2
-                } else {
-                    return it
-                }
+        val processor2 = EventPreprocessor {
+            if (it == processedEvent1) {
+                processedEvent2
+            } else {
+                it
             }
         }
 
@@ -2072,16 +2062,11 @@ internal class EventHubTests {
         val processedEvent1 = Event.Builder("evt1", "processedtype", "processedsource").build()
         val processedEvent2 = Event.Builder("evt2", "processedtype2", "processedsource2").build()
 
-        val processor = object :
-            EventPreprocessor {
-            override fun process(it: Event): Event {
-                if (it == event) {
-                    return processedEvent1
-                }
-                if (it == processedEvent1) {
-                    return processedEvent2
-                }
-                return it
+        val processor = EventPreprocessor {
+            when (it) {
+                event -> processedEvent1
+                processedEvent1 -> processedEvent2
+                else -> it
             }
         }
 
@@ -2104,6 +2089,10 @@ internal class EventHubTests {
         }
         assertEquals(listOf(processedEvent1), capturedEvents)
     }
+
+
+    @Captor
+    lateinit var eventCaptor: ArgumentCaptor<Event>
 
     // Event History tests
     @Test
@@ -2130,8 +2119,8 @@ internal class EventHubTests {
         val latch = CountDownLatch(1)
         latch.await(1000, TimeUnit.MILLISECONDS)
 
-        val captor = ArgumentCaptor.forClass(Event::class.java)
-        verify(eventHub.eventHistory, times(2))?.recordEvent(captor.capture(), any())
-        assertEquals(listOf(event, event2), captor.allValues)
+        eventCaptor = ArgumentCaptor.forClass(Event::class.java)
+        verify(eventHub.eventHistory, times(2))?.recordEvent(capture(eventCaptor), any())
+        assertEquals(listOf(event, event2), eventCaptor.allValues)
     }
 }

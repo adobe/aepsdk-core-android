@@ -305,54 +305,6 @@ internal class EventHubTests {
         assertEquals(EventHubError.None, ret)
     }
 
-    @Test
-    fun testStartHub() {
-        resetEventHub()
-
-        val latch = CountDownLatch(1)
-        eventHub.start {
-            latch.countDown()
-        }
-
-        assertTrue { latch.await(1000, TimeUnit.MILLISECONDS) }
-    }
-
-    @Test
-    fun testStartAfterExtensionRegistration() {
-        resetEventHub()
-
-        TestExtension_DelayedInit.DELAY_MS = 1000
-        val latch = CountDownLatch(1)
-        var registeredExtension = mutableListOf<Class<out Extension>>()
-
-        eventHub.registerExtension(TestExtension::class.java) { registeredExtension.add(TestExtension::class.java) }
-        eventHub.registerExtension(TestExtension_DelayedInit::class.java) { registeredExtension.add(TestExtension_DelayedInit::class.java) }
-        eventHub.start {
-            latch.countDown()
-        }
-
-        assertTrue { latch.await(2000, TimeUnit.MILLISECONDS) }
-        assertEquals(listOf(TestExtension::class.java, TestExtension_DelayedInit::class.java), registeredExtension)
-    }
-
-    @Test
-    fun testStartBetweenExtensionRegistration() {
-        resetEventHub()
-
-        TestExtension_DelayedInit.DELAY_MS = 1000
-        val latch = CountDownLatch(1)
-        var registeredExtension = mutableListOf<Class<out Extension>>()
-
-        eventHub.registerExtension(TestExtension::class.java) { registeredExtension.add(TestExtension::class.java) }
-        eventHub.start {
-            latch.countDown()
-        }
-        eventHub.registerExtension(TestExtension_DelayedInit::class.java) { registeredExtension.add(TestExtension_DelayedInit::class.java) }
-
-        assertTrue { latch.await(750, TimeUnit.MILLISECONDS) }
-        assertEquals(listOf<Class<out Extension>>(TestExtension::class.java), registeredExtension)
-    }
-
     // Shared state tests
     private fun verifySharedState(type: SharedStateType, event: Event?, expectedResult: SharedStateResult?, resolution: SharedStateResolution = SharedStateResolution.ANY, barrier: Boolean = false, extensionName: String = TestExtension.EXTENSION_NAME) {
         val actualResult = eventHub.getSharedState(

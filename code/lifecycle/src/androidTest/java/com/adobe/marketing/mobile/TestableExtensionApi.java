@@ -121,59 +121,6 @@ public class TestableExtensionApi extends ExtensionApi {
             boolean enforceOrder,
             @NonNull EventHistoryResultHandler<Integer> handler) {}
 
-    @Override
-    public <T extends ExtensionListener> boolean registerEventListener(
-            String eventType,
-            String eventSource,
-            Class<T> extensionListenerClass,
-            ExtensionErrorCallback<ExtensionError> errorCallback) {
-        return false;
-    }
-
-    @Override
-    public <T extends ExtensionListener> boolean registerWildcardListener(
-            Class<T> extensionListenerClass, ExtensionErrorCallback<ExtensionError> errorCallback) {
-        return false;
-    }
-
-    @Override
-    public boolean setSharedEventState(
-            Map<String, Object> state,
-            Event event,
-            ExtensionErrorCallback<ExtensionError> errorCallback) {
-        return false;
-    }
-
-    @Override
-    public boolean setXDMSharedEventState(
-            Map<String, Object> state,
-            Event event,
-            ExtensionErrorCallback<ExtensionError> errorCallback) {
-        return false;
-    }
-
-    @Override
-    public Map<String, Object> getSharedEventState(
-            String stateName, Event event, ExtensionErrorCallback<ExtensionError> errorCallback) {
-        return null;
-    }
-
-    @Override
-    public Map<String, Object> getXDMSharedEventState(
-            String stateName, Event event, ExtensionErrorCallback<ExtensionError> errorCallback) {
-        return null;
-    }
-
-    @Override
-    public boolean clearXDMSharedEventStates(ExtensionErrorCallback<ExtensionError> errorCallback) {
-        return false;
-    }
-
-    @Override
-    public boolean clearSharedEventStates(ExtensionErrorCallback<ExtensionError> errorCallback) {
-        return false;
-    }
-
     /**
      * Ignores the events from being dispatched by event hub.
      *

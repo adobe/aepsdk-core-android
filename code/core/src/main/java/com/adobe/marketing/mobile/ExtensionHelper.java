@@ -65,12 +65,4 @@ public class ExtensionHelper {
         } catch (Exception ignored) {
         }
     }
-
-    public static void notifyError(
-            @NonNull final Extension extension, @NonNull final ExtensionUnexpectedError error) {
-        try {
-            extension.onUnexpectedError(error);
-        } catch (Exception ignored) {
-        }
-    }
 }

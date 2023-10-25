@@ -24,7 +24,6 @@ import com.adobe.marketing.mobile.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 public class LaunchRulesEngine {
 
@@ -36,17 +35,6 @@ public class LaunchRulesEngine {
     private final LaunchRulesConsequence launchRulesConsequence;
     private final List<Event> cachedEvents = new ArrayList<>();
     private boolean initialRulesReceived = false;
-
-    /**
-     * Creates a new LaunchRulesEngine with a default name.
-     *
-     * @deprecated Use {@link #LaunchRulesEngine(String, ExtensionApi)} instead.
-     * @param extensionApi the {@code ExtensionApi}
-     */
-    @Deprecated
-    public LaunchRulesEngine(final ExtensionApi extensionApi) {
-        this(String.format("%s-%s", DEFAULT_PREFIX, UUID.randomUUID()), extensionApi);
-    }
 
     public LaunchRulesEngine(@NonNull final String name, @NonNull final ExtensionApi extensionApi) {
         this(
@@ -100,19 +88,6 @@ public class LaunchRulesEngine {
      */
     public void addRules(final List<LaunchRule> rules) {
         ruleRulesEngine.addRules(rules);
-    }
-
-    /**
-     * Evaluates all the current rules against the supplied {@link Event}.
-     *
-     * @deprecated This method does NOT perform token replacement. Use {@link #processEvent(Event)}
-     *     or {@link #evaluateEvent(Event)} instead.
-     * @param event the {@link Event} against which to evaluate the rules
-     * @return the matched {@code List<LaunchRule>}
-     */
-    @Deprecated
-    public List<LaunchRule> process(final Event event) {
-        return ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
     }
 
     /**

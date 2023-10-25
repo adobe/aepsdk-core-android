@@ -243,8 +243,7 @@ class MobileCoreRegistrationTests {
         }
 
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.start {}
+        MobileCore.registerExtensions(listOf(MockExtension::class.java)) {}
 
         val event = Event.Builder("test-event", "analytics", "requestContent").build()
         MobileCore.dispatchEvent(event)
@@ -264,8 +263,7 @@ class MobileCoreRegistrationTests {
         MobileCore.dispatchEvent(event)
 
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.start {}
+        MobileCore.registerExtensions(listOf(MockExtension::class.java)) {}
 
         assertTrue { latch.await(1, TimeUnit.SECONDS) }
     }
@@ -285,9 +283,7 @@ class MobileCoreRegistrationTests {
         }
 
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.registerExtension(MockExtension2::class.java) {}
-        MobileCore.start {}
+        MobileCore.registerExtensions(listOf(MockExtension::class.java, MockExtension2::class.java)) {}
 
         val event = Event.Builder("test-event", "analytics", "requestContent").build()
         MobileCore.dispatchEvent(event)
@@ -313,9 +309,7 @@ class MobileCoreRegistrationTests {
         MobileCore.dispatchEvent(event)
 
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {}
-        MobileCore.registerExtension(MockExtension2::class.java) {}
-        MobileCore.start {
+        MobileCore.registerExtensions(listOf(MockExtension::class.java, MockExtension2::class.java)) {
             latch.countDown()
         }
 
@@ -324,17 +318,11 @@ class MobileCoreRegistrationTests {
 
     @Test
     fun testRegisterSameExtensionTwice() {
-        val capturedErrors = mutableListOf<ExtensionError>()
-
+        val latch = CountDownLatch(1)
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtension(MockExtension::class.java) {
-            capturedErrors.add(it)
+        MobileCore.registerExtensions(listOf(MockExtension::class.java, MockExtension::class.java)) {
+            latch.countDown()
         }
-        MobileCore.registerExtension(MockExtension::class.java) {
-            capturedErrors.add(it)
-        }
-
-        Thread.sleep(500)
-        assertEquals(mutableListOf(ExtensionError.DUPLICATE_NAME), capturedErrors)
+        assertTrue { latch.await(1000, TimeUnit.SECONDS) }
     }
 }

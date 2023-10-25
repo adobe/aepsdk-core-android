@@ -9,22 +9,14 @@
   governing permissions and limitations under the License.
 */
 
-@file:Suppress("DEPRECATION")
-
 package com.adobe.marketing.mobile.internal.eventhub
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResultHandler
-import com.adobe.marketing.mobile.EventSource
-import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
-import com.adobe.marketing.mobile.ExtensionError
-import com.adobe.marketing.mobile.ExtensionErrorCallback
 import com.adobe.marketing.mobile.ExtensionEventListener
-import com.adobe.marketing.mobile.ExtensionListener
-import com.adobe.marketing.mobile.ExtensionUnexpectedError
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
@@ -99,7 +91,6 @@ internal class ExtensionContainer constructor(
         val extensionName = extension.extensionName
         if (extensionName.isNullOrBlank()) {
             callback(EventHubError.InvalidExtensionName)
-            extension.onExtensionUnexpectedError(ExtensionUnexpectedError(ExtensionError.BAD_NAME))
             return@Runnable
         }
 
@@ -290,188 +281,6 @@ internal class ExtensionContainer constructor(
 
     override fun unregisterExtension() {
         EventHub.shared.unregisterExtension(extensionClass) {}
-    }
-
-    // Deprecated ExtensionApi methods
-    @Deprecated("Deprecated in ExtensionAPI")
-    override fun setSharedEventState(
-        state: MutableMap<String, Any?>?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Boolean {
-        return setSharedEventStateCommon(
-            SharedStateType.STANDARD,
-            eventStandardResolverMapping,
-            state,
-            event,
-            errorCallback
-        )
-    }
-
-    @Deprecated("Deprecated in ExtensionAPI")
-    override fun setXDMSharedEventState(
-        state: MutableMap<String, Any?>?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Boolean {
-        return setSharedEventStateCommon(
-            SharedStateType.XDM,
-            eventXDMResolverMapping,
-            state,
-            event,
-            errorCallback
-        )
-    }
-
-    private fun setSharedEventStateCommon(
-        sharedStateType: SharedStateType,
-        eventResolverMap: ConcurrentHashMap<String, SharedStateResolver>,
-        state: MutableMap<String, Any?>?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Boolean {
-        val sharedStateName = this.sharedStateName ?: run {
-            Log.warning(
-                CoreConstants.LOG_TAG,
-                getTag(),
-                "ExtensionContainer is not fully initialized. setSharedEventState/setXDMSharedEventState should not be called from Extension constructor"
-            )
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-            return false
-        }
-
-        val isPendingSharedState = (state == null)
-        if (isPendingSharedState) {
-            // With older APIs, it is not possible to consistently resolve pending shared state if event is null. Ignore the case.
-            if (event == null) {
-                errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-                return false
-            } else {
-                val resolver = EventHub.shared.createPendingSharedState(
-                    sharedStateType,
-                    sharedStateName,
-                    event
-                )
-                // Created pending shared state, map the reference to event so that we can resolve during later call.
-                resolver?.let {
-                    eventResolverMap[event.uniqueIdentifier] = it
-                    return true
-                } ?: run {
-                    // Create pending shared state failed, notify the error.
-                    errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-                    return false
-                }
-            }
-        } else {
-            // If pending shared state was set earlier for this event, resolve using stored resolver.
-            val resolver = if (event != null) {
-                eventResolverMap.remove(event.uniqueIdentifier)
-            } else {
-                null
-            }
-
-            resolver?.let {
-                it.resolve(state)
-                return true
-            } ?: run {
-                // Create shared state if no resolver is present for event.
-                return EventHub.shared.createSharedState(
-                    sharedStateType,
-                    sharedStateName,
-                    state,
-                    event
-                )
-            }
-        }
-    }
-
-    @Deprecated("Deprecated in ExtensionAPI")
-    override fun getSharedEventState(
-        stateName: String?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): MutableMap<String, Any>? {
-        stateName?.let {
-            return getSharedState(it, event, true, SharedStateResolution.ANY)?.value
-        }
-
-        errorCallback?.error(ExtensionError.BAD_NAME)
-        return null
-    }
-
-    @Deprecated("Deprecated in ExtensionAPI")
-    override fun getXDMSharedEventState(
-        stateName: String?,
-        event: Event?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): MutableMap<String, Any>? {
-        stateName?.let {
-            return getXDMSharedState(it, event, true, SharedStateResolution.ANY)?.value
-        }
-
-        errorCallback?.error(ExtensionError.BAD_NAME)
-        return null
-    }
-
-    @Deprecated("Deprecated in ExtensionAPI")
-    override fun clearSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
-        val sharedStateName = this.sharedStateName ?: run {
-            Log.warning(
-                CoreConstants.LOG_TAG,
-                LOG_TAG,
-                "ExtensionContainer is not fully initialized. clearSharedEventStates should not be called from 'Extension' constructor"
-            )
-            return false
-        }
-        return EventHub.shared.clearSharedState(SharedStateType.STANDARD, sharedStateName)
-    }
-
-    @Deprecated("Deprecated in ExtensionAPI")
-    override fun clearXDMSharedEventStates(errorCallback: ExtensionErrorCallback<ExtensionError>?): Boolean {
-        val sharedStateName = this.sharedStateName ?: run {
-            Log.warning(
-                CoreConstants.LOG_TAG,
-                LOG_TAG,
-                "ExtensionContainer is not fully initialized. clearXDMSharedEventStates should not be called from 'Extension' constructor"
-            )
-            return false
-        }
-        return EventHub.shared.clearSharedState(SharedStateType.XDM, sharedStateName)
-    }
-
-    @Deprecated("Deprecated in ExtensionAPI")
-    override fun <T : ExtensionListener> registerEventListener(
-        eventType: String?,
-        eventSource: String?,
-        extensionListenerClass: Class<T>?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Boolean {
-        val extensionListener = extensionListenerClass?.initWith(this, eventType, eventSource)
-        if (extensionListener == null || eventType == null || eventSource == null) {
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-            return false
-        }
-
-        registerEventListener(eventType, eventSource) { extensionListener.hear(it) }
-        return true
-    }
-
-    @Deprecated("Deprecated in ExtensionAPI")
-    override fun <T : ExtensionListener> registerWildcardListener(
-        extensionListenerClass: Class<T>?,
-        errorCallback: ExtensionErrorCallback<ExtensionError>?
-    ): Boolean {
-        val extensionListener =
-            extensionListenerClass?.initWith(this, EventType.WILDCARD, EventSource.WILDCARD)
-        if (extensionListener == null) {
-            errorCallback?.error(ExtensionError.UNEXPECTED_ERROR)
-            return false
-        }
-        registerEventListener(
-            EventType.WILDCARD,
-            EventSource.WILDCARD
-        ) { extensionListener.hear(it) }
-        return true
     }
 
     override fun getHistoricalEvents(

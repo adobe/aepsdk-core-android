@@ -84,30 +84,6 @@ public abstract class Extension {
     }
 
     /**
-     * Called when an unexpected error related to this extension has occurred during SDK processing.
-     * Implementers should override this to see what errors are occurring and handle them as needed.
-     * This should be called very infrequently for a well written extension implementation.
-     *
-     * @param extensionUnexpectedError the {@link ExtensionUnexpectedError} returned from the core
-     */
-    @Deprecated
-    protected void onUnexpectedError(
-            @NonNull final ExtensionUnexpectedError extensionUnexpectedError) {
-        ExtensionError error =
-                extensionUnexpectedError != null ? extensionUnexpectedError.getErrorCode() : null;
-
-        if (error != null) {
-            Log.error(
-                    CoreConstants.LOG_TAG,
-                    getLogTag(),
-                    "Extension processing failed with error code: %s (%s), error message: %s",
-                    error.getErrorCode(),
-                    error.getErrorName(),
-                    extensionUnexpectedError.getMessage());
-        }
-    }
-
-    /**
      * Called before each Event is processed by any ExtensionListener owned by this Extension Should
      * be overridden by any extension that wants to control its own Event flow on a per Event basis.
      *

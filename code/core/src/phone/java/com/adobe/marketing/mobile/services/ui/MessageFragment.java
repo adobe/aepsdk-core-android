@@ -136,6 +136,16 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
 
+        // make sure we have a valid message before trying to proceed
+        if (message == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (Message Fragment), failed to create the fragment.",
+                    UNEXPECTED_NULL_VALUE);
+            return;
+        }
+
         final MessageSettings messageSettings = message.getMessageSettings();
         if (messageSettings == null) {
             Log.debug(
@@ -204,6 +214,16 @@ public class MessageFragment extends android.app.DialogFragment implements View.
         }
 
         removeListeners();
+
+        // make sure we have a valid message before trying to proceed
+        if (message == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (Message Fragment), failed to detach the fragment.",
+                    UNEXPECTED_NULL_VALUE);
+            return;
+        }
 
         // clean webview parent in case the detach is occurring due to an orientation change
         final WebView webView = message.getWebView();
@@ -297,6 +317,15 @@ public class MessageFragment extends android.app.DialogFragment implements View.
      * android.view.View.OnTouchListener}
      */
     private void addListeners() {
+        if (message == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (AEPMessage), unable to add listeners.",
+                    UNEXPECTED_NULL_VALUE);
+            return;
+        }
+
         final View contentView = getActivity().findViewById(android.R.id.content);
 
         // if we have an orientation change, wait for it to complete then proceed with webview

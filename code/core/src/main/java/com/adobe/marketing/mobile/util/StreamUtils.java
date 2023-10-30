@@ -26,7 +26,8 @@ public final class StreamUtils {
     private StreamUtils() {}
 
     /**
-     * Reads the contents of {@code InputStream} as String
+     * Reads the contents of the {@code InputStream} as a String. The input stream provided will be
+     * closed after contents are read.
      *
      * @param inputStream {@link InputStream} to read
      * @return {@link String} representation of the input stream
@@ -36,11 +37,9 @@ public final class StreamUtils {
             return null;
         }
 
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        final byte[] data = new byte[STREAM_READ_BUFFER_SIZE];
-        int bytesRead;
-
-        try {
+        try (final ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+            final byte[] data = new byte[STREAM_READ_BUFFER_SIZE];
+            int bytesRead;
             while ((bytesRead = inputStream.read(data, 0, data.length)) != -1) {
                 buffer.write(data, 0, bytesRead);
             }
@@ -53,6 +52,15 @@ public final class StreamUtils {
                     TAG,
                     "Unable to convert InputStream to String," + ex.getLocalizedMessage());
             return null;
+        } finally {
+            try {
+                inputStream.close();
+            } catch (final IOException ex) {
+                Log.trace(
+                        CoreConstants.LOG_TAG,
+                        TAG,
+                        "Unable to close InputStream," + ex.getLocalizedMessage());
+            }
         }
     }
 }

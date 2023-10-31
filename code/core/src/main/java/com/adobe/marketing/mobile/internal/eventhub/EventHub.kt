@@ -90,12 +90,6 @@ internal class EventHub {
     private val eventNumberMap: ConcurrentHashMap<String, Int> = ConcurrentHashMap<String, Int>()
 
     /**
-     * Mutable set to track extension registration requests received before [start] call.
-     * The extension is removed from this set once the registration completes.
-     */
-    private val registrationRequestsBeforeStart: MutableSet<Class<out Extension>> = mutableSetOf()
-
-    /**
      * Boolean to denote if event hub has started processing events
      */
     private var hubStarted = false
@@ -344,15 +338,14 @@ internal class EventHub {
     ) {
         val extensionName = extensionClass.extensionTypeName
         val container = registeredExtensions.remove(extensionName)
-        val error: EventHubError
-        if (container != null) {
+        val error: EventHubError = if (container != null) {
             container.shutdown()
             shareEventHubSharedState()
             Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistered successfully")
-            error = EventHubError.None
+            EventHubError.None
         } else {
             Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Extension $extensionClass unregistration failed as extension was not registered")
-            error = EventHubError.ExtensionNotRegistered
+            EventHubError.ExtensionNotRegistered
         }
 
         completion.let { executeCompletionHandler { it?.invoke(error) } }
@@ -711,6 +704,7 @@ internal class EventHub {
             registeredExtensions.clear()
         }
         eventHubExecutor.shutdown()
+        scheduledExecutor.shutdown()
     }
 
     /**

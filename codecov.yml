@@ -26,7 +26,6 @@ coverage:
     - "code/core/src/main/java/com/adobe/marketing/mobile/internal/eventhub/EventHubConstants.kt"
     - "code/core/src/phone/java/com/adobe/marketing/mobile/services/ServiceConstants.kt"
     - "code/core/src/main/java/com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngineConstants.kt"
-    - "code/core/src/phone/java/com/adobe/marketing/mobile"
     - "code/core/src/main/java/com/adobe/marketing/mobile/LocalNotificationHandler.java"
     - "code/core/src/main/java/com/adobe/marketing/mobile/NotificationDismissalHandler.java"
     - "code/core/src/main/java/com/adobe/marketing/mobile/internal/AppResourceStore.kt"

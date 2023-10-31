@@ -39,6 +39,52 @@ class InAppMessageSettingsTest {
     }
 
     @Test
+    fun `Test InAppMessageSettings with full height and width params`() {
+        val iamSettings = InAppMessageSettings.Builder()
+            .height(100)
+            .width(100)
+            .build()
+        assertEquals("", iamSettings.content)
+        assertEquals(100, iamSettings.width)
+        assertEquals(100, iamSettings.height)
+        assertEquals(0, iamSettings.verticalInset)
+        assertEquals(0, iamSettings.horizontalInset)
+        assertEquals(InAppMessageSettings.MessageAlignment.CENTER, iamSettings.verticalAlignment)
+        assertEquals(InAppMessageSettings.MessageAlignment.CENTER, iamSettings.horizontalAlignment)
+        assertEquals(InAppMessageSettings.MessageAnimation.NONE, iamSettings.displayAnimation)
+        assertEquals(InAppMessageSettings.MessageAnimation.NONE, iamSettings.dismissAnimation)
+        assertEquals("#000000", iamSettings.backdropColor)
+        assertEquals(0.0f, iamSettings.backdropOpacity)
+        assertEquals(0.0f, iamSettings.cornerRadius)
+        assertFalse(iamSettings.shouldTakeOverUi)
+        assertTrue(iamSettings.assetMap.isEmpty())
+        assertTrue(iamSettings.gestureMap.isEmpty())
+    }
+
+    @Test
+    fun `Test InAppMessageSettings with height and width params needing clipping`() {
+        val iamSettings = InAppMessageSettings.Builder()
+            .height(123)
+            .width(123)
+            .build()
+        assertEquals("", iamSettings.content)
+        assertEquals(23, iamSettings.width)
+        assertEquals(23, iamSettings.height)
+        assertEquals(0, iamSettings.verticalInset)
+        assertEquals(0, iamSettings.horizontalInset)
+        assertEquals(InAppMessageSettings.MessageAlignment.CENTER, iamSettings.verticalAlignment)
+        assertEquals(InAppMessageSettings.MessageAlignment.CENTER, iamSettings.horizontalAlignment)
+        assertEquals(InAppMessageSettings.MessageAnimation.NONE, iamSettings.displayAnimation)
+        assertEquals(InAppMessageSettings.MessageAnimation.NONE, iamSettings.dismissAnimation)
+        assertEquals("#000000", iamSettings.backdropColor)
+        assertEquals(0.0f, iamSettings.backdropOpacity)
+        assertEquals(0.0f, iamSettings.cornerRadius)
+        assertFalse(iamSettings.shouldTakeOverUi)
+        assertTrue(iamSettings.assetMap.isEmpty())
+        assertTrue(iamSettings.gestureMap.isEmpty())
+    }
+
+    @Test
     fun `Test InAppMessageSettings with custom params`() {
         val iamSettings = InAppMessageSettings.Builder()
             .content("<html><head><body>Hi</body></head></html>")

@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services.ui.message
 
+import kotlin.math.abs
+
 /**
  * An immutable class that holds the settings and configuration for the InAppMessage.
  *
@@ -228,7 +230,10 @@ class InAppMessageSettings private constructor(
              * @param toClip the value to clip
              * @return the clipped value
              */
-            fun clipToPercent(toClip: Int) = toClip % 100
+            fun clipToPercent(toClip: Int): Int {
+                val res: Int = toClip % 100
+                return if (res == 0 && toClip != 0) 100 else abs(res)
+            }
         }
     }
 }

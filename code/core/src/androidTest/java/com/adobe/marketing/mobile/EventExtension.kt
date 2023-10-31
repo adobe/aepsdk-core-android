@@ -1,5 +1,5 @@
 /*
-  Copyright 2022 Adobe. All rights reserved.
+  Copyright 2023 Adobe. All rights reserved.
   This file is licensed to you under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License. You may obtain a copy
   of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -9,17 +9,12 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.internal.eventhub.history;
+package com.adobe.marketing.mobile
 
-public class EventHistoryDatabaseCreationException extends Exception {
-
-    /**
-     * Constructor.
-     *
-     * @param message a {@code String} containing the {@link EventHistoryDatabase} creation
-     *     exception details.
-     */
-    EventHistoryDatabaseCreationException(final String message) {
-        super(message);
-    }
+fun Event.copyWithNewTimeStamp(timestamp: Long): Event {
+    return Event.Builder(this.name, this.type, this.source, this.mask)
+        .setEventData(this.eventData)
+        .setResponseId(this.responseID)
+        .setTimestamp(timestamp)
+        .build()
 }

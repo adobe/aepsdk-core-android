@@ -29,7 +29,7 @@ internal class UriService : UriOpening {
     private var uriHandler: URIHandler? = null
 
     override fun openUri(uri: String): Boolean {
-        if (uri.isNullOrBlank()) {
+        if (uri.isBlank()) {
             Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Cannot open URI. URI is empty.")
             return false
         }

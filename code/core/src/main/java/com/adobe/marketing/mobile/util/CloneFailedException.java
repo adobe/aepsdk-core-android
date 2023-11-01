@@ -60,7 +60,7 @@ public class CloneFailedException extends Exception {
     /**
      * Returns the {@link Reason} for the exception.
      *
-     * @return rteturns the {@link Reason} for the exception
+     * @return returns the {@link Reason} for the exception
      */
     @NonNull Reason getReason() {
         return reason;

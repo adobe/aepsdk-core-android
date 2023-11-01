@@ -100,7 +100,7 @@ public class EventDataUtils {
         Map<String, Object> ret = new HashMap<>();
         for (Map.Entry<?, ?> kv : map.entrySet()) {
             Object key = kv.getKey();
-            if (key != null && key instanceof String) {
+            if (key instanceof String) {
                 try {
                     Object clonedValue = cloneObject(kv.getValue(), mode, depth + 1);
                     ret.put(key.toString(), clonedValue);

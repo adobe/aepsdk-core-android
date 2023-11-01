@@ -21,7 +21,7 @@ public class VisitorID {
     private static final int RANDOM_HASH_BASE = 17;
     private static final int RANDOM_HASH_PADDING = 31;
 
-    private AuthenticationState authenticationState;
+    private final AuthenticationState authenticationState;
     private final String id;
     private final String idOrigin;
     private final String idType;

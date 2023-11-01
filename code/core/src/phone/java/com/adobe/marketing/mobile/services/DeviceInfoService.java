@@ -171,12 +171,10 @@ class DeviceInfoService implements DeviceInforming {
             return DeviceInforming.DeviceType.UNKNOWN;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-            final int uiMode = resources.getConfiguration().uiMode;
+        final int uiMode = resources.getConfiguration().uiMode;
 
-            if ((uiMode & Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_WATCH) {
-                return DeviceInforming.DeviceType.WATCH;
-            }
+        if ((uiMode & Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_WATCH) {
+            return DeviceType.WATCH;
         }
 
         final DisplayMetrics displayMetrics = resources.getDisplayMetrics();

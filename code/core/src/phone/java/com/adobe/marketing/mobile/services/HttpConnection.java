@@ -49,12 +49,7 @@ class HttpConnection implements HttpConnecting {
                     String.format(
                             "Could not get the input stream, protocol does not support input. (%s)",
                             e));
-        } catch (final Exception e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Could not get the input stream. (%s)", e));
-        } catch (final Error e) {
+        } catch (final Exception | Error e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -74,12 +69,7 @@ class HttpConnection implements HttpConnecting {
     public InputStream getErrorStream() {
         try {
             return httpUrlConnection.getErrorStream();
-        } catch (final Exception e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Could not get the input stream. (%s)", e));
-        } catch (final Error e) {
+        } catch (final Exception | Error e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -101,12 +91,7 @@ class HttpConnection implements HttpConnecting {
     public int getResponseCode() {
         try {
             return httpUrlConnection.getResponseCode();
-        } catch (final Exception e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Could not get response code. (%s)", e));
-        } catch (final Error e) {
+        } catch (final Exception | Error e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -128,12 +113,7 @@ class HttpConnection implements HttpConnecting {
     public String getResponseMessage() {
         try {
             return httpUrlConnection.getResponseMessage();
-        } catch (final Exception e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Could not get the response message. (%s)", e));
-        } catch (final Error e) {
+        } catch (final Exception | Error e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -173,12 +153,7 @@ class HttpConnection implements HttpConnecting {
         if (inputStream != null) {
             try {
                 inputStream.close();
-            } catch (final Exception e) {
-                Log.warning(
-                        ServiceConstants.LOG_TAG,
-                        TAG,
-                        String.format("Could not close the input stream. (%s)", e));
-            } catch (Error e) {
+            } catch (final Exception | Error e) {
                 Log.warning(
                         ServiceConstants.LOG_TAG,
                         TAG,

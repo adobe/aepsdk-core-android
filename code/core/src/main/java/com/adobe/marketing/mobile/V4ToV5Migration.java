@@ -593,7 +593,7 @@ class V4ToV5Migration {
     }
 
     private void removeV4Databases() {
-        List<String> databaseNames = new ArrayList<String>();
+        List<String> databaseNames = new ArrayList<>();
         databaseNames.add("ADBMobile3rdPartyDataCache.sqlite"); // signals
         databaseNames.add("ADBMobilePIICache.sqlite"); // signals pii
         databaseNames.add("ADBMobileDataCache.sqlite"); // analytics db
@@ -628,7 +628,6 @@ class V4ToV5Migration {
                         "Failed to delete V4 database with name %s (%s)",
                         databaseName,
                         e);
-                continue;
             }
         }
     }

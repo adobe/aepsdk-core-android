@@ -47,7 +47,6 @@ public class ServiceProvider {
     private Logging defaultLoggingService;
     private Logging overrideLoggingService;
     private CacheService defaultCacheService;
-    private AppContextService defaultAppContextService;
     private AppContextService overrideAppContextService;
     private UriOpening defaultUriService;
 

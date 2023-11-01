@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * value of the token. A token can be of two types 1. Variable Following example demonstrates
  * variable token to retrieve the "city" details from the SDK context. {{region.city}} 2. Function
  * Following example demonstrates function token to urlEncode the provided webURL.
- * {{urlencode(http://google.com)}}
+ * {{urlenc(http://adobe.com)}}
  */
 class MustacheToken {
 

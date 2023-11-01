@@ -36,7 +36,7 @@ public class DataReader {
 
     private DataReader() {}
 
-    private static boolean checkOverflow(final Class clazz, final Number n) {
+    private static boolean checkOverflow(final Class<?> clazz, final Number n) {
         if (Double.class.equals(clazz)) {
             return false;
         } else if (Float.class.equals(clazz)) {

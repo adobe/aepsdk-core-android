@@ -78,9 +78,7 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
     // Android Lifecycle overrides
     override fun onActivityResumed(activity: Activity) {
         setAppState(AppState.FOREGROUND)
-        onActivityResumed?.let {
-            it.call(activity)
-        }
+        onActivityResumed?.call(activity)
         setCurrentActivity(activity)
     }
 
@@ -198,7 +196,6 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
      * Registers `this` as the activity lifecycle callback for the `Application`.
      *
      * @param application       the [Application] of the app
-     * @param onActivityResumed invoked when ActivityLifecycleCallbacks.onActivityResumed() is called
      */
     private fun registerActivityLifecycleCallbacks(
         application: Application

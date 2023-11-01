@@ -15,7 +15,7 @@ import android.util.DisplayMetrics;
 
 class DisplayInfoService implements DeviceInforming.DisplayInformation {
 
-    private DisplayMetrics displayMetrics;
+    private final DisplayMetrics displayMetrics;
 
     DisplayInfoService(final DisplayMetrics displayMetrics) {
         this.displayMetrics = displayMetrics;

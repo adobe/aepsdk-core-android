@@ -15,6 +15,7 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import androidx.annotation.VisibleForTesting
+import com.adobe.marketing.mobile.services.ui.Presentable
 
 /**
  * A singleton class that provides [Presentable]s a way to register for app lifecycle events.

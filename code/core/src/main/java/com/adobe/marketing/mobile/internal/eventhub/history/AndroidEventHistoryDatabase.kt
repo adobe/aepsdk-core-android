@@ -131,12 +131,13 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                     "SELECT COUNT(*) as $QUERY_COUNT, min($COLUMN_TIMESTAMP) as $QUERY_OLDEST, max($COLUMN_TIMESTAMP) as $QUERY_NEWEST FROM $TABLE_NAME WHERE $COLUMN_HASH = ? AND $COLUMN_TIMESTAMP >= ? AND $COLUMN_TIMESTAMP <= ?"
                 val whereArgs = arrayOf(hash.toString(), from.toString(), to.toString())
                 val cursor = database?.rawQuery(rawQuery, whereArgs) ?: return null
-                cursor.moveToFirst()
-
-                val count = cursor.getInt(QUERY_COUNT_INDEX)
-                val oldest = cursor.getLong(QUERY_OLDEST_INDEX)
-                val newest = cursor.getLong(QUERY_NEWEST_INDEX)
-                return EventHistoryDatabase.QueryResult(count, oldest, newest)
+                cursor.use {
+                    cursor.moveToFirst()
+                    val count = cursor.getInt(QUERY_COUNT_INDEX)
+                    val oldest = cursor.getLong(QUERY_OLDEST_INDEX)
+                    val newest = cursor.getLong(QUERY_NEWEST_INDEX)
+                    return EventHistoryDatabase.QueryResult(count, oldest, newest)
+                }
             } catch (e: Exception) {
                 Log.warning(
                     CoreConstants.LOG_TAG,

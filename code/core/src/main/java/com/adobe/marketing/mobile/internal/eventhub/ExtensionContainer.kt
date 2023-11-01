@@ -23,7 +23,6 @@ import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
 internal class ExtensionContainer constructor(
@@ -56,10 +55,6 @@ internal class ExtensionContainer constructor(
     private var sharedStateManagers: Map<SharedStateType, SharedStateManager>? = null
     private val eventListeners: ConcurrentLinkedQueue<ExtensionListenerContainer> =
         ConcurrentLinkedQueue()
-
-    // Event Resolver mapping to support legacy shared state APIs.
-    private val eventStandardResolverMapping = ConcurrentHashMap<String, SharedStateResolver>()
-    private val eventXDMResolverMapping = ConcurrentHashMap<String, SharedStateResolver>()
 
     /**
      * Implementation of [SerialWorkDispatcher.WorkHandler] that is responsible for dispatching

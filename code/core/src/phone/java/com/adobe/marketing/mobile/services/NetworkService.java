@@ -56,18 +56,15 @@ class NetworkService implements Networking {
     public void connectAsync(final NetworkRequest request, final NetworkCallback callback) {
         try {
             executorService.submit(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            HttpConnecting connection = doConnection(request);
+                    () -> {
+                        HttpConnecting connection = doConnection(request);
 
-                            if (callback != null) {
-                                callback.call(connection);
-                            } else {
-                                // If no callback is passed by the client, close the connection.
-                                if (connection != null) {
-                                    connection.close();
-                                }
+                        if (callback != null) {
+                            callback.call(connection);
+                        } else {
+                            // If no callback is passed by the client, close the connection.
+                            if (connection != null) {
+                                connection.close();
                             }
                         }
                     });
@@ -141,17 +138,7 @@ class NetworkService implements Networking {
                                 request.getReadTimeout() * SEC_TO_MS_MULTIPLIER);
                         connection = httpConnectionHandler.connect(request.getBody());
                     }
-                } catch (final IOException e) {
-                    Log.warning(
-                            ServiceConstants.LOG_TAG,
-                            TAG,
-                            String.format(
-                                    "Could not create a connection to URL (%s) [%s]",
-                                    request.getUrl(),
-                                    (e.getLocalizedMessage() != null
-                                            ? e.getLocalizedMessage()
-                                            : e.getMessage())));
-                } catch (final SecurityException e) {
+                } catch (final IOException | SecurityException e) {
                     Log.warning(
                             ServiceConstants.LOG_TAG,
                             TAG,

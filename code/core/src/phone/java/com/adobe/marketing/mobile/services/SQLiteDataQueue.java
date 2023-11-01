@@ -209,7 +209,6 @@ final class SQLiteDataQueue implements DataQueue {
                             databasePath,
                             SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE,
                             database -> {
-                                int deletedRowsCount = -1;
                                 if (database == null) {
                                     return false;
                                 }
@@ -225,7 +224,7 @@ final class SQLiteDataQueue implements DataQueue {
                                                 + ')';
                                 try (SQLiteStatement statement =
                                         database.compileStatement(builder)) {
-                                    deletedRowsCount = statement.executeUpdateDelete();
+                                    int deletedRowsCount = statement.executeUpdateDelete();
                                     Log.trace(
                                             ServiceConstants.LOG_TAG,
                                             LOG_PREFIX,

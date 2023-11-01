@@ -261,7 +261,7 @@ public class RulesLoader {
      *
      * @param response the {@code HttpConnecting} from where the response properties should be
      *     extracted from
-     * @return a map of metadata keys and their values as obrained from the {@code response}
+     * @return a map of metadata keys and their values as obtained from the {@code response}
      */
     private HashMap<String, String> extractMetadataFromResponse(final HttpConnecting response) {
         final HashMap<String, String> metadata = new HashMap<>();

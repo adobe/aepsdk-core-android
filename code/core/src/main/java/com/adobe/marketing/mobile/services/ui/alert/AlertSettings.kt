@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services.ui.alert
 
+import com.adobe.marketing.mobile.services.ui.Alert
+
 /**
  * Settings for an [Alert] presentation.
  * @param title the title of the alert

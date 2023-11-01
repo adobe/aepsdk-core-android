@@ -354,7 +354,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
      */
     @MainThread
     private fun detach(activityToDetach: Activity) {
-        val rootViewGroup: ViewGroup = activityToDetach.findViewById<ViewGroup>(android.R.id.content)
+        val rootViewGroup: ViewGroup = activityToDetach.findViewById(android.R.id.content)
         val existingComposeView: ComposeView? = activityToDetach.findViewById(contentIdentifier)
         if (existingComposeView == null) {
             Log.debug(

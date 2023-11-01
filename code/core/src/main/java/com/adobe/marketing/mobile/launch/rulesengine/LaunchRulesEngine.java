@@ -27,7 +27,6 @@ import java.util.List;
 
 public class LaunchRulesEngine {
 
-    private static final String DEFAULT_PREFIX = "LaunchRulesEngine";
     @VisibleForTesting static final String RULES_ENGINE_NAME = "name";
     private final String name;
     private final RulesEngine<LaunchRule> ruleRulesEngine;

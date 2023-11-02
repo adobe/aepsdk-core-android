@@ -228,7 +228,11 @@ class InAppMessageSettings private constructor(
              * @param toClip the value to clip
              * @return the clipped value
              */
-            fun clipToPercent(toClip: Int) = toClip % 100
+            fun clipToPercent(toClip: Int) = when {
+                toClip <= 0 -> 0
+                toClip >= 100 -> 100
+                else -> toClip
+            }
         }
     }
 }

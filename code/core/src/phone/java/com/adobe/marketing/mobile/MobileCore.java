@@ -18,9 +18,11 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
+import com.adobe.marketing.mobile.internal.DataMarshaller;
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
+import com.adobe.marketing.mobile.internal.migration.V4Migrator;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.internal.context.App;
@@ -118,13 +120,13 @@ public final class MobileCore {
         App.INSTANCE.registerActivityResumedListener(MobileCore::collectLaunchInfo);
 
         try {
-            V4ToV5Migration migrationTool = new V4ToV5Migration();
-            migrationTool.migrate();
+            V4Migrator migrator = new V4Migrator();
+            migrator.migrate();
         } catch (Exception e) {
             Log.error(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "V4 to V5 migration failed - " + e.getLocalizedMessage());
+                    "Migration from V4 SDK failed with error - " + e.getLocalizedMessage());
         }
 
         // Initialize event history
@@ -477,9 +479,7 @@ public final class MobileCore {
      */
     @VisibleForTesting
     static void collectLaunchInfo(final Activity activity) {
-        DataMarshaller marshaller = new DataMarshaller();
-        marshaller.marshal(activity);
-        final Map<String, Object> marshalledData = marshaller.getData();
+        final Map<String, Object> marshalledData = DataMarshaller.INSTANCE.marshal(activity);
         if (marshalledData == null || marshalledData.isEmpty()) {
             Log.debug(
                     CoreConstants.LOG_TAG,

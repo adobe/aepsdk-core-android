@@ -38,7 +38,6 @@ public class SqliteDataQueueTests {
 
     @After
     public void tearDown() {
-        Context context = ApplicationProvider.getApplicationContext();
         File dbFile = getDatabase();
         if (dbFile != null && dbFile.exists()) {
             dbFile.delete();
@@ -161,7 +160,7 @@ public class SqliteDataQueueTests {
             FileOutputStream fos = new FileOutputStream(getDatabase());
             fos.write(new byte[1024]);
             fos.close();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
 
         }
     }

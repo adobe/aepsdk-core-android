@@ -46,12 +46,11 @@ object SDKHelper {
         urlMonitor: (String) -> Unit
     ) {
         ServiceProvider.getInstance().networkService = Networking { request, callback ->
-            var connection: MockNetworkResponse? = null
-            when (request.url) {
+            val connection = when (request.url) {
                 configURL -> {
                     val configStream =
                         JSONObject(mockConfigResponse).toString().byteInputStream()
-                    connection = MockNetworkResponse(
+                    MockNetworkResponse(
                         HttpURLConnection.HTTP_OK,
                         "OK",
                         emptyMap(),
@@ -66,32 +65,39 @@ object SDKHelper {
                             mockRulesResource
                         )
                             ?.openStream()!!
-                    connection = MockNetworkResponse(
+                    MockNetworkResponse(
                         HttpURLConnection.HTTP_OK, "OK", emptyMap(), rulesStream, urlMonitor
                     )
                 }
+
                 else -> {
-                    connection = MockNetworkResponse(HttpURLConnection.HTTP_NOT_FOUND, "NOT FOUND", emptyMap(), "".byteInputStream(), urlMonitor)
+                    MockNetworkResponse(
+                        HttpURLConnection.HTTP_NOT_FOUND,
+                        "NOT FOUND",
+                        emptyMap(),
+                        "".byteInputStream(),
+                        urlMonitor
+                    )
                 }
             }
 
-            if (callback != null && connection != null) {
-                callback.call(connection)
-            }
-            connection?.urlMonitor?.invoke(request.url)
-            connection?.close()
+            callback?.call(connection)
+            connection.urlMonitor.invoke(request.url)
+            connection.close()
         }
     }
 
-    fun setupConfiguration(appId: String,
-                           mockConfigResponse: Map<String, String>,
-                           mockRulesResource: String? = null,
-                           waitTime: Long = WAIT_TIME_MILLIS ) {
+    fun setupConfiguration(
+        appId: String,
+        mockConfigResponse: Map<String, String>,
+        mockRulesResource: String? = null,
+        waitTime: Long = WAIT_TIME_MILLIS
+    ) {
         val configUrlValidationLatch = CountDownLatch(1)
         val rulesUrlValidationLatch = CountDownLatch(1)
 
         val configURL = "$CONFIG_URL_PREFIX/$appId.json"
-        var configWithRules = mockConfigResponse.toMutableMap()
+        val configWithRules = mockConfigResponse.toMutableMap()
         var rulesURL: String? = null
         if (mockRulesResource != null) {
             configWithRules[CONFIG_RULES_KEY] = TEST_RULES_URL

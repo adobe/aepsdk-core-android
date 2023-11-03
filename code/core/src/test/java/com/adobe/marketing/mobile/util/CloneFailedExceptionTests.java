@@ -13,15 +13,19 @@ package com.adobe.marketing.mobile.util;
 
 import static org.junit.Assert.assertEquals;
 
-public class CloneFailedExceptionTest {
+import org.junit.Test;
 
-    void testConstructorWithStringMessage() {
+public class CloneFailedExceptionTests {
+
+    @Test
+    public void testConstructorWithStringMessage() {
         final CloneFailedException cloneFailedException = new CloneFailedException("Message");
         assertEquals("Message", cloneFailedException.getMessage());
         assertEquals(CloneFailedException.Reason.UNKNOWN, cloneFailedException.getReason());
     }
 
-    void testConstructorWithReason() {
+    @Test
+    public void testConstructorWithReason() {
         final CloneFailedException cloneFailedMaxDepth =
                 new CloneFailedException(CloneFailedException.Reason.MAX_DEPTH_REACHED);
         assertEquals(

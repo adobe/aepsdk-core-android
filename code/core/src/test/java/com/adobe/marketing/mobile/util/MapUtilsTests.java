@@ -26,7 +26,7 @@ public class MapUtilsTests {
 
     @Test
     public void testIsNullOrEmpty_withMap_whenNull() {
-        assertTrue(MapUtils.isNullOrEmpty((Map) null));
+        assertTrue(MapUtils.isNullOrEmpty(null));
     }
 
     @Test

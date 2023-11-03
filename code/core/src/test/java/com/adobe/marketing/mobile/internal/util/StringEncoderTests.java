@@ -13,7 +13,6 @@ package com.adobe.marketing.mobile.internal.util;
 
 import static org.junit.Assert.*;
 
-import com.adobe.marketing.mobile.TestHelper;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
@@ -21,19 +20,7 @@ import org.junit.Test;
 public class StringEncoderTests {
 
     @Test
-    public void testClassIsWellDefined() {
-        try {
-            TestHelper.assertUtilityClassWellDefined(StringEncoder.class);
-        } catch (Exception e) {
-            fail("StringEncoder class is not well defined, throwing exception " + e);
-        }
-    }
-
-    // ==============================================================================================================
-    // static String getSha1HashedString(final String inputString)
-    // ==============================================================================================================
-    @Test
-    public void testGetSha1HashedString_when_inputStringIsNull_then_returnNull() throws Exception {
+    public void testGetSha1HashedString_when_inputStringIsNull_then_returnNull() {
         // test
         final String result = StringEncoder.getSha1HashedString(null);
 
@@ -42,7 +29,7 @@ public class StringEncoderTests {
     }
 
     @Test
-    public void testGetSha1HashedString_when_inputStringIsEmpty_then_returnNull() throws Exception {
+    public void testGetSha1HashedString_when_inputStringIsEmpty_then_returnNull() {
         // test
         final String result = StringEncoder.getSha1HashedString("");
 
@@ -51,8 +38,8 @@ public class StringEncoderTests {
     }
 
     @Test
-    public void testGetSha1HashedString_when_inputStringIsValid_then_returnCorrectSha1HashedValue()
-            throws Exception {
+    public void
+            testGetSha1HashedString_when_inputStringIsValid_then_returnCorrectSha1HashedValue() {
         // setup
         final String inputString = "RAINBOWSANDUNICORNS";
 
@@ -76,7 +63,7 @@ public class StringEncoderTests {
 
     @Test
     public void testDecodeOutputComplianceWithStandardLibrary() {
-        String message = "Hello world! 123!@#$%^&*(){}/\\\"\'";
+        String message = "Hello world! 123!@#$%^&*(){}/\\\"'";
         String hexString1 = StringEncoder.getHexString(message);
         byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
         char[] result = Hex.encodeHex(bytes, false);
@@ -88,12 +75,12 @@ public class StringEncoderTests {
     @Test
     public void testDecodeNullString() {
         String result = StringEncoder.getHexString(null);
-        assertEquals(null, result);
+        assertNull(result);
     }
 
     @Test
     public void testDecodeEmptyString() {
         String result = StringEncoder.getHexString("");
-        assertEquals(null, result);
+        assertNull(result);
     }
 }

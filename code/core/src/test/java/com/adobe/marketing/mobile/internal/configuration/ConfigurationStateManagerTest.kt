@@ -456,7 +456,7 @@ class ConfigurationStateManagerTest {
             "Key4" to "replaced_Key4Value", // non - programmatic config is overwritten
             "Key5" to 5, // non -programmatic config is overwritten
             "Key6" to false, // non - programmatic config is overwritten
-            "Key7" to listOf<Int>(0, 1, 2, 3) // new keys are added
+            "Key7" to listOf(0, 1, 2, 3) // new keys are added
         )
 
         assertEquals(

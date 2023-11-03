@@ -143,7 +143,7 @@ class UriServiceTest {
 
         // verify
         assertTrue(result)
-        verify(mockCurrentActivity).startActivity(any<Intent>())
+        verify(mockCurrentActivity).startActivity(any())
     }
 
     @After

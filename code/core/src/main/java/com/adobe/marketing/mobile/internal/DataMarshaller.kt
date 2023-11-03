@@ -43,6 +43,7 @@ internal object DataMarshaller {
      * @param activity Instance of an [Activity].
      * @return map of marshalled data
      */
+    @JvmStatic
     fun marshal(activity: Activity?): Map<String, Any>? {
         activity ?: return null
         val intent = activity.intent ?: return null

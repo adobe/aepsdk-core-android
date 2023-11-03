@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.util.concurrent.atomic.AtomicBoolean;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -133,7 +133,7 @@ public class HttpConnectingTests {
     }
 
     @Test
-    public void testGetResponsePropertyValue_ValidKey() throws IOException {
+    public void testGetResponsePropertyValue_ValidKey() {
         // Setup
         when(httpURLConnection.getHeaderField("key")).thenReturn("value");
         HttpConnection connection = new HttpConnection(httpURLConnection);
@@ -144,7 +144,7 @@ public class HttpConnectingTests {
     }
 
     @Test
-    public void testGetResponsePropertyValue_Key_Is_Invalid() throws IOException {
+    public void testGetResponsePropertyValue_Key_Is_Invalid() {
         // Setup
         HttpConnection connection = new HttpConnection(httpURLConnection);
         // Test

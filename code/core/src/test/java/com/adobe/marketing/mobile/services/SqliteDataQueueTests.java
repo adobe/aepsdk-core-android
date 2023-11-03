@@ -35,16 +35,11 @@ public class SqliteDataQueueTests {
     private static final String DATABASE_NAME = "test.sqlite";
     private static final String TABLE_NAME = "TB_AEP_DATA_ENTITY";
     private static final String EMPTY_JSON_STRING = "{}";
-    private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
-    private static final String TB_KEY_TIMESTAMP = "timestamp";
-    private static final String TB_KEY_DATA = "data";
 
     public SqliteDataQueueTests() {}
 
     @Before
     public void setUp() {
-        //        PowerMockito.when(SQLiteDatabaseHelper.createTableIfNotExist(Mockito.anyString(),
-        // Mockito.anyString())).thenReturn(true);
         dataQueue = null;
     }
 

@@ -250,10 +250,7 @@ public class URLBuilderTests {
     @Test
     public void noQueryParameters_When_ParametersMapIsEmpty() {
         String url =
-                new URLBuilder()
-                        .setServer("server")
-                        .addQueryParameters(new HashMap<String, String>())
-                        .build();
+                new URLBuilder().setServer("server").addQueryParameters(new HashMap<>()).build();
         Assert.assertEquals("https://server", url);
     }
 
@@ -295,7 +292,7 @@ public class URLBuilderTests {
     }
 
     private Map<String, String> getURLQueryParameters(final String urlString) {
-        final Map<String, String> parameters = new HashMap<String, String>();
+        final Map<String, String> parameters = new HashMap<>();
         URL url;
 
         try {
@@ -310,7 +307,7 @@ public class URLBuilderTests {
 
         for (String currentParam : paramArray) {
             // quick out in case this entry is null or empty string
-            if (currentParam == null || currentParam.length() <= 0) {
+            if (currentParam == null || currentParam.length() == 0) {
                 continue;
             }
 

@@ -267,7 +267,7 @@ public class FileCacheServiceTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         mockCacheDir.setReadable(true);
         mockCacheDir.setWritable(true);
         FileTestHelper.deleteFile(mockCacheDir, true);

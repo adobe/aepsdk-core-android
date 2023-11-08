@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -66,6 +67,13 @@ internal fun MessageContent(
                     ServiceConstants.LOG_TAG,
                     "MessageContent",
                     "Creating MessageContent"
+                )
+
+                // Needed to force the HTML to be rendered within bounds of the AndroidView
+                // allowing HTML content with "overflow" css to work properly
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
                 )
 
                 // call on created before loading the content. This is to ensure that the webview script

@@ -210,30 +210,28 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                 if (!uiTakeoverEnabled) {
                     // only log action up or down events as this logging can get quite
                     // spammy
-                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
-                            || motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                         Log.trace(
                                 ServiceConstants.LOG_TAG,
                                 TAG,
-                                "UI takeover is false, passing the %s event to the parent"
-                                        + " activity.",
-                                MotionEvent.actionToString(motionEvent.getAction()));
+                                "UI takeover is false, passing the touch event to the parent"
+                                        + " activity.");
                     }
-                    parentActivity.dispatchTouchEvent(motionEvent);
-                    return false;
+                    return parentActivity.dispatchTouchEvent(motionEvent);
+                } else {
+                    // load any behavior url strings on action up only as a touch consists of
+                    // two motion events: an action down and an action up event
+                    if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                        Log.trace(
+                                ServiceConstants.LOG_TAG,
+                                TAG,
+                                "UI takeover is true, parent activity UI is inaccessible."
+                                        + " Processing defined background tap behaviors.");
+                        webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
+                        return true;
+                    }
                 }
-
-                // load any behavior url strings on action up only as a touch consists of
-                // two motion events: an action down and an action up event
-                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
-                    Log.trace(
-                            ServiceConstants.LOG_TAG,
-                            TAG,
-                            "UI takeover is true, parent activity UI is inaccessible. Processing"
-                                    + " defined background tap behaviors.");
-                    webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
-                }
-                return false;
+                return super.onTouchEvent(motionEvent);
             }
         };
     }

@@ -226,6 +226,11 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                 // load any behavior url strings on action up only as a touch consists of
                 // two motion events: an action down and an action up event
                 if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    Log.trace(
+                            ServiceConstants.LOG_TAG,
+                            TAG,
+                            "UI takeover is true, parent activity UI is inaccessible. Processing"
+                                    + " defined background tap behaviors.");
                     webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
                 }
                 return false;

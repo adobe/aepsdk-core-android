@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -25,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
+import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.DialogFragment;
@@ -172,7 +174,66 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                                 .getApplicationContext(),
                         webViewGestureListener);
 
-        setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Translucent_NoTitleBar);
+        setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme_Translucent_NoTitleBar);
+    }
+
+    @Override
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final Activity parentActivity = getActivity();
+        final int fragmentTheme = getTheme();
+        final Dialog defaultDialog = super.onCreateDialog(savedInstanceState);
+
+        if (parentActivity == null || message == null) {
+            Log.trace(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (%s), returning a default Dialog object.",
+                    parentActivity == null ? "Parent Activity" : "Message",
+                    UNEXPECTED_NULL_VALUE);
+            return defaultDialog;
+        }
+
+        final MessageSettings messageSettings = message.getMessageSettings();
+        if (messageSettings == null) {
+            Log.trace(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "%s (MessageSettings), returning a default Dialog object.",
+                    UNEXPECTED_NULL_VALUE);
+            return defaultDialog;
+        }
+
+        final boolean uiTakeoverEnabled = messageSettings.getUITakeover();
+        return new Dialog(parentActivity, fragmentTheme) {
+            @Override
+            public boolean onTouchEvent(@NonNull final MotionEvent motionEvent) {
+                if (!uiTakeoverEnabled) {
+                    // only log action up or down events as this logging can get quite
+                    // spammy
+                    if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                        Log.trace(
+                                ServiceConstants.LOG_TAG,
+                                TAG,
+                                "UI takeover is false, passing the touch event to the parent"
+                                        + " activity.");
+                    }
+                    return parentActivity.dispatchTouchEvent(motionEvent);
+                } else {
+                    // load any behavior url strings on action up only as a touch consists of
+                    // two motion events: an action down and an action up event
+                    if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                        Log.trace(
+                                ServiceConstants.LOG_TAG,
+                                TAG,
+                                "UI takeover is true, parent activity UI is inaccessible."
+                                        + " Processing defined background tap behaviors.");
+                        webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
+                        return true;
+                    }
+                }
+                return super.onTouchEvent(motionEvent);
+            }
+        };
     }
 
     @Override
@@ -234,13 +295,14 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
     @Override
     public boolean onTouch(final View view, final MotionEvent motionEvent) {
+        final String viewName = view.getClass().getSimpleName();
         if (message == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     TAG,
                     "%s (AEPMessage), unable to handle the touch event on %s.",
                     UNEXPECTED_NULL_VALUE,
-                    view.getClass().getSimpleName());
+                    viewName);
             return true;
         }
 
@@ -251,7 +313,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                     TAG,
                     "%s (WebView), unable to handle the touch event on %s.",
                     UNEXPECTED_NULL_VALUE,
-                    view.getClass().getSimpleName());
+                    viewName);
             return true;
         }
 
@@ -262,37 +324,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                     TAG,
                     "%s (MessageSettings), unable to handle the touch event on %s.",
                     UNEXPECTED_NULL_VALUE,
-                    view.getClass().getSimpleName());
-            return true;
-        }
-
-        final int motionEventAction = motionEvent.getAction();
-
-        // determine if the tap occurred outside the webview
-        if ((motionEventAction == MotionEvent.ACTION_DOWN
-                        || motionEventAction == MotionEvent.ACTION_BUTTON_PRESS)
-                && view.getId() != webView.getId()) {
-            Log.trace(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    "Detected tap on %s",
-                    view.getClass().getSimpleName());
-
-            final boolean uiTakeoverEnabled = messageSettings.getUITakeover();
-
-            // if ui takeover is false, dismiss the message
-            if (!uiTakeoverEnabled) {
-                Log.trace(
-                        ServiceConstants.LOG_TAG,
-                        TAG,
-                        "UI takeover is false, dismissing the message.");
-                webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
-                // perform the tap to allow interaction with ui elements outside the webview
-                return view.onTouchEvent(motionEvent);
-            }
-
-            // ui takeover is true, consume the tap and ignore it
-            Log.trace(ServiceConstants.LOG_TAG, TAG, "UI takeover is true, ignoring the tap.");
+                    viewName);
             return true;
         }
 
@@ -343,10 +375,6 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
         final Dialog dialog = getDialog();
         if (dialog != null) {
-            // set this fragment onTouchListener to dismiss the IAM if a touch occurs on the decor
-            // view
-            dialog.getWindow().getDecorView().setOnTouchListener(this);
-
             // handle on back pressed to dismiss the message
             dialog.setOnKeyListener(
                     (dialogInterface, keyCode, event) -> {
@@ -368,7 +396,6 @@ public class MessageFragment extends android.app.DialogFragment implements View.
 
         final Dialog dialog = getDialog();
         if (dialog != null) {
-            dialog.getWindow().getDecorView().setOnTouchListener(null);
             dialog.setOnKeyListener(null);
         }
     }
@@ -392,6 +419,16 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                     TAG,
                     "%s (Message Settings), unable to apply backdrop color.",
                     UNEXPECTED_NULL_VALUE);
+            return;
+        }
+
+        final boolean uiTakeoverEnabled = messageSettings.getUITakeover();
+        // we don't want to dim the background if ui takeover is disabled
+        if (!uiTakeoverEnabled) {
+            Log.trace(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "Not applying background alpha, ui takeover is disabled.");
             return;
         }
 

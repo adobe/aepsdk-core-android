@@ -65,7 +65,7 @@ public class MessageSettings {
         SWIPE_DOWN("swipeDown"),
         SWIPE_LEFT("swipeLeft"),
         SWIPE_RIGHT("swipeRight"),
-        BACKGROUND_TAP("backgroundTap");
+        BACKGROUND_TAP("tapBackground");
 
         private String name;
         private static final Map<String, MessageGesture> gestureStringToGestureEnumMap;

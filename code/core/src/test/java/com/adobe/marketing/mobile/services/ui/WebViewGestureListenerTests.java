@@ -246,4 +246,40 @@ public class WebViewGestureListenerTests {
                 .overrideUrlLoad(
                         ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
     }
+
+    @Test
+    public void
+            testHandleGesture_BackgroundTap_BackgroundTapBehaviorDefined_Then_MessageDismissed() {
+        // setup
+        Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
+        Mockito.when(mockMotionEvent2.getX()).thenReturn(0f);
+        Mockito.when(mockMotionEvent.getY()).thenReturn(0f);
+        Mockito.when(mockMotionEvent2.getY()).thenReturn(-300.0f);
+        // test
+        gestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
+        // verify
+        Assert.assertFalse(mockMessageFragment.isDismissedWithGesture());
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
+                .overrideUrlLoad(
+                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
+    }
+
+    @Test
+    public void
+            testHandleGesture_BackgroundTap_BackgroundTapBehaviorNotDefined_Then_MessageNotDismissed() {
+        // setup
+        gestureMap.remove(MessageGesture.BACKGROUND_TAP);
+        mockMessageFragment.gestures = gestureMap;
+        Mockito.when(mockMotionEvent.getX()).thenReturn(0f);
+        Mockito.when(mockMotionEvent2.getX()).thenReturn(0f);
+        Mockito.when(mockMotionEvent.getY()).thenReturn(0f);
+        Mockito.when(mockMotionEvent2.getY()).thenReturn(-300.0f);
+        // test
+        gestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
+        // verify
+        Assert.assertFalse(mockMessageFragment.isDismissedWithGesture());
+        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0))
+                .overrideUrlLoad(
+                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
+    }
 }

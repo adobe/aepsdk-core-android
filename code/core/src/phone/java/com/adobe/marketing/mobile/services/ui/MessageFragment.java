@@ -208,7 +208,8 @@ public class MessageFragment extends android.app.DialogFragment implements View.
             @Override
             public boolean onTouchEvent(@NonNull final MotionEvent motionEvent) {
                 if (!uiTakeoverEnabled) {
-                    // only log action up or down events as this logging can get quite spammy
+                    // only log action up or down events as this logging can get quite
+                    // spammy
                     if (motionEvent.getAction() == MotionEvent.ACTION_DOWN
                             || motionEvent.getAction() == MotionEvent.ACTION_UP) {
                         Log.trace(
@@ -219,8 +220,15 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                                 MotionEvent.actionToString(motionEvent.getAction()));
                     }
                     parentActivity.dispatchTouchEvent(motionEvent);
+                    return false;
                 }
-                return super.onTouchEvent(motionEvent);
+
+                // load any behavior url strings on action up only as a touch consists of
+                // two motion events: an action down and an action up event
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                    webViewGestureListener.handleGesture(MessageGesture.BACKGROUND_TAP);
+                }
+                return false;
             }
         };
     }

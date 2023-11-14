@@ -113,9 +113,10 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
     }
 
     /**
-     * Generates a dismiss animation using the {@link ObjectAnimator}. The {@link
+     * Generates a dismiss animation if needed using the {@link ObjectAnimator}. The {@link
      * androidx.cardview.widget.CardView} frame will be dismissed at the direction of the detected
-     * swipe {@link MessageGesture}.
+     * swipe {@link MessageGesture}. Background tap gestures will not dismiss the message but any
+     * associated behavior will be
      *
      * @param gesture The detected swipe {@code MessageGesture} that occurred.
      */
@@ -152,7 +153,19 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
                                 webViewFrame.getTop(),
                                 -message.parentViewHeight);
                 break;
-            default: // default, dismiss to bottom if not a background tap
+            case BACKGROUND_TAP:
+                animation = null;
+                // we are handling a background tap. handle the background tap interaction event
+                // specified (if any).
+                final String behavior =
+                        parentFragment.gestures == null
+                                ? null
+                                : parentFragment.gestures.get(gesture);
+                if (!StringUtils.isNullOrEmpty(behavior)) {
+                    message.listener.overrideUrlLoad(message, behavior);
+                }
+                break;
+            default: // default, dismiss to bottom
                 animation =
                         ObjectAnimator.ofFloat(
                                 webViewFrame, "y", webViewFrame.getTop(), message.parentViewHeight);

@@ -321,7 +321,7 @@ public class MessageFragment extends android.app.DialogFragment implements View.
                     TAG,
                     "%s (MessageSettings), unable to handle the touch event on %s.",
                     UNEXPECTED_NULL_VALUE,
-                    view.getClass().getSimpleName());
+                    viewName);
             return true;
         }
 

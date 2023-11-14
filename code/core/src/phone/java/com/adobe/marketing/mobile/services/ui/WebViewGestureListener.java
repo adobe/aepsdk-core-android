@@ -155,8 +155,10 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
                 break;
             case BACKGROUND_TAP:
                 animation = null;
-                // we are handling a background tap. handle the background tap interaction event
+                // we are handling a background tap. handle the background tap interaction behavior
                 // specified (if any).
+                // if we have no defined background tap behavior then we do not want to dismiss the
+                // message.
                 final String behavior =
                         parentFragment.gestures == null
                                 ? null

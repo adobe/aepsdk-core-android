@@ -148,47 +148,4 @@ public class MessageFragmentTests {
                         ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
         Assert.assertTrue(eventProcessed);
     }
-
-    @Test
-    public void
-            testOnTouchListener_TouchOccurredOutsideWebview_And_UITakeoverFalse_ThenMessageDismissed() {
-        // setup
-        messageFragment.webViewGestureListener = mockWebViewGestureListener;
-        messageFragment.gestureDetector = mockGestureDetector;
-        Mockito.when(mockAEPMessageSettings.getUITakeover()).thenReturn(false);
-        Mockito.when(mockWebView.getId()).thenReturn(12345);
-        Mockito.when(mockViewGroup.getId()).thenReturn(67890);
-        Mockito.when(mockAEPMessage.getWebView()).thenReturn(mockWebView);
-        // call onCreate to setup the gestures
-        messageFragment.onCreate(mockSavedInstanceState);
-        // test
-        boolean eventProcessed = messageFragment.onTouch(mockViewGroup, mockMotionEvent);
-        // verify
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(1))
-                .overrideUrlLoad(
-                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
-        // expect false because the touch event was handled by the rootview
-        Assert.assertFalse(eventProcessed);
-    }
-
-    @Test
-    public void
-            testOnTouchListener_TouchOccurredOutsideWebview_And_UITakeoverTrue_ThenMessageNotDismissed() {
-        // setup
-        messageFragment.webViewGestureListener = mockWebViewGestureListener;
-        messageFragment.gestureDetector = mockGestureDetector;
-        Mockito.when(mockAEPMessageSettings.getUITakeover()).thenReturn(true);
-        Mockito.when(mockWebView.getId()).thenReturn(12345);
-        Mockito.when(mockViewGroup.getId()).thenReturn(67890);
-        Mockito.when(mockAEPMessage.getWebView()).thenReturn(mockWebView);
-        // call onCreate to setup the gestures
-        messageFragment.onCreate(mockSavedInstanceState);
-        // test
-        boolean eventProcessed = messageFragment.onTouch(mockViewGroup, mockMotionEvent);
-        // verify
-        Mockito.verify(mockFullscreenMessageDelegate, Mockito.times(0))
-                .overrideUrlLoad(
-                        ArgumentMatchers.any(AEPMessage.class), ArgumentMatchers.anyString());
-        Assert.assertTrue(eventProcessed);
-    }
 }

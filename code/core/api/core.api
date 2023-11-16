@@ -910,6 +910,7 @@ public class com/adobe/marketing/mobile/services/ui/MessageFragment : android/ap
 	public fun onActivityCreated (Landroid/os/Bundle;)V
 	public fun onAttach (Landroid/content/Context;)V
 	public fun onCreate (Landroid/os/Bundle;)V
+	public fun onCreateDialog (Landroid/os/Bundle;)Landroid/app/Dialog;
 	public fun onDestroyView ()V
 	public fun onDetach ()V
 	public fun onTouch (Landroid/view/View;Landroid/view/MotionEvent;)Z

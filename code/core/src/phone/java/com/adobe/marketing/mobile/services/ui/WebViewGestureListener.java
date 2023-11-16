@@ -19,7 +19,6 @@ import android.webkit.WebView;
 import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceConstants;
-import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageAnimation;
 import com.adobe.marketing.mobile.services.ui.MessageSettings.MessageGesture;
 import com.adobe.marketing.mobile.util.StringUtils;
 
@@ -114,24 +113,15 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
     }
 
     /**
-     * Generates a dismiss animation using the {@link ObjectAnimator}. The {@link
+     * Generates a dismiss animation if needed using the {@link ObjectAnimator}. The {@link
      * androidx.cardview.widget.CardView} frame will be dismissed at the direction of the detected
-     * swipe {@link MessageGesture}. If the in-app message was dismissed via a {@code
-     * MessageGesture.BACKGROUND_TAP} then the {@code CardView} will be dismissed using the
-     * dismissal {@link MessageAnimation} specified in the {@link MessageSettings}.
+     * swipe {@link MessageGesture}. Background tap gestures will not dismiss the message but any
+     * associated behavior will be
      *
      * @param gesture The detected swipe {@code MessageGesture} that occurred.
      */
     public void handleGesture(final MessageGesture gesture) {
-        if (gesture.equals(MessageSettings.MessageGesture.BACKGROUND_TAP)) {
-            // we are handling a background tap. message will be dismissed via the dismiss animation
-            // specified in the MessageSettings.
-            dismissMessage(gesture, false);
-            return;
-        }
-
         final AEPMessage message = parentFragment.getAEPMessage();
-
         if (message == null) {
             Log.debug(
                     ServiceConstants.LOG_TAG,
@@ -163,7 +153,21 @@ class WebViewGestureListener extends GestureDetector.SimpleOnGestureListener {
                                 webViewFrame.getTop(),
                                 -message.parentViewHeight);
                 break;
-            default: // default, dismiss to bottom if not a background tap
+            case BACKGROUND_TAP:
+                animation = null;
+                // we are handling a background tap. handle the background tap interaction behavior
+                // specified (if any).
+                // if we have no defined background tap behavior then we do not want to dismiss the
+                // message.
+                final String behavior =
+                        parentFragment.gestures == null
+                                ? null
+                                : parentFragment.gestures.get(gesture);
+                if (!StringUtils.isNullOrEmpty(behavior)) {
+                    message.listener.overrideUrlLoad(message, behavior);
+                }
+                break;
+            default: // default, dismiss to bottom
                 animation =
                         ObjectAnimator.ofFloat(
                                 webViewFrame, "y", webViewFrame.getTop(), message.parentViewHeight);

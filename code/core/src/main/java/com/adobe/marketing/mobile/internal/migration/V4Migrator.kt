@@ -178,15 +178,15 @@ internal class V4Migrator {
             .getNamedCollection(V5.Analytics.DATASTORE_NAME)
         analyticsV5DataStore.setString(
             V5.Analytics.AID,
-            v4SharedPreferences!!.getString(V4.Analytics.AID, null)
+            v4DataStore.getString(V4.Analytics.AID, null)
         )
         analyticsV5DataStore.setBoolean(
             V5.Analytics.IGNORE_AID,
-            v4SharedPreferences!!.getBoolean(V4.Analytics.IGNORE_AID, false)
+            v4DataStore.getBoolean(V4.Analytics.IGNORE_AID, false)
         )
         analyticsV5DataStore.setString(
             V5.Analytics.VID,
-            v4SharedPreferences!!.getString(V4.Identity.VISITOR_ID, null)
+            v4DataStore.getString(V4.Identity.VISITOR_ID, null)
         )
         v4DataStoreEditor.remove(V4.Analytics.AID)
         v4DataStoreEditor.remove(V4.Analytics.IGNORE_AID)

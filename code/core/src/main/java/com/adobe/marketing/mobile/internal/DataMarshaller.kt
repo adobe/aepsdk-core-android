@@ -15,8 +15,6 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import com.adobe.marketing.mobile.internal.DataMarshaller.cleanAdobeQueryKeys
-import com.adobe.marketing.mobile.internal.DataMarshaller.containAdobeQueryKeys
 import com.adobe.marketing.mobile.services.Log
 
 /** The util class to marshal data from [Activity].  */

@@ -65,7 +65,7 @@ internal object DataMarshaller {
      */
     private fun marshalIntentExtras(intent: Intent, marshalledData: MutableMap<String, Any>) {
         val extraBundle = intent.extras ?: return
-        extraBundle.keySet().forEach { key ->
+        extraBundle.keySet()?.forEach { key ->
             val newKey = when (key) {
                 LEGACY_PUSH_MESSAGE_ID -> PUSH_MESSAGE_ID_KEY
                 NOTIFICATION_IDENTIFIER_KEY -> LOCAL_NOTIFICATION_ID_KEY

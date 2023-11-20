@@ -5,7 +5,7 @@
 
   <application>
     <meta-data android:name="DeviceInfoServiceTests.testGetPropertyFromManifest.do.not.delete" android:value="this_is_a_value"/>
-    <activity android:name="com.adobe.marketing.mobile.DataMarshallerTests$TestActivity" />
+    <activity android:name="com.adobe.marketing.mobile.internal.DataMarshallerTests$TestActivity" />
   </application>
   <uses-permission android:name="android.permission.INTERNET" />
 

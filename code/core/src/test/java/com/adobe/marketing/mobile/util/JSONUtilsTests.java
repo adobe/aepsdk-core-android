@@ -26,7 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 
-public class JSONUtilsTest {
+public class JSONUtilsTests {
 
     @Test
     public void testIsNullOrEmpty_withJSONObject_whenNull() {

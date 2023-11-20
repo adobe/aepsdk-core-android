@@ -48,9 +48,14 @@ public class EventDataMergerJavaTests {
                     }
                 };
         Map<String, Object> mergedMap = EventDataMerger.merge(fromMap, toMap, true);
-        Map<String, Object> innerMap = (Map<String, Object>) mergedMap.get("nested");
-        assertEquals(2, innerMap.size());
-        assertEquals("oldValue", innerMap.get("key"));
-        assertEquals("newValue", innerMap.get("newKey"));
+
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {
+                    {
+                        put("key", "oldValue");
+                        put("newKey", "newValue");
+                    }
+                };
+        assertEquals(expectedMap, mergedMap.get("nested"));
     }
 }

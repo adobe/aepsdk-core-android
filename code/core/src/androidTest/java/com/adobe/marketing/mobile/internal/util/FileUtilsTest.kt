@@ -33,9 +33,9 @@ class FileUtilsTest {
     @get: Rule
     var folder = TemporaryFolder()
 
-    var zipSource: File? = null
+    private var zipSource: File? = null
     private val sampleContent = "Some Random Content Written To File"
-    private val additonalSaampleContent = "Some Additional Random Content Written To File"
+    private val additionalSampleContent = "Some Additional Random Content Written To File"
     private val MOCK_CONTENT_DIR =
         InstrumentationRegistry.getInstrumentation().context.cacheDir.path + File.separator + "/TestDir"
 
@@ -97,7 +97,7 @@ class FileUtilsTest {
         assertFalse(
             FileUtils.readInputStreamIntoFile(
                 nonExistentFile,
-                additonalSaampleContent.byteInputStream(),
+                additionalSampleContent.byteInputStream(),
                 false
             )
         )
@@ -108,7 +108,7 @@ class FileUtilsTest {
         assertFalse(
             FileUtils.readInputStreamIntoFile(
                 null,
-                additonalSaampleContent.byteInputStream(),
+                additionalSampleContent.byteInputStream(),
                 false
             )
         )
@@ -122,11 +122,11 @@ class FileUtilsTest {
         assertTrue(
             FileUtils.readInputStreamIntoFile(
                 fileToReadInto,
-                additonalSaampleContent.byteInputStream(),
+                additionalSampleContent.byteInputStream(),
                 false
             )
         )
-        assertEquals(additonalSaampleContent, FileUtils.readAsString(fileToReadInto))
+        assertEquals(additionalSampleContent, FileUtils.readAsString(fileToReadInto))
 
         deleteDir(File(MOCK_CONTENT_DIR))
     }
@@ -150,12 +150,12 @@ class FileUtilsTest {
         assertTrue(
             FileUtils.readInputStreamIntoFile(
                 fileToReadInto,
-                additonalSaampleContent.byteInputStream(),
+                additionalSampleContent.byteInputStream(),
                 true
             )
         )
         assertEquals(
-            "$sampleContent$additonalSaampleContent",
+            "$sampleContent$additionalSampleContent",
             FileUtils.readAsString(fileToReadInto)
         )
 
@@ -345,7 +345,8 @@ class FileUtilsTest {
         }
     }
 
-    private fun existsInList(files: Array<File>, fileName: String): Boolean {
+    private fun existsInList(files: Array<out File>?, fileName: String): Boolean {
+        files ?: return false
         var found = false
         for (file in files) {
             if ((file.name == fileName).also { found = it }) {
@@ -356,7 +357,7 @@ class FileUtilsTest {
     }
 
     private fun createFile(fileName: String, content: String?): File {
-        val cacheFile: File =
+        val cacheFile =
             File(MOCK_CONTENT_DIR + File.separator + fileName)
         try {
             cacheFile.createNewFile()
@@ -364,7 +365,7 @@ class FileUtilsTest {
             fileWriter.write(content)
             fileWriter.flush()
             fileWriter.close()
-        } catch (ex: IOException) {
+        } catch (_: IOException) {
         }
         return cacheFile
     }

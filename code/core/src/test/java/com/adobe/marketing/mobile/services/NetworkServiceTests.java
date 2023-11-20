@@ -153,9 +153,7 @@ public class NetworkServiceTests {
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 10),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -186,9 +184,7 @@ public class NetworkServiceTests {
             networkService.connectAsync(
                     new NetworkRequest(
                             "https://www.adobe.com", HttpMethod.GET, null, properties, 10, 10),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -212,9 +208,7 @@ public class NetworkServiceTests {
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 5),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -237,9 +231,7 @@ public class NetworkServiceTests {
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.POST, null, null, 10, 5),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -262,9 +254,7 @@ public class NetworkServiceTests {
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 5),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
 
             final ArgumentCaptor<Integer> connectTimeoutCaptor =
@@ -292,9 +282,7 @@ public class NetworkServiceTests {
             networkService.connectAsync(
                     new NetworkRequest(
                             "https://www.adobe.com", HttpMethod.GET, new byte[] {}, null, 10, 10),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -322,9 +310,7 @@ public class NetworkServiceTests {
                             null,
                             10,
                             10),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -342,7 +328,7 @@ public class NetworkServiceTests {
                 new ThreadPoolExecutor.CallerRunsPolicy();
 
         return new ThreadPoolExecutor(
-                0, 1, 0L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), callerRunsPolicy) {
+                0, 1, 0L, TimeUnit.SECONDS, new SynchronousQueue<>(), callerRunsPolicy) {
             @Override
             public void execute(Runnable command) {
                 // Executes task in the caller's thread

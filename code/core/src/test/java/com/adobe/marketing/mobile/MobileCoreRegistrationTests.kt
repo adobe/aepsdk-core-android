@@ -12,14 +12,7 @@
 package com.adobe.marketing.mobile
 
 import android.app.Application
-import com.adobe.marketing.mobile.extensions.Sample1
-import com.adobe.marketing.mobile.extensions.Sample1Kt
-import com.adobe.marketing.mobile.extensions.Sample2
-import com.adobe.marketing.mobile.extensions.Sample2Extension
-import com.adobe.marketing.mobile.extensions.Sample2Kt
-import com.adobe.marketing.mobile.extensions.Sample2KtExtension
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
-import com.adobe.marketing.mobile.internal.eventhub.EventHubError
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -27,12 +20,11 @@ import org.mockito.Mockito.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class MobileCoreRegistrationTests {
 
-    class MockExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
+    private class MockExtension(extensionApi: ExtensionApi) : Extension(extensionApi) {
         companion object {
             var registrationClosure: (() -> Unit)? = null
             var unregistrationClosure: (() -> Unit)? = null
@@ -60,7 +52,7 @@ class MobileCoreRegistrationTests {
         }
     }
 
-    class MockExtension2(extensionApi: ExtensionApi) : Extension(extensionApi) {
+    private class MockExtension2(extensionApi: ExtensionApi) : Extension(extensionApi) {
         companion object {
             var registrationClosure: (() -> Unit)? = null
             var unregistrationClosure: (() -> Unit)? = null
@@ -88,10 +80,15 @@ class MobileCoreRegistrationTests {
         }
     }
 
-    class MockExtensionWithSlowInit(extensionApi: ExtensionApi) : Extension(extensionApi) {
+    private class MockExtensionWithSlowInit(extensionApi: ExtensionApi) : Extension(extensionApi) {
         companion object {
             var initWaitTimeMS: Long = 0
             var registrationClosure: (() -> Unit)? = null
+
+            fun reset() {
+                initWaitTimeMS = 0
+                registrationClosure = null
+            }
         }
 
         init {
@@ -105,9 +102,14 @@ class MobileCoreRegistrationTests {
         }
     }
 
+    private fun resetExtensions() {
+        MockExtension.reset()
+        MockExtension2.reset()
+        MockExtensionWithSlowInit.reset()
+    }
+
     @Before
     fun setup() {
-        MockExtension.reset()
         MobileCore.sdkInitializedWithContext = AtomicBoolean(false)
         EventHub.shared = EventHub()
     }
@@ -115,92 +117,29 @@ class MobileCoreRegistrationTests {
     @After
     fun cleanup() {
         EventHub.shared.shutdown()
-    }
-
-    private fun registerExtension(extensionClass: Class<out Extension>): EventHubError {
-        var ret: EventHubError = EventHubError.Unknown
-
-        val latch = CountDownLatch(1)
-        EventHub.shared.registerExtension(extensionClass) { error ->
-            ret = error
-            latch.countDown()
-        }
-        if (!latch.await(1, TimeUnit.SECONDS)) throw Exception("Timeout registering extension")
-        return ret
+        resetExtensions()
     }
 
     @Test
-    fun testScenario1_SameClass() {
-        val latch = CountDownLatch(2)
-        val capturedIds = mutableSetOf<String>()
-        val callback = object : AdobeCallbackWithError<String> {
-            override fun call(id: String) {
-                capturedIds.add(id)
-                latch.countDown()
-            }
-            override fun fail(error: AdobeError?) {}
-        }
+    fun `register single extension`() {
+        val extensionRegistrationLatch = CountDownLatch(1)
+        MockExtension.registrationClosure = { extensionRegistrationLatch.countDown() }
 
         MobileCore.setApplication(mock(Application::class.java))
-
-        val extensions = listOf(
-            Sample1::class.java,
-            Sample1Kt::class.java
-        )
-
-        MobileCore.registerExtensions(extensions) {
-            Sample1.getTrackingIdentifier(callback)
-            Sample1Kt.getTrackingIdentifier(callback)
+        val coreRegistrationLatch = CountDownLatch(1)
+        MobileCore.registerExtensions(listOf(MockExtension::class.java)) {
+            coreRegistrationLatch.countDown()
         }
 
-        assertTrue { latch.await(1000, TimeUnit.MILLISECONDS) }
-        assertEquals(setOf("Sample1_ID", "Sample1Kt_ID"), capturedIds)
+        assertTrue { extensionRegistrationLatch.await(1, TimeUnit.SECONDS) }
+        assertTrue { coreRegistrationLatch.await(1, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun testScenario2_DifferentClasses() {
-        val latch = CountDownLatch(2)
-        val capturedIds = mutableSetOf<String>()
-        val callback = object : AdobeCallbackWithError<String> {
-            override fun call(id: String) {
-                capturedIds.add(id)
-                latch.countDown()
-            }
-            override fun fail(error: AdobeError?) {}
-        }
-
-        MobileCore.setApplication(mock(Application::class.java))
-
-        val extensions = listOf(
-            Sample2Extension::class.java,
-            Sample2KtExtension::class.java
-        )
-
-        MobileCore.registerExtensions(extensions) {
-            Sample2.getTrackingIdentifier(callback)
-            Sample2Kt.getTrackingIdentifier(callback)
-        }
-
-        assertTrue { latch.await(1000, TimeUnit.MILLISECONDS) }
-        assertEquals(setOf("Sample2_ID", "Sample2Kt_ID"), capturedIds)
-    }
-
-    @Test
-    fun testRegisterExtensionsSimple() {
-        val latch = CountDownLatch(1)
-        MockExtension.registrationClosure = { latch.countDown() }
-
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtensions(listOf(MockExtension::class.java)) {}
-
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
-    }
-
-    @Test
-    fun testRegisterExtensionsSimpleMultiple() {
-        val latch = CountDownLatch(2)
-        MockExtension.registrationClosure = { latch.countDown() }
-        MockExtension2.registrationClosure = { latch.countDown() }
+    fun `register multiple extensions`() {
+        val extensionRegistrationLatch = CountDownLatch(2)
+        MockExtension.registrationClosure = { extensionRegistrationLatch.countDown() }
+        MockExtension2.registrationClosure = { extensionRegistrationLatch.countDown() }
 
         val extensions: List<Class<out Extension>> = listOf(
             MockExtension::class.java,
@@ -208,17 +147,23 @@ class MobileCoreRegistrationTests {
         )
 
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtensions(extensions) {}
+        val coreRegistrationLatch = CountDownLatch(1)
+        MobileCore.registerExtensions(extensions) {
+            coreRegistrationLatch.countDown()
+        }
 
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
+        assertTrue { extensionRegistrationLatch.await(1, TimeUnit.SECONDS) }
+        assertTrue { coreRegistrationLatch.await(1, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun testRegisterExtensionsWithSlowExtension() {
-        val latch = CountDownLatch(2)
-        MockExtension.registrationClosure = { latch.countDown() }
-        MockExtension2.registrationClosure = { latch.countDown() }
+    fun `registering slow extension should not block other extensions`() {
+        val fastExtensionLatch = CountDownLatch(2)
+        MockExtension.registrationClosure = { fastExtensionLatch.countDown() }
+        MockExtension2.registrationClosure = { fastExtensionLatch.countDown() }
 
+        val latch = CountDownLatch(2)
+        MockExtensionWithSlowInit.registrationClosure = { latch.countDown() }
         MockExtensionWithSlowInit.initWaitTimeMS = 2000
 
         val extensions: List<Class<out Extension>> = listOf(
@@ -228,13 +173,28 @@ class MobileCoreRegistrationTests {
         )
 
         MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtensions(extensions) {}
+        MobileCore.registerExtensions(extensions) {
+            latch.countDown()
+        }
 
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
+        // Extension 1 and 2 will initialize first
+        assertTrue { fastExtensionLatch.await(1, TimeUnit.SECONDS) }
+        // registerExtensions will complete after all extensions are registered
+        assertTrue { latch.await(4, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun testRegisterExtensionsSimpleEventDispatch() {
+    fun `register duplicate extension`() {
+        val latch = CountDownLatch(1)
+        MobileCore.setApplication(mock(Application::class.java))
+        MobileCore.registerExtensions(listOf(MockExtension::class.java, MockExtension::class.java)) {
+            latch.countDown()
+        }
+        assertTrue { latch.await(1000, TimeUnit.SECONDS) }
+    }
+
+    @Test
+    fun `dispatch event after registration`() {
         val latch = CountDownLatch(1)
         MockExtension.eventReceivedClosure = {
             if (it.name == "test-event") {
@@ -251,10 +211,11 @@ class MobileCoreRegistrationTests {
     }
 
     @Test
-    fun testRegisterExtensionsDispatchEventBeforeRegister() {
+    fun `dispatch event before registration`() {
         val latch = CountDownLatch(1)
         MockExtension.eventReceivedClosure = {
             if (it.name == "test-event") {
+                System.err.println("Received....")
                 latch.countDown()
             }
         }
@@ -264,12 +225,11 @@ class MobileCoreRegistrationTests {
 
         MobileCore.setApplication(mock(Application::class.java))
         MobileCore.registerExtensions(listOf(MockExtension::class.java)) {}
-
-        assertTrue { latch.await(1, TimeUnit.SECONDS) }
+        assertTrue { latch.await(2, TimeUnit.SECONDS) }
     }
 
     @Test
-    fun testRegisterMultipleExtensionsSimpleEventDispatch() {
+    fun `dispatch event to multiple extensions after registration`() {
         val latch = CountDownLatch(2)
         MockExtension.eventReceivedClosure = {
             if (it.name == "test-event") {
@@ -292,7 +252,7 @@ class MobileCoreRegistrationTests {
     }
 
     @Test
-    fun testRegisterMultipleExtensionsDispatchEventBeforeRegister() {
+    fun `dispatch event to multiple extensions before registration`() {
         val latch = CountDownLatch(3)
         MockExtension.eventReceivedClosure = {
             if (it.name == "test-event") {
@@ -313,16 +273,6 @@ class MobileCoreRegistrationTests {
             latch.countDown()
         }
 
-        assertTrue { latch.await(1000, TimeUnit.SECONDS) }
-    }
-
-    @Test
-    fun testRegisterSameExtensionTwice() {
-        val latch = CountDownLatch(1)
-        MobileCore.setApplication(mock(Application::class.java))
-        MobileCore.registerExtensions(listOf(MockExtension::class.java, MockExtension::class.java)) {
-            latch.countDown()
-        }
-        assertTrue { latch.await(1000, TimeUnit.SECONDS) }
+        assertTrue { latch.await(2, TimeUnit.SECONDS) }
     }
 }

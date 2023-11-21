@@ -26,27 +26,26 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-class TestExtension extends Extension {
-
-    static TestExtension currentInstance;
-
-    TestExtension(ExtensionApi api) {
-        super(api);
-        currentInstance = this;
-    }
-
-    @NonNull @Override
-    protected String getName() {
-        return null;
-    }
-
-    @NonNull public ExtensionApi getExtensionApi() {
-        return super.getApi();
-    }
-}
-
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class ExtensionContainerJavaTests {
+
+    static TestExtension testExtensionInstance;
+
+    private class TestExtension extends Extension {
+        TestExtension(ExtensionApi api) {
+            super(api);
+            testExtensionInstance = this;
+        }
+
+        @NonNull @Override
+        protected String getName() {
+            return "TestExtension";
+        }
+
+        @NonNull public ExtensionApi getExtensionApi() {
+            return super.getApi();
+        }
+    }
 
     @Mock EventHub eventHub;
 
@@ -76,97 +75,82 @@ public class ExtensionContainerJavaTests {
         // Register event listener
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .registerEventListener(null, "source", e -> {});
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .registerEventListener(null, "source", e -> {}));
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .registerEventListener("type", null, e -> {});
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .registerEventListener("type", null, e -> {}));
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .registerEventListener("type", "source", null);
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .registerEventListener("type", "source", null));
 
         // Dispatch event
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance.getExtensionApi().dispatch(null);
-                });
+                () -> testExtensionInstance.getExtensionApi().dispatch(null));
 
         // Create shared state
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .createSharedState(null, testEvent);
-                });
+                () -> testExtensionInstance.getExtensionApi().createSharedState(null, testEvent));
 
         // Get shared state
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .getSharedState(null, testEvent, false, SharedStateResolution.ANY);
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .getSharedState(null, testEvent, false, SharedStateResolution.ANY));
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .getSharedState("test-extension", testEvent, false, null);
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .getSharedState("test-extension", testEvent, false, null));
 
         // Create XDM shared state
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .createXDMSharedState(null, testEvent);
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .createXDMSharedState(null, testEvent));
 
         // Get XDM shared state
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .getXDMSharedState(null, testEvent, false, SharedStateResolution.ANY);
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .getXDMSharedState(
+                                        null, testEvent, false, SharedStateResolution.ANY));
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .getXDMSharedState("test-extension", testEvent, false, null);
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .getXDMSharedState("test-extension", testEvent, false, null));
 
         // Get Historical events
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .getHistoricalEvents(null, true, e -> {});
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .getHistoricalEvents(null, true, e -> {}));
         assertThrows(
                 NullPointerException.class,
-                () -> {
-                    TestExtension.currentInstance
-                            .getExtensionApi()
-                            .getHistoricalEvents(new EventHistoryRequest[0], true, null);
-                });
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .getHistoricalEvents(new EventHistoryRequest[0], true, null));
     }
 }

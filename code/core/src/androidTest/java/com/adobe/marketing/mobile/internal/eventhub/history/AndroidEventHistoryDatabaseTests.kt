@@ -36,7 +36,7 @@ class AndroidEventHistoryDatabaseTests {
 
     @Before
     fun beforeEach() {
-        context = ApplicationProvider.getApplicationContext<Context>()
+        context = ApplicationProvider.getApplicationContext()
         val mockAppContextService = MockAppContextService().apply {
             appContext = context
         }
@@ -198,7 +198,7 @@ class AndroidEventHistoryDatabaseTests {
 
     @Throws(Exception::class)
     private fun createEventHistoryDatabaseInCacheDirectory() {
-        val cacheDatabaseFile = File(context!!.cacheDir, DATABASE_NAME_1X)
+        val cacheDatabaseFile = File(context.cacheDir, DATABASE_NAME_1X)
         val cacheDatabase = SQLiteDatabaseHelper.openDatabase(
             cacheDatabaseFile.path,
             SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE

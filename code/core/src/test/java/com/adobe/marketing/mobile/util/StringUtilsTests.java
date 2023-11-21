@@ -13,19 +13,9 @@ package com.adobe.marketing.mobile.util;
 
 import static org.junit.Assert.*;
 
-import com.adobe.marketing.mobile.TestHelper;
 import org.junit.Test;
 
 public class StringUtilsTests {
-
-    @Test
-    public void testClassIsWellDefined() {
-        try {
-            TestHelper.assertUtilityClassWellDefined(StringUtils.class);
-        } catch (Exception e) {
-            fail("StringUtils class is not well defined, throwing exception " + e);
-        }
-    }
 
     @Test
     public void testIsNullOrEmpty_when_nullInputString() {

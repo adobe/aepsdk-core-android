@@ -19,7 +19,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -28,9 +27,7 @@ import kotlin.test.assertTrue
 internal class ExtensionContainerTests {
     private class TestExtension(api: ExtensionApi) : Extension(api) {
         companion object {
-            const val VERSION = "0.1"
             const val EXTENSION_NAME = "TestExtension"
-            const val FRIENDLY_NAME = "FriendlyTestExtension"
         }
 
         var registerCalled = false
@@ -49,9 +46,33 @@ internal class ExtensionContainerTests {
         }
     }
 
-    class TestExtensionNameError(api: ExtensionApi) : Extension(api) {
+    private class TestExtension_NameError(api: ExtensionApi) : Extension(api) {
         override fun getName(): String {
             return ""
+        }
+    }
+
+    private class TestExtension_InitError(api: ExtensionApi) : Extension(api) {
+        companion object {
+            const val EXTENSION_NAME = "TestExtension_InitError"
+        }
+
+        init {
+            throw Exception()
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
+        }
+    }
+
+    private class TestExtension_InvalidConstructor(api: ExtensionApi, private val extensionName: String?) : Extension(api) {
+        companion object {
+            const val EXTENSION_NAME = "TestExtension_InvalidConstructor"
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
         }
     }
 
@@ -83,7 +104,7 @@ internal class ExtensionContainerTests {
     fun testExtensionCallback_FailedRegistration_InitException() {
         var error: EventHubError? = null
         container = ExtensionContainer(
-            MockExtensions.MockExtensionInvalidConstructor::class.java
+            TestExtension_InvalidConstructor::class.java
         ) { error = it }
         Thread.sleep(100)
         assertEquals(error, EventHubError.ExtensionInitializationFailure)
@@ -93,7 +114,7 @@ internal class ExtensionContainerTests {
     fun testExtensionCallback_FailedRegistration_InvalidConstructor() {
         var error: EventHubError? = null
         container = ExtensionContainer(
-            MockExtensions.MockExtensionInitFailure::class.java
+            TestExtension_InitError::class.java
         ) { error = it }
         Thread.sleep(100)
         assertEquals(error, EventHubError.ExtensionInitializationFailure)
@@ -103,7 +124,7 @@ internal class ExtensionContainerTests {
     fun testExtensionCallback_FailedRegistration_EmptyName() {
         var error: EventHubError? = null
         container = ExtensionContainer(
-            TestExtensionNameError::class.java
+            TestExtension_NameError::class.java
         ) { error = it }
         Thread.sleep(100)
         assertEquals(EventHubError.InvalidExtensionName, error)
@@ -113,12 +134,12 @@ internal class ExtensionContainerTests {
     fun testExtensionCallback_Shutdown() {
         container?.shutdown()
         Thread.sleep(100)
-        assertTrue { (container?.extension as TestExtension)?.unregisterCalled ?: false }
+        assertTrue { (container?.extension as TestExtension).unregisterCalled }
     }
 
     @Test
     fun testStopEvents_shouldStopProcessingEvents() {
-        var capturedEvents = mutableListOf<Event>()
+        val capturedEvents = mutableListOf<Event>()
         container?.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) {
             capturedEvents.add(it)
         }
@@ -142,7 +163,7 @@ internal class ExtensionContainerTests {
 
     @Test
     fun testStartEvents_shouldResumeProcessingEvents() {
-        var capturedEvents = mutableListOf<Event>()
+        val capturedEvents = mutableListOf<Event>()
         container?.registerEventListener(EventType.WILDCARD, EventSource.WILDCARD) {
             capturedEvents.add(it)
         }

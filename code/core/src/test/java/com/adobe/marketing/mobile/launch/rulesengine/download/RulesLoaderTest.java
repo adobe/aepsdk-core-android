@@ -117,7 +117,7 @@ public class RulesLoaderTest {
     }
 
     @Test
-    public void testLoadFromURL_NullResponse() throws FileNotFoundException {
+    public void testLoadFromURL_NullResponse() {
         final AdobeCallback<RulesLoadResult> mockCallback = mock(AdobeCallback.class);
 
         doAnswer(
@@ -462,7 +462,7 @@ public class RulesLoaderTest {
     }
 
     @Test
-    public void testLoadFromURL_Response_HTTP_NOT_FOUND() throws FileNotFoundException {
+    public void testLoadFromURL_Response_HTTP_NOT_FOUND() {
         final AdobeCallback<RulesLoadResult> mockCallback = mock(AdobeCallback.class);
         when(mockCacheService.get(RULES_TEST_CACHE_NAME, VALID_URL)).thenReturn(null);
 
@@ -514,7 +514,7 @@ public class RulesLoaderTest {
     }
 
     @Test
-    public void testLoadFromAsset_EmptyAssetName() throws FileNotFoundException {
+    public void testLoadFromAsset_EmptyAssetName() {
         when(mockDeviceInfoService.getAsset(any())).thenReturn(null);
 
         final RulesLoadResult rulesLoadResult = rulesLoader.loadFromAsset("");
@@ -523,7 +523,7 @@ public class RulesLoaderTest {
     }
 
     @Test
-    public void testLoadFromAsset_NoAssetFile() throws FileNotFoundException {
+    public void testLoadFromAsset_NoAssetFile() {
         when(mockDeviceInfoService.getAsset(any())).thenReturn(null);
 
         final RulesLoadResult rulesLoadResult = rulesLoader.loadFromAsset("someNonExistentAsset");
@@ -621,7 +621,7 @@ public class RulesLoaderTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         mockCacheDir.setWritable(true);
         mockCacheDir.setReadable(true);
         FileTestHelper.deleteFile(mockCacheDir, true);

@@ -32,7 +32,7 @@ class AndroidEventHistoryTests {
 
     private lateinit var androidEventHistory: AndroidEventHistory
 
-    constructor() {
+    init {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val mockAppContextService = MockAppContextService().apply {
             appContext = context
@@ -40,7 +40,6 @@ class AndroidEventHistoryTests {
         ServiceProviderModifier.setAppContextService(mockAppContextService)
         TestUtils.deleteAllFilesInCacheDir(context)
         context.applicationContext.getDatabasePath(DATABASE_NAME).delete()
-
         try {
             androidEventHistory = AndroidEventHistory()
         } catch (e: EventHistoryDatabaseCreationException) {

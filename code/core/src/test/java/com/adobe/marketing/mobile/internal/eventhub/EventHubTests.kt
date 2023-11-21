@@ -48,37 +48,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-object MockExtensions {
-
-    class MockExtensionInvalidConstructor(api: ExtensionApi, private val extensionName: String?) : Extension(api) {
-        override fun getName(): String {
-            return extensionName ?: ""
-        }
-    }
-
-    class MockExtensionInitFailure(api: ExtensionApi) : Extension(api) {
-        init {
-            throw Exception("Init Exception")
-        }
-
-        override fun getName(): String {
-            return MockExtensionInitFailure::javaClass.name
-        }
-    }
-
-    class MockExtensionNameException(api: ExtensionApi) : Extension(api) {
-        override fun getName(): String {
-            throw Exception()
-        }
-    }
-
-    class MockExtensionKotlin(api: ExtensionApi) : Extension(api) {
-        override fun getName(): String {
-            return MockExtensionKotlin::javaClass.name
-        }
-    }
-}
-
 @RunWith(MockitoJUnitRunner.Silent::class)
 internal class EventHubTests {
 
@@ -127,40 +96,9 @@ internal class EventHubTests {
         }
     }
 
-    private class TestExtension_InitError(api: ExtensionApi) : Extension(api) {
-        companion object {
-            const val VERSION = "0.2"
-            const val EXTENSION_NAME = "TestExtension_InitError"
-            const val FRIENDLY_NAME = "FriendlyTestExtension_InitError"
-            val METADATA = mutableMapOf("k1" to "v1")
-        }
-
-        init {
-            throw Exception()
-        }
-
-        override fun getName(): String {
-            return EXTENSION_NAME
-        }
-
-        override fun getFriendlyName(): String {
-            return FRIENDLY_NAME
-        }
-
-        override fun getVersion(): String {
-            return VERSION
-        }
-
-        override fun getMetadata(): MutableMap<String, String> {
-            return METADATA
-        }
-    }
-
     private class TestExtension_Barrier(api: ExtensionApi) : Extension(api) {
         companion object {
-            const val VERSION = "0.1"
             const val EXTENSION_NAME = "TestExtension_Barrier"
-            const val FRIENDLY_NAME = "FriendlyTestExtension_Barrier"
 
             // Will stop processing once it sees this event
             var BARRIER_EVENT: Event? = null
@@ -180,23 +118,33 @@ internal class EventHubTests {
         }
     }
 
-    private class TestExtension_DelayedInit(api: ExtensionApi) : Extension(api) {
+    private class TestExtension_InitError(api: ExtensionApi) : Extension(api) {
         companion object {
-            const val VERSION = "0.1"
-            const val EXTENSION_NAME = "TestExtension_DelayedInit"
-            const val FRIENDLY_NAME = "FriendlyTestExtension_DelayedInit"
-
-            // Init will take DELAY ms
-            var DELAY_MS: Long? = null
+            const val EXTENSION_NAME = "TestExtension_InitError"
         }
 
-        // Clear everytime extension get registered
         init {
-            DELAY_MS?.let { Thread.sleep(it) }
+            throw Exception()
         }
 
         override fun getName(): String {
             return EXTENSION_NAME
+        }
+    }
+
+    private class TestExtension_InvalidConstructor(api: ExtensionApi, private val extensionName: String?) : Extension(api) {
+        companion object {
+            const val EXTENSION_NAME = "TestExtension_InvalidConstructor"
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
+        }
+    }
+
+    private class TestExtension_NameException(api: ExtensionApi) : Extension(api) {
+        override fun getName(): String {
+            throw Exception()
         }
     }
 
@@ -247,60 +195,55 @@ internal class EventHubTests {
     // Register, Unregister tests
     @Test
     fun testRegisterExtensionSuccess() {
-        var ret = registerExtension(MockExtension::class.java)
-        assertEquals(EventHubError.None, ret)
-
-        ret = registerExtension(MockExtensions.MockExtensionKotlin::class.java)
+        var ret = registerExtension(TestExtension2::class.java)
         assertEquals(EventHubError.None, ret)
     }
 
     @Test
     fun testRegisterExtensionFailure_DuplicateExtension() {
-        registerExtension(MockExtension::class.java)
+        var ret = registerExtension(TestExtension2::class.java)
+        assertEquals(EventHubError.None, ret)
 
-        val ret = registerExtension(MockExtension::class.java)
+        ret = registerExtension(TestExtension2::class.java)
         assertEquals(EventHubError.DuplicateExtensionName, ret)
     }
 
     @Test
     fun testRegisterExtensionFailure_ExtensionInitialization() {
-        var ret = registerExtension(MockExtensions.MockExtensionInitFailure::class.java)
+        var ret = registerExtension(TestExtension_InitError::class.java)
         assertEquals(EventHubError.ExtensionInitializationFailure, ret)
-        assertNull(eventHub.getExtensionContainer(MockExtensions.MockExtensionInitFailure::class.java))
+        assertNull(eventHub.getExtensionContainer(TestExtension_InitError::class.java))
 
-        ret = registerExtension(MockExtensions.MockExtensionInvalidConstructor::class.java)
+        ret = registerExtension(TestExtension_InvalidConstructor::class.java)
         assertEquals(EventHubError.ExtensionInitializationFailure, ret)
-        assertNull(eventHub.getExtensionContainer(MockExtensions.MockExtensionInvalidConstructor::class.java))
+        assertNull(eventHub.getExtensionContainer(TestExtension_InvalidConstructor::class.java))
     }
 
     @Test
     fun testRegisterExtensionFailure_InvalidExceptionName() {
-        val ret = registerExtension(MockExtensions.MockExtensionNameException::class.java)
+        val ret = registerExtension(TestExtension_NameException::class.java)
         assertEquals(EventHubError.InvalidExtensionName, ret)
+        assertNull(eventHub.getExtensionContainer(TestExtension_NameException::class.java))
     }
 
     @Test
     fun testUnregisterExtensionSuccess() {
-        registerExtension(MockExtensions.MockExtensionKotlin::class.java)
-
-        val ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
+        val ret = unregisterExtension(TestExtension::class.java)
         assertEquals(EventHubError.None, ret)
     }
 
     @Test
     fun testUnregisterExtensionFailure() {
-        val ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
+        val ret = unregisterExtension(TestExtension2::class.java)
         assertEquals(EventHubError.ExtensionNotRegistered, ret)
     }
 
     @Test
     fun testRegisterAfterUnregister() {
-        registerExtension(MockExtensions.MockExtensionKotlin::class.java)
-
-        var ret = unregisterExtension(MockExtensions.MockExtensionKotlin::class.java)
+        var ret = unregisterExtension(TestExtension::class.java)
         assertEquals(EventHubError.None, ret)
 
-        ret = registerExtension(MockExtensions.MockExtensionKotlin::class.java)
+        ret = registerExtension(TestExtension::class.java)
         assertEquals(EventHubError.None, ret)
     }
 

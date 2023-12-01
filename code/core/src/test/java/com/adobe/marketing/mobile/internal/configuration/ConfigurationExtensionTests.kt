@@ -16,6 +16,7 @@ import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT
@@ -59,8 +60,6 @@ import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class ConfigurationExtensionTests {
-
-    private var EXTENSION_VERSION = "2.5.0"
 
     @Mock
     private lateinit var mockServiceProvider: ServiceProvider
@@ -120,7 +119,8 @@ class ConfigurationExtensionTests {
             mockConfigurationRulesManager
         )
 
-        Assert.assertEquals(EXTENSION_VERSION, configurationExtension.extensionVersion)
+        // Configuration version must make the SDK version
+        Assert.assertEquals(MobileCore.extensionVersion(), configurationExtension.extensionVersion)
     }
 
     @Test

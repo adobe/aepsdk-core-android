@@ -28,39 +28,33 @@ on:
       signal-version:
         description: 'New version to use for Signal. Example: 3.0.2'
         required: false
-              
-      branch:
-        description: 'Branch to be used when updating versions'
-        required: true
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   update-versions:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     
     - name: Checkout
       uses: actions/checkout@v3.1.0
-      with:
-        ref: ${{ github.event.inputs.branch }}
     
     - if: ${{ github.event.inputs.core-version != '' }}
       name: Update Core Version
-      run: (sh ./scripts/update-versions.sh -n Core -v ${{ github.event.inputs.core-version }})
+      run: (sh ./scripts/versions.sh -u -n Core -v ${{ github.event.inputs.core-version }})
     
     - if: ${{ github.event.inputs.identity-version != '' }}
       name: Update Identity Version
-      run: (sh ./scripts/update-versions.sh -n Identity -v ${{ github.event.inputs.identity-version }})
+      run: (sh ./scripts/versions.sh -u -n Identity -v ${{ github.event.inputs.identity-version }})
 
     - if: ${{ github.event.inputs.lifecycle-version != '' }}
       name: Update Lifecycle Version
-      run: (sh ./scripts/update-versions.sh -n Lifecycle -v ${{ github.event.inputs.lifecycle-version }})
+      run: (sh ./scripts/versions.sh -u -n Lifecycle -v ${{ github.event.inputs.lifecycle-version }})
 
     - if: ${{ github.event.inputs.signal-version != '' }}
       name: Update Signal Version
-      run: (sh ./scripts/update-versions.sh -n Signal -v ${{ github.event.inputs.signal-version }})
+      run: (sh ./scripts/versions.sh -u -n Signal -v ${{ github.event.inputs.signal-version }})
 
     - name: Generate Commit Message
       shell: bash
@@ -88,4 +82,3 @@ jobs:
         commit-message: Update versions ${{ env.COMMIT_MSG }}
         title: Update versions ${{ env.COMMIT_MSG }}
         body: Update versions ${{ env.COMMIT_MSG }}
-        base: ${{ github.event.inputs.branch }}

@@ -32,12 +32,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class IdentityAPITests {
-    private static final String EXTENSION_VERSION = "2.0.3";
-
-    @Test
-    public void test_extensionVersion() {
-        assertEquals(EXTENSION_VERSION, Identity.extensionVersion());
-    }
 
     @Test
     public void test_syncIdentifier() {

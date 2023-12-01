@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.ExtensionApi;
+import com.adobe.marketing.mobile.Lifecycle;
 import com.adobe.marketing.mobile.SharedStateResolution;
 import com.adobe.marketing.mobile.SharedStateResult;
 import com.adobe.marketing.mobile.SharedStateStatus;
@@ -37,9 +38,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class LifecycleExtensionTests {
-
-    private static final String EXTENSION_VERSION = "2.0.4";
-
     @Mock ExtensionApi extensionApi;
 
     @Mock NamedCollection lifecycleDataStore;
@@ -94,7 +92,7 @@ public class LifecycleExtensionTests {
 
     @Test
     public void testGetVersion() {
-        assertEquals(EXTENSION_VERSION, lifecycle.getVersion());
+        assertEquals(Lifecycle.extensionVersion(), lifecycle.getVersion());
     }
 
     @Test

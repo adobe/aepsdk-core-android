@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Make this script executable from terminal:
-# chmod 755 update-versions.sh
+# chmod 755 version.sh
 set -e # Any subsequent(*) commands which fail will cause the shell script to exit immediately
 
 ROOT_DIR=$(git rev-parse --show-toplevel)

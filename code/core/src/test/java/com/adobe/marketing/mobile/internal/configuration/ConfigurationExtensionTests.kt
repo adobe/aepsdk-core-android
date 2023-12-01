@@ -18,6 +18,7 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolver
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_IS_INTERNAL_EVENT
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension.Companion.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID
@@ -120,7 +121,7 @@ class ConfigurationExtensionTests {
         )
 
         // Configuration version must make the SDK version
-        Assert.assertEquals(MobileCore.extensionVersion(), configurationExtension.extensionVersion)
+        Assert.assertEquals(CoreConstants.VERSION, configurationExtension.extensionVersion)
     }
 
     @Test

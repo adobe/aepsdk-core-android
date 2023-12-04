@@ -201,7 +201,20 @@ class AEPMessage implements FullscreenMessage {
 
                     // create the webview if needed
                     if (webView == null) {
-                        webView = createWebView();
+                        for (int i = 0; i < 5; i++) {
+                            webView = createWebView();
+
+                            if (webView != null) {
+                                // exit loop if webview creation was successful
+                                break;
+                            }
+                        }
+
+                        if (webView == null) {
+                            // unable to create the webview, need to call failure logic and bail.
+                            listener.onShowFailure();
+                            return;
+                        }
                     }
 
                     final Activity currentActivity = getCurrentActivity();

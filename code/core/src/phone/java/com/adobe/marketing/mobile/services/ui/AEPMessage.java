@@ -547,7 +547,6 @@ class AEPMessage implements FullscreenMessage {
                     TAG,
                     "Exception occurred when creating the webview: %s",
                     exception.getLocalizedMessage());
-            listener.onShowFailure();
             createWebviewTask.cancel(true);
             return null;
         }

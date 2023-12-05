@@ -180,10 +180,13 @@ public class AEPMessageTests {
     // AEPMessage show tests
     @Test
     public void aepMessageIsShown_When_NoOtherMessagesAreDisplayed() {
-        try (MockedConstruction<WebView> ignored = mockConstruction(WebView.class, (mock, context) -> {
-            WebSettings mockWebSettings = Mockito.mock(WebSettings.class);
-            when(mock.getSettings()).thenReturn(mockWebSettings);
-        })) {
+        try (MockedConstruction<WebView> ignored =
+                mockConstruction(
+                        WebView.class,
+                        (mock, context) -> {
+                            WebSettings mockWebSettings = Mockito.mock(WebSettings.class);
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                        })) {
             // setup
             Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
                     .thenCallRealMethod()
@@ -225,10 +228,13 @@ public class AEPMessageTests {
 
     @Test
     public void aepMessageIsNotShown_When_AnotherMessageIsDisplayed() {
-        try (MockedConstruction<WebView> ignored = mockConstruction(WebView.class, (mock, context) -> {
-            WebSettings mockWebSettings = Mockito.mock(WebSettings.class);
-            when(mock.getSettings()).thenReturn(mockWebSettings);
-        })) {
+        try (MockedConstruction<WebView> ignored =
+                mockConstruction(
+                        WebView.class,
+                        (mock, context) -> {
+                            WebSettings mockWebSettings = Mockito.mock(WebSettings.class);
+                            when(mock.getSettings()).thenReturn(mockWebSettings);
+                        })) {
             // setup
             Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
             Mockito.when(

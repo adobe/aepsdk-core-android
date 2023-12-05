@@ -57,6 +57,8 @@ class AEPMessage implements FullscreenMessage {
     private static final String FRAGMENT_TAG = "AEPMessageFragment";
     private static final String UNEXPECTED_NULL_VALUE = "Unexpected Null Value";
     private static final int ANIMATION_DURATION = 300;
+
+    private static final int WEBVIEW_CREATION_MAX_TRIES = 5;
     private static final String UTF_8 = "UTF-8";
 
     // package private vars
@@ -201,7 +203,7 @@ class AEPMessage implements FullscreenMessage {
 
                     // create the webview if needed
                     if (webView == null) {
-                        for (int i = 0; i < 5; i++) {
+                        for (int i = 0; i < WEBVIEW_CREATION_MAX_TRIES; i++) {
                             webView = createWebView();
 
                             if (webView != null) {

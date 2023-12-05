@@ -502,37 +502,45 @@ class AEPMessage implements FullscreenMessage {
         @SuppressLint("SetJavaScriptEnabled")
         final Runnable createWebViewRunnable =
                 () -> {
-                    final WebView newWebView = new WebView(getApplicationContext());
-                    // assign a random resource id to identify this webview
-                    newWebView.setId(Math.abs(new Random().nextInt()));
-                    newWebView.setVerticalScrollBarEnabled(true);
-                    newWebView.setHorizontalScrollBarEnabled(true);
-                    newWebView.setScrollbarFadingEnabled(true);
-                    newWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-                    newWebView.setBackgroundColor(Color.TRANSPARENT);
+                    try {
+                        final WebView newWebView = new WebView(getApplicationContext());
+                        // assign a random resource id to identify this webview
+                        newWebView.setId(Math.abs(new Random().nextInt()));
+                        newWebView.setVerticalScrollBarEnabled(true);
+                        newWebView.setHorizontalScrollBarEnabled(true);
+                        newWebView.setScrollbarFadingEnabled(true);
+                        newWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+                        newWebView.setBackgroundColor(Color.TRANSPARENT);
 
-                    webViewClient = new MessageWebViewClient(AEPMessage.this);
-                    webViewClient.setLocalAssetsMap(assetMap);
-                    newWebView.setWebViewClient(webViewClient);
+                        webViewClient = new MessageWebViewClient(AEPMessage.this);
+                        webViewClient.setLocalAssetsMap(assetMap);
+                        newWebView.setWebViewClient(webViewClient);
 
-                    final WebSettings webviewSettings = newWebView.getSettings();
-                    webviewSettings.setJavaScriptEnabled(true);
-                    webviewSettings.setAllowFileAccess(false);
-                    webviewSettings.setDomStorageEnabled(true);
-                    webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
-                    webviewSettings.setDefaultTextEncodingName(UTF_8);
+                        final WebSettings webviewSettings = newWebView.getSettings();
+                        webviewSettings.setJavaScriptEnabled(true);
+                        webviewSettings.setAllowFileAccess(false);
+                        webviewSettings.setDomStorageEnabled(true);
+                        webviewSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.NORMAL);
+                        webviewSettings.setDefaultTextEncodingName(UTF_8);
 
-                    // Disallow need for a user gesture to play media.
-                    webviewSettings.setMediaPlaybackRequiresUserGesture(false);
+                        // Disallow need for a user gesture to play media.
+                        webviewSettings.setMediaPlaybackRequiresUserGesture(false);
 
-                    if (ServiceProvider.getInstance()
-                                    .getDeviceInfoService()
-                                    .getApplicationCacheDir()
-                            != null) {
-                        webviewSettings.setDatabaseEnabled(true);
+                        if (ServiceProvider.getInstance()
+                                        .getDeviceInfoService()
+                                        .getApplicationCacheDir()
+                                != null) {
+                            webviewSettings.setDatabaseEnabled(true);
+                        }
+
+                        webViewAtomicReference.set(newWebView);
+                    } catch (Exception ex) {
+                        Log.warning(
+                                ServiceConstants.LOG_TAG,
+                                TAG,
+                                "Exception thrown inside of createWebViewRunnable: %s",
+                                ex.getLocalizedMessage());
                     }
-
-                    webViewAtomicReference.set(newWebView);
                 };
 
         final RunnableFuture<Void> createWebviewTask =
@@ -544,11 +552,11 @@ class AEPMessage implements FullscreenMessage {
             createWebviewTask.get(1, TimeUnit.SECONDS);
             return webViewAtomicReference.get();
         } catch (final InterruptedException | ExecutionException | TimeoutException exception) {
-            Log.debug(
+            Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
                     "Exception occurred when creating the webview: %s",
-                    exception.getLocalizedMessage());
+                    exception.getMessage());
             createWebviewTask.cancel(true);
             return null;
         }

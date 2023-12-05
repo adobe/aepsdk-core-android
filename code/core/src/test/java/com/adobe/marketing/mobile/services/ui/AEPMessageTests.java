@@ -18,6 +18,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +32,7 @@ import android.content.res.Resources;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import androidx.cardview.widget.CardView;
 import com.adobe.marketing.mobile.services.AppContextService;
@@ -47,6 +50,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -176,79 +180,89 @@ public class AEPMessageTests {
     // AEPMessage show tests
     @Test
     public void aepMessageIsShown_When_NoOtherMessagesAreDisplayed() {
-        // setup
-        Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
-                .thenCallRealMethod()
-                .thenReturn(true);
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(true);
+        try (MockedConstruction<WebView> ignored = mockConstruction(WebView.class, (mock, context) -> {
+            WebSettings mockWebSettings = Mockito.mock(WebSettings.class);
+            when(mock.getSettings()).thenReturn(mockWebSettings);
+        })) {
+            // setup
+            Mockito.when(mockMessageMonitor.show(any(FullscreenMessage.class), anyBoolean()))
+                    .thenCallRealMethod()
+                    .thenReturn(true);
+            Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(false);
+            Mockito.when(
+                            mockMessagingDelegate.shouldShowMessage(
+                                    ArgumentMatchers.any(AEPMessage.class)))
+                    .thenReturn(true);
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
+            try {
+                message =
+                        new AEPMessage(
+                                "html",
+                                mockFullscreenMessageDelegate,
+                                false,
+                                mockMessageMonitor,
+                                mockAEPMessageSettings,
+                                mockExecutor);
+            } catch (MessageCreationException ex) {
+                Assert.fail(ex.getMessage());
+            }
+            Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+            Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+            setupFragmentTransactionMocks();
+
+            // test
+            message.show();
+            // verify
+            Mockito.verify(mockMessageMonitor, Mockito.times(1))
+                    .show(any(FullscreenMessage.class), eq(true));
+            Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
+
+            // Verify that the message delegates are notified
+            Mockito.verify(mockFullscreenMessageDelegate).onShow(message);
+            Mockito.verify(mockMessagingDelegate).onShow(message);
         }
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        setupFragmentTransactionMocks();
-
-        // test
-        message.show();
-        // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(1))
-                .show(any(FullscreenMessage.class), eq(true));
-        Mockito.verify(mockMessageMonitor, Mockito.times(1)).displayed();
-
-        // Verify that the message delegates are notified
-        Mockito.verify(mockFullscreenMessageDelegate).onShow(message);
-        Mockito.verify(mockMessagingDelegate).onShow(message);
     }
 
     @Test
     public void aepMessageIsNotShown_When_AnotherMessageIsDisplayed() {
-        // setup
-        Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
-        Mockito.when(
-                        mockMessagingDelegate.shouldShowMessage(
-                                ArgumentMatchers.any(AEPMessage.class)))
-                .thenReturn(true);
+        try (MockedConstruction<WebView> ignored = mockConstruction(WebView.class, (mock, context) -> {
+            WebSettings mockWebSettings = Mockito.mock(WebSettings.class);
+            when(mock.getSettings()).thenReturn(mockWebSettings);
+        })) {
+            // setup
+            Mockito.when(mockMessageMonitor.isDisplayed()).thenReturn(true);
+            Mockito.when(
+                            mockMessagingDelegate.shouldShowMessage(
+                                    ArgumentMatchers.any(AEPMessage.class)))
+                    .thenReturn(true);
 
-        try {
-            message =
-                    new AEPMessage(
-                            "html",
-                            mockFullscreenMessageDelegate,
-                            false,
-                            mockMessageMonitor,
-                            mockAEPMessageSettings,
-                            mockExecutor);
-        } catch (MessageCreationException ex) {
-            Assert.fail(ex.getMessage());
+            try {
+                message =
+                        new AEPMessage(
+                                "html",
+                                mockFullscreenMessageDelegate,
+                                false,
+                                mockMessageMonitor,
+                                mockAEPMessageSettings,
+                                mockExecutor);
+            } catch (MessageCreationException ex) {
+                Assert.fail(ex.getMessage());
+            }
+            Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
+            Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
+            setupFragmentTransactionMocks();
+
+            // test
+            message.show();
+            // verify
+            Mockito.verify(mockMessageMonitor, Mockito.times(1))
+                    .show(any(FullscreenMessage.class), eq(true));
+            Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
+
+            // Verify that the message delegates are never notified about showing
+            Mockito.verify(mockFullscreenMessageDelegate, never()).onShow(message);
+            Mockito.verify(mockMessagingDelegate, never()).onShow(message);
         }
-        Mockito.when(mockViewGroup.getMeasuredWidth()).thenReturn(1000);
-        Mockito.when(mockViewGroup.getMeasuredHeight()).thenReturn(1000);
-        setupFragmentTransactionMocks();
-
-        // test
-        message.show();
-        // verify
-        Mockito.verify(mockMessageMonitor, Mockito.times(1))
-                .show(any(FullscreenMessage.class), eq(true));
-        Mockito.verify(mockMessageMonitor, Mockito.times(0)).displayed();
-
-        // Verify that the message delegates are never notified about showing
-        Mockito.verify(mockFullscreenMessageDelegate, never()).onShow(message);
-        Mockito.verify(mockMessagingDelegate, never()).onShow(message);
     }
 
     @Test

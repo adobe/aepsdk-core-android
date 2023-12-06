@@ -62,7 +62,7 @@ public class UIServicesFragment extends Fragment implements View.OnClickListener
 													System.currentTimeMillis() / 1000, 0, "myscheme://link",  null,
 													"sound.wav", getString(R.string.test_notification_title));
 		} else if (viewId == R.id.btnShowFullScreenMsg) {
-			testAppUIServices.showFullscreenMessage("<html><body>" + getString(R.string.test_fullscreen_html) + "</body></html>");
+			testAppUIServices.showFullscreenMessage("<html><body>" + getString(R.string.test_fullscreen_html) + "<p /><a href=\"adbinapp://dismiss\"><button>Dismiss me</button></a></body></html>");
 		} else if (viewId == R.id.btnShowUrl) {
 			testAppUIServices.showUrl(getString(R.string.test_url));
 		} else if (viewId == R.id.btnShowFloatingButton) {

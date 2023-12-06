@@ -18,6 +18,8 @@ import com.adobe.marketing.mobile.services.ui.FloatingButtonView;
 import com.adobe.marketing.mobile.services.ui.FullscreenMessage;
 import com.adobe.marketing.mobile.services.ui.NotificationSetting;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 public class TestAppUIServices {
@@ -49,8 +51,44 @@ public class TestAppUIServices {
 	}
 
 	public void showFullscreenMessage(final String html) {
-		FullscreenMessage fullScreenMessage = uiService.createFullscreenMessage(html, null, false, null);
-		fullScreenMessage.show();
+		final MessageSettings messageSettings = new MessageSettings();
+		// ACS fullscreen messages are displayed at 100% scale
+		messageSettings.setHeight(100);
+		messageSettings.setWidth(100);
+		messageSettings.setParent(this);
+		messageSettings.setVerticalAlign(MessageSettings.MessageAlignment.TOP);
+		messageSettings.setHorizontalAlign(MessageSettings.MessageAlignment.CENTER);
+		messageSettings.setDisplayAnimation(MessageSettings.MessageAnimation.BOTTOM);
+		messageSettings.setDismissAnimation(MessageSettings.MessageAnimation.BOTTOM);
+		messageSettings.setBackdropColor("#FFFFFF"); // html code for white
+		messageSettings.setBackdropOpacity(1.0f);
+		messageSettings.setUiTakeover(true);
+
+		FullscreenMessage fullScreenMessage = uiService.createFullscreenMessage(html, new FullscreenMessageDelegate() {
+			@Override
+			public void onShow(FullscreenMessage message) {}
+			@Override
+			public void onDismiss(FullscreenMessage message) {}
+			@Override
+			public boolean overrideUrlLoad(FullscreenMessage message, String url) {
+				try {
+					final URI uri = new URI(url);
+					if (uri.getScheme().equals("adbinapp") && uri.getHost().equals("dismiss")) {
+						message.dismiss();
+						return true;
+					}
+				} catch (URISyntaxException ex) {
+					return false;
+				}
+				return false;
+			}
+			@Override
+			public void onShowFailure() {}
+		}, false, messageSettings);
+
+		if (fullScreenMessage != null) {
+			fullScreenMessage.show();
+		}
 	}
 
 	public void showUrl(final String url) {

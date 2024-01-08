@@ -117,10 +117,10 @@ jobs:
           
       - codecov/upload:
           file: "\
-                ./code/core/build/reports/coverage/androidTest/phone/debug/report.xml,\
-                ./code/signal/build/reports/coverage/androidTest/phone/debug/report.xml,\
-                ./code/identity/build/reports/coverage/androidTest/phone/debug/report.xml,\
-                ./code/lifecycle/build/reports/coverage/androidTest/phone/debug/report.xml"                
+                ./code/core/build/reports/coverage/androidTest/phone/debug/connected/report.xml,\
+                ./code/signal/build/reports/coverage/androidTest/phone/debug/connected/report.xml,\
+                ./code/identity/build/reports/coverage/androidTest/phone/debug/connected/report.xml,\
+                ./code/lifecycle/build/reports/coverage/androidTest/phone/debug/connected/report.xml"                
           flags: functional-tests      
 
   integration-test:

@@ -2,35 +2,32 @@ name: Publish Release
 on:
   workflow_dispatch:
     inputs:
-      release_core:
-        required: false
-        type: boolean
-        default: false
-        description: Release Core
-
-      release_identity:
-        required: false
-        type: boolean
-        default: false
-        description: Release Identity
-
-      release_lifecycle:
-        required: false
-        type: boolean
-        default: false
-        description: Release Lifecycle
-
-      release_signal:
-        required: false
-        type: boolean
-        default: false
-        description: Release Signal
+      extension:
+        type: choice
+        description: Extension to release
+        options: 
+        - core
+        - identity
+        - lifecycle
+        - signal
+      
+      tag:
+        description: 'tag/version'
+        required: true        
+  
+      action_tag:
+        description: 'Create tag? ("no" to skip)'
+        required: true
+        default: 'yes'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2        
+        with:
+          ref: main
+
       - name: Set up Java
         uses: actions/setup-java@v1
         with:
@@ -43,6 +40,24 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
+      - name: Verify version        
+        run: |
+          set -eo pipefail
+          echo Release version: ${{ github.event.inputs.tag }}
+          (./scripts/version.sh -n ${{  github.event.inputs.extension }} -v ${{ github.event.inputs.tag }})
+      
+      - name: Create GH Release
+        id: create_release
+        uses: release-drafter/release-drafter@v5
+        if: ${{ github.event.inputs.action_tag == 'yes' }}
+        with:
+          name: v${{ github.event.inputs.tag }}-${{  github.event.inputs.extension }}
+          tag: v${{ github.event.inputs.tag }}-${{  github.event.inputs.extension }}
+          version: v${{ github.event.inputs.tag }}-${{  github.event.inputs.extension }}
+          publish: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
+
       - name: Import GPG key
         env:
           GPG_SECRET_KEYS: ${{ secrets.GPG_SECRET_KEYS }}
@@ -51,36 +66,8 @@ jobs:
           echo $GPG_SECRET_KEYS | base64 --decode | gpg --import --no-tty --batch --yes
           echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust --no-tty --batch --yes
 
-      - name: Publish Core to maven central repository
-        if: ${{ inputs.release_core }}
-        run: make core-publish-main
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-
-      - name: Publish Identity to maven central repository
-        if: ${{ inputs.release_identity }}
-        run: make identity-publish-main
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-
-      - name: Publish Lifecycle to maven central repository
-        if: ${{ inputs.release_lifecycle }}
-        run: make lifecycle-publish-main
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-
-      - name: Publish Signal to maven central repository
-        if: ${{ inputs.release_signal }}
-        run: make signal-publish-main
+      - name: Publish to maven central repository
+        run: make ${{  github.event.inputs.extension }}-publish-main
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}

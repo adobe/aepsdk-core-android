@@ -113,6 +113,12 @@ public class AndroidEventHistory implements EventHistory {
                                     final Cursor result =
                                             androidEventHistoryDatabase.select(eventHash, from, to);
 
+                                    // if the database operation failed, return -1
+                                    if (result == null) {
+                                        notifyHandler(handler, -1);
+                                        return;
+                                    }
+
                                     int currentResult = 0;
                                     try {
                                         // columns are index 0: count, index 1: oldest, index 2:

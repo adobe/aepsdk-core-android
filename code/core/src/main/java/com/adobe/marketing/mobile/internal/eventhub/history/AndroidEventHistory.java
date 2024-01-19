@@ -83,9 +83,9 @@ public class AndroidEventHistory implements EventHistory {
      * @param handler {@code EventHistoryResultHandler<Integer>} containing the the total number of
      *     matching events in the {@code EventHistoryDatabase} if an "any" search was done. If an
      *     "ordered" search was done, the handler will contain a "1" if the event history requests
-     *     were found in the order specified in the eventHistoryRequests array and a "0" if the events
-     *     were not found in the order specified. In case of a database failure, the handler will
-     *     receive a "-1" regardless of the enforceOrder flag.
+     *     were found in the order specified in the eventHistoryRequests array and a "0" if the
+     *     events were not found in the order specified. In case of a database failure, the handler
+     *     will receive a "-1" regardless of the enforceOrder flag.
      */
     @Override
     public void getEvents(

@@ -151,24 +151,29 @@ internal class LaunchRulesConsequence(
         return RuleConsequence(consequence.id, consequence.type, tokenReplacedMap)
     }
 
+    private fun replaceToken(value: Any?, tokenFinder: TokenFinder): Any? {
+        return when (value) {
+            is String -> replaceToken(value, tokenFinder)
+            is Map<*, *> -> replaceToken(EventDataUtils.castFromGenericType(value), tokenFinder)
+            is List<*> -> replaceToken(value, tokenFinder)
+            else -> null
+        }
+    }
+
     private fun replaceToken(detail: Map<String, Any?>?, tokenFinder: TokenFinder): Map<String, Any?>? {
         if (detail.isNullOrEmpty()) {
             return null
         }
         val mutableDetail = detail.toMutableMap()
         for ((key, value) in detail) {
-            when (value) {
-                is String -> mutableDetail[key] = replaceToken(value, tokenFinder)
-                is Map<*, *> -> mutableDetail[key] = replaceToken(
-                    EventDataUtils.castFromGenericType(value),
-                    tokenFinder
-                )
-                else -> continue
-            }
+            mutableDetail[key] = replaceToken(value, tokenFinder)
         }
         return mutableDetail
     }
 
+    private fun replaceToken(value: List<Any?>, tokenFinder: TokenFinder): List<Any?> {
+        return value.map { replaceToken(it, tokenFinder) }
+    }
     private fun replaceToken(value: String, tokenFinder: TokenFinder): String {
         val template = Template(value, DelimiterPair(LAUNCH_RULE_TOKEN_LEFT_DELIMITER, LAUNCH_RULE_TOKEN_RIGHT_DELIMITER))
         return template.render(tokenFinder, LaunchRuleTransformer.createTransforming())

@@ -83,8 +83,8 @@
                 "testStringTopLevel",
                 {
                   "testDictKey": "testVal",
-                  "osversionNested": "{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.osversion%}"
-
+                  "osversionNested": "{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.osversion%}",
+                  "number": 123
                 }, [
                   "{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.osversion%}",
                   "testStringInsideNestedArray",

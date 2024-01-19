@@ -156,7 +156,7 @@ internal class LaunchRulesConsequence(
             is String -> replaceToken(value, tokenFinder)
             is Map<*, *> -> replaceToken(EventDataUtils.castFromGenericType(value), tokenFinder)
             is List<*> -> replaceToken(value, tokenFinder)
-            else -> null
+            else -> value
         }
     }
 

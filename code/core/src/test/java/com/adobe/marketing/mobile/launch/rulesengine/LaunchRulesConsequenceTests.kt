@@ -37,6 +37,7 @@ import org.mockito.kotlin.reset
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchRulesConsequenceTests {
@@ -130,6 +131,7 @@ class LaunchRulesConsequenceTests {
         //            {
         //                "testDictKey": "testVal",
         //                "osversionNested": "{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.osversion%}"
+        //                "numbers": 123
         //
         //            }, [
         //                "{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.osversion%}",
@@ -181,6 +183,8 @@ class LaunchRulesConsequenceTests {
 
         assertEquals("testVal", nestedMap["testDictKey"] as String)
         assertEquals("27", nestedMap["osversionNested"] as String)
+        assertTrue { nestedMap["number"] is Int }
+        assertEquals(123, nestedMap["number"] as Int)
 
         // / Then: the data array should be handled correctly
         val dataArray = attachedDataArray[3] as List<*>

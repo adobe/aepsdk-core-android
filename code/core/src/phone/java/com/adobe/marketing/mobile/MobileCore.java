@@ -105,15 +105,19 @@ public final class MobileCore {
             return;
         }
 
-        // AMSDK-8502
-        // Workaround to prevent a crash happening on Android 8.0/8.1 related to TimeZoneNamesImpl
-        // https://issuetracker.google.com/issues/110848122
-        try {
-            new Date().toString();
-        } catch (AssertionError e) {
-            // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
-        } catch (Exception e) {
-            // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
+        if (android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.O
+                || android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.O_MR1) {
+            // AMSDK-8502
+            // Workaround to prevent a crash happening on Android 8.0/8.1 related to
+            // TimeZoneNamesImpl
+            // https://issuetracker.google.com/issues/110848122
+            try {
+                new Date().toString();
+            } catch (AssertionError e) {
+                // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
+            } catch (Exception e) {
+                // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
+            }
         }
 
         ServiceProvider.getInstance().getAppContextService().setApplication(application);

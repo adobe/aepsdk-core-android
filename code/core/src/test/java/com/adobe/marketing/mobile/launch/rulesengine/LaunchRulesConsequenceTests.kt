@@ -37,6 +37,7 @@ import org.mockito.kotlin.reset
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchRulesConsequenceTests {
@@ -116,6 +117,79 @@ class LaunchRulesConsequenceTests {
 
         // / Then: should not get "launches" value from (lifecycle) shared state
         assertEquals("", attachedData["launches"])
+    }
+
+    @Test
+    fun `Test Attach Data Array`() {
+        // / Given: a launch rule to attach data to event
+
+        //    ---------- attach data rule ----------
+        //        "eventdata": {
+        //          "attached_data_array": [
+        //            "{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.carriername%}",
+        //            "testStringTopLevel",
+        //            {
+        //                "testDictKey": "testVal",
+        //                "osversionNested": "{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.osversion%}"
+        //                "numbers": 123
+        //
+        //            }, [
+        //                "{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.osversion%}",
+        //                "testStringInsideNestedArray"
+        //            ]
+        //          ]
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testAttachData_array.json")
+
+        // / When: evaluating a launch event
+
+        //    ------------ launch event ------------
+        //        "eventdata": {
+        //            "lifecyclecontextdata": {
+        //                "launchevent": "LaunchEvent"
+        //            }
+        //        }
+        //    --------------------------------------
+        `when`(extensionApi.getSharedState(anyString(), any(), anyBoolean(), any())).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                mapOf(
+                    "lifecyclecontextdata" to mapOf(
+                        "carriername" to "AT&T",
+                        "osversion" to "27"
+                    )
+                )
+            )
+        )
+
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(defaultEvent, extensionApi))
+        val processedEvent =
+            launchRulesConsequence.process(defaultEvent, matchedRules)
+
+        // / Then: no consequence event will be dispatched
+        verify(extensionApi, never()).dispatch(any())
+
+        val attachedDataArray = processedEvent.eventData?.get("attached_data_array") as List<*>
+
+        // / Then: "{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.carriername%}" should be replaced with "AT&T"
+        assertEquals("AT&T", attachedDataArray[0])
+
+        // / Then: "testStringTopLevel" should not be changed
+        assertEquals("testStringTopLevel", attachedDataArray[1])
+
+        // / Then: the nested map should be handled correctly
+        val nestedMap = attachedDataArray[2] as Map<*, *>
+
+        assertEquals("testVal", nestedMap["testDictKey"] as String)
+        assertEquals("27", nestedMap["osversionNested"] as String)
+        assertTrue { nestedMap["number"] is Int }
+        assertEquals(123, nestedMap["number"] as Int)
+
+        // / Then: the data array should be handled correctly
+        val dataArray = attachedDataArray[3] as List<*>
+        assertEquals("27", dataArray[0] as String)
+        assertEquals("testStringInsideNestedArray", dataArray[1] as String)
     }
 
     @Test

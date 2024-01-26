@@ -84,7 +84,8 @@ public class AndroidEventHistory implements EventHistory {
      *     matching events in the {@code EventHistoryDatabase} if an "any" search was done. If an
      *     "ordered" search was done, the handler will contain a "1" if the event history requests
      *     were found in the order specified in the eventHistoryRequests array and a "0" if the
-     *     events were not found in the order specified.
+     *     events were not found in the order specified. In case of a database failure, the handler
+     *     will receive a "-1" regardless of the enforceOrder flag.
      */
     @Override
     public void getEvents(
@@ -112,6 +113,12 @@ public class AndroidEventHistory implements EventHistory {
                                     final long eventHash = request.getMaskAsDecimalHash();
                                     final Cursor result =
                                             androidEventHistoryDatabase.select(eventHash, from, to);
+
+                                    // if the database operation failed, return -1
+                                    if (result == null) {
+                                        notifyHandler(handler, -1);
+                                        return;
+                                    }
 
                                     int currentResult = 0;
                                     try {

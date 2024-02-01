@@ -58,6 +58,12 @@ dependencies {
     androidTestImplementation(BuildConstants.Dependencies.ESPRESSO_CORE)
     androidTestImplementation(BuildConstants.Dependencies.ANDROIDX_TEST_RUNNER)
 
+    // Identity extension has soft dependency on Analytics.
+    // Todo: Update this once we have Analytics 3.x build/snapshot
+    androidTestImplementation("com.adobe.marketing.mobile:analytics:2.+") {
+        isTransitive = false
+    }
+
     androidTestUtil(BuildConstants.Dependencies.ANDROIDX_TEST_ORCHESTRATOR)
 
 }

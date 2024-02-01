@@ -11,9 +11,7 @@
 package com.adobe.marketing.mobile.integration.identity
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
-import androidx.core.content.edit
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.*
@@ -104,6 +102,7 @@ class IdentityIntegrationTests {
             listOf(
                 Identity.EXTENSION,
                 MonitorExtension::class.java,
+                Analytics.EXTENSION
             )
         ) {
             countDownLatch.countDown()
@@ -303,7 +302,12 @@ class IdentityIntegrationTests {
         configurationAwareness { configurationLatch.countDown() }
         configurationLatch.await()
 
-        setAnalyticsVisitorIdentifier("testVid")
+        Analytics.setVisitorIdentifier("testVid")
+        val analyticsLatch = CountDownLatch(1)
+        Analytics.getVisitorIdentifier{ id ->
+            analyticsLatch.countDown()
+        }
+        analyticsLatch.await()
 
         val countDownLatch = CountDownLatch(1)
         Identity.getUrlVariables { variables ->
@@ -360,7 +364,12 @@ class IdentityIntegrationTests {
         val configurationLatch = CountDownLatch(1)
         configurationAwareness { configurationLatch.countDown() }
         configurationLatch.await()
-        setAnalyticsVisitorIdentifier("testVid")
+        Analytics.setVisitorIdentifier("testVid")
+        val analyticsLatch = CountDownLatch(1)
+        Analytics.getVisitorIdentifier{ id ->
+            analyticsLatch.countDown()
+        }
+        analyticsLatch.await()
 
         Identity.appendVisitorInfoForURL("https://adobe.com") { url ->
             assertNotNull(url)
@@ -429,7 +438,11 @@ class IdentityIntegrationTests {
             )
         )
 
-        setAnalyticsVisitorIdentifier("testVid")
+        Analytics.setVisitorIdentifier("testVid")
+        val analyticsLatch = CountDownLatch(1)
+        Analytics.getVisitorIdentifier {
+            analyticsLatch.countDown()
+        }
         MobileCore.setAdvertisingIdentifier("adid")
         Identity.syncIdentifiers(mapOf("id1" to "value1"))
         val identityLatch = CountDownLatch(1)
@@ -439,6 +452,7 @@ class IdentityIntegrationTests {
             identityLatch.countDown()
         }
         identityLatch.await()
+        analyticsLatch.await()
 
         val countDownLatch = CountDownLatch(1)
         var receivedSDKIdentities : String? = null
@@ -605,19 +619,4 @@ class IdentityIntegrationTests {
         MonitorExtension.configurationAwareness(callback)
     }
 
-    val ANALYTICS_DATASTORE_NAME = "AnalyticsDataStorage"
-    val ANALYTICS_REQUEST_VISITOR_ID_KEY = "vid"
-
-    private fun setAnalyticsVisitorIdentifier(vid: String?) {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val sharedPreference = context.getSharedPreferences(ANALYTICS_DATASTORE_NAME, 0)
-        sharedPreference.edit {
-            if (vid.isNullOrEmpty()) {
-                remove(ANALYTICS_REQUEST_VISITOR_ID_KEY)
-            } else {
-                putString(ANALYTICS_REQUEST_VISITOR_ID_KEY, vid)
-            }
-            commit()
-        }
-    }
 }

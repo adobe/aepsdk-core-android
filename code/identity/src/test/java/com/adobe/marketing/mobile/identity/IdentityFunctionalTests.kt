@@ -49,7 +49,7 @@ import org.mockito.kotlin.reset
 import org.mockito.kotlin.verify
 import java.io.InputStream
 import java.net.HttpURLConnection
-import java.util.*
+import java.util.Random
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 

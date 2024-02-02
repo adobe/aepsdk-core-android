@@ -65,7 +65,7 @@ class InAppMessageSettings private constructor(
         SWIPE_DOWN("swipeDown"),
         SWIPE_LEFT("swipeLeft"),
         SWIPE_RIGHT("swipeRight"),
-        BACKGROUND_TAP("backgroundTap");
+        TAP_BACKGROUND("tapBackground");
 
         internal companion object {
             private val gestureToEnumMap: Map<String, MessageGesture> =

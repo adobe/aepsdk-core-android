@@ -57,7 +57,7 @@ object InAppMessageCreator {
                 "swipeDown" to "https://adobe.com",
                 "swipeLeft" to "https://adobe.com",
                 "swipeRight" to "https://google.com",
-                "backgroundTap" to "https://google.com"
+                "tapBackground" to "https://google.com"
             )
         )
 

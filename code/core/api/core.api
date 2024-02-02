@@ -1030,11 +1030,11 @@ public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSe
 }
 
 public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture : java/lang/Enum {
-	public static final field BACKGROUND_TAP Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 	public static final field SWIPE_DOWN Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 	public static final field SWIPE_LEFT Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 	public static final field SWIPE_RIGHT Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 	public static final field SWIPE_UP Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
+	public static final field TAP_BACKGROUND Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 }

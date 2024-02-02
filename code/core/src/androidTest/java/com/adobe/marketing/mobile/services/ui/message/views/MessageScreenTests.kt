@@ -44,7 +44,7 @@ class MessageScreenTests {
         "swipeUp" to "adbinapp://dismiss",
         "swipeRight" to "adbinapp://dismiss",
         "swipeLeft" to "adbinapp://dismiss",
-        "backgroundTap" to "adbinapp://dismiss"
+        "tapBackground" to "adbinapp://dismiss"
     )
 
     private val HTML_TEXT_SAMPLE = "<html>\n" +
@@ -312,7 +312,7 @@ class MessageScreenTests {
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
         assertFalse(onBackPressed)
-        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.BACKGROUND_TAP))
+        assertTrue(detectedGestures.contains(InAppMessageSettings.MessageGesture.TAP_BACKGROUND))
         assertFalse(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_DOWN))
     }
 

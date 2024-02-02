@@ -24,7 +24,7 @@ class GestureTrackerTest {
         InAppMessageSettings.MessageGesture.SWIPE_RIGHT,
         InAppMessageSettings.MessageGesture.SWIPE_UP,
         InAppMessageSettings.MessageGesture.SWIPE_DOWN,
-        InAppMessageSettings.MessageGesture.BACKGROUND_TAP
+        InAppMessageSettings.MessageGesture.TAP_BACKGROUND
     )
 
     @Before

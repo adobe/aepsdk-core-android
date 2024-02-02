@@ -452,7 +452,6 @@ public final class MobileCore {
      * Collects data from the Activity / context to be used later by the SDK.
      *
      * <p>This method marshals the {@code activity} instance and extracts the intent data / extras.
-     * It should be called to support the following use cases:
      *
      * <ol>
      *   <li>Tracking Deep Link click-through
@@ -460,21 +459,9 @@ public final class MobileCore {
      *         <li>Update AndroidManifest.xml to support intent-filter in the activity with the
      *             intended action and type of data.
      *         <li>Handle the intent in the activity.
-     *         <li>Pass activity with deepLink intent to SDK in {@code collectLaunchInfo}.
      *       </ul>
      *   <li>Tracking Push Message click-through
-     *       <ul>
-     *         <li>Push message data must be added to the Intent used to open target activity on
-     *             click-through.
-     *         <li>The data can be added in intent extras which is then collected by SDK when target
-     *             activity is passed in {@code collectedLaunchInfo}.
-     *       </ul>
      *   <li>Tracking Local Notification click-through
-     *       <ul>
-     *         <li>Add manifest-declared broadcast receiver {@code <receiver
-     *             android:name=".LocalNotificationHandler" />} in your app.
-     *         <li>Pass notifications activity reference in {@code collectLaunchInfo}.
-     *       </ul>
      * </ol>
      *
      * <p>Invoke this method from Activity.onResume() callback in your activity.
@@ -483,7 +470,7 @@ public final class MobileCore {
      */
     @VisibleForTesting
     static void collectLaunchInfo(final Activity activity) {
-        final Map<String, Object> marshalledData = DataMarshaller.INSTANCE.marshal(activity);
+        final Map<String, Object> marshalledData = DataMarshaller.marshal(activity);
         if (marshalledData == null || marshalledData.isEmpty()) {
             Log.debug(
                     CoreConstants.LOG_TAG,

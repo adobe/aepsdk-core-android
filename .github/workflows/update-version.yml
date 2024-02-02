@@ -32,7 +32,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   update-versions:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:

@@ -45,6 +45,9 @@ class DefaultInAppMessageEventHandlerTest {
     @Mock
     private lateinit var scriptHandler2: DefaultInAppMessageEventHandler.WebViewJavascriptInterface
 
+    @Mock
+    private lateinit var mockWebViewSettingsApplier : (WebView) -> WebView
+
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
@@ -63,7 +66,8 @@ class DefaultInAppMessageEventHandlerTest {
     fun `Test that #onNewWebView updates the internal webView reference`() {
         val defaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
             mutableMapOf(),
-            CoroutineScope(Dispatchers.Unconfined)
+            CoroutineScope(Dispatchers.Unconfined),
+            mockWebViewSettingsApplier
         )
 
         runTest {
@@ -87,7 +91,8 @@ class DefaultInAppMessageEventHandlerTest {
             )
         val defaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
             scriptHandlers,
-            CoroutineScope(Dispatchers.Unconfined)
+            CoroutineScope(Dispatchers.Unconfined),
+            mockWebViewSettingsApplier
         )
 
         runTest {
@@ -109,7 +114,8 @@ class DefaultInAppMessageEventHandlerTest {
             mutableMapOf()
         val defaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
             scriptHandlers,
-            CoroutineScope(Dispatchers.Unconfined)
+            CoroutineScope(Dispatchers.Unconfined),
+            mockWebViewSettingsApplier
         )
 
         val callback = Mockito.mock(AdobeCallback::class.java) as AdobeCallback<String>
@@ -147,7 +153,8 @@ class DefaultInAppMessageEventHandlerTest {
             mutableMapOf()
         val defaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
             scriptHandlers,
-            CoroutineScope(Dispatchers.Unconfined)
+            CoroutineScope(Dispatchers.Unconfined),
+            mockWebViewSettingsApplier
         )
 
         val callback = Mockito.mock(AdobeCallback::class.java) as AdobeCallback<String>
@@ -185,7 +192,8 @@ class DefaultInAppMessageEventHandlerTest {
             mutableMapOf()
         val defaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
             scriptHandlers,
-            CoroutineScope(Dispatchers.Unconfined)
+            CoroutineScope(Dispatchers.Unconfined),
+            mockWebViewSettingsApplier
         )
 
         val callback = Mockito.mock(AdobeCallback::class.java) as AdobeCallback<String>
@@ -219,7 +227,8 @@ class DefaultInAppMessageEventHandlerTest {
             )
         val defaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
             scriptHandlers,
-            CoroutineScope(Dispatchers.Unconfined)
+            CoroutineScope(Dispatchers.Unconfined),
+            mockWebViewSettingsApplier
         )
         val callback = Mockito.mock(AdobeCallback::class.java) as AdobeCallback<String>
 
@@ -240,7 +249,8 @@ class DefaultInAppMessageEventHandlerTest {
             )
         val defaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
             scriptHandlers,
-            CoroutineScope(Dispatchers.Unconfined)
+            CoroutineScope(Dispatchers.Unconfined),
+            mockWebViewSettingsApplier
         )
         val callback = Mockito.mock(AdobeCallback::class.java) as AdobeCallback<String>
 
@@ -251,6 +261,24 @@ class DefaultInAppMessageEventHandlerTest {
             defaultInAppMessageEventHandler.evaluateJavascript(jsContent, callback)
             verify(mockWebView).evaluateJavascript(eq(jsContent), any())
             verify(callback).call("EvaluatedValue")
+        }
+    }
+
+    @Test
+    fun `Test that #applyWebViewSettings relays it to WebViewSettingsApplier`() {
+        val scriptHandlers: MutableMap<String, DefaultInAppMessageEventHandler.WebViewJavascriptInterface> =
+            mutableMapOf(
+                "handler" to scriptHandler1
+            )
+        val defaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
+            scriptHandlers,
+            CoroutineScope(Dispatchers.Unconfined),
+            mockWebViewSettingsApplier
+        )
+
+        runTest {
+            defaultInAppMessageEventHandler.applyDefaultWebViewSettings(mockWebView)
+            verify(mockWebViewSettingsApplier).invoke(mockWebView)
         }
     }
 }

@@ -31,7 +31,8 @@ import java.net.URLDecoder
  */
 internal class DefaultInAppMessageEventHandler internal constructor(
     private val scriptHandlers: MutableMap<String, WebViewJavascriptInterface>,
-    private val mainScope: CoroutineScope
+    private val mainScope: CoroutineScope,
+    internal val defaultWebViewSettingsApplier: (WebView) -> WebView
 ) : InAppMessageEventHandler {
     companion object {
         private const val LOG_SOURCE = "DefaultInAppMessageEventHandler"
@@ -109,6 +110,10 @@ internal class DefaultInAppMessageEventHandler internal constructor(
                 callback.call(result)
             }
         }
+    }
+
+    override fun applyDefaultWebViewSettings(webView: WebView): WebView {
+        return defaultWebViewSettingsApplier(webView)
     }
 
     /**

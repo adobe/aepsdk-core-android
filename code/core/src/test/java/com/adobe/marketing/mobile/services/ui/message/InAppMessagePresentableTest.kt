@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services.ui.message
 
+import android.webkit.WebSettings
+import android.webkit.WebView
 import com.adobe.marketing.mobile.services.ui.Alert
 import com.adobe.marketing.mobile.services.ui.FloatingButton
 import com.adobe.marketing.mobile.services.ui.InAppMessage
@@ -22,7 +24,9 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.verify
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -42,6 +46,12 @@ class InAppMessagePresentableTest {
 
     @Mock
     private lateinit var mockScope: CoroutineScope
+
+    @Mock
+    private lateinit var mockWebView: WebView
+
+    @Mock
+    private lateinit var mockWebViewSettings: WebSettings
 
     private lateinit var inAppMessagePresentable: InAppMessagePresentable
 
@@ -77,5 +87,30 @@ class InAppMessagePresentableTest {
         assertTrue(inAppMessagePresentable.hasConflicts(listOf(mock(InAppMessage::class.java))))
         assertTrue(inAppMessagePresentable.hasConflicts(listOf(mock(Alert::class.java))))
         assertFalse(inAppMessagePresentable.hasConflicts(listOf(mock(FloatingButton::class.java))))
+    }
+
+    @Test
+    fun `Test that WebView is applied with default settings by DefaultInAppMessageEventHandler`() {
+        `when`(mockWebView.settings).thenReturn(mockWebViewSettings)
+        `when`(mockInAppMessage.settings).thenReturn(InAppMessageSettings.Builder().build())
+
+        // Test that the default settings are applied to the WebView
+        inAppMessagePresentable.inAppMessageEventHandler.defaultWebViewSettingsApplier(mockWebView)
+
+        // Verify that the default settings are applied to the WebView
+        verify(mockWebViewSettings).javaScriptEnabled = true
+        verify(mockWebViewSettings).allowFileAccess = false
+        verify(mockWebViewSettings).domStorageEnabled = true
+        verify(mockWebViewSettings).layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
+
+        verify(mockWebViewSettings).defaultTextEncodingName = "UTF-8"
+        verify(mockWebViewSettings).mediaPlaybackRequiresUserGesture = false
+        verify(mockWebViewSettings).databaseEnabled = true
+
+        verify(mockWebView).isVerticalScrollBarEnabled = true
+        verify(mockWebView).isHorizontalScrollBarEnabled = true
+        verify(mockWebView).isScrollbarFadingEnabled = true
+        verify(mockWebView).scrollBarStyle = WebView.SCROLLBARS_INSIDE_OVERLAY
+        verify(mockWebView).setBackgroundColor(0)
     }
 }

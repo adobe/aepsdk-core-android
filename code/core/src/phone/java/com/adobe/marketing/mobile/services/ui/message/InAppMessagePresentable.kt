@@ -15,6 +15,7 @@ import android.content.Context
 import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
+import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.platform.ComposeView
 import com.adobe.marketing.mobile.services.ui.Alert
 import com.adobe.marketing.mobile.services.ui.InAppMessage
@@ -54,10 +55,13 @@ internal class InAppMessagePresentable(
         internal const val BASE_URL = "file:///android_asset/"
     }
 
-    private val inAppMessageEventHandler: DefaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
+    @VisibleForTesting
+    internal val inAppMessageEventHandler: DefaultInAppMessageEventHandler = DefaultInAppMessageEventHandler(
         scriptHandlers = mutableMapOf(),
         mainScope = mainScope
-    )
+    ) { webView ->
+        applyWebViewSettings(webView)
+    }
 
     init {
         // Set the event handler for the in-app message right at creation

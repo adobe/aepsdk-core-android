@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.message
 
+import android.webkit.WebView
 import com.adobe.marketing.mobile.AdobeCallback
 
 /**
@@ -34,4 +35,13 @@ interface InAppMessageEventHandler {
      * @param callback the callback to be invoked with the result of the javascript execution
      */
     fun evaluateJavascript(jsContent: String, callback: AdobeCallback<String>)
+
+    /**
+     * Applies the default WebView settings to the provided [WebView]. This can be used in
+     * cases where the consumer is creating their own WebView and wants to apply the settings
+     * used for the WebView created by the SDK.
+     * @param webView the [WebView] to apply the default settings to
+     * @return the [WebView] with the default settings applied
+     */
+    fun applyDefaultWebViewSettings(webView: WebView): WebView
 }

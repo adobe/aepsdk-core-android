@@ -54,7 +54,7 @@ internal fun MessageBackdrop(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
                     onClick = {
-                        gestureTracker.onGesture(InAppMessageSettings.MessageGesture.BACKGROUND_TAP)
+                        gestureTracker.onGesture(InAppMessageSettings.MessageGesture.TAP_BACKGROUND)
                     }
                 )
                 .testTag(MessageTestTags.MESSAGE_BACKDROP)

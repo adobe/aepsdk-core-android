@@ -103,7 +103,7 @@ internal object MessageAnimationMapper {
             animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS),
             targetOffsetX = { it }
         ),
-        InAppMessageSettings.MessageGesture.BACKGROUND_TAP to fadeOut(
+        InAppMessageSettings.MessageGesture.TAP_BACKGROUND to fadeOut(
             animationSpec = tween(DEFAULT_ANIMATION_DURATION_MS)
         )
     )

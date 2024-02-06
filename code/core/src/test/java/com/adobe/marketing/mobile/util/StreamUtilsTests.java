@@ -11,11 +11,18 @@
 
 package com.adobe.marketing.mobile.util;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public final class StreamUtilsTests {
 
@@ -28,5 +35,14 @@ public final class StreamUtilsTests {
     public void testStreamToString_when_validInputStream() throws Exception {
         InputStream stream = new ByteArrayInputStream("myTestExample".getBytes("UTF-8"));
         assertEquals("myTestExample", StreamUtils.readAsString(stream));
+    }
+
+    @Test
+    public void testStreamUtilsClosesStream_when_invalidInputStream() throws Exception {
+        InputStream stream = Mockito.mock(InputStream.class);
+        when(stream.read(any(), anyInt(), anyInt()))
+                .thenThrow(new IOException("Mocked IO Exception"));
+        assertNull(StreamUtils.readAsString(stream));
+        verify(stream).close();
     }
 }

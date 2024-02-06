@@ -70,6 +70,7 @@ internal class AndroidEventHistory : EventHistory {
      * @param handler If `enforceOrder` is false, `EventHistoryResultHandler<Integer>` containing the the total number of
      * matching events in the `EventHistoryDatabase`. If `enforceOrder` is true, the handler will contain a "1" if the event history requests
      * were found in the order specified in the eventHistoryRequests array and a "0" if the events were not found in the order specified.
+     * The handler will contain a "-1" if the database failure occurred.
      */
     override fun getEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
@@ -77,6 +78,7 @@ internal class AndroidEventHistory : EventHistory {
         handler: EventHistoryResultHandler<Int>
     ) {
         executor.submit {
+            var dbError = false
             var count = 0
             var latestEventOccurrence: Long? = null
             eventHistoryRequests.forEachIndexed { index, request ->
@@ -97,15 +99,21 @@ internal class AndroidEventHistory : EventHistory {
                     res
                 )
 
-                if (enforceOrder && (res == null || res.count == 0)) {
+                if (res == null) {
+                    dbError = true
                     return@forEachIndexed
                 }
 
-                latestEventOccurrence = res?.newestTimeStamp
-                count += (res?.count ?: 0)
+                if (enforceOrder && res.count == 0) {
+                    return@forEachIndexed
+                }
+
+                latestEventOccurrence = res.newestTimeStamp
+                count += res.count
             }
 
             val result = when {
+                dbError -> -1
                 enforceOrder && count == eventHistoryRequests.size -> 1
                 enforceOrder && count != eventHistoryRequests.size -> 0
                 else -> count

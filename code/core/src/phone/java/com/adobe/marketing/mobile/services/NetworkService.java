@@ -11,7 +11,9 @@
 
 package com.adobe.marketing.mobile.services;
 
+import android.net.ConnectivityManager;
 import androidx.annotation.VisibleForTesting;
+import com.adobe.marketing.mobile.internal.util.NetworkUtilsKt;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -54,6 +56,20 @@ class NetworkService implements Networking {
 
     @Override
     public void connectAsync(final NetworkRequest request, final NetworkCallback callback) {
+        ConnectivityManager connectivityManager =
+                ServiceProvider.getInstance().getAppContextService().getConnectivityManager();
+        if (connectivityManager != null) {
+            if (!NetworkUtilsKt.isInternetAvailable(connectivityManager)) {
+                Log.trace(ServiceConstants.LOG_TAG, TAG, "The Android network is down.");
+                callback.call(null);
+                return;
+            }
+        } else {
+            Log.warning(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "ConnectivityManager is null, it's not able to check the network condition.");
+        }
         try {
             executorService.submit(
                     () -> {

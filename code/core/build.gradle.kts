@@ -43,3 +43,8 @@ apiValidation {
             "com.adobe.marketing.mobile.core.BuildConfig"
     ))
 }
+
+dependencies {
+    androidTestImplementation("org.mockito:mockito-core:5.3.1")
+    androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline:2.28.3")
+}

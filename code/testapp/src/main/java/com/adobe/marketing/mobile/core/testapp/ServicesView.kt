@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.adobe.marketing.mobile.core.testapp.services.NetworkServiceCard
 import com.adobe.marketing.mobile.core.testapp.ui.theme.AEPSDKCoreAndroidTheme
 import com.adobe.marketing.mobile.core.testapp.ui.alert.AlertCard
 import com.adobe.marketing.mobile.core.testapp.ui.alert.AlertCreator
@@ -33,10 +34,10 @@ import com.adobe.marketing.mobile.services.HttpMethod
 import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.ServiceProvider
 
-//val inAppMessage = InAppMessageCreator.create()
-//val alert = AlertCreator.create()
-//val floatingButton =
-//    FloatingButtonCreator(ServiceProvider.getInstance().appContextService.applicationContext!!).create()
+val inAppMessage = InAppMessageCreator.create()
+val alert = AlertCreator.create()
+val floatingButton =
+    FloatingButtonCreator(ServiceProvider.getInstance().appContextService.applicationContext!!).create()
 
 @Composable
 fun ServicesView(navController: NavHostController) {
@@ -47,19 +48,10 @@ fun ServicesView(navController: NavHostController) {
             Text(text = "Home")
         }
         Spacer(modifier = Modifier.size(10.dp))
-        Button(onClick = {
-            val request = NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 5000,5000)
-            ServiceProvider.getInstance().networkService?.connectAsync(request){ connection ->
-                val status = if (connection != null) "valid connection" else "null connection"
-                showAlert("Privacy Status: $status")
-            }
-        }) {
-            Text(text = "NetworkService")
-        }
-
-//        InAppMessageCard(iamPresentable = inAppMessage)
-//        AlertCard(alertPresentable = alert)
-//        FloatingButtonCard(floatingButtonPresentable = floatingButton)
+        NetworkServiceCard()
+        InAppMessageCard(iamPresentable = inAppMessage)
+        AlertCard(alertPresentable = alert)
+        FloatingButtonCard(floatingButtonPresentable = floatingButton)
     }
 }
 

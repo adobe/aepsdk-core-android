@@ -8,14 +8,12 @@
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License.
  */
-package com.adobe.marketing.mobile.core.testapp.ui.inappmessage
+package com.adobe.marketing.mobile.core.testapp.services
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Text
@@ -23,11 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.adobe.marketing.mobile.services.ui.InAppMessage
-import com.adobe.marketing.mobile.services.ui.Presentable
+import com.adobe.marketing.mobile.core.testapp.showAlert
+import com.adobe.marketing.mobile.services.HttpMethod
+import com.adobe.marketing.mobile.services.NetworkRequest
+import com.adobe.marketing.mobile.services.ServiceProvider
 
 @Composable
-fun InAppMessageCard(iamPresentable: Presentable<InAppMessage>) {
+fun NetworkServiceCard() {
 
     Card(modifier = Modifier.padding(16.dp), elevation = 8.dp) {
         Column(
@@ -35,24 +35,16 @@ fun InAppMessageCard(iamPresentable: Presentable<InAppMessage>) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "InAppMessage", modifier = Modifier.padding(16.dp))
+            Text(text = "Network Services", modifier = Modifier.padding(16.dp))
 
-            Row(
-                modifier = Modifier.width(300.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(onClick = { iamPresentable.show() }) {
-                    Text(text = "Show")
+            Button(onClick = {
+                val request = NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 5000,5000)
+                ServiceProvider.getInstance().networkService?.connectAsync(request){ connection ->
+                    val status = if (connection != null) "valid connection" else "null connection"
+                    showAlert("Privacy Status: $status")
                 }
-
-                Button(onClick = { iamPresentable.hide() }) {
-                    Text(text = "Hide")
-                }
-
-                Button(onClick = { iamPresentable.dismiss() }) {
-                    Text(text = "Dismiss")
-                }
+            }) {
+                Text(text = "Internet availability")
             }
         }
 

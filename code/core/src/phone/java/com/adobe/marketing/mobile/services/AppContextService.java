@@ -64,6 +64,7 @@ public interface AppContextService {
 
     /**
      * Get the instance of {@link ConnectivityManager}
+     *
      * @return the instance of {@link ConnectivityManager}
      */
     @Nullable ConnectivityManager getConnectivityManager();

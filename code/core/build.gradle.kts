@@ -29,6 +29,8 @@ aepLibrary {
         addMavenDependency("androidx.compose.material", "material", BuildConstants.Versions.COMPOSE_MATERIAL)
         addMavenDependency("androidx.compose.animation", "animation", BuildConstants.Versions.COMPOSE)
         addMavenDependency("androidx.activity", "activity-compose", BuildConstants.Versions.ANDROIDX_ACTIVITY_COMPOSE)
+        // TODO: Add this dependency version from the aep-library plugin
+        addMavenDependency("androidx.lifecycle", "lifecycle-runtime-ktx", "2.3.1")
     }
 }
 
@@ -42,4 +44,9 @@ apiValidation {
     ignoredClasses.addAll(setOf(
             "com.adobe.marketing.mobile.core.BuildConfig"
     ))
+}
+
+dependencies {
+    // TODO: Add this dependency from the aep-library plugin
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
 }

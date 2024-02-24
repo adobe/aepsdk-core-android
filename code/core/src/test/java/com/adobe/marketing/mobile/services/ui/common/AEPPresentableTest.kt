@@ -74,6 +74,9 @@ internal class AEPPresentableTest {
     @Mock
     private lateinit var mockPresentationObserver: PresentationObserver
 
+    @Mock
+    private lateinit var mockActivityCompatLifecycleUtils: ActivityCompatOwnerUtils
+
     private var mockMainScope: CoroutineScope = CoroutineScope(Dispatchers.Unconfined)
 
     @Mock
@@ -94,6 +97,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -141,6 +145,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -190,6 +195,7 @@ internal class AEPPresentableTest {
             null, // simulate null presentation delegate
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -231,6 +237,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -283,6 +290,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -331,6 +339,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -372,6 +381,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver,
             conflictLogic = { visible ->
@@ -426,6 +436,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver,
             conflictLogic = { visible ->
@@ -483,6 +494,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -521,6 +533,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -566,6 +579,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -611,6 +625,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -651,6 +666,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -685,6 +701,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -716,6 +733,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -757,6 +775,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -798,6 +817,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -839,6 +859,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -876,6 +897,7 @@ internal class AEPPresentableTest {
             mockPresentationDelegate,
             mockAppLifecycleProvider,
             mockPresentationStateManager,
+            mockActivityCompatLifecycleUtils,
             mockMainScope,
             mockPresentationObserver
         )
@@ -910,6 +932,7 @@ internal class AEPPresentableTest {
         presentationDelegate: PresentationDelegate?,
         appLifecycleProvider: AppLifecycleProvider,
         presentationStateManager: PresentationStateManager,
+        activityCompatOwnerUtils: ActivityCompatOwnerUtils,
         mainScope: CoroutineScope,
         presentationObserver: PresentationObserver,
         val conflictLogic: (visiblePresentations: List<Presentation<*>>) -> Boolean = { false }
@@ -919,6 +942,7 @@ internal class AEPPresentableTest {
         presentationDelegate,
         appLifecycleProvider,
         presentationStateManager,
+        activityCompatOwnerUtils,
         mainScope,
         presentationObserver
     ) {

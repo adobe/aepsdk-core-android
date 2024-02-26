@@ -16,6 +16,7 @@ import android.content.Context
 import android.view.ViewGroup
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
+import com.adobe.marketing.mobile.internal.util.ActivityCompatOwnerUtils
 import com.adobe.marketing.mobile.services.ui.Alert
 import com.adobe.marketing.mobile.services.ui.AlreadyDismissed
 import com.adobe.marketing.mobile.services.ui.AlreadyHidden

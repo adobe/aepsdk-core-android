@@ -18,6 +18,7 @@ import android.view.ViewGroup
 import androidx.annotation.MainThread
 import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.platform.ComposeView
+import com.adobe.marketing.mobile.internal.util.ActivityCompatOwnerUtils
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.AlreadyDismissed

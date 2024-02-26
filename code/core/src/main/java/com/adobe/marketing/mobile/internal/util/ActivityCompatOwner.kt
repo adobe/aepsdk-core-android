@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.common
+package com.adobe.marketing.mobile.internal.util
 
 import android.app.Activity
 import android.view.View
@@ -30,7 +30,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 /**
- * Utility class to attach and detach a [ActivityCompatOwner] to an activity.
+ * Utility class to attach and detach an [ActivityCompatOwner] to an activity.
  * Exists to mock and make tests easier to write for the calling component.
  * This component has to be manually tested due the internal threading and lifecycle management
  * of the Android SDK.
@@ -38,7 +38,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 internal class ActivityCompatOwnerUtils {
 
     /**
-     * Attaches a [ActivityCompatOwner] to the given activity if it does not already have a lifecycle owner.
+     * Attaches an [ActivityCompatOwner] to the given activity if it does not already have a lifecycle owner.
      * @param activityToAttach the activity to attach the [ActivityCompatOwner] to
      */
     internal fun attachActivityCompatOwner(activityToAttach: Activity) {
@@ -55,7 +55,7 @@ internal class ActivityCompatOwnerUtils {
     }
 
     /**
-     * Detaches a [ActivityCompatOwner] from the given activity if it has one.
+     * Detaches the [ActivityCompatOwner] from the given activity if it has one.
      * @param activityToDetach the activity to detach the [ActivityCompatOwner] from
      */
     internal fun detachActivityCompatOwner(activityToDetach: Activity) {

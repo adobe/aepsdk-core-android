@@ -41,7 +41,7 @@ fun NetworkServiceCard() {
                 val request = NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 5000,5000)
                 ServiceProvider.getInstance().networkService?.connectAsync(request){ connection ->
                     val status = if (connection != null) "response code:" + connection.responseCode else "null connection"
-                    showAlert("Privacy Status: $status")
+                    showAlert("Connection Status: $status")
                 }
             }) {
                 Text(text = "Internet availability")

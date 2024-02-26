@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.adobe.marketing.mobile.core.testapp.services.NetworkServiceCard
 import com.adobe.marketing.mobile.core.testapp.ui.theme.AEPSDKCoreAndroidTheme
 import com.adobe.marketing.mobile.core.testapp.ui.alert.AlertCard
 import com.adobe.marketing.mobile.core.testapp.ui.alert.AlertCreator
@@ -29,6 +30,8 @@ import com.adobe.marketing.mobile.core.testapp.ui.floatingbutton.FloatingButtonC
 import com.adobe.marketing.mobile.core.testapp.ui.floatingbutton.FloatingButtonCreator
 import com.adobe.marketing.mobile.core.testapp.ui.inappmessage.InAppMessageCard
 import com.adobe.marketing.mobile.core.testapp.ui.inappmessage.InAppMessageCreator
+import com.adobe.marketing.mobile.services.HttpMethod
+import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.ServiceProvider
 
 val inAppMessage = InAppMessageCreator.create()
@@ -45,7 +48,7 @@ fun ServicesView(navController: NavHostController) {
             Text(text = "Home")
         }
         Spacer(modifier = Modifier.size(10.dp))
-
+        NetworkServiceCard()
         InAppMessageCard(iamPresentable = inAppMessage)
         AlertCard(alertPresentable = alert)
         FloatingButtonCard(floatingButtonPresentable = floatingButton)

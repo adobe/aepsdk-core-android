@@ -486,6 +486,7 @@ public abstract interface class com/adobe/marketing/mobile/services/AppContextSe
 	public abstract fun getAppState ()Lcom/adobe/marketing/mobile/services/AppState;
 	public abstract fun getApplication ()Landroid/app/Application;
 	public abstract fun getApplicationContext ()Landroid/content/Context;
+	public abstract fun getConnectivityManager ()Landroid/net/ConnectivityManager;
 	public abstract fun getCurrentActivity ()Landroid/app/Activity;
 	public abstract fun setApplication (Landroid/app/Application;)V
 }

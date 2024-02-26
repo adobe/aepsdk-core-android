@@ -17,7 +17,8 @@ public interface Networking {
      *
      * @param request {@link NetworkRequest} used for connection
      * @param callback {@link NetworkCallback} that will receive the {@link HttpConnecting} instance
-     *     after the connection has been made
+     *     after the connection has been made; if the current network is unavailable, callback will
+     *     be invoked immediately with a null connection.
      */
     void connectAsync(final NetworkRequest request, final NetworkCallback callback);
 }

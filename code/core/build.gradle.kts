@@ -43,3 +43,9 @@ apiValidation {
             "com.adobe.marketing.mobile.core.BuildConfig"
     ))
 }
+
+//TODO: Consider moving this to the aep-library plugin later
+dependencies {
+    androidTestImplementation("org.mockito:mockito-core:5.3.1")
+    androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline:2.28.3")
+}

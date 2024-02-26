@@ -18,10 +18,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import android.net.ConnectivityManager;
-import com.adobe.marketing.mobile.internal.util.NetworkUtilsKt;
+import com.adobe.marketing.mobile.internal.util.NetworkUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -50,11 +51,13 @@ public class NetworkServiceTests {
 
     @Mock ConnectivityManager connectivityManager;
 
+    private ExecutorService spiedExecutorService;
     private HttpConnectionHandler httpConnectionHandler;
 
     @Before
     public void setup() throws Exception {
-        networkService = new NetworkService(currentThreadExecutorService());
+        spiedExecutorService = Mockito.spy(currentThreadExecutorService());
+        networkService = new NetworkService(spiedExecutorService);
         ServiceProvider.getInstance().setDeviceInfoService(deviceInfoService);
         ServiceProvider.getInstance().setAppContextService(appContextService);
         when(appContextService.getConnectivityManager()).thenReturn(null);
@@ -62,10 +65,10 @@ public class NetworkServiceTests {
 
     @Test(timeout = 1000L)
     public void testConnectAsync_InternetNotAvailable() throws InterruptedException {
-        try (MockedStatic<NetworkUtilsKt> ignored = Mockito.mockStatic(NetworkUtilsKt.class);
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class);
                 MockedStatic<Log> mockedLog = Mockito.mockStatic(Log.class)) {
             when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
-            when(NetworkUtilsKt.isInternetAvailable(any())).thenReturn(false);
+            when(NetworkUtils.isInternetAvailable(any())).thenReturn(false);
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 10),
@@ -75,6 +78,7 @@ public class NetworkServiceTests {
                     });
             latch.await();
 
+            Mockito.verify(spiedExecutorService, never()).submit((Runnable) any());
             mockedLog.verify(
                     () -> Log.warning(anyString(), anyString(), anyString(), any()), never());
         }
@@ -82,10 +86,10 @@ public class NetworkServiceTests {
 
     @Test(timeout = 1000L)
     public void testConnectAsync_InternetIsAvailable() throws InterruptedException {
-        try (MockedStatic<NetworkUtilsKt> ignored = Mockito.mockStatic(NetworkUtilsKt.class);
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class);
                 MockedStatic<Log> mockedLog = Mockito.mockStatic(Log.class)) {
             when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
-            when(NetworkUtilsKt.isInternetAvailable(any())).thenReturn(true);
+            when(NetworkUtils.isInternetAvailable(any())).thenReturn(true);
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 10),
@@ -95,6 +99,7 @@ public class NetworkServiceTests {
                     });
             latch.await();
 
+            Mockito.verify(spiedExecutorService, times(1)).submit((Runnable) any());
             mockedLog.verify(
                     () -> Log.trace(anyString(), anyString(), anyString(), any()), never());
             mockedLog.verify(

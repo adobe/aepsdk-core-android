@@ -9,6 +9,7 @@
   governing permissions and limitations under the License.
 */
 
+@file:JvmName("NetworkUtils")
 package com.adobe.marketing.mobile.internal.util
 
 import android.net.ConnectivityManager
@@ -21,7 +22,8 @@ import android.os.Build
  * @param connectivityManager the [ConnectivityManager] to use to check the network status
  * @return `true` if the network is configured to reach the general Internet, `false` otherwise
  */
-fun isInternetAvailable(connectivityManager: ConnectivityManager): Boolean {
+@JvmName("isInternetAvailable")
+internal fun isInternetAvailable(connectivityManager: ConnectivityManager): Boolean {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         // The getActiveNetwork() API was introduced in API version 23.
         val network = connectivityManager.activeNetwork

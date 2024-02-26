@@ -60,7 +60,7 @@ class NetworkService implements Networking {
                 ServiceProvider.getInstance().getAppContextService().getConnectivityManager();
         if (connectivityManager != null) {
             if (!NetworkUtils.isInternetAvailable(connectivityManager)) {
-                Log.trace(ServiceConstants.LOG_TAG, TAG, "The Android network is down.");
+                Log.trace(ServiceConstants.LOG_TAG, TAG, "The Android device is offline.");
                 callback.call(null);
                 return;
             }

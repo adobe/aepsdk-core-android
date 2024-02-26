@@ -22,9 +22,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.atLeastOnce
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
@@ -65,6 +63,5 @@ class NetworkUtilsTest {
         Mockito.reset(mockedConnectivityManager)
 
         assertFalse(isInternetAvailable(mockedConnectivityManager))
-        verify(mockedConnectivityManager, atLeastOnce()).getNetworkCapabilities(null)
     }
 }

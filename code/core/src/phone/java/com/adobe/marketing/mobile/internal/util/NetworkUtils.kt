@@ -26,7 +26,7 @@ import android.os.Build
 internal fun isInternetAvailable(connectivityManager: ConnectivityManager): Boolean {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         // The getActiveNetwork() API was introduced in API version 23.
-        val network = connectivityManager.activeNetwork
+        val network = connectivityManager.activeNetwork ?: return false
         val activeCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
         return activeCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     } else {

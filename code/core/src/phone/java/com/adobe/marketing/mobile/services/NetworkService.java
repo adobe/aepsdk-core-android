@@ -65,10 +65,11 @@ class NetworkService implements Networking {
                 return;
             }
         } else {
-            Log.warning(
+            Log.debug(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    "ConnectivityManager is null, it's not able to check the network condition.");
+                    "ConnectivityManager instance is null. Unable to the check the network"
+                            + " condition.");
         }
         try {
             executorService.submit(

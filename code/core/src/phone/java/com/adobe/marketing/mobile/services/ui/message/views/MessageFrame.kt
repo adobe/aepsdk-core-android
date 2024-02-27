@@ -18,10 +18,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
@@ -73,8 +77,12 @@ internal fun MessageFrame(
             ),
             verticalAlignment = MessageAlignmentMapper.getVerticalAlignment(inAppMessageSettings.verticalAlignment)
         ) {
-            // The content of the InAppMessage
-            MessageContent(inAppMessageSettings, onCreated, gestureTracker)
+            // The content of the InAppMessage. This needs to be placed inside a Card with .99 alpha to ensure that
+            // the WebView message is clipped to the rounded corners for API versions 22 and below. This does not
+            // affect the appearance of the message on API versions 23 and above.
+            Card(modifier = Modifier.clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp)).alpha(0.99f)) {
+                MessageContent(inAppMessageSettings, onCreated, gestureTracker)
+            }
 
             // This is a one-time effect that will be called when this composable is completely removed from the composition
             // (after any animations if any). Use this to clean up any resources that were created in onCreated.

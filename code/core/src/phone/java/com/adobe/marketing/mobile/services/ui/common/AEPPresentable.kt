@@ -18,6 +18,7 @@ import android.view.ViewGroup
 import androidx.annotation.MainThread
 import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.platform.ComposeView
+import com.adobe.marketing.mobile.internal.util.ActivityCompatOwnerUtils
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.AlreadyDismissed
@@ -54,6 +55,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
     private val mainScope: CoroutineScope
     private val appLifecycleProvider: AppLifecycleProvider
     private val presentationObserver: PresentationObserver
+    private val activityCompatOwnerUtils: ActivityCompatOwnerUtils
     protected val presentationStateManager: PresentationStateManager
 
     @VisibleForTesting internal val contentIdentifier: Int = Random().nextInt()
@@ -75,6 +77,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         presentationDelegate,
         appLifecycleProvider,
         PresentationStateManager(),
+        ActivityCompatOwnerUtils(),
         CoroutineScope(Dispatchers.Main),
         PresentationObserver.INSTANCE
     )
@@ -94,6 +97,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         presentationDelegate: PresentationDelegate?,
         appLifecycleProvider: AppLifecycleProvider,
         presentationStateManager: PresentationStateManager,
+        activityCompatOwnerUtils: ActivityCompatOwnerUtils,
         mainScope: CoroutineScope,
         presentationObserver: PresentationObserver
     ) {
@@ -102,6 +106,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         this.presentationDelegate = presentationDelegate
         this.appLifecycleProvider = appLifecycleProvider
         this.presentationStateManager = presentationStateManager
+        this.activityCompatOwnerUtils = activityCompatOwnerUtils
         this.mainScope = mainScope
         this.presentationObserver = presentationObserver
     }
@@ -315,6 +320,8 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
             return
         }
 
+        activityCompatOwnerUtils.attachActivityCompatOwner(activityToAttach)
+
         // Fetch a new content view from the presentable
         val composeView: ComposeView = getContent(activityToAttach)
         composeView.id = contentIdentifier
@@ -366,6 +373,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         }
         existingComposeView.removeAllViews()
         rootViewGroup.removeView(existingComposeView)
+        activityCompatOwnerUtils.detachActivityCompatOwner(activityToDetach)
         Log.trace(ServiceConstants.LOG_TAG, LOG_SOURCE, "Detached ${contentIdentifier}from $activityToDetach.")
     }
 }

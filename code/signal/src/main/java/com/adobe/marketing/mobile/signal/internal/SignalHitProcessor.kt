@@ -20,6 +20,8 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
+import java.net.MalformedURLException
+import java.net.URL
 
 internal class SignalHitProcessor : HitProcessing {
     private val networkService: Networking
@@ -52,6 +54,20 @@ internal class SignalHitProcessor : HitProcessing {
             processingResult.complete(true)
             return
         }
+
+        // The malformed URL string cause throwing the MalformedURLException inside the Network service
+        try {
+            URL(request.url)
+        } catch (e: MalformedURLException) {
+            Log.warning(
+                SignalConstants.LOG_TAG,
+                CLASS_NAME,
+                "Drop this data entity as it includes the malformed url string: ${request.url}"
+            )
+            processingResult.complete(true)
+            return
+        }
+
         networkService.connectAsync(request) { connection ->
             if (connection == null) {
                 Log.debug(

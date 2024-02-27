@@ -15,12 +15,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.adobe.marketing.mobile.Event
@@ -32,6 +38,8 @@ import com.adobe.marketing.mobile.core.testapp.ui.theme.AEPSDKCoreAndroidTheme
 
 @Composable
 fun SignalView(navController: NavHostController) {
+    var url by remember { mutableStateOf("https://www.adobe.com") }
+
     Column(Modifier.padding(8.dp)) {
         Button(onClick = {
             navController.navigate(NavRoutes.HomeView.route)
@@ -43,6 +51,12 @@ fun SignalView(navController: NavHostController) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Text(text = "Example of the malformed URL: https://www.adobe.com:_80/", fontSize = 10.sp)
+            OutlinedTextField(
+                value = url,
+                onValueChange = { url = it },
+                label = { Text("URL") }
+            )
             Button(onClick = {
                 MobileCore.dispatchEvent(
                     Event.Builder("consequence event", EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT).setEventData(
@@ -51,7 +65,7 @@ fun SignalView(navController: NavHostController) {
                             "type" to "pii",
                             "detail" to mapOf(
                                 "timeout" to 0,
-                                "templateurl" to "https://www.adobe.com"
+                                "templateurl" to url
                             )
                         )
                     )

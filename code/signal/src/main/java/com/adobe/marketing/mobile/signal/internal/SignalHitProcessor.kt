@@ -55,7 +55,8 @@ internal class SignalHitProcessor : HitProcessing {
             return
         }
 
-        // The malformed URL string cause throwing the MalformedURLException inside the Network service
+        // The connectAsync() API will invoke the callback with a null connection if the URL string is malformed.
+        // Validate the url string before making the request.
         try {
             URL(request.url)
         } catch (e: MalformedURLException) {

@@ -49,4 +49,8 @@ apiValidation {
 dependencies {
     // TODO: Add this dependency from the aep-library plugin
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+
+    //TODO: Consider moving this to the aep-library plugin later
+    androidTestImplementation("org.mockito:mockito-core:5.3.1")
+    androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline:2.28.3")
 }

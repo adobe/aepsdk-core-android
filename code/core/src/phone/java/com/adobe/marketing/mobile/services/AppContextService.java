@@ -14,6 +14,7 @@ package com.adobe.marketing.mobile.services;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.net.ConnectivityManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -60,4 +61,11 @@ public interface AppContextService {
      * @return AppState the current application state
      */
     @NonNull AppState getAppState();
+
+    /**
+     * Get the instance of {@link ConnectivityManager}
+     *
+     * @return the instance of {@link ConnectivityManager}
+     */
+    @Nullable ConnectivityManager getConnectivityManager();
 }

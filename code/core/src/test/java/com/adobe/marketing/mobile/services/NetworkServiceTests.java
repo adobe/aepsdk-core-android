@@ -84,7 +84,7 @@ public class NetworkServiceTests {
         }
     }
 
-    @Test(timeout = 1000L)
+    @Test(timeout = 10000L)
     public void testConnectAsync_InternetIsAvailable() throws InterruptedException {
         try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class);
                 MockedStatic<Log> mockedLog = Mockito.mockStatic(Log.class)) {

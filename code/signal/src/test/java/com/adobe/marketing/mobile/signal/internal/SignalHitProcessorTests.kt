@@ -25,6 +25,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertFalse
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class SignalHitProcessorTests {
@@ -223,7 +224,11 @@ class SignalHitProcessorTests {
             callback.call(null)
         }
         val countDownLatch = CountDownLatch(1)
-        signalHitProcessor.processHit(entity) { countDownLatch.countDown() }
+        signalHitProcessor.processHit(entity) { hitIsProcessed ->
+            // If the network callback was invoked with a null connection, then return false to indicate that the hit is not processed.
+            assertFalse(hitIsProcessed)
+            countDownLatch.countDown()
+        }
 
         countDownLatch.await()
     }

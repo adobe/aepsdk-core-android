@@ -19,9 +19,16 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Signal
+import com.adobe.marketing.mobile.core.testapp.ui.theme.AEPSDKCoreAndroidTheme
 
 @Composable
 fun SignalView(navController: NavHostController) {
@@ -36,8 +43,37 @@ fun SignalView(navController: NavHostController) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Button(onClick = {
+                MobileCore.dispatchEvent(
+                    Event.Builder("consequence event", EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT).setEventData(
+                    mapOf(
+                        "triggeredconsequence" to mapOf(
+                            "type" to "pii",
+                            "detail" to mapOf(
+                                "timeout" to 0,
+                                "templateurl" to "https://www.adobe.com"
+                            )
+                        )
+                    )
+                ).build())
+
+            }) {
+                Text(text = "post back")
+            }
+            // openURL is covered by automation test, we can enable it later if needed for customer issue verification
+            Button(onClick = {},enabled = false) {
+                Text(text = "open URL")
+            }
             Text(text = "Signal extension version - ${Signal.extensionVersion()}")
         }
 
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreviewForSignalView() {
+    AEPSDKCoreAndroidTheme {
+        SignalView(rememberNavController())
     }
 }

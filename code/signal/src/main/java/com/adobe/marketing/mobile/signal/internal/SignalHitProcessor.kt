@@ -54,7 +54,12 @@ internal class SignalHitProcessor : HitProcessing {
         }
         networkService.connectAsync(request) { connection ->
             if (connection == null) {
-                processingResult.complete(true)
+                Log.debug(
+                    SignalConstants.LOG_TAG,
+                    CLASS_NAME,
+                    "Network request returned null connection. Will retry request later."
+                )
+                processingResult.complete(false)
                 return@connectAsync
             }
             when (val responseCode = connection.responseCode) {

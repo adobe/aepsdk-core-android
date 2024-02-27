@@ -20,8 +20,6 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.Networking
 import com.adobe.marketing.mobile.services.ServiceProvider
-import java.net.MalformedURLException
-import java.net.URL
 
 internal class SignalHitProcessor : HitProcessing {
     private val networkService: Networking
@@ -50,20 +48,6 @@ internal class SignalHitProcessor : HitProcessing {
                 SignalConstants.LOG_TAG,
                 CLASS_NAME,
                 "Drop this data entity as it's not able to convert it to a valid Signal request: ${entity.data}"
-            )
-            processingResult.complete(true)
-            return
-        }
-
-        // The connectAsync() API will invoke the callback with a null connection if the URL string is malformed.
-        // Validate the url string before making the request.
-        try {
-            URL(request.url)
-        } catch (e: MalformedURLException) {
-            Log.warning(
-                SignalConstants.LOG_TAG,
-                CLASS_NAME,
-                "Drop this data entity as it includes the malformed url string: ${request.url}"
             )
             processingResult.complete(true)
             return

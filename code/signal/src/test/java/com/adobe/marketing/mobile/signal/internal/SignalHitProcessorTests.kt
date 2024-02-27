@@ -15,22 +15,17 @@ import com.adobe.marketing.mobile.services.DataEntity
 import com.adobe.marketing.mobile.services.HttpConnecting
 import com.adobe.marketing.mobile.services.HttpMethod
 import com.adobe.marketing.mobile.services.NetworkRequest
-import com.adobe.marketing.mobile.services.Networking
-import com.adobe.marketing.mobile.services.ServiceProvider
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito
-import org.mockito.Mockito.times
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.timeout
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class SignalHitProcessorTests {
@@ -40,13 +35,10 @@ class SignalHitProcessorTests {
 
     private lateinit var signalHitProcessor: SignalHitProcessor
 
-    private lateinit var spiedNetworkService: Networking
-
     @Before
     fun setup() {
         Mockito.reset(httpResponseConnection)
-        spiedNetworkService = Mockito.spy(ServiceProvider.getInstance().networkService)
-        signalHitProcessor = SignalHitProcessor(spiedNetworkService)
+        signalHitProcessor = SignalHitProcessor()
     }
 
     @Test(timeout = 100)
@@ -240,31 +232,6 @@ class SignalHitProcessorTests {
         }
 
         countDownLatch.await()
-    }
-
-    @Test
-    fun `processHit() - should not send requests when the url string is malformed`() {
-        val entity = DataEntity(
-            """
-            {
-              "contentType": "",
-              "body": "{\"key\":\"value\"}",
-              "url": "https://www.postback.com:_80/",
-              "timeout": 2
-            }
-            """.trimIndent()
-        )
-        signalHitProcessor = SignalHitProcessor { _, callback ->
-            callback.call(null)
-        }
-        val countDownLatch = CountDownLatch(1)
-        signalHitProcessor.processHit(entity) { processingResult ->
-            // the malformed url should be dropped
-            assertTrue(processingResult)
-            countDownLatch.countDown()
-        }
-        countDownLatch.await()
-        Mockito.verifyNoInteractions(spiedNetworkService)
     }
 
     @Test

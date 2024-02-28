@@ -912,6 +912,7 @@ public final class IdentityExtension extends Extension {
             final String urlString =
                     buildURLString(
                             currentCustomerIds, dpids, latestValidConfig, didAdidConsentChange);
+            // URLBuilder will return null, if the final URL is invalid. Drop the hit in that case.
             if (urlString != null) {
                 IdentityHit hit = new IdentityHit(urlString, event);
                 hitQueue.queue(hit.toDataEntity());

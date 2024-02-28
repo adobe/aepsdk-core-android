@@ -27,6 +27,7 @@ import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.SQLiteUtils
+import com.adobe.marketing.mobile.util.UrlUtils
 
 class SignalExtension : Extension {
     private val hitQueue: HitQueuing
@@ -139,6 +140,16 @@ class SignalExtension : Extension {
             )
             return
         }
+
+        if (!UrlUtils.isValidUrl(url)) {
+            Log.warning(
+                SignalConstants.LOG_TAG,
+                CLASS_NAME,
+                "Rule consequence Event for Signal will not be processed, url ($url) is malformed."
+            )
+            return
+        }
+
         if (event.isCollectPii() && !url.startsWith("https")) {
             Log.warning(
                 SignalConstants.LOG_TAG,
@@ -147,6 +158,7 @@ class SignalExtension : Extension {
             )
             return
         }
+
         val body = event.templateBody() ?: ""
         val contentType = event.contentType()
         val timeout = event.timeout()

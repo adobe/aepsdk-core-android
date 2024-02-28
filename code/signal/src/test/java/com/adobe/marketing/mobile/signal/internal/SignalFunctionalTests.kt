@@ -218,7 +218,7 @@ class SignalFunctionalTests {
     }
 
     @Test
-    fun `handleRulesEngineResponse() - collect pii without valid url`() {
+    fun `handleRulesEngineResponse() - collect pii with empty url`() {
         val event = Event.Builder("event", "type", "source").setEventData(
             mapOf(
                 "triggeredconsequence" to mapOf(
@@ -226,6 +226,41 @@ class SignalFunctionalTests {
                     "detail" to mapOf(
                         "timeout" to 0,
                         "templateurl" to null
+                    )
+                )
+            )
+        ).build()
+        `when`(
+            mockedExtensionApi.getSharedState(
+                any(),
+                any(),
+                anyOrNull(),
+                any()
+            )
+        ).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                mapOf(
+                    "global.privacy" to "optedin"
+                )
+            )
+        )
+        val spiedSignalExtension = spy(signalExtension)
+        spiedSignalExtension.handleRulesEngineResponse(event)
+        verify(spiedSignalExtension, times(1)).handlePostback(anyOrNull())
+        verify(spiedSignalExtension, never()).handleOpenURL(anyOrNull())
+        verify(mockedHitQueue, never()).queue(any())
+    }
+
+    @Test
+    fun `handleRulesEngineResponse() - collect pii with malformed url`() {
+        val event = Event.Builder("event", "type", "source").setEventData(
+            mapOf(
+                "triggeredconsequence" to mapOf(
+                    "type" to "pii",
+                    "detail" to mapOf(
+                        "timeout" to 0,
+                        "templateurl" to "https://www.adobe.com:_80/"
                     )
                 )
             )
@@ -356,5 +391,39 @@ class SignalFunctionalTests {
         spiedSignalExtension.handleRulesEngineResponse(event)
         verify(spiedSignalExtension, times(1)).handlePostback(anyOrNull())
         verify(spiedSignalExtension, never()).handleOpenURL(anyOrNull())
+    }
+
+    @Test
+    fun `handleRulesEngineResponse() - post back with malformed url`() {
+        val event = Event.Builder("event", "type", "source").setEventData(
+            mapOf(
+                "triggeredconsequence" to mapOf(
+                    "type" to "pb",
+                    "detail" to mapOf(
+                        "templateurl" to "https://www.adobe.com:_80/"
+                    )
+                )
+            )
+        ).build()
+        `when`(
+            mockedExtensionApi.getSharedState(
+                any(),
+                any(),
+                anyOrNull(),
+                any()
+            )
+        ).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                mapOf(
+                    "global.privacy" to "optedin"
+                )
+            )
+        )
+        val spiedSignalExtension = spy(signalExtension)
+        spiedSignalExtension.handleRulesEngineResponse(event)
+        verify(spiedSignalExtension, times(1)).handlePostback(anyOrNull())
+        verify(spiedSignalExtension, never()).handleOpenURL(anyOrNull())
+        verify(mockedHitQueue, never()).queue(any())
     }
 }

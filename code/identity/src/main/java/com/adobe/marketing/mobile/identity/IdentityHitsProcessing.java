@@ -84,17 +84,13 @@ class IdentityHitsProcessing implements HitProcessing {
                         networkRequest,
                         connection -> {
                             if (connection == null) {
+                                // connection is null when the device is offline
                                 Log.debug(
                                         IdentityConstants.LOG_TAG,
                                         LOG_SOURCE,
-                                        "IdentityHitsDatabase.process : An unknown error occurred"
-                                                + " during the Identity network call, connection is"
-                                                + " null. Will not retry.");
-
-                                // make sure the parent updates shared state and notifies one-time
-                                // listeners accordingly
-                                identityExtension.networkResponseLoaded(null, hit.getEvent());
-                                processingResult.complete(true);
+                                        "IdentityHitsDatabase.process : network connection is"
+                                                + " null. Will retry later.");
+                                processingResult.complete(false);
                                 return;
                             }
                             if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {

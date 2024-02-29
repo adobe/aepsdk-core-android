@@ -11,13 +11,17 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.app.Activity
+import android.view.View
 import android.webkit.WebView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
@@ -27,9 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAlignmentMapper
@@ -53,13 +60,32 @@ internal fun MessageFrame(
     onCreated: (WebView) -> Unit,
     onDisposed: () -> Unit
 ) {
-    val currentConfiguration = LocalConfiguration.current
+    // The current context is the activity that is hosting the message. We can safely cast it to
+    // an Activity because this composable is always used within the context of the activity in
+    // the current implementation of UIService
+    val currentActivity = LocalContext.current as? Activity ?: run {
+        onDisposed()
+        Log.debug(ServiceConstants.LOG_TAG, "MessageFrame", "Unable to get the current activity. Dismissing the message.")
+        return
+    }
+
+    // We want to calculate the height and width of the message based on the host activity's
+    // content view. This is because the message is displayed on top of the content view and
+    // we want to ensure that the message is displayed relative to the activity's size.
+    // This allows the message to be displayed correctly in split screen mode and other
+    // multi-window modes.
+    val contentView = currentActivity.findViewById<View>(android.R.id.content)
+    val contentHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+    val contentWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+    val heightDp = remember { ((contentHeightDp * inAppMessageSettings.height) / 100) }
+    val widthDp = remember { ((contentWidthDp * inAppMessageSettings.width) / 100) }
+
     val horizontalOffset =
         remember {
             MessageOffsetMapper.getHorizontalOffset(
                 inAppMessageSettings.horizontalAlignment,
                 inAppMessageSettings.horizontalInset,
-                currentConfiguration.screenWidthDp.dp
+                heightDp
             )
         }
     val verticalOffset =
@@ -67,7 +93,7 @@ internal fun MessageFrame(
             MessageOffsetMapper.getVerticalOffset(
                 inAppMessageSettings.verticalAlignment,
                 inAppMessageSettings.verticalInset,
-                currentConfiguration.screenHeightDp.dp
+                widthDp
             )
         }
 
@@ -93,7 +119,7 @@ internal fun MessageFrame(
             // the WebView message is clipped to the rounded corners for API versions 22 and below. This does not
             // affect the appearance of the message on API versions 23 and above.
             Card(modifier = Modifier.clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp)).alpha(0.99f)) {
-                MessageContent(inAppMessageSettings, onCreated, gestureTracker)
+                MessageContent(Modifier.height(heightDp).width(widthDp), inAppMessageSettings, onCreated, gestureTracker)
             }
 
             // This is a one-time effect that will be called when this composable is completely removed from the composition

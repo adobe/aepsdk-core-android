@@ -16,17 +16,13 @@ import android.webkit.WebView
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.adobe.marketing.mobile.services.Log
@@ -38,23 +34,18 @@ import java.nio.charset.StandardCharsets
 
 /**
  * Represents the content of the InAppMessage. Holds a WebView that loads the HTML content of the message
+ * @param modifier [Modifier] to apply to the content (AndroidView holding the WebView)
  * @param inAppMessageSettings [InAppMessageSettings] settings for the InAppMessage
  * @param onCreated callback to be invoked when the WenView that this composable holds is created
  * @param gestureTracker [GestureTracker] to track the swipe/drag gestures on the webview
  */
 @Composable
 internal fun MessageContent(
+    modifier: Modifier,
     inAppMessageSettings: InAppMessageSettings,
     onCreated: (WebView) -> Unit,
     gestureTracker: GestureTracker
 ) {
-    // Size variables
-    val currentConfiguration = LocalConfiguration.current
-    val heightDp: Dp =
-        remember { ((currentConfiguration.screenHeightDp * inAppMessageSettings.height) / 100).dp }
-    val widthDp: Dp =
-        remember { ((currentConfiguration.screenWidthDp * inAppMessageSettings.width) / 100).dp }
-
     // Swipe/Drag variables
     val offsetX = remember { mutableStateOf(0f) }
     val offsetY = remember { mutableStateOf(0f) }
@@ -89,9 +80,7 @@ internal fun MessageContent(
                 )
             }
         },
-        modifier = Modifier
-            .height(heightDp)
-            .width(widthDp)
+        modifier = modifier
             .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
             .draggable(
                 state = rememberDraggableState { delta ->

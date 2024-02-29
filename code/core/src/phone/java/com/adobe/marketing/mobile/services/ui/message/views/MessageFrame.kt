@@ -17,7 +17,7 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
@@ -35,6 +35,7 @@ import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAlignmentMapper
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAnimationMapper
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageArrangementMapper
+import com.adobe.marketing.mobile.services.ui.message.mapping.MessageOffsetMapper
 
 /**
  * Represents the frame of the InAppMessage that contains the content of the message.
@@ -53,10 +54,22 @@ internal fun MessageFrame(
     onDisposed: () -> Unit
 ) {
     val currentConfiguration = LocalConfiguration.current
-    val horizontalPadding =
-        remember { ((inAppMessageSettings.horizontalInset * currentConfiguration.screenWidthDp) / 100).dp }
-    val verticalPadding =
-        remember { ((inAppMessageSettings.verticalInset * currentConfiguration.screenHeightDp) / 100).dp }
+    val horizontalOffset =
+        remember {
+            MessageOffsetMapper.getHorizontalOffset(
+                inAppMessageSettings.horizontalAlignment,
+                inAppMessageSettings.horizontalInset,
+                currentConfiguration.screenWidthDp.dp
+            )
+        }
+    val verticalOffset =
+        remember {
+            MessageOffsetMapper.getVerticalOffset(
+                inAppMessageSettings.verticalAlignment,
+                inAppMessageSettings.verticalInset,
+                currentConfiguration.screenHeightDp.dp
+            )
+        }
 
     AnimatedVisibility(
         visibleState = visibility,
@@ -66,10 +79,9 @@ internal fun MessageFrame(
         exit = gestureTracker.getExitTransition()
     ) {
         Row(
-
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = horizontalPadding, vertical = verticalPadding)
+                .offset(x = horizontalOffset, y = verticalOffset)
                 .background(Color.Transparent)
                 .testTag(MessageTestTags.MESSAGE_FRAME),
             horizontalArrangement = MessageArrangementMapper.getHorizontalArrangement(

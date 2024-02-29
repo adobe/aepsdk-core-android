@@ -119,13 +119,13 @@ class InAppMessageSettings private constructor(
          * of the screen as a percentage of the screen height.
          * @param verticalInset the vertical inset of the message
          */
-        fun verticalInset(verticalInset: Int) = apply { this.verticalInset = clipToPercent(verticalInset) }
+        fun verticalInset(verticalInset: Int) = apply { this.verticalInset = clipToPercent(verticalInset, true) }
 
         /**
          * Sets the horizontal inset of the message. This is the padding from the left and right
          * of the screen as a percentage of the screen width.
          */
-        fun horizontalInset(horizontalInset: Int) = apply { this.horizontalInset = clipToPercent(horizontalInset) }
+        fun horizontalInset(horizontalInset: Int) = apply { this.horizontalInset = clipToPercent(horizontalInset, true) }
 
         /**
          * Sets the vertical alignment of the message on the screen.
@@ -224,12 +224,15 @@ class InAppMessageSettings private constructor(
 
         private companion object {
             /**
-             * Clips a value to a percentage. This is used to ensure that values are between 0 and 100.
+             * Clips a value to a percentage. This is used to ensure that values are between -100 and 100
+             * when negative values are allowed and between 0 and 100 when negative values are not allowed.
              * @param toClip the value to clip
+             * @param allowNegative whether negative values are allowed
              * @return the clipped value
              */
-            fun clipToPercent(toClip: Int) = when {
-                toClip <= 0 -> 0
+            fun clipToPercent(toClip: Int, allowNegative: Boolean = false) = when {
+                !allowNegative && toClip <= 0 -> 0
+                toClip <= -100 -> -100
                 toClip >= 100 -> 100
                 else -> toClip
             }

@@ -12,19 +12,12 @@
 package com.adobe.marketing.mobile.services.ui.message.views
 
 import android.app.Activity
-import android.content.res.Configuration
-import android.graphics.Insets
-import android.graphics.Rect
-import android.os.Build
-import android.util.DisplayMetrics
 import android.view.View
-import android.view.WindowInsets
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.test.assertHeightIsEqualTo
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEqualTo
-import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -35,6 +28,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performGesture
 import androidx.compose.ui.test.swipeWithVelocity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
 import androidx.compose.ui.unit.width
 import androidx.test.espresso.Espresso
@@ -372,7 +366,7 @@ class MessageScreenTests {
         assertFalse(onBackPressed)
         assertTrue(detectedGestures.isEmpty())
 
-        // Simulate recreation of the composable when happens when activity is recreated on orientation change
+        // Simulate recreation of the composable when activity is recreated on orientation change
         restorationTester.emulateSavedInstanceStateRestore()
 
         composeTestRule.waitForIdle()
@@ -390,7 +384,13 @@ class MessageScreenTests {
             .content(HTML_TEXT_SAMPLE)
             .build()
 
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
+        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
         composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
+            screenWidthDp = currentConfiguration.screenWidthDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -408,18 +408,6 @@ class MessageScreenTests {
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
         validateMessageAppeared(false)
-
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME)
-            .assertHeightIsEqualTo(composeTestRule.onRoot().getBoundsInRoot().height)
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
-            .assertHeightIsEqualTo(composeTestRule.onRoot().getBoundsInRoot().height)
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME)
-            .assertWidthIsEqualTo(composeTestRule.onRoot().getBoundsInRoot().width)
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
-            .assertWidthIsEqualTo(composeTestRule.onRoot().getBoundsInRoot().width)
-
-        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
-        val screenWidthDp = getScreenWidthInDp(composeTestRule.activity)
 
         // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
         val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
@@ -442,7 +430,13 @@ class MessageScreenTests {
             .content(HTML_TEXT_SAMPLE)
             .build()
 
-        composeTestRule.setContent {
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
+        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
+        composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
+            screenWidthDp = currentConfiguration.screenWidthDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -460,16 +454,6 @@ class MessageScreenTests {
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
         validateMessageAppeared(false)
-
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME)
-            .assertHeightIsEqualTo(composeTestRule.onRoot().getBoundsInRoot().height)
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME)
-            .assertWidthIsEqualTo(composeTestRule.onRoot().getBoundsInRoot().width)
-
-        // WebView height is calculated based on the screen height and width
-        val screenHeightDp = getScreenHeightInDp(composeTestRule.activity)
-        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
-        val screenWidthDp = getScreenWidthInDp(composeTestRule.activity)
 
         // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
         val frameBounds =
@@ -655,7 +639,12 @@ class MessageScreenTests {
             .verticalInset(offsetPercent)
             .build()
 
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
+        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
         composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -676,8 +665,6 @@ class MessageScreenTests {
 
         val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
-        val screenHeightDp = getScreenHeightInDp(composeTestRule.activity)
-        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
         val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
 
@@ -700,7 +687,13 @@ class MessageScreenTests {
             .verticalInset(-offsetPercent)
             .build()
 
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
+        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
         composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
+            screenWidthDp = currentConfiguration.screenWidthDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -719,11 +712,8 @@ class MessageScreenTests {
         composeTestRule.waitForIdle()
         validateMessageExistsWhenClipped(false)
 
-        val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
         val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
-        val screenHeightDp = getScreenHeightInDp(composeTestRule.activity)
-        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
         val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
 
@@ -746,7 +736,13 @@ class MessageScreenTests {
             .verticalInset(offsetPercent)
             .build()
 
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
+        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
         composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
+            screenWidthDp = currentConfiguration.screenWidthDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -767,8 +763,6 @@ class MessageScreenTests {
 
         val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
-        val screenHeightDp = getScreenHeightInDp(composeTestRule.activity)
-        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
         val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
 
@@ -791,7 +785,13 @@ class MessageScreenTests {
             .verticalInset(-offsetPercent)
             .build()
 
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
+        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
         composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
+            screenWidthDp = currentConfiguration.screenWidthDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -812,8 +812,6 @@ class MessageScreenTests {
 
         val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
-        val screenHeightDp = getScreenHeightInDp(composeTestRule.activity)
-        val activityHeightDp = getActivityHeightInDp(composeTestRule.activity)
         val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
 
@@ -836,7 +834,12 @@ class MessageScreenTests {
             .horizontalInset(offsetPercent)
             .build()
 
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
+            screenWidthDp = currentConfiguration.screenWidthDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -857,7 +860,6 @@ class MessageScreenTests {
 
         val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
-        val screenWidthDp = getScreenWidthInDp(composeTestRule.activity)
         val activityWidthDp = getActivityWidthInDp(composeTestRule.activity)
         val offsetDp = screenWidthDp * offsetPercent.toFloat() / 100f
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
@@ -881,7 +883,12 @@ class MessageScreenTests {
             .horizontalInset(-offsetPercent)
             .build()
 
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
+            screenWidthDp = currentConfiguration.screenWidthDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -902,7 +909,6 @@ class MessageScreenTests {
 
         val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
-        val screenWidthDp = getScreenWidthInDp(composeTestRule.activity)
         val activityWidthDp = getActivityWidthInDp(composeTestRule.activity)
         val offsetDp = screenWidthDp * offsetPercent.toFloat() / 100f
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
@@ -926,7 +932,12 @@ class MessageScreenTests {
             .horizontalInset(offsetPercent)
             .build()
 
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
+            screenWidthDp = currentConfiguration.screenWidthDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -947,7 +958,6 @@ class MessageScreenTests {
 
         val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
-        val screenWidthDp = getScreenWidthInDp(composeTestRule.activity)
         val activityWidthDp = getActivityWidthInDp(composeTestRule.activity)
         val offsetDp = screenWidthDp * offsetPercent.toFloat() / 100f
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
@@ -971,7 +981,12 @@ class MessageScreenTests {
             .horizontalInset(-offsetPercent)
             .build()
 
+        var screenHeightDp: Dp = 0.dp
+        var screenWidthDp: Dp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
+            val currentConfiguration = LocalConfiguration.current
+            screenHeightDp = currentConfiguration.screenHeightDp.dp
+            screenWidthDp = currentConfiguration.screenWidthDp.dp
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -992,7 +1007,6 @@ class MessageScreenTests {
 
         val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
-        val screenWidthDp = getScreenWidthInDp(composeTestRule.activity)
         val activityWidthDp = getActivityWidthInDp(composeTestRule.activity)
         val offsetDp = screenWidthDp * offsetPercent.toFloat() / 100f
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
@@ -1035,7 +1049,7 @@ class MessageScreenTests {
 
     private fun getSettings(withUiTakeOver: Boolean): InAppMessageSettings {
         return InAppMessageSettings.Builder()
-            // .backdropOpacity(0.5f)
+            .backdropOpacity(0.5f)
             .backgroundColor("#000000")
             .cornerRadius(10f)
             .displayAnimation(InAppMessageSettings.MessageAnimation.BOTTOM)
@@ -1047,56 +1061,6 @@ class MessageScreenTests {
             .content(HTML_TEXT_SAMPLE)
             .gestureMap(acceptedGestures)
             .build()
-    }
-
-    private fun getScreenWidthInDp(activity: Activity): Dp {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = activity.windowManager.currentWindowMetrics
-            val bounds: Rect = windowMetrics.bounds
-            val insets: Insets = windowMetrics.windowInsets.getInsetsIgnoringVisibility(
-                WindowInsets.Type.systemBars()
-            )
-            val density = activity.resources.displayMetrics.density
-            if (activity.resources.configuration.orientation
-                == Configuration.ORIENTATION_LANDSCAPE &&
-                activity.resources.configuration.smallestScreenWidthDp < 600
-            ) { // landscape and phone
-                val navigationBarSize: Int = insets.right + insets.left
-                Dp((bounds.width() - navigationBarSize) / density)
-            } else { // portrait or tablet
-                Dp(bounds.width() / density)
-            }
-        } else {
-            val outMetrics = DisplayMetrics()
-            activity.windowManager.defaultDisplay.getMetrics(outMetrics)
-            val density = outMetrics.density
-            Dp(outMetrics.widthPixels / density)
-        }
-    }
-
-    private fun getScreenHeightInDp(activity: Activity): Dp {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val windowMetrics = activity.windowManager.currentWindowMetrics
-            val bounds: Rect = windowMetrics.bounds
-            val insets: Insets = windowMetrics.windowInsets.getInsetsIgnoringVisibility(
-                WindowInsets.Type.systemBars()
-            )
-            val density = activity.resources.displayMetrics.density
-            if (activity.resources.configuration.orientation
-                == Configuration.ORIENTATION_LANDSCAPE &&
-                activity.resources.configuration.smallestScreenWidthDp < 600
-            ) { // landscape and phone
-                Dp(bounds.height() / density)
-            } else { // portrait or tablet
-                val navigationBarSize: Int = insets.bottom
-                Dp((bounds.height() - navigationBarSize) / density)
-            }
-        } else {
-            val outMetrics = DisplayMetrics()
-            activity.windowManager.defaultDisplay.getMetrics(outMetrics)
-            val density = outMetrics.density
-            Dp(outMetrics.heightPixels / density)
-        }
     }
 
     private fun getActivityHeightInDp(activity: Activity): Dp {

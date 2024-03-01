@@ -1228,6 +1228,61 @@ class IdentityFunctionalTests {
         countDownLatch.await()
     }
 
+    @Test
+    fun test_processIdentityRequest_whenURLStringIsValid() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com:_80",
+            "global.privacy" to "optedin"
+        )
+        // "test.com:_80" will be used to build a malformed URL string in this case.
+        // Before sending out the request, the SDK should validate the URL string when calling URLBuilder.build().
+        `when`(
+            mockedExtensionApi.getSharedState(
+                any(),
+                any(),
+                anyOrNull(),
+                any()
+            )
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(SharedStateStatus.SET, configuration)
+            }
+            if ("com.adobe.module.analytics" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "vid" to "fake_vid"
+                    )
+                )
+            }
+            return@thenAnswer null
+        }
+
+        val identityExtension =
+            IdentityExtension(mockedExtensionApi, mockedNamedCollection, mockedHitQueue)
+        identityExtension.onRegistered()
+        identityExtension.readyForEvent(Event.Builder("event", "type", "source").build())
+
+        val token = "D52DB39EEE21395B2B67B895FC478301CE6E936D82521E095902A5E0F57EE0B3"
+
+        identityExtension.processIdentityRequest(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.generic.identity",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(
+                mapOf(
+                    "pushidentifier" to token
+                )
+            ).build()
+        )
+
+        // If the URL is valid, the hit should not be queued
+        verify(mockedHitQueue, never()).queue(anyOrNull())
+    }
+
     @Test(timeout = 10000)
     fun test_getUrlVariables_VerifyMarketingCloudIdentifiersPresentInVariables() {
         val configuration = mapOf(

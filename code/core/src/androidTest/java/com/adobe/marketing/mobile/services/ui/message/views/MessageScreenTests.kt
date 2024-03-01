@@ -49,7 +49,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-
 @RunWith(AndroidJUnit4::class)
 class MessageScreenTests {
     @get: Rule
@@ -158,16 +157,19 @@ class MessageScreenTests {
         assertTrue(detectedGestures.isEmpty())
     }
 
+    // ----------------------------------------------------------------------------------------------
+    // Test cases for ui take over
+    // ----------------------------------------------------------------------------------------------
     @Test
     fun testMessageScreenHasBackdropWhenUITakeOverIsEnabled() {
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = getSettings(true),
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = getSettings(true),
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -185,9 +187,6 @@ class MessageScreenTests {
         assertTrue(detectedGestures.isEmpty())
     }
 
-    //----------------------------------------------------------------------------------------------
-    // Test cases for ui take over
-    //----------------------------------------------------------------------------------------------
     @Test
     fun testMessageScreenRegistersBackPressWhenBackPressed() {
         composeTestRule.setContent { // setting our composable as content for test
@@ -219,9 +218,9 @@ class MessageScreenTests {
         assertTrue(detectedGestures.isEmpty())
     }
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // Test cases for gestures
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     @Test
     fun testMessageScreenRegistersAcceptedGesturesWhenUiTakeOverIsEnabled() {
         composeTestRule.setContent { // setting our composable as content for test
@@ -343,9 +342,9 @@ class MessageScreenTests {
         assertFalse(detectedGestures.contains(InAppMessageSettings.MessageGesture.SWIPE_DOWN))
     }
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // Test cases for orientation changes
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     @Test
     fun testMessageScreenIsRestoredOnOrientationChange() {
         val restorationTester = StateRestorationTester(composeTestRule)
@@ -380,9 +379,9 @@ class MessageScreenTests {
         validateMessageAppeared(false)
     }
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // Test cases for sizing
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     @Test
     fun testMessageScreenSizeWhenWidthAndHeightSetToMax() {
         val settings = InAppMessageSettings.Builder()
@@ -490,26 +489,26 @@ class MessageScreenTests {
         contentBounds.width.assertIsEqualTo(screenWidthDp * (widthPercentage / 100f), "failed", Dp(2f))
     }
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // Test cases for alignment
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     @Test
     fun testMessageScreenAlignmentWhenTopAligned() {
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(60)
-                .width(80)
-                .verticalAlignment(InAppMessageSettings.MessageAlignment.TOP)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(60)
+            .width(80)
+            .verticalAlignment(InAppMessageSettings.MessageAlignment.TOP)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -533,20 +532,20 @@ class MessageScreenTests {
     @Test
     fun testMessageScreenAlignmentWhenBottomAligned() {
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(60)
-                .width(80)
-                .verticalAlignment(InAppMessageSettings.MessageAlignment.BOTTOM)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(60)
+            .width(80)
+            .verticalAlignment(InAppMessageSettings.MessageAlignment.BOTTOM)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -570,20 +569,20 @@ class MessageScreenTests {
     @Test
     fun testMessageScreenAlignmentWhenLeftAligned() {
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(60)
-                .width(80)
-                .horizontalAlignment(InAppMessageSettings.MessageAlignment.LEFT)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(60)
+            .width(80)
+            .horizontalAlignment(InAppMessageSettings.MessageAlignment.LEFT)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -607,20 +606,20 @@ class MessageScreenTests {
     @Test
     fun testMessageScreenAlignmentWhenRightAligned() {
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(60)
-                .width(80)
-                .horizontalAlignment(InAppMessageSettings.MessageAlignment.RIGHT)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(60)
+            .width(80)
+            .horizontalAlignment(InAppMessageSettings.MessageAlignment.RIGHT)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -641,29 +640,29 @@ class MessageScreenTests {
         rootBounds.right.assertIsEqualTo(contentBounds.right, "failed", Dp(2f))
     }
 
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     // Test cases for alignment with insets
-    //----------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------
     @Test
     fun testMessageScreenAlignmentWhenTopAlignedWithPositiveInset() {
         val offsetPercent = 20
         val heightPercent = 60
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(heightPercent)
-                .width(80)
-                .verticalAlignment(InAppMessageSettings.MessageAlignment.TOP)
-                .verticalInset(offsetPercent)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(heightPercent)
+            .width(80)
+            .verticalAlignment(InAppMessageSettings.MessageAlignment.TOP)
+            .verticalInset(offsetPercent)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -683,8 +682,8 @@ class MessageScreenTests {
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
 
         // Frame and content is offset downwards from the top edge of the activity by the inset value
-        frameBounds.top.assertIsEqualTo(offsetDp, "failed",  Dp(2f))
-        frameBounds.bottom.assertIsEqualTo(activityHeightDp + offsetDp, "failed",  Dp(2f))
+        frameBounds.top.assertIsEqualTo(offsetDp, "failed", Dp(2f))
+        frameBounds.bottom.assertIsEqualTo(activityHeightDp + offsetDp, "failed", Dp(2f))
         contentBounds.top.assertIsEqualTo(offsetDp, "failed", Dp(2f))
         contentBounds.bottom.assertIsEqualTo(contentHeightDp + offsetDp, "failed", Dp(2f))
     }
@@ -694,21 +693,21 @@ class MessageScreenTests {
         val offsetPercent = 20
         val heightPercent = 60
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(heightPercent)
-                .width(80)
-                .verticalAlignment(InAppMessageSettings.MessageAlignment.TOP)
-                .verticalInset(-offsetPercent)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(heightPercent)
+            .width(80)
+            .verticalAlignment(InAppMessageSettings.MessageAlignment.TOP)
+            .verticalInset(-offsetPercent)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -729,8 +728,8 @@ class MessageScreenTests {
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
 
         // Frame and content is offset upwards from the top edge of the activity by the inset value, leading to clipping
-        frameBounds.top.assertIsEqualTo(-offsetDp, "failed",  Dp(2f))
-        frameBounds.bottom.assertIsEqualTo(activityHeightDp - offsetDp, "failed",  Dp(2f))
+        frameBounds.top.assertIsEqualTo(-offsetDp, "failed", Dp(2f))
+        frameBounds.bottom.assertIsEqualTo(activityHeightDp - offsetDp, "failed", Dp(2f))
         contentBounds.top.assertIsEqualTo(-offsetDp, "failed", Dp(2f))
         contentBounds.bottom.assertIsEqualTo(contentHeightDp - offsetDp, "failed", Dp(2f))
     }
@@ -740,21 +739,21 @@ class MessageScreenTests {
         val offsetPercent = 20
         val heightPercent = 60
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(heightPercent)
-                .width(80)
-                .verticalAlignment(InAppMessageSettings.MessageAlignment.BOTTOM)
-                .verticalInset(offsetPercent)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(heightPercent)
+            .width(80)
+            .verticalAlignment(InAppMessageSettings.MessageAlignment.BOTTOM)
+            .verticalInset(offsetPercent)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -774,8 +773,8 @@ class MessageScreenTests {
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
 
         // Frame and content is offset upwards from the bottom edge of the activity by the inset value
-        frameBounds.top.assertIsEqualTo(-offsetDp, "failed",  Dp(2f))
-        frameBounds.bottom.assertIsEqualTo(activityHeightDp - offsetDp, "failed",  Dp(2f))
+        frameBounds.top.assertIsEqualTo(-offsetDp, "failed", Dp(2f))
+        frameBounds.bottom.assertIsEqualTo(activityHeightDp - offsetDp, "failed", Dp(2f))
         contentBounds.top.assertIsEqualTo(activityHeightDp - contentHeightDp - offsetDp, "failed", Dp(2f))
         contentBounds.bottom.assertIsEqualTo(activityHeightDp - offsetDp, "failed", Dp(2f))
     }
@@ -785,21 +784,21 @@ class MessageScreenTests {
         val offsetPercent = 20
         val heightPercent = 60
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(heightPercent)
-                .width(80)
-                .verticalAlignment(InAppMessageSettings.MessageAlignment.BOTTOM)
-                .verticalInset(-offsetPercent)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(heightPercent)
+            .width(80)
+            .verticalAlignment(InAppMessageSettings.MessageAlignment.BOTTOM)
+            .verticalInset(-offsetPercent)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -819,8 +818,8 @@ class MessageScreenTests {
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
 
         // Frame and content is offset upwards from the bottom edge of the activity by the inset value
-        frameBounds.top.assertIsEqualTo(offsetDp, "failed",  Dp(2f))
-        frameBounds.bottom.assertIsEqualTo(activityHeightDp + offsetDp, "failed",  Dp(2f))
+        frameBounds.top.assertIsEqualTo(offsetDp, "failed", Dp(2f))
+        frameBounds.bottom.assertIsEqualTo(activityHeightDp + offsetDp, "failed", Dp(2f))
         contentBounds.top.assertIsEqualTo(activityHeightDp - contentHeightDp + offsetDp, "failed", Dp(2f))
         contentBounds.bottom.assertIsEqualTo(activityHeightDp + offsetDp, "failed", Dp(2f))
     }
@@ -830,21 +829,21 @@ class MessageScreenTests {
         val offsetPercent = 20
         val widthPercent = 90
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(60)
-                .width(widthPercent)
-                .horizontalAlignment(InAppMessageSettings.MessageAlignment.LEFT)
-                .horizontalInset(offsetPercent)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(60)
+            .width(widthPercent)
+            .horizontalAlignment(InAppMessageSettings.MessageAlignment.LEFT)
+            .horizontalInset(offsetPercent)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -864,8 +863,8 @@ class MessageScreenTests {
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame and content is offset rightwards from the left edge of the activity by the inset value
-        frameBounds.left.assertIsEqualTo(offsetDp, "failed",  Dp(2f))
-        frameBounds.right.assertIsEqualTo(activityWidthDp + offsetDp, "failed",  Dp(2f))
+        frameBounds.left.assertIsEqualTo(offsetDp, "failed", Dp(2f))
+        frameBounds.right.assertIsEqualTo(activityWidthDp + offsetDp, "failed", Dp(2f))
         contentBounds.left.assertIsEqualTo(offsetDp, "failed", Dp(2f))
         contentBounds.right.assertIsEqualTo(contentWidthDp + offsetDp, "failed", Dp(2f))
     }
@@ -875,21 +874,21 @@ class MessageScreenTests {
         val offsetPercent = 20
         val widthPercent = 90
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(60)
-                .width(widthPercent)
-                .horizontalAlignment(InAppMessageSettings.MessageAlignment.LEFT)
-                .horizontalInset(-offsetPercent)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(60)
+            .width(widthPercent)
+            .horizontalAlignment(InAppMessageSettings.MessageAlignment.LEFT)
+            .horizontalInset(-offsetPercent)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -909,8 +908,8 @@ class MessageScreenTests {
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame and content is offset leftwards from the left edge of the activity by the inset value, leading to clipping
-        frameBounds.left.assertIsEqualTo(-offsetDp, "failed",  Dp(2f))
-        frameBounds.right.assertIsEqualTo(activityWidthDp - offsetDp, "failed",  Dp(2f))
+        frameBounds.left.assertIsEqualTo(-offsetDp, "failed", Dp(2f))
+        frameBounds.right.assertIsEqualTo(activityWidthDp - offsetDp, "failed", Dp(2f))
         contentBounds.left.assertIsEqualTo(-offsetDp, "failed", Dp(2f))
         contentBounds.right.assertIsEqualTo(contentWidthDp - offsetDp, "failed", Dp(2f))
     }
@@ -920,21 +919,21 @@ class MessageScreenTests {
         val offsetPercent = 20
         val widthPercent = 90
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(60)
-                .width(widthPercent)
-                .horizontalAlignment(InAppMessageSettings.MessageAlignment.RIGHT)
-                .horizontalInset(offsetPercent)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(60)
+            .width(widthPercent)
+            .horizontalAlignment(InAppMessageSettings.MessageAlignment.RIGHT)
+            .horizontalInset(offsetPercent)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -954,8 +953,8 @@ class MessageScreenTests {
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame and content is offset leftwards from the right edge of the activity by the inset value
-        frameBounds.left.assertIsEqualTo(-offsetDp, "failed",  Dp(2f))
-        frameBounds.right.assertIsEqualTo(activityWidthDp - offsetDp, "failed",  Dp(2f))
+        frameBounds.left.assertIsEqualTo(-offsetDp, "failed", Dp(2f))
+        frameBounds.right.assertIsEqualTo(activityWidthDp - offsetDp, "failed", Dp(2f))
         contentBounds.left.assertIsEqualTo(activityWidthDp - contentWidthDp - offsetDp, "failed", Dp(2f))
         contentBounds.right.assertIsEqualTo(activityWidthDp - offsetDp, "failed", Dp(2f))
     }
@@ -965,21 +964,21 @@ class MessageScreenTests {
         val offsetPercent = 20
         val widthPercent = 90
         val settings = InAppMessageSettings.Builder()
-                .content(HTML_TEXT_SAMPLE)
-                .height(60)
-                .width(widthPercent)
-                .horizontalAlignment(InAppMessageSettings.MessageAlignment.RIGHT)
-                .horizontalInset(-offsetPercent)
-                .build()
+            .content(HTML_TEXT_SAMPLE)
+            .height(60)
+            .width(widthPercent)
+            .horizontalAlignment(InAppMessageSettings.MessageAlignment.RIGHT)
+            .horizontalInset(-offsetPercent)
+            .build()
 
         composeTestRule.setContent { // setting our composable as content for test
             MessageScreen(
-                    presentationStateManager = presentationStateManager,
-                    inAppMessageSettings = settings,
-                    onCreated = { onCreatedCalled = true },
-                    onDisposed = { onDisposedCalled = true },
-                    onGestureDetected = { gesture -> detectedGestures.add(gesture) },
-                    onBackPressed = { onBackPressed = true }
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
             )
         }
 
@@ -999,8 +998,8 @@ class MessageScreenTests {
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame and content is offset rightwards from the right edge of the activity by the inset value, leading to clipping
-        frameBounds.left.assertIsEqualTo(offsetDp, "failed",  Dp(2f))
-        frameBounds.right.assertIsEqualTo(activityWidthDp + offsetDp, "failed",  Dp(2f))
+        frameBounds.left.assertIsEqualTo(offsetDp, "failed", Dp(2f))
+        frameBounds.right.assertIsEqualTo(activityWidthDp + offsetDp, "failed", Dp(2f))
         contentBounds.left.assertIsEqualTo(activityWidthDp - contentWidthDp + offsetDp, "failed", Dp(2f))
         contentBounds.right.assertIsEqualTo(activityWidthDp + offsetDp, "failed", Dp(2f))
     }
@@ -1059,8 +1058,8 @@ class MessageScreenTests {
             )
             val density = activity.resources.displayMetrics.density
             if (activity.resources.configuration.orientation
-                == Configuration.ORIENTATION_LANDSCAPE
-                && activity.resources.configuration.smallestScreenWidthDp < 600
+                == Configuration.ORIENTATION_LANDSCAPE &&
+                activity.resources.configuration.smallestScreenWidthDp < 600
             ) { // landscape and phone
                 val navigationBarSize: Int = insets.right + insets.left
                 Dp((bounds.width() - navigationBarSize) / density)
@@ -1084,8 +1083,8 @@ class MessageScreenTests {
             )
             val density = activity.resources.displayMetrics.density
             if (activity.resources.configuration.orientation
-                == Configuration.ORIENTATION_LANDSCAPE
-                && activity.resources.configuration.smallestScreenWidthDp < 600
+                == Configuration.ORIENTATION_LANDSCAPE &&
+                activity.resources.configuration.smallestScreenWidthDp < 600
             ) { // landscape and phone
                 Dp(bounds.height() / density)
             } else { // portrait or tablet

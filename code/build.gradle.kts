@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        //classpath("com.github.adobe:aepsdk-commons:db0a7b5175")
+        classpath("com.github.adobe:aepsdk-commons:db0a7b5175")
         classpath("org.jetbrains.kotlinx:binary-compatibility-validator:0.13.2")
         classpath("androidx.benchmark:benchmark-gradle-plugin:1.2.3")
     }

@@ -7,10 +7,8 @@ buildscript {
         mavenLocal()
     }
 
-
     dependencies {
-        // Todo: Move away from specifying commit once we release a stable version."
-        classpath("com.github.adobe:aepsdk-commons:9deb721db7")
+        classpath("com.github.adobe:aepsdk-commons:gp-3.0.0-beta.1")
         classpath("org.jetbrains.kotlinx:binary-compatibility-validator:0.13.2")
         classpath("androidx.benchmark:benchmark-gradle-plugin:1.2.3")
     }

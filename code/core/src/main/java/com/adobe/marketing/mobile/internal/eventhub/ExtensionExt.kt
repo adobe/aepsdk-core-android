@@ -9,15 +9,11 @@
   governing permissions and limitations under the License.
 */
 
-@file:Suppress("DEPRECATION")
-
 package com.adobe.marketing.mobile.internal.eventhub
 
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
-import com.adobe.marketing.mobile.ExtensionListener
-import com.adobe.marketing.mobile.ExtensionUnexpectedError
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.services.Log
 import java.lang.Exception
@@ -78,41 +74,7 @@ internal fun Extension.onExtensionRegistered() {
 }
 
 /**
- * Function to notify that an unexpected error occurred when initializing the extension
- */
-internal fun Extension.onExtensionUnexpectedError(error: ExtensionUnexpectedError) {
-    ExtensionHelper.notifyError(this, error)
-}
-
-/**
  * Helper to get extension type name
  */
 internal val Class<out Extension>.extensionTypeName
     get() = this.name
-
-// Type extensions for [ExtensionListener] to allow for easier usage
-
-/**
- * Function to initialize ExtensionListener with [ExtensionApi], type and source.
- */
-internal fun Class<out ExtensionListener>.initWith(extensionApi: ExtensionApi, type: String?, source: String?): ExtensionListener? {
-    try {
-        if (type != null && source != null) {
-            val extensionListenerConstructor = this.getDeclaredConstructor(
-                ExtensionApi::class.java,
-                String::class.java,
-                String::class.java
-            )
-            extensionListenerConstructor.isAccessible = true
-            return extensionListenerConstructor.newInstance(extensionApi, type, source)
-        }
-    } catch (ex: Exception) {
-        Log.debug(
-            CoreConstants.LOG_TAG,
-            "ExtensionExt",
-            "Initializing Extension $this failed with $ex"
-        )
-    }
-
-    return null
-}

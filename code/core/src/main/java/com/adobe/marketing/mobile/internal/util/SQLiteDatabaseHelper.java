@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.internal.util;
 
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
@@ -63,7 +62,6 @@ public class SQLiteDatabaseHelper {
      */
     public static int getTableSize(final String dbPath, final String tableName) {
         SQLiteDatabase database = null;
-        Cursor cursor = null;
 
         try {
             database = openDatabase(dbPath, DatabaseOpenMode.READ_ONLY);

@@ -110,7 +110,11 @@ public final class StringEncoder {
      * @return a {@code int} containing the signed 2's complement FNV1a 32-bit hash
      */
     private static int getFnv1aHash(final String input) {
-        int hash = (input == null || input.trim().isEmpty()) ? 0 : OFFSET;
+        if (input == null) {
+            return 0;
+        }
+
+        int hash = input.trim().isEmpty() ? 0 : OFFSET;
         final byte[] bytes = input.getBytes();
 
         for (byte aByte : bytes) {
@@ -172,10 +176,7 @@ public final class StringEncoder {
                                     + Character.digit(hexString.charAt(i + 1), radix));
         }
 
-        String decodedString = null;
-
-        decodedString = new String(data, StandardCharsets.UTF_8);
-
+        String decodedString = new String(data, StandardCharsets.UTF_8);
         return decodedString;
     }
 

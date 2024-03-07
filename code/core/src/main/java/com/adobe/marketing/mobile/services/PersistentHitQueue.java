@@ -25,7 +25,7 @@ public class PersistentHitQueue extends HitQueuing {
 
     private final DataQueue queue;
     private final HitProcessing processor;
-    private AtomicBoolean suspended = new AtomicBoolean(true);
+    private final AtomicBoolean suspended = new AtomicBoolean(true);
     private final ScheduledExecutorService scheduledExecutorService;
     private final AtomicBoolean isTaskScheduled = new AtomicBoolean(false);
 
@@ -34,7 +34,7 @@ public class PersistentHitQueue extends HitQueuing {
      *
      * @param queue object of <code>DataQueue</code> for persisting hits
      * @param processor object of {@link HitProcessing} for processing hits
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException when queue or processor is null
      */
     public PersistentHitQueue(final DataQueue queue, final HitProcessing processor)
             throws IllegalArgumentException {

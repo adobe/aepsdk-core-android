@@ -11,57 +11,47 @@
 
 package com.adobe.marketing.mobile.services;
 
-import android.os.Build;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSocketFactory;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class HttpConnectingHandlerTests {
 
-    @Mock private HttpsURLConnection httspURLConnection;
+    @Mock private HttpsURLConnection httpsURLConnection;
 
     private URL url;
 
     @Before
     public void setup() throws Exception {
-        setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 22);
-
         // Since URL is a final class - it cannot be mocked by Mockito.
         // Hence, create an instance of URL that will allow us to pass out mock URLConnection
         // upon calling openConnection().
         URLStreamHandler handler =
                 new URLStreamHandler() {
                     @Override
-                    protected URLConnection openConnection(URL url) throws IOException {
-                        return httspURLConnection;
+                    protected URLConnection openConnection(URL url) {
+                        return httpsURLConnection;
                     }
                 };
         url = new URL("http", "www.adobe.com", 80, "mock", handler);
 
-        Mockito.when(httspURLConnection.getURL()).thenReturn(url);
+        Mockito.when(httpsURLConnection.getURL()).thenReturn(url);
     }
 
     @Test
@@ -70,14 +60,11 @@ public class HttpConnectingHandlerTests {
         final HttpMethod testMethod = HttpMethod.GET;
         final AtomicBoolean actualDoOutputValue = new AtomicBoolean(false);
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                actualDoOutputValue.set((boolean) invocation.getArguments()[0]);
-                                return null;
-                            }
+                        invocation -> {
+                            actualDoOutputValue.set((boolean) invocation.getArguments()[0]);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .setDoOutput(ArgumentMatchers.anyBoolean());
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
@@ -94,14 +81,11 @@ public class HttpConnectingHandlerTests {
         final HttpMethod testMethod = HttpMethod.POST;
         final AtomicBoolean actualDoOutputValue = new AtomicBoolean(false);
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                actualDoOutputValue.set((boolean) invocation.getArguments()[0]);
-                                return null;
-                            }
+                        invocation -> {
+                            actualDoOutputValue.set((boolean) invocation.getArguments()[0]);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .setDoOutput(ArgumentMatchers.anyBoolean());
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
@@ -115,11 +99,10 @@ public class HttpConnectingHandlerTests {
     @Test
     public void testSetCommand_Invalid_Method() throws IOException {
         // Setup
-        final HttpMethod testMethod = null;
         final AtomicBoolean actualDoOutputValue = new AtomicBoolean(false);
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
-        boolean result = connectionHandler.setCommand(testMethod);
+        boolean result = connectionHandler.setCommand(null);
         // Verify
         Assert.assertFalse(result);
         // The Connection Handler will fallback to the default command which is GET
@@ -133,7 +116,7 @@ public class HttpConnectingHandlerTests {
         final HttpMethod testMethod = HttpMethod.GET;
         final AtomicBoolean actualDoOutputValue = new AtomicBoolean(false);
         Mockito.doThrow(new ProtocolException("mockException"))
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .setRequestMethod(ArgumentMatchers.anyString());
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
@@ -155,7 +138,7 @@ public class HttpConnectingHandlerTests {
     @Test
     public void testSetRequestProperty_Empty_Map_Parameter() throws IOException {
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
-        connectionHandler.setRequestProperty(new HashMap<String, String>());
+        connectionHandler.setRequestProperty(new HashMap<>());
         Assert.assertEquals(0, connectionHandler.httpsUrlConnection.getRequestProperties().size());
     }
 
@@ -163,16 +146,13 @@ public class HttpConnectingHandlerTests {
     public void testSetRequestProperty_Valid_Map_Parameter() throws IOException {
         final HashMap<String, String> requestPropertyList = new HashMap<>();
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                String key = (String) invocation.getArguments()[0];
-                                String value = (String) invocation.getArguments()[1];
-                                requestPropertyList.put(key, value);
-                                return null;
-                            }
+                        invocation -> {
+                            String key = (String) invocation.getArguments()[0];
+                            String value = (String) invocation.getArguments()[1];
+                            requestPropertyList.put(key, value);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .setRequestProperty(ArgumentMatchers.anyString(), ArgumentMatchers.anyString());
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
         HashMap<String, String> testPropertyList =
@@ -192,16 +172,13 @@ public class HttpConnectingHandlerTests {
     public void testSetRequestProperty_MultipleCalls() throws IOException {
         final HashMap<String, String> requestPropertyList = new HashMap<>();
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                String key = (String) invocation.getArguments()[0];
-                                String value = (String) invocation.getArguments()[1];
-                                requestPropertyList.put(key, value);
-                                return null;
-                            }
+                        invocation -> {
+                            String key = (String) invocation.getArguments()[0];
+                            String value = (String) invocation.getArguments()[1];
+                            requestPropertyList.put(key, value);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .setRequestProperty(ArgumentMatchers.anyString(), ArgumentMatchers.anyString());
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
         HashMap<String, String> testPropertyList =
@@ -214,7 +191,7 @@ public class HttpConnectingHandlerTests {
         // Valid Map input
         connectionHandler.setRequestProperty(testPropertyList);
         // Empty Map
-        connectionHandler.setRequestProperty(new HashMap<String, String>());
+        connectionHandler.setRequestProperty(new HashMap<>());
         Assert.assertEquals(testPropertyList.size(), requestPropertyList.size());
         Assert.assertEquals("value1", requestPropertyList.get("key1"));
         Assert.assertEquals("value2", requestPropertyList.get("key2"));
@@ -224,16 +201,13 @@ public class HttpConnectingHandlerTests {
     public void testSetRequestProperty_Cumulative_Operations() throws IOException {
         final HashMap<String, String> requestPropertyList = new HashMap<>();
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                String key = (String) invocation.getArguments()[0];
-                                String value = (String) invocation.getArguments()[1];
-                                requestPropertyList.put(key, value);
-                                return null;
-                            }
+                        invocation -> {
+                            String key = (String) invocation.getArguments()[0];
+                            String value = (String) invocation.getArguments()[1];
+                            requestPropertyList.put(key, value);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .setRequestProperty(ArgumentMatchers.anyString(), ArgumentMatchers.anyString());
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
         HashMap<String, String> testPropertyList =
@@ -266,14 +240,11 @@ public class HttpConnectingHandlerTests {
         // Setup
         final AtomicBoolean connectCalled = new AtomicBoolean(false);
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                connectCalled.set(true);
-                                return null;
-                            }
+                        invocation -> {
+                            connectCalled.set(true);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .connect();
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
@@ -286,8 +257,7 @@ public class HttpConnectingHandlerTests {
     @Test
     public void testConnect_IOException() throws IOException {
         // Setup
-        final AtomicBoolean connectCalled = new AtomicBoolean(false);
-        Mockito.doThrow(new IOException("mockException")).when(httspURLConnection).connect();
+        Mockito.doThrow(new IOException("mockException")).when(httpsURLConnection).connect();
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
         HttpConnection connection = (HttpConnection) connectionHandler.connect(null);
@@ -301,14 +271,11 @@ public class HttpConnectingHandlerTests {
         final AtomicBoolean connectCalled = new AtomicBoolean(false);
         final AtomicInteger payloadLength = new AtomicInteger(0);
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                connectCalled.set(true);
-                                return null;
-                            }
+                        invocation -> {
+                            connectCalled.set(true);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .connect();
         // Output Stream
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -331,28 +298,22 @@ public class HttpConnectingHandlerTests {
         final AtomicInteger payloadLength = new AtomicInteger(0);
         String payload = "testPayload";
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                connectCalled.set(true);
-                                return null;
-                            }
+                        invocation -> {
+                            connectCalled.set(true);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .connect();
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                payloadLength.set((int) invocation.getArguments()[0]);
-                                return null;
-                            }
+                        invocation -> {
+                            payloadLength.set((int) invocation.getArguments()[0]);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .setFixedLengthStreamingMode(ArgumentMatchers.anyInt());
         // Output Stream
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        Mockito.when(httspURLConnection.getOutputStream()).thenReturn(bos);
+        Mockito.when(httpsURLConnection.getOutputStream()).thenReturn(bos);
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
         connectionHandler.setCommand(HttpMethod.POST);
@@ -369,8 +330,7 @@ public class HttpConnectingHandlerTests {
     @Test
     public void testConnect_Post_Command_When_IOException_Thrown() throws IOException {
         // Setup
-        final AtomicBoolean connectCalled = new AtomicBoolean(false);
-        Mockito.doThrow(new IOException("mockException")).when(httspURLConnection).connect();
+        Mockito.doThrow(new IOException("mockException")).when(httpsURLConnection).connect();
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
         connectionHandler.setCommand(HttpMethod.POST);
@@ -383,14 +343,11 @@ public class HttpConnectingHandlerTests {
     public void testSetReadTimeout() throws IOException {
         final AtomicInteger readTimeoutValue = new AtomicInteger(0);
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                readTimeoutValue.set((int) invocation.getArguments()[0]);
-                                return null;
-                            }
+                        invocation -> {
+                            readTimeoutValue.set((int) invocation.getArguments()[0]);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .setReadTimeout(ArgumentMatchers.anyInt());
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
@@ -403,59 +360,16 @@ public class HttpConnectingHandlerTests {
     public void testSetConnectTimeout() throws IOException {
         final AtomicInteger connectTimeoutValue = new AtomicInteger(0);
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                connectTimeoutValue.set((int) invocation.getArguments()[0]);
-                                return null;
-                            }
+                        invocation -> {
+                            connectTimeoutValue.set((int) invocation.getArguments()[0]);
+                            return null;
                         })
-                .when(httspURLConnection)
+                .when(httpsURLConnection)
                 .setConnectTimeout(ArgumentMatchers.anyInt());
         // Test
         HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
         connectionHandler.setConnectTimeout(100);
         // Verify
         Assert.assertEquals(100, connectTimeoutValue.get());
-    }
-
-    @Test
-    public void testSSLSocketFactory_UseTLSSocketFactory_When_APIIsLowerThan20() throws Exception {
-        setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 19);
-        final List<Object> sslSocketFactoryList = new ArrayList<>();
-        Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                sslSocketFactoryList.add(invocation.getArguments()[0]);
-                                return null;
-                            }
-                        })
-                .when(httspURLConnection)
-                .setSSLSocketFactory(ArgumentMatchers.any(SSLSocketFactory.class));
-        // Test
-        HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
-        // Verify
-        Assert.assertEquals(TLSSocketFactory.getInstance(), sslSocketFactoryList.get(0));
-        Mockito.verify(httspURLConnection, Mockito.times(1))
-                .setSSLSocketFactory(ArgumentMatchers.any(SSLSocketFactory.class));
-    }
-
-    @Test
-    public void testSSLSocketFactory_NotUseTLSSocketFactory_When_APIEquals20() throws Exception {
-        setFinalStatic(Build.VERSION.class.getField("SDK_INT"), 20);
-        // Test
-        HttpConnectionHandler connectionHandler = new HttpConnectionHandler(url);
-        // Verify
-        Mockito.verify(httspURLConnection, Mockito.times(0))
-                .setSSLSocketFactory(ArgumentMatchers.any(SSLSocketFactory.class));
-    }
-
-    static void setFinalStatic(Field field, Object newValue) throws Exception {
-        field.setAccessible(true);
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-        field.set(null, newValue);
     }
 }

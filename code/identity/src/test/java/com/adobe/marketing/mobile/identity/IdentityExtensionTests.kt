@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.Identity
 import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
@@ -56,7 +57,6 @@ import java.util.concurrent.CountDownLatch
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class IdentityExtensionTests {
-    private var EXTENSION_VERSION = "2.0.3"
 
     private val appendToUrlEvent = Event.Builder("AppendToUrlRequest", EventType.IDENTITY, EventSource.REQUEST_IDENTITY).setEventData(
         mapOf(
@@ -111,7 +111,7 @@ class IdentityExtensionTests {
     @Test
     fun `get extension version`() {
         val identityExtension = initializeSpiedIdentityExtension()
-        assertEquals(EXTENSION_VERSION, identityExtension.version)
+        assertEquals(Identity.extensionVersion(), identityExtension.version)
     }
 
     @Test

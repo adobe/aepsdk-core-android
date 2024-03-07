@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 
-import com.adobe.marketing.mobile.identity.IdentityExtension;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,64 +32,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class IdentityAPITests {
-    private static final String EXTENSION_VERSION = "2.0.3";
-
-    @Test
-    public void test_extensionVersion() {
-        assertEquals(EXTENSION_VERSION, Identity.extensionVersion());
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void test_registerExtension() {
-        try (MockedStatic<MobileCore> mobileCoreMockedStatic =
-                Mockito.mockStatic(MobileCore.class)) {
-            // mock MobileCore.registerExtension()
-            ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
-            ArgumentCaptor<ExtensionErrorCallback> callbackCaptor =
-                    ArgumentCaptor.forClass(ExtensionErrorCallback.class);
-            mobileCoreMockedStatic
-                    .when(
-                            () ->
-                                    MobileCore.registerExtension(
-                                            extensionClassCaptor.capture(),
-                                            callbackCaptor.capture()))
-                    .thenReturn(true);
-            // call registerExtension() API
-            Identity.registerExtension();
-            // verify: happy
-            assertNotNull(callbackCaptor.getValue());
-            assertEquals(IdentityExtension.class, extensionClassCaptor.getValue());
-            // verify: error callback was called
-            callbackCaptor.getValue().error(ExtensionError.UNEXPECTED_ERROR);
-        }
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void test_registerExtension_nullError() {
-        try (MockedStatic<MobileCore> mobileCoreMockedStatic =
-                Mockito.mockStatic(MobileCore.class)) {
-            // mock MobileCore.registerExtension()
-            ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
-            ArgumentCaptor<ExtensionErrorCallback> callbackCaptor =
-                    ArgumentCaptor.forClass(ExtensionErrorCallback.class);
-            mobileCoreMockedStatic
-                    .when(
-                            () ->
-                                    MobileCore.registerExtension(
-                                            extensionClassCaptor.capture(),
-                                            callbackCaptor.capture()))
-                    .thenReturn(true);
-            // call registerExtension() API
-            Identity.registerExtension();
-            // verify: happy
-            assertNotNull(callbackCaptor.getValue());
-            assertEquals(IdentityExtension.class, extensionClassCaptor.getValue());
-
-            callbackCaptor.getValue().error(null);
-        }
-    }
 
     @Test
     public void test_syncIdentifier() {

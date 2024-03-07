@@ -31,7 +31,7 @@ internal class GroupCondition(private val definition: JSONDefinition) : JSONCond
         if (definition.logic !is String || definition.conditions !is List<*> || definition.conditions.isEmpty()) {
             return null
         }
-        val logicalOperator = definition.logic.toLowerCase(Locale.ROOT)
+        val logicalOperator = definition.logic.lowercase(Locale.ROOT)
 
         if (logicalOperator !in LOGICAL_OPERATORS) {
             Log.error(

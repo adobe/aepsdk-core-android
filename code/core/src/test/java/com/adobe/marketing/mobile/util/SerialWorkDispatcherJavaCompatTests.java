@@ -25,9 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SerialWorkDispatcherJavaCompatTests {
@@ -40,14 +38,8 @@ public class SerialWorkDispatcherJavaCompatTests {
 
         private ArrayList<Integer> processedItems = null;
 
-        final Runnable setupJob =
-                () -> {
-                    processedItems = new ArrayList<>();
-                };
-        final Runnable teardownJob =
-                () -> {
-                    processedItems = null;
-                };
+        final Runnable setupJob = () -> processedItems = new ArrayList<>();
+        final Runnable teardownJob = () -> processedItems = null;
 
         TestJavaSerialWorkDispatcher(
                 @NotNull final String name, @NotNull final WorkHandler<Integer> workHandler) {
@@ -80,13 +72,10 @@ public class SerialWorkDispatcherJavaCompatTests {
         javaSerialWorkDispatcher.setFinalJob((javaSerialWorkDispatcher.teardownJob));
 
         Mockito.doAnswer(
-                        new Answer() {
-                            @Override
-                            public Object answer(InvocationOnMock invocation) throws Throwable {
-                                final Runnable runnable = invocation.getArgument(0);
-                                runnable.run();
-                                return null;
-                            }
+                        invocation -> {
+                            final Runnable runnable = invocation.getArgument(0);
+                            runnable.run();
+                            return null;
                         })
                 .when(mockExecutorService)
                 .submit(any(Runnable.class));

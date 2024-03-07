@@ -628,6 +628,11 @@ public final class IdentityExtension extends Extension {
                 networkRequest,
                 connection -> {
                     if (connection == null) {
+                        Log.trace(
+                                IdentityConstants.LOG_TAG,
+                                LOG_SOURCE,
+                                "sendOptOutHit - Failed to send the opt-out hit because the"
+                                        + " connection  is null(device is offline).");
                         return;
                     }
 
@@ -907,8 +912,17 @@ public final class IdentityExtension extends Extension {
             final String urlString =
                     buildURLString(
                             currentCustomerIds, dpids, latestValidConfig, didAdidConsentChange);
-            IdentityHit hit = new IdentityHit(urlString, event);
-            hitQueue.queue(hit.toDataEntity());
+            // URLBuilder will return null, if the final URL is invalid. Drop the hit in that case.
+            if (urlString != null) {
+                IdentityHit hit = new IdentityHit(urlString, event);
+                hitQueue.queue(hit.toDataEntity());
+            } else {
+                Log.warning(
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "handleSyncIdentifiers : Ignoring ID sync because the URL is invalid.");
+            }
+
         } else {
             // nothing to sync
             Log.debug(

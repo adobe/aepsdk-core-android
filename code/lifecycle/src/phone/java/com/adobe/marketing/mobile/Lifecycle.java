@@ -12,12 +12,10 @@
 package com.adobe.marketing.mobile;
 
 import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
-import com.adobe.marketing.mobile.services.Log;
-import java.util.List;
 
 public class Lifecycle {
 
-    private static final String EXTENSION_VERSION = "2.0.4";
+    private static final String EXTENSION_VERSION = "3.0.0";
 
     public static final Class<? extends Extension> EXTENSION = LifecycleExtension.class;
 
@@ -30,25 +28,5 @@ public class Lifecycle {
      */
     public static String extensionVersion() {
         return EXTENSION_VERSION;
-    }
-
-    /**
-     * Registers the extension with the Mobile SDK. This method should be called only once in your
-     * application class.
-     *
-     * @deprecated as of 2.0.0, use {@link MobileCore#registerExtensions(List, AdobeCallback)} with
-     *     {@link Lifecycle#EXTENSION} instead.
-     */
-    @Deprecated
-    public static void registerExtension() {
-        MobileCore.registerExtension(
-                LifecycleExtension.class,
-                extensionError -> {
-                    Log.error(
-                            "Lifecycle",
-                            "Lifecycle",
-                            "There was an error when registering the Lifecycle extension: %s",
-                            extensionError.getErrorName());
-                });
     }
 }

@@ -87,7 +87,7 @@ public class EventDataUtilsTests {
         nestedList.add("hello");
 
         Map<String, Object> data = new HashMap<>();
-        data.put("map", nestedList);
+        data.put("map", nestedMap);
         data.put("list", nestedList);
         data.put("string", "top level");
         data.put("uuid", UUID.randomUUID());
@@ -101,8 +101,8 @@ public class EventDataUtilsTests {
     public void testClone_MapWithNonStringKeys() throws CloneFailedException {
         Map<Object, Object> nestedMap = new HashMap<>();
         nestedMap.put(null, 1);
-        nestedMap.put(new Integer(1), 1);
-        nestedMap.put(new Double(1.1), 1d);
+        nestedMap.put(1, 1);
+        nestedMap.put(1.1, 1d);
         nestedMap.put("string", "hello");
 
         Map<String, Object> data = new HashMap<>();
@@ -124,16 +124,16 @@ public class EventDataUtilsTests {
         Map<String, Object> data = new HashMap<>();
         data.put("stringArray", stringArray);
 
-        Map[] mapArray =
-                new Map[] {
-                    new HashMap(),
-                    new HashMap() {
+        Map<?, ?>[] mapArray =
+                new Map<?, ?>[] {
+                    new HashMap<String, Object>(),
+                    new HashMap<String, Object>() {
                         {
                             put("k1", "v1");
                             put("k2", "v2");
                         }
                     },
-                    new HashMap() {
+                    new HashMap<String, Object>() {
                         {
                             put("integer", 1);
                             put("float", 1f);
@@ -305,7 +305,7 @@ public class EventDataUtilsTests {
         nestedList.add("hello");
 
         Map<String, Object> data = new HashMap<>();
-        data.put("map", nestedList);
+        data.put("map", nestedMap);
         data.put("list", nestedList);
         data.put("string", "top level");
         data.put("uuid", UUID.randomUUID());
@@ -319,8 +319,8 @@ public class EventDataUtilsTests {
     public void testCastGenericType_MapWithNonStringKeys() {
         Map<Object, Object> data = new HashMap<>();
         data.put(null, 1);
-        data.put(new Integer(1), 1);
-        data.put(new Double(1.1), 1d);
+        data.put(1, 1);
+        data.put(1.1, 1d);
         data.put("string", "hello");
 
         Map<String, Object> castMap = EventDataUtils.castFromGenericType(data);
@@ -334,16 +334,16 @@ public class EventDataUtilsTests {
         Map<String, Object> data = new HashMap<>();
         data.put("stringArray", stringArray);
 
-        Map[] mapArray =
-                new Map[] {
-                    new HashMap(),
-                    new HashMap() {
+        Map<?, ?>[] mapArray =
+                new Map<?, ?>[] {
+                    new HashMap<String, Object>(),
+                    new HashMap<String, Object>() {
                         {
                             put("k1", "v1");
                             put("k2", "v2");
                         }
                     },
-                    new HashMap() {
+                    new HashMap<String, Object>() {
                         {
                             put("integer", 1);
                             put("float", 1f);

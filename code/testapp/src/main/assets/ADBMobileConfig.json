@@ -1,16 +1,8 @@
 {
-  "global.privacy" : "optedin",
-  "analytics.launchHitDelay" : 0,
-  "analytics.backdatePreviousSessionInfo" : false,
-  "analytics.offlineEnabled" : false,
-  "build.environment" : "dev",
-  "rules.url" : "https://assets.adobedtm.com/launch-EN8fc4e9cda45e4514b075f0cf5e249742-development-rules.zip",
-  "experienceCloud.org" : "11111111111@AdobeOrg",
-  "lifecycle.sessionTimeout" : 5,
-  "analytics.server" : "obumobile5.sc.omtrdc.net",
-  "analytics.rsids" : "mobile5mob41911499889258395",
-  "analytics.batchLimit" : 1,
-  "property.id" : "PR075b22fc3221479d8a5817c2b8e50890",
-  "analytics.aamForwardingEnabled" : false,
-  "experienceCloud.server" : "dpm.demdex.net"
+  "rules.url": "https://assets.adobedtm.com/94f571f308d5/fec7505defe0/launch-eaa54c95a6b5-development-rules.zip",
+  "experienceCloud.org": "972C898555E9F7BC7F000101@AdobeOrg",
+  "lifecycle.sessionTimeout": 300,
+  "global.privacy": "optedin",
+  "property.id": "PR16596147e65c4d37980310bae3097e6b",
+  "build.environment": "dev"
 }

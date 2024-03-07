@@ -24,8 +24,8 @@ import org.json.JSONObject;
 class SharedPreferencesNamedCollection implements NamedCollection {
 
     private static final String TAG = SharedPreferencesNamedCollection.class.getSimpleName();
-    private SharedPreferences sharedPreferences;
-    private SharedPreferences.Editor sharedPreferencesEditor;
+    private final SharedPreferences sharedPreferences;
+    private final SharedPreferences.Editor sharedPreferencesEditor;
 
     SharedPreferencesNamedCollection(
             final SharedPreferences sharedPreferences,
@@ -120,7 +120,7 @@ class SharedPreferencesNamedCollection implements NamedCollection {
     @Override
     public Map<String, String> getMap(final String key) {
         String mapJsonString = sharedPreferences.getString(key, null);
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
 
         if (mapJsonString == null) {
             return null;

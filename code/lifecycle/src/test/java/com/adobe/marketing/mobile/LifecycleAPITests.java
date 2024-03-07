@@ -12,54 +12,17 @@
 package com.adobe.marketing.mobile;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class LifecycleAPITests {
 
-    private static final String EXTENSION_VERSION = "2.0.4";
-
-    @Test
-    public void test_extensionVersion() {
-        assertEquals(EXTENSION_VERSION, Lifecycle.extensionVersion());
-    }
-
     @Test
     public void test_extensionClass() {
         assertEquals(LifecycleExtension.class, Lifecycle.EXTENSION);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void test_registerExtension() {
-        try (MockedStatic<MobileCore> mobileCoreMockedStatic =
-                Mockito.mockStatic(MobileCore.class)) {
-            // mock MobileCore.registerExtension()
-            ArgumentCaptor<Class> extensionClassCaptor = ArgumentCaptor.forClass(Class.class);
-            ArgumentCaptor<ExtensionErrorCallback> callbackCaptor =
-                    ArgumentCaptor.forClass(ExtensionErrorCallback.class);
-            mobileCoreMockedStatic
-                    .when(
-                            () ->
-                                    MobileCore.registerExtension(
-                                            extensionClassCaptor.capture(),
-                                            callbackCaptor.capture()))
-                    .thenReturn(true);
-            // call registerExtension() API
-            Lifecycle.registerExtension();
-            // verify: happy
-            assertNotNull(callbackCaptor.getValue());
-            assertEquals(LifecycleExtension.class, extensionClassCaptor.getValue());
-            // verify: error callback was called
-            callbackCaptor.getValue().error(ExtensionError.UNEXPECTED_ERROR);
-        }
     }
 }

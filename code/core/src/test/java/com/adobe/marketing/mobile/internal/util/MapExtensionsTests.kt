@@ -14,7 +14,6 @@ package com.adobe.marketing.mobile.internal.util
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MapExtensionsTests {
@@ -138,13 +137,6 @@ class MapExtensionsTests {
     }
 
     @Test
-    fun testSerializeToQueryStringNullInput() {
-        val dict = null
-        val valueUnderTest = dict?.serializeToQueryString()
-        assertNull(valueUnderTest)
-    }
-
-    @Test
     fun testSerializeToQueryStringNullValueParameter() {
         val dict = HashMap<String, Any?>()
         dict["key1"] = "val1"
@@ -244,29 +236,9 @@ class MapExtensionsTests {
     }
 
     @Test
-    fun `test fnv1a32 - optional String`() {
-        val optional: String? = "value"
-        val eventData = mapOf(
-            "key" to optional
-        )
-        val hashCode = eventData.fnv1a32()
-        assertEquals(4007910315, hashCode)
-    }
-
-    @Test
     fun `test fnv1a32 - Char`() {
         val eventData = mapOf(
             "key" to 'a'
-        )
-        val hashCode = eventData.fnv1a32()
-        assertEquals(135500217, hashCode)
-    }
-
-    @Test
-    fun `test fnv1a32 - optional Char`() {
-        val optional: Char? = 'a'
-        val eventData = mapOf(
-            "key" to optional
         )
         val hashCode = eventData.fnv1a32()
         assertEquals(135500217, hashCode)
@@ -282,29 +254,9 @@ class MapExtensionsTests {
     }
 
     @Test
-    fun `test fnv1a32 - optional Int`() {
-        val optional: Int? = 552
-        val eventData = mapOf(
-            "key" to optional
-        )
-        val hashCode = eventData.fnv1a32()
-        assertEquals(874166902, hashCode)
-    }
-
-    @Test
     fun `test fnv1a32 - Long`() {
         val eventData = mapOf(
             "key" to 24L
-        )
-        val hashCode = eventData.fnv1a32()
-        assertEquals(2995581580, hashCode)
-    }
-
-    @Test
-    fun `test fnv1a32 - optional Long`() {
-        val optional: Long? = 24L
-        val eventData = mapOf(
-            "key" to optional
         )
         val hashCode = eventData.fnv1a32()
         assertEquals(2995581580, hashCode)
@@ -320,16 +272,6 @@ class MapExtensionsTests {
     }
 
     @Test
-    fun `test fnv1a32 - optional Float`() {
-        val optional: Float? = 5.52f
-        val eventData = mapOf(
-            "key" to optional
-        )
-        val hashCode = eventData.fnv1a32()
-        assertEquals(1449854826, hashCode)
-    }
-
-    @Test
     fun `test fnv1a32 - Double`() {
         val eventData = mapOf(
             "key" to "5.52".toDouble()
@@ -339,29 +281,9 @@ class MapExtensionsTests {
     }
 
     @Test
-    fun `test fnv1a32 - optional Double`() {
-        val optional: Double? = "5.52".toDouble()
-        val eventData = mapOf(
-            "key" to optional
-        )
-        val hashCode = eventData.fnv1a32()
-        assertEquals(1449854826, hashCode)
-    }
-
-    @Test
     fun `test fnv1a32 - Boolean`() {
         val eventData = mapOf(
             "key" to false
-        )
-        val hashCode = eventData.fnv1a32()
-        assertEquals(138493769, hashCode)
-    }
-
-    @Test
-    fun `test fnv1a32 - optional Boolean`() {
-        val optional: Boolean? = false
-        val eventData = mapOf(
-            "key" to optional
         )
         val hashCode = eventData.fnv1a32()
         assertEquals(138493769, hashCode)

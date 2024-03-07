@@ -13,7 +13,6 @@ package com.adobe.marketing.mobile.util;
 
 import static org.junit.Assert.*;
 
-import com.adobe.marketing.mobile.TestHelper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -45,12 +44,10 @@ public class TimeUtilsTests {
     private String expectedString_ISO8601_TIMEZONE_ISO8601_3X_PRECISION_SECOND;
     private String expectedString_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND;
 
-    private Locale defaultLocale;
-
     @Before
     public void setup() throws ParseException {
         TimeZone.setDefault(TimeZone.getTimeZone("GMT-7"));
-        defaultLocale = new Locale(Locale.US.getLanguage(), Locale.US.getCountry(), "POSIX");
+        Locale defaultLocale = new Locale(Locale.US.getLanguage(), Locale.US.getCountry(), "POSIX");
         // Setup static date whose expected formats are well-known
         expectedString_ISO8601_FULL_DATE = "2022-11-30";
         expectedString_ISO8601_TIMEZONE_ISO8601_2X_PRECISION_SECOND = "2022-11-30T06:50:53-0700";
@@ -64,15 +61,6 @@ public class TimeUtilsTests {
         defaultDate =
                 formatter.parse(expectedString_ISO8601_TIMEZONE_ISO8601_UTCZ_PRECISION_MILLISECOND);
         formatter.applyPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-    }
-
-    @Test
-    public void testClassIsWellDefined() {
-        try {
-            TestHelper.assertUtilityClassWellDefined(TimeUtils.class);
-        } catch (Exception e) {
-            fail("TimeUtil class is not well defined, throwing exception " + e);
-        }
     }
 
     // Testing each API with a well-known date and corresponding formatting result
@@ -147,6 +135,7 @@ public class TimeUtilsTests {
         final Date rfc2822Date =
                 TimeUtils.parseRFC2822Date(
                         RFC2822_DATE_GMT, TimeZone.getTimeZone("GMT"), Locale.US);
+        assert rfc2822Date != null;
         assertEquals(
                 new Date(TEST_EPOCH).toInstant().getEpochSecond(),
                 rfc2822Date.toInstant().getEpochSecond());
@@ -157,6 +146,7 @@ public class TimeUtilsTests {
         final Date rfc2822Date =
                 TimeUtils.parseRFC2822Date(
                         RFC2822_DATE_PST, TimeZone.getTimeZone("PST"), Locale.US);
+        assert rfc2822Date != null;
         assertEquals(
                 new Date(TEST_EPOCH).toInstant().getEpochSecond(),
                 rfc2822Date.toInstant().getEpochSecond());

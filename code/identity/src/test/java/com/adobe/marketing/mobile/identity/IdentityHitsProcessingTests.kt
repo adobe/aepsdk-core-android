@@ -34,6 +34,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import java.io.InputStream
 import java.util.concurrent.CountDownLatch
 
@@ -131,19 +132,16 @@ class IdentityHitsProcessingTests {
         jsonObject.put("EVENT", EventCoder.encode(event))
 
         ServiceProvider.getInstance().networkService = Networking { _, callback ->
-
             callback.call(null)
         }
-        val countDownLatch = CountDownLatch(2)
-        doAnswer { invocation ->
-            assertNull(invocation.arguments[0])
-            countDownLatch.countDown()
-        }.`when`(mockedIdentityExtension).networkResponseLoaded(anyOrNull(), any())
+        val countDownLatch = CountDownLatch(1)
         identityHitsProcessing.processHit(DataEntity(jsonObject.toString())) {
-            assertTrue(it)
+            assertFalse(it)
             countDownLatch.countDown()
         }
         countDownLatch.await()
+
+        verifyNoMoreInteractions(mockedIdentityExtension)
     }
 
     @Test(timeout = 10000)

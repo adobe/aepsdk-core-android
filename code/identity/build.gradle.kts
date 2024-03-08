@@ -18,7 +18,9 @@ aepLibrary {
         mavenRepoName = identityMavenRepoName
         mavenRepoDescription = identityMavenRepoDescription
         gitRepoName = "aepsdk-core-android"
-        addCoreDependency(coreExtensionVersion)
+
+        // Stop using snapshot version after release
+        addCoreDependency("$coreExtensionVersion-SNAPSHPOT")
     }
 }
 

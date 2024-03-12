@@ -2,7 +2,8 @@
 
 This guide walks through how to get up and running with the AEP Android SDK with only a few lines of code.
 
-> Existing ACP SDK customers should check out the [migration document](../Migration.md).
+<!-- Disalbe this line for now, we can enable it later and direct users to the migration doc located on the developer doc site, for example, https://developer.adobe.com/client-sdks/resources/migration/android/migrate-to-2x/ -->
+<!-- > Existing ACP SDK customers should check out the [migration document](../Migration.md). -->
 
 ## Set up a Mobile Property
 

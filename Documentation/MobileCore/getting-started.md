@@ -16,12 +16,14 @@ If you cannot access the Mobile Install Instructions dialog box in the Data Coll
 
 1. Each extension needs to be added as a dependency to the mobile application project. The following examples will add the Mobile Core, Lifecycle, Identity, Signal and Profile extensions.
 
-```java
-implementation 'com.adobe.marketing.mobile:userprofile:2.+'
-implementation 'com.adobe.marketing.mobile:core:2.+'
-implementation 'com.adobe.marketing.mobile:identity:2.+'
-implementation 'com.adobe.marketing.mobile:signal:2.+'
-implementation 'com.adobe.marketing.mobile:lifecycle:2.+'
+```groovy
+implementation platform('com.adobe.marketing.mobile:sdk-bom:3.+')
+implementation 'com.adobe.marketing.mobile:userprofile'
+implementation 'com.adobe.marketing.mobile:core'
+implementation 'com.adobe.marketing.mobile:identity'
+implementation 'com.adobe.marketing.mobile:signal'
+implementation 'com.adobe.marketing.mobile:lifecycle'
+
 ```
 
 > **Warning**
@@ -124,12 +126,6 @@ override fun onPause() {
     MobileCore.lifecyclePause()
 }
 ```
-
-## Sample Apps
-
-To download more examples of integrating the AEP Android SDK, head over to the sample app resources.
-
-[View Samples](https://github.com/adobe/aepsdk-sample-app-android)
 
 ## Next Steps
 

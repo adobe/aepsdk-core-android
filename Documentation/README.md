@@ -6,7 +6,7 @@
     * [Getting Started](./MobileCore/getting-started.md)
     * [Managing Gradle Dependencies](./MobileCore/gradle-dependencies.md)
     * [API Usage](./MobileCore/api-reference.md)
-    * [Migrating from ACPCore to AEPCore](./Migration.md)
+    * [Migrating from previous versions to the latest AEP SDK](https://developer.adobe.com/client-sdks/resources/migration/android/)
     * [Validation via Assurance](./Debugging.md)
 * [Architecture](./Architecture.md)
     * [EventHub](./EventHub/README.md)

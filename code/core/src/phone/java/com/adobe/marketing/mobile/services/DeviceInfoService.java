@@ -21,12 +21,12 @@ import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
+import com.adobe.marketing.mobile.internal.util.NetworkUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -214,71 +214,15 @@ class DeviceInfoService implements DeviceInforming {
 
     @Override
     public ConnectionStatus getNetworkConnectionStatus() {
-        final Context context = getApplicationContext();
-
-        if (context == null) {
-            return DeviceInfoService.ConnectionStatus.UNKNOWN;
+        ConnectivityManager connectivityManager =
+                ServiceProvider.getInstance().getAppContextService().getConnectivityManager();
+        if (connectivityManager == null) {
+            return ConnectionStatus.UNKNOWN;
         }
 
-        try {
-            // We have a context so ask the system for an instance of ConnectivityManager
-            ConnectivityManager connectivityManager =
-                    (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-            if (connectivityManager != null) {
-                // We have an instance of ConnectivityManager so now we can ask for the active
-                // network info
-                NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-
-                if (activeNetworkInfo != null) {
-                    // At this point we have everything that we need to accurately determine the
-                    // current connectivity status
-                    return activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected()
-                            ? DeviceInfoService.ConnectionStatus.CONNECTED
-                            : DeviceInfoService.ConnectionStatus.DISCONNECTED;
-                } else {
-                    // Per Android documentation getActiveNetworkInfo() will return null if no
-                    // default network is currently active.
-                    // If no default network is currently active we can assume that we don't have
-                    // connectivity.
-                    Log.debug(
-                            ServiceConstants.LOG_TAG,
-                            LOG_TAG,
-                            "Unable to determine connectivity status due to there being no default"
-                                    + " network currently active");
-                }
-            } else {
-                Log.debug(
-                        ServiceConstants.LOG_TAG,
-                        LOG_TAG,
-                        "Unable to determine connectivity status due to the system service"
-                                + " requested being unrecognized");
-            }
-        } catch (NullPointerException e) {
-            Log.debug(
-                    ServiceConstants.LOG_TAG,
-                    LOG_TAG,
-                    String.format(
-                            "Unable to determine connectivity status due to an unexpected error"
-                                    + " (%s)",
-                            e.getLocalizedMessage()));
-        } catch (SecurityException e) {
-            Log.debug(
-                    ServiceConstants.LOG_TAG,
-                    LOG_TAG,
-                    String.format(
-                            "Unable to access connectivity status due to a security error (%s)",
-                            e.getLocalizedMessage()));
-        } catch (Exception e) {
-            Log.debug(
-                    ServiceConstants.LOG_TAG,
-                    LOG_TAG,
-                    String.format(
-                            "Unable to access connectivity status due to an unexpected error (%s)",
-                            e.getLocalizedMessage()));
-        }
-
-        return DeviceInfoService.ConnectionStatus.UNKNOWN;
+        return NetworkUtils.isInternetAvailable(connectivityManager)
+                ? ConnectionStatus.CONNECTED
+                : ConnectionStatus.DISCONNECTED;
     }
 
     @Override

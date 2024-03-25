@@ -26,7 +26,6 @@ class AEPPushPayload(val message: RemoteMessage?) {
     private lateinit var messageData: MutableMap<String, String>
     private lateinit var messageId: String
     private lateinit var deliveryId: String
-    private var tag: String? = null
 
     private val notificationCompatPriorityMap: HashMap<Int, String> =
         object : HashMap<Int, String>() {
@@ -101,7 +100,6 @@ class AEPPushPayload(val message: RemoteMessage?) {
         deliveryId = messageData[PushTemplateConstants.Tracking.Keys.DELIVERY_ID] ?: ""
         require(deliveryId.isNotEmpty()) { throw IllegalArgumentException("Failed to create AEPPushPayload, delivery id is null or empty.") }
         this.messageData = messageData
-        tag = messageData[PushTemplateConstants.PushPayloadKeys.TAG]
     }
 
     private fun convertNotificationPayloadData(notification: RemoteMessage.Notification) {
@@ -126,7 +124,6 @@ class AEPPushPayload(val message: RemoteMessage?) {
         // message.notification.image to adb_image
         if (StringUtils.isNullOrEmpty(messageData[PushTemplateConstants.PushPayloadKeys.TAG])) {
             notification.tag?.let {
-                tag = it
                 messageData[PushTemplateConstants.PushPayloadKeys.TAG] = it
             }
         }
@@ -242,6 +239,6 @@ class AEPPushPayload(val message: RemoteMessage?) {
     }
 
     fun getTag(): String? {
-        return tag
+        return messageData[PushTemplateConstants.PushPayloadKeys.TAG]
     }
 }

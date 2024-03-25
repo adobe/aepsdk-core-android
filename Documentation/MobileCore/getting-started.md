@@ -24,6 +24,7 @@ implementation("com.adobe.marketing.mobile:core")
 implementation("com.adobe.marketing.mobile:identity")
 implementation("com.adobe.marketing.mobile:signal")
 implementation("com.adobe.marketing.mobile:lifecycle")
+implementation("com.adobe.marketing.mobile:userprofile")
 ```
 
 ### Groovy
@@ -34,6 +35,7 @@ implementation 'com.adobe.marketing.mobile:core'
 implementation 'com.adobe.marketing.mobile:identity'
 implementation 'com.adobe.marketing.mobile:signal'
 implementation 'com.adobe.marketing.mobile:lifecycle'
+implementation 'com.adobe.marketing.mobile:userprofile'
 ```
 
 > **Warning**

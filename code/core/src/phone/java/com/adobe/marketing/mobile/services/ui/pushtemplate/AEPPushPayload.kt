@@ -85,7 +85,7 @@ class AEPPushPayload(val message: RemoteMessage?) {
     }
 
     /**
-     * Validates the message data and stores the message id, delivery id, and tag.
+     * Validates then stores the message data, message id, and delivery id.
      *
      * @param messageData [MutableMap] containing the message data
      * @throws [IllegalArgumentException] if the message data, message id, or delivery id is null or empty
@@ -102,26 +102,29 @@ class AEPPushPayload(val message: RemoteMessage?) {
         this.messageData = messageData
     }
 
+    /**
+     * Migrates any android.notification key value pairs to the equivalent adb prefixed keys.
+     * Note, the key value pairs present in the data payload are preferred over the notification key value pairs.
+     * The notification key value pairs will only be added to the message data if the corresponding key
+     * does not have a value.
+     * The following notification key value pairs are migrated:
+     *  message.android.notification.icon to adb_small_icon
+     *  message.android.notification.sound to adb_sound
+     *  message.android.notification.tag to adb_tag
+     *  message.android.notification.click_action to adb_uri
+     *  message.android.notification.channel_id to adb_channel_id
+     *  message.android.notification.ticker to adb_ticker
+     *  message.android.notification.sticky to adb_sticky
+     *  message.android.notification.visibility to adb_n_visibility
+     *  message.android.notification.notification_priority to adb_n_priority
+     *  message.android.notification.notification_count to adb_n_count
+     *  message.notification.body to adb_body
+     *  message.notification.title to adb_title
+     *  message.notification.image to adb_image
+     *
+     * @param notification [RemoteMessage] received from the [com.google.firebase.messaging.FirebaseMessagingService]
+     */
     private fun convertNotificationPayloadData(notification: RemoteMessage.Notification) {
-        // Migrate the 13 ACC KVP to "adb" prefixed keys.
-        // Note, the key value pairs present in the data payload are preferred over the notification
-        // key value pairs.
-        // The notification key value pairs will only be added to the message data if the
-        // corresponding key
-        // does not have a value.
-        // message.android.notification.icon to adb_small_icon
-        // message.android.notification.sound to adb_sound
-        // message.android.notification.tag	to adb_tag
-        // message.android.notification.click_action to adb_uri
-        // message.android.notification.channel_id to adb_channel_id
-        // message.android.notification.ticker to adb_ticker
-        // message.android.notification.sticky to adb_sticky
-        // message.android.notification.visibility to adb_n_visibility
-        // message.android.notification.notification_priority to adb_n_priority
-        // message.android.notification.notification_count to adb_n_count
-        // message.notification.body to adb_body
-        // message.notification.title to adb_title
-        // message.notification.image to adb_image
         if (StringUtils.isNullOrEmpty(messageData[PushTemplateConstants.PushPayloadKeys.TAG])) {
             notification.tag?.let {
                 messageData[PushTemplateConstants.PushPayloadKeys.TAG] = it

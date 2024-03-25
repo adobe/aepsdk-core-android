@@ -27,6 +27,9 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.StringUtils
 import com.google.android.gms.common.util.CollectionUtils
 
+/**
+ * Object responsible for constructing a push notification using the filmstrip carousel push template.
+ */
 internal object FilmstripCarouselTemplateNotificationBuilder {
     private const val SELF_TAG = "FilmstripCarouselTemplateNotificationBuilder"
 

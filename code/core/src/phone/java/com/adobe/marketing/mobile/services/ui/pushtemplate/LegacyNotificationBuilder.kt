@@ -16,6 +16,9 @@ import android.content.Context
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 
+/**
+ * Object responsible for constructing a legacy (non [RemoteViews] based) push notification.
+ */
 internal object LegacyNotificationBuilder {
     private const val SELF_TAG = "LegacyNotificationBuilder"
 

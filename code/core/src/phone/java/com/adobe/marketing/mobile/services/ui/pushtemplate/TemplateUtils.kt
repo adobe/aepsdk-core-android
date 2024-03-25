@@ -18,6 +18,11 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 
+/**
+ * Public facing object to construct a [NotificationCompat.Builder] object for the specified [PushTemplateType].
+ * The [constructNotificationBuilder] methods will build the appropriate notification based on the provided
+ * [AEPPushTemplate] or [Intent].
+ */
 object TemplateUtils {
     private const val SELF_TAG = "TemplateUtils"
 

@@ -11,10 +11,18 @@
 
 package com.adobe.marketing.mobile.services.ui.pushtemplate
 
+/**
+ * Enum class representing the different types of out-of-the-box push templates.
+ */
 enum class PushTemplateType(val value: String) {
     BASIC("basic"), CAROUSEL("car"), INPUT_BOX("input"), UNKNOWN("unknown");
 
     companion object {
+        /**
+         * Returns the [PushTemplateType] for the given string value.
+         * @param value the string value to convert to [PushTemplateType]
+         * @return the [PushTemplateType] for the given string value
+         */
         @JvmStatic
         fun fromString(value: String?): PushTemplateType {
             return when (value) {

@@ -19,6 +19,11 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.google.android.gms.common.util.CollectionUtils
 
+/**
+ * Top level object to construct a carousel push notification. The object is responsible for
+ * determining the operation mode of the carousel push template and building the appropriate
+ * carousel-style notification.
+ */
 internal object CarouselTemplateNotificationBuilder {
     private const val SELF_TAG = "CarouselTemplateNotificationBuilder"
 

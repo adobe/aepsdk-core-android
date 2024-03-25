@@ -23,6 +23,9 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
 
+/**
+ * Object responsible for constructing a push notification using the auto carousel push template.
+ */
 internal object AutoCarouselTemplateNotificationBuilder {
     private const val SELF_TAG = "AutoCarouselTemplateNotificationBuilder"
 

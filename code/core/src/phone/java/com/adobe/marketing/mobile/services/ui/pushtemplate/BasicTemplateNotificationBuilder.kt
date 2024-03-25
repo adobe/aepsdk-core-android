@@ -25,6 +25,9 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.StringUtils
 
+/**
+ * Object responsible for constructing a push notification using the basic push template.
+ */
 internal object BasicTemplateNotificationBuilder {
     private const val SELF_TAG = "BasicTemplateNotificationBuilder"
 

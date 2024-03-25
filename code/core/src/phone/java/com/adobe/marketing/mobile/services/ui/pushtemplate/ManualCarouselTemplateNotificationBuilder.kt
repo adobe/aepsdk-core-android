@@ -28,6 +28,9 @@ import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.services.ui.pushtemplate.CarouselPushTemplate.CarouselItem
 import com.google.android.gms.common.util.CollectionUtils
 
+/**
+ * Object responsible for constructing a push notification using the manual carousel push template.
+ */
 internal object ManualCarouselTemplateNotificationBuilder {
     private const val SELF_TAG = "ManualCarouselTemplateNotificationBuilder"
     private const val IMAGE_URIS_KEY = "imageUris"

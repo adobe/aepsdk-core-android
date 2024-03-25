@@ -23,6 +23,13 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
+/**
+ * Class representing the push template notification message data payload.
+ * This class is used to parse the push template data payload and provide the necessary information
+ * to build a notification.
+ *
+ * @param data [MutableMap] containing the push template notification message data payload
+ */
 sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
     /** Enum to denote the type of action  */
     enum class ActionType {

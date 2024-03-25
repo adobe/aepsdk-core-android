@@ -48,7 +48,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * Utility functions to assist in building push template notifications.
+ * General utility functions to assist in building push template notifications.
  */
 private const val SELF_TAG = "PushTemplateHelpers"
 private const val FULL_BITMAP_QUALITY = 100
@@ -56,9 +56,9 @@ private const val DOWNLOAD_TIMEOUT = 10
 private const val MINIMUM_FILMSTRIP_SIZE = 3
 
 /**
- * Asset cache location for downloaded push template images.
+ * Asset cache location to use for downloaded push template images.
  *
- * @return `String` containing the asset cache location to use for storing downloaded push template images.
+ * @return [String] containing the asset cache location to use for storing downloaded push template images.
  */
 internal val assetCacheLocation: String?
     get() {
@@ -133,17 +133,15 @@ private class DownloadImageCallable(val url: String?) :
 
 /**
  * Downloads an image using the provided uri `String`. Prior to downloading, the image uri
- * is used to retrieve a `CacheResult` containing a previously cached image. If no cache
- * result is returned, a call to [PushTemplateUtils.download] is made to download
- * then cache the image.
- *
+ * is used to retrieve a [CacheResult] containing a previously cached image. If no cache
+ * result is returned, a call to [download] is made to download then cache the image.
  *
  * If a valid cache result is returned then no image is downloaded. Instead, a `Bitmap`
  * is created from the cache result and returned by this method.
  *
  * @param cacheService the AEPSDK [CacheService] to use for caching or retrieving
  * downloaded image assets
- * @param uri `String` containing an image asset url
+ * @param uri [String] containing an image asset url
  * @return [Bitmap] containing the image referenced by the `String` uri
  */
 internal fun downloadImage(cacheService: CacheService, uri: String?): Bitmap? {
@@ -188,6 +186,12 @@ internal fun downloadImage(cacheService: CacheService, uri: String?): Bitmap? {
     return pushImage
 }
 
+/**
+ * Downloads an image using the provided uri `String`. A [Future] task is created to download
+ * the image using a [DownloadImageCallable]. The task is submitted to an [ExecutorService].
+ * @param url [String] containing the image url to download
+ * @return [Bitmap] containing the downloaded image
+ */
 internal fun download(url: String?): Bitmap? {
     var bitmap: Bitmap? = null
     val executorService = executor
@@ -204,10 +208,10 @@ internal fun download(url: String?): Bitmap? {
  * Calculates a new left, center, and right index given the current center index, total number
  * of images, and the intent action.
  *
- * @param centerIndex `int` containing the current center image index
- * @param listSize `int` containing the total number of images
- * @param action `String` containing the action found in the broadcast [Intent]
- * @return [<] containing the new calculated indices
+ * @param centerIndex [Int] containing the current center image index
+ * @param listSize `Int` containing the total number of images
+ * @param action [String] containing the action found in the broadcast [Intent]
+ * @return [List] containing the new calculated left, center, and right indices
  */
 internal fun calculateNewIndices(
     centerIndex: Int,
@@ -265,7 +269,7 @@ internal fun calculateNewIndices(
 }
 
 /**
- * Converts a `Bitmap` into an `InputStream` to be used in caching images.
+ * Converts a [Bitmap] into an [InputStream] to be used in caching images.
  *
  * @param bitmap [Bitmap] to be converted into an [InputStream]
  * @return an `InputStream` created from the provided bitmap
@@ -278,15 +282,15 @@ private fun bitmapToInputStream(bitmap: Bitmap): InputStream {
 }
 
 /**
- * Writes a `InputStream` to the Campaign Classic extension's asset cache location.
+ * Writes the provided [InputStream] to the downloaded push template image [assetCacheLocation].
  *
  * @param cacheService [CacheService] the AEPSDK cache service
  * @param bitmapInputStream [InputStream] created from a download [Bitmap]
- * @param imageUri `String` containing the image uri to be used a cache key
+ * @param imageUri [String] containing the image uri to be used a cache key
  */
 private fun cacheBitmapInputStream(
     cacheService: CacheService,
-    bitmapInputStream: InputStream?,
+    bitmapInputStream: InputStream,
     imageUri: String
 ) {
     Log.trace(
@@ -295,7 +299,7 @@ private fun cacheBitmapInputStream(
         "Caching image downloaded from %s.",
         imageUri
     )
-    if (bitmapInputStream != null && assetCacheLocation != null) {
+    assetCacheLocation?.let {
         // cache push notification images for 3 days
         val cacheEntry = CacheEntry(
             bitmapInputStream,
@@ -304,10 +308,18 @@ private fun cacheBitmapInputStream(
             ),
             null
         )
-        cacheService[assetCacheLocation.toString(), imageUri] = cacheEntry
+        cacheService[it, imageUri] = cacheEntry
     }
 }
 
+/**
+ * Scales a downloaded [Bitmap] to a maximum width and height of 300dp x 200dp.
+ * The scaling is done using a [Matrix] object to maintain the aspect ratio of the original
+ * image.
+ *
+ * @param downloadedBitmap [Bitmap] to be scaled
+ * @return [Bitmap] containing the scaled image
+ */
 private fun scaleBitmap(downloadedBitmap: Bitmap): Bitmap {
     val matrix = Matrix()
     matrix.setRectToRect(
@@ -332,16 +344,16 @@ private fun scaleBitmap(downloadedBitmap: Bitmap): Bitmap {
 }
 
 /**
- * Creates a pending intent for the notification.
+ * Creates a pending intent for a notification.
  *
  * @param context the application [Context]
- * @param messageId `String` containing the message id from the received push notification
+ * @param messageId [String] containing the message id from the received push notification
  * @param deliveryId `String` containing the delivery id from the received push
  * notification
  * @param actionUri the action uri
  * @param actionID the action ID
- * @param stickyNotification `boolean` if false, remove the notification after the `RemoteViews` is pressed
- * @return the pending intent
+ * @param stickyNotification [Boolean] if false, remove the notification after it is interacted with
+ * @return the created [PendingIntent]
  */
 private fun createPendingIntent(
     context: Context,
@@ -376,11 +388,11 @@ private fun createPendingIntent(
 }
 
 /**
- * Adds action details to the intent.
+ * Adds action details to the provided [Intent].
  *
  * @param intent the intent
- * @param actionUri the action uri
- * @param actionId the action ID
+ * @param actionUri [String] containing the action uri
+ * @param actionId `String` containing the action ID
  */
 private fun addActionDetailsToIntent(
     intent: Intent,
@@ -400,8 +412,8 @@ private fun addActionDetailsToIntent(
  * used. If a sound is not received from the payload, the default sound is used.
  *
  * @param context the application [Context]
- * @param notificationBuilder the notification builder
- * @param customSound `String` containing the custom sound file name to load from the
+ * @param notificationBuilder the [NotificationCompat.Builder]
+ * @param customSound [String] containing the custom sound file name to load from the
  * bundled assets
  */
 internal fun setSound(
@@ -438,9 +450,9 @@ internal fun setSound(
  * Returns the Uri for the sound file with the given name. The sound file must be in the res/raw
  * directory. The sound file should be in format of .mp3, .wav, or .ogg
  *
- * @param soundName the name of the sound file
+ * @param soundName [String] containing the name of the sound file
  * @param context the application [Context]
- * @return the Uri for the sound file with the given name
+ * @return the [Uri] for the sound file with the given name
  */
 internal fun getSoundUriForResourceName(
     soundName: String?,
@@ -456,13 +468,13 @@ internal fun getSoundUriForResourceName(
 }
 
 /**
- * Sets the image url as the large icon for the legacy style notification. If a large icon url is received
+ * Sets the provided image url as the large icon for the legacy style notification. If a large icon url is received
  * from the payload, the image is downloaded and the notification style is set to
  * BigPictureStyle. If large icon url is not received from the payload, default style is used
  * for the notification.
  *
- * @param notificationBuilder the notification builder
- * @param imageUrl `String` containing the image url
+ * @param notificationBuilder the [NotificationCompat.Builder]
+ * @param imageUrl [String] containing the image url
  * @param title `String` containing the title
  * @param bodyText `String` containing the body text
  */
@@ -518,9 +530,9 @@ internal fun setVisibility(
 }
 
 /**
- * Sets custom colors to UI elements present in the specified `RemoteViews` object.
+ * Sets custom colors to UI elements present in the specified [RemoteViews] object.
  *
- * @param backgroundColor `String` containing the hex color code for the notification
+ * @param backgroundColor [String] containing the hex color code for the notification
  * background
  * @param titleTextColor `String` containing the hex color code for the notification title
  * text
@@ -528,7 +540,7 @@ internal fun setVisibility(
  * notification body text
  * @param smallLayout [RemoteViews] object for a collapsed custom notification
  * @param expandedLayout `RemoteViews` object for an expanded custom notification
- * @param containerViewId `int` containing the resource id of the layout container
+ * @param containerViewId [Int] containing the resource id of the layout container
  */
 internal fun setCustomNotificationColors(
     backgroundColor: String?,
@@ -594,12 +606,12 @@ internal fun setCustomNotificationColors(
 }
 
 /**
- * Sets a provided color hex string to a UI element contained in a specified `RemoteViews`
+ * Sets a provided color hex string to a UI element contained in a specified [RemoteViews]
  * view.
  *
- * @param remoteView [RemoteViews] object containing a UI element to be updated
- * @param elementId `int` containing the resource id of the UI element
- * @param colorHex `String` containing the color hex string
+ * @param remoteView `RemoteViews` object containing a UI element to be updated
+ * @param elementId [Int] containing the resource id of the UI element
+ * @param colorHex [String] containing the color hex string
  * @param methodName `String` containing the method to be called on the UI element to
  * update the color
  * @param viewFriendlyName `String` containing the friendly name of the view to be used
@@ -642,20 +654,20 @@ private fun setElementColor(
 }
 
 /**
- * Sets the click action for the specified view in the custom push template `RemoteView`.
+ * Sets the click action for the specified view in the custom push template [RemoteViews].
  *
  * @param context the application [Context]
  * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
- * @param pushTemplateRemoteView [RemoteViews] the parent view representing a push
- * template
- * @param targetViewResourceId `int` containing the resource id of the view to attach the
+ * @param pushTemplateRemoteView `RemoteViews` the parent view representing a push
+ * template notification
+ * @param targetViewResourceId [Int] containing the resource id of the view to attach the
  * click action
- * @param messageId `String` containing the message id from the received push notification
+ * @param messageId [String] containing the message id from the received push notification
  * @param deliveryId `String` containing the delivery id from the received push
  * notification
  * @param actionUri `String` containing the action uri defined for the push template image
- * @param tag the tag used when scheduling the notification
- * @param stickyNotification `boolean` if false, remove the notification after the `RemoteViews` is pressed
+ * @param tag `String` containing the tag to use when scheduling the notification
+ * @param stickyNotification [Boolean] if false, remove the [NotificationCompat] after the `RemoteViews` is pressed
  */
 internal fun setRemoteViewClickAction(
     context: Context,
@@ -704,14 +716,14 @@ internal fun setRemoteViewClickAction(
  *
  * @param context the application [Context]
  * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
- * @param builder the notification builder
+ * @param builder the [NotificationCompat.Builder] to attach the action buttons
  * @param actionButtonsString `String` a JSON string containing action buttons to attach
  * to the notification
  * @param messageId `String` containing the message id from the received push notification
  * @param deliveryId `String` containing the delivery id from the received push
  * notification
- * @param tag the tag used when scheduling the notification
- * @param stickyNotification `boolean` if false, remove the notification after the action
+ * @param tag `String` containing the tag to use when scheduling the notification
+ * @param stickyNotification [Boolean]  if false, remove the notification after the action
  * button is pressed
  */
 internal fun addActionButtons(
@@ -765,12 +777,12 @@ internal fun addActionButtons(
  *
  * @param context the application [Context]
  * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
- * @param notificationBuilder the notification builder
- * @param messageId `String` containing the message id from the received push notification
+ * @param notificationBuilder the [NotificationCompat.Builder] to attach the click action
+ * @param messageId [String] containing the message id from the received push notification
  * @param deliveryId `String` containing the delivery id from the received push
  * notification
- * @param actionUri the action uri
- * @param tag the tag used when scheduling the notification
+ * @param actionUri `String` containing the action uri
+ * @param tag `String` containing the tag to use when scheduling the notification
  * @param stickyNotification `boolean` if false, remove the notification after the `RemoteViews` is pressed
  */
 internal fun setNotificationClickAction(
@@ -802,7 +814,7 @@ internal fun setNotificationClickAction(
  *
  * @param context the application [Context]
  * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
- * @param builder the notification builder
+ * @param builder the [NotificationCompat.Builder] to attach the delete action
  * @param messageId `String` containing the message id from the received push notification
  * @param deliveryId `String` containing the delivery id from the received push
  * notification

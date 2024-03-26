@@ -123,6 +123,7 @@ internal object PushTemplateConstants {
         const val NOTIFICATION_VISIBILITY = "adb_n_visibility"
         const val NOTIFICATION_PRIORITY = "adb_n_priority"
         const val CHANNEL_ID = "adb_channel_id"
+        const val LEGACY_SMALL_ICON = "adb_icon"
         const val SMALL_ICON = "adb_small_icon"
         const val LARGE_ICON = "adb_large_icon"
         const val IMAGE_URL = "adb_image"
@@ -146,8 +147,5 @@ internal object PushTemplateConstants {
         const val REMIND_LATER_TEXT = "adb_rem_txt"
         const val REMIND_LATER_TIMESTAMP = "adb_rem_ts"
         const val CAROUSEL_OPERATION_MODE = "adb_car_mode"
-        const val INPUT_FIELD_TEXT = "adb_input_txt"
-        const val FEEDBACK_RECEIVED_TEXT = "adb_feedback_txt"
-        const val FEEDBACK_RECEIVED_IMAGE = "adb_feedback_img"
     }
 }

@@ -91,8 +91,8 @@ class AEPPushPayload(val message: RemoteMessage?) {
      * @throws [IllegalArgumentException] if the message data, message id, or delivery id is null or empty
      */
     @Throws(IllegalArgumentException::class)
-    private fun validateMessageData(messageData: MutableMap<String, String>) {
-        require(!MapUtils.isNullOrEmpty(messageData)) {
+    private fun validateMessageData(messageData: MutableMap<String, String>?) {
+        require(!messageData.isNullOrEmpty()) {
             throw IllegalArgumentException("Failed to create AEPPushPayload, remote message data payload is null or empty.")
         }
         messageId = messageData[PushTemplateConstants.Tracking.Keys.MESSAGE_ID] ?: ""

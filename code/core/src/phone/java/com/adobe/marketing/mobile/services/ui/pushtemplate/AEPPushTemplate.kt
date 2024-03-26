@@ -182,8 +182,15 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.CHANNEL_ID, null)
         actionUri =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_URI, null)
-        smallIcon =
+        var smallIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.SMALL_ICON, null)
+        if (smallIcon.isNullOrEmpty()) {
+            Log.debug(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG, "The \"adb_small_icon\" key is not present in the message data payload, attempting to use \"adb_icon\" key instead.")
+            smallIcon = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.LEGACY_SMALL_ICON, null)
+        }
+        this.smallIcon = smallIcon
         largeIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.LARGE_ICON, null)
         expandedBodyText = DataReader.optString(

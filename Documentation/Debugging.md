@@ -6,18 +6,19 @@ The AEP SDK offers an extension to quickly inspect, validate, debug data collect
 
 #### Add Assurance to your app
 
-Installation via [Maven](https://maven.apache.org/) & [Gradle](https://gradle.org/) is the easiest and recommended way to get the AEP SDK into your Android app. In your `build.gradle` file, include the latest version of following dependency:
+Installation via [Maven](https://maven.apache.org/) & [Gradle](https://gradle.org/) is the easiest and recommended way to get the AEP SDK into your Android app. In your `build.gradle` file, include the latest version of Assurance:
 
-```
-implementation 'com.adobe.marketing.mobile:assurance:2.x.x'
+##### Kotlin
+```kotlin
+implementation(platform("com.adobe.marketing.mobile:sdk-bom:3.+"))
+implementation("com.adobe.marketing.mobile:assurance")
 ```
 
-**Note**: Assurance SDK displays some UI components using the source app context. If you see an error similar to
-
+##### Groovy
+```groovy
+implementation platform('com.adobe.marketing.mobile:sdk-bom:3.+')
+implementation 'com.adobe.marketing.mobile:assurance'
 ```
-AAPT: error: attribute layout_constraintStart_toStartOf (aka <your_app_name>:layout_constraintStart_toStartOf) not found
-```
-while building your app with Assurance SDK, include a dependency on `implementation 'androidx.constraintlayout:constraintlayout:1.x.x'` in your app.
 
 #### Update Extension Registration
 

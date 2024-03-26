@@ -16,14 +16,26 @@ If you cannot access the Mobile Install Instructions dialog box in the Data Coll
 
 1. Each extension needs to be added as a dependency to the mobile application project. The following examples will add the Mobile Core, Lifecycle, Identity, Signal and Profile extensions.
 
+### Kotlin
+
+```kotlin
+implementation(platform("com.adobe.marketing.mobile:sdk-bom:3.+"))
+implementation("com.adobe.marketing.mobile:core")
+implementation("com.adobe.marketing.mobile:identity")
+implementation("com.adobe.marketing.mobile:signal")
+implementation("com.adobe.marketing.mobile:lifecycle")
+implementation("com.adobe.marketing.mobile:userprofile")
+```
+
+### Groovy
+
 ```groovy
 implementation platform('com.adobe.marketing.mobile:sdk-bom:3.+')
-implementation 'com.adobe.marketing.mobile:userprofile'
 implementation 'com.adobe.marketing.mobile:core'
 implementation 'com.adobe.marketing.mobile:identity'
 implementation 'com.adobe.marketing.mobile:signal'
 implementation 'com.adobe.marketing.mobile:lifecycle'
-
+implementation 'com.adobe.marketing.mobile:userprofile'
 ```
 
 > **Warning**

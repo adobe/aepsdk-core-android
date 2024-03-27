@@ -187,7 +187,8 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
         if (smallIcon.isNullOrEmpty()) {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
-                SELF_TAG, "The \"adb_small_icon\" key is not present in the message data payload, attempting to use \"adb_icon\" key instead.")
+                SELF_TAG, "The \"adb_small_icon\" key is not present in the message data payload, attempting to use \"adb_icon\" key instead."
+            )
             smallIcon = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.LEGACY_SMALL_ICON, null)
         }
         this.smallIcon = smallIcon

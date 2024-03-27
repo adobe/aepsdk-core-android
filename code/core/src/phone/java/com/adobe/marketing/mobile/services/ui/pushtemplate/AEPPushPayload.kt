@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.services.ui.pushtemplate
 
 import androidx.core.app.NotificationCompat
-import com.adobe.marketing.mobile.util.MapUtils
 import com.adobe.marketing.mobile.util.StringUtils
 import com.google.firebase.messaging.RemoteMessage
 import kotlin.jvm.Throws

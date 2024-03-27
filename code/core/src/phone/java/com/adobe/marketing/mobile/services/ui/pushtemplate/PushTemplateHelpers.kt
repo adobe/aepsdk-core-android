@@ -14,6 +14,7 @@ package com.adobe.marketing.mobile.services.ui.pushtemplate
 import android.app.Activity
 import android.app.PendingIntent
 import android.app.TaskStackBuilder
+import android.content.BroadcastReceiver
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
@@ -34,6 +35,7 @@ import com.adobe.marketing.mobile.services.caching.CacheExpiry
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.util.StringUtils
 import com.adobe.marketing.mobile.util.UrlUtils
+import com.google.android.gms.common.util.CollectionUtils
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -357,16 +359,17 @@ private fun scaleBitmap(downloadedBitmap: Bitmap): Bitmap {
  */
 private fun createPendingIntent(
     context: Context,
-    trackerActivity: Activity,
+    trackerActivity: Activity?,
     messageId: String,
     deliveryId: String,
     actionUri: String?,
     actionID: String?,
     tag: String,
     stickyNotification: Boolean
-): PendingIntent {
+): PendingIntent? {
+    val activity = trackerActivity ?: return null
     val intent = Intent(PushTemplateConstants.NotificationAction.BUTTON_CLICKED)
-    intent.setClass(context.applicationContext, trackerActivity::class.java)
+    intent.setClass(context.applicationContext, activity::class.java)
     intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
     intent.putExtra(PushTemplateConstants.Tracking.Keys.MESSAGE_ID, messageId)
     intent.putExtra(PushTemplateConstants.Tracking.Keys.DELIVERY_ID, deliveryId)
@@ -671,7 +674,7 @@ private fun setElementColor(
  */
 internal fun setRemoteViewClickAction(
     context: Context,
-    trackerActivity: Activity,
+    trackerActivity: Activity?,
     pushTemplateRemoteView: RemoteViews,
     targetViewResourceId: Int,
     messageId: String,
@@ -697,7 +700,7 @@ internal fun setRemoteViewClickAction(
         actionUri
     )
 
-    val pendingIntent: PendingIntent =
+    val pendingIntent: PendingIntent? =
         createPendingIntent(
             context,
             trackerActivity,
@@ -728,7 +731,7 @@ internal fun setRemoteViewClickAction(
  */
 internal fun addActionButtons(
     context: Context,
-    trackerActivity: Activity,
+    trackerActivity: Activity?,
     builder: NotificationCompat.Builder,
     actionButtonsString: String?,
     messageId: String,
@@ -742,7 +745,7 @@ internal fun addActionButtons(
         return
     }
     for (eachButton in actionButtons) {
-        val pendingIntent: PendingIntent =
+        val pendingIntent: PendingIntent? =
             if (eachButton.type === AEPPushTemplate.ActionType.DEEPLINK ||
                 eachButton.type === AEPPushTemplate.ActionType.WEBURL
             ) {
@@ -787,7 +790,7 @@ internal fun addActionButtons(
  */
 internal fun setNotificationClickAction(
     context: Context,
-    trackerActivity: Activity,
+    trackerActivity: Activity?,
     notificationBuilder: NotificationCompat.Builder,
     messageId: String,
     deliveryId: String,
@@ -795,7 +798,7 @@ internal fun setNotificationClickAction(
     tag: String,
     stickyNotification: Boolean
 ) {
-    val pendingIntent: PendingIntent =
+    val pendingIntent: PendingIntent? =
         createPendingIntent(
             context,
             trackerActivity,
@@ -821,13 +824,14 @@ internal fun setNotificationClickAction(
  */
 internal fun setNotificationDeleteAction(
     context: Context,
-    trackerActivity: Activity,
+    trackerActivity: Activity?,
     builder: NotificationCompat.Builder,
     messageId: String,
     deliveryId: String
 ) {
+    val activity: Activity = trackerActivity ?: return
     val deleteIntent = Intent(PushTemplateConstants.NotificationAction.DISMISSED)
-    deleteIntent.setClass(context, trackerActivity::class.java)
+    deleteIntent.setClass(context, activity::class.java)
     deleteIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
     deleteIntent.putExtra(PushTemplateConstants.Tracking.Keys.MESSAGE_ID, messageId)
     deleteIntent.putExtra(PushTemplateConstants.Tracking.Keys.DELIVERY_ID, deliveryId)
@@ -838,4 +842,34 @@ internal fun setNotificationDeleteAction(
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
     builder.setDeleteIntent(intent)
+}
+
+@Throws(NotificationConstructionFailedException::class)
+internal fun fallbackToBasicNotification(
+    context: Context,
+    trackerActivity: Activity?,
+    broadcastReceiver: BroadcastReceiver?,
+    pushTemplate: CarouselPushTemplate,
+    downloadedImageUris: List<String?>
+): NotificationCompat.Builder {
+    Log.trace(
+        PushTemplateConstants.LOG_TAG,
+        SELF_TAG,
+        "Only %d image(s) for the carousel notification were downloaded while at least %d" +
+            " were expected. Building a basic push notification instead.",
+        downloadedImageUris.size,
+        PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT
+    )
+    if (!CollectionUtils.isEmpty(downloadedImageUris)) {
+        // use the first downloaded image (if available) for the basic template notification
+        pushTemplate.modifyData(
+            PushTemplateConstants.PushPayloadKeys.IMAGE_URL, downloadedImageUris[0].toString()
+        )
+    }
+    val basicPushTemplate = BasicPushTemplate(pushTemplate.data)
+    val basicNotificationBuilder = BasicTemplateNotificationBuilder()
+        .pushTemplate(basicPushTemplate)
+        .trackerActivity(trackerActivity)
+        .broadcastReceiver(broadcastReceiver)
+    return basicNotificationBuilder.build(context)
 }

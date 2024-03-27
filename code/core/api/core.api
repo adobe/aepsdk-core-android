@@ -1186,3 +1186,47 @@ public final class com/adobe/marketing/mobile/util/UrlUtils {
 	public static fun urlEncode (Ljava/lang/String;)Ljava/lang/String;
 }
 
+public abstract interface class com/adobe/marketing/mobile/util/resilience/retry/Executor {
+	public abstract fun cancel ()V
+	public abstract fun execute (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun monitorRetry (Lkotlin/jvm/functions/Function2;)Lcom/adobe/marketing/mobile/util/resilience/retry/Executor;
+	public abstract fun resolveThrowable (Lkotlin/jvm/functions/Function1;)Lcom/adobe/marketing/mobile/util/resilience/retry/Executor;
+	public abstract fun retryIntervalOnResult (Lkotlin/jvm/functions/Function1;)Lcom/adobe/marketing/mobile/util/resilience/retry/Executor;
+	public abstract fun retryOnException (Lkotlin/jvm/functions/Function1;)Lcom/adobe/marketing/mobile/util/resilience/retry/Executor;
+	public abstract fun retryOnResult (Lkotlin/jvm/functions/Function1;)Lcom/adobe/marketing/mobile/util/resilience/retry/Executor;
+}
+
+public final class com/adobe/marketing/mobile/util/resilience/retry/Retry {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/util/resilience/retry/Retry;
+}
+
+public final class com/adobe/marketing/mobile/util/resilience/retry/RetryConfig {
+	public static final field $stable I
+	public final fun getExecutionTimeoutInMilliseconds ()J
+	public final fun getInitialInterval ()J
+	public final fun getMaxAttempts ()I
+	public final fun getMaxInterval ()J
+	public final fun getUseJitter ()Z
+}
+
+public final class com/adobe/marketing/mobile/util/resilience/retry/RetryConfig$Builder {
+	public static final field $stable I
+	public fun <init> ()V
+	public final fun build ()Lcom/adobe/marketing/mobile/util/resilience/retry/RetryConfig;
+	public final fun executionTimeoutInMilliseconds (J)V
+	public final fun getConfig ()Lcom/adobe/marketing/mobile/util/resilience/retry/RetryConfig;
+	public final fun intervalFunction (Lkotlin/jvm/functions/Function3;JJ)V
+	public static synthetic fun intervalFunction$default (Lcom/adobe/marketing/mobile/util/resilience/retry/RetryConfig$Builder;Lkotlin/jvm/functions/Function3;JJILjava/lang/Object;)V
+	public final fun maxAttempts (I)V
+	public final fun useJitter (Z)V
+}
+
+public final class com/adobe/marketing/mobile/util/resilience/retry/RetryConfigKt {
+	public static final fun exponentialWaitInterval ()Lkotlin/jvm/functions/Function3;
+	public static final fun fibonacciWaitInterval ()Lkotlin/jvm/functions/Function3;
+	public static final fun fixedWaitInterval ()Lkotlin/jvm/functions/Function3;
+	public static final fun linearWaitInterval ()Lkotlin/jvm/functions/Function3;
+	public static final fun retryConfig (Lkotlin/jvm/functions/Function1;)Lcom/adobe/marketing/mobile/util/resilience/retry/RetryConfig;
+}
+

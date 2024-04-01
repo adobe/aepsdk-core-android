@@ -13,13 +13,11 @@ package com.adobe.marketing.mobile.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.adobe.marketing.mobile.TestHelper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,15 +25,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public final class StreamUtilsTests {
-
-    @Test
-    public void testClassIsWellDefined() {
-        try {
-            TestHelper.assertUtilityClassWellDefined(StreamUtils.class);
-        } catch (Exception e) {
-            fail("StringUtils class is not well defined, throwing exception " + e);
-        }
-    }
 
     @Test
     public void testStreamToString_when_nullInputStream() {

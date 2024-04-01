@@ -1,2 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.adobe.marketing.mobile.signal" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" />

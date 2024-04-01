@@ -12,20 +12,17 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
-import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResultHandler
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
-import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
 import com.adobe.marketing.mobile.rulesengine.RulesEngine
 import com.adobe.marketing.mobile.test.util.readTestResources
 import com.adobe.marketing.mobile.util.DataReader
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
@@ -35,6 +32,7 @@ import org.mockito.Mockito.mock
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.verify
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -81,45 +79,30 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+
+        val matchedConsequence = launchRulesEngine.evaluateEvent(defaultEvent)
+        // val matchedRules = launchRulesEngine.process(defaultEvent)
+        assertEquals(1, matchedConsequence.size)
+        assertEquals("pb", matchedConsequence[0].type)
     }
 
-    // TODO: https://github.com/adobe/aepsdk-core-android/issues/150
-    // MobileCore.getEventHistory() will be removed, will update the test after that.
-    @Ignore
     @Test
     fun `Test historical condition`() {
-        val eventHistory = object : EventHistory {
-            override fun recordEvent(event: Event?, handler: EventHistoryResultHandler<Boolean>?) {
-                TODO("Not yet implemented")
+        val captor = argumentCaptor<EventHistoryResultHandler<Int>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                captor.firstValue.call(1)
             }
 
-            override fun getEvents(
-                eventHistoryRequests: Array<out EventHistoryRequest>?,
-                enforceOrder: Boolean,
-                handler: EventHistoryResultHandler<Int>?
-            ) {
-                handler?.call(1)
-            }
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
 
-            override fun deleteEvents(
-                eventHistoryRequests: Array<out EventHistoryRequest>?,
-                handler: EventHistoryResultHandler<Int>?
-            ) {
-                TODO("Not yet implemented")
-            }
-        }
-//        PowerMockito.mockStatic(MobileCore::class.java)
-//        PowerMockito.`when`(MobileCore.getEventHistory()).thenReturn(eventHistory)
         val json = readTestResources("rules_module_tests/rules_testHistory.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        assertEquals(1, launchRulesEngine.process(defaultEvent).size)
+
+        assertEquals(1, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test
@@ -140,7 +123,7 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        assertEquals(0, launchRulesEngine.process(defaultEvent).size)
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test
@@ -161,10 +144,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -185,7 +167,7 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        assertEquals(0, launchRulesEngine.process(defaultEvent).size)
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test
@@ -206,10 +188,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -230,7 +211,7 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        assertEquals(0, launchRulesEngine.process(defaultEvent).size)
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test
@@ -251,10 +232,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -275,10 +255,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -299,7 +278,7 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        assertEquals(0, launchRulesEngine.process(defaultEvent).size)
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test
@@ -320,10 +299,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -344,7 +322,7 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        assertEquals(0, launchRulesEngine.process(defaultEvent).size)
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test
@@ -365,10 +343,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -389,7 +366,7 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        assertEquals(0, launchRulesEngine.process(defaultEvent).size)
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test
@@ -410,10 +387,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -434,7 +410,7 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        assertEquals(0, launchRulesEngine.process(defaultEvent).size)
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test
@@ -455,10 +431,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -479,7 +454,7 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        assertEquals(0, launchRulesEngine.process(defaultEvent).size)
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test
@@ -500,10 +475,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("pb", matchedRules[0].consequenceList[0].type)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -525,8 +499,9 @@ class LaunchRulesEngineModuleTests {
                     )
                 )
             )
-        val matchedRules = launchRulesEngine.process(defaultEvent)
-        assertEquals(1, matchedRules.size)
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 
     @Test
@@ -536,7 +511,7 @@ class LaunchRulesEngineModuleTests {
         val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
-        val matchedRules = launchRulesEngine.process(
+        val matchedConsequences = launchRulesEngine.evaluateEvent(
             Event.Builder(
                 "event",
                 "com.adobe.eventType.lifecycle",
@@ -552,9 +527,9 @@ class LaunchRulesEngineModuleTests {
                 )
             ).build()
         )
-        assertEquals(1, matchedRules.size)
-        assertEquals(1, matchedRules[0].consequenceList.size)
-        assertEquals("url", matchedRules[0].consequenceList[0].type)
+
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("url", matchedConsequences[0].type)
     }
 
     @Test

@@ -168,9 +168,8 @@ class DeviceInfoServiceTests {
     fun testGetAsset() {
         val inputStream = deviceInfoService.getAsset("DeviceInforming.getAsset")
         assertNotNull(inputStream)
-        val reader = BufferedReader(inputStream.reader())
         var content: String
-        reader.use { reader ->
+        BufferedReader(inputStream.reader()).use { reader ->
             content = reader.readText()
         }
         assertEquals("DeviceInforming.getAsset", content)

@@ -40,7 +40,7 @@ internal object UrlEncoder {
         "%F0", "%F1", "%F2", "%F3", "%F4", "%F5", "%F6", "%F7", "%F8", "%F9", "%FA", "%FB", "%FC", "%FD", "%FE", "%FF"
     )
 
-    private val ALL_BITS_ENABLED = 0xFF
+    private const val ALL_BITS_ENABLED = 0xFF
     private val utf8Mask = booleanArrayOf(
         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,
         false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false,

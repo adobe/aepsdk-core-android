@@ -11,7 +11,9 @@
 
 package com.adobe.marketing.mobile.services;
 
+import android.net.ConnectivityManager;
 import androidx.annotation.VisibleForTesting;
+import com.adobe.marketing.mobile.internal.util.NetworkUtils;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -54,20 +56,32 @@ class NetworkService implements Networking {
 
     @Override
     public void connectAsync(final NetworkRequest request, final NetworkCallback callback) {
+        ConnectivityManager connectivityManager =
+                ServiceProvider.getInstance().getAppContextService().getConnectivityManager();
+        if (connectivityManager != null) {
+            if (!NetworkUtils.isInternetAvailable(connectivityManager)) {
+                Log.trace(ServiceConstants.LOG_TAG, TAG, "The Android device is offline.");
+                callback.call(null);
+                return;
+            }
+        } else {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    TAG,
+                    "ConnectivityManager instance is null. Unable to the check the network"
+                            + " condition.");
+        }
         try {
             executorService.submit(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            HttpConnecting connection = doConnection(request);
+                    () -> {
+                        HttpConnecting connection = doConnection(request);
 
-                            if (callback != null) {
-                                callback.call(connection);
-                            } else {
-                                // If no callback is passed by the client, close the connection.
-                                if (connection != null) {
-                                    connection.close();
-                                }
+                        if (callback != null) {
+                            callback.call(connection);
+                        } else {
+                            // If no callback is passed by the client, close the connection.
+                            if (connection != null) {
+                                connection.close();
                             }
                         }
                     });
@@ -141,17 +155,7 @@ class NetworkService implements Networking {
                                 request.getReadTimeout() * SEC_TO_MS_MULTIPLIER);
                         connection = httpConnectionHandler.connect(request.getBody());
                     }
-                } catch (final IOException e) {
-                    Log.warning(
-                            ServiceConstants.LOG_TAG,
-                            TAG,
-                            String.format(
-                                    "Could not create a connection to URL (%s) [%s]",
-                                    request.getUrl(),
-                                    (e.getLocalizedMessage() != null
-                                            ? e.getLocalizedMessage()
-                                            : e.getMessage())));
-                } catch (final SecurityException e) {
+                } catch (final IOException | SecurityException e) {
                     Log.warning(
                             ServiceConstants.LOG_TAG,
                             TAG,

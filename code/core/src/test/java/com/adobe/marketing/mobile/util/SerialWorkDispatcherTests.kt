@@ -340,7 +340,7 @@ class SerialWorkDispatcherTests {
         val event4: Event = Event.Builder("Event4", "Type", "Source").build()
         val event5: Event = Event.Builder("Event5", "Type", "Source").build()
 
-        var processedEvents = ArrayList<Event>()
+        val processedEvents = ArrayList<Event>()
         val latch = CountDownLatch(1)
         val workHandler: SerialWorkDispatcher.WorkHandler<Event> =
             SerialWorkDispatcher.WorkHandler {

@@ -12,10 +12,17 @@
 package com.adobe.marketing.mobile.services;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import android.net.ConnectivityManager;
+import com.adobe.marketing.mobile.internal.util.NetworkUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -29,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -39,12 +47,64 @@ public class NetworkServiceTests {
 
     @Mock DeviceInfoService deviceInfoService;
 
+    @Mock AppContextService appContextService;
+
+    @Mock ConnectivityManager connectivityManager;
+
+    private ExecutorService spiedExecutorService;
     private HttpConnectionHandler httpConnectionHandler;
 
     @Before
     public void setup() throws Exception {
-        networkService = new NetworkService(currentThreadExecutorService());
+        spiedExecutorService = Mockito.spy(currentThreadExecutorService());
+        networkService = new NetworkService(spiedExecutorService);
         ServiceProvider.getInstance().setDeviceInfoService(deviceInfoService);
+        ServiceProvider.getInstance().setAppContextService(appContextService);
+        when(appContextService.getConnectivityManager()).thenReturn(null);
+    }
+
+    @Test(timeout = 1000L)
+    public void testConnectAsync_InternetNotAvailable() throws InterruptedException {
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class);
+                MockedStatic<Log> mockedLog = Mockito.mockStatic(Log.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            when(NetworkUtils.isInternetAvailable(any())).thenReturn(false);
+            final CountDownLatch latch = new CountDownLatch(1);
+            networkService.connectAsync(
+                    new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 10),
+                    connection -> {
+                        assertNull(connection);
+                        latch.countDown();
+                    });
+            latch.await();
+
+            Mockito.verify(spiedExecutorService, never()).submit((Runnable) any());
+            mockedLog.verify(
+                    () -> Log.warning(anyString(), anyString(), anyString(), any()), never());
+        }
+    }
+
+    @Test(timeout = 10000L)
+    public void testConnectAsync_InternetIsAvailable() throws InterruptedException {
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class);
+                MockedStatic<Log> mockedLog = Mockito.mockStatic(Log.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            when(NetworkUtils.isInternetAvailable(any())).thenReturn(true);
+            final CountDownLatch latch = new CountDownLatch(1);
+            networkService.connectAsync(
+                    new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 10),
+                    connection -> {
+                        assertNotNull(connection);
+                        latch.countDown();
+                    });
+            latch.await();
+
+            Mockito.verify(spiedExecutorService, times(1)).submit((Runnable) any());
+            mockedLog.verify(
+                    () -> Log.trace(anyString(), anyString(), anyString(), any()), never());
+            mockedLog.verify(
+                    () -> Log.warning(anyString(), anyString(), anyString(), any()), never());
+        }
     }
 
     @Test
@@ -153,9 +213,7 @@ public class NetworkServiceTests {
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 10),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -186,9 +244,7 @@ public class NetworkServiceTests {
             networkService.connectAsync(
                     new NetworkRequest(
                             "https://www.adobe.com", HttpMethod.GET, null, properties, 10, 10),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -212,9 +268,7 @@ public class NetworkServiceTests {
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 5),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -237,9 +291,7 @@ public class NetworkServiceTests {
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.POST, null, null, 10, 5),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -262,9 +314,7 @@ public class NetworkServiceTests {
             final CountDownLatch latch = new CountDownLatch(1);
             networkService.connectAsync(
                     new NetworkRequest("https://www.adobe.com", HttpMethod.GET, null, null, 10, 5),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
 
             final ArgumentCaptor<Integer> connectTimeoutCaptor =
@@ -292,9 +342,7 @@ public class NetworkServiceTests {
             networkService.connectAsync(
                     new NetworkRequest(
                             "https://www.adobe.com", HttpMethod.GET, new byte[] {}, null, 10, 10),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -322,9 +370,7 @@ public class NetworkServiceTests {
                             null,
                             10,
                             10),
-                    connection -> {
-                        latch.countDown();
-                    });
+                    connection -> latch.countDown());
             latch.await();
             Mockito.verify(httpConnectionHandler, Mockito.times(1)).connect(Mockito.any());
 
@@ -342,7 +388,7 @@ public class NetworkServiceTests {
                 new ThreadPoolExecutor.CallerRunsPolicy();
 
         return new ThreadPoolExecutor(
-                0, 1, 0L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), callerRunsPolicy) {
+                0, 1, 0L, TimeUnit.SECONDS, new SynchronousQueue<>(), callerRunsPolicy) {
             @Override
             public void execute(Runnable command) {
                 // Executes task in the caller's thread

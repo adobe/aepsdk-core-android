@@ -66,7 +66,7 @@ public class EventTests {
 
     @Test
     public void EventConstructor_StringParams_NullTypeAndSource() {
-        Event event = new Event.Builder(mockEventName, (String) null, null).build();
+        Event event = new Event.Builder(mockEventName, null, null).build();
 
         assertNull(event);
     }
@@ -91,7 +91,7 @@ public class EventTests {
                         .inResponseToEvent(null)
                         .build();
 
-        assertEquals(null, event.getResponseID());
+        assertNull(event.getResponseID());
     }
 
     @Test
@@ -114,8 +114,8 @@ public class EventTests {
     }
 
     @Test
-    public void Event_setEventDataMap_worksProperly() throws Exception {
-        Map<String, Object> eventData = new HashMap<String, Object>();
+    public void Event_setEventDataMap_worksProperly() {
+        Map<String, Object> eventData = new HashMap<>();
         eventData.put("string", "key");
         eventData.put("int", 200);
         eventData.put(
@@ -134,8 +134,8 @@ public class EventTests {
     }
 
     @Test
-    public void Event_setEventDataMap_mapIsImmutable() throws Exception {
-        Map<String, Object> eventData = new HashMap<String, Object>();
+    public void Event_setEventDataMap_mapIsImmutable() {
+        Map<String, Object> eventData = new HashMap<>();
         eventData.put("string", "key");
         eventData.put("int", 200);
         eventData.put(
@@ -153,7 +153,7 @@ public class EventTests {
         eventData.put("new", "key");
         eventData.put("awesome", "test");
 
-        Map<String, Object> expectedData = new HashMap<String, Object>();
+        Map<String, Object> expectedData = new HashMap<>();
         expectedData.put("string", "key");
         expectedData.put("int", 200);
         expectedData.put(
@@ -178,7 +178,7 @@ public class EventTests {
     }
 
     @Test
-    public void Event_getEventDataMap_worksProperly() throws Exception {
+    public void Event_getEventDataMap_worksProperly() {
         Event event =
                 new Event.Builder(mockEventName, mockEventType, mockEventSource)
                         .setEventData(mockEventData)
@@ -188,7 +188,7 @@ public class EventTests {
     }
 
     @Test
-    public void Event_getEventDataMap_returnedMapIsImmutable() throws Exception {
+    public void Event_getEventDataMap_returnedMapIsImmutable() {
         Event event =
                 new Event.Builder(mockEventName, mockEventType, mockEventSource)
                         .setEventData(mockEventData)
@@ -196,24 +196,16 @@ public class EventTests {
 
         Map<String, Object> resultData = event.getEventData();
         assertEquals(1, resultData.size());
-        assertThrows(
-                UnsupportedOperationException.class,
-                () -> {
-                    resultData.put("new", "key");
-                });
+        assertThrows(UnsupportedOperationException.class, () -> resultData.put("new", "key"));
         assertEquals(1, event.getEventData().size());
-        assertThrows(
-                UnsupportedOperationException.class,
-                () -> {
-                    resultData.clear();
-                });
+        assertThrows(UnsupportedOperationException.class, resultData::clear);
         assertEquals(1, event.getEventData().size());
     }
 
     @Test
     public void Event_getEventDataMap_nullData() {
         Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource).build();
-        assertEquals(event.getEventData(), null);
+        assertNull(event.getEventData());
     }
 
     @Test

@@ -40,7 +40,7 @@ class SerialWorkDispatcherTests {
     }
 
     private val serialWorkDispatcher: SerialWorkDispatcher<Int> =
-        SerialWorkDispatcher<Int>("TestSerialDispatcherImpl", workHandler)
+        SerialWorkDispatcher("TestSerialDispatcherImpl", workHandler)
 
     @Test
     fun testDispatcher_ProcessesJobsInTheOrderOfDispatch() {

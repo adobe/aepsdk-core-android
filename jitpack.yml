@@ -1,12 +1,8 @@
 jdk:
-  - openjdk11
-# before_install:
-#    - ./custom_setup.sh
+  - openjdk17
 install:
    - echo "Running a custom install command"
    - make core-publish-maven-local-jitpack
    - make signal-publish-maven-local-jitpack
    - make lifecycle-publish-maven-local-jitpack
    - make identity-publish-maven-local-jitpack
-# env:
-#    MYVAR: "custom environment variable"

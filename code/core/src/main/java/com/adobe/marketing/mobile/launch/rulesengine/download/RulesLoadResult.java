@@ -28,7 +28,7 @@ public class RulesLoadResult {
         /** Extraction of the rules zip file failed. */
         ZIP_EXTRACTION_FAILED,
 
-        /** Content cannot be written into the cache directoy used by {@code RulesLoader} */
+        /** Content cannot be written into the cache directory used by {@code RulesLoader} */
         CANNOT_CREATE_TEMP_DIR,
 
         /** Content cannot be written into a temp directory used by {@code RulesLoader} */

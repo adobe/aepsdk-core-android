@@ -64,14 +64,14 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testSetGetInt_Happy() throws Exception {
+    public void testSetGetInt_Happy() {
         this.sharedPreferencesNamedCollection.setInt("testSetInt_Happy", 10);
         int value = this.sharedPreferencesNamedCollection.getInt("testSetInt_Happy", 0);
         assertEquals(10, value);
     }
 
     @Test
-    public void testSetInt_Overwrite() throws Exception {
+    public void testSetInt_Overwrite() {
         this.sharedPreferencesNamedCollection.setInt("testSetInt_Overwrite", 10);
         this.sharedPreferencesNamedCollection.setInt("testSetInt_Overwrite", 20);
         int value = this.sharedPreferencesNamedCollection.getInt("testSetInt_Overwrite", 0);
@@ -79,20 +79,20 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testGetInt_EntryNotInSharedPreferences() throws Exception {
+    public void testGetInt_EntryNotInSharedPreferences() {
         int value = this.sharedPreferencesNamedCollection.getInt("testGetInt_NotInSharedPrefs", 0);
         assertEquals(0, value);
     }
 
     @Test
-    public void testSetGetString_Happy() throws Exception {
+    public void testSetGetString_Happy() {
         this.sharedPreferencesNamedCollection.setString("testSetString_Happy", "string");
         String value = this.sharedPreferencesNamedCollection.getString("testSetString_Happy", null);
         assertEquals("string", value);
     }
 
     @Test
-    public void testSetString_Overwrite() throws Exception {
+    public void testSetString_Overwrite() {
         this.sharedPreferencesNamedCollection.setString("testSetString_Overwrite", "string1");
         this.sharedPreferencesNamedCollection.setString("testSetString_Overwrite", "string2");
         String value =
@@ -101,7 +101,7 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testGetString_EntryNotInSharedPreferences() throws Exception {
+    public void testGetString_EntryNotInSharedPreferences() {
         String value =
                 this.sharedPreferencesNamedCollection.getString(
                         "testGetString_NotInSharedPrefs", null);
@@ -109,14 +109,14 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testSetGetDouble_Happy() throws Exception {
+    public void testSetGetDouble_Happy() {
         this.sharedPreferencesNamedCollection.setDouble("testSetDouble_Happy", 10.1234d);
         double value = this.sharedPreferencesNamedCollection.getDouble("testSetDouble_Happy", 0d);
         assertEquals(10.1234d, value);
     }
 
     @Test
-    public void testSetDouble_Overwrite() throws Exception {
+    public void testSetDouble_Overwrite() {
         this.sharedPreferencesNamedCollection.setDouble("testSetDouble_Overwrite", 10.1234d);
         this.sharedPreferencesNamedCollection.setDouble("testSetDouble_Overwrite", 20.5678d);
         double value =
@@ -125,7 +125,7 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testGetDouble_EntryNotInSharedPreferences() throws Exception {
+    public void testGetDouble_EntryNotInSharedPreferences() {
         double value =
                 this.sharedPreferencesNamedCollection.getDouble(
                         "testGetDouble_EntryNotInSharedPrefs", 0);
@@ -133,14 +133,14 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testSetGetLong_Happy() throws Exception {
+    public void testSetGetLong_Happy() {
         this.sharedPreferencesNamedCollection.setLong("testSetLong_Happy", 10L);
         long value = this.sharedPreferencesNamedCollection.getLong("testSetLong_Happy", 0L);
         assertEquals(10L, value);
     }
 
     @Test
-    public void testSetLong_Overwrite() throws Exception {
+    public void testSetLong_Overwrite() {
         this.sharedPreferencesNamedCollection.setLong("testSetLong_Overwrite", 10L);
         this.sharedPreferencesNamedCollection.setLong("testSetLong_Overwrite", 20L);
         long value = this.sharedPreferencesNamedCollection.getLong("testSetLong_Overwrite", 0L);
@@ -148,21 +148,21 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testGetLong_EntryNotInSharedPreferences() throws Exception {
+    public void testGetLong_EntryNotInSharedPreferences() {
         long value =
                 this.sharedPreferencesNamedCollection.getLong("testGetLong_NotInSharedPrefs", 0L);
         assertEquals(0L, value);
     }
 
     @Test
-    public void testSetGetFloat_Happy() throws Exception {
+    public void testSetGetFloat_Happy() {
         this.sharedPreferencesNamedCollection.setFloat("testSetFloat_Happy", 10.1234f);
         float value = this.sharedPreferencesNamedCollection.getFloat("testSetFloat_Happy", 0f);
         assertEquals(10.1234f, value);
     }
 
     @Test
-    public void testSetFloat_Overwrite() throws Exception {
+    public void testSetFloat_Overwrite() {
         this.sharedPreferencesNamedCollection.setFloat("testSetFloat_Overwrite", 10.1234f);
         this.sharedPreferencesNamedCollection.setFloat("testSetFloat_Overwrite", 20.5678f);
         float value = this.sharedPreferencesNamedCollection.getFloat("testSetFloat_Overwrite", 0f);
@@ -170,14 +170,14 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testGetFloat_EntryNotInSharedPreferences() throws Exception {
+    public void testGetFloat_EntryNotInSharedPreferences() {
         float value =
                 this.sharedPreferencesNamedCollection.getFloat("testGetFloat_NotInSharedPrefs", 0f);
         assertEquals(0f, value);
     }
 
     @Test
-    public void testSetGetBoolean_Happy() throws Exception {
+    public void testSetGetBoolean_Happy() {
         this.sharedPreferencesNamedCollection.setBoolean("testSetBoolean_Happy", true);
         boolean value =
                 this.sharedPreferencesNamedCollection.getBoolean("testSetBoolean_Happy", false);
@@ -185,7 +185,7 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testSetBoolean_Overwrite() throws Exception {
+    public void testSetBoolean_Overwrite() {
         this.sharedPreferencesNamedCollection.setBoolean("testSetBoolean_Overwrite", false);
         this.sharedPreferencesNamedCollection.setBoolean("testSetBoolean_Overwrite", true);
         boolean value =
@@ -194,7 +194,7 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testGetBoolean_EntryNotInSharedPreferences() throws Exception {
+    public void testGetBoolean_EntryNotInSharedPreferences() {
         boolean value =
                 this.sharedPreferencesNamedCollection.getBoolean(
                         "testGetBoolean_NotInSharedPrefs", true);
@@ -202,7 +202,7 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testSetGetMap_Happy() throws Exception {
+    public void testSetGetMap_Happy() {
         Map testMap =
                 new HashMap<String, String>() {
                     {
@@ -216,7 +216,7 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testSetMap_Overwrite() throws Exception {
+    public void testSetMap_Overwrite() {
         Map testMap =
                 new HashMap<String, String>() {
                     {
@@ -238,13 +238,13 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testGetMap_EntryNotInSharedPreferences() throws Exception {
+    public void testGetMap_EntryNotInSharedPreferences() {
         Map value = this.sharedPreferencesNamedCollection.getMap("testGetMap_NotInSharedPrefs");
         assertNull(value);
     }
 
     @Test
-    public void testContains_Happy() throws Exception {
+    public void testContains_Happy() {
         this.sharedPreferencesNamedCollection.setInt("testContains_Int", 10);
         this.sharedPreferencesNamedCollection.setLong("testContains_Long", 5000L);
         this.sharedPreferencesNamedCollection.setDouble("testContains_Double", 10.1234d);
@@ -260,7 +260,7 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testContains_EntryNotInSharedPreferences() throws Exception {
+    public void testContains_EntryNotInSharedPreferences() {
         assertFalse(
                 this.sharedPreferencesNamedCollection.contains(
                         "testContains_Int_NotInSharedPrefs"));
@@ -279,14 +279,14 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testRemove_Happy() throws Exception {
+    public void testRemove_Happy() {
         this.sharedPreferencesNamedCollection.setInt("testRemove_Happy_Int", 10);
         this.sharedPreferencesNamedCollection.remove("testRemove_Happy_Int");
         assertFalse(this.sharedPreferencesNamedCollection.contains("testRemove_Happy_Int"));
     }
 
     @Test
-    public void testRemove_EntryNotInSharedPreferences() throws Exception {
+    public void testRemove_EntryNotInSharedPreferences() {
         this.sharedPreferencesNamedCollection.remove("testRemove_Happy_NotInSharedPrefs");
         assertFalse(
                 this.sharedPreferencesNamedCollection.contains(
@@ -294,7 +294,7 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testRemoveAll_Happy() throws Exception {
+    public void testRemoveAll_Happy() {
         this.sharedPreferencesNamedCollection.setInt("testRemoveAll_Int", 10);
         this.sharedPreferencesNamedCollection.setLong("testRemoveAll_Long", 5000L);
         this.sharedPreferencesNamedCollection.setDouble("testRemoveAll_Double", 10.1234d);
@@ -310,7 +310,7 @@ public class LocalDataStoreServiceTests {
     }
 
     @Test
-    public void testRemoveAll_EmptySharedPreferences() throws Exception {
+    public void testRemoveAll_EmptySharedPreferences() {
         this.sharedPreferencesNamedCollection.removeAll();
     }
 }

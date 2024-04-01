@@ -16,6 +16,7 @@ import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionEventListener
 import com.adobe.marketing.mobile.ExtensionHelper
+import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.services.PersistentHitQueue
 import com.adobe.marketing.mobile.util.SQLiteUtils
 import org.junit.Assert.assertEquals
@@ -38,7 +39,6 @@ import org.mockito.junit.MockitoJUnitRunner
 class SignalExtensionTests {
     private lateinit var signalExtension: Extension
     private lateinit var extensionApi: ExtensionApi
-    private var EXTENSION_VERSION = "2.0.1"
 
     companion object {
         @BeforeClass
@@ -113,7 +113,7 @@ class SignalExtensionTests {
 
     @Test
     fun `Test getVersion() `() {
-        assertEquals(EXTENSION_VERSION, ExtensionHelper.getVersion(signalExtension))
+        assertEquals(Signal.extensionVersion(), ExtensionHelper.getVersion(signalExtension))
     }
 
     @Test

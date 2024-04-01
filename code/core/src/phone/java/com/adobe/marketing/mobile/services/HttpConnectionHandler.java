@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.services;
 
-import android.os.Build;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -19,7 +18,6 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import javax.net.ssl.HttpsURLConnection;
@@ -36,7 +34,7 @@ class HttpConnectionHandler {
         GET(false),
         POST(true);
 
-        private boolean doOutputSetting;
+        private final boolean doOutputSetting;
 
         /**
          * Constructor which initializes the {@link #doOutputSetting}.
@@ -74,12 +72,6 @@ class HttpConnectionHandler {
      */
     HttpConnectionHandler(final URL url) throws IOException {
         httpsUrlConnection = (HttpsURLConnection) url.openConnection();
-        final int buildVersion = Build.VERSION.SDK_INT;
-
-        // https://developer.android.com/reference/javax/net/ssl/SSLSocket#default-configuration-for-different-android-versions
-        if (buildVersion < Build.VERSION_CODES.KITKAT_WATCH) { // 20
-            httpsUrlConnection.setSSLSocketFactory(TLSSocketFactory.getInstance());
-        }
     }
 
     /**
@@ -115,7 +107,7 @@ class HttpConnectionHandler {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format("%s is not a valid HTTP command (%s)!", command.toString(), e));
+                    String.format("%s is not a valid HTTP command (%s)!", command, e));
         } catch (final IllegalStateException e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
@@ -125,13 +117,8 @@ class HttpConnectionHandler {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format("%s command is not supported (%s)!", command.toString(), e));
-        } catch (final Exception e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Failed to set http command (%s)!", e));
-        } catch (final Error e) {
+                    String.format("%s command is not supported (%s)!", command, e));
+        } catch (final Exception | Error e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -156,11 +143,8 @@ class HttpConnectionHandler {
         }
 
         Set<Map.Entry<String, String>> entries = requestProperty.entrySet();
-        Iterator<Map.Entry<String, String>> it = entries.iterator();
 
-        while (it.hasNext()) {
-            Map.Entry<String, String> entry = it.next();
-
+        for (Map.Entry<String, String> entry : entries) {
             try {
                 httpsUrlConnection.setRequestProperty(entry.getKey(), entry.getValue());
             } catch (final IllegalStateException e) {
@@ -169,12 +153,7 @@ class HttpConnectionHandler {
                         TAG,
                         String.format("Cannot set header field after connect (%s)!", e));
                 return;
-            } catch (final Exception e) {
-                Log.warning(
-                        ServiceConstants.LOG_TAG,
-                        TAG,
-                        String.format("Failed to set request property (%s)!", e));
-            } catch (final Error e) {
+            } catch (final Exception | Error e) {
                 Log.warning(
                         ServiceConstants.LOG_TAG,
                         TAG,
@@ -197,12 +176,7 @@ class HttpConnectionHandler {
                     ServiceConstants.LOG_TAG,
                     TAG,
                     String.format(connectTimeout + " is not valid timeout value (%s)", e));
-        } catch (final Exception e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Failed to set connection timeout (%s)!", e));
-        } catch (final Error e) {
+        } catch (final Exception | Error e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -224,12 +198,7 @@ class HttpConnectionHandler {
                     ServiceConstants.LOG_TAG,
                     TAG,
                     String.format(readTimeout + " is not valid timeout value (%s)", e));
-        } catch (final Exception e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Failed to set read timeout (%s)!", e));
-        } catch (final Error e) {
+        } catch (final Exception | Error e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
@@ -289,9 +258,7 @@ class HttpConnectionHandler {
                             (e.getLocalizedMessage() != null
                                     ? e.getLocalizedMessage()
                                     : e.getMessage())));
-        } catch (final Exception e) {
-            Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Connection failure (%s)", e));
-        } catch (final Error e) {
+        } catch (final Exception | Error e) {
             Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Connection failure (%s)", e));
         }
 

@@ -11,10 +11,11 @@
 
 package com.adobe.marketing.mobile;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -240,6 +241,6 @@ public class EventCoderTests {
         assertEquals(a.getResponseID(), b.getResponseID());
         assertEquals(a.getParentID(), b.getParentID());
         assertEquals(a.getEventData(), b.getEventData());
-        assertTrue(Arrays.equals(a.getMask(), b.getMask()));
+        assertArrayEquals(a.getMask(), b.getMask());
     }
 }

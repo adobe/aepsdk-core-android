@@ -11,7 +11,9 @@
 
 package com.adobe.marketing.mobile
 
+import android.app.Activity
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.internal.DataMarshaller
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants
 import org.junit.After
@@ -19,6 +21,9 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.Mockito.any
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.mockStatic
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.junit.MockitoJUnitRunner
@@ -34,9 +39,6 @@ import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class MobileCoreTests {
-
-    private var EXTENSION_VERSION = "2.6.2"
-
     @Mock
     private lateinit var mockedEventHub: EventHub
 
@@ -49,13 +51,6 @@ class MobileCoreTests {
     @After
     fun teardown() {
         reset(mockedEventHub)
-        EventHub.shared.shutdown()
-    }
-
-    @Test
-    fun testSDKVersion() {
-        EventHub.shared = EventHub()
-        assertEquals(EXTENSION_VERSION, MobileCore.extensionVersion())
     }
 
     @Test
@@ -275,8 +270,6 @@ class MobileCoreTests {
         verify(mockedEventHub, times(1)).dispatch(eventCaptor.capture())
         assertEquals(EventType.GENERIC_DATA, eventCaptor.firstValue.type)
         assertEquals(EventSource.OS, eventCaptor.firstValue.source)
-        val expectedData =
-            mapOf(CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER to "test-ad-id")
         assertEquals(messageInfo, eventCaptor.firstValue.eventData)
     }
 
@@ -288,36 +281,51 @@ class MobileCoreTests {
         verifyNoInteractions(mockedEventHub)
     }
 
+    @Test
+    fun testCollectLaunchInfoEmptyMap() {
+        mockStatic(DataMarshaller::class.java).use { mockedDataMarshaller ->
+            mockedDataMarshaller
+                .`when`<Any> {
+                    DataMarshaller.marshal(any())
+                }
+                .thenReturn(null)
+
+            MobileCore.collectLaunchInfo(mock(Activity::class.java))
+        }
+
+        mockStatic(DataMarshaller::class.java).use { mockedDataMarshaller ->
+            mockedDataMarshaller
+                .`when`<Any> {
+                    DataMarshaller.marshal(any())
+                }
+                .thenReturn(mapOf<String, Any>())
+
+            MobileCore.collectLaunchInfo(mock(Activity::class.java))
+        }
+        verifyNoInteractions(mockedEventHub)
+    }
+
     // / When message info is not empty we should dispatch an event
     @Test
     fun testCollectLaunchInfoWithData() {
-//        Todo
-//        val marshalledData = mapOf(
-//            "key" to "value"
-//        )
-//        // Scope of constructor mocking
-//        mockConstruction(DataMarshaller::class.java).use { mock ->
-//            // creating a mock instance
-//            val marshaller = mock(DataMarshaller::class.java)
-//            `when`(marshaller.getData()).thenReturn(marshalledData)
-//        }
-//
-//        registerExtension(MockExtension::class.java)
-//
-//        val latch = CountDownLatch(1)
-//        val capturedEvents = mutableListOf<Event>()
-//        EventHub.shared.getExtensionContainer(MockExtension::class.java)?.registerEventListener(EventType.GENERIC_DATA, EventSource.OS) {
-//                capturedEvents.add(it)
-//                latch.countDown()
-//            }
-//        EventHub.shared.start()
-//
-//        MobileCore.collectLaunchInfo(mock(Activity::class.java))
-//
-//        assertTrue {
-//            latch.await(1, TimeUnit.SECONDS)
-//        }
-//        assertEquals(marshalledData, capturedEvents[0].eventData)
+        val marshalledData = mapOf(
+            "key" to "value"
+        )
+        mockStatic(DataMarshaller::class.java).use { mockedDataMarshaller ->
+            mockedDataMarshaller
+                .`when`<Any> {
+                    DataMarshaller.marshal(any())
+                }
+                .thenReturn(marshalledData)
+
+            MobileCore.collectLaunchInfo(mock(Activity::class.java))
+        }
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockedEventHub, times(1)).dispatch(eventCaptor.capture())
+        assertEquals(EventType.GENERIC_DATA, eventCaptor.firstValue.type)
+        assertEquals(EventSource.OS, eventCaptor.firstValue.source)
+        assertEquals(marshalledData, eventCaptor.firstValue.eventData)
     }
 
     // MARK: collectPii(...) tests

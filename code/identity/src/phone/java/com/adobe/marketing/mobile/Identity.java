@@ -26,7 +26,7 @@ import java.util.Map;
 public class Identity {
 
     private static final String CLASS_NAME = "Identity";
-    private static final String EXTENSION_VERSION = "2.0.3";
+    private static final String EXTENSION_VERSION = "3.0.0";
     private static final String REQUEST_IDENTITY_EVENT_NAME = "IdentityRequestIdentity";
     private static final int PUBLIC_API_TIME_OUT_MILLISECOND = 500; // ms
     private static final String LOG_TAG = "Identity";
@@ -42,29 +42,6 @@ public class Identity {
      */
     public static String extensionVersion() {
         return EXTENSION_VERSION;
-    }
-
-    /**
-     * Registers the extension with the Mobile SDK. This method should be called only once in your
-     * application class.
-     *
-     * @deprecated as of 2.0.0, use {@link MobileCore#registerExtensions(List, AdobeCallback)} with
-     *     {@link Identity#EXTENSION} instead.
-     */
-    @Deprecated
-    public static void registerExtension() {
-        MobileCore.registerExtension(
-                IdentityExtension.class,
-                errorCode -> {
-                    if (errorCode == null) {
-                        return;
-                    }
-                    Log.error(
-                            LOG_TAG,
-                            CLASS_NAME,
-                            "There was an error when registering the UserProfile extension: %s",
-                            errorCode.getErrorName());
-                });
     }
 
     /**

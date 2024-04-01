@@ -17,6 +17,7 @@ import android.content.ComponentCallbacks2
 import android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
 import android.content.Context
 import android.content.res.Configuration
+import android.net.ConnectivityManager
 import android.os.Bundle
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.services.AppContextService
@@ -48,6 +49,8 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
 
     private var appStateListeners: ConcurrentLinkedQueue<AppStateListener> = ConcurrentLinkedQueue()
 
+    private var connectivityManager: ConnectivityManager? = null
+
     // AppContextService overrides
     override fun setApplication(application: Application) {
         if (this.application?.get() != null) {
@@ -57,6 +60,7 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
         this.application = WeakReference(application)
         setAppContext(application)
         registerActivityLifecycleCallbacks(application)
+        this.connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
     }
 
     override fun getApplication(): Application? {
@@ -75,12 +79,14 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
         return appState
     }
 
+    override fun getConnectivityManager(): ConnectivityManager? {
+        return connectivityManager
+    }
+
     // Android Lifecycle overrides
     override fun onActivityResumed(activity: Activity) {
         setAppState(AppState.FOREGROUND)
-        onActivityResumed?.let {
-            it.call(activity)
-        }
+        onActivityResumed?.call(activity)
         setCurrentActivity(activity)
     }
 
@@ -198,7 +204,6 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
      * Registers `this` as the activity lifecycle callback for the `Application`.
      *
      * @param application       the [Application] of the app
-     * @param onActivityResumed invoked when ActivityLifecycleCallbacks.onActivityResumed() is called
      */
     private fun registerActivityLifecycleCallbacks(
         application: Application

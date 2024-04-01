@@ -25,9 +25,9 @@ Refer to the [getting started](./Documentation/MobileCore/getting-started.md) gu
 
 ## Development
 
-***Open the project*** To open and run the project, open the `code/build.gradle` file in Android Studio
+***Open the project*** To open and run the project, open the `code/build.gradle.kts` file in Android Studio
 
-***Run demo application*** Once you open the project in Android Studio (see above), select the `testapp` or `testapp-kotlin` runnable and your favorite emulator and run the program.
+***Run demo application*** Once you open the project in Android Studio (see above), select the `testapp` runnable and your favorite emulator and run the program.
 
 ## Documentation
 
@@ -41,6 +41,7 @@ Additional documentation about API usage and SDK architecture can be found under
 | [Adobe Experience Platform Edge Network](https://developer.adobe.com/client-sdks/documentation/edge-network/) | [![Maven Central](https://img.shields.io/maven-central/v/com.adobe.marketing.mobile/edge.svg?logo=android&logoColor=white&label=edge&style=flat-square)](https://mvnrepository.com/artifact/com.adobe.marketing.mobile/edge) | [Link](https://github.com/adobe/aepsdk-edge-android) |
 | [Identity for Edge Network](https://developer.adobe.com/client-sdks/documentation/identity-for-edge-network/) | [![Maven Central](https://img.shields.io/maven-central/v/com.adobe.marketing.mobile/edgeidentity.svg?logo=android&logoColor=white&label=edgeidentity&style=flat-square)](https://mvnrepository.com/artifact/com.adobe.marketing.mobile/edgeidentity) | [Link](https://github.com/adobe/aepsdk-edgeidentity-android) |
 | [Consent for Edge Network](https://developer.adobe.com/client-sdks/documentation/consent-for-edge-network/) | [![Maven Central](https://img.shields.io/maven-central/v/com.adobe.marketing.mobile/edgeconsent.svg?logo=android&logoColor=white&label=edgeconsent&style=flat-square)](https://mvnrepository.com/artifact/com.adobe.marketing.mobile/edgeconsent) | [Link](https://github.com/adobe/aepsdk-edgeconsent-android) |
+| [Media for Edge Network](https://developer.adobe.com/client-sdks/documentation/media-for-edge-network/) | [![Maven Central](https://img.shields.io/maven-central/v/com.adobe.marketing.mobile/edgemedia.svg?logo=android&logoColor=white&label=edgemedia&style=flat-square)](https://mvnrepository.com/artifact/com.adobe.marketing.mobile/edgemedia) | [Link](https://github.com/adobe/aepsdk-edgemedia-android) |
 | [Edge Bridge](https://developer.adobe.com/client-sdks/documentation/adobe-analytics/migrate-to-edge-network/) | ![Maven Central](https://img.shields.io/maven-central/v/com.adobe.marketing.mobile/edgebridge.svg?logo=android&logoColor=white&label=edgebridge&style=flat-square) | [Link](https://github.com/adobe/aepsdk-edgebridge-android) |
 | [Adobe Experience Platform Assurance](https://developer.adobe.com/client-sdks/documentation/platform-assurance-sdk/) | ![Maven Central](https://img.shields.io/maven-central/v/com.adobe.marketing.mobile/assurance.svg?logo=android&logoColor=white&label=assurance&style=flat-square) | [Link](https://github.com/adobe/aepsdk-assurance-android)
 | [Places Service](https://developer.adobe.com/client-sdks/documentation/places/) | [![Maven Central](https://img.shields.io/maven-central/v/com.adobe.marketing.mobile/places.svg?logo=android&logoColor=white&label=places&style=flat-square)](https://mvnrepository.com/artifact/com.adobe.marketing.mobile/places) | [Link](https://github.com/adobe/aepsdk-places-android) |

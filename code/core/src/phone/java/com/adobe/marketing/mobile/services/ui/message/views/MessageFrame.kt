@@ -15,6 +15,9 @@ import android.webkit.WebView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -22,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -71,6 +75,11 @@ internal fun MessageFrame(
             )
         }
 
+    val allowGestures = remember { inAppMessageSettings.gestureMap.isNotEmpty() }
+    val offsetX = remember { mutableStateOf(0f) }
+    val offsetY = remember { mutableStateOf(0f) }
+    val dragVelocity = remember { mutableStateOf(0f) }
+
     AnimatedVisibility(
         visibleState = visibility,
         enter = MessageAnimationMapper.getEnterTransitionFor(inAppMessageSettings.displayAnimation),
@@ -83,6 +92,40 @@ internal fun MessageFrame(
                 .fillMaxSize()
                 .offset(x = horizontalOffset, y = verticalOffset)
                 .background(Color.Transparent)
+                .draggable(
+                    enabled = allowGestures,
+                    state = rememberDraggableState { delta ->
+                        offsetX.value += delta
+                    },
+                    orientation = Orientation.Horizontal,
+                    onDragStopped = { velocity ->
+                        gestureTracker.onDragFinished(
+                            offsetX.value,
+                            offsetY.value,
+                            velocity
+                        )
+                        dragVelocity.value = 0f
+                        offsetY.value = 0f
+                        offsetX.value = 0f
+                    }
+                )
+                .draggable(
+                    enabled = allowGestures,
+                    state = rememberDraggableState { delta ->
+                        offsetY.value += delta
+                    },
+                    orientation = Orientation.Vertical,
+                    onDragStopped = { velocity ->
+                        gestureTracker.onDragFinished(
+                            offsetX.value,
+                            offsetY.value,
+                            velocity
+                        )
+                        dragVelocity.value = 0f
+                        offsetY.value = 0f
+                        offsetX.value = 0f
+                    }
+                )
                 .testTag(MessageTestTags.MESSAGE_FRAME),
             horizontalArrangement = MessageArrangementMapper.getHorizontalArrangement(
                 inAppMessageSettings.horizontalAlignment

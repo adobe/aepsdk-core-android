@@ -41,8 +41,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 internal fun MessageContent(
     inAppMessageSettings: InAppMessageSettings,
-    onCreated: (WebView) -> Unit,
-    gestureTracker: GestureTracker
+    onCreated: (WebView) -> Unit
 ) {
     // Size variables
     val currentConfiguration = LocalConfiguration.current

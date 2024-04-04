@@ -33,8 +33,8 @@ object TemplateUtils {
         trackerActivity: Activity?,
         broadcastReceiver: BroadcastReceiver?,
         pushTemplate: AEPPushTemplate?,
-        pushTemplateType: PushTemplateType?
-    ): NotificationCompat.Builder? {
+        pushTemplateType: PushTemplateType
+    ): NotificationCompat.Builder {
         if (pushTemplate == null) {
             throw NotificationConstructionFailedException("push template is null, cannot build a notification.")
         }
@@ -54,6 +54,7 @@ object TemplateUtils {
                     .broadcastReceiver(broadcastReceiver)
                 return builder.build(context)
             }
+
             PushTemplateType.CAROUSEL -> {
                 val carouselPushTemplate = pushTemplate as? CarouselPushTemplate
                 val carouselOperationMode = carouselPushTemplate?.getCarouselOperationMode()
@@ -72,34 +73,32 @@ object TemplateUtils {
                         .broadcastReceiver(broadcastReceiver)
                     return builder.build(context)
                 } else {
-                    if (carouselType.equals(PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE)) {
+                    return if (carouselType.equals(PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE)) {
                         builder = FilmstripCarouselTemplateNotificationBuilder()
                             .pushTemplate(pushTemplate)
                             .trackerActivity(trackerActivity)
                             .broadcastReceiver(broadcastReceiver)
-                        return builder.build(context)
-                    } else if (carouselType.equals(PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_MODE)) {
+                        builder.build(context)
+                    } else {
                         builder = ManualCarouselTemplateNotificationBuilder()
                             .pushTemplate(pushTemplate)
                             .trackerActivity(trackerActivity)
                             .broadcastReceiver(broadcastReceiver)
-                        return builder.build(context)
+                        builder.build(context)
                     }
                 }
             }
             PushTemplateType.INPUT_BOX -> TODO()
             PushTemplateType.UNKNOWN -> TODO()
-            null -> TODO()
         }
-        return null
     }
 
     @Throws(NotificationConstructionFailedException::class)
     @JvmStatic
     fun constructNotificationBuilder(
         context: Context,
-        trackerActivity: Activity,
-        broadcastReceiver: BroadcastReceiver,
+        trackerActivity: Activity?,
+        broadcastReceiver: BroadcastReceiver?,
         intent: Intent?,
         pushTemplateType: PushTemplateType
     ): NotificationCompat.Builder {

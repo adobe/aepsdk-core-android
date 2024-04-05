@@ -137,43 +137,35 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
     private val isNotificationSticky: Boolean?
 
     init {
-        // fast fail if required data is not present
-        try {
-            title = DataReader.getString(data, PushTemplateConstants.PushPayloadKeys.TITLE)
-        } catch (dataReaderException: DataReaderException) {
-            throw IllegalArgumentException("Required field \"adb_title\" not found.")
+        // fast fail (via IllegalArgumentException) if required data is not present
+        val title = DataReader.getString(data, PushTemplateConstants.PushPayloadKeys.TITLE)
+        if (title.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_title\" not found.")
+        this.title = title
+
+        var bodyText = DataReader.getString(
+            data,
+            PushTemplateConstants.PushPayloadKeys.BODY)
+        if (bodyText.isNullOrEmpty()) {
+            bodyText = DataReader.getString(data, PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY)
         }
-        try {
-            val bodyText = DataReader.optString(
+        if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_body\" or \"_msg\" not found.")
+        this.body = bodyText
+
+        val messageId = DataReader.getString(data, PushTemplateConstants.Tracking.Keys.MESSAGE_ID)
+        if (messageId.isNullOrEmpty()) throw IllegalArgumentException("Required field \"_mId\" not found.")
+        this.messageId = messageId
+
+        val deliveryId = DataReader.getString(data, PushTemplateConstants.Tracking.Keys.DELIVERY_ID)
+        if (deliveryId.isNullOrEmpty()) throw IllegalArgumentException("Required field \"_dId\" not found.")
+        this.deliveryId = deliveryId
+
+        val payloadVersion =
+            DataReader.getString(
                 data,
-                PushTemplateConstants.PushPayloadKeys.BODY,
-                DataReader.getString(
-                    data, PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY
-                )
+                PushTemplateConstants.PushPayloadKeys.VERSION
             )
-            if (StringUtils.isNullOrEmpty(bodyText)) {
-                throw DataReaderException("Required field \"adb_body\" or \"_msg\" not found.")
-            }
-            body = bodyText
-        } catch (dataReaderException: DataReaderException) {
-            throw IllegalArgumentException(dataReaderException.message)
-        }
-        try {
-            messageId = DataReader.getString(data, PushTemplateConstants.Tracking.Keys.MESSAGE_ID)
-        } catch (dataReaderException: DataReaderException) {
-            throw IllegalArgumentException("Required field \"_mId\" not found.")
-        }
-        try {
-            deliveryId = DataReader.getString(data, PushTemplateConstants.Tracking.Keys.DELIVERY_ID)
-        } catch (dataReaderException: DataReaderException) {
-            throw IllegalArgumentException("Required field \"_dId\" not found.")
-        }
-        payloadVersion =
-            DataReader.optString(
-                data,
-                PushTemplateConstants.PushPayloadKeys.VERSION,
-                PushTemplateConstants.DefaultValues.LEGACY_PAYLOAD_VERSION_STRING
-            ).toInt()
+        if (payloadVersion.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_version\" not found.")
+        this.payloadVersion = payloadVersion.toInt()
 
         // optional push template data
         sound = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.SOUND, null)
@@ -187,9 +179,14 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
         if (smallIcon.isNullOrEmpty()) {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
-                SELF_TAG, "The \"adb_small_icon\" key is not present in the message data payload, attempting to use \"adb_icon\" key instead."
+                SELF_TAG,
+                "The \"adb_small_icon\" key is not present in the message data payload, attempting to use \"adb_icon\" key instead."
             )
-            smallIcon = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.LEGACY_SMALL_ICON, null)
+            smallIcon = DataReader.optString(
+                data,
+                PushTemplateConstants.PushPayloadKeys.LEGACY_SMALL_ICON,
+                null
+            )
         }
         this.smallIcon = smallIcon
         largeIcon =
@@ -459,7 +456,7 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
                     "Exception in converting actionButtons json string to json object, Error :" +
-                        " actionButtons is null"
+                            " actionButtons is null"
                 )
                 return null
             }

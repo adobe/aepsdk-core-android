@@ -210,8 +210,16 @@ class LifecycleV2Extension {
         if (dataStore != null && deviceInfoService != null) {
             dataStore.setString(
                     LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION,
-                    deviceInfoService.getApplicationVersion());
+                    generateAppFullVersion(
+                            deviceInfoService.getApplicationVersion(),
+                            deviceInfoService.getApplicationVersionCode()));
         }
+    }
+
+    private String generateAppFullVersion(String appVersion, String appVersionCode) {
+        String validAppVersion = StringUtils.isNullOrEmpty(appVersion) ? "": appVersion;
+        String validAppVersionCode = StringUtils.isNullOrEmpty(appVersionCode) ? "": appVersionCode;
+        return String.format("%s(%s)", validAppVersion, validAppVersionCode);
     }
 
     /**

@@ -14,7 +14,7 @@ package com.adobe.marketing.mobile.services.ui.pushtemplate
 import android.app.Activity
 import android.content.BroadcastReceiver
 
-class PushTemplateTrackers {
+internal class PushTemplateTrackers {
     private constructor()
 
     private var trackerActivity: Activity? = null

@@ -1040,112 +1040,16 @@ public final class com/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushPa
 	public final fun getTag ()Ljava/lang/String;
 }
 
-public abstract class com/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate {
-	public static final field $stable I
-	public static final field Companion Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$Companion;
-	public static final field SELF_TAG Ljava/lang/String;
-	public synthetic fun <init> (Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getActionButtons ()Ljava/lang/String;
-	public final fun getActionType ()Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType;
-	public final fun getActionUri ()Ljava/lang/String;
-	public final fun getBadgeCount ()I
-	public final fun getBody ()Ljava/lang/String;
-	public final fun getChannelId ()Ljava/lang/String;
-	public final fun getData ()Ljava/util/Map;
-	public final fun getDeliveryId ()Ljava/lang/String;
-	public final fun getExpandedBodyText ()Ljava/lang/String;
-	public final fun getExpandedBodyTextColor ()Ljava/lang/String;
-	public final fun getImageUrl ()Ljava/lang/String;
-	public final fun getLargeIcon ()Ljava/lang/String;
-	public final fun getMessageId ()Ljava/lang/String;
-	public final fun getNotificationBackgroundColor ()Ljava/lang/String;
-	public final fun getNotificationImportance ()I
-	public final fun getNotificationVisibility ()I
-	public final fun getRemindLaterText ()Ljava/lang/String;
-	public final fun getRemindLaterTimestamp ()Ljava/lang/Long;
-	public final fun getSmallIcon ()Ljava/lang/String;
-	public final fun getSmallIconColor ()Ljava/lang/String;
-	public final fun getSound ()Ljava/lang/String;
-	public final fun getStickyStatus ()Ljava/lang/Boolean;
-	public final fun getTag ()Ljava/lang/String;
-	public final fun getTicker ()Ljava/lang/String;
-	public final fun getTitle ()Ljava/lang/String;
-	public final fun getTitleTextColor ()Ljava/lang/String;
-	public final fun modifyData (Ljava/lang/String;Ljava/lang/String;)V
-}
-
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionButton {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun getLabel ()Ljava/lang/String;
-	public final fun getLink ()Ljava/lang/String;
-	public final fun getType ()Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType;
-}
-
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType : java/lang/Enum {
-	public static final field DEEPLINK Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType;
-	public static final field DISMISS Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType;
-	public static final field NONE Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType;
-	public static final field OPENAPP Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType;
-	public static final field WEBURL Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType;
-	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType;
-	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$ActionType;
-}
-
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate$Companion {
-	public final fun getActionButtonsFromString (Ljava/lang/String;)Ljava/util/List;
-	public final fun getNotificationImportanceMap ()Ljava/util/HashMap;
-	public final fun getNotificationPriorityMap ()Ljava/util/HashMap;
-	public final fun getNotificationVisibilityMap ()Ljava/util/HashMap;
-}
-
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/BasicPushTemplate : com/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate {
-	public static final field $stable I
-	public fun <init> (Ljava/util/Map;)V
-}
-
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/CarouselPushTemplate : com/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate {
-	public static final field $stable I
-	public fun <init> (Ljava/util/Map;)V
-	public final fun getCarouselItems ()Ljava/util/ArrayList;
-	public final fun getCarouselLayoutType ()Ljava/lang/String;
-	public final fun getCarouselOperationMode ()Ljava/lang/String;
-}
-
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/CarouselPushTemplate$CarouselItem {
-	public static final field $stable I
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public final fun getCaptionText ()Ljava/lang/String;
-	public final fun getImageUri ()Ljava/lang/String;
-	public final fun getInteractionUri ()Ljava/lang/String;
-}
-
 public final class com/adobe/marketing/mobile/services/ui/pushtemplate/NotificationConstructionFailedException : java/lang/Exception {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;)V
 }
 
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType : java/lang/Enum {
-	public static final field BASIC Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;
-	public static final field CAROUSEL Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;
-	public static final field Companion Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType$Companion;
-	public static final field INPUT_BOX Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;
-	public static final field UNKNOWN Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;
-	public static final fun fromString (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;
-	public final fun getValue ()Ljava/lang/String;
-	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;
-	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;
-}
-
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType$Companion {
-	public final fun fromString (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;
-}
-
 public final class com/adobe/marketing/mobile/services/ui/pushtemplate/TemplateUtils {
 	public static final field $stable I
 	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/pushtemplate/TemplateUtils;
-	public static final fun constructNotificationBuilder (Landroid/content/Context;Landroid/app/Activity;Landroid/content/BroadcastReceiver;Landroid/content/Intent;Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;)Landroidx/core/app/NotificationCompat$Builder;
-	public static final fun constructNotificationBuilder (Landroid/content/Context;Landroid/app/Activity;Landroid/content/BroadcastReceiver;Lcom/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushTemplate;Lcom/adobe/marketing/mobile/services/ui/pushtemplate/PushTemplateType;)Landroidx/core/app/NotificationCompat$Builder;
+	public static final fun constructNotificationBuilder (Landroid/content/Intent;)Landroidx/core/app/NotificationCompat$Builder;
+	public static final fun constructNotificationBuilder (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Landroidx/core/app/NotificationCompat$Builder;
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/uri/URIHandler {

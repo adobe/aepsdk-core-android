@@ -151,6 +151,7 @@ internal class ManualCarouselTemplateNotificationBuilder :
                 )
                 clickIntent.setClass(context, broadcastReceiver::class.java)
                 clickIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                clickIntent.putExtra(PushTemplateConstants.IntentKeys.TYPE, pushTemplate.getTemplateType()?.value)
                 clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelId)
                 clickIntent.putExtra(
                     PushTemplateConstants.IntentKeys.CUSTOM_SOUND, pushTemplate.getSound()
@@ -299,6 +300,7 @@ internal class ManualCarouselTemplateNotificationBuilder :
                 ?.packageName
 
             // get manual carousel notification values from the intent extras
+            val templateType = intentExtras.getString(PushTemplateConstants.IntentKeys.TYPE)
             val messageId =
                 intentExtras.getString(PushTemplateConstants.IntentKeys.MESSAGE_ID) as String
             val deliveryId =
@@ -426,6 +428,7 @@ internal class ManualCarouselTemplateNotificationBuilder :
                 )
                 clickIntent.setClass(context, broadcastReceiver::class.java)
                 clickIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                clickIntent.putExtra(PushTemplateConstants.IntentKeys.TYPE, templateType)
                 clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelId)
                 clickIntent.putExtra(PushTemplateConstants.IntentKeys.CUSTOM_SOUND, customSound)
                 clickIntent.putExtra(PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX, newCenterIndex)

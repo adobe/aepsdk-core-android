@@ -100,6 +100,7 @@ internal object PushTemplateConstants {
         const val STICKY = "sticky"
         const val TAG = "tag"
         const val TICKER = "ticker"
+        const val TYPE = "type"
     }
 
     internal object MethodNames {
@@ -118,6 +119,7 @@ internal object PushTemplateConstants {
         const val TITLE = "adb_title"
         const val BODY = "adb_body"
         const val ACC_PAYLOAD_BODY = "_msg"
+        const val MESSAGE_ID = "_mId"
         const val SOUND = "adb_sound"
         const val BADGE_NUMBER = "adb_n_count"
         const val NOTIFICATION_VISIBILITY = "adb_n_visibility"

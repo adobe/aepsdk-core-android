@@ -18,7 +18,7 @@ import com.adobe.marketing.mobile.util.StringUtils
 import org.json.JSONArray
 import org.json.JSONException
 
-class CarouselPushTemplate(messageData: MutableMap<String, String>) :
+internal class CarouselPushTemplate(messageData: MutableMap<String, String>) :
     AEPPushTemplate(messageData) {
     // Optional, Determines how the carousel will be operated. Valid values are "auto" or "manual".
     // Default is "auto".

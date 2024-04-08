@@ -24,7 +24,7 @@ internal object LegacyNotificationBuilder {
 
     internal fun construct(
         context: Context,
-        trackerActivity: Activity,
+        trackerActivity: Activity?,
         pushTemplate: AEPPushTemplate
     ): NotificationCompat.Builder {
         Log.trace(

@@ -25,6 +25,7 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Handler
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
@@ -45,6 +46,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Random
 import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -55,6 +57,7 @@ import java.util.concurrent.TimeUnit
 private const val SELF_TAG = "PushTemplateHelpers"
 private const val FULL_BITMAP_QUALITY = 100
 private const val DOWNLOAD_TIMEOUT = 10
+private const val CLASS_CREATION_TIMEOUT = 2
 private const val MINIMUM_FILMSTRIP_SIZE = 3
 
 /**
@@ -204,6 +207,48 @@ internal fun download(url: String?): Bitmap? {
         downloadTask.cancel(true)
     }
     return bitmap
+}
+
+/**
+ * Creates a class instance using the provided class name. The class name is in the format
+ * of a fully qualified class name (e.g. com.adobe.marketing.mobile.MyClass).
+ *
+ * @param context the application [Context]
+ * @param className [String] containing the class name to create an instance of
+ * @return [Any] containing the created class instance
+ */
+internal fun createClassInstance(context: Context, className: String?): Any? {
+    if (className.isNullOrEmpty()) {
+        Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Cannot create a class instance, the provided class name is null or empty.")
+        return null
+    }
+
+    var classInstance: Any? = null
+    val latch = CountDownLatch(1)
+    Handler(context.mainLooper).post {
+        try {
+            classInstance = Class.forName(className).getDeclaredConstructor().newInstance()
+        } catch (e: Exception) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Failed to create class instance for class name %s. Exception: %s",
+                className,
+                e.message
+            )
+        }
+        latch.countDown()
+    }
+    latch.await(CLASS_CREATION_TIMEOUT.toLong(), TimeUnit.SECONDS)
+
+    classInstance?.let {
+        Log.trace(
+            PushTemplateConstants.LOG_TAG,
+            SELF_TAG,
+            "Created class instance for class name $className."
+        )
+    }
+    return classInstance
 }
 
 /**

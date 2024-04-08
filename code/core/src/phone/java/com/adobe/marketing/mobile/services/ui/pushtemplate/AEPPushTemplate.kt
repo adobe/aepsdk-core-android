@@ -17,7 +17,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.DataReader
-import com.adobe.marketing.mobile.util.DataReaderException
 import com.adobe.marketing.mobile.util.StringUtils
 import org.json.JSONArray
 import org.json.JSONException
@@ -30,7 +29,7 @@ import org.json.JSONObject
  *
  * @param data [MutableMap] containing the push template notification message data payload
  */
-sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
+internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
     /** Enum to denote the type of action  */
     enum class ActionType {
         DEEPLINK, WEBURL, DISMISS, OPENAPP, NONE
@@ -131,6 +130,9 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
     // Optional, If present sets the "ticker" text, which is sent to accessibility services.
     private val ticker: String?
 
+    // Optional, the type of push template this payload contains
+    private val templateType: PushTemplateType?
+
     // Optional, when set to false or unset, the notification is automatically dismissed when the
     // user clicks it in the panel. When set to true, the notification persists even when the user
     // clicks it.
@@ -144,7 +146,8 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
 
         var bodyText = DataReader.getString(
             data,
-            PushTemplateConstants.PushPayloadKeys.BODY)
+            PushTemplateConstants.PushPayloadKeys.BODY
+        )
         if (bodyText.isNullOrEmpty()) {
             bodyText = DataReader.getString(data, PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY)
         }
@@ -218,6 +221,7 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
             if (StringUtils.isNullOrEmpty(timestampString)) PushTemplateConstants.DefaultValues.DEFAULT_REMIND_LATER_TIMESTAMP else timestampString.toLong()
         tag = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TAG, null)
         ticker = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TICKER, null)
+        templateType = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TEMPLATE_TYPE, null)?.let { PushTemplateType.fromString(it) }
         val stickyValue =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.STICKY, null)
         isNotificationSticky =
@@ -254,6 +258,10 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
             data[PushTemplateConstants.PushPayloadKeys.ACTION_TYPE]
         )
         actionButtonsString = data[PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS]
+    }
+
+    fun getTemplateType(): PushTemplateType? {
+        return templateType
     }
 
     fun getTitle(): String {
@@ -456,7 +464,7 @@ sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
                     "Exception in converting actionButtons json string to json object, Error :" +
-                            " actionButtons is null"
+                        " actionButtons is null"
                 )
                 return null
             }

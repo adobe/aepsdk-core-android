@@ -11,5 +11,5 @@
 
 package com.adobe.marketing.mobile.services.ui.pushtemplate
 
-class BasicPushTemplate(messageData: MutableMap<String, String>) :
+internal class BasicPushTemplate(messageData: MutableMap<String, String>) :
     AEPPushTemplate(messageData)

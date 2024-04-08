@@ -13,10 +13,10 @@ package com.adobe.marketing.mobile.services.ui.pushtemplate
 
 import android.app.Activity
 import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ServiceProvider
 
 /**
  * Public facing object to construct a [NotificationCompat.Builder] object for the specified [PushTemplateType].
@@ -29,15 +29,19 @@ object TemplateUtils {
     @Throws(NotificationConstructionFailedException::class)
     @JvmStatic
     fun constructNotificationBuilder(
-        context: Context,
-        trackerActivity: Activity?,
-        broadcastReceiver: BroadcastReceiver?,
-        pushTemplate: AEPPushTemplate?,
-        pushTemplateType: PushTemplateType
+        broadcastReceiverName: String?,
+        trackerActivityName: String?,
+        messageData: Map<String, String>?
     ): NotificationCompat.Builder {
-        if (pushTemplate == null) {
-            throw NotificationConstructionFailedException("push template is null, cannot build a notification.")
+        if (messageData.isNullOrEmpty()) {
+            throw NotificationConstructionFailedException("message data is null, cannot build a notification.")
         }
+
+        val context = ServiceProvider.getInstance().appContextService.applicationContext ?: throw NotificationConstructionFailedException("Application context is null, cannot build a notification.")
+        PushTemplateTrackers.getInstance().setBroadcastReceiver(createClassInstance(context, broadcastReceiverName) as? BroadcastReceiver)
+        PushTemplateTrackers.getInstance().setTrackerActivity(createClassInstance(context, trackerActivityName) as? Activity)
+        val pushTemplateType =
+            PushTemplateType.fromString(messageData[PushTemplateConstants.PushPayloadKeys.TEMPLATE_TYPE])
 
         val builder: Any
         when (pushTemplateType) {
@@ -49,16 +53,17 @@ object TemplateUtils {
                 )
 
                 builder = BasicTemplateNotificationBuilder()
-                    .pushTemplate(pushTemplate)
-                    .trackerActivity(trackerActivity)
-                    .broadcastReceiver(broadcastReceiver)
+                    .pushTemplate(BasicPushTemplate(messageData as MutableMap<String, String>))
+                    .trackerActivity(PushTemplateTrackers.getInstance().getTrackerActivity())
+                    .broadcastReceiver(PushTemplateTrackers.getInstance().getBroadcastReceiver())
                 return builder.build(context)
             }
 
             PushTemplateType.CAROUSEL -> {
-                val carouselPushTemplate = pushTemplate as? CarouselPushTemplate
-                val carouselOperationMode = carouselPushTemplate?.getCarouselOperationMode()
-                val carouselType = carouselPushTemplate?.getCarouselLayoutType()
+                val carouselPushTemplate =
+                    CarouselPushTemplate(messageData as MutableMap<String, String>)
+                val carouselOperationMode = carouselPushTemplate.getCarouselOperationMode()
+                val carouselType = carouselPushTemplate.getCarouselLayoutType()
 
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
@@ -68,43 +73,52 @@ object TemplateUtils {
 
                 if (carouselOperationMode.equals(PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE)) {
                     builder = AutoCarouselTemplateNotificationBuilder()
-                        .pushTemplate(pushTemplate)
-                        .trackerActivity(trackerActivity)
-                        .broadcastReceiver(broadcastReceiver)
+                        .pushTemplate(carouselPushTemplate)
+                        .trackerActivity(PushTemplateTrackers.getInstance().getTrackerActivity())
+                        .broadcastReceiver(PushTemplateTrackers.getInstance().getBroadcastReceiver())
                     return builder.build(context)
                 } else {
                     return if (carouselType.equals(PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE)) {
                         builder = FilmstripCarouselTemplateNotificationBuilder()
-                            .pushTemplate(pushTemplate)
-                            .trackerActivity(trackerActivity)
-                            .broadcastReceiver(broadcastReceiver)
+                            .pushTemplate(carouselPushTemplate)
+                            .trackerActivity(PushTemplateTrackers.getInstance().getTrackerActivity())
+                            .broadcastReceiver(PushTemplateTrackers.getInstance().getBroadcastReceiver())
                         builder.build(context)
                     } else {
                         builder = ManualCarouselTemplateNotificationBuilder()
-                            .pushTemplate(pushTemplate)
-                            .trackerActivity(trackerActivity)
-                            .broadcastReceiver(broadcastReceiver)
+                            .pushTemplate(carouselPushTemplate)
+                            .trackerActivity(PushTemplateTrackers.getInstance().getTrackerActivity())
+                            .broadcastReceiver(PushTemplateTrackers.getInstance().getBroadcastReceiver())
                         builder.build(context)
                     }
                 }
             }
-            PushTemplateType.INPUT_BOX -> TODO()
-            PushTemplateType.UNKNOWN -> TODO()
+
+            PushTemplateType.UNKNOWN -> {
+                return LegacyNotificationBuilder.construct(
+                    context,
+                    PushTemplateTrackers.getInstance().getTrackerActivity(),
+                    BasicPushTemplate(messageData as MutableMap<String, String>)
+                )
+            }
         }
+        throw NotificationConstructionFailedException("Failed to build notification for the given push template type ${pushTemplateType.value}.")
     }
 
     @Throws(NotificationConstructionFailedException::class)
     @JvmStatic
     fun constructNotificationBuilder(
-        context: Context,
-        trackerActivity: Activity?,
-        broadcastReceiver: BroadcastReceiver?,
-        intent: Intent?,
-        pushTemplateType: PushTemplateType
+        intent: Intent?
     ): NotificationCompat.Builder {
         if (intent == null) {
             throw NotificationConstructionFailedException("intent is null, cannot build a notification.")
         }
+
+        val context = ServiceProvider.getInstance().appContextService.applicationContext ?: throw NotificationConstructionFailedException("Application context is null, cannot build a notification.")
+        // use the previously created tracker activity and/or broadcast receiver
+        val trackerActivity: Activity? = PushTemplateTrackers.getInstance().getTrackerActivity()
+        val broadcastReceiver: BroadcastReceiver? = PushTemplateTrackers.getInstance().getBroadcastReceiver()
+        val pushTemplateType = PushTemplateType.fromString(intent.getStringExtra(PushTemplateConstants.IntentKeys.TYPE))
 
         val builder: Any
         when (pushTemplateType) {
@@ -138,9 +152,7 @@ object TemplateUtils {
                     builder.build(context)
                 }
             }
-
-            PushTemplateType.INPUT_BOX -> TODO()
-            PushTemplateType.UNKNOWN -> TODO()
         }
+        throw NotificationConstructionFailedException("Failed to build notification for the given intent with push template type ${pushTemplateType.value}.")
     }
 }

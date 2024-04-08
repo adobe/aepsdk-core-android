@@ -300,7 +300,7 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
                 deliveryId,
                 tag,
                 sticky
-            ) // Add action buttons if any
+            )
 
             // add a remind later button if we have a label and a timestamp
             if (!StringUtils.isNullOrEmpty(remindLaterText) && remindLaterTimestamp > 0) {
@@ -350,6 +350,9 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             )
             remindIntent.setClass(context, receiver::class.java)
             remindIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            remindIntent.putExtra(
+                PushTemplateConstants.IntentKeys.TYPE, pushTemplate.getTemplateType()?.value
+            )
             remindIntent.putExtra(
                 PushTemplateConstants.IntentKeys.IMAGE_URI, pushTemplate.getImageUrl()
             )

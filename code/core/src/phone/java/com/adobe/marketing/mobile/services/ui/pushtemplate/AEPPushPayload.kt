@@ -241,6 +241,8 @@ class AEPPushPayload(val message: RemoteMessage?) {
     }
 
     fun getTag(): String? {
-        return messageData[PushTemplateConstants.PushPayloadKeys.TAG]
+        return if (messageData.containsKey(PushTemplateConstants.PushPayloadKeys.TAG)) {
+            messageData[PushTemplateConstants.PushPayloadKeys.TAG]
+        } else messageData[PushTemplateConstants.PushPayloadKeys.MESSAGE_ID]
     }
 }

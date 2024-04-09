@@ -66,7 +66,6 @@ internal object PushTemplateConstants {
         const val FILMSTRIP_LEFT_CLICKED = "filmstrip_left"
         const val FILMSTRIP_RIGHT_CLICKED = "filmstrip_right"
         const val REMIND_LATER_CLICKED = "remind_clicked"
-        const val SCHEDULED_NOTIFICATION_BROADCAST = "scheduled_notification_broadcast"
         const val MANUAL_CAROUSEL_LEFT_CLICKED = "manual_left"
         const val MANUAL_CAROUSEL_RIGHT_CLICKED = "manual_right"
     }
@@ -101,6 +100,8 @@ internal object PushTemplateConstants {
         const val TAG = "tag"
         const val TICKER = "ticker"
         const val TYPE = "type"
+        const val TRACKER_NAME = "trackerName"
+        const val BROADCAST_RECEIVER_NAME = "broadcastReceiverName"
     }
 
     internal object MethodNames {

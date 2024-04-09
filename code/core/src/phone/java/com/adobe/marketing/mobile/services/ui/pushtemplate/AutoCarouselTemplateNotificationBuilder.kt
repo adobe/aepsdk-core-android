@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.services.ui.pushtemplate
 
 import android.app.Activity
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
@@ -33,8 +32,8 @@ internal class AutoCarouselTemplateNotificationBuilder :
         private fun construct(
             context: Context,
             pushTemplate: CarouselPushTemplate?,
-            trackerActivity: Activity?,
-            broadcastReceiver: BroadcastReceiver?
+            trackerActivityName: String?,
+            broadcastReceiverName: String?
         ): NotificationCompat.Builder {
             val packageName = context.packageName
             val smallLayout = RemoteViews(context.packageName, R.layout.push_template_collapsed)
@@ -52,6 +51,7 @@ internal class AutoCarouselTemplateNotificationBuilder :
                     "push template is null, cannot build a notification."
                 )
 
+            val trackerActivity = PushTemplateTrackers.getInstance().getTrackerActivity(trackerActivityName)
             // load images into the carousel
             val items: ArrayList<CarouselPushTemplate.CarouselItem> =
                 pushTemplate.getCarouselItems()
@@ -73,7 +73,7 @@ internal class AutoCarouselTemplateNotificationBuilder :
                 )
             ) {
                 return fallbackToBasicNotification(
-                    context, trackerActivity, broadcastReceiver, pushTemplate, downloadedImageUris
+                    context, trackerActivityName, broadcastReceiverName, pushTemplate, downloadedImageUris
                 )
             }
             smallLayout.setTextViewText(R.id.notification_title, pushTemplate.getTitle())
@@ -201,6 +201,6 @@ internal class AutoCarouselTemplateNotificationBuilder :
     override fun build(
         context: Context
     ): NotificationCompat.Builder {
-        return construct(context, pushTemplate as? CarouselPushTemplate, trackerActivity, broadcastReceiver)
+        return construct(context, pushTemplate as? CarouselPushTemplate, trackerActivityName, broadcastReceiverName)
     }
 }

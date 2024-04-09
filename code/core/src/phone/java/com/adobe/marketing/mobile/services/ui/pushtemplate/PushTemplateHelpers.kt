@@ -14,7 +14,6 @@ package com.adobe.marketing.mobile.services.ui.pushtemplate
 import android.app.Activity
 import android.app.PendingIntent
 import android.app.TaskStackBuilder
-import android.content.BroadcastReceiver
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
@@ -394,6 +393,7 @@ private fun scaleBitmap(downloadedBitmap: Bitmap): Bitmap {
  * Creates a pending intent for a notification.
  *
  * @param context the application [Context]
+ * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
  * @param messageId [String] containing the message id from the received push notification
  * @param deliveryId `String` containing the delivery id from the received push
  * notification
@@ -412,9 +412,10 @@ private fun createPendingIntent(
     tag: String,
     stickyNotification: Boolean
 ): PendingIntent? {
-    val activity = trackerActivity ?: return null
     val intent = Intent(PushTemplateConstants.NotificationAction.BUTTON_CLICKED)
-    intent.setClass(context.applicationContext, activity::class.java)
+    trackerActivity?.let {
+        intent.setClass(context.applicationContext, trackerActivity::class.java)
+    }
     intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
     intent.putExtra(PushTemplateConstants.Tracking.Keys.MESSAGE_ID, messageId)
     intent.putExtra(PushTemplateConstants.Tracking.Keys.DELIVERY_ID, deliveryId)
@@ -892,8 +893,8 @@ internal fun setNotificationDeleteAction(
 @Throws(NotificationConstructionFailedException::class)
 internal fun fallbackToBasicNotification(
     context: Context,
-    trackerActivity: Activity?,
-    broadcastReceiver: BroadcastReceiver?,
+    trackerActivityName: String?,
+    broadcastReceiverName: String?,
     pushTemplate: CarouselPushTemplate,
     downloadedImageUris: List<String?>
 ): NotificationCompat.Builder {
@@ -914,7 +915,7 @@ internal fun fallbackToBasicNotification(
     val basicPushTemplate = BasicPushTemplate(pushTemplate.data)
     val basicNotificationBuilder = BasicTemplateNotificationBuilder()
         .pushTemplate(basicPushTemplate)
-        .trackerActivity(trackerActivity)
-        .broadcastReceiver(broadcastReceiver)
+        .trackerActivityName(trackerActivityName)
+        .broadcastReceiverName(broadcastReceiverName)
     return basicNotificationBuilder.build(context)
 }

@@ -39,8 +39,8 @@ internal class FilmstripCarouselTemplateNotificationBuilder :
             context: Context,
             intent: Intent?,
             pushTemplate: CarouselPushTemplate?,
-            trackerActivity: Activity?,
-            broadcastReceiver: BroadcastReceiver?
+            trackerActivityName: String?,
+            broadcastReceiverName: String?
         ): NotificationCompat.Builder {
             if (pushTemplate == null && intent == null) {
                 throw NotificationConstructionFailedException(
@@ -48,6 +48,8 @@ internal class FilmstripCarouselTemplateNotificationBuilder :
                 )
             }
 
+            val trackerActivity = PushTemplateTrackers.getInstance().getTrackerActivity(trackerActivityName)
+            val broadcastReceiver = PushTemplateTrackers.getInstance().getBroadcastReceiver(broadcastReceiverName)
             return if (pushTemplate != null) {
                 construct(
                     context,
@@ -129,7 +131,7 @@ internal class FilmstripCarouselTemplateNotificationBuilder :
                 )
             ) {
                 return fallbackToBasicNotification(
-                    context, trackerActivity, broadcastReceiver, pushTemplate, downloadedImageUris
+                    context, trackerActivity?.javaClass?.name, broadcastReceiver?.javaClass?.name, pushTemplate, downloadedImageUris
                 )
             }
 
@@ -165,19 +167,17 @@ internal class FilmstripCarouselTemplateNotificationBuilder :
                     imageClickActions[centerImageIndex]
                 )
             ) imageClickActions[centerImageIndex] else fallbackActionUri
-            trackerActivity?.let {
-                setRemoteViewClickAction(
-                    context,
-                    trackerActivity,
-                    expandedLayout,
-                    R.id.manual_carousel_filmstrip_center,
-                    pushTemplate.getMessageId(),
-                    pushTemplate.getDeliveryId(),
-                    interactionUri,
-                    pushTemplate.getTag(),
-                    pushTemplate.getStickyStatus() ?: false
-                )
-            }
+            setRemoteViewClickAction(
+                context,
+                trackerActivity,
+                expandedLayout,
+                R.id.manual_carousel_filmstrip_center,
+                pushTemplate.getMessageId(),
+                pushTemplate.getDeliveryId(),
+                interactionUri,
+                pushTemplate.getTag(),
+                pushTemplate.getStickyStatus() ?: false
+            )
 
             // set any custom colors if needed
             setCustomNotificationColors(
@@ -206,7 +206,14 @@ internal class FilmstripCarouselTemplateNotificationBuilder :
                 )
                 clickIntent.setClass(context, broadcastReceiver::class.java)
                 clickIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                clickIntent.putExtra(PushTemplateConstants.IntentKeys.TYPE, pushTemplate.getTemplateType()?.value)
+                clickIntent.putExtra(
+                    PushTemplateConstants.IntentKeys.TYPE,
+                    pushTemplate.getTemplateType()?.value
+                )
+                trackerActivity?.let {
+                    clickIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivity::class.java.name)
+                }
+                clickIntent.putExtra(PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME, broadcastReceiver::class.java.name)
                 clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelId)
                 clickIntent.putExtra(
                     PushTemplateConstants.IntentKeys.CUSTOM_SOUND, pushTemplate.getSound()
@@ -383,6 +390,8 @@ internal class FilmstripCarouselTemplateNotificationBuilder :
 
             // get filmstrip notification values from the intent extras
             val templateType = intentExtras.getString(PushTemplateConstants.IntentKeys.TYPE)
+            val trackerActivityName = intentExtras.getString(PushTemplateConstants.IntentKeys.TRACKER_NAME)
+            val broadcastReceiverName = intentExtras.getString(PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME)
             val messageId =
                 intentExtras.getString(PushTemplateConstants.IntentKeys.MESSAGE_ID) as String
             val deliveryId =
@@ -500,19 +509,17 @@ internal class FilmstripCarouselTemplateNotificationBuilder :
 
             // assign a click action pending intent to the center image view
             val interactionUri = imageClickActions?.get(newCenterIndex) ?: fallbackActionUri
-            trackerActivity?.let {
-                setRemoteViewClickAction(
-                    context,
-                    trackerActivity,
-                    expandedLayout,
-                    R.id.manual_carousel_filmstrip_center,
-                    messageId,
-                    deliveryId,
-                    interactionUri,
-                    tag,
-                    sticky
-                )
-            }
+            setRemoteViewClickAction(
+                context,
+                trackerActivity,
+                expandedLayout,
+                R.id.manual_carousel_filmstrip_center,
+                messageId,
+                deliveryId,
+                interactionUri,
+                tag,
+                sticky
+            )
 
             // set any custom colors if needed
             setCustomNotificationColors(
@@ -535,6 +542,8 @@ internal class FilmstripCarouselTemplateNotificationBuilder :
                 clickIntent.setClass(context, broadcastReceiver::class.java)
                 clickIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 clickIntent.putExtra(PushTemplateConstants.IntentKeys.TYPE, templateType)
+                clickIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityName)
+                clickIntent.putExtra(PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME, broadcastReceiverName)
                 clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelId)
                 clickIntent.putExtra(PushTemplateConstants.IntentKeys.CUSTOM_SOUND, customSound)
                 clickIntent.putExtra(
@@ -656,8 +665,8 @@ internal class FilmstripCarouselTemplateNotificationBuilder :
             context,
             intent,
             pushTemplate as? CarouselPushTemplate,
-            trackerActivity,
-            broadcastReceiver
+            trackerActivityName,
+            broadcastReceiverName
         )
     }
 }

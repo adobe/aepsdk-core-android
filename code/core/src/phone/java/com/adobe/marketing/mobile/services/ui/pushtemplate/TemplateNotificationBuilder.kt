@@ -11,8 +11,6 @@
 
 package com.adobe.marketing.mobile.services.ui.pushtemplate
 
-import android.app.Activity
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
@@ -25,9 +23,9 @@ internal abstract class TemplateNotificationBuilder {
         private set
     var intent: Intent? = null
         private set
-    var trackerActivity: Activity? = null
+    var trackerActivityName: String? = null
         private set
-    var broadcastReceiver: BroadcastReceiver? = null
+    var broadcastReceiverName: String? = null
         private set
 
     fun pushTemplate(pushTemplate: AEPPushTemplate?) = apply {
@@ -38,12 +36,12 @@ internal abstract class TemplateNotificationBuilder {
         this.intent = intent
     }
 
-    fun trackerActivity(trackerActivity: Activity?) = apply {
-        this.trackerActivity = trackerActivity
+    fun trackerActivityName(trackerActivityName: String?) = apply {
+        this.trackerActivityName = trackerActivityName
     }
 
-    fun broadcastReceiver(broadcastReceiver: BroadcastReceiver?) = apply {
-        this.broadcastReceiver = broadcastReceiver
+    fun broadcastReceiverName(broadcastReceiverName: String?) = apply {
+        this.broadcastReceiverName = broadcastReceiverName
     }
 
     abstract fun build(context: Context): NotificationCompat.Builder

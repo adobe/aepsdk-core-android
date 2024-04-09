@@ -21,6 +21,7 @@ import android.os.Bundle
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.StringUtils
 
@@ -36,15 +37,22 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             context: Context,
             intent: Intent?,
             pushTemplate: BasicPushTemplate?,
-            trackerActivity: Activity?,
-            broadcastReceiver: BroadcastReceiver?
+            trackerActivityName: String?,
+            broadcastReceiverName: String?
         ): NotificationCompat.Builder {
             if (pushTemplate == null && intent == null) {
                 throw NotificationConstructionFailedException(
                     "push template and intent are null, cannot build a notification."
                 )
             }
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Building a basic template push notification."
+            )
 
+            val trackerActivity = PushTemplateTrackers.getInstance().getTrackerActivity(trackerActivityName)
+            val broadcastReceiver = PushTemplateTrackers.getInstance().getBroadcastReceiver(broadcastReceiverName)
             return if (pushTemplate != null) {
                 construct(context, trackerActivity, broadcastReceiver, pushTemplate)
             } else {
@@ -317,6 +325,8 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             setNotificationClickAction(
                 context, trackerActivity, builder, messageId, deliveryId, actionUri, tag, sticky
             )
+
+            // set notification delete action
             setNotificationDeleteAction(
                 context, trackerActivity, builder, messageId, deliveryId
             )
@@ -342,6 +352,11 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
                 ?: return null
             val receiver = broadcastReceiver
                 ?: return null
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Creating a remind later pending intent from a push template object."
+            )
             val remindIntent = Intent(
                 PushTemplateConstants.IntentActions.REMIND_LATER_CLICKED,
                 null,
@@ -353,6 +368,8 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             remindIntent.putExtra(
                 PushTemplateConstants.IntentKeys.TYPE, pushTemplate.getTemplateType()?.value
             )
+            remindIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, activity::class.java.name)
+            remindIntent.putExtra(PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME, broadcastReceiver::class.java.name)
             remindIntent.putExtra(
                 PushTemplateConstants.IntentKeys.IMAGE_URI, pushTemplate.getImageUrl()
             )
@@ -446,6 +463,11 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             intentExtras: Bundle,
             broadcastReceiver: BroadcastReceiver
         ): PendingIntent {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Creating a remind later pending intent from an intent extras bundle."
+            )
             val remindIntent = Intent(
                 PushTemplateConstants.IntentActions.REMIND_LATER_CLICKED,
                 null,
@@ -471,8 +493,8 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             context,
             intent,
             pushTemplate as? BasicPushTemplate,
-            trackerActivity,
-            broadcastReceiver
+            trackerActivityName,
+            broadcastReceiverName
         )
     }
 }

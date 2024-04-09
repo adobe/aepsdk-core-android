@@ -14,26 +14,25 @@ package com.adobe.marketing.mobile.services.ui.pushtemplate
 import android.app.Activity
 import android.content.BroadcastReceiver
 
-internal class PushTemplateTrackers {
-    private constructor()
+internal class PushTemplateTrackers private constructor() {
 
-    private var trackerActivity: Activity? = null
-    private var broadcastReceiver: BroadcastReceiver? = null
+    private var trackerActivities: HashMap<String, Activity> = HashMap()
+    private var broadcastReceivers: HashMap<String, BroadcastReceiver> = HashMap()
 
-    fun setTrackerActivity(trackerActivity: Activity?) {
-        this.trackerActivity = trackerActivity
+    fun setTrackerActivity(activityName: String, trackerActivity: Activity?) {
+        trackerActivities[activityName] = trackerActivity ?: return
     }
 
-    fun setBroadcastReceiver(broadcastReceiver: BroadcastReceiver?) {
-        this.broadcastReceiver = broadcastReceiver
+    fun setBroadcastReceiver(broadcastReceiverName: String, broadcastReceiver: BroadcastReceiver?) {
+        broadcastReceivers[broadcastReceiverName] = broadcastReceiver ?: return
     }
 
-    fun getTrackerActivity(): Activity? {
-        return trackerActivity
+    fun getTrackerActivity(activityName: String?): Activity? {
+        return trackerActivities[activityName]
     }
 
-    fun getBroadcastReceiver(): BroadcastReceiver? {
-        return broadcastReceiver
+    fun getBroadcastReceiver(broadcastReceiverName: String?): BroadcastReceiver? {
+        return broadcastReceivers[broadcastReceiverName]
     }
 
     companion object {

@@ -9,7 +9,11 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.pushtemplate
+package com.adobe.marketing.mobile.services.ui.notification
 
-internal class BasicPushTemplate(messageData: MutableMap<String, String>) :
-    AEPPushTemplate(messageData)
+/**
+ * Exception indicating that construction of a push notification failed.
+ *
+ * @param message [String] containing the message for the new exception
+ */
+class NotificationConstructionFailedException(message: String?) : Exception(message)

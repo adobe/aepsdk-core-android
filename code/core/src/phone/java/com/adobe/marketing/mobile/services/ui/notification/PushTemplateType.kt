@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.pushtemplate
+package com.adobe.marketing.mobile.services.ui.notification
 
 /**
  * Enum class representing the different types of out-of-the-box push templates.

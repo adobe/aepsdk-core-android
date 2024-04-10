@@ -47,7 +47,6 @@ apiValidation {
 
 dependencies {
     implementation(BuildConstants.Dependencies.ANDROIDX_LIFECYCLE_KTX)
-    implementation("com.google.firebase:firebase-messaging-ktx:23.4.1")
 
     androidTestImplementation(BuildConstants.Dependencies.MOCKITO_CORE)
     //TODO: Consider moving this to the aep-library plugin later

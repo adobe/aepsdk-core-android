@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.pushtemplate
+package com.adobe.marketing.mobile.services.ui.notification
 
 import android.content.Context
 import android.os.Build
@@ -17,16 +17,15 @@ import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 
 /**
- * Class responsible for constructing a legacy (non [RemoteViews] based) push notification.
+ * Object responsible for constructing a legacy (non [RemoteViews] based) push notification.
  */
-internal class LegacyNotificationBuilder : TemplateNotificationBuilder() {
-    companion object {
+internal object LegacyNotificationBuilder {
         private const val SELF_TAG = "LegacyNotificationBuilder"
 
-        private fun construct(
+        fun construct(
             context: Context,
-            trackerActivityName: String?,
-            pushTemplate: BasicPushTemplate?
+            pushTemplate: BasicPushTemplate?,
+            trackerActivityName: String?
         ): NotificationCompat.Builder {
             if (pushTemplate == null) {
                 throw NotificationConstructionFailedException(
@@ -40,7 +39,6 @@ internal class LegacyNotificationBuilder : TemplateNotificationBuilder() {
                 "Building a legacy style push notification."
             )
 
-            val trackerActivity = PushTemplateTrackers.getInstance().getTrackerActivity(trackerActivityName)
             // create the notification channel
             val channelId: String = createChannelAndGetChannelID(
                 context,
@@ -82,7 +80,7 @@ internal class LegacyNotificationBuilder : TemplateNotificationBuilder() {
             // add any action buttons defined for the notification
             addActionButtons(
                 context,
-                trackerActivity,
+                trackerActivityName,
                 builder,
                 pushTemplate.getActionButtons(),
                 pushTemplate.getMessageId(),
@@ -98,7 +96,7 @@ internal class LegacyNotificationBuilder : TemplateNotificationBuilder() {
             // assign a click action pending intent to the notification
             setNotificationClickAction(
                 context,
-                trackerActivity,
+                trackerActivityName,
                 builder,
                 pushTemplate.getMessageId(),
                 pushTemplate.getDeliveryId(),
@@ -110,7 +108,7 @@ internal class LegacyNotificationBuilder : TemplateNotificationBuilder() {
             // set notification delete action
             setNotificationDeleteAction(
                 context,
-                trackerActivity,
+                trackerActivityName,
                 builder,
                 pushTemplate.getMessageId(),
                 pushTemplate.getDeliveryId()
@@ -126,15 +124,4 @@ internal class LegacyNotificationBuilder : TemplateNotificationBuilder() {
 
             return builder
         }
-    }
-
-    override fun build(
-        context: Context
-    ): NotificationCompat.Builder {
-        return construct(
-            context,
-            trackerActivityName,
-            pushTemplate as? BasicPushTemplate
-        )
-    }
 }

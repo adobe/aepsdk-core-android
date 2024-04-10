@@ -1030,24 +1030,31 @@ public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSe
 	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 }
 
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/AEPPushPayload {
+public final class com/adobe/marketing/mobile/services/ui/notification/AEPPushPayload {
 	public static final field $stable I
-	public fun <init> (Lcom/google/firebase/messaging/RemoteMessage;)V
+	public static final field Companion Lcom/adobe/marketing/mobile/services/ui/notification/AEPPushPayload$Companion;
+	public fun <init> (Ljava/util/Map;)V
 	public final fun getDeliveryId ()Ljava/lang/String;
-	public final fun getMessage ()Lcom/google/firebase/messaging/RemoteMessage;
 	public final fun getMessageData ()Ljava/util/Map;
 	public final fun getMessageId ()Ljava/lang/String;
+	public static final fun getNotificationCompatPriorityMap ()Ljava/util/Map;
+	public static final fun getNotificationCompatVisibilityMap ()Ljava/util/Map;
 	public final fun getTag ()Ljava/lang/String;
 }
 
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/NotificationConstructionFailedException : java/lang/Exception {
+public final class com/adobe/marketing/mobile/services/ui/notification/AEPPushPayload$Companion {
+	public final fun getNotificationCompatPriorityMap ()Ljava/util/Map;
+	public final fun getNotificationCompatVisibilityMap ()Ljava/util/Map;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/notification/NotificationConstructionFailedException : java/lang/Exception {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;)V
 }
 
-public final class com/adobe/marketing/mobile/services/ui/pushtemplate/TemplateUtils {
+public final class com/adobe/marketing/mobile/services/ui/notification/TemplateUtils {
 	public static final field $stable I
-	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/pushtemplate/TemplateUtils;
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/notification/TemplateUtils;
 	public static final fun constructNotificationBuilder (Landroid/content/Intent;)Landroidx/core/app/NotificationCompat$Builder;
 	public static final fun constructNotificationBuilder (Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)Landroidx/core/app/NotificationCompat$Builder;
 }

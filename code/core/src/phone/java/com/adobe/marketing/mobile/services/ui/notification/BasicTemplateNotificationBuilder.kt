@@ -9,11 +9,9 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.pushtemplate
+package com.adobe.marketing.mobile.services.ui.notification
 
-import android.app.Activity
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -26,14 +24,13 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.StringUtils
 
 /**
- * Class responsible for constructing a [NotificationCompat.Builder] object containing a basic push template notification.
+ * Object responsible for constructing a [NotificationCompat.Builder] object containing a basic push template notification.
  */
-internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() {
-    companion object {
+internal object BasicTemplateNotificationBuilder{
         private const val SELF_TAG = "BasicTemplateNotificationBuilder"
 
         @Throws(NotificationConstructionFailedException::class)
-        private fun construct(
+        fun construct(
             context: Context,
             intent: Intent?,
             pushTemplate: BasicPushTemplate?,
@@ -51,20 +48,18 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
                 "Building a basic template push notification."
             )
 
-            val trackerActivity = PushTemplateTrackers.getInstance().getTrackerActivity(trackerActivityName)
-            val broadcastReceiver = PushTemplateTrackers.getInstance().getBroadcastReceiver(broadcastReceiverName)
             return if (pushTemplate != null) {
-                construct(context, trackerActivity, broadcastReceiver, pushTemplate)
+                construct(context, trackerActivityName, broadcastReceiverName, pushTemplate)
             } else {
-                construct(context, trackerActivity, broadcastReceiver, intent!!)
+                construct(context, trackerActivityName, broadcastReceiverName, intent!!)
             }
         }
 
         @Throws(NotificationConstructionFailedException::class)
         private fun construct(
             context: Context,
-            trackerActivity: Activity?,
-            broadcastReceiver: BroadcastReceiver?,
+            trackerActivityName: String?,
+            broadcastReceiverName: String?,
             pushTemplate: BasicPushTemplate
         ): NotificationCompat.Builder {
             val channelIdToUse = createChannelAndGetChannelID(
@@ -138,7 +133,7 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             // add any action buttons defined for the notification
             addActionButtons(
                 context,
-                trackerActivity,
+                trackerActivityName,
                 builder,
                 pushTemplate.getActionButtons(),
                 pushTemplate.getMessageId(),
@@ -153,8 +148,8 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
                     val remindIntent =
                         createRemindPendingIntent(
                             context,
-                            trackerActivity,
-                            broadcastReceiver,
+                            trackerActivityName,
+                            broadcastReceiverName,
                             channelIdToUse,
                             pushTemplate
                         )
@@ -167,7 +162,7 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             setSound(context, builder, pushTemplate.getSound())
             setNotificationClickAction(
                 context,
-                trackerActivity,
+                trackerActivityName,
                 builder,
                 pushTemplate.getMessageId(),
                 pushTemplate.getDeliveryId(),
@@ -177,7 +172,7 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             )
             setNotificationDeleteAction(
                 context,
-                trackerActivity,
+                trackerActivityName,
                 builder,
                 pushTemplate.getMessageId(),
                 pushTemplate.getDeliveryId()
@@ -196,8 +191,8 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
         @Throws(NotificationConstructionFailedException::class)
         private fun construct(
             context: Context,
-            trackerActivity: Activity?,
-            broadcastReceiver: BroadcastReceiver?,
+            trackerActivityName: String?,
+            broadcastReceiverName: String?,
             intent: Intent
         ): NotificationCompat.Builder {
             val intentExtras = intent.extras
@@ -301,7 +296,7 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             // add any action buttons defined for the notification
             addActionButtons(
                 context,
-                trackerActivity,
+                trackerActivityName,
                 builder,
                 actionButtonsString,
                 messageId,
@@ -312,9 +307,9 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
 
             // add a remind later button if we have a label and a timestamp
             if (!StringUtils.isNullOrEmpty(remindLaterText) && remindLaterTimestamp > 0) {
-                broadcastReceiver?.let {
+                broadcastReceiverName?.let {
                     val remindPendingIntent =
-                        createRemindPendingIntent(context, intentExtras, broadcastReceiver)
+                        createRemindPendingIntent(context, intentExtras, broadcastReceiverName)
                     builder.addAction(0, remindLaterText, remindPendingIntent)
                 }
             }
@@ -323,12 +318,12 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
             // sound on the notification channel
             setSound(context, builder, customSound)
             setNotificationClickAction(
-                context, trackerActivity, builder, messageId, deliveryId, actionUri, tag, sticky
+                context, trackerActivityName, builder, messageId, deliveryId, actionUri, tag, sticky
             )
 
             // set notification delete action
             setNotificationDeleteAction(
-                context, trackerActivity, builder, messageId, deliveryId
+                context, trackerActivityName, builder, messageId, deliveryId
             )
 
             // if API level is below 26 (prior to notification channels) then notification priority is
@@ -343,33 +338,32 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
 
         private fun createRemindPendingIntent(
             context: Context,
-            trackerActivity: Activity?,
-            broadcastReceiver: BroadcastReceiver?,
+            trackerActivityName: String?,
+            broadcastReceiverName: String?,
             channelId: String,
             pushTemplate: AEPPushTemplate
         ): PendingIntent? {
-            val activity = trackerActivity
-                ?: return null
-            val receiver = broadcastReceiver
-                ?: return null
+            if (broadcastReceiverName.isNullOrEmpty()) {
+                return null
+            }
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
                 "Creating a remind later pending intent from a push template object."
             )
-            val remindIntent = Intent(
-                PushTemplateConstants.IntentActions.REMIND_LATER_CLICKED,
-                null,
-                context,
-                activity::class.java
-            )
-            remindIntent.setClass(context, receiver::class.java)
+
+            val remindIntent = Intent(PushTemplateConstants.IntentActions.REMIND_LATER_CLICKED)
+            broadcastReceiverName.let {
+                val broadcastReceiver = Class.forName(broadcastReceiverName)
+                remindIntent.setClass(context.applicationContext, broadcastReceiver::class.java)
+            }
+
             remindIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
             remindIntent.putExtra(
                 PushTemplateConstants.IntentKeys.TYPE, pushTemplate.getTemplateType()?.value
             )
-            remindIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, activity::class.java.name)
-            remindIntent.putExtra(PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME, broadcastReceiver::class.java.name)
+            remindIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityName)
+            remindIntent.putExtra(PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME, broadcastReceiverName)
             remindIntent.putExtra(
                 PushTemplateConstants.IntentKeys.IMAGE_URI, pushTemplate.getImageUrl()
             )
@@ -461,20 +455,19 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
         private fun createRemindPendingIntent(
             context: Context,
             intentExtras: Bundle,
-            broadcastReceiver: BroadcastReceiver
+            broadcastReceiverName: String?
         ): PendingIntent {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
                 "Creating a remind later pending intent from an intent extras bundle."
             )
-            val remindIntent = Intent(
-                PushTemplateConstants.IntentActions.REMIND_LATER_CLICKED,
-                null,
-                context,
-                broadcastReceiver::class.java
-            )
-            remindIntent.setClass(context, broadcastReceiver::class.java)
+
+            val remindIntent = Intent(PushTemplateConstants.IntentActions.REMIND_LATER_CLICKED)
+            broadcastReceiverName?.let {
+                val broadcastReceiverClass = Class.forName(broadcastReceiverName)
+                remindIntent.setClass(context.applicationContext, broadcastReceiverClass::class.java)
+            }
             remindIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
             remindIntent.putExtras(intentExtras)
             return PendingIntent.getBroadcast(
@@ -484,17 +477,4 @@ internal class BasicTemplateNotificationBuilder : TemplateNotificationBuilder() 
                 PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
         }
-    }
-
-    override fun build(
-        context: Context
-    ): NotificationCompat.Builder {
-        return construct(
-            context,
-            intent,
-            pushTemplate as? BasicPushTemplate,
-            trackerActivityName,
-            broadcastReceiverName
-        )
-    }
 }

@@ -9,9 +9,8 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.pushtemplate
+package com.adobe.marketing.mobile.services.ui.notification
 
-import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
@@ -23,13 +22,11 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
 
 /**
- * Class responsible for constructing a [NotificationCompat.Builder] object containing a auto carousel push template notification.
+ * Object responsible for constructing a [NotificationCompat.Builder] object containing a auto carousel push template notification.
  */
-internal class AutoCarouselTemplateNotificationBuilder :
-    TemplateNotificationBuilder() {
-    companion object {
+internal object AutoCarouselTemplateNotificationBuilder {
         private const val SELF_TAG = "AutoCarouselTemplateNotificationBuilder"
-        private fun construct(
+        fun construct(
             context: Context,
             pushTemplate: CarouselPushTemplate?,
             trackerActivityName: String?,
@@ -51,13 +48,12 @@ internal class AutoCarouselTemplateNotificationBuilder :
                     "push template is null, cannot build a notification."
                 )
 
-            val trackerActivity = PushTemplateTrackers.getInstance().getTrackerActivity(trackerActivityName)
             // load images into the carousel
             val items: ArrayList<CarouselPushTemplate.CarouselItem> =
                 pushTemplate.getCarouselItems()
             val downloadedImageUris = populateImages(
                 context,
-                trackerActivity,
+                trackerActivityName,
                 cacheService,
                 expandedLayout,
                 pushTemplate,
@@ -139,7 +135,7 @@ internal class AutoCarouselTemplateNotificationBuilder :
 
         private fun populateImages(
             context: Context,
-            activity: Activity?,
+            activityName: String?,
             cacheService: CacheService,
             expandedLayout: RemoteViews,
             pushTemplate: CarouselPushTemplate,
@@ -166,11 +162,11 @@ internal class AutoCarouselTemplateNotificationBuilder :
                 carouselItem.setTextViewText(R.id.carousel_item_caption, item.captionText)
 
                 // assign a click action pending intent for each carousel item if we have a tracker activity
-                activity?.let {
+                activityName?.let {
                     val interactionUri = item.interactionUri ?: pushTemplate.getActionUri()
                     setRemoteViewClickAction(
                         context,
-                        activity,
+                        activityName,
                         carouselItem,
                         R.id.carousel_item_image_view,
                         pushTemplate.getMessageId(),
@@ -196,11 +192,4 @@ internal class AutoCarouselTemplateNotificationBuilder :
             )
             return downloadedImageUris
         }
-    }
-
-    override fun build(
-        context: Context
-    ): NotificationCompat.Builder {
-        return construct(context, pushTemplate as? CarouselPushTemplate, trackerActivityName, broadcastReceiverName)
-    }
 }

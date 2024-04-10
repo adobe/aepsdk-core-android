@@ -9,9 +9,8 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.pushtemplate
+package com.adobe.marketing.mobile.services.ui.notification
 
-import android.app.Activity
 import android.app.PendingIntent
 import android.app.TaskStackBuilder
 import android.content.ContentResolver
@@ -35,7 +34,6 @@ import com.adobe.marketing.mobile.services.caching.CacheExpiry
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.util.StringUtils
 import com.adobe.marketing.mobile.util.UrlUtils
-import com.google.android.gms.common.util.CollectionUtils
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -393,7 +391,7 @@ private fun scaleBitmap(downloadedBitmap: Bitmap): Bitmap {
  * Creates a pending intent for a notification.
  *
  * @param context the application [Context]
- * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
+ * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
  * @param messageId [String] containing the message id from the received push notification
  * @param deliveryId `String` containing the delivery id from the received push
  * notification
@@ -404,7 +402,7 @@ private fun scaleBitmap(downloadedBitmap: Bitmap): Bitmap {
  */
 private fun createPendingIntent(
     context: Context,
-    trackerActivity: Activity?,
+    trackerActivityName: String?,
     messageId: String,
     deliveryId: String,
     actionUri: String?,
@@ -413,7 +411,8 @@ private fun createPendingIntent(
     stickyNotification: Boolean
 ): PendingIntent? {
     val intent = Intent(PushTemplateConstants.NotificationAction.BUTTON_CLICKED)
-    trackerActivity?.let {
+    trackerActivityName?.let {
+        val trackerActivity = Class.forName(trackerActivityName)
         intent.setClass(context.applicationContext, trackerActivity::class.java)
     }
     intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -706,7 +705,7 @@ private fun setElementColor(
  * Sets the click action for the specified view in the custom push template [RemoteViews].
  *
  * @param context the application [Context]
- * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
+ * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
  * @param pushTemplateRemoteView `RemoteViews` the parent view representing a push
  * template notification
  * @param targetViewResourceId [Int] containing the resource id of the view to attach the
@@ -720,7 +719,7 @@ private fun setElementColor(
  */
 internal fun setRemoteViewClickAction(
     context: Context,
-    trackerActivity: Activity?,
+    trackerActivityName: String?,
     pushTemplateRemoteView: RemoteViews,
     targetViewResourceId: Int,
     messageId: String,
@@ -749,7 +748,7 @@ internal fun setRemoteViewClickAction(
     val pendingIntent: PendingIntent? =
         createPendingIntent(
             context,
-            trackerActivity,
+            trackerActivityName,
             messageId,
             deliveryId,
             actionUri,
@@ -764,7 +763,7 @@ internal fun setRemoteViewClickAction(
  * Adds action buttons for the notification.
  *
  * @param context the application [Context]
- * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
+ * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
  * @param builder the [NotificationCompat.Builder] to attach the action buttons
  * @param actionButtonsString `String` a JSON string containing action buttons to attach
  * to the notification
@@ -777,7 +776,7 @@ internal fun setRemoteViewClickAction(
  */
 internal fun addActionButtons(
     context: Context,
-    trackerActivity: Activity?,
+    trackerActivityName: String?,
     builder: NotificationCompat.Builder,
     actionButtonsString: String?,
     messageId: String,
@@ -797,7 +796,7 @@ internal fun addActionButtons(
             ) {
                 createPendingIntent(
                     context,
-                    trackerActivity,
+                    trackerActivityName,
                     messageId,
                     deliveryId,
                     eachButton.link,
@@ -808,7 +807,7 @@ internal fun addActionButtons(
             } else {
                 createPendingIntent(
                     context,
-                    trackerActivity,
+                    trackerActivityName,
                     messageId,
                     deliveryId,
                     null,
@@ -825,7 +824,7 @@ internal fun addActionButtons(
  * Sets the click action for the notification.
  *
  * @param context the application [Context]
- * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
+ * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
  * @param notificationBuilder the [NotificationCompat.Builder] to attach the click action
  * @param messageId [String] containing the message id from the received push notification
  * @param deliveryId `String` containing the delivery id from the received push
@@ -836,7 +835,7 @@ internal fun addActionButtons(
  */
 internal fun setNotificationClickAction(
     context: Context,
-    trackerActivity: Activity?,
+    trackerActivityName: String?,
     notificationBuilder: NotificationCompat.Builder,
     messageId: String,
     deliveryId: String,
@@ -847,7 +846,7 @@ internal fun setNotificationClickAction(
     val pendingIntent: PendingIntent? =
         createPendingIntent(
             context,
-            trackerActivity,
+            trackerActivityName,
             messageId,
             deliveryId,
             actionUri,
@@ -862,7 +861,7 @@ internal fun setNotificationClickAction(
  * Sets the delete action for the notification.
  *
  * @param context the application [Context]
- * @param trackerActivity the [Activity] to set in the created pending intent for tracking purposes
+ * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
  * @param builder the [NotificationCompat.Builder] to attach the delete action
  * @param messageId `String` containing the message id from the received push notification
  * @param deliveryId `String` containing the delivery id from the received push
@@ -870,14 +869,16 @@ internal fun setNotificationClickAction(
  */
 internal fun setNotificationDeleteAction(
     context: Context,
-    trackerActivity: Activity?,
+    trackerActivityName: String?,
     builder: NotificationCompat.Builder,
     messageId: String,
     deliveryId: String
 ) {
-    val activity: Activity = trackerActivity ?: return
     val deleteIntent = Intent(PushTemplateConstants.NotificationAction.DISMISSED)
-    deleteIntent.setClass(context, activity::class.java)
+    trackerActivityName?.let {
+        val trackerActivity = Class.forName(trackerActivityName)
+        deleteIntent.setClass(context.applicationContext, trackerActivity::class.java)
+    }
     deleteIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
     deleteIntent.putExtra(PushTemplateConstants.Tracking.Keys.MESSAGE_ID, messageId)
     deleteIntent.putExtra(PushTemplateConstants.Tracking.Keys.DELIVERY_ID, deliveryId)
@@ -906,16 +907,12 @@ internal fun fallbackToBasicNotification(
         downloadedImageUris.size,
         PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT
     )
-    if (!CollectionUtils.isEmpty(downloadedImageUris)) {
+    if (downloadedImageUris.isNotEmpty()) {
         // use the first downloaded image (if available) for the basic template notification
         pushTemplate.modifyData(
             PushTemplateConstants.PushPayloadKeys.IMAGE_URL, downloadedImageUris[0].toString()
         )
     }
     val basicPushTemplate = BasicPushTemplate(pushTemplate.data)
-    val basicNotificationBuilder = BasicTemplateNotificationBuilder()
-        .pushTemplate(basicPushTemplate)
-        .trackerActivityName(trackerActivityName)
-        .broadcastReceiverName(broadcastReceiverName)
-    return basicNotificationBuilder.build(context)
+    return BasicTemplateNotificationBuilder.construct(context, null, basicPushTemplate, trackerActivityName, broadcastReceiverName)
 }

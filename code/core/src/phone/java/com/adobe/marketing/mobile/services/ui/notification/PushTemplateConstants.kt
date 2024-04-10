@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.pushtemplate
+package com.adobe.marketing.mobile.services.ui.notification
 
 /**
  * This object holds all constant values for handling out-of-the-box push template notifications
@@ -18,7 +18,6 @@ internal object PushTemplateConstants {
     const val LOG_TAG = "AEPSDK Push Templates"
     const val CACHE_BASE_DIR = "pushtemplates"
     const val PUSH_IMAGE_CACHE = "pushimagecache"
-    const val DEFAULT_NOTIFICATION_IMPORTANCE = 3
     const val DEFAULT_CHANNEL_ID = "AEPSDKPushChannel"
 
     // When no channel name is received from the push notification, this default channel name is

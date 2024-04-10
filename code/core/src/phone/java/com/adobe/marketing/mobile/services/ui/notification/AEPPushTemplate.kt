@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.pushtemplate
+package com.adobe.marketing.mobile.services.ui.notification
 
 import android.app.NotificationManager
 import android.os.Build
@@ -80,11 +80,9 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
     private val body: String
     private val sound: String?
     private var badgeCount = 0
-    private var notificationPriority = NotificationCompat.PRIORITY_DEFAULT
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    private var notificationImportance = NotificationManager.IMPORTANCE_DEFAULT
-    private var notificationVisibility = NotificationCompat.VISIBILITY_PRIVATE
+    private val notificationPriority: Int?
+    private val notificationImportance: Int?
+    private val notificationVisibility: Int?
     private val channelId: String?
     private val smallIcon: String?
     private val largeIcon: String?
@@ -241,15 +239,13 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
                 e.localizedMessage
             )
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            notificationImportance = getNotificationImportanceFromString(
-                data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
-            )
-        } else {
-            notificationPriority = NotificationPriority.from(
-                data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
-            )
-        }
+        notificationImportance =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) getNotificationImportanceFromString(
+                data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]) else null
+
+        notificationPriority = NotificationPriority.from(
+            data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
+        )
 
         notificationVisibility = getNotificationVisibilityFromString(
             data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_VISIBILITY]
@@ -349,16 +345,12 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
     }
 
     fun getNotificationImportance(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            notificationImportance
-        } else {
-            // return default importance of "3" for versions < API 24
-            PushTemplateConstants.DEFAULT_NOTIFICATION_IMPORTANCE
-        }
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && notificationImportance != null) notificationImportance else NotificationManager.IMPORTANCE_DEFAULT
+
     }
 
     fun getNotificationVisibility(): Int {
-        return notificationVisibility
+        return notificationVisibility ?: NotificationCompat.VISIBILITY_PRIVATE
     }
 
     fun getActionType(): ActionType? {
@@ -383,7 +375,7 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private fun getNotificationImportanceFromString(priority: String?): Int {
-        return if (StringUtils.isNullOrEmpty(priority)) NotificationManager.IMPORTANCE_DEFAULT else notificationImportanceMap[priority]
+        return if (priority.isNullOrEmpty()) NotificationManager.IMPORTANCE_DEFAULT else notificationImportanceMap[priority]
             ?: return NotificationManager.IMPORTANCE_DEFAULT
     }
 
@@ -406,44 +398,27 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
         private const val ACTION_BUTTON_CAPACITY = 3
 
         @RequiresApi(api = Build.VERSION_CODES.N)
-        val notificationImportanceMap: HashMap<String?, Int?> = object : HashMap<String?, Int?>() {
-            init {
-                put(NotificationPriority.PRIORITY_MIN, NotificationManager.IMPORTANCE_MIN)
-                put(NotificationPriority.PRIORITY_LOW, NotificationManager.IMPORTANCE_LOW)
-                put(
-                    NotificationPriority.PRIORITY_DEFAULT,
-                    NotificationManager.IMPORTANCE_DEFAULT
-                )
-                put(NotificationPriority.PRIORITY_HIGH, NotificationManager.IMPORTANCE_HIGH)
-                put(NotificationPriority.PRIORITY_MAX, NotificationManager.IMPORTANCE_MAX)
-            }
-        }
+        val notificationImportanceMap: Map<String?, Int?> = mapOf(
+            NotificationPriority.PRIORITY_MIN to NotificationManager.IMPORTANCE_MIN,
+            NotificationPriority.PRIORITY_LOW to NotificationManager.IMPORTANCE_LOW,
+            NotificationPriority.PRIORITY_DEFAULT to NotificationManager.IMPORTANCE_DEFAULT,
+            NotificationPriority.PRIORITY_HIGH to NotificationManager.IMPORTANCE_HIGH,
+            NotificationPriority.PRIORITY_MAX to NotificationManager.IMPORTANCE_MAX
+        )
 
-        val notificationVisibilityMap: HashMap<String?, Int?> = object : HashMap<String?, Int?>() {
-            init {
-                put(
-                    NotificationVisibility.PRIVATE,
-                    NotificationCompat.VISIBILITY_PRIVATE
-                )
-                put(
-                    NotificationVisibility.PUBLIC,
-                    NotificationCompat.VISIBILITY_PUBLIC
-                )
-                put(
-                    NotificationVisibility.SECRET,
-                    NotificationCompat.VISIBILITY_SECRET
-                )
-            }
-        }
-        val notificationPriorityMap: HashMap<String?, Int?> = object : HashMap<String?, Int?>() {
-            init {
-                put(NotificationPriority.PRIORITY_MIN, NotificationCompat.PRIORITY_MIN)
-                put(NotificationPriority.PRIORITY_LOW, NotificationCompat.PRIORITY_LOW)
-                put(NotificationPriority.PRIORITY_DEFAULT, NotificationCompat.PRIORITY_DEFAULT)
-                put(NotificationPriority.PRIORITY_HIGH, NotificationCompat.PRIORITY_HIGH)
-                put(NotificationPriority.PRIORITY_MAX, NotificationCompat.PRIORITY_MAX)
-            }
-        }
+        val notificationVisibilityMap: Map<String?, Int?> = mapOf(
+            NotificationVisibility.PRIVATE to NotificationCompat.VISIBILITY_PRIVATE,
+            NotificationVisibility.PUBLIC to NotificationCompat.VISIBILITY_PUBLIC,
+            NotificationVisibility.SECRET to NotificationCompat.VISIBILITY_SECRET
+        )
+
+        val notificationPriorityMap: Map<String?, Int?> = mapOf(
+            NotificationPriority.PRIORITY_MIN to NotificationCompat.PRIORITY_MIN,
+            NotificationPriority.PRIORITY_LOW to NotificationCompat.PRIORITY_LOW,
+            NotificationPriority.PRIORITY_DEFAULT to NotificationCompat.PRIORITY_DEFAULT,
+            NotificationPriority.PRIORITY_HIGH to NotificationCompat.PRIORITY_HIGH,
+            NotificationPriority.PRIORITY_MAX to NotificationCompat.PRIORITY_MAX
+        )
 
         private fun getActionTypeFromString(type: String?): ActionType {
             if (StringUtils.isNullOrEmpty(type)) {
@@ -464,7 +439,7 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
                     "Exception in converting actionButtons json string to json object, Error :" +
-                        " actionButtons is null"
+                            " actionButtons is null"
                 )
                 return null
             }

@@ -92,40 +92,6 @@ internal fun MessageFrame(
                 .fillMaxSize()
                 .offset(x = horizontalOffset, y = verticalOffset)
                 .background(Color.Transparent)
-                .draggable(
-                    enabled = allowGestures,
-                    state = rememberDraggableState { delta ->
-                        offsetX.value += delta
-                    },
-                    orientation = Orientation.Horizontal,
-                    onDragStopped = { velocity ->
-                        gestureTracker.onDragFinished(
-                            offsetX.value,
-                            offsetY.value,
-                            velocity
-                        )
-                        dragVelocity.value = 0f
-                        offsetY.value = 0f
-                        offsetX.value = 0f
-                    }
-                )
-                .draggable(
-                    enabled = allowGestures,
-                    state = rememberDraggableState { delta ->
-                        offsetY.value += delta
-                    },
-                    orientation = Orientation.Vertical,
-                    onDragStopped = { velocity ->
-                        gestureTracker.onDragFinished(
-                            offsetX.value,
-                            offsetY.value,
-                            velocity
-                        )
-                        dragVelocity.value = 0f
-                        offsetY.value = 0f
-                        offsetX.value = 0f
-                    }
-                )
                 .testTag(MessageTestTags.MESSAGE_FRAME),
             horizontalArrangement = MessageArrangementMapper.getHorizontalArrangement(
                 inAppMessageSettings.horizontalAlignment
@@ -135,7 +101,45 @@ internal fun MessageFrame(
             // The content of the InAppMessage. This needs to be placed inside a Card with .99 alpha to ensure that
             // the WebView message is clipped to the rounded corners for API versions 22 and below. This does not
             // affect the appearance of the message on API versions 23 and above.
-            Card(modifier = Modifier.clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp)).alpha(0.99f)) {
+            Card(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
+                    .alpha(0.99f)
+                    .draggable(
+                        enabled = allowGestures,
+                        state = rememberDraggableState { delta ->
+                            offsetX.value += delta
+                        },
+                        orientation = Orientation.Horizontal,
+                        onDragStopped = { velocity ->
+                            gestureTracker.onDragFinished(
+                                offsetX.value,
+                                offsetY.value,
+                                velocity
+                            )
+                            dragVelocity.value = 0f
+                            offsetY.value = 0f
+                            offsetX.value = 0f
+                        }
+                    )
+                    .draggable(
+                        enabled = allowGestures,
+                        state = rememberDraggableState { delta ->
+                            offsetY.value += delta
+                        },
+                        orientation = Orientation.Vertical,
+                        onDragStopped = { velocity ->
+                            gestureTracker.onDragFinished(
+                                offsetX.value,
+                                offsetY.value,
+                                velocity
+                            )
+                            dragVelocity.value = 0f
+                            offsetY.value = 0f
+                            offsetX.value = 0f
+                        }
+                    )
+            ) {
                 MessageContent(inAppMessageSettings, onCreated)
             }
 

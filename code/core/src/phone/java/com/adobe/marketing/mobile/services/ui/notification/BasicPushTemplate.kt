@@ -11,5 +11,36 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
-internal class BasicPushTemplate(messageData: MutableMap<String, String>) :
-    AEPPushTemplate(messageData)
+import android.content.Intent
+import com.adobe.marketing.mobile.util.DataReader
+import com.adobe.marketing.mobile.util.StringUtils
+internal class BasicPushTemplate : AEPPushTemplate {
+    // Optional, If present, show a "remind later" button using the value provided as its label
+    internal var remindLaterText: String?
+        private set
+
+    // Optional, If present, schedule this notification to be re-delivered at this epoch timestamp
+    // (in seconds) provided.
+    internal var remindLaterTimestamp: Long?
+        private set
+
+    constructor(data: MutableMap<String, String>?) : super(data) {
+        remindLaterText = DataReader.optString(
+            data, PushTemplateConstants.PushPayloadKeys.REMIND_LATER_TEXT, null
+        )
+        val timestampString = DataReader.optString(
+            data, PushTemplateConstants.PushPayloadKeys.REMIND_LATER_TIMESTAMP, null
+        )
+        remindLaterTimestamp =
+            if (StringUtils.isNullOrEmpty(timestampString)) PushTemplateConstants.DefaultValues.DEFAULT_REMIND_LATER_TIMESTAMP else timestampString.toLong()
+    }
+
+    constructor(intent: Intent?) : super(intent) {
+        val intentExtras =
+            intent?.extras ?: throw IllegalArgumentException("Intent extras are null")
+        remindLaterTimestamp =
+            intentExtras.getLong(PushTemplateConstants.IntentKeys.REMIND_TS)
+        remindLaterText =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.REMIND_LABEL)
+    }
+}

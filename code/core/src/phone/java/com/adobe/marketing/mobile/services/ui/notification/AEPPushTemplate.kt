@@ -12,24 +12,19 @@
 package com.adobe.marketing.mobile.services.ui.notification
 
 import android.app.NotificationManager
+import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.StringUtils
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 
 /**
- * Class representing the push template notification message data payload.
- * This class is used to parse the push template data payload and provide the necessary information
+ * This class is used to parse the push template data payload or an intent and provide the necessary information
  * to build a notification.
- *
- * @param data [MutableMap] containing the push template notification message data payload
  */
-internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
+internal sealed class AEPPushTemplate {
     /** Enum to denote the type of action  */
     enum class ActionType {
         DEEPLINK, WEBURL, DISMISS, OPENAPP, NONE
@@ -40,7 +35,7 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
         val type: ActionType
 
         init {
-            this.type = getActionTypeFromString(type)
+            this.type = ActionType.valueOf(type ?: ActionType.NONE.name)
         }
     }
 
@@ -75,69 +70,116 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
         const val PRIVATE = "PRIVATE"
         const val SECRET = "SECRET"
     }
+    // Message data payload for the push template
+    internal lateinit var messageData: MutableMap<String, String>
+        private set
 
-    private val title: String
-    private val body: String
-    private val sound: String?
-    private var badgeCount = 0
-    private val notificationPriority: Int?
-    private val notificationImportance: Int?
-    private val notificationVisibility: Int?
-    private val channelId: String?
-    private val smallIcon: String?
-    private val largeIcon: String?
-    private val imageUrl: String?
-    private val actionType: ActionType?
-    private val actionUri: String?
-    private val actionButtonsString: String?
-    private val messageId: String
-    private val deliveryId: String
+    // Required, title of the message shown in the collapsed and expanded push template layouts
+    internal val title: String
 
-    // push template payload values
+    // Required, body of the message shown in the collapsed push template layout
+    internal val body: String
+
     // Required, Version of the payload assigned by the authoring UI.
-    private val payloadVersion: Int
+    internal var payloadVersion: Int?
+        private set
+
+    // begin optional values
+    // Optional, sound to play when the notification is shown
+    internal var sound: String?
+        private set
+
+    // Optional, number to show on the badge of the app
+    internal var badgeCount: Int = 0
+        private set
+
+    // Optional, priority of the notification
+    internal var notificationPriority: Int?
+        private set
+
+    // Optional, importance of the notification. Only used on Android N and above.
+    private var notificationImportance: Int?
+
+    // Optional, visibility of the notification
+    private var notificationVisibility: Int?
+
+    // Optional, notification channel to use when displaying the notification. Only used on Android O and above.
+    internal var channelId: String?
+        private set
+
+    // Optional, small icon for the notification
+    internal var smallIcon: String?
+        private set
+
+    // Optional, large icon for the notification
+    internal var largeIcon: String?
+        private set
+
+    // Optional, image to show in the notification
+    internal var imageUrl: String?
+        private set
+
+    // Optional, action type for the notification
+    private var actionType: ActionType?
+
+    // Optional, action uri for the notification
+    internal var actionUri: String?
+        private set
+
+    // Optional, action buttons for the notification
+    internal var actionButtonsString: String?
+        private set
 
     // Optional, Body of the message shown in the expanded message layout (setCustomBigContentView)
-    private val expandedBodyText: String?
+    internal var expandedBodyText: String?
+        private set
 
     // Optional, Text color for adb_body. Represented as six character hex, e.g. 00FF00
-    private val expandedBodyTextColor: String?
+    internal var expandedBodyTextColor: String?
+        private set
 
     // Optional, Text color for adb_title. Represented as six character hex, e.g. 00FF00
-    private val titleTextColor: String?
+    internal var titleTextColor: String?
+        private set
 
     // Optional, Color for the notification's small icon. Represented as six character hex, e.g.
     // 00FF00
-    private val smallIconColor: String?
+    internal var smallIconColor: String?
+        private set
 
     // Optional, Color for the notification's background. Represented as six character hex, e.g.
     // 00FF00
-    private val notificationBackgroundColor: String?
-
-    // Optional, If present, show a "remind later" button using the value provided as its label
-    private val remindLaterText: String?
-
-    // Optional, If present, schedule this notification to be re-delivered at this epoch timestamp
-    // (in seconds) provided.
-    private val remindLaterTimestamp: Long?
+    internal var notificationBackgroundColor: String?
+        private set
 
     // Optional, If present and a notification with the same tag is already being shown, the new
     // notification replaces the existing one in the notification drawer.
-    private val tag: String?
+    internal var tag: String?
+        private set
 
     // Optional, If present sets the "ticker" text, which is sent to accessibility services.
-    private val ticker: String?
+    internal var ticker: String?
+        private set
 
     // Optional, the type of push template this payload contains
-    private val templateType: PushTemplateType?
+    internal var templateType: PushTemplateType?
+        private set
 
     // Optional, when set to false or unset, the notification is automatically dismissed when the
     // user clicks it in the panel. When set to true, the notification persists even when the user
     // clicks it.
-    private val isNotificationSticky: Boolean?
+    internal var isNotificationSticky: Boolean?
+        private set
 
-    init {
+    /**
+     * Constructor to create a push template object from the data payload.
+     *
+     * @param data [Map] of key-value pairs representing the push template data payload
+     */
+    constructor(data: Map<String, String>?) {
         // fast fail (via IllegalArgumentException) if required data is not present
+        if (data.isNullOrEmpty()) throw IllegalArgumentException("Push template data is null.")
+        this.messageData = data.toMutableMap()
         val title = DataReader.getString(data, PushTemplateConstants.PushPayloadKeys.TITLE)
         if (title.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_title\" not found.")
         this.title = title
@@ -147,18 +189,11 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
             PushTemplateConstants.PushPayloadKeys.BODY
         )
         if (bodyText.isNullOrEmpty()) {
-            bodyText = DataReader.getString(data, PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY)
+            bodyText =
+                DataReader.getString(data, PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY)
         }
         if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_body\" or \"_msg\" not found.")
         this.body = bodyText
-
-        val messageId = DataReader.getString(data, PushTemplateConstants.Tracking.Keys.MESSAGE_ID)
-        if (messageId.isNullOrEmpty()) throw IllegalArgumentException("Required field \"_mId\" not found.")
-        this.messageId = messageId
-
-        val deliveryId = DataReader.getString(data, PushTemplateConstants.Tracking.Keys.DELIVERY_ID)
-        if (deliveryId.isNullOrEmpty()) throw IllegalArgumentException("Required field \"_dId\" not found.")
-        this.deliveryId = deliveryId
 
         val payloadVersion =
             DataReader.getString(
@@ -171,10 +206,12 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
         // optional push template data
         sound = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.SOUND, null)
         imageUrl = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.IMAGE_URL, null)
-        channelId =
-            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.CHANNEL_ID, null)
         actionUri =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_URI, null)
+        actionType = ActionType.valueOf(
+            data[PushTemplateConstants.PushPayloadKeys.ACTION_TYPE] ?: ActionType.NONE.name
+        )
+        actionButtonsString = data[PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS]
         var smallIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.SMALL_ICON, null)
         if (smallIcon.isNullOrEmpty()) {
@@ -192,6 +229,43 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
         this.smallIcon = smallIcon
         largeIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.LARGE_ICON, null)
+        try {
+            val count = data[PushTemplateConstants.PushPayloadKeys.BADGE_NUMBER]
+            count?.let {
+                badgeCount = count.toInt()
+            }
+        } catch (e: NumberFormatException) {
+            Log.debug(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Exception in converting notification badge count to int - %s",
+                e.localizedMessage
+            )
+        }
+        notificationPriority = NotificationPriority.from(
+            data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
+        )
+        notificationImportance =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) getNotificationImportanceFromString(
+                data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
+            ) else null
+
+        notificationVisibility = getNotificationVisibilityFromString(
+            data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_VISIBILITY]
+        )
+        channelId =
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.CHANNEL_ID, null)
+        templateType =
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TEMPLATE_TYPE, null)
+                ?.let { PushTemplateType.fromString(it) }
+        tag = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TAG, null)
+        val stickyValue =
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.STICKY, null)
+        isNotificationSticky =
+            if (StringUtils.isNullOrEmpty(stickyValue)) false else java.lang.Boolean.parseBoolean(
+                stickyValue
+            )
+        ticker = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TICKER, null)
         expandedBodyText = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.EXPANDED_BODY_TEXT, null
         )
@@ -209,169 +283,92 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
             PushTemplateConstants.PushPayloadKeys.NOTIFICATION_BACKGROUND_COLOR,
             null
         )
-        remindLaterText = DataReader.optString(
-            data, PushTemplateConstants.PushPayloadKeys.REMIND_LATER_TEXT, ""
-        )
-        val timestampString = DataReader.optString(
-            data, PushTemplateConstants.PushPayloadKeys.REMIND_LATER_TIMESTAMP, null
-        )
-        remindLaterTimestamp =
-            if (StringUtils.isNullOrEmpty(timestampString)) PushTemplateConstants.DefaultValues.DEFAULT_REMIND_LATER_TIMESTAMP else timestampString.toLong()
-        tag = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TAG, null)
-        ticker = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TICKER, null)
-        templateType = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TEMPLATE_TYPE, null)?.let { PushTemplateType.fromString(it) }
-        val stickyValue =
-            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.STICKY, null)
-        isNotificationSticky =
-            if (StringUtils.isNullOrEmpty(stickyValue)) false else java.lang.Boolean.parseBoolean(
-                stickyValue
-            )
-        try {
-            val count = data[PushTemplateConstants.PushPayloadKeys.BADGE_NUMBER]
-            count?.let {
-                badgeCount = count.toInt()
-            }
-        } catch (e: NumberFormatException) {
-            Log.debug(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "Exception in converting notification badge count to int - %s",
-                e.localizedMessage
-            )
+    }
+
+    /**
+     * Constructor to create a push template object from an [Intent].
+     *
+     * @param intent [Intent] containing key value pairs extracted from a push template data payload
+     */
+    constructor(intent: Intent?) {
+        val intentExtras =
+            intent?.extras ?: throw IllegalArgumentException("Intent extras are null")
+        // required values
+        title = intentExtras.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT)
+            ?: throw IllegalArgumentException("Required field \"adb_title\" not found.")
+        body = intentExtras.getString(PushTemplateConstants.IntentKeys.BODY_TEXT)
+            ?: throw IllegalArgumentException("Required field \"adb_body\" not found.")
+        payloadVersion = intentExtras.getInt(PushTemplateConstants.IntentKeys.PAYLOAD_VERSION)
+        payloadVersion?.let {
+            if (it < 1) throw IllegalArgumentException("Invalid \"payload version\" found.")
         }
-        notificationImportance =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) getNotificationImportanceFromString(
-                data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]) else null
 
-        notificationPriority = NotificationPriority.from(
-            data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
-        )
-
-        notificationVisibility = getNotificationVisibilityFromString(
-            data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_VISIBILITY]
-        )
-        actionType = getActionTypeFromString(
-            data[PushTemplateConstants.PushPayloadKeys.ACTION_TYPE]
-        )
-        actionButtonsString = data[PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS]
-    }
-
-    fun getTemplateType(): PushTemplateType? {
-        return templateType
-    }
-
-    fun getTitle(): String {
-        return title
-    }
-
-    fun getBadgeCount(): Int {
-        return badgeCount
-    }
-
-    fun getBody(): String {
-        return body
-    }
-
-    fun getSound(): String? {
-        return sound
-    }
-
-    fun getChannelId(): String? {
-        return channelId
-    }
-
-    fun getSmallIcon(): String? {
-        return smallIcon
-    }
-
-    fun getLargeIcon(): String? {
-        return largeIcon
-    }
-
-    fun getImageUrl(): String? {
-        return imageUrl
-    }
-
-    fun getMessageId(): String {
-        return messageId
-    }
-
-    fun getDeliveryId(): String {
-        return deliveryId
-    }
-
-    fun getExpandedBodyText(): String? {
-        return expandedBodyText
-    }
-
-    fun getExpandedBodyTextColor(): String? {
-        return expandedBodyTextColor
-    }
-
-    fun getTitleTextColor(): String? {
-        return titleTextColor
-    }
-
-    fun getSmallIconColor(): String? {
-        return smallIconColor
-    }
-
-    fun getNotificationBackgroundColor(): String? {
-        return notificationBackgroundColor
-    }
-
-    fun getRemindLaterText(): String? {
-        return remindLaterText
-    }
-
-    fun getRemindLaterTimestamp(): Long? {
-        return remindLaterTimestamp
-    }
-
-    fun getActionButtons(): String? {
-        return actionButtonsString
-    }
-
-    fun getTag(): String {
-        tag?.let { return tag } ?: return messageId
-    }
-
-    fun getTicker(): String? {
-        return ticker
-    }
-
-    fun getStickyStatus(): Boolean? {
-        return isNotificationSticky
+        // optional values
+        sound = intentExtras.getString(PushTemplateConstants.IntentKeys.CUSTOM_SOUND)
+        imageUrl = intentExtras.getString(PushTemplateConstants.IntentKeys.IMAGE_URI)
+        actionUri = intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_URI)
+        actionType = ActionType.valueOf(intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_TYPE) ?: ActionType.NONE.name)
+        expandedBodyText =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT)
+        actionButtonsString =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_BUTTONS_STRING)
+        smallIcon = intentExtras.getString(PushTemplateConstants.IntentKeys.SMALL_ICON)
+        largeIcon = intentExtras.getString(PushTemplateConstants.IntentKeys.LARGE_ICON)
+        badgeCount = intentExtras.getInt(PushTemplateConstants.IntentKeys.BADGE_COUNT)
+        notificationPriority = intentExtras.getInt(PushTemplateConstants.IntentKeys.PRIORITY)
+        notificationImportance = intentExtras.getInt(PushTemplateConstants.IntentKeys.IMPORTANCE)
+        notificationVisibility = intentExtras.getInt(PushTemplateConstants.IntentKeys.VISIBILITY)
+        channelId = intentExtras.getString(PushTemplateConstants.IntentKeys.CHANNEL_ID)
+        templateType =
+            PushTemplateType.fromString(intentExtras.getString(PushTemplateConstants.IntentKeys.TEMPLATE_TYPE))
+        tag = intentExtras.getString(PushTemplateConstants.IntentKeys.TAG) as String
+        isNotificationSticky = intentExtras.getBoolean(PushTemplateConstants.IntentKeys.STICKY)
+        ticker = intentExtras.getString(PushTemplateConstants.IntentKeys.TICKER)
+        expandedBodyText =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT)
+        expandedBodyTextColor =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT_COLOR)
+        titleTextColor = intentExtras.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT_COLOR)
+        smallIconColor = intentExtras.getString(PushTemplateConstants.IntentKeys.SMALL_ICON_COLOR)
+        notificationBackgroundColor =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.NOTIFICATION_BACKGROUND_COLOR)
     }
 
     fun getNotificationImportance(): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && notificationImportance != null) notificationImportance else NotificationManager.IMPORTANCE_DEFAULT
-
+        notificationImportance?.let {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) return notificationImportance as Int
+        }
+        return NotificationManager.IMPORTANCE_DEFAULT
     }
 
     fun getNotificationVisibility(): Int {
         return notificationVisibility ?: NotificationCompat.VISIBILITY_PRIVATE
     }
 
-    fun getActionType(): ActionType? {
-        return actionType
-    }
+//    fun getActionTypeFromString(type: String?): ActionType {
+//        if (type.isNullOrEmpty()) {
+//            return ActionType.NONE
+//        }
+//        when (type) {
+//            ActionButtonType.DEEPLINK -> return ActionType.DEEPLINK
+//            ActionButtonType.WEBURL -> return ActionType.WEBURL
+//            ActionButtonType.DISMISS -> return ActionType.DISMISS
+//            ActionButtonType.OPENAPP -> return ActionType.OPENAPP
+//        }
+//        return ActionType.NONE
+//    }
 
-    fun getActionUri(): String? {
-        return actionUri
-    }
-
-    /**
-     * Convenience method to modify the notification data payload. This is used in the following
-     * scenario:
-     * - Setting a carousel image URI as the data map's image URI to allow a basic push template notification to be shown in a fallback situation.
-     *
-     * @param key [String] value containing the key to modify
-     * @param value `String` value containing the new value to be used
-     */
-    fun modifyData(key: String, value: String) {
-        data[key] = value
-    }
+//    /**
+//     * Convenience method to modify the notification data payload. This is used in the following
+//     * scenario:
+//     * - Setting a carousel image URI as the data map's image URI to allow a basic push template notification to be shown in a fallback situation.
+//     *
+//     * @param key [String] value containing the key to modify
+//     * @param value `String` value containing the new value to be used
+//     */
+//    fun modifyData(key: String, value: String) {
+//        data[key] = value
+//    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private fun getNotificationImportanceFromString(priority: String?): Int {
@@ -393,9 +390,6 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
 
     companion object {
         const val SELF_TAG = "AEPPushTemplate"
-
-        // Legacy push payload values
-        private const val ACTION_BUTTON_CAPACITY = 3
 
         @RequiresApi(api = Build.VERSION_CODES.N)
         val notificationImportanceMap: Map<String?, Int?> = mapOf(
@@ -419,82 +413,5 @@ internal sealed class AEPPushTemplate(val data: MutableMap<String, String>) {
             NotificationPriority.PRIORITY_HIGH to NotificationCompat.PRIORITY_HIGH,
             NotificationPriority.PRIORITY_MAX to NotificationCompat.PRIORITY_MAX
         )
-
-        private fun getActionTypeFromString(type: String?): ActionType {
-            if (StringUtils.isNullOrEmpty(type)) {
-                return ActionType.NONE
-            }
-            when (type) {
-                ActionButtonType.DEEPLINK -> return ActionType.DEEPLINK
-                ActionButtonType.WEBURL -> return ActionType.WEBURL
-                ActionButtonType.DISMISS -> return ActionType.DISMISS
-                ActionButtonType.OPENAPP -> return ActionType.OPENAPP
-            }
-            return ActionType.NONE
-        }
-
-        fun getActionButtonsFromString(actionButtons: String?): List<ActionButton>? {
-            if (actionButtons == null) {
-                Log.debug(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Exception in converting actionButtons json string to json object, Error :" +
-                            " actionButtons is null"
-                )
-                return null
-            }
-            val actionButtonList: MutableList<ActionButton> = ArrayList(
-                ACTION_BUTTON_CAPACITY
-            )
-            try {
-                val jsonArray = JSONArray(actionButtons)
-                for (i in 0 until jsonArray.length()) {
-                    val jsonObject = jsonArray.getJSONObject(i)
-                    val button = getActionButton(jsonObject) ?: continue
-                    actionButtonList.add(button)
-                }
-            } catch (e: JSONException) {
-                Log.warning(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Exception in converting actionButtons json string to json object, Error : %s",
-                    e.localizedMessage
-                )
-                return null
-            }
-            return actionButtonList
-        }
-
-        private fun getActionButton(jsonObject: JSONObject): ActionButton? {
-            return try {
-                val label = jsonObject.getString(ActionButtons.LABEL)
-                if (label.isEmpty()) {
-                    Log.debug(PushTemplateConstants.LOG_TAG, SELF_TAG, "Label is empty")
-                    return null
-                }
-                var uri: String? = null
-                val type = jsonObject.getString(ActionButtons.TYPE)
-                if (type == ActionButtonType.WEBURL || type == ActionButtonType.DEEPLINK) {
-                    uri = jsonObject.optString(ActionButtons.URI)
-                }
-                Log.trace(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Creating an ActionButton with label (%s), uri (%s), and type (%s)",
-                    label,
-                    uri,
-                    type
-                )
-                ActionButton(label, uri, type)
-            } catch (e: JSONException) {
-                Log.warning(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Exception in converting actionButtons json string to json object, Error : %s",
-                    e.localizedMessage
-                )
-                null
-            }
-        }
     }
 }

@@ -36,18 +36,16 @@ internal object PushTemplateConstants {
         internal object Keys {
             const val ACTION_ID = "actionId"
             const val ACTION_URI = "actionUri"
-            const val DELIVERY_ID = "_dId"
-            const val MESSAGE_ID = "_mId"
         }
     }
 
     internal object DefaultValues {
         const val SILENT_NOTIFICATION_CHANNEL_ID = "silent"
-        const val LEGACY_PAYLOAD_VERSION_STRING = "0"
         const val CAROUSEL_MAX_BITMAP_WIDTH = 300
         const val CAROUSEL_MAX_BITMAP_HEIGHT = 200
         const val AUTO_CAROUSEL_MODE = "auto"
         const val MANUAL_CAROUSEL_MODE = "manual"
+        const val DEFAULT_MANUAL_CAROUSEL_MODE = "default"
         const val FILMSTRIP_CAROUSEL_MODE = "filmstrip"
         const val CAROUSEL_MINIMUM_IMAGE_COUNT = 3
         const val MANUAL_CAROUSEL_START_INDEX = 0
@@ -76,6 +74,7 @@ internal object PushTemplateConstants {
         const val IMAGE_CAPTIONS = "imageCaptions"
         const val IMAGE_CLICK_ACTIONS = "imageClickActions"
         const val ACTION_URI = "actionUri"
+        const val ACTION_TYPE = "actionType"
         const val CHANNEL_ID = "channelId"
         const val CUSTOM_SOUND = "customSound"
         const val TITLE_TEXT = "titleText"
@@ -84,12 +83,11 @@ internal object PushTemplateConstants {
         const val NOTIFICATION_BACKGROUND_COLOR = "notificationBackgroundColor"
         const val TITLE_TEXT_COLOR = "titleTextColor"
         const val EXPANDED_BODY_TEXT_COLOR = "expandedBodyTextColor"
-        const val MESSAGE_ID = "messageId"
-        const val DELIVERY_ID = "deliveryId"
         const val BADGE_COUNT = "badgeCount"
         const val LARGE_ICON = "largeIcon"
         const val SMALL_ICON = "smallIcon"
         const val SMALL_ICON_COLOR = "smallIconColor"
+        const val PRIORITY = "priority"
         const val VISIBILITY = "visibility"
         const val IMPORTANCE = "importance"
         const val REMIND_TS = "remindTimestamp"
@@ -101,6 +99,11 @@ internal object PushTemplateConstants {
         const val TYPE = "type"
         const val TRACKER_NAME = "trackerName"
         const val BROADCAST_RECEIVER_NAME = "broadcastReceiverName"
+        const val PAYLOAD_VERSION = "version"
+        const val TEMPLATE_TYPE = "templateType"
+        const val CAROUSEL_OPERATION_MODE = "carouselOperationMode"
+        const val CAROUSEL_LAYOUT_TYPE = "carouselLayoutType"
+        const val CAROUSEL_ITEMS = "carouselItems"
     }
 
     internal object MethodNames {
@@ -119,7 +122,6 @@ internal object PushTemplateConstants {
         const val TITLE = "adb_title"
         const val BODY = "adb_body"
         const val ACC_PAYLOAD_BODY = "_msg"
-        const val MESSAGE_ID = "_mId"
         const val SOUND = "adb_sound"
         const val BADGE_NUMBER = "adb_n_count"
         const val NOTIFICATION_VISIBILITY = "adb_n_visibility"
@@ -149,5 +151,11 @@ internal object PushTemplateConstants {
         const val REMIND_LATER_TEXT = "adb_rem_txt"
         const val REMIND_LATER_TIMESTAMP = "adb_rem_ts"
         const val CAROUSEL_OPERATION_MODE = "adb_car_mode"
+    }
+
+    internal object CarouselItemKeys {
+        const val IMAGE = "img"
+        const val TEXT = "txt"
+        const val URL = "url"
     }
 }

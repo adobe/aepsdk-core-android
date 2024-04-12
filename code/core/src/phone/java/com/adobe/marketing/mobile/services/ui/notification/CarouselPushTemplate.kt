@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import android.content.Intent
 import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.DataReaderException
 import com.adobe.marketing.mobile.util.JSONUtils
@@ -18,18 +19,19 @@ import com.adobe.marketing.mobile.util.StringUtils
 import org.json.JSONArray
 import org.json.JSONException
 
-internal class CarouselPushTemplate(messageData: MutableMap<String, String>) :
-    AEPPushTemplate(messageData) {
+internal open class CarouselPushTemplate : AEPPushTemplate {
     // Optional, Determines how the carousel will be operated. Valid values are "auto" or "manual".
     // Default is "auto".
-    private val carouselOperationMode: String
+    internal var carouselOperationMode: String
+        private set
 
     // Required, One or more Items in the carousel defined by the CarouselItem class
-    private val carouselItems: ArrayList<CarouselItem> =
-        ArrayList()
+    internal var carouselItems = ArrayList<CarouselItem>()
+        private set
 
     // Required, "default" or "filmstrip"
-    private var carouselLayoutType: String
+    internal var carouselLayoutType: String
+        private set
 
     class CarouselItem(
         // Required, URI to an image to be shown for the carousel item
@@ -40,29 +42,17 @@ internal class CarouselPushTemplate(messageData: MutableMap<String, String>) :
         val interactionUri: String?
     )
 
-    fun getCarouselOperationMode(): String {
-        return carouselOperationMode
-    }
-
-    fun getCarouselLayoutType(): String {
-        return carouselLayoutType
-    }
-
-    fun getCarouselItems(): ArrayList<CarouselItem> {
-        return carouselItems
-    }
-
-    init {
+    constructor(data: Map<String, String>?) : super(data) {
         try {
             carouselLayoutType = DataReader.getString(
-                messageData, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT
+                data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT
             )
         } catch (dataReaderException: DataReaderException) {
             throw IllegalArgumentException("Required field \"adb_car_layout\" not found.")
         }
         val carouselItemsString: String = try {
             DataReader.getString(
-                messageData, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS
+                data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS
             )
         } catch (dataReaderException: DataReaderException) {
             throw IllegalArgumentException("Required field \"adb_items\" not found.")
@@ -78,7 +68,7 @@ internal class CarouselPushTemplate(messageData: MutableMap<String, String>) :
             )
         }
         carouselOperationMode = DataReader.optString(
-            messageData,
+            data,
             PushTemplateConstants.PushPayloadKeys.CAROUSEL_OPERATION_MODE,
             PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE
         )
@@ -104,5 +94,23 @@ internal class CarouselPushTemplate(messageData: MutableMap<String, String>) :
                 }
             }
         }
+    }
+
+    constructor(intent: Intent?) : super(intent) {
+        val intentExtras =
+            intent?.extras ?: throw IllegalArgumentException("Intent extras are null")
+        carouselOperationMode =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_OPERATION_MODE)
+                ?: PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE
+        carouselLayoutType =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_LAYOUT_TYPE)
+                ?: PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE
+        val carouselItemsString =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS)
+        carouselItems = CarouselTemplateHelpers.parseCarouselItems(carouselItemsString)
+    }
+
+    companion object {
+        const val MINIMUM_FILMSTRIP_SIZE = 3
     }
 }

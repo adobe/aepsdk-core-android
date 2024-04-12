@@ -15,8 +15,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.os.Build
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
@@ -28,63 +26,45 @@ import com.adobe.marketing.mobile.services.ui.notification.CarouselPushTemplate.
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a manual carousel push template notification.
  */
-internal object ManualCarouselTemplateNotificationBuilder {
+internal object ManualCarouselTemplateNotificationBuilder : AEPPushTemplateNotificationBuilder() {
     private const val SELF_TAG = "ManualCarouselTemplateNotificationBuilder"
     private const val IMAGE_URIS_KEY = "imageUris"
     private const val IMAGE_CAPTIONS_KEY = "imageCaptions"
     private const val IMAGE_ACTIONS_KEY = "imageActions"
 
+    // TODO: create extension function for AEPPushTemplate that creates click intent from the template (or within AEPPushTemplateNotificationBuilder)
+    // TODO: only extras are the carousel specific values: image urls, image captions, image click actions
+    @Throws(NotificationConstructionFailedException::class)
     fun construct(
         context: Context,
-        intent: Intent?,
-        pushTemplate: CarouselPushTemplate?,
+        pushTemplate: ManualCarouselPushTemplate?,
         trackerActivityName: String?,
         broadcastReceiverName: String?
     ): NotificationCompat.Builder {
-        if (pushTemplate == null && intent == null) {
+        if (pushTemplate == null) {
             throw NotificationConstructionFailedException(
-                "push template and intent are null, cannot build a notification."
+                "push template is null, cannot build a manual carousel notification."
             )
         }
-
-        return if (pushTemplate != null) {
-            construct(
-                context,
-                trackerActivityName,
-                broadcastReceiverName,
-                pushTemplate
-            )
-        } else {
-            construct(
-                context,
-                trackerActivityName,
-                broadcastReceiverName,
-                intent!!
-            )
-        }
-    }
-
-    @Throws(NotificationConstructionFailedException::class)
-    private fun construct(
-        context: Context,
-        trackerActivityName: String?,
-        broadcastReceiverName: String?,
-        pushTemplate: CarouselPushTemplate
-    ): NotificationCompat.Builder {
-        val packageName = context.packageName
         val cacheService = ServiceProvider.getInstance().cacheService
             ?: throw NotificationConstructionFailedException(
                 (
-                        "Cache service is null, default manual carousel push notification will not be" +
-                                " constructed."
-                        )
+                    "Cache service is null, manual carousel push notification will not be constructed."
+                    )
             )
+        Log.trace(
+            PushTemplateConstants.LOG_TAG,
+            SELF_TAG,
+            "Building a manual carousel template push notification."
+        )
+
+        val packageName = context.packageName
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_manual_carousel)
-        val fallbackActionUri = pushTemplate.getActionUri()
 
         // load images into the carousel
-        val items = pushTemplate.getCarouselItems()
+        val fallbackActionUri = pushTemplate.actionUri
+        val items = pushTemplate.carouselItems
         val extractedItemData = populateImages(
             context,
             trackerActivityName,
@@ -92,11 +72,9 @@ internal object ManualCarouselTemplateNotificationBuilder {
             expandedLayout,
             items,
             packageName,
-            pushTemplate.getMessageId(),
-            pushTemplate.getDeliveryId(),
-            pushTemplate.getTag(),
+            pushTemplate.tag,
             fallbackActionUri,
-            pushTemplate.getStickyStatus()
+            pushTemplate.isNotificationSticky
         )
         val downloadedImageUris = extractedItemData[IMAGE_URIS_KEY]
         val imageCaptions = extractedItemData[IMAGE_CAPTIONS_KEY]
@@ -113,30 +91,52 @@ internal object ManualCarouselTemplateNotificationBuilder {
                 downloadedImageUris
             )
         }
-        val titleText = pushTemplate.getTitle()
-        val smallBodyText = pushTemplate.getBody()
-        val expandedBodyText = pushTemplate.getExpandedBodyText()
+
+        // if we have an intent action then we need to calculate a new center index
+        var centerImageIndex = pushTemplate.centerImageIndex ?: PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX
+        var newIndices: List<Int> = emptyList()
+        pushTemplate.intentAction?.let {
+            newIndices = CarouselTemplateHelpers.calculateNewIndices(centerImageIndex, downloadedImageUris?.size, pushTemplate.intentAction)
+            centerImageIndex = newIndices[1]
+        }
+
+        // set a new center image if the center index has changed
+        if (newIndices.isNotEmpty()) {
+            val items = ArrayList<CarouselItem>()
+            downloadedImageUris?.let {
+                val centerCarouselItem = CarouselItem(
+                    downloadedImageUris[centerImageIndex],
+                    imageCaptions?.get(centerImageIndex),
+                    imageClickActions?.get(centerImageIndex)
+                )
+                items.add(centerCarouselItem)
+                populateImages(
+                    context,
+                    trackerActivityName,
+                    cacheService,
+                    expandedLayout,
+                    items,
+                    packageName,
+                    pushTemplate.tag,
+                    fallbackActionUri,
+                    pushTemplate.isNotificationSticky
+                )
+            }
+        }
+
+        val titleText = pushTemplate.title
+        val smallBodyText = pushTemplate.body
+        val expandedBodyText = pushTemplate.expandedBodyText
         smallLayout.setTextViewText(R.id.notification_title, titleText)
         smallLayout.setTextViewText(R.id.notification_body, smallBodyText)
         expandedLayout.setTextViewText(R.id.notification_title, titleText)
         expandedLayout.setTextViewText(R.id.notification_body_expanded, expandedBodyText)
-        val centerImageIndex: Int =
-            PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX // start index defaults to 0
 
-        // set any custom colors if needed
-        setCustomNotificationColors(
-            pushTemplate.getNotificationBackgroundColor(),
-            pushTemplate.getTitleTextColor(),
-            pushTemplate.getExpandedBodyTextColor(),
-            smallLayout,
-            expandedLayout,
-            R.id.carousel_container_layout
-        )
-
-        val channelId = createChannelAndGetChannelID(
+        // Create the notification channel if needed
+        channelIdToUse = createChannelAndGetChannelID(
             context,
-            pushTemplate.getChannelId(),
-            pushTemplate.getSound(),
+            pushTemplate.channelId,
+            pushTemplate.sound,
             pushTemplate.getNotificationImportance()
         )
 
@@ -152,16 +152,16 @@ internal object ManualCarouselTemplateNotificationBuilder {
         clickIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.TYPE,
-            pushTemplate.getTemplateType()?.value
+            pushTemplate.templateType?.value
         )
         clickIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityName)
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME,
             broadcastReceiverName
         )
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelId)
+        clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelIdToUse)
         clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.CUSTOM_SOUND, pushTemplate.getSound()
+            PushTemplateConstants.IntentKeys.CUSTOM_SOUND, pushTemplate.sound
         )
         clickIntent.putExtra(PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX, centerImageIndex)
         clickIntent.putExtra(PushTemplateConstants.IntentKeys.IMAGE_URLS, downloadedImageUris)
@@ -170,35 +170,29 @@ internal object ManualCarouselTemplateNotificationBuilder {
             PushTemplateConstants.IntentKeys.IMAGE_CLICK_ACTIONS, imageClickActions
         )
         clickIntent.putExtra(PushTemplateConstants.IntentKeys.TITLE_TEXT, titleText)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.BODY_TEXT, pushTemplate.getBody())
+        clickIntent.putExtra(PushTemplateConstants.IntentKeys.BODY_TEXT, smallBodyText)
         clickIntent.putExtra(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT, expandedBodyText)
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.NOTIFICATION_BACKGROUND_COLOR,
-            pushTemplate.getNotificationBackgroundColor()
+            pushTemplate.notificationBackgroundColor
         )
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.TITLE_TEXT_COLOR,
-            pushTemplate.getTitleTextColor()
+            pushTemplate.titleTextColor
         )
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT_COLOR,
-            pushTemplate.getExpandedBodyTextColor()
+            pushTemplate.expandedBodyTextColor
         )
         clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.MESSAGE_ID, pushTemplate.getMessageId()
-        )
-        clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.DELIVERY_ID, pushTemplate.getDeliveryId()
-        )
-        clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.SMALL_ICON, pushTemplate.getSmallIcon()
+            PushTemplateConstants.IntentKeys.SMALL_ICON, pushTemplate.smallIcon
         )
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.SMALL_ICON_COLOR,
-            pushTemplate.getSmallIconColor()
+            pushTemplate.smallIconColor
         )
         clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.LARGE_ICON, pushTemplate.getLargeIcon()
+            PushTemplateConstants.IntentKeys.LARGE_ICON, pushTemplate.largeIcon
         )
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.VISIBILITY,
@@ -209,13 +203,13 @@ internal object ManualCarouselTemplateNotificationBuilder {
             pushTemplate.getNotificationImportance()
         )
         clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.STICKY, pushTemplate.getStickyStatus()
+            PushTemplateConstants.IntentKeys.STICKY, pushTemplate.isNotificationSticky
         )
         clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.TAG, pushTemplate.getTag()
+            PushTemplateConstants.IntentKeys.TAG, pushTemplate.tag
         )
         clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.TICKER, pushTemplate.getTicker()
+            PushTemplateConstants.IntentKeys.TICKER, pushTemplate.ticker
         )
         clickIntent.putExtra(PushTemplateConstants.IntentKeys.ACTION_URI, fallbackActionUri)
         val pendingIntentLeftButton = PendingIntent.getBroadcast(
@@ -234,307 +228,11 @@ internal object ManualCarouselTemplateNotificationBuilder {
         expandedLayout.setOnClickPendingIntent(R.id.leftImageButton, pendingIntentLeftButton)
         expandedLayout.setOnClickPendingIntent(R.id.rightImageButton, pendingIntentRightButton)
 
-
-        val builder = NotificationCompat.Builder(context, channelId)
-            .setTicker(pushTemplate.getTicker())
-            .setNumber(pushTemplate.getBadgeCount())
-            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-            .setCustomContentView(smallLayout)
-            .setCustomBigContentView(expandedLayout)
-
-        // set custom sound, note this applies to API 25 and lower only as API 26 and up set the
-        // sound on the notification channel
-        setSound(context, builder, pushTemplate.getSound())
-
-        // small Icon must be present, otherwise the notification will not be displayed.
-        setSmallIcon(
-            context, builder, pushTemplate.getSmallIcon(), pushTemplate.getSmallIconColor()
-        )
-
-        // set a large icon if one is present
-        setRemoteViewLargeIcon(pushTemplate.getLargeIcon(), smallLayout)
-        setRemoteViewLargeIcon(
-            pushTemplate.getLargeIcon(), expandedLayout
-        )
-
-        // set notification visibility
-        setVisibility(
-            builder, pushTemplate.getNotificationVisibility()
-        )
-
-        // if API level is below 26 (prior to notification channels) then notification priority is
-        // set on the notification builder
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setVibrate(LongArray(0)) // hack to enable heads up notifications as a HUD style
-            // notification requires a tone or vibration
-        }
-        return builder
+        // create the notification builder with the common settings applied
+        return super.construct(context, pushTemplate, trackerActivityName, smallLayout, expandedLayout)
     }
 
-    @Throws(NotificationConstructionFailedException::class)
-    private fun construct(
-        context: Context,
-        trackerActivityName: String?,
-        broadcastReceiverName: String?,
-        intent: Intent
-    ): NotificationCompat.Builder {
-        val intentExtras = intent.extras
-            ?: throw NotificationConstructionFailedException(
-                (
-                        "Intent extras are null, will not create a notification from the received" +
-                                " intent with action " +
-                                intent.action
-                        )
-            )
-        val cacheService = ServiceProvider.getInstance().cacheService
-            ?: throw NotificationConstructionFailedException(
-                (
-                        "Cache service is null, default manual carousel notification will not be" +
-                                " constructed."
-                        )
-            )
-        val assetCacheLocation = assetCacheLocation
-            ?: throw NotificationConstructionFailedException(
-                (
-                        "Asset cache location is null, default manual carousel notification will not be" +
-                                " constructed."
-                        )
-            )
-        val packageName = ServiceProvider.getInstance()
-            .appContextService
-            .getApplication()
-            ?.packageName
-
-        // get manual carousel notification values from the intent extras
-        val templateType = intentExtras.getString(PushTemplateConstants.IntentKeys.TYPE)
-        val messageId =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.MESSAGE_ID) as String
-        val deliveryId =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.DELIVERY_ID) as String
-        val channelId = intentExtras.getString(PushTemplateConstants.IntentKeys.CHANNEL_ID)
-        val badgeCount = intentExtras.getInt(PushTemplateConstants.IntentKeys.BADGE_COUNT)
-        val visibility = intentExtras.getInt(PushTemplateConstants.IntentKeys.VISIBILITY)
-        val importance = intentExtras.getInt(PushTemplateConstants.IntentKeys.IMPORTANCE)
-        val cachedImages = ArrayList<Bitmap>()
-        val imageUrls =
-            intentExtras.getParcelableArrayList(
-                PushTemplateConstants.IntentKeys.IMAGE_URLS,
-                String::class.java
-            )
-        val imageCaptions =
-            intentExtras.getParcelableArrayList(
-                PushTemplateConstants.IntentKeys.IMAGE_CAPTIONS,
-                String::class.java
-            )
-        val imageClickActions =
-            intentExtras.getParcelableArrayList(
-                PushTemplateConstants.IntentKeys.IMAGE_CLICK_ACTIONS,
-                String::class.java
-            )
-        val titleText = intentExtras.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT)
-        val bodyText = intentExtras.getString(PushTemplateConstants.IntentKeys.BODY_TEXT)
-        val expandedBodyText =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT)
-        val notificationBackgroundColor = intentExtras.getString(
-            PushTemplateConstants.IntentKeys.NOTIFICATION_BACKGROUND_COLOR
-        )
-        val titleTextColor =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT_COLOR)
-        val expandedBodyTextColor =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT_COLOR)
-        val smallIcon = intentExtras.getString(PushTemplateConstants.IntentKeys.SMALL_ICON)
-        val smallIconColor =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.SMALL_ICON_COLOR)
-        val largeIcon = intentExtras.getString(PushTemplateConstants.IntentKeys.LARGE_ICON)
-        val customSound = intentExtras.getString(PushTemplateConstants.IntentKeys.CUSTOM_SOUND)
-        val ticker = intentExtras.getString(PushTemplateConstants.IntentKeys.TICKER)
-        val sticky = intentExtras.getBoolean(PushTemplateConstants.IntentKeys.STICKY)
-        val tag = intentExtras.getString(PushTemplateConstants.IntentKeys.TAG) as String
-        val fallbackActionUri = intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_URI)
-
-        // as we are handling an intent, the image URLS should already be cached
-        if (!imageUrls.isNullOrEmpty()) {
-            for (imageUri: String? in imageUrls) {
-                imageUri?.let {
-                    val cacheResult = cacheService.get(assetCacheLocation, imageUri)
-                    if (cacheResult != null) {
-                        cachedImages.add(BitmapFactory.decodeStream(cacheResult.getData()))
-                    }
-                }
-            }
-        }
-        val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
-        val expandedLayout = RemoteViews(packageName, R.layout.push_template_manual_carousel)
-        smallLayout.setTextViewText(R.id.notification_title, titleText)
-        smallLayout.setTextViewText(R.id.notification_body, bodyText)
-        expandedLayout.setTextViewText(R.id.notification_title, titleText)
-        expandedLayout.setTextViewText(R.id.notification_body_expanded, expandedBodyText)
-        val action = intent.action
-        val centerImageIndex =
-            intentExtras.getInt(PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX)
-        val newIndices: List<Int>? =
-            calculateNewIndices(centerImageIndex, imageUrls?.size, action)
-        val newCenterIndex: Int = if (newIndices == null) {
-            Log.trace(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                (
-                        "Unable to calculate new left, center, and right indices. Using default start" +
-                                " image index of 0."
-                        )
-            )
-            PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX
-        } else {
-            newIndices[1]
-        }
-
-        // update the carousel view flipper with the new center index
-        val items = ArrayList<CarouselItem>()
-        val imageUri = imageUrls?.get(newCenterIndex)
-        imageUri?.let {
-            val centerCarouselItem = CarouselItem(
-                imageUri,
-                imageCaptions?.get(newCenterIndex),
-                imageClickActions?.get(newCenterIndex)
-            )
-            items.add(centerCarouselItem)
-        }
-
-        populateImages(
-            context,
-            trackerActivityName,
-            cacheService,
-            expandedLayout,
-            items,
-            packageName,
-            messageId,
-            deliveryId,
-            tag,
-            fallbackActionUri,
-            sticky
-        )
-
-        // set any custom colors if needed
-        setCustomNotificationColors(
-            notificationBackgroundColor,
-            titleTextColor,
-            expandedBodyTextColor,
-            smallLayout,
-            expandedLayout,
-            R.id.carousel_container_layout
-        )
-
-        // handle left and right navigation buttons
-        val clickIntent = Intent(
-            PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED
-        )
-        broadcastReceiverName?.let {
-            val broadcastReceiverClass = Class.forName(broadcastReceiverName)
-            clickIntent.setClass(context.applicationContext, broadcastReceiverClass::class.java)
-        }
-        clickIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TYPE, templateType)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityName)
-        clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME,
-            broadcastReceiverName
-        )
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelId)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.CUSTOM_SOUND, customSound)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX, newCenterIndex)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.IMAGE_URLS, imageUrls)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.IMAGE_CAPTIONS, imageCaptions)
-        clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.IMAGE_CLICK_ACTIONS, imageClickActions
-        )
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TITLE_TEXT, titleText)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.BODY_TEXT, bodyText)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT, expandedBodyText)
-        clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.NOTIFICATION_BACKGROUND_COLOR,
-            notificationBackgroundColor
-        )
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TITLE_TEXT_COLOR, titleTextColor)
-        clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT_COLOR, expandedBodyTextColor
-        )
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.MESSAGE_ID, messageId)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.DELIVERY_ID, deliveryId)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.SMALL_ICON, smallIcon)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.SMALL_ICON_COLOR, smallIconColor)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.LARGE_ICON, largeIcon)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.VISIBILITY, visibility)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.IMPORTANCE, importance)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TICKER, ticker)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TAG, tag)
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.STICKY, sticky)
-        val pendingIntentLeftButton = PendingIntent.getBroadcast(
-            context,
-            0,
-            clickIntent,
-            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        clickIntent.setAction(PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_RIGHT_CLICKED)
-        val pendingIntentRightButton = PendingIntent.getBroadcast(
-            context,
-            0,
-            clickIntent,
-            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        // set onclick intents for the skip left and skip right buttons
-        expandedLayout.setOnClickPendingIntent(R.id.leftImageButton, pendingIntentLeftButton)
-        expandedLayout.setOnClickPendingIntent(R.id.rightImageButton, pendingIntentRightButton)
-
-        // we need to create a silent notification as this will be re-displaying a notification
-        // rather than showing a new one.
-        // the silent sound is set on the notification channel and notification builder.
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "Displaying a silent notification after handling an intent."
-        )
-
-        // Create the notification
-        val builder: NotificationCompat.Builder = NotificationCompat.Builder(
-            context,
-            PushTemplateConstants.DefaultValues.SILENT_NOTIFICATION_CHANNEL_ID
-        )
-            .setSound(null)
-            .setTicker(ticker)
-            .setNumber(badgeCount)
-            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-            .setCustomContentView(smallLayout)
-            .setCustomBigContentView(expandedLayout)
-
-        // small Icon must be present, otherwise the notification will not be displayed.
-        setSmallIcon(context, builder, smallIcon, smallIconColor)
-
-        // set a large icon if one is present
-        setRemoteViewLargeIcon(largeIcon, smallLayout)
-        setRemoteViewLargeIcon(largeIcon, expandedLayout)
-
-        // set notification visibility
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            setVisibility(builder, visibility)
-        }
-
-        // set notification delete action
-        setNotificationDeleteAction(
-            context, trackerActivityName, builder, messageId, deliveryId
-        )
-
-        // if API level is below 26 (prior to notification channels) then notification priority is
-        // set on the notification builder
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setVibrate(LongArray(0)) // hack to enable heads up notifications as a HUD style
-            // notification requires a tone or vibration
-        }
-        return builder
-    }
-
+    // TODO: move to ImageHelper object that can populate images for all push templates
     private fun populateImages(
         context: Context,
         trackerActivityName: String?,
@@ -542,16 +240,14 @@ internal object ManualCarouselTemplateNotificationBuilder {
         expandedLayout: RemoteViews,
         items: ArrayList<CarouselItem>,
         packageName: String?,
-        messageId: String,
-        deliveryId: String,
-        tag: String,
+        tag: String?,
         actionUri: String?,
         autoCancel: Boolean?
-    ): Map<String, ArrayList<String?>> {
-        val downloadedImageUris = ArrayList<String?>()
-        val imageCaptions = ArrayList<String?>()
-        val imageClickActions = ArrayList<String?>()
-        val itemData: MutableMap<String, ArrayList<String?>> = mutableMapOf()
+    ): Map<String, ArrayList<String>> {
+        val downloadedImageUris = ArrayList<String>()
+        val imageCaptions = ArrayList<String>()
+        val imageClickActions = ArrayList<String>()
+        val itemData: MutableMap<String, ArrayList<String>> = mutableMapOf()
         val imageProcessingStartTime = System.currentTimeMillis()
         for (item: CarouselItem in items) {
             val imageUri = item.imageUri
@@ -573,18 +269,18 @@ internal object ManualCarouselTemplateNotificationBuilder {
 
             // assign a click action pending intent for each carousel item
             val interactionUri = item.interactionUri ?: actionUri
-            imageClickActions.add(interactionUri)
-            setRemoteViewClickAction(
-                context,
-                trackerActivityName,
-                carouselItem,
-                R.id.carousel_item_image_view,
-                messageId,
-                deliveryId,
-                interactionUri,
-                tag,
-                autoCancel ?: true
-            )
+            interactionUri?.let {
+                imageClickActions.add(interactionUri)
+                setRemoteViewClickAction(
+                    context,
+                    trackerActivityName,
+                    carouselItem,
+                    R.id.carousel_item_image_view,
+                    interactionUri,
+                    tag,
+                    autoCancel ?: true
+                )
+            }
 
             // add the carousel item to the view flipper
             expandedLayout.addView(R.id.manual_carousel_view_flipper, carouselItem)

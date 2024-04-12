@@ -42,14 +42,14 @@ object TemplateUtils {
         when (pushTemplateType) {
             PushTemplateType.BASIC -> {
                 val basicPushTemplate = BasicPushTemplate(messageData as MutableMap<String, String>)
-                return BasicTemplateNotificationBuilder.construct(context, null, basicPushTemplate, trackerActivityName, broadcastReceiverName)
+                return BasicTemplateNotificationBuilder.construct(context, basicPushTemplate, trackerActivityName, broadcastReceiverName)
             }
 
             PushTemplateType.CAROUSEL -> {
                 val carouselPushTemplate =
                     CarouselPushTemplate(messageData as MutableMap<String, String>)
-                val carouselOperationMode = carouselPushTemplate.getCarouselOperationMode()
-                val carouselType = carouselPushTemplate.getCarouselLayoutType()
+                val carouselOperationMode = carouselPushTemplate.carouselOperationMode
+                val carouselType = carouselPushTemplate.carouselLayoutType
 
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
@@ -57,13 +57,13 @@ object TemplateUtils {
                     "Building a $carouselType carousel style push notification."
                 )
 
-                if (carouselOperationMode.equals(PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE)) {
-                    return AutoCarouselTemplateNotificationBuilder.construct(context, carouselPushTemplate, trackerActivityName, broadcastReceiverName)
+                if (carouselOperationMode == PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE) {
+                    return AutoCarouselTemplateNotificationBuilder.construct(context, AutoCarouselPushTemplate(messageData), trackerActivityName, broadcastReceiverName)
                 } else {
-                    return if (carouselType.equals(PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE)) {
-                        FilmstripCarouselTemplateNotificationBuilder.construct(context, null, carouselPushTemplate, trackerActivityName, broadcastReceiverName)
+                    return if (carouselType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
+                        FilmstripCarouselTemplateNotificationBuilder.construct(context, ManualCarouselPushTemplate(messageData), trackerActivityName, broadcastReceiverName)
                     } else {
-                       return ManualCarouselTemplateNotificationBuilder.construct(context, null, carouselPushTemplate, trackerActivityName, broadcastReceiverName)
+                        return ManualCarouselTemplateNotificationBuilder.construct(context, ManualCarouselPushTemplate(messageData), trackerActivityName, broadcastReceiverName)
                     }
                 }
             }
@@ -98,16 +98,17 @@ object TemplateUtils {
                     SELF_TAG,
                     "Building a basic style push notification."
                 )
-                return BasicTemplateNotificationBuilder.construct(context, intent, null, trackerActivityName, broadcastReceiverName)
+                return BasicTemplateNotificationBuilder.construct(context, BasicPushTemplate(intent), trackerActivityName, broadcastReceiverName)
             }
 
             PushTemplateType.CAROUSEL -> {
+                val pushTemplate = ManualCarouselPushTemplate(intent)
                 return if (intent.action.equals(PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED) ||
                     intent.action.equals(PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_RIGHT_CLICKED)
                 ) {
-                    ManualCarouselTemplateNotificationBuilder.construct(context, intent, null, trackerActivityName, broadcastReceiverName)
+                    ManualCarouselTemplateNotificationBuilder.construct(context, pushTemplate, trackerActivityName, broadcastReceiverName)
                 } else {
-                    FilmstripCarouselTemplateNotificationBuilder.construct(context, intent, null, trackerActivityName, broadcastReceiverName)
+                    FilmstripCarouselTemplateNotificationBuilder.construct(context, pushTemplate, trackerActivityName, broadcastReceiverName)
                 }
             }
         }

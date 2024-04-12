@@ -11,28 +11,20 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
-import android.app.PendingIntent
-import android.app.TaskStackBuilder
 import android.content.ContentResolver
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.RectF
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Handler
-import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
-import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheEntry
 import com.adobe.marketing.mobile.services.caching.CacheExpiry
 import com.adobe.marketing.mobile.services.caching.CacheService
-import com.adobe.marketing.mobile.util.StringUtils
 import com.adobe.marketing.mobile.util.UrlUtils
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -41,7 +33,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.Random
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -55,7 +46,6 @@ private const val SELF_TAG = "PushTemplateHelpers"
 private const val FULL_BITMAP_QUALITY = 100
 private const val DOWNLOAD_TIMEOUT = 10
 private const val CLASS_CREATION_TIMEOUT = 2
-private const val MINIMUM_FILMSTRIP_SIZE = 3
 
 /**
  * Asset cache location to use for downloaded push template images.
@@ -249,70 +239,6 @@ internal fun createClassInstance(context: Context, className: String?): Any? {
 }
 
 /**
- * Calculates a new left, center, and right index given the current center index, total number
- * of images, and the intent action.
- *
- * @param centerIndex [Int] containing the current center image index
- * @param listSize `Int` containing the total number of images
- * @param action [String] containing the action found in the broadcast [Intent]
- * @return [List] containing the new calculated left, center, and right indices
- */
-internal fun calculateNewIndices(
-    centerIndex: Int,
-    listSize: Int?,
-    action: String?
-): List<Int>? {
-    if (listSize == null || listSize < MINIMUM_FILMSTRIP_SIZE) return null
-    val newIndices: MutableList<Int> = ArrayList()
-    var newCenterIndex = 0
-    var newLeftIndex = 0
-    var newRightIndex = 0
-    Log.trace(
-        PushTemplateConstants.LOG_TAG,
-        SELF_TAG,
-        "Current center index is %d and list size is %d.",
-        centerIndex,
-        listSize
-    )
-    if ((
-        (action == PushTemplateConstants.IntentActions.FILMSTRIP_LEFT_CLICKED) || (
-            action ==
-                PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED
-            )
-        )
-    ) {
-        newCenterIndex = (centerIndex - 1 + listSize) % listSize
-        newLeftIndex = (newCenterIndex - 1 + listSize) % listSize
-        newRightIndex = centerIndex
-    } else if ((
-        (action == PushTemplateConstants.IntentActions.FILMSTRIP_RIGHT_CLICKED) || (
-            action ==
-                PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_RIGHT_CLICKED
-            )
-        )
-    ) {
-        newCenterIndex = (centerIndex + 1) % listSize
-        newLeftIndex = centerIndex
-        newRightIndex = (newCenterIndex + 1) % listSize
-    }
-    newIndices.add(newLeftIndex)
-    newIndices.add(newCenterIndex)
-    newIndices.add(newRightIndex)
-    Log.trace(
-        PushTemplateConstants.LOG_TAG,
-        SELF_TAG,
-        (
-            "Calculated new indices. New center index is %d, new left index is %d, and new" +
-                " right index is %d."
-            ),
-        newCenterIndex,
-        newLeftIndex,
-        newRightIndex
-    )
-    return newIndices
-}
-
-/**
  * Converts a [Bitmap] into an [InputStream] to be used in caching images.
  *
  * @param bitmap [Bitmap] to be converted into an [InputStream]
@@ -388,113 +314,6 @@ private fun scaleBitmap(downloadedBitmap: Bitmap): Bitmap {
 }
 
 /**
- * Creates a pending intent for a notification.
- *
- * @param context the application [Context]
- * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
- * @param messageId [String] containing the message id from the received push notification
- * @param deliveryId `String` containing the delivery id from the received push
- * notification
- * @param actionUri the action uri
- * @param actionID the action ID
- * @param stickyNotification [Boolean] if false, remove the notification after it is interacted with
- * @return the created [PendingIntent]
- */
-private fun createPendingIntent(
-    context: Context,
-    trackerActivityName: String?,
-    messageId: String,
-    deliveryId: String,
-    actionUri: String?,
-    actionID: String?,
-    tag: String,
-    stickyNotification: Boolean
-): PendingIntent? {
-    val intent = Intent(PushTemplateConstants.NotificationAction.BUTTON_CLICKED)
-    trackerActivityName?.let {
-        val trackerActivity = Class.forName(trackerActivityName)
-        intent.setClass(context.applicationContext, trackerActivity::class.java)
-    }
-    intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    intent.putExtra(PushTemplateConstants.Tracking.Keys.MESSAGE_ID, messageId)
-    intent.putExtra(PushTemplateConstants.Tracking.Keys.DELIVERY_ID, deliveryId)
-    intent.putExtra(PushTemplateConstants.PushPayloadKeys.TAG, tag)
-    intent.putExtra(PushTemplateConstants.PushPayloadKeys.STICKY, stickyNotification)
-    addActionDetailsToIntent(
-        intent,
-        actionUri,
-        actionID
-    )
-
-    // adding tracking details
-    return TaskStackBuilder.create(context)
-        .addNextIntentWithParentStack(intent)
-        .getPendingIntent(
-            Random().nextInt(),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-}
-
-/**
- * Adds action details to the provided [Intent].
- *
- * @param intent the intent
- * @param actionUri [String] containing the action uri
- * @param actionId `String` containing the action ID
- */
-private fun addActionDetailsToIntent(
-    intent: Intent,
-    actionUri: String?,
-    actionId: String?
-) {
-    if (!StringUtils.isNullOrEmpty(actionUri)) {
-        intent.putExtra(PushTemplateConstants.Tracking.Keys.ACTION_URI, actionUri)
-    }
-    if (!StringUtils.isNullOrEmpty(actionId)) {
-        intent.putExtra(PushTemplateConstants.Tracking.Keys.ACTION_ID, actionId)
-    }
-}
-
-/**
- * Sets the sound for the legacy style notification. If a sound is received from the payload, the same is
- * used. If a sound is not received from the payload, the default sound is used.
- *
- * @param context the application [Context]
- * @param notificationBuilder the [NotificationCompat.Builder]
- * @param customSound [String] containing the custom sound file name to load from the
- * bundled assets
- */
-internal fun setSound(
-    context: Context,
-    notificationBuilder: NotificationCompat.Builder,
-    customSound: String?
-) {
-    if (StringUtils.isNullOrEmpty(customSound)) {
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            (
-                "No custom sound found in the push template, using the default notification" +
-                    " sound."
-                )
-        )
-        notificationBuilder.setSound(
-            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        )
-        return
-    }
-    Log.trace(
-        PushTemplateConstants.LOG_TAG,
-        SELF_TAG,
-        "Setting sound from bundle named %s.",
-        customSound
-    )
-    notificationBuilder.setSound(
-        getSoundUriForResourceName(customSound, context)
-    )
-}
-
-/**
  * Returns the Uri for the sound file with the given name. The sound file must be in the res/raw
  * directory. The sound file should be in format of .mp3, .wav, or .ogg
  *
@@ -515,382 +334,6 @@ internal fun getSoundUriForResourceName(
     )
 }
 
-/**
- * Sets the provided image url as the large icon for the legacy style notification. If a large icon url is received
- * from the payload, the image is downloaded and the notification style is set to
- * BigPictureStyle. If large icon url is not received from the payload, default style is used
- * for the notification.
- *
- * @param notificationBuilder the [NotificationCompat.Builder]
- * @param imageUrl [String] containing the image url
- * @param title `String` containing the title
- * @param bodyText `String` containing the body text
- */
-internal fun setLargeIcon(
-    notificationBuilder: NotificationCompat.Builder,
-    imageUrl: String?,
-    title: String?,
-    bodyText: String?
-) {
-    // Quick bail out if there is no image url
-    if (StringUtils.isNullOrEmpty(imageUrl)) return
-    val bitmap: Bitmap = download(imageUrl) ?: return
-
-    // Bail out if the download fails
-    notificationBuilder.setLargeIcon(bitmap)
-    val bigPictureStyle = NotificationCompat.BigPictureStyle()
-    bigPictureStyle.bigPicture(bitmap)
-    bigPictureStyle.bigLargeIcon(null)
-    bigPictureStyle.setBigContentTitle(title)
-    bigPictureStyle.setSummaryText(bodyText)
-    notificationBuilder.setStyle(bigPictureStyle)
-}
-
-internal fun setVisibility(
-    notificationBuilder: NotificationCompat.Builder,
-    visibility: Int
-) {
-    when (visibility) {
-        NotificationCompat.VISIBILITY_PUBLIC -> notificationBuilder.setVisibility(
-            NotificationCompat.VISIBILITY_PUBLIC
-        )
-
-        NotificationCompat.VISIBILITY_PRIVATE -> notificationBuilder.setVisibility(
-            NotificationCompat.VISIBILITY_PRIVATE
-        )
-
-        NotificationCompat.VISIBILITY_SECRET -> notificationBuilder.setVisibility(
-            NotificationCompat.VISIBILITY_SECRET
-        )
-
-        else -> {
-            notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-            Log.debug(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                (
-                    "Invalid visibility value received from the payload. Using the default" +
-                        " visibility value."
-                    )
-            )
-        }
-    }
-}
-
-/**
- * Sets custom colors to UI elements present in the specified [RemoteViews] object.
- *
- * @param backgroundColor [String] containing the hex color code for the notification
- * background
- * @param titleTextColor `String` containing the hex color code for the notification title
- * text
- * @param expandedBodyTextColor `String` containing the hex color code for the expanded
- * notification body text
- * @param smallLayout [RemoteViews] object for a collapsed custom notification
- * @param expandedLayout `RemoteViews` object for an expanded custom notification
- * @param containerViewId [Int] containing the resource id of the layout container
- */
-internal fun setCustomNotificationColors(
-    backgroundColor: String?,
-    titleTextColor: String?,
-    expandedBodyTextColor: String?,
-    smallLayout: RemoteViews,
-    expandedLayout: RemoteViews,
-    containerViewId: Int
-) {
-    // get custom color from hex string and set it the notification background
-    if (!backgroundColor.isNullOrEmpty()) {
-        setElementColor(
-            smallLayout,
-            R.id.basic_small_layout,
-            "#$backgroundColor",
-            PushTemplateConstants.MethodNames.SET_BACKGROUND_COLOR,
-            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BACKGROUND
-        )
-        setElementColor(
-            expandedLayout,
-            containerViewId,
-            "#$backgroundColor",
-            PushTemplateConstants.MethodNames.SET_BACKGROUND_COLOR,
-            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BACKGROUND
-        )
-    }
-
-    // get custom color from hex string and set it the notification title
-    if (!titleTextColor.isNullOrEmpty()) {
-        setElementColor(
-            smallLayout,
-            R.id.notification_title,
-            "#$titleTextColor",
-            PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
-            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_TITLE
-        )
-        setElementColor(
-            expandedLayout,
-            R.id.notification_title,
-            "#$titleTextColor",
-            PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
-            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_TITLE
-        )
-    }
-
-    // get custom color from hex string and set it the notification body text
-    if (!expandedBodyTextColor.isNullOrEmpty()) {
-        setElementColor(
-            smallLayout,
-            R.id.notification_body,
-            "#$expandedBodyTextColor",
-            PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
-            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BODY_TEXT
-        )
-        setElementColor(
-            expandedLayout,
-            R.id.notification_body_expanded,
-            "#$expandedBodyTextColor",
-            PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
-            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BODY_TEXT
-        )
-    }
-}
-
-/**
- * Sets a provided color hex string to a UI element contained in a specified [RemoteViews]
- * view.
- *
- * @param remoteView `RemoteViews` object containing a UI element to be updated
- * @param elementId [Int] containing the resource id of the UI element
- * @param colorHex [String] containing the color hex string
- * @param methodName `String` containing the method to be called on the UI element to
- * update the color
- * @param viewFriendlyName `String` containing the friendly name of the view to be used
- * for logging purposes
- */
-private fun setElementColor(
-    remoteView: RemoteViews,
-    elementId: Int,
-    colorHex: String,
-    methodName: String,
-    viewFriendlyName: String
-) {
-    if (StringUtils.isNullOrEmpty(methodName)) {
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            (
-                "Null or empty method name provided, custom color will not" +
-                    " be applied to" +
-                    viewFriendlyName
-                )
-        )
-        return
-    }
-    try {
-        if (!StringUtils.isNullOrEmpty(colorHex)) {
-            remoteView.setInt(elementId, methodName, Color.parseColor(colorHex))
-        }
-    } catch (exception: IllegalArgumentException) {
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            (
-                "Unrecognized hex string passed to Color.parseColor(), custom color will not" +
-                    " be applied to" +
-                    viewFriendlyName
-                )
-        )
-    }
-}
-
-/**
- * Sets the click action for the specified view in the custom push template [RemoteViews].
- *
- * @param context the application [Context]
- * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
- * @param pushTemplateRemoteView `RemoteViews` the parent view representing a push
- * template notification
- * @param targetViewResourceId [Int] containing the resource id of the view to attach the
- * click action
- * @param messageId [String] containing the message id from the received push notification
- * @param deliveryId `String` containing the delivery id from the received push
- * notification
- * @param actionUri `String` containing the action uri defined for the push template image
- * @param tag `String` containing the tag to use when scheduling the notification
- * @param stickyNotification [Boolean] if false, remove the [NotificationCompat] after the `RemoteViews` is pressed
- */
-internal fun setRemoteViewClickAction(
-    context: Context,
-    trackerActivityName: String?,
-    pushTemplateRemoteView: RemoteViews,
-    targetViewResourceId: Int,
-    messageId: String,
-    deliveryId: String,
-    actionUri: String?,
-    tag: String,
-    stickyNotification: Boolean
-) {
-    if (actionUri.isNullOrEmpty()) {
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "No valid action uri found for the clicked view with id %s. No click action" +
-                " will be assigned.",
-            targetViewResourceId
-        )
-        return
-    }
-    Log.trace(
-        PushTemplateConstants.LOG_TAG,
-        SELF_TAG,
-        "Setting remote view click action uri: %s ",
-        actionUri
-    )
-
-    val pendingIntent: PendingIntent? =
-        createPendingIntent(
-            context,
-            trackerActivityName,
-            messageId,
-            deliveryId,
-            actionUri,
-            null,
-            tag,
-            stickyNotification
-        )
-    pushTemplateRemoteView.setOnClickPendingIntent(targetViewResourceId, pendingIntent)
-}
-
-/**
- * Adds action buttons for the notification.
- *
- * @param context the application [Context]
- * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
- * @param builder the [NotificationCompat.Builder] to attach the action buttons
- * @param actionButtonsString `String` a JSON string containing action buttons to attach
- * to the notification
- * @param messageId `String` containing the message id from the received push notification
- * @param deliveryId `String` containing the delivery id from the received push
- * notification
- * @param tag `String` containing the tag to use when scheduling the notification
- * @param stickyNotification [Boolean]  if false, remove the notification after the action
- * button is pressed
- */
-internal fun addActionButtons(
-    context: Context,
-    trackerActivityName: String?,
-    builder: NotificationCompat.Builder,
-    actionButtonsString: String?,
-    messageId: String,
-    deliveryId: String,
-    tag: String,
-    stickyNotification: Boolean
-) {
-    val actionButtons: List<AEPPushTemplate.ActionButton>? =
-        AEPPushTemplate.getActionButtonsFromString(actionButtonsString)
-    if (actionButtons.isNullOrEmpty()) {
-        return
-    }
-    for (eachButton in actionButtons) {
-        val pendingIntent: PendingIntent? =
-            if (eachButton.type === AEPPushTemplate.ActionType.DEEPLINK ||
-                eachButton.type === AEPPushTemplate.ActionType.WEBURL
-            ) {
-                createPendingIntent(
-                    context,
-                    trackerActivityName,
-                    messageId,
-                    deliveryId,
-                    eachButton.link,
-                    eachButton.label,
-                    tag,
-                    stickyNotification
-                )
-            } else {
-                createPendingIntent(
-                    context,
-                    trackerActivityName,
-                    messageId,
-                    deliveryId,
-                    null,
-                    eachButton.label,
-                    tag,
-                    stickyNotification
-                )
-            }
-        builder.addAction(0, eachButton.label, pendingIntent)
-    }
-}
-
-/**
- * Sets the click action for the notification.
- *
- * @param context the application [Context]
- * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
- * @param notificationBuilder the [NotificationCompat.Builder] to attach the click action
- * @param messageId [String] containing the message id from the received push notification
- * @param deliveryId `String` containing the delivery id from the received push
- * notification
- * @param actionUri `String` containing the action uri
- * @param tag `String` containing the tag to use when scheduling the notification
- * @param stickyNotification `boolean` if false, remove the notification after the `RemoteViews` is pressed
- */
-internal fun setNotificationClickAction(
-    context: Context,
-    trackerActivityName: String?,
-    notificationBuilder: NotificationCompat.Builder,
-    messageId: String,
-    deliveryId: String,
-    actionUri: String?,
-    tag: String,
-    stickyNotification: Boolean
-) {
-    val pendingIntent: PendingIntent? =
-        createPendingIntent(
-            context,
-            trackerActivityName,
-            messageId,
-            deliveryId,
-            actionUri,
-            null,
-            tag,
-            stickyNotification
-        )
-    notificationBuilder.setContentIntent(pendingIntent)
-}
-
-/**
- * Sets the delete action for the notification.
- *
- * @param context the application [Context]
- * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
- * @param builder the [NotificationCompat.Builder] to attach the delete action
- * @param messageId `String` containing the message id from the received push notification
- * @param deliveryId `String` containing the delivery id from the received push
- * notification
- */
-internal fun setNotificationDeleteAction(
-    context: Context,
-    trackerActivityName: String?,
-    builder: NotificationCompat.Builder,
-    messageId: String,
-    deliveryId: String
-) {
-    val deleteIntent = Intent(PushTemplateConstants.NotificationAction.DISMISSED)
-    trackerActivityName?.let {
-        val trackerActivity = Class.forName(trackerActivityName)
-        deleteIntent.setClass(context.applicationContext, trackerActivity::class.java)
-    }
-    deleteIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    deleteIntent.putExtra(PushTemplateConstants.Tracking.Keys.MESSAGE_ID, messageId)
-    deleteIntent.putExtra(PushTemplateConstants.Tracking.Keys.DELIVERY_ID, deliveryId)
-    val intent = PendingIntent.getActivity(
-        context,
-        Random().nextInt(),
-        deleteIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-    builder.setDeleteIntent(intent)
-}
-
 @Throws(NotificationConstructionFailedException::class)
 internal fun fallbackToBasicNotification(
     context: Context,
@@ -907,12 +350,12 @@ internal fun fallbackToBasicNotification(
         downloadedImageUris.size,
         PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT
     )
+
+    val modifiedDataMap = pushTemplate.messageData
     if (downloadedImageUris.isNotEmpty()) {
         // use the first downloaded image (if available) for the basic template notification
-        pushTemplate.modifyData(
-            PushTemplateConstants.PushPayloadKeys.IMAGE_URL, downloadedImageUris[0].toString()
-        )
+        modifiedDataMap[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] = downloadedImageUris[0].toString()
     }
-    val basicPushTemplate = BasicPushTemplate(pushTemplate.data)
-    return BasicTemplateNotificationBuilder.construct(context, null, basicPushTemplate, trackerActivityName, broadcastReceiverName)
+    val basicPushTemplate = BasicPushTemplate(modifiedDataMap)
+    return BasicTemplateNotificationBuilder.construct(context, basicPushTemplate, trackerActivityName, broadcastReceiverName)
 }

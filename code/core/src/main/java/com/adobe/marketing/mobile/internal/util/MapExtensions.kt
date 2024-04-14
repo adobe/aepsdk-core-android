@@ -137,17 +137,7 @@ private fun serializeKeyValuePair(key: String?, value: String?): String? {
  * @return [String] containing the elements joined by delimiters
  */
 private fun join(elements: Iterable<*>, delimiter: String?): String {
-    val sBuilder = java.lang.StringBuilder()
-    val iterator = elements.iterator()
-
-    // TODO: consider breaking on null items, otherwise we end up with sample1,null,sample3 instead of sample1,sample3
-    while (iterator.hasNext()) {
-        sBuilder.append(iterator.next())
-        if (iterator.hasNext()) {
-            sBuilder.append(delimiter)
-        }
-    }
-    return sBuilder.toString()
+    return elements.filterNotNull().joinToString(delimiter ?: ",")
 }
 
 /**

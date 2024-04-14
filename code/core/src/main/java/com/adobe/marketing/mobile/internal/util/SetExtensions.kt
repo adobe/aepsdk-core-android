@@ -12,11 +12,5 @@
 package com.adobe.marketing.mobile.internal.util
 
 internal fun Set<*>.isAllString(): Boolean {
-    if (this.isEmpty()) {
-        return false
-    }
-    this.forEach {
-        if (it !is String) return false
-    }
-    return true
+    return all { it is String }
 }

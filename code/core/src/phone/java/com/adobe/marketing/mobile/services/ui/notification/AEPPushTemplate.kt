@@ -54,7 +54,7 @@ internal sealed class AEPPushTemplate {
 
     internal object NotificationPriority {
         fun from(priority: String?): Int {
-            return if (priority == null) NotificationCompat.PRIORITY_DEFAULT else notificationPriorityMap[priority]
+            return if (priority == null) NotificationCompat.PRIORITY_DEFAULT else AEPPushTemplate.notificationPriorityMap[priority]
                 ?: return NotificationCompat.PRIORITY_DEFAULT
         }
 
@@ -70,6 +70,7 @@ internal sealed class AEPPushTemplate {
         const val PRIVATE = "PRIVATE"
         const val SECRET = "SECRET"
     }
+
     // Message data payload for the push template
     internal lateinit var messageData: MutableMap<String, String>
         private set
@@ -170,6 +171,9 @@ internal sealed class AEPPushTemplate {
     // clicks it.
     internal var isNotificationSticky: Boolean?
         private set
+
+    // flag to denote if the PushTemplate was built from an intent
+    internal var isFromIntent: Boolean?
 
     /**
      * Constructor to create a push template object from the data payload.
@@ -283,6 +287,7 @@ internal sealed class AEPPushTemplate {
             PushTemplateConstants.PushPayloadKeys.NOTIFICATION_BACKGROUND_COLOR,
             null
         )
+        isFromIntent = false
     }
 
     /**
@@ -307,7 +312,10 @@ internal sealed class AEPPushTemplate {
         sound = intentExtras.getString(PushTemplateConstants.IntentKeys.CUSTOM_SOUND)
         imageUrl = intentExtras.getString(PushTemplateConstants.IntentKeys.IMAGE_URI)
         actionUri = intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_URI)
-        actionType = ActionType.valueOf(intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_TYPE) ?: ActionType.NONE.name)
+        actionType = ActionType.valueOf(
+            intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_TYPE)
+                ?: ActionType.NONE.name
+        )
         expandedBodyText =
             intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT)
         actionButtonsString =
@@ -332,6 +340,7 @@ internal sealed class AEPPushTemplate {
         smallIconColor = intentExtras.getString(PushTemplateConstants.IntentKeys.SMALL_ICON_COLOR)
         notificationBackgroundColor =
             intentExtras.getString(PushTemplateConstants.IntentKeys.NOTIFICATION_BACKGROUND_COLOR)
+        isFromIntent = true
     }
 
     fun getNotificationImportance(): Int {
@@ -344,31 +353,6 @@ internal sealed class AEPPushTemplate {
     fun getNotificationVisibility(): Int {
         return notificationVisibility ?: NotificationCompat.VISIBILITY_PRIVATE
     }
-
-//    fun getActionTypeFromString(type: String?): ActionType {
-//        if (type.isNullOrEmpty()) {
-//            return ActionType.NONE
-//        }
-//        when (type) {
-//            ActionButtonType.DEEPLINK -> return ActionType.DEEPLINK
-//            ActionButtonType.WEBURL -> return ActionType.WEBURL
-//            ActionButtonType.DISMISS -> return ActionType.DISMISS
-//            ActionButtonType.OPENAPP -> return ActionType.OPENAPP
-//        }
-//        return ActionType.NONE
-//    }
-
-//    /**
-//     * Convenience method to modify the notification data payload. This is used in the following
-//     * scenario:
-//     * - Setting a carousel image URI as the data map's image URI to allow a basic push template notification to be shown in a fallback situation.
-//     *
-//     * @param key [String] value containing the key to modify
-//     * @param value `String` value containing the new value to be used
-//     */
-//    fun modifyData(key: String, value: String) {
-//        data[key] = value
-//    }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private fun getNotificationImportanceFromString(priority: String?): Int {
@@ -392,7 +376,7 @@ internal sealed class AEPPushTemplate {
         const val SELF_TAG = "AEPPushTemplate"
 
         @RequiresApi(api = Build.VERSION_CODES.N)
-        val notificationImportanceMap: Map<String?, Int?> = mapOf(
+        internal val notificationImportanceMap: Map<String?, Int?> = mapOf(
             NotificationPriority.PRIORITY_MIN to NotificationManager.IMPORTANCE_MIN,
             NotificationPriority.PRIORITY_LOW to NotificationManager.IMPORTANCE_LOW,
             NotificationPriority.PRIORITY_DEFAULT to NotificationManager.IMPORTANCE_DEFAULT,
@@ -400,13 +384,13 @@ internal sealed class AEPPushTemplate {
             NotificationPriority.PRIORITY_MAX to NotificationManager.IMPORTANCE_MAX
         )
 
-        val notificationVisibilityMap: Map<String?, Int?> = mapOf(
+        internal val notificationVisibilityMap: Map<String?, Int?> = mapOf(
             NotificationVisibility.PRIVATE to NotificationCompat.VISIBILITY_PRIVATE,
             NotificationVisibility.PUBLIC to NotificationCompat.VISIBILITY_PUBLIC,
             NotificationVisibility.SECRET to NotificationCompat.VISIBILITY_SECRET
         )
 
-        val notificationPriorityMap: Map<String?, Int?> = mapOf(
+        internal val notificationPriorityMap: Map<String?, Int?> = mapOf(
             NotificationPriority.PRIORITY_MIN to NotificationCompat.PRIORITY_MIN,
             NotificationPriority.PRIORITY_LOW to NotificationCompat.PRIORITY_LOW,
             NotificationPriority.PRIORITY_DEFAULT to NotificationCompat.PRIORITY_DEFAULT,

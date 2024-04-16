@@ -12,13 +12,12 @@
 package com.adobe.marketing.mobile.services.ui.notification
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.caching.CacheService
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageHelper.populateAutoCarouselImages
 
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a auto carousel push template notification.
@@ -55,15 +54,13 @@ internal object AutoCarouselTemplateNotificationBuilder : AEPPushTemplateNotific
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_auto_carousel)
 
         // load images into the carousel
-        val items: ArrayList<CarouselPushTemplate.CarouselItem> =
-            pushTemplate.carouselItems
-        val downloadedImageUris = populateImages(
+        val downloadedImageUris = populateAutoCarouselImages(
             context,
             trackerActivityName,
             cacheService,
             expandedLayout,
             pushTemplate,
-            items,
+            pushTemplate.carouselItems,
             packageName
         )
 
@@ -74,7 +71,11 @@ internal object AutoCarouselTemplateNotificationBuilder : AEPPushTemplateNotific
             )
         ) {
             return fallbackToBasicNotification(
-                context, trackerActivityName, broadcastReceiverName, pushTemplate, downloadedImageUris
+                context,
+                trackerActivityName,
+                broadcastReceiverName,
+                pushTemplate,
+                downloadedImageUris
             )
         }
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
@@ -93,64 +94,12 @@ internal object AutoCarouselTemplateNotificationBuilder : AEPPushTemplateNotific
         )
 
         // create the notification builder with the common settings applied
-        return super.construct(context, pushTemplate, trackerActivityName, smallLayout, expandedLayout)
-    }
-
-    private fun populateImages(
-        context: Context,
-        activityName: String?,
-        cacheService: CacheService,
-        expandedLayout: RemoteViews,
-        pushTemplate: CarouselPushTemplate,
-        items: ArrayList<CarouselPushTemplate.CarouselItem>,
-        packageName: String?
-    ): List<String> {
-        val imageProcessingStartTime = System.currentTimeMillis()
-        val downloadedImageUris = ArrayList<String>()
-        for (item: CarouselPushTemplate.CarouselItem in items) {
-            val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = downloadImage(cacheService, imageUri)
-            if (pushImage == null) {
-                Log.trace(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Failed to retrieve an image from %s, will not create a new carousel item.",
-                    imageUri
-                )
-                break
-            }
-            val carouselItem = RemoteViews(packageName, R.layout.push_template_carousel_item)
-            downloadedImageUris.add(imageUri)
-            carouselItem.setImageViewBitmap(R.id.carousel_item_image_view, pushImage)
-            carouselItem.setTextViewText(R.id.carousel_item_caption, item.captionText)
-
-            // assign a click action pending intent for each carousel item if we have a tracker activity
-            activityName?.let {
-                val interactionUri = item.interactionUri ?: pushTemplate.actionUri
-                setRemoteViewClickAction(
-                    context,
-                    activityName,
-                    carouselItem,
-                    R.id.carousel_item_image_view,
-                    interactionUri,
-                    pushTemplate.tag,
-                    pushTemplate.isNotificationSticky ?: false
-                )
-            }
-
-            // add the carousel item to the view flipper
-            expandedLayout.addView(R.id.auto_carousel_view_flipper, carouselItem)
-        }
-
-        // log time needed to process the carousel images
-        val imageProcessingElapsedTime = System.currentTimeMillis() - imageProcessingStartTime
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "Processed %d auto carousel image(s) in %d milliseconds.",
-            downloadedImageUris.size,
-            imageProcessingElapsedTime
+        return super.construct(
+            context,
+            pushTemplate,
+            trackerActivityName,
+            smallLayout,
+            expandedLayout
         )
-        return downloadedImageUris
     }
 }

@@ -18,7 +18,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.RectF
 import android.net.Uri
-import android.os.Handler
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
@@ -34,7 +33,6 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Callable
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -197,48 +195,6 @@ internal fun download(url: String?): Bitmap? {
 }
 
 /**
- * Creates a class instance using the provided class name. The class name is in the format
- * of a fully qualified class name (e.g. com.adobe.marketing.mobile.MyClass).
- *
- * @param context the application [Context]
- * @param className [String] containing the class name to create an instance of
- * @return [Any] containing the created class instance
- */
-internal fun createClassInstance(context: Context, className: String?): Any? {
-    if (className.isNullOrEmpty()) {
-        Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Cannot create a class instance, the provided class name is null or empty.")
-        return null
-    }
-
-    var classInstance: Any? = null
-    val latch = CountDownLatch(1)
-    Handler(context.mainLooper).post {
-        try {
-            classInstance = Class.forName(className).getDeclaredConstructor().newInstance()
-        } catch (e: Exception) {
-            Log.trace(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "Failed to create class instance for class name %s. Exception: %s",
-                className,
-                e.message
-            )
-        }
-        latch.countDown()
-    }
-    latch.await(CLASS_CREATION_TIMEOUT.toLong(), TimeUnit.SECONDS)
-
-    classInstance?.let {
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "Created class instance for class name $className."
-        )
-    }
-    return classInstance
-}
-
-/**
  * Converts a [Bitmap] into an [InputStream] to be used in caching images.
  *
  * @param bitmap [Bitmap] to be converted into an [InputStream]
@@ -354,8 +310,14 @@ internal fun fallbackToBasicNotification(
     val modifiedDataMap = pushTemplate.messageData
     if (downloadedImageUris.isNotEmpty()) {
         // use the first downloaded image (if available) for the basic template notification
-        modifiedDataMap[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] = downloadedImageUris[0].toString()
+        modifiedDataMap[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] =
+            downloadedImageUris[0].toString()
     }
     val basicPushTemplate = BasicPushTemplate(modifiedDataMap)
-    return BasicTemplateNotificationBuilder.construct(context, basicPushTemplate, trackerActivityName, broadcastReceiverName)
+    return BasicTemplateNotificationBuilder.construct(
+        context,
+        basicPushTemplate,
+        trackerActivityName,
+        broadcastReceiverName
+    )
 }

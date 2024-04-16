@@ -55,7 +55,19 @@ internal sealed class AEPPushTemplateNotificationBuilder {
             R.id.basic_expanded_layout
         )
 
-        val builder = NotificationCompat.Builder(context, channelIdToUse ?: PushTemplateConstants.DEFAULT_CHANNEL_ID)
+        if (pushTemplate.isFromIntent == true) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Displaying a silent notification after handling an intent."
+            )
+            channelIdToUse = PushTemplateConstants.DefaultValues.SILENT_NOTIFICATION_CHANNEL_ID
+        }
+
+        val builder = NotificationCompat.Builder(
+            context,
+            channelIdToUse ?: PushTemplateConstants.DEFAULT_CHANNEL_ID
+        )
             .setTicker(pushTemplate.ticker)
             .setNumber(pushTemplate.badgeCount)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
@@ -230,6 +242,121 @@ internal sealed class AEPPushTemplateNotificationBuilder {
     }
 
     /**
+     * Creates a click intent for the specified [Intent] action. This intent is used to handle interactions
+     * with the skip left and skip right buttons in a filmstrip or manual carousel push template notification.
+     *
+     * @param context the application [Context]
+     * @param pushTemplate the [ManualCarouselPushTemplate] object containing the manual carousel push template data
+     * @param intentAction [String] containing the intent action
+     * @param broadcastReceiverName `String` containing the broadcast receiver name
+     * @param trackerActivityName `String` containing the tracker activity name
+     * @param downloadedImageUris [List] of String` containing the downloaded image URIs
+     * @param imageCaptions `List` of String` containing the image captions
+     * @param imageClickActions `List` of String` containing the image click actions
+     * @return the created click [Intent]
+     */
+    internal fun createClickIntent(
+        context: Context,
+        pushTemplate: ManualCarouselPushTemplate,
+        intentAction: String,
+        broadcastReceiverName: String?,
+        trackerActivityName: String?,
+        downloadedImageUris: List<String?>,
+        imageCaptions: List<String?>,
+        imageClickActions: List<String?>
+    ): Intent {
+        val clickIntent = Intent(intentAction)
+        broadcastReceiverName?.let {
+            val broadcastReceiver = Class.forName(broadcastReceiverName)
+            clickIntent.setClass(context, broadcastReceiver)
+        }
+
+        clickIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.TEMPLATE_TYPE,
+            pushTemplate.templateType?.value
+        )
+        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityName)
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME,
+            broadcastReceiverName
+        )
+        clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelIdToUse)
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.CUSTOM_SOUND, pushTemplate.sound
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX,
+            pushTemplate.centerImageIndex
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.IMAGE_URLS,
+            downloadedImageUris.toTypedArray()
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.IMAGE_CAPTIONS,
+            imageCaptions.toTypedArray()
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.IMAGE_CLICK_ACTIONS, imageClickActions.toTypedArray()
+        )
+        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TITLE_TEXT, pushTemplate.title)
+        clickIntent.putExtra(PushTemplateConstants.IntentKeys.BODY_TEXT, pushTemplate.body)
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT,
+            pushTemplate.expandedBodyText
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.NOTIFICATION_BACKGROUND_COLOR,
+            pushTemplate.notificationBackgroundColor
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.TITLE_TEXT_COLOR,
+            pushTemplate.titleTextColor
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT_COLOR,
+            pushTemplate.expandedBodyTextColor
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.SMALL_ICON, pushTemplate.smallIcon
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.LARGE_ICON, pushTemplate.largeIcon
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.SMALL_ICON_COLOR,
+            pushTemplate.smallIconColor
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.VISIBILITY,
+            pushTemplate.getNotificationVisibility()
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.IMPORTANCE,
+            pushTemplate.getNotificationImportance()
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.TICKER, pushTemplate.ticker
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.TAG, pushTemplate.tag
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.STICKY, pushTemplate.isNotificationSticky
+        )
+        clickIntent.putExtra(PushTemplateConstants.IntentKeys.ACTION_URI, pushTemplate.actionUri)
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.PAYLOAD_VERSION, pushTemplate.payloadVersion
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS,
+            pushTemplate.rawCarouselItems
+        )
+        return clickIntent
+    }
+
+    /**
      * Sets the click action for the specified view in the custom push template [RemoteViews].
      *
      * @param context the application [Context]
@@ -256,17 +383,14 @@ internal sealed class AEPPushTemplateNotificationBuilder {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 AEPPushTemplate.SELF_TAG,
-                "No valid action uri found for the clicked view with id %s. No click action" +
-                    " will be assigned.",
-                targetViewResourceId
+                "No valid action uri found for the clicked view with id $targetViewResourceId. No click action will be assigned."
             )
             return
         }
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             AEPPushTemplate.SELF_TAG,
-            "Setting remote view click action uri: %s ",
-            actionUri
+            "Setting remote view click action uri: $actionUri."
         )
 
         val pendingIntent: PendingIntent? =
@@ -362,7 +486,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         val intent = Intent(PushTemplateConstants.NotificationAction.BUTTON_CLICKED)
         trackerActivityName?.let {
             val trackerActivity = Class.forName(trackerActivityName)
-            intent.setClass(context.applicationContext, trackerActivity::class.java)
+            intent.setClass(context.applicationContext, trackerActivity)
         }
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         intent.putExtra(PushTemplateConstants.PushPayloadKeys.TAG, tag)
@@ -403,8 +527,9 @@ internal sealed class AEPPushTemplateNotificationBuilder {
     }
 
     /**
-     * Sets the sound for the legacy style notification. If a sound is received from the payload, the same is
-     * used. If a sound is not received from the payload, the default sound is used.
+     * Sets the sound for the legacy style notification or notification on a device less than API 25.
+     * If a sound is received from the payload, the same is used.
+     * If a sound is not received from the payload, the default sound is used.
      *
      * @param context the application [Context]
      * @param notificationBuilder the [NotificationCompat.Builder]
@@ -419,7 +544,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         if (StringUtils.isNullOrEmpty(customSound)) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
+                SELF_TAG,
                 (
                     "No custom sound found in the push template, using the default notification" +
                         " sound."
@@ -433,8 +558,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             AEPPushTemplate.SELF_TAG,
-            "Setting sound from bundle named %s.",
-            customSound
+            "Setting sound from bundle named $customSound."
         )
         notificationBuilder.setSound(
             getSoundUriForResourceName(customSound, context)
@@ -544,7 +668,6 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         builder.setSmallIcon(iconResourceId)
     }
 
-// TODO: move icon helpers to AEPPushTemplateNotificationBuilder as they are common
     /**
      * Sets the large icon for the provided [RemoteViews]. If a large icon contains a filename
      * only then the large icon is set from a bundle image resource. If a large icon contains a URL,
@@ -571,8 +694,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
-                    "Unable to download an image from %s, large icon will not be applied.",
-                    largeIcon
+                    "Unable to download an image from $largeIcon, large icon will not be applied."
                 )
                 remoteView.setViewVisibility(R.id.large_icon, View.GONE)
                 return
@@ -591,11 +713,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
-                    (
-                        "Unable to find a bundled image with name %s, large icon will not be" +
-                            " applied."
-                        ),
-                    largeIcon
+                    ("Unable to find a bundled image with name $largeIcon, large icon will not be applied.")
                 )
                 remoteView.setViewVisibility(R.id.large_icon, View.GONE)
                 return
@@ -615,8 +733,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
                 "Package manager NameNotFoundException while reading default application icon." +
-                    " Exception: %s",
-                e.message
+                    " Exception: ${e.message}"
             )
         }
         return -1
@@ -837,7 +954,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
                 SELF_TAG,
                 (
                     "No custom sound found in the push template, using the default" +
-                        " notification sound."
+                        " notification sound for the notification channel named ${notificationChannel.name}."
                     )
             )
             notificationChannel.setSound(
@@ -848,8 +965,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
-            "Setting sound from bundle named %s.",
-            customSound
+            "Setting sound from bundle named $customSound for the notification channel named ${notificationChannel.name}.",
         )
         notificationChannel.setSound(
             getSoundUriForResourceName(customSound, context), null

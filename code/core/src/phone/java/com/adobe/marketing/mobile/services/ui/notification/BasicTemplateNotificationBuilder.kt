@@ -76,7 +76,8 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
         )
 
         // create the notification builder with the common settings applied
-        val builder = super.construct(context, pushTemplate, trackerActivityName, smallLayout, expandedLayout)
+        val builder =
+            super.construct(context, pushTemplate, trackerActivityName, smallLayout, expandedLayout)
 
         // add any action buttons defined for the notification
         addActionButtons(
@@ -169,9 +170,7 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
             )
             return null
         }
-        val actionButtonList: MutableList<AEPPushTemplate.ActionButton> = ArrayList(
-            ACTION_BUTTON_CAPACITY
-        )
+        val actionButtonList = mutableListOf<AEPPushTemplate.ActionButton>()
         try {
             val jsonArray = JSONArray(actionButtons)
             for (i in 0 until jsonArray.length()) {
@@ -247,7 +246,7 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
 
         remindIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         remindIntent.putExtra(
-            PushTemplateConstants.IntentKeys.TYPE, pushTemplate.templateType?.value
+            PushTemplateConstants.IntentKeys.TEMPLATE_TYPE, pushTemplate.templateType?.value
         )
         remindIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityName)
         remindIntent.putExtra(

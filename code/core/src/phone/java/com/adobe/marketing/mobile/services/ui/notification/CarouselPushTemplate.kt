@@ -26,11 +26,15 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
         private set
 
     // Required, One or more Items in the carousel defined by the CarouselItem class
-    internal var carouselItems = ArrayList<CarouselItem>()
+    internal var carouselItems = mutableListOf<CarouselItem>()
         private set
 
     // Required, "default" or "filmstrip"
     internal var carouselLayoutType: String
+        private set
+
+    // Contains the carousel items as a string
+    internal var rawCarouselItems: String
         private set
 
     class CarouselItem(
@@ -57,6 +61,7 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
         } catch (dataReaderException: DataReaderException) {
             throw IllegalArgumentException("Required field \"adb_items\" not found.")
         }
+        this.rawCarouselItems = carouselItemsString
         val carouselItemJSONArray: JSONArray
         val carouselItemObjects: MutableList<Any>?
         try {
@@ -105,9 +110,9 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
         carouselLayoutType =
             intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_LAYOUT_TYPE)
                 ?: PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE
-        val carouselItemsString =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS)
-        carouselItems = CarouselTemplateHelpers.parseCarouselItems(carouselItemsString)
+        rawCarouselItems =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS) ?: ""
+        carouselItems = CarouselTemplateHelpers.parseCarouselItems(rawCarouselItems)
     }
 
     companion object {

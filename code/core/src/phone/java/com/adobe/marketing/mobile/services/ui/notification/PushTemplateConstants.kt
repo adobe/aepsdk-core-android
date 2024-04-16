@@ -40,7 +40,7 @@ internal object PushTemplateConstants {
     }
 
     internal object DefaultValues {
-        const val SILENT_NOTIFICATION_CHANNEL_ID = "silent"
+        const val SILENT_NOTIFICATION_CHANNEL_ID = "AEPSDK Silent Push Notifications"
         const val CAROUSEL_MAX_BITMAP_WIDTH = 300
         const val CAROUSEL_MAX_BITMAP_HEIGHT = 200
         const val AUTO_CAROUSEL_MODE = "auto"
@@ -50,6 +50,7 @@ internal object PushTemplateConstants {
         const val CAROUSEL_MINIMUM_IMAGE_COUNT = 3
         const val MANUAL_CAROUSEL_START_INDEX = 0
         const val FILMSTRIP_CAROUSEL_CENTER_INDEX = 1
+        const val NO_CENTER_INDEX_SET = -1
         const val ACTION_BUTTON_CAPACITY = 3
 
         // TODO: revisit this value. should cache time be configurable rather than have a static
@@ -96,7 +97,6 @@ internal object PushTemplateConstants {
         const val STICKY = "sticky"
         const val TAG = "tag"
         const val TICKER = "ticker"
-        const val TYPE = "type"
         const val TRACKER_NAME = "trackerName"
         const val BROADCAST_RECEIVER_NAME = "broadcastReceiverName"
         const val PAYLOAD_VERSION = "version"
@@ -156,6 +156,13 @@ internal object PushTemplateConstants {
     internal object CarouselItemKeys {
         const val IMAGE = "img"
         const val TEXT = "txt"
-        const val URL = "url"
+        const val URL = "uri"
+    }
+
+    internal object CarouselListKeys {
+        const val IMAGES_KEY = "images"
+        const val IMAGE_URIS_KEY = "imageUris"
+        const val IMAGE_CAPTIONS_KEY = "imageCaptions"
+        const val IMAGE_ACTIONS_KEY = "imageActions"
     }
 }

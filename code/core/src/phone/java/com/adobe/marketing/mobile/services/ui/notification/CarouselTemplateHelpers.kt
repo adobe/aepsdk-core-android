@@ -18,6 +18,8 @@ import org.json.JSONArray
 import org.json.JSONException
 
 internal object CarouselTemplateHelpers {
+    private const val SELF_TAG = "CarouselTemplateHelpers"
+
     /**
      * Calculates a new left, center, and right index given the current center index, total number
      * of images, and the intent action.
@@ -33,13 +35,13 @@ internal object CarouselTemplateHelpers {
         action: String?
     ): List<Int> {
         if (listSize == null || listSize < CarouselPushTemplate.MINIMUM_FILMSTRIP_SIZE) return emptyList()
-        val newIndices: MutableList<Int> = ArrayList()
+        val newIndices = mutableListOf<Int>()
         var newCenterIndex = 0
         var newLeftIndex = 0
         var newRightIndex = 0
         Log.trace(
             PushTemplateConstants.LOG_TAG,
-            AEPPushTemplate.SELF_TAG,
+            SELF_TAG,
             "Current center index is %d and list size is %d.",
             centerIndex,
             listSize
@@ -64,7 +66,7 @@ internal object CarouselTemplateHelpers {
         newIndices.add(newRightIndex)
         Log.trace(
             PushTemplateConstants.LOG_TAG,
-            AEPPushTemplate.SELF_TAG,
+            SELF_TAG,
             (
                 "Calculated new indices. New center index is %d, new left index is %d, and new" +
                     " right index is %d."
@@ -76,12 +78,12 @@ internal object CarouselTemplateHelpers {
         return newIndices
     }
 
-    internal fun parseCarouselItems(carouselItemsString: String?): ArrayList<CarouselPushTemplate.CarouselItem> {
-        val carouselItems = ArrayList<CarouselPushTemplate.CarouselItem>()
+    internal fun parseCarouselItems(carouselItemsString: String?): MutableList<CarouselPushTemplate.CarouselItem> {
+        val carouselItems = mutableListOf<CarouselPushTemplate.CarouselItem>()
         if (StringUtils.isNullOrEmpty(carouselItemsString)) {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
+                SELF_TAG,
                 "No carousel items found in the push template."
             )
             return carouselItems
@@ -104,7 +106,7 @@ internal object CarouselTemplateHelpers {
         } catch (e: JSONException) {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
+                SELF_TAG,
                 "Failed to parse carousel items from the push template: %s",
                 e.localizedMessage
             )

@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
@@ -51,8 +53,8 @@ object TemplateUtils {
     @Throws(NotificationConstructionFailedException::class)
     @JvmStatic
     fun constructNotificationBuilder(
-        broadcastReceiverName: String?,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?,
         messageData: Map<String, String>?
     ): NotificationCompat.Builder {
         if (messageData.isNullOrEmpty()) {
@@ -70,8 +72,8 @@ object TemplateUtils {
                 return BasicTemplateNotificationBuilder.construct(
                     context,
                     basicPushTemplate,
-                    trackerActivityName,
-                    broadcastReceiverName
+                    trackerActivityClass,
+                    broadcastReceiverClass
                 )
             }
 
@@ -91,23 +93,23 @@ object TemplateUtils {
                     return AutoCarouselTemplateNotificationBuilder.construct(
                         context,
                         AutoCarouselPushTemplate(messageData),
-                        trackerActivityName,
-                        broadcastReceiverName
+                        trackerActivityClass,
+                        broadcastReceiverClass
                     )
                 } else {
                     return if (carouselType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
                         FilmstripCarouselTemplateNotificationBuilder.construct(
                             context,
                             ManualCarouselPushTemplate(messageData),
-                            trackerActivityName,
-                            broadcastReceiverName
+                            trackerActivityClass,
+                            broadcastReceiverClass
                         )
                     } else {
                         return ManualCarouselTemplateNotificationBuilder.construct(
                             context,
                             ManualCarouselPushTemplate(messageData),
-                            trackerActivityName,
-                            broadcastReceiverName
+                            trackerActivityClass,
+                            broadcastReceiverClass
                         )
                     }
                 }
@@ -118,7 +120,7 @@ object TemplateUtils {
                 return LegacyNotificationBuilder.construct(
                     context,
                     basicPushTemplate,
-                    trackerActivityName
+                    trackerActivityClass
                 )
             }
         }
@@ -136,10 +138,10 @@ object TemplateUtils {
 
         val context = ServiceProvider.getInstance().appContextService.applicationContext
             ?: throw NotificationConstructionFailedException("Application context is null, cannot build a notification.")
-        val trackerActivityName =
-            intent.getStringExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME)
-        val broadcastReceiverName =
-            intent.getStringExtra(PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME)
+        val trackerActivityClass =
+            intent.getSerializableExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME) as Class<out Activity>
+        val broadcastReceiverClass =
+            intent.getSerializableExtra(PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME) as Class<out BroadcastReceiver>
         val pushTemplateType =
             PushTemplateType.fromString(intent.getStringExtra(PushTemplateConstants.IntentKeys.TEMPLATE_TYPE))
 
@@ -153,8 +155,8 @@ object TemplateUtils {
                 return BasicTemplateNotificationBuilder.construct(
                     context,
                     BasicPushTemplate(intent),
-                    trackerActivityName,
-                    broadcastReceiverName
+                    trackerActivityClass,
+                    broadcastReceiverClass
                 )
             }
 
@@ -166,15 +168,15 @@ object TemplateUtils {
                     ManualCarouselTemplateNotificationBuilder.construct(
                         context,
                         pushTemplate,
-                        trackerActivityName,
-                        broadcastReceiverName
+                        trackerActivityClass,
+                        broadcastReceiverClass
                     )
                 } else {
                     FilmstripCarouselTemplateNotificationBuilder.construct(
                         context,
                         pushTemplate,
-                        trackerActivityName,
-                        broadcastReceiverName
+                        trackerActivityClass,
+                        broadcastReceiverClass
                     )
                 }
             }

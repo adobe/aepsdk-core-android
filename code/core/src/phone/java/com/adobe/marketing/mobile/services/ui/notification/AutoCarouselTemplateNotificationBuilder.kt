@@ -11,25 +11,28 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.ui.notification.AEPPushTemplateNotificationBuilder.createChannelAndGetChannelID
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageHelper.populateAutoCarouselImages
 
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a auto carousel push template notification.
  */
-internal object AutoCarouselTemplateNotificationBuilder : AEPPushTemplateNotificationBuilder() {
+internal object AutoCarouselTemplateNotificationBuilder {
     private const val SELF_TAG = "AutoCarouselTemplateNotificationBuilder"
 
     fun construct(
         context: Context,
         pushTemplate: AutoCarouselPushTemplate?,
-        trackerActivityName: String?,
-        broadcastReceiverName: String?
+        trackerActivityClass: Class<out Activity>?,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?,
     ): NotificationCompat.Builder {
         if (pushTemplate == null) {
             throw NotificationConstructionFailedException(
@@ -53,10 +56,28 @@ internal object AutoCarouselTemplateNotificationBuilder : AEPPushTemplateNotific
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_auto_carousel)
 
+        // Create the notification channel if needed
+        val channelIdToUse = createChannelAndGetChannelID(
+            context,
+            pushTemplate.channelId,
+            pushTemplate.sound,
+            pushTemplate.getNotificationImportance()
+        )
+
+        // create the notification builder with the common settings applied
+        val notificationBuilder = AEPPushTemplateNotificationBuilder.construct(
+            context,
+            pushTemplate,
+            channelIdToUse,
+            trackerActivityClass,
+            smallLayout,
+            expandedLayout
+        )
+
         // load images into the carousel
         val downloadedImageUris = populateAutoCarouselImages(
             context,
-            trackerActivityName,
+            trackerActivityClass,
             cacheService,
             expandedLayout,
             pushTemplate,
@@ -77,8 +98,8 @@ internal object AutoCarouselTemplateNotificationBuilder : AEPPushTemplateNotific
             )
             return fallbackToBasicNotification(
                 context,
-                trackerActivityName,
-                broadcastReceiverName,
+                trackerActivityClass,
+                broadcastReceiverClass,
                 pushTemplate,
                 downloadedImageUris
             )
@@ -90,21 +111,6 @@ internal object AutoCarouselTemplateNotificationBuilder : AEPPushTemplateNotific
             R.id.notification_body_expanded, pushTemplate.expandedBodyText
         )
 
-        // Create the notification channel if needed
-        channelIdToUse = createChannelAndGetChannelID(
-            context,
-            pushTemplate.channelId,
-            pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
-        )
-
-        // create the notification builder with the common settings applied
-        return super.construct(
-            context,
-            pushTemplate,
-            trackerActivityName,
-            smallLayout,
-            expandedLayout
-        )
+        return notificationBuilder
     }
 }

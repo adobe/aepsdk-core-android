@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.widget.RemoteViews
@@ -25,7 +26,7 @@ internal object PushTemplateImageHelper {
      * Populates the images for a manual carousel push template.
      *
      * @param context the current [Context] of the application
-     * @param trackerActivityName the [String] name of the activity that will be used for tracking interactions with the carousel item
+     * @param trackerActivityClass the [Class] of the activity that will be used for tracking interactions with the carousel item
      * @param cacheService the [CacheService] used to cache the downloaded images
      * @param expandedLayout the [RemoteViews] containing the expanded layout of the notification
      * @param items the list of [CarouselPushTemplate.CarouselItem] objects to be displayed in the carousel
@@ -37,7 +38,7 @@ internal object PushTemplateImageHelper {
      */
     internal fun populateManualCarouselImages(
         context: Context,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
         cacheService: CacheService,
         expandedLayout: RemoteViews,
         items: List<CarouselPushTemplate.CarouselItem>,
@@ -73,9 +74,9 @@ internal object PushTemplateImageHelper {
                 if (item.interactionUri.isNullOrEmpty()) actionUri else item.interactionUri
             interactionUri?.let {
                 imageClickActions.add(it)
-                ManualCarouselTemplateNotificationBuilder.setRemoteViewClickAction(
+                AEPPushTemplateNotificationBuilder.setRemoteViewClickAction(
                     context,
-                    trackerActivityName,
+                    trackerActivityClass,
                     carouselItem,
                     R.id.carousel_item_image_view,
                     interactionUri,
@@ -107,7 +108,7 @@ internal object PushTemplateImageHelper {
      * Populates the images for a automatic carousel push template.
      *
      * @param context the current [Context] of the application
-     * @param trackerActivityName the [String] name of the activity that will be used for tracking interactions with the carousel item
+     * @param trackerActivityClass the [Class] of the activity that will be used for tracking interactions with the carousel item
      * @param cacheService the [CacheService] used to cache the downloaded images
      * @param expandedLayout the [RemoteViews] containing the expanded layout of the notification
      * @param pushTemplate the [CarouselPushTemplate] object containing the push template data
@@ -117,7 +118,7 @@ internal object PushTemplateImageHelper {
      */
     internal fun populateAutoCarouselImages(
         context: Context,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
         cacheService: CacheService,
         expandedLayout: RemoteViews,
         pushTemplate: CarouselPushTemplate,
@@ -143,11 +144,11 @@ internal object PushTemplateImageHelper {
             carouselItem.setTextViewText(R.id.carousel_item_caption, item.captionText)
 
             // assign a click action pending intent for each carousel item if we have a tracker activity
-            trackerActivityName?.let {
+            trackerActivityClass?.let {
                 val interactionUri = item.interactionUri ?: pushTemplate.actionUri
-                AutoCarouselTemplateNotificationBuilder.setRemoteViewClickAction(
+                AEPPushTemplateNotificationBuilder.setRemoteViewClickAction(
                     context,
-                    trackerActivityName,
+                    trackerActivityClass,
                     carouselItem,
                     R.id.carousel_item_image_view,
                     interactionUri,
@@ -233,7 +234,7 @@ internal object PushTemplateImageHelper {
      * @param imageClickActions the list of [String] click actions for each filmstrip carousel image
      * @param newIndices the list of [Int] indices for the new left, center, and right images
      * @param pushTemplate the [ManualCarouselPushTemplate] object containing the push template data
-     * @param trackerActivityName the [String] name of the activity that will be used for tracking interactions with the carousel item
+     * @param trackerActivityClass the [Class] of the activity that will be used for tracking interactions with the carousel item
      * @param expandedLayout the [RemoteViews] containing the expanded layout of the notification
      */
     internal fun populateFilmstripCarouselImages(
@@ -243,7 +244,7 @@ internal object PushTemplateImageHelper {
         imageClickActions: List<String?>,
         newIndices: List<Int>,
         pushTemplate: ManualCarouselPushTemplate,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
         expandedLayout: RemoteViews
     ) {
         val newLeftIndex = newIndices[0]
@@ -271,9 +272,9 @@ internal object PushTemplateImageHelper {
         // assign a click action pending intent to the center image view
         val interactionUri =
             if (!imageClickActions[newCenterIndex].isNullOrEmpty()) imageClickActions[newCenterIndex] else pushTemplate.actionUri
-        FilmstripCarouselTemplateNotificationBuilder.setRemoteViewClickAction(
+        AEPPushTemplateNotificationBuilder.setRemoteViewClickAction(
             context,
-            trackerActivityName,
+            trackerActivityClass,
             expandedLayout,
             R.id.manual_carousel_filmstrip_center,
             interactionUri,

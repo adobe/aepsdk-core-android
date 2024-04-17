@@ -11,10 +11,12 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.TaskStackBuilder
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -33,17 +35,20 @@ import com.adobe.marketing.mobile.util.StringUtils
 import com.adobe.marketing.mobile.util.UrlUtils
 import java.util.Random
 
-internal sealed class AEPPushTemplateNotificationBuilder {
-    var channelIdToUse: String? = null
+internal object AEPPushTemplateNotificationBuilder {
+    private const val SELF_TAG = "AEPPushTemplateNotificationBuilder"
+    private lateinit var channelId: String
 
     @Throws(NotificationConstructionFailedException::class)
-    protected fun construct(
+    fun construct(
         context: Context,
         pushTemplate: AEPPushTemplate,
-        trackerActivityName: String?,
+        channelIdToUse: String,
+        trackerActivityClass: Class<out Activity>?,
         smallLayout: RemoteViews,
         expandedLayout: RemoteViews
     ): NotificationCompat.Builder {
+        channelId = channelIdToUse
 
         // set any custom colors if needed
         setCustomNotificationColors(
@@ -61,12 +66,12 @@ internal sealed class AEPPushTemplateNotificationBuilder {
                 SELF_TAG,
                 "Displaying a silent notification after handling an intent."
             )
-            channelIdToUse = PushTemplateConstants.DefaultValues.SILENT_NOTIFICATION_CHANNEL_ID
+            channelId = PushTemplateConstants.DefaultValues.SILENT_NOTIFICATION_CHANNEL_ID
         }
 
         val builder = NotificationCompat.Builder(
             context,
-            channelIdToUse ?: PushTemplateConstants.DEFAULT_CHANNEL_ID
+            channelId
         )
             .setTicker(pushTemplate.ticker)
             .setNumber(pushTemplate.badgeCount)
@@ -95,7 +100,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         setSound(context, builder, pushTemplate.sound)
         setNotificationClickAction(
             context,
-            trackerActivityName,
+            trackerActivityClass,
             builder,
             pushTemplate.actionUri,
             pushTemplate.tag,
@@ -103,7 +108,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         )
         setNotificationDeleteAction(
             context,
-            trackerActivityName,
+            trackerActivityClass,
             builder
         )
 
@@ -240,8 +245,8 @@ internal sealed class AEPPushTemplateNotificationBuilder {
      * @param context the application [Context]
      * @param pushTemplate the [ManualCarouselPushTemplate] object containing the manual carousel push template data
      * @param intentAction [String] containing the intent action
-     * @param broadcastReceiverName `String` containing the broadcast receiver name
-     * @param trackerActivityName `String` containing the tracker activity name
+     * @param trackerActivityClass the [Class] of the activity to set in the created pending intent for tracking purposes
+     * @param broadcastReceiverClass the [Class] of the broadcast receiver to set in the created pending intent
      * @param downloadedImageUris [List] of String` containing the downloaded image URIs
      * @param imageCaptions `List` of String` containing the image captions
      * @param imageClickActions `List` of String` containing the image click actions
@@ -251,16 +256,15 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         context: Context,
         pushTemplate: ManualCarouselPushTemplate,
         intentAction: String,
-        broadcastReceiverName: String?,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?,
         downloadedImageUris: List<String?>,
         imageCaptions: List<String?>,
         imageClickActions: List<String?>
     ): Intent {
         val clickIntent = Intent(intentAction)
-        broadcastReceiverName?.let {
-            val broadcastReceiver = Class.forName(broadcastReceiverName)
-            clickIntent.setClass(context, broadcastReceiver)
+        broadcastReceiverClass?.let {
+            clickIntent.setClass(context, broadcastReceiverClass)
         }
 
         clickIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
@@ -268,12 +272,12 @@ internal sealed class AEPPushTemplateNotificationBuilder {
             PushTemplateConstants.IntentKeys.TEMPLATE_TYPE,
             pushTemplate.templateType?.value
         )
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityName)
+        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityClass)
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME,
-            broadcastReceiverName
+            broadcastReceiverClass
         )
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelIdToUse)
+        clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelId)
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.CUSTOM_SOUND, pushTemplate.sound
         )
@@ -352,7 +356,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
      * Sets the click action for the specified view in the custom push template [RemoteViews].
      *
      * @param context the application [Context]
-     * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
+     * @param trackerActivityClass the [Class] of the activity to set in the created pending intent for tracking purposes
      * @param pushTemplateRemoteView `RemoteViews` the parent view representing a push
      * template notification
      * @param targetViewResourceId [Int] containing the resource id of the view to attach the
@@ -364,7 +368,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
      */
     internal fun setRemoteViewClickAction(
         context: Context,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
         pushTemplateRemoteView: RemoteViews,
         targetViewResourceId: Int,
         actionUri: String?,
@@ -388,7 +392,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         val pendingIntent: PendingIntent? =
             createPendingIntent(
                 context,
-                trackerActivityName,
+                trackerActivityClass,
                 actionUri,
                 null,
                 tag,
@@ -401,7 +405,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
      * Sets the click action for the notification.
      *
      * @param context the application [Context]
-     * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
+     * @param trackerActivityClass the [Class] of the activity to set in the created pending intent for tracking purposes
      * @param notificationBuilder the [NotificationCompat.Builder] to attach the click action
      * notification
      * @param actionUri `String` containing the action uri
@@ -410,7 +414,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
      */
     internal fun setNotificationClickAction(
         context: Context,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
         notificationBuilder: NotificationCompat.Builder,
         actionUri: String?,
         tag: String?,
@@ -419,7 +423,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         val pendingIntent: PendingIntent? =
             createPendingIntent(
                 context,
-                trackerActivityName,
+                trackerActivityClass,
                 actionUri,
                 null,
                 tag,
@@ -432,19 +436,18 @@ internal sealed class AEPPushTemplateNotificationBuilder {
      * Sets the delete action for the notification.
      *
      * @param context the application [Context]
-     * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
+     * @param trackerActivityClass the [Class] of the activity to set in the created pending intent for tracking purposes
      * @param builder the [NotificationCompat.Builder] to attach the delete action
      * notification
      */
     internal fun setNotificationDeleteAction(
         context: Context,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
         builder: NotificationCompat.Builder,
     ) {
         val deleteIntent = Intent(PushTemplateConstants.NotificationAction.DISMISSED)
-        trackerActivityName?.let {
-            val trackerActivity = Class.forName(trackerActivityName)
-            deleteIntent.setClass(context.applicationContext, trackerActivity::class.java)
+        trackerActivityClass?.let {
+            deleteIntent.setClass(context.applicationContext, trackerActivityClass)
         }
         deleteIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val intent = PendingIntent.getActivity(
@@ -460,7 +463,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
      * Creates a pending intent for a notification.
      *
      * @param context the application [Context]
-     * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
+     * @param trackerActivityClass the [Class] of the activity to set in the created pending intent for tracking purposes
      * notification
      * @param actionUri the action uri
      * @param actionID the action ID
@@ -469,16 +472,15 @@ internal sealed class AEPPushTemplateNotificationBuilder {
      */
     internal fun createPendingIntent(
         context: Context,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
         actionUri: String?,
         actionID: String?,
         tag: String?,
         stickyNotification: Boolean
     ): PendingIntent? {
         val intent = Intent(PushTemplateConstants.NotificationAction.BUTTON_CLICKED)
-        trackerActivityName?.let {
-            val trackerActivity = Class.forName(trackerActivityName)
-            intent.setClass(context.applicationContext, trackerActivity)
+        trackerActivityClass?.let {
+            intent.setClass(context.applicationContext, trackerActivityClass)
         }
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         intent.putExtra(PushTemplateConstants.PushPayloadKeys.TAG, tag)
@@ -949,9 +951,5 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         notificationChannel.setSound(
             getSoundUriForResourceName(customSound, context), null
         )
-    }
-
-    companion object {
-        private const val SELF_TAG = "AEPPushTemplateNotificationBuilder"
     }
 }

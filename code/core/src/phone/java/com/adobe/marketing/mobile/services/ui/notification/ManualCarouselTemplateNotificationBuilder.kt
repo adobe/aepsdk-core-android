@@ -11,7 +11,9 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import android.app.Activity
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -23,15 +25,15 @@ import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageHelp
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a manual carousel push template notification.
  */
-internal object ManualCarouselTemplateNotificationBuilder : AEPPushTemplateNotificationBuilder() {
+internal object ManualCarouselTemplateNotificationBuilder {
     private const val SELF_TAG = "ManualCarouselTemplateNotificationBuilder"
 
     @Throws(NotificationConstructionFailedException::class)
     fun construct(
         context: Context,
         pushTemplate: ManualCarouselPushTemplate?,
-        trackerActivityName: String?,
-        broadcastReceiverName: String?
+        trackerActivityClass: Class<out Activity>?,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
         if (pushTemplate == null) {
             throw NotificationConstructionFailedException(
@@ -54,12 +56,30 @@ internal object ManualCarouselTemplateNotificationBuilder : AEPPushTemplateNotif
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_manual_carousel)
 
+        // Create the notification channel if needed
+        val channelIdToUse = AEPPushTemplateNotificationBuilder.createChannelAndGetChannelID(
+            context,
+            pushTemplate.channelId,
+            pushTemplate.sound,
+            pushTemplate.getNotificationImportance()
+        )
+
+        // create the notification builder with the common settings applied
+        val notificationBuilder = AEPPushTemplateNotificationBuilder.construct(
+            context,
+            pushTemplate,
+            channelIdToUse,
+            trackerActivityClass,
+            smallLayout,
+            expandedLayout
+        )
+
         // load images into the carousel
         val fallbackActionUri = pushTemplate.actionUri
         val items = pushTemplate.carouselItems
         val extractedItemData = populateManualCarouselImages(
             context,
-            trackerActivityName,
+            trackerActivityClass,
             cacheService,
             expandedLayout,
             items,
@@ -87,8 +107,8 @@ internal object ManualCarouselTemplateNotificationBuilder : AEPPushTemplateNotif
             )
             return fallbackToBasicNotification(
                 context,
-                trackerActivityName,
-                broadcastReceiverName,
+                trackerActivityClass,
+                broadcastReceiverClass,
                 pushTemplate,
                 downloadedImageUris
             )
@@ -120,21 +140,13 @@ internal object ManualCarouselTemplateNotificationBuilder : AEPPushTemplateNotif
         expandedLayout.setTextViewText(R.id.notification_title, titleText)
         expandedLayout.setTextViewText(R.id.notification_body_expanded, expandedBodyText)
 
-        // Create the notification channel if needed
-        channelIdToUse = createChannelAndGetChannelID(
-            context,
-            pushTemplate.channelId,
-            pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
-        )
-
         // handle left and right navigation buttons
-        val clickIntent = createClickIntent(
+        val clickIntent = AEPPushTemplateNotificationBuilder.createClickIntent(
             context,
             pushTemplate,
             PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED,
-            broadcastReceiverName,
-            trackerActivityName,
+            trackerActivityClass,
+            broadcastReceiverClass,
             downloadedImageUris,
             imageCaptions,
             imageClickActions
@@ -155,13 +167,6 @@ internal object ManualCarouselTemplateNotificationBuilder : AEPPushTemplateNotif
         expandedLayout.setOnClickPendingIntent(R.id.leftImageButton, pendingIntentLeftButton)
         expandedLayout.setOnClickPendingIntent(R.id.rightImageButton, pendingIntentRightButton)
 
-        // create the notification builder with the common settings applied
-        return super.construct(
-            context,
-            pushTemplate,
-            trackerActivityName,
-            smallLayout,
-            expandedLayout
-        )
+        return notificationBuilder
     }
 }

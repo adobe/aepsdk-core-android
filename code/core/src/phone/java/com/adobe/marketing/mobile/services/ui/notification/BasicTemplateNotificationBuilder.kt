@@ -11,7 +11,9 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import android.app.Activity
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
@@ -26,15 +28,15 @@ import org.json.JSONObject
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a basic push template notification.
  */
-internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBuilder() {
+internal object BasicTemplateNotificationBuilder {
     private const val SELF_TAG = "BasicTemplateNotificationBuilder"
 
     @Throws(NotificationConstructionFailedException::class)
     fun construct(
         context: Context,
         pushTemplate: BasicPushTemplate?,
-        trackerActivityName: String?,
-        broadcastReceiverName: String?
+        trackerActivityClass: Class<out Activity>?,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
         if (pushTemplate == null) {
             throw NotificationConstructionFailedException(
@@ -53,6 +55,24 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_expanded)
 
+        // Create the notification channel if needed
+        val channelIdToUse = AEPPushTemplateNotificationBuilder.createChannelAndGetChannelID(
+            context,
+            pushTemplate.channelId,
+            pushTemplate.sound,
+            pushTemplate.getNotificationImportance()
+        )
+
+        // create the notification builder with the common settings applied
+        val notificationBuilder = AEPPushTemplateNotificationBuilder.construct(
+            context,
+            pushTemplate,
+            channelIdToUse,
+            trackerActivityClass,
+            smallLayout,
+            expandedLayout
+        )
+
         // get push payload data
         val imageUri = pushTemplate.imageUrl
         val pushImage = downloadImage(cacheService, imageUri)
@@ -66,23 +86,11 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
             R.id.notification_body_expanded, pushTemplate.expandedBodyText
         )
 
-        // Create the notification channel if needed
-        channelIdToUse = createChannelAndGetChannelID(
-            context,
-            pushTemplate.channelId,
-            pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
-        )
-
-        // create the notification builder with the common settings applied
-        val builder =
-            super.construct(context, pushTemplate, trackerActivityName, smallLayout, expandedLayout)
-
         // add any action buttons defined for the notification
         addActionButtons(
             context,
-            trackerActivityName,
-            builder,
+            trackerActivityClass,
+            notificationBuilder,
             pushTemplate.actionButtonsString,
             pushTemplate.tag,
             pushTemplate.isNotificationSticky ?: false
@@ -94,23 +102,23 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
                 val remindIntent =
                     createRemindPendingIntent(
                         context,
-                        trackerActivityName,
-                        broadcastReceiverName,
-                        channelIdToUse ?: PushTemplateConstants.DEFAULT_CHANNEL_ID,
+                        trackerActivityClass,
+                        broadcastReceiverClass,
+                        channelIdToUse,
                         pushTemplate
                     )
-                builder.addAction(0, remindLaterText, remindIntent)
+                notificationBuilder.addAction(0, remindLaterText, remindIntent)
             }
         }
 
-        return builder
+        return notificationBuilder
     }
 
     /**
      * Adds action buttons for the notification.
      *
      * @param context the application [Context]
-     * @param trackerActivityName the [String] name of the activity to set in the created pending intent for tracking purposes
+     * @param trackerActivityClass the [Activity] class to use as the tracker activity
      * @param builder the [NotificationCompat.Builder] to attach the action buttons
      * @param actionButtonsString `String` a JSON string containing action buttons to attach
      * to the notification
@@ -119,9 +127,9 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
      * @param stickyNotification [Boolean]  if false, remove the notification after the action
      * button is pressed
      */
-    fun addActionButtons(
+    internal fun addActionButtons(
         context: Context,
-        trackerActivityName: String?,
+        trackerActivityClass: Class<out Activity>?,
         builder: NotificationCompat.Builder,
         actionButtonsString: String?,
         tag: String?,
@@ -137,18 +145,18 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
                 if (eachButton.type === AEPPushTemplate.ActionType.DEEPLINK ||
                     eachButton.type === AEPPushTemplate.ActionType.WEBURL
                 ) {
-                    BasicTemplateNotificationBuilder.createPendingIntent(
+                    AEPPushTemplateNotificationBuilder.createPendingIntent(
                         context,
-                        trackerActivityName,
+                        trackerActivityClass,
                         eachButton.link,
                         eachButton.label,
                         tag,
                         stickyNotification
                     )
                 } else {
-                    BasicTemplateNotificationBuilder.createPendingIntent(
+                    AEPPushTemplateNotificationBuilder.createPendingIntent(
                         context,
-                        trackerActivityName,
+                        trackerActivityClass,
                         null,
                         eachButton.label,
                         tag,
@@ -218,12 +226,12 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
 
     private fun createRemindPendingIntent(
         context: Context,
-        trackerActivityName: String?,
-        broadcastReceiverName: String?,
+        trackerActivityClass: Class<out Activity>?,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?,
         channelId: String,
         pushTemplate: BasicPushTemplate
     ): PendingIntent? {
-        if (broadcastReceiverName.isNullOrEmpty()) {
+        if (broadcastReceiverClass == null) {
             return null
         }
         Log.trace(
@@ -233,19 +241,18 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
         )
 
         val remindIntent = Intent(PushTemplateConstants.IntentActions.REMIND_LATER_CLICKED)
-        broadcastReceiverName.let {
-            val broadcastReceiver = Class.forName(broadcastReceiverName)
-            remindIntent.setClass(context.applicationContext, broadcastReceiver)
+        broadcastReceiverClass.let {
+            remindIntent.setClass(context.applicationContext, broadcastReceiverClass)
         }
 
         remindIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         remindIntent.putExtra(
             PushTemplateConstants.IntentKeys.TEMPLATE_TYPE, pushTemplate.templateType?.value
         )
-        remindIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityName)
+        remindIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityClass)
         remindIntent.putExtra(
             PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME,
-            broadcastReceiverName
+            broadcastReceiverClass
         )
         remindIntent.putExtra(
             PushTemplateConstants.IntentKeys.IMAGE_URI, pushTemplate.imageUrl

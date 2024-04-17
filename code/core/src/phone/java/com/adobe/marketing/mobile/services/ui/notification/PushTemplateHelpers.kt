@@ -11,6 +11,8 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
@@ -283,8 +285,8 @@ internal fun getSoundUriForResourceName(
 @Throws(NotificationConstructionFailedException::class)
 internal fun fallbackToBasicNotification(
     context: Context,
-    trackerActivityName: String?,
-    broadcastReceiverName: String?,
+    trackerActivityClass: Class<out Activity>?,
+    broadcastReceiverClass: Class<out BroadcastReceiver>?,
     pushTemplate: CarouselPushTemplate,
     downloadedImageUris: List<String?>
 ): NotificationCompat.Builder {
@@ -307,7 +309,7 @@ internal fun fallbackToBasicNotification(
     return BasicTemplateNotificationBuilder.construct(
         context,
         basicPushTemplate,
-        trackerActivityName,
-        broadcastReceiverName
+        trackerActivityClass,
+        broadcastReceiverClass
     )
 }

@@ -28,7 +28,6 @@ import org.json.JSONObject
  */
 internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBuilder() {
     private const val SELF_TAG = "BasicTemplateNotificationBuilder"
-    private const val ACTION_BUTTON_CAPACITY = 3
 
     @Throws(NotificationConstructionFailedException::class)
     fun construct(
@@ -236,7 +235,7 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
         val remindIntent = Intent(PushTemplateConstants.IntentActions.REMIND_LATER_CLICKED)
         broadcastReceiverName.let {
             val broadcastReceiver = Class.forName(broadcastReceiverName)
-            remindIntent.setClass(context.applicationContext, broadcastReceiver::class.java)
+            remindIntent.setClass(context.applicationContext, broadcastReceiver)
         }
 
         remindIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP

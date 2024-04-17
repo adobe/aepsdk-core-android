@@ -54,7 +54,7 @@ internal sealed class AEPPushTemplate {
 
     internal object NotificationPriority {
         fun from(priority: String?): Int {
-            return if (priority == null) NotificationCompat.PRIORITY_DEFAULT else AEPPushTemplate.notificationPriorityMap[priority]
+            return if (priority == null) NotificationCompat.PRIORITY_DEFAULT else notificationPriorityMap[priority]
                 ?: return NotificationCompat.PRIORITY_DEFAULT
         }
 
@@ -242,8 +242,7 @@ internal sealed class AEPPushTemplate {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                "Exception in converting notification badge count to int - %s",
-                e.localizedMessage
+                "Exception in converting notification badge count to int - ${e.localizedMessage}."
             )
         }
         notificationPriority = NotificationPriority.from(
@@ -373,7 +372,7 @@ internal sealed class AEPPushTemplate {
     }
 
     companion object {
-        const val SELF_TAG = "AEPPushTemplate"
+        private const val SELF_TAG = "AEPPushTemplate"
 
         @RequiresApi(api = Build.VERSION_CODES.N)
         internal val notificationImportanceMap: Map<String?, Int?> = mapOf(

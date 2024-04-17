@@ -215,12 +215,8 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         if (StringUtils.isNullOrEmpty(methodName)) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
-                (
-                    "Null or empty method name provided, custom color will not" +
-                        " be applied to" +
-                        viewFriendlyName
-                    )
+                SELF_TAG,
+                "Null or empty method name provided, custom color will not be applied to $viewFriendlyName."
             )
             return
         }
@@ -231,12 +227,8 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         } catch (exception: IllegalArgumentException) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
-                (
-                    "Unrecognized hex string passed to Color.parseColor(), custom color will not" +
-                        " be applied to" +
-                        viewFriendlyName
-                    )
+                SELF_TAG,
+                "Unrecognized hex string passed to Color.parseColor(), custom color will not be applied to $viewFriendlyName."
             )
         }
     }
@@ -382,14 +374,14 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         if (actionUri.isNullOrEmpty()) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
+                SELF_TAG,
                 "No valid action uri found for the clicked view with id $targetViewResourceId. No click action will be assigned."
             )
             return
         }
         Log.trace(
             PushTemplateConstants.LOG_TAG,
-            AEPPushTemplate.SELF_TAG,
+            SELF_TAG,
             "Setting remote view click action uri: $actionUri."
         )
 
@@ -545,10 +537,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                (
-                    "No custom sound found in the push template, using the default notification" +
-                        " sound."
-                    )
+                "No custom sound found in the push template, using the default notification sound."
             )
             notificationBuilder.setSound(
                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -557,7 +546,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
         }
         Log.trace(
             PushTemplateConstants.LOG_TAG,
-            AEPPushTemplate.SELF_TAG,
+            SELF_TAG,
             "Setting sound from bundle named $customSound."
         )
         notificationBuilder.setSound(
@@ -617,11 +606,8 @@ internal sealed class AEPPushTemplateNotificationBuilder {
                 notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                 Log.debug(
                     PushTemplateConstants.LOG_TAG,
-                    AEPPushTemplate.SELF_TAG,
-                    (
-                        "Invalid visibility value received from the payload. Using the default" +
-                            " visibility value."
-                        )
+                    SELF_TAG,
+                    "Invalid visibility value received from the payload. Using the default visibility value."
                 )
             }
         }
@@ -713,7 +699,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
-                    ("Unable to find a bundled image with name $largeIcon, large icon will not be applied.")
+                    "Unable to find a bundled image with name $largeIcon, large icon will not be applied."
                 )
                 remoteView.setViewVisibility(R.id.large_icon, View.GONE)
                 return
@@ -732,8 +718,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
             Log.warning(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                "Package manager NameNotFoundException while reading default application icon." +
-                    " Exception: ${e.message}"
+                "Package manager NameNotFoundException while reading default application icon: ${e.localizedMessage}"
             )
         }
         return -1
@@ -760,10 +745,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                (
-                    "Unrecognized hex string passed to Color.parseColor(), custom color will not" +
-                        " be applied to the notification icon."
-                    )
+                "Unrecognized hex string passed to Color.parseColor(), custom color will not be applied to the notification icon."
             )
         }
     }
@@ -952,10 +934,7 @@ internal sealed class AEPPushTemplateNotificationBuilder {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                (
-                    "No custom sound found in the push template, using the default" +
-                        " notification sound for the notification channel named ${notificationChannel.name}."
-                    )
+                "No custom sound found in the push template, using the default notification sound for the notification channel named ${notificationChannel.name}."
             )
             notificationChannel.setSound(
                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), null

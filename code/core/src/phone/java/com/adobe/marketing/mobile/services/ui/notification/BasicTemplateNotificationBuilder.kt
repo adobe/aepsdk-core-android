@@ -164,7 +164,7 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
         if (actionButtons == null) {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
+                SELF_TAG,
                 "Exception in converting actionButtons json string to json object, Error :" +
                     " actionButtons is null"
             )
@@ -181,9 +181,8 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
         } catch (e: JSONException) {
             Log.warning(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
-                "Exception in converting actionButtons json string to json object, Error : %s",
-                e.localizedMessage
+                SELF_TAG,
+                "Exception in converting actionButtons json string to json object, Error : ${e.localizedMessage}"
             )
             return null
         }
@@ -194,7 +193,7 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
         return try {
             val label = jsonObject.getString(AEPPushTemplate.ActionButtons.LABEL)
             if (label.isEmpty()) {
-                Log.debug(PushTemplateConstants.LOG_TAG, AEPPushTemplate.SELF_TAG, "Label is empty")
+                Log.debug(PushTemplateConstants.LOG_TAG, SELF_TAG, "Label is empty")
                 return null
             }
             var uri: String? = null
@@ -204,19 +203,15 @@ internal object BasicTemplateNotificationBuilder : AEPPushTemplateNotificationBu
             }
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
-                "Creating an ActionButton with label (%s), uri (%s), and type (%s)",
-                label,
-                uri,
-                type
+                SELF_TAG,
+                "Creating an ActionButton with label ($label), uri ($uri), and type ($type)."
             )
             AEPPushTemplate.ActionButton(label, uri, type)
         } catch (e: JSONException) {
             Log.warning(
                 PushTemplateConstants.LOG_TAG,
-                AEPPushTemplate.SELF_TAG,
-                "Exception in converting actionButtons json string to json object, Error : %s",
-                e.localizedMessage
+                SELF_TAG,
+                "Exception in converting actionButtons json string to json object, Error : ${e.localizedMessage}."
             )
             null
         }

@@ -70,6 +70,11 @@ internal object AutoCarouselTemplateNotificationBuilder : AEPPushTemplateNotific
                 < PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT
             )
         ) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Less than 3 images are available for the auto carousel push template, falling back to a basic push template."
+            )
             return fallbackToBasicNotification(
                 context,
                 trackerActivityName,

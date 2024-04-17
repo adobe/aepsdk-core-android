@@ -80,6 +80,11 @@ internal object ManualCarouselTemplateNotificationBuilder : AEPPushTemplateNotif
         // fallback to a basic push template notification builder if less than 3 images were able
         // to be downloaded
         if (downloadedImageUris.isNotEmpty() && downloadedImageUris.size < PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Less than 3 images are available for the manual carousel push template, falling back to a basic push template."
+            )
             return fallbackToBasicNotification(
                 context,
                 trackerActivityName,

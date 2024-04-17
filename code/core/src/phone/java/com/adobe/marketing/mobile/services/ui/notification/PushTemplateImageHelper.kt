@@ -58,8 +58,7 @@ internal object PushTemplateImageHelper {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
-                    "Failed to retrieve an image from %s, will not create a new carousel item.",
-                    imageUri
+                    "Failed to retrieve an image from $imageUri, will not create a new carousel item."
                 )
                 break
             }
@@ -134,8 +133,7 @@ internal object PushTemplateImageHelper {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
-                    "Failed to retrieve an image from %s, will not create a new carousel item.",
-                    imageUri
+                    "Failed to retrieve an image from $imageUri, will not create a new carousel item."
                 )
                 break
             }
@@ -199,8 +197,7 @@ internal object PushTemplateImageHelper {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
-                    "Failed to retrieve an image from %s, will not create a new carousel item.",
-                    imageUri
+                    "Failed to retrieve an image from $imageUri, will not create a new carousel item."
                 )
                 break
             }

@@ -107,8 +107,7 @@ internal object CarouselTemplateHelpers {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                "Failed to parse carousel items from the push template: %s",
-                e.localizedMessage
+                "Failed to parse carousel items from the push template: ${e.localizedMessage}"
             )
         }
         return carouselItems

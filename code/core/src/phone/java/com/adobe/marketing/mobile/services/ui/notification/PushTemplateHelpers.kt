@@ -87,9 +87,7 @@ private class DownloadImageCallable(val url: String?) :
             Log.warning(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                "Failed to download push notification image from url (%s). Exception: %s",
-                url,
-                e.message
+                "Failed to download push notification image from url ($url). Exception: ${e.localizedMessage}"
             )
             return null
         } finally {
@@ -100,12 +98,8 @@ private class DownloadImageCallable(val url: String?) :
                     Log.warning(
                         PushTemplateConstants.LOG_TAG,
                         SELF_TAG,
-                        (
-                            "IOException during closing Input stream while push notification" +
-                                " image from url (%s). Exception: %s "
-                            ),
-                        url,
-                        e.message
+                        "IOException during closing Input stream while push notification image from url ($url). Exception: ${e.localizedMessage}"
+
                     )
                 }
             }
@@ -114,8 +108,7 @@ private class DownloadImageCallable(val url: String?) :
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
-            "Downloaded push notification image from url (%s)",
-            url
+            "Downloaded push notification image from url ($url)"
         )
         return bitmap
     }
@@ -140,7 +133,7 @@ internal fun downloadImage(cacheService: CacheService, uri: String?): Bitmap? {
     }
     val cacheResult = cacheService[assetCacheLocation!!, uri]
     if (cacheResult != null) {
-        Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Found cached image for %s.", uri)
+        Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Found cached image for $uri")
         return BitmapFactory.decodeStream(cacheResult.data)
     }
     if (!UrlUtils.isValidUrl(uri)) {
@@ -150,8 +143,7 @@ internal fun downloadImage(cacheService: CacheService, uri: String?): Bitmap? {
     Log.trace(
         PushTemplateConstants.LOG_TAG,
         SELF_TAG,
-        "Successfully download image from %s",
-        uri
+        "Successfully download image from $uri"
     )
     // scale down the bitmap to 300dp x 200dp as we don't want to use a full
     // size image due to memory constraints
@@ -169,8 +161,7 @@ internal fun downloadImage(cacheService: CacheService, uri: String?): Bitmap? {
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
-            "Exception occurred creating an input stream from a" + " bitmap: %s.",
-            exception.localizedMessage
+            "Exception occurred creating an input stream from a bitmap: ${exception.localizedMessage}."
         )
     }
     return pushImage
@@ -222,8 +213,7 @@ private fun cacheBitmapInputStream(
     Log.trace(
         PushTemplateConstants.LOG_TAG,
         SELF_TAG,
-        "Caching image downloaded from %s.",
-        imageUri
+        "Caching image downloaded from $imageUri."
     )
     assetCacheLocation?.let {
         // cache push notification images for 3 days

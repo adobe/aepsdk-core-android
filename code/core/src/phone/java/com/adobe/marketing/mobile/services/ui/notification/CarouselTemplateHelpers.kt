@@ -13,7 +13,6 @@ package com.adobe.marketing.mobile.services.ui.notification
 
 import android.content.Intent
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.util.StringUtils
 import org.json.JSONArray
 import org.json.JSONException
 
@@ -80,7 +79,7 @@ internal object CarouselTemplateHelpers {
 
     internal fun parseCarouselItems(carouselItemsString: String?): MutableList<CarouselPushTemplate.CarouselItem> {
         val carouselItems = mutableListOf<CarouselPushTemplate.CarouselItem>()
-        if (StringUtils.isNullOrEmpty(carouselItemsString)) {
+        if (carouselItemsString.isNullOrEmpty()) {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
@@ -111,5 +110,13 @@ internal object CarouselTemplateHelpers {
             )
         }
         return carouselItems
+    }
+
+    internal fun getDefaultCarouselIndex(carouselLayoutType: String): Int {
+        return if (carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
+            PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_CENTER_INDEX
+        } else {
+            PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX
+        }
     }
 }

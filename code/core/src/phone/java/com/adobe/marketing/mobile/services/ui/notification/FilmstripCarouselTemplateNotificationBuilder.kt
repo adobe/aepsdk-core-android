@@ -21,8 +21,7 @@ import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageHelper.downloadFilmstripImages
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageHelper.populateFilmstripCarouselImages
+import com.adobe.marketing.mobile.services.caching.CacheService
 
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a manual filmstrip carousel template notification.
@@ -96,7 +95,7 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
                 SELF_TAG,
                 "Less than 3 images are available for the filmstrip carousel push template, falling back to a basic push template."
             )
-            return fallbackToBasicNotification(
+            return PushTemplateHelpers.fallbackToBasicNotification(
                 context,
                 trackerActivityClass,
                 broadcastReceiverClass,
@@ -169,5 +168,115 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
         expandedLayout.setOnClickPendingIntent(R.id.rightImageButton, pendingIntentRightButton)
 
         return notificationBuilder
+    }
+
+    /**
+     * Downloads the images for a filmstrip carousel push template.
+     *
+     * @param cacheService the [CacheService] used to cache the downloaded images
+     * @param items the list of [CarouselPushTemplate.CarouselItem] objects to be displayed in the filmstrip carousel
+     * @return a [Map] containing the downloaded images, image URIs, image captions, and image click actions for each carousel item
+     */
+    private fun downloadFilmstripImages(
+        cacheService: CacheService,
+        items: List<CarouselPushTemplate.CarouselItem>
+    ): Map<String, List<Any?>> {
+        val imageProcessingStartTime = System.currentTimeMillis()
+        val downloadedImages = mutableListOf<Bitmap?>()
+        val downloadedImageUris = mutableListOf<String?>()
+        val imageCaptions = mutableListOf<String?>()
+        val imageClickActions = mutableListOf<String?>()
+        val itemData: MutableMap<String, List<Any?>> = mutableMapOf()
+
+        for (item: CarouselPushTemplate.CarouselItem in items) {
+            val imageUri: String = item.imageUri
+            val pushImage: Bitmap? = PushTemplateHelpers.downloadImage(cacheService, imageUri)
+            if (pushImage == null) {
+                Log.trace(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "Failed to retrieve an image from $imageUri, will not create a new carousel item."
+                )
+                break
+            }
+            downloadedImages.add(pushImage)
+            downloadedImageUris.add(imageUri)
+            imageCaptions.add(item.captionText)
+            imageClickActions.add(item.interactionUri)
+        }
+
+        // log time needed to process the carousel images
+        val imageProcessingElapsedTime = System.currentTimeMillis() - imageProcessingStartTime
+        Log.trace(
+            PushTemplateConstants.LOG_TAG,
+            SELF_TAG,
+            "Processed %d manual filmstrip carousel image(s) in %d milliseconds.",
+            downloadedImageUris.size,
+            imageProcessingElapsedTime
+        )
+
+        itemData[PushTemplateConstants.CarouselListKeys.IMAGE_URIS_KEY] = downloadedImageUris
+        itemData[PushTemplateConstants.CarouselListKeys.IMAGE_CAPTIONS_KEY] = imageCaptions
+        itemData[PushTemplateConstants.CarouselListKeys.IMAGE_ACTIONS_KEY] = imageClickActions
+        itemData[PushTemplateConstants.CarouselListKeys.IMAGES_KEY] = downloadedImages
+        return itemData.toMap()
+    }
+
+    /**
+     * Populates the images for a manual filmstrip carousel push template.
+     *
+     * @param context the current [Context] of the application
+     * @param downloadedImages the list of [Bitmap] objects downloaded for the filmstrip carousel
+     * @param imageCaptions the list of [String] captions for each filmstrip carousel image
+     * @param imageClickActions the list of [String] click actions for each filmstrip carousel image
+     * @param newIndices the list of [Int] indices for the new left, center, and right images
+     * @param pushTemplate the [ManualCarouselPushTemplate] object containing the push template data
+     * @param trackerActivityClass the [Class] of the activity that will be used for tracking interactions with the carousel item
+     * @param expandedLayout the [RemoteViews] containing the expanded layout of the notification
+     */
+    private fun populateFilmstripCarouselImages(
+        context: Context,
+        downloadedImages: List<Bitmap?>,
+        imageCaptions: List<String?>,
+        imageClickActions: List<String?>,
+        newIndices: List<Int>,
+        pushTemplate: ManualCarouselPushTemplate,
+        trackerActivityClass: Class<out Activity>?,
+        expandedLayout: RemoteViews
+    ) {
+        val newLeftIndex = newIndices[0]
+        val newCenterIndex = newIndices[1]
+        val newRightIndex = newIndices[2]
+
+        // get all captions present then set center caption text
+        val centerCaptionText = imageCaptions[newCenterIndex]
+        expandedLayout.setTextViewText(
+            R.id.manual_carousel_filmstrip_caption,
+            centerCaptionText
+        )
+
+        // set the downloaded bitmaps in the filmstrip image views
+        expandedLayout.setImageViewBitmap(
+            R.id.manual_carousel_filmstrip_left, downloadedImages[newLeftIndex]
+        )
+        expandedLayout.setImageViewBitmap(
+            R.id.manual_carousel_filmstrip_center, downloadedImages[newCenterIndex]
+        )
+        expandedLayout.setImageViewBitmap(
+            R.id.manual_carousel_filmstrip_right, downloadedImages[newRightIndex]
+        )
+
+        // assign a click action pending intent to the center image view
+        val interactionUri =
+            if (!imageClickActions[newCenterIndex].isNullOrEmpty()) imageClickActions[newCenterIndex] else pushTemplate.actionUri
+        AEPPushTemplateNotificationBuilder.setRemoteViewClickAction(
+            context,
+            trackerActivityClass,
+            expandedLayout,
+            R.id.manual_carousel_filmstrip_center,
+            interactionUri,
+            pushTemplate.tag,
+            pushTemplate.isNotificationSticky ?: false
+        )
     }
 }

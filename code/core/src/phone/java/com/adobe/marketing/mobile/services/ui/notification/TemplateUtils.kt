@@ -55,12 +55,8 @@ object TemplateUtils {
     fun constructNotificationBuilder(
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?,
-        messageData: Map<String, String>?
+        messageData: Map<String, String>
     ): NotificationCompat.Builder {
-        if (messageData.isNullOrEmpty()) {
-            throw NotificationConstructionFailedException("message data is null, cannot build a notification.")
-        }
-
         val context = ServiceProvider.getInstance().appContextService.applicationContext
             ?: throw NotificationConstructionFailedException("Application context is null, cannot build a notification.")
         val pushTemplateType =

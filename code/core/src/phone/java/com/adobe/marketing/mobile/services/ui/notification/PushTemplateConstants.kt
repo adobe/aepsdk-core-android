@@ -56,8 +56,6 @@ internal object PushTemplateConstants {
         // TODO: revisit this value. should cache time be configurable rather than have a static
         // value?
         const val PUSH_NOTIFICATION_IMAGE_CACHE_EXPIRY_IN_MILLISECONDS: Long = 259200000 // 3 days
-        const val DEFAULT_REMIND_LATER_TIMESTAMP =
-            -1L // -1L means that no remind later timestamp was found in the action button
     }
 
     internal object IntentActions {
@@ -91,7 +89,8 @@ internal object PushTemplateConstants {
         const val PRIORITY = "priority"
         const val VISIBILITY = "visibility"
         const val IMPORTANCE = "importance"
-        const val REMIND_TS = "remindTimestamp"
+        const val REMIND_DELAY_SECONDS = "remindDelaySeconds"
+        const val REMIND_EPOCH_TS = "remindEpochTimestamp"
         const val REMIND_LABEL = "remindLaterLabel"
         const val ACTION_BUTTONS_STRING = "actionButtonsString"
         const val STICKY = "sticky"
@@ -149,7 +148,8 @@ internal object PushTemplateConstants {
         const val SMALL_ICON_COLOR = "adb_clr_icon"
         const val NOTIFICATION_BACKGROUND_COLOR = "adb_clr_bg"
         const val REMIND_LATER_TEXT = "adb_rem_txt"
-        const val REMIND_LATER_TIMESTAMP = "adb_rem_ts"
+        const val REMIND_LATER_EPOCH_TIMESTAMP = "adb_rem_ts"
+        const val REMIND_LATER_DELAY_SECONDS = "adb_rem_sec"
         const val CAROUSEL_OPERATION_MODE = "adb_car_mode"
     }
 

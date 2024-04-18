@@ -18,7 +18,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.DataReader
-import com.adobe.marketing.mobile.util.StringUtils
 
 /**
  * This class is used to parse the push template data payload or an intent and provide the necessary information
@@ -135,7 +134,7 @@ internal sealed class AEPPushTemplate {
     internal var expandedBodyText: String?
         private set
 
-    // Optional, Text color for adb_body. Represented as six character hex, e.g. 00FF00
+    // Optional, Text color for adb_body and adb_body_ex. Represented as six character hex, e.g. 00FF00
     internal var expandedBodyTextColor: String?
         private set
 
@@ -174,6 +173,7 @@ internal sealed class AEPPushTemplate {
 
     // flag to denote if the PushTemplate was built from an intent
     internal var isFromIntent: Boolean?
+        private set
 
     /**
      * Constructor to create a push template object from the data payload.
@@ -184,26 +184,20 @@ internal sealed class AEPPushTemplate {
         // fast fail (via IllegalArgumentException) if required data is not present
         if (data.isNullOrEmpty()) throw IllegalArgumentException("Push template data is null.")
         this.messageData = data.toMutableMap()
-        val title = DataReader.getString(data, PushTemplateConstants.PushPayloadKeys.TITLE)
+        val title = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TITLE, null)
         if (title.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_title\" not found.")
         this.title = title
 
-        var bodyText = DataReader.getString(
-            data,
-            PushTemplateConstants.PushPayloadKeys.BODY
-        )
+        var bodyText = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.BODY, null)
         if (bodyText.isNullOrEmpty()) {
             bodyText =
-                DataReader.getString(data, PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY)
+                DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY, null)
         }
         if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_body\" or \"_msg\" not found.")
         this.body = bodyText
 
         val payloadVersion =
-            DataReader.getString(
-                data,
-                PushTemplateConstants.PushPayloadKeys.VERSION
-            )
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.VERSION, null)
         if (payloadVersion.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_version\" not found.")
         this.payloadVersion = payloadVersion.toInt()
 
@@ -265,7 +259,7 @@ internal sealed class AEPPushTemplate {
         val stickyValue =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.STICKY, null)
         isNotificationSticky =
-            if (StringUtils.isNullOrEmpty(stickyValue)) false else java.lang.Boolean.parseBoolean(
+            if (stickyValue.isNullOrEmpty()) false else java.lang.Boolean.parseBoolean(
                 stickyValue
             )
         ticker = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TICKER, null)
@@ -294,9 +288,8 @@ internal sealed class AEPPushTemplate {
      *
      * @param intent [Intent] containing key value pairs extracted from a push template data payload
      */
-    constructor(intent: Intent?) {
-        val intentExtras =
-            intent?.extras ?: throw IllegalArgumentException("Intent extras are null")
+    constructor(intent: Intent) {
+        val intentExtras = intent.extras ?: throw IllegalArgumentException("Intent extras are null.")
         // required values
         title = intentExtras.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT)
             ?: throw IllegalArgumentException("Required field \"adb_title\" not found.")
@@ -367,7 +360,7 @@ internal sealed class AEPPushTemplate {
      * @return [Int] representing the visibility of the notification
      */
     private fun getNotificationVisibilityFromString(visibility: String?): Int {
-        return if (StringUtils.isNullOrEmpty(visibility)) NotificationCompat.VISIBILITY_PRIVATE else notificationVisibilityMap[visibility]
+        return if (visibility.isNullOrEmpty()) NotificationCompat.VISIBILITY_PRIVATE else notificationVisibilityMap[visibility]
             ?: return NotificationCompat.VISIBILITY_PRIVATE
     }
 
@@ -375,7 +368,7 @@ internal sealed class AEPPushTemplate {
         private const val SELF_TAG = "AEPPushTemplate"
 
         @RequiresApi(api = Build.VERSION_CODES.N)
-        internal val notificationImportanceMap: Map<String?, Int?> = mapOf(
+        internal val notificationImportanceMap: Map<String, Int> = mapOf(
             NotificationPriority.PRIORITY_MIN to NotificationManager.IMPORTANCE_MIN,
             NotificationPriority.PRIORITY_LOW to NotificationManager.IMPORTANCE_LOW,
             NotificationPriority.PRIORITY_DEFAULT to NotificationManager.IMPORTANCE_DEFAULT,
@@ -383,13 +376,13 @@ internal sealed class AEPPushTemplate {
             NotificationPriority.PRIORITY_MAX to NotificationManager.IMPORTANCE_MAX
         )
 
-        internal val notificationVisibilityMap: Map<String?, Int?> = mapOf(
+        internal val notificationVisibilityMap: Map<String, Int> = mapOf(
             NotificationVisibility.PRIVATE to NotificationCompat.VISIBILITY_PRIVATE,
             NotificationVisibility.PUBLIC to NotificationCompat.VISIBILITY_PUBLIC,
             NotificationVisibility.SECRET to NotificationCompat.VISIBILITY_SECRET
         )
 
-        internal val notificationPriorityMap: Map<String?, Int?> = mapOf(
+        internal val notificationPriorityMap: Map<String, Int> = mapOf(
             NotificationPriority.PRIORITY_MIN to NotificationCompat.PRIORITY_MIN,
             NotificationPriority.PRIORITY_LOW to NotificationCompat.PRIORITY_LOW,
             NotificationPriority.PRIORITY_DEFAULT to NotificationCompat.PRIORITY_DEFAULT,

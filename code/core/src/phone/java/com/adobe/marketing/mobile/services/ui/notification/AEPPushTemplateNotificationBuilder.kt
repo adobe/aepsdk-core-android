@@ -31,7 +31,6 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.util.StringUtils
 import com.adobe.marketing.mobile.util.UrlUtils
 import java.util.Random
 
@@ -50,14 +49,24 @@ internal object AEPPushTemplateNotificationBuilder {
     ): NotificationCompat.Builder {
         channelId = channelIdToUse
 
-        // set any custom colors if needed
-        setCustomNotificationColors(
+        // set custom colors on the notification background, title text, and body text
+        setNotificationBackgroundColor(
             pushTemplate.notificationBackgroundColor,
-            pushTemplate.titleTextColor,
-            pushTemplate.expandedBodyTextColor,
             smallLayout,
             expandedLayout,
             R.id.basic_expanded_layout
+        )
+
+        setNotificationTitleTextColor(
+            pushTemplate.titleTextColor,
+            smallLayout,
+            expandedLayout
+        )
+
+        setNotificationBodyTextColor(
+            pushTemplate.expandedBodyTextColor,
+            smallLayout,
+            expandedLayout
         )
 
         if (pushTemplate.isFromIntent == true) {
@@ -123,22 +132,15 @@ internal object AEPPushTemplateNotificationBuilder {
     }
 
     /**
-     * Sets custom colors to UI elements present in the specified [RemoteViews] object.
+     * Sets custom colors to the notification background.
      *
-     * @param backgroundColor [String] containing the hex color code for the notification
-     * background
-     * @param titleTextColor `String` containing the hex color code for the notification title
-     * text
-     * @param expandedBodyTextColor `String` containing the hex color code for the expanded
-     * notification body text
-     * @param smallLayout [RemoteViews] object for a collapsed custom notification
-     * @param expandedLayout `RemoteViews` object for an expanded custom notification
-     * @param containerViewId [Int] containing the resource id of the layout container
+     * @param backgroundColor [String] containing the hex color code for the notification background
+     * @param smallLayout [RemoteViews] object for a collapsed push template notification
+     * @param expandedLayout `RemoteViews` object for an expanded push template notification
+     * @param containerViewId [Int] containing the resource id of the expanded push template notification
      */
-    private fun setCustomNotificationColors(
+    private fun setNotificationBackgroundColor(
         backgroundColor: String?,
-        titleTextColor: String?,
-        expandedBodyTextColor: String?,
         smallLayout: RemoteViews,
         expandedLayout: RemoteViews,
         containerViewId: Int
@@ -160,7 +162,20 @@ internal object AEPPushTemplateNotificationBuilder {
                 PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BACKGROUND
             )
         }
+    }
 
+    /**
+     * Sets custom colors to the notification title text.
+     *
+     * @param titleTextColor [String] containing the hex color code for the notification title text
+     * @param smallLayout [RemoteViews] object for a collapsed push template notification
+     * @param expandedLayout `RemoteViews` object for an expanded push template notification
+     */
+    private fun setNotificationTitleTextColor(
+        titleTextColor: String?,
+        smallLayout: RemoteViews,
+        expandedLayout: RemoteViews
+    ) {
         // get custom color from hex string and set it the notification title
         if (!titleTextColor.isNullOrEmpty()) {
             setElementColor(
@@ -178,7 +193,21 @@ internal object AEPPushTemplateNotificationBuilder {
                 PushTemplateConstants.FriendlyViewNames.NOTIFICATION_TITLE
             )
         }
+    }
 
+    /**
+     * Sets custom colors to the notification body text.
+     *
+     * @param expandedBodyTextColor [String] containing the hex color code for the expanded
+     * notification body text
+     * @param smallLayout [RemoteViews] object for a collapsed push template notification
+     * @param expandedLayout `RemoteViews` object for an expanded push template notification
+     */
+    private fun setNotificationBodyTextColor(
+        expandedBodyTextColor: String?,
+        smallLayout: RemoteViews,
+        expandedLayout: RemoteViews
+    ) {
         // get custom color from hex string and set it the notification body text
         if (!expandedBodyTextColor.isNullOrEmpty()) {
             setElementColor(
@@ -217,18 +246,17 @@ internal object AEPPushTemplateNotificationBuilder {
         methodName: String,
         viewFriendlyName: String
     ) {
-        if (StringUtils.isNullOrEmpty(methodName)) {
+        if (colorHex.isEmpty()) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                "Null or empty method name provided, custom color will not be applied to $viewFriendlyName."
+                "Empty color hex string found, custom color will not be applied to $viewFriendlyName."
             )
             return
         }
+
         try {
-            if (!StringUtils.isNullOrEmpty(colorHex)) {
-                remoteView.setInt(elementId, methodName, Color.parseColor(colorHex))
-            }
+            remoteView.setInt(elementId, methodName, Color.parseColor(colorHex))
         } catch (exception: IllegalArgumentException) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
@@ -512,10 +540,10 @@ internal object AEPPushTemplateNotificationBuilder {
         actionUri: String?,
         actionId: String?
     ) {
-        if (!StringUtils.isNullOrEmpty(actionUri)) {
+        if (!actionUri.isNullOrEmpty()) {
             intent.putExtra(PushTemplateConstants.Tracking.Keys.ACTION_URI, actionUri)
         }
-        if (!StringUtils.isNullOrEmpty(actionId)) {
+        if (!actionId.isNullOrEmpty()) {
             intent.putExtra(PushTemplateConstants.Tracking.Keys.ACTION_ID, actionId)
         }
     }
@@ -535,7 +563,7 @@ internal object AEPPushTemplateNotificationBuilder {
         notificationBuilder: NotificationCompat.Builder,
         customSound: String?
     ) {
-        if (StringUtils.isNullOrEmpty(customSound)) {
+        if (customSound.isNullOrEmpty()) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
@@ -552,7 +580,7 @@ internal object AEPPushTemplateNotificationBuilder {
             "Setting sound from bundle named $customSound."
         )
         notificationBuilder.setSound(
-            getSoundUriForResourceName(customSound, context)
+            PushTemplateHelpers.getSoundUriForResourceName(customSound, context)
         )
     }
 
@@ -574,8 +602,8 @@ internal object AEPPushTemplateNotificationBuilder {
         bodyText: String?
     ) {
         // Quick bail out if there is no image url
-        if (StringUtils.isNullOrEmpty(imageUrl)) return
-        val bitmap: Bitmap = download(imageUrl) ?: return
+        if (imageUrl.isNullOrEmpty()) return
+        val bitmap: Bitmap = PushTemplateHelpers.download(imageUrl) ?: return
 
         // Bail out if the download fails
         notificationBuilder.setLargeIcon(bitmap)
@@ -675,7 +703,7 @@ internal object AEPPushTemplateNotificationBuilder {
             return
         }
         if (UrlUtils.isValidUrl(largeIcon)) {
-            val downloadedIcon: Bitmap? = downloadImage(
+            val downloadedIcon: Bitmap? = PushTemplateHelpers.downloadImage(
                 ServiceProvider.getInstance().cacheService, largeIcon
             )
             if (downloadedIcon == null) {
@@ -737,12 +765,18 @@ internal object AEPPushTemplateNotificationBuilder {
         builder: NotificationCompat.Builder,
         iconColorHex: String?
     ) {
+        if (iconColorHex.isNullOrEmpty()) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Empty icon color hex string found, custom color will not be applied to the notification icon."
+            )
+            return
+        }
+
         try {
             // sets the icon color if provided
-            if (!StringUtils.isNullOrEmpty(iconColorHex)) {
-                val smallIconColor = "#$iconColorHex"
-                builder.setColorized(true).color = Color.parseColor(smallIconColor)
-            }
+            builder.setColorized(true).color = Color.parseColor("#$iconColorHex")
         } catch (exception: IllegalArgumentException) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
@@ -764,7 +798,7 @@ internal object AEPPushTemplateNotificationBuilder {
         iconName: String?,
         context: Context
     ): Int {
-        return if (StringUtils.isNullOrEmpty(iconName)) {
+        return if (iconName.isNullOrEmpty()) {
             0
         } else context.resources.getIdentifier(iconName, "drawable", context.packageName)
     }
@@ -932,7 +966,7 @@ internal object AEPPushTemplateNotificationBuilder {
             notificationChannel.setSound(null, null)
             return
         }
-        if (StringUtils.isNullOrEmpty(customSound)) {
+        if (customSound.isNullOrEmpty()) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
@@ -949,7 +983,7 @@ internal object AEPPushTemplateNotificationBuilder {
             "Setting sound from bundle named $customSound for the notification channel named ${notificationChannel.name}.",
         )
         notificationChannel.setSound(
-            getSoundUriForResourceName(customSound, context), null
+            PushTemplateHelpers.getSoundUriForResourceName(customSound, context), null
         )
     }
 }

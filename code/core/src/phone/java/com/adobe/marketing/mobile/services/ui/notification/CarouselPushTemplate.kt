@@ -15,7 +15,6 @@ import android.content.Intent
 import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.DataReaderException
 import com.adobe.marketing.mobile.util.JSONUtils
-import com.adobe.marketing.mobile.util.StringUtils
 import org.json.JSONArray
 import org.json.JSONException
 
@@ -37,7 +36,7 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
     internal var rawCarouselItems: String
         private set
 
-    class CarouselItem(
+    data class CarouselItem(
         // Required, URI to an image to be shown for the carousel item
         val imageUri: String,
         // Optional, caption to show when the carousel item is visible
@@ -46,7 +45,7 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
         val interactionUri: String?
     )
 
-    constructor(data: Map<String, String>?) : super(data) {
+    constructor(data: Map<String, String>) : super(data) {
         try {
             carouselLayoutType = DataReader.getString(
                 data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT
@@ -83,27 +82,25 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                 // the image uri is required, do not create a CarouselItem if it is missing
                 val carouselImage =
                     carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_IMAGE]
-                if (StringUtils.isNullOrEmpty(carouselImage)) break
-                carouselImage?.let {
-                    val text =
-                        carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_TEXT]
-                    val uri =
-                        carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_URI]
-                    val carouselItem =
-                        CarouselItem(
-                            carouselImage,
-                            text,
-                            uri
-                        )
-                    carouselItems.add(carouselItem)
-                }
+                if (carouselImage.isNullOrEmpty()) break
+                val text =
+                    carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_TEXT]
+                val uri =
+                    carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_URI]
+                val carouselItem =
+                    CarouselItem(
+                        carouselImage,
+                        text,
+                        uri
+                    )
+                carouselItems.add(carouselItem)
             }
         }
     }
 
-    constructor(intent: Intent?) : super(intent) {
+    constructor(intent: Intent) : super(intent) {
         val intentExtras =
-            intent?.extras ?: throw IllegalArgumentException("Intent extras are null")
+            intent.extras ?: throw IllegalArgumentException("Intent extras are null")
         carouselOperationMode =
             intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_OPERATION_MODE)
                 ?: PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE

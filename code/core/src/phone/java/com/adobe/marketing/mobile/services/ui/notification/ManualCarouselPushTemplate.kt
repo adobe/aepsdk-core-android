@@ -18,26 +18,15 @@ internal class ManualCarouselPushTemplate : CarouselPushTemplate {
         private set
     internal var centerImageIndex: Int = PushTemplateConstants.DefaultValues.NO_CENTER_INDEX_SET
 
-    constructor(data: Map<String, String>?) : super(data) {
-        centerImageIndex =
-            if (carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
-                PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_CENTER_INDEX
-            } else {
-                PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX
-            }
+    constructor(data: Map<String, String>) : super(data) {
+        centerImageIndex = CarouselTemplateHelpers.getDefaultCarouselIndex(carouselLayoutType)
     }
 
-    constructor(intent: Intent?) : super(intent) {
-        intent?.let {
-            intentAction = intent.action
-            centerImageIndex = intent.getIntExtra(
-                PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX,
-                if (carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
-                    PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_CENTER_INDEX
-                } else {
-                    PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX
-                }
-            )
-        }
+    constructor(intent: Intent) : super(intent) {
+        intentAction = intent.action
+        centerImageIndex = intent.getIntExtra(
+            PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX,
+            CarouselTemplateHelpers.getDefaultCarouselIndex(carouselLayoutType)
+        )
     }
 }

@@ -15,12 +15,13 @@ import android.app.Activity
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.graphics.Bitmap
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageHelper.populateManualCarouselImages
+import com.adobe.marketing.mobile.services.caching.CacheService
 
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a manual carousel push template notification.
@@ -105,7 +106,7 @@ internal object ManualCarouselTemplateNotificationBuilder {
                 SELF_TAG,
                 "Less than 3 images are available for the manual carousel push template, falling back to a basic push template."
             )
-            return fallbackToBasicNotification(
+            return PushTemplateHelpers.fallbackToBasicNotification(
                 context,
                 trackerActivityClass,
                 broadcastReceiverClass,
@@ -168,5 +169,87 @@ internal object ManualCarouselTemplateNotificationBuilder {
         expandedLayout.setOnClickPendingIntent(R.id.rightImageButton, pendingIntentRightButton)
 
         return notificationBuilder
+    }
+
+    /**
+     * Populates the images for a manual carousel push template.
+     *
+     * @param context the current [Context] of the application
+     * @param trackerActivityClass the [Class] of the activity that will be used for tracking interactions with the carousel item
+     * @param cacheService the [CacheService] used to cache the downloaded images
+     * @param expandedLayout the [RemoteViews] containing the expanded layout of the notification
+     * @param items the list of [CarouselPushTemplate.CarouselItem] objects to be displayed in the carousel
+     * @param packageName the `String` name of the application package used to locate the layout resources
+     * @param tag the `String` tag used to identify the notification
+     * @param actionUri the `String` URI to be used when the carousel item is clicked
+     * @param autoCancel the `Boolean` value to determine if the notification should be automatically canceled when clicked
+     * @return a [Map] containing the image URIs, captions, and click actions for each carousel item
+     */
+    private fun populateManualCarouselImages(
+        context: Context,
+        trackerActivityClass: Class<out Activity>?,
+        cacheService: CacheService,
+        expandedLayout: RemoteViews,
+        items: List<CarouselPushTemplate.CarouselItem>,
+        packageName: String?,
+        tag: String?,
+        actionUri: String?,
+        autoCancel: Boolean?
+    ): Map<String, List<String?>> {
+        val imageProcessingStartTime = System.currentTimeMillis()
+        val downloadedImageUris = mutableListOf<String>()
+        val imageCaptions = mutableListOf<String>()
+        val imageClickActions = mutableListOf<String>()
+        val itemData: MutableMap<String, List<String?>> = mutableMapOf()
+        for (item: CarouselPushTemplate.CarouselItem in items) {
+            val imageUri = item.imageUri
+            val pushImage: Bitmap? = PushTemplateHelpers.downloadImage(cacheService, imageUri)
+            if (pushImage == null) {
+                Log.trace(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "Failed to retrieve an image from $imageUri, will not create a new carousel item."
+                )
+                break
+            }
+            val carouselItem = RemoteViews(packageName, R.layout.push_template_carousel_item)
+            downloadedImageUris.add(imageUri)
+            item.captionText?.let { imageCaptions.add(it) }
+            carouselItem.setImageViewBitmap(R.id.carousel_item_image_view, pushImage)
+            carouselItem.setTextViewText(R.id.carousel_item_caption, item.captionText)
+
+            // assign a click action pending intent for each carousel item
+            val interactionUri =
+                if (item.interactionUri.isNullOrEmpty()) actionUri else item.interactionUri
+            interactionUri?.let {
+                imageClickActions.add(it)
+                AEPPushTemplateNotificationBuilder.setRemoteViewClickAction(
+                    context,
+                    trackerActivityClass,
+                    carouselItem,
+                    R.id.carousel_item_image_view,
+                    interactionUri,
+                    tag,
+                    autoCancel ?: true
+                )
+            }
+
+            // add the carousel item to the view flipper
+            expandedLayout.addView(R.id.manual_carousel_view_flipper, carouselItem)
+        }
+
+        // log time needed to process the carousel images
+        val imageProcessingElapsedTime = System.currentTimeMillis() - imageProcessingStartTime
+        Log.trace(
+            PushTemplateConstants.LOG_TAG,
+            SELF_TAG,
+            "Processed %d manual carousel image(s) in %d milliseconds.",
+            downloadedImageUris.size,
+            imageProcessingElapsedTime
+        )
+        itemData[PushTemplateConstants.CarouselListKeys.IMAGE_URIS_KEY] = downloadedImageUris
+        itemData[PushTemplateConstants.CarouselListKeys.IMAGE_CAPTIONS_KEY] = imageCaptions
+        itemData[PushTemplateConstants.CarouselListKeys.IMAGE_ACTIONS_KEY] = imageClickActions
+        return itemData
     }
 }

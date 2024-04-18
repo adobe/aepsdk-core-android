@@ -75,7 +75,7 @@ internal object BasicTemplateNotificationBuilder {
 
         // get push payload data
         val imageUri = pushTemplate.imageUrl
-        val pushImage = downloadImage(cacheService, imageUri)
+        val pushImage = PushTemplateHelpers.downloadImage(cacheService, imageUri)
         pushImage?.let {
             expandedLayout.setImageViewBitmap(R.id.expanded_template_image, pushImage)
         }
@@ -96,9 +96,11 @@ internal object BasicTemplateNotificationBuilder {
             pushTemplate.isNotificationSticky ?: false
         )
 
-        // add a remind later button if we have a label and a timestamp
+        // add a remind later button if we have a label and an epoch or delay timestamp
         pushTemplate.remindLaterText?.let { remindLaterText ->
-            pushTemplate.remindLaterTimestamp?.let {
+            if (pushTemplate.remindLaterEpochTimestamp != null ||
+                pushTemplate.remindLaterDelaySeconds != null
+            ) {
                 val remindIntent =
                     createRemindPendingIntent(
                         context,
@@ -310,7 +312,10 @@ internal object BasicTemplateNotificationBuilder {
             PushTemplateConstants.IntentKeys.BADGE_COUNT, pushTemplate.badgeCount
         )
         remindIntent.putExtra(
-            PushTemplateConstants.IntentKeys.REMIND_TS, pushTemplate.remindLaterTimestamp
+            PushTemplateConstants.IntentKeys.REMIND_EPOCH_TS, pushTemplate.remindLaterEpochTimestamp
+        )
+        remindIntent.putExtra(
+            PushTemplateConstants.IntentKeys.REMIND_DELAY_SECONDS, pushTemplate.remindLaterDelaySeconds
         )
         remindIntent.putExtra(
             PushTemplateConstants.IntentKeys.REMIND_LABEL, pushTemplate.remindLaterText

@@ -13,10 +13,11 @@ package com.adobe.marketing.mobile.services.ui.notification
 
 import android.content.Intent
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ui.notification.models.CarouselPushTemplate
 import org.json.JSONArray
 import org.json.JSONException
 
-internal object CarouselTemplateHelpers {
+internal object CarouselTemplateUtil {
     private const val SELF_TAG = "CarouselTemplateHelpers"
 
     /**
@@ -41,9 +42,7 @@ internal object CarouselTemplateHelpers {
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
-            "Current center index is %d and list size is %d.",
-            centerIndex,
-            listSize
+            "Current center index is $centerIndex and list size is $listSize."
         )
         if ((action == PushTemplateConstants.IntentActions.FILMSTRIP_LEFT_CLICKED) || (action == PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED)) {
             newCenterIndex = (centerIndex - 1 + listSize) % listSize
@@ -66,13 +65,7 @@ internal object CarouselTemplateHelpers {
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
-            (
-                "Calculated new indices. New center index is %d, new left index is %d, and new" +
-                    " right index is %d."
-                ),
-            newCenterIndex,
-            newLeftIndex,
-            newRightIndex
+            "Calculated new indices. New center index is $newCenterIndex, new left index is $newLeftIndex, and new right index is $newRightIndex."
         )
         return newIndices
     }

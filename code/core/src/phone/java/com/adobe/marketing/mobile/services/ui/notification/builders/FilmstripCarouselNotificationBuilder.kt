@@ -9,24 +9,32 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.builders
 
 import android.app.Activity
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.Build
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
+import com.adobe.marketing.mobile.services.ui.notification.CarouselTemplateUtil
+import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.models.CarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarouselPushTemplate
 
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a manual filmstrip carousel template notification.
  */
-internal object FilmstripCarouselTemplateNotificationBuilder {
+internal object FilmstripCarouselNotificationBuilder {
     private const val SELF_TAG = "FilmstripCarouselTemplateNotificationBuilder"
 
     @Throws(NotificationConstructionFailedException::class)
@@ -58,8 +66,18 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_filmstrip_carousel)
 
-        // Create the notification channel if needed
-        val channelIdToUse = AEPPushTemplateNotificationBuilder.createChannelAndGetChannelID(
+        // create a silent notification channel if needed
+        if (pushTemplate.isFromIntent == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            AepPushNotificationBuilder.setupSilentNotificationChannel(
+                notificationManager,
+                pushTemplate.getNotificationImportance()
+            )
+        }
+
+        // create the notification channel if needed
+        val channelIdToUse = AepPushNotificationBuilder.createChannel(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -67,7 +85,7 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
         )
 
         // create the notification builder with the common settings applied
-        val notificationBuilder = AEPPushTemplateNotificationBuilder.construct(
+        val notificationBuilder = AepPushNotificationBuilder.construct(
             context,
             pushTemplate,
             channelIdToUse,
@@ -95,7 +113,7 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
                 SELF_TAG,
                 "Less than 3 images are available for the filmstrip carousel push template, falling back to a basic push template."
             )
-            return PushTemplateHelpers.fallbackToBasicNotification(
+            return BasicNotificationBuilder.fallbackToBasicNotification(
                 context,
                 trackerActivityClass,
                 broadcastReceiverClass,
@@ -108,7 +126,7 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
         val centerImageIndex = pushTemplate.centerImageIndex
         val newIndices: List<Int>
         if (pushTemplate.intentAction?.isNotEmpty() == true) {
-            newIndices = CarouselTemplateHelpers.calculateNewIndices(
+            newIndices = CarouselTemplateUtil.calculateNewIndices(
                 centerImageIndex,
                 downloadedImageUris.size,
                 pushTemplate.intentAction
@@ -139,11 +157,10 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
         expandedLayout.setTextViewText(R.id.notification_body_expanded, expandedBodyText)
 
         // handle left and right navigation buttons
-        val clickIntent = AEPPushTemplateNotificationBuilder.createClickIntent(
+        val clickIntent = AepPushNotificationBuilder.createClickIntent(
             context,
             pushTemplate,
             PushTemplateConstants.IntentActions.FILMSTRIP_LEFT_CLICKED,
-            trackerActivityClass,
             broadcastReceiverClass,
             downloadedImageUris as List<String?>,
             imageCaptions,
@@ -181,7 +198,6 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
         cacheService: CacheService,
         items: List<CarouselPushTemplate.CarouselItem>
     ): Map<String, List<Any?>> {
-        val imageProcessingStartTime = System.currentTimeMillis()
         val downloadedImages = mutableListOf<Bitmap?>()
         val downloadedImageUris = mutableListOf<String?>()
         val imageCaptions = mutableListOf<String?>()
@@ -190,7 +206,7 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
 
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateHelpers.downloadImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
@@ -204,16 +220,6 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
             imageCaptions.add(item.captionText)
             imageClickActions.add(item.interactionUri)
         }
-
-        // log time needed to process the carousel images
-        val imageProcessingElapsedTime = System.currentTimeMillis() - imageProcessingStartTime
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "Processed %d manual filmstrip carousel image(s) in %d milliseconds.",
-            downloadedImageUris.size,
-            imageProcessingElapsedTime
-        )
 
         itemData[PushTemplateConstants.CarouselListKeys.IMAGE_URIS_KEY] = downloadedImageUris
         itemData[PushTemplateConstants.CarouselListKeys.IMAGE_CAPTIONS_KEY] = imageCaptions
@@ -269,7 +275,7 @@ internal object FilmstripCarouselTemplateNotificationBuilder {
         // assign a click action pending intent to the center image view
         val interactionUri =
             if (!imageClickActions[newCenterIndex].isNullOrEmpty()) imageClickActions[newCenterIndex] else pushTemplate.actionUri
-        AEPPushTemplateNotificationBuilder.setRemoteViewClickAction(
+        AepPushNotificationBuilder.setRemoteViewClickAction(
             context,
             trackerActivityClass,
             expandedLayout,

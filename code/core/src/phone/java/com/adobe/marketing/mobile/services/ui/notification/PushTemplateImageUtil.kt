@@ -11,16 +11,10 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
-import android.app.Activity
-import android.content.BroadcastReceiver
-import android.content.ContentResolver
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.RectF
-import android.net.Uri
-import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheEntry
@@ -40,33 +34,13 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * General utility functions to assist in building push template notifications.
+ * Utility functions to assist in downloading and caching images for push template notifications.
  */
 
-internal object PushTemplateHelpers {
+internal object PushTemplateImageUtil {
     private const val SELF_TAG = "PushTemplateHelpers"
     private const val FULL_BITMAP_QUALITY = 100
     private const val DOWNLOAD_TIMEOUT = 10
-
-    /**
-     * Asset cache location to use for downloaded push template images.
-     *
-     * @return [String] containing the asset cache location to use for storing downloaded push template images.
-     */
-    private val assetCacheLocation: String?
-        get() {
-            val deviceInfoService = ServiceProvider.getInstance().deviceInfoService
-                ?: return null
-            val applicationCacheDir = deviceInfoService.applicationCacheDir
-            return if ((applicationCacheDir == null)) null else (
-                (
-                    applicationCacheDir
-                        .toString() + File.separator +
-                        PushTemplateConstants.CACHE_BASE_DIR
-                    ) + File.separator +
-                    PushTemplateConstants.PUSH_IMAGE_CACHE
-                )
-        }
 
     private val executor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
 
@@ -113,10 +87,11 @@ internal object PushTemplateHelpers {
      * @return [Bitmap] containing the image referenced by the `String` uri
      */
     internal fun downloadImage(cacheService: CacheService, uri: String?): Bitmap? {
+        val assetCacheLocation = getAssetCacheLocation()
         if (assetCacheLocation.isNullOrEmpty() || uri.isNullOrEmpty()) {
             return null
         }
-        val cacheResult = cacheService[assetCacheLocation!!, uri]
+        val cacheResult = cacheService[assetCacheLocation, uri]
         if (cacheResult != null) {
             Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Found cached image for $uri")
             return BitmapFactory.decodeStream(cacheResult.data)
@@ -200,7 +175,7 @@ internal object PushTemplateHelpers {
             SELF_TAG,
             "Caching image downloaded from $imageUri."
         )
-        assetCacheLocation?.let {
+        getAssetCacheLocation()?.let {
             // cache push notification images for 3 days
             val cacheEntry = CacheEntry(
                 bitmapInputStream,
@@ -245,55 +220,21 @@ internal object PushTemplateHelpers {
     }
 
     /**
-     * Returns the Uri for the sound file with the given name. The sound file must be in the res/raw
-     * directory. The sound file should be in format of .mp3, .wav, or .ogg
+     * Retrieves the asset cache location to use for downloaded push template images.
      *
-     * @param soundName [String] containing the name of the sound file
-     * @param context the application [Context]
-     * @return the [Uri] for the sound file with the given name
+     * @return [String] containing the asset cache location to use for storing downloaded push template images.
      */
-    internal fun getSoundUriForResourceName(
-        soundName: String?,
-        context: Context
-    ): Uri {
-        return Uri.parse(
-            ContentResolver.SCHEME_ANDROID_RESOURCE +
-                "://" +
-                context.packageName +
-                "/raw/" +
-                soundName
-        )
-    }
-
-    @Throws(NotificationConstructionFailedException::class)
-    internal fun fallbackToBasicNotification(
-        context: Context,
-        trackerActivityClass: Class<out Activity>?,
-        broadcastReceiverClass: Class<out BroadcastReceiver>?,
-        pushTemplate: CarouselPushTemplate,
-        downloadedImageUris: List<String?>
-    ): NotificationCompat.Builder {
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "Only %d image(s) for the carousel notification were downloaded while at least %d" +
-                " were expected. Building a basic push notification instead.",
-            downloadedImageUris.size,
-            PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT
-        )
-
-        val modifiedDataMap = pushTemplate.messageData
-        if (downloadedImageUris.isNotEmpty()) {
-            // use the first downloaded image (if available) for the basic template notification
-            modifiedDataMap[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] =
-                downloadedImageUris[0].toString()
-        }
-        val basicPushTemplate = BasicPushTemplate(modifiedDataMap)
-        return BasicTemplateNotificationBuilder.construct(
-            context,
-            basicPushTemplate,
-            trackerActivityClass,
-            broadcastReceiverClass
-        )
+    private fun getAssetCacheLocation(): String? {
+        val deviceInfoService = ServiceProvider.getInstance().deviceInfoService
+            ?: return null
+        val applicationCacheDir = deviceInfoService.applicationCacheDir
+        return if ((applicationCacheDir == null)) null else (
+            (
+                applicationCacheDir
+                    .toString() + File.separator +
+                    PushTemplateConstants.CACHE_BASE_DIR
+                ) + File.separator +
+                PushTemplateConstants.PUSH_IMAGE_CACHE
+            )
     }
 }

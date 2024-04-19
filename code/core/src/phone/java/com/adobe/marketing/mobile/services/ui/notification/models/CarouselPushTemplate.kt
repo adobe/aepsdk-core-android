@@ -9,16 +9,18 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.models
 
 import android.content.Intent
+import com.adobe.marketing.mobile.services.ui.notification.CarouselTemplateUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.DataReaderException
 import com.adobe.marketing.mobile.util.JSONUtils
 import org.json.JSONArray
 import org.json.JSONException
 
-internal open class CarouselPushTemplate : AEPPushTemplate {
+internal open class CarouselPushTemplate : AepPushTemplate {
     // Optional, Determines how the carousel will be operated. Valid values are "auto" or "manual".
     // Default is "auto".
     internal var carouselOperationMode: String
@@ -109,7 +111,7 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                 ?: PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE
         rawCarouselItems =
             intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS) ?: ""
-        carouselItems = CarouselTemplateHelpers.parseCarouselItems(rawCarouselItems)
+        carouselItems = CarouselTemplateUtil.parseCarouselItems(rawCarouselItems)
     }
 
     companion object {

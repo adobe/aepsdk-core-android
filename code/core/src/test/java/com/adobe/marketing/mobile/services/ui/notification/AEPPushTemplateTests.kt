@@ -12,6 +12,8 @@
 package com.adobe.marketing.mobile.services.ui.notification
 
 import androidx.core.app.NotificationCompat
+import com.adobe.marketing.mobile.services.ui.notification.models.AepPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.BasicPushTemplate
 import org.junit.Before
 import org.mockito.MockitoAnnotations
 import kotlin.test.Test
@@ -20,7 +22,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 
 class AEPPushTemplateTests {
-    private lateinit var aepPushTemplate: AEPPushTemplate
+    private lateinit var aepPushTemplate: AepPushTemplate
     private lateinit var messageData: HashMap<String, String>
     private lateinit var basicMessageData: HashMap<String, String>
 

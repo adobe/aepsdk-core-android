@@ -1030,18 +1030,18 @@ public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSe
 	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 }
 
-public final class com/adobe/marketing/mobile/services/ui/notification/NotificationConstructionFailedException : java/lang/Exception {
+public final class com/adobe/marketing/mobile/services/ui/notification/AepNotificationUtil {
 	public static final field $stable I
-	public fun <init> (Ljava/lang/String;)V
-}
-
-public final class com/adobe/marketing/mobile/services/ui/notification/TemplateUtils {
-	public static final field $stable I
-	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/notification/TemplateUtils;
-	public static final fun constructNotificationBuilder (Landroid/content/Intent;)Landroidx/core/app/NotificationCompat$Builder;
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/notification/AepNotificationUtil;
+	public static final fun constructNotificationBuilder (Landroid/content/Intent;Ljava/lang/Class;Ljava/lang/Class;)Landroidx/core/app/NotificationCompat$Builder;
 	public static final fun constructNotificationBuilder (Ljava/lang/Class;Ljava/lang/Class;Ljava/util/Map;)Landroidx/core/app/NotificationCompat$Builder;
 	public static final fun getNotificationCompatPriorityMap ()Ljava/util/Map;
 	public static final fun getNotificationCompatVisibilityMap ()Ljava/util/Map;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/notification/NotificationConstructionFailedException : java/lang/Exception {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/uri/URIHandler {

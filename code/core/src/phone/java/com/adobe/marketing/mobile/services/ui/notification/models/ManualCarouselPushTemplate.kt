@@ -9,9 +9,11 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.models
 
 import android.content.Intent
+import com.adobe.marketing.mobile.services.ui.notification.CarouselTemplateUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 
 internal class ManualCarouselPushTemplate : CarouselPushTemplate {
     internal var intentAction: String? = null
@@ -19,14 +21,14 @@ internal class ManualCarouselPushTemplate : CarouselPushTemplate {
     internal var centerImageIndex: Int = PushTemplateConstants.DefaultValues.NO_CENTER_INDEX_SET
 
     constructor(data: Map<String, String>) : super(data) {
-        centerImageIndex = CarouselTemplateHelpers.getDefaultCarouselIndex(carouselLayoutType)
+        centerImageIndex = CarouselTemplateUtil.getDefaultCarouselIndex(carouselLayoutType)
     }
 
     constructor(intent: Intent) : super(intent) {
         intentAction = intent.action
         centerImageIndex = intent.getIntExtra(
             PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX,
-            CarouselTemplateHelpers.getDefaultCarouselIndex(carouselLayoutType)
+            CarouselTemplateUtil.getDefaultCarouselIndex(carouselLayoutType)
         )
     }
 }

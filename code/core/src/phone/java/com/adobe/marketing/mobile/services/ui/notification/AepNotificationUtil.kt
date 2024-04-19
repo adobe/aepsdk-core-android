@@ -17,37 +17,47 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.ui.notification.builders.AutoCarouselNotificationBuilder
+import com.adobe.marketing.mobile.services.ui.notification.builders.BasicNotificationBuilder
+import com.adobe.marketing.mobile.services.ui.notification.builders.FilmstripCarouselNotificationBuilder
+import com.adobe.marketing.mobile.services.ui.notification.builders.LegacyNotificationBuilder
+import com.adobe.marketing.mobile.services.ui.notification.builders.ManualCarouselNotificationBuilder
+import com.adobe.marketing.mobile.services.ui.notification.models.AepPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.AutoCarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.BasicPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.CarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarouselPushTemplate
 
 /**
  * Public facing object to construct a [NotificationCompat.Builder] object for the specified [PushTemplateType].
  * The [constructNotificationBuilder] methods will build the appropriate notification based on the provided
- * [AEPPushTemplate] or [Intent].
+ * [AepPushTemplate] or [Intent].
  */
-object TemplateUtils {
+object AepNotificationUtil {
     private const val SELF_TAG = "TemplateUtils"
 
     @JvmStatic
     val notificationCompatPriorityMap: Map<Int, String> = mapOf(
         NotificationCompat.PRIORITY_MIN to
-            AEPPushTemplate.NotificationPriority.PRIORITY_MIN,
+            AepPushTemplate.NotificationPriority.PRIORITY_MIN,
         NotificationCompat.PRIORITY_LOW to
-            AEPPushTemplate.NotificationPriority.PRIORITY_LOW,
+            AepPushTemplate.NotificationPriority.PRIORITY_LOW,
         NotificationCompat.PRIORITY_DEFAULT to
-            AEPPushTemplate.NotificationPriority.PRIORITY_DEFAULT,
+            AepPushTemplate.NotificationPriority.PRIORITY_DEFAULT,
         NotificationCompat.PRIORITY_HIGH to
-            AEPPushTemplate.NotificationPriority.PRIORITY_HIGH,
+            AepPushTemplate.NotificationPriority.PRIORITY_HIGH,
         NotificationCompat.PRIORITY_MAX to
-            AEPPushTemplate.NotificationPriority.PRIORITY_MAX
+            AepPushTemplate.NotificationPriority.PRIORITY_MAX
     )
 
     @JvmStatic
     val notificationCompatVisibilityMap: Map<Int, String> = mapOf(
         NotificationCompat.VISIBILITY_PRIVATE to
-            AEPPushTemplate.NotificationVisibility.PRIVATE,
+            AepPushTemplate.NotificationVisibility.PRIVATE,
         NotificationCompat.VISIBILITY_PUBLIC to
-            AEPPushTemplate.NotificationVisibility.PUBLIC,
+            AepPushTemplate.NotificationVisibility.PUBLIC,
         NotificationCompat.VISIBILITY_SECRET to
-            AEPPushTemplate.NotificationVisibility.SECRET
+            AepPushTemplate.NotificationVisibility.SECRET
     )
 
     @Throws(NotificationConstructionFailedException::class)
@@ -65,7 +75,7 @@ object TemplateUtils {
         when (pushTemplateType) {
             PushTemplateType.BASIC -> {
                 val basicPushTemplate = BasicPushTemplate(messageData as MutableMap<String, String>)
-                return BasicTemplateNotificationBuilder.construct(
+                return BasicNotificationBuilder.construct(
                     context,
                     basicPushTemplate,
                     trackerActivityClass,
@@ -86,7 +96,7 @@ object TemplateUtils {
                 )
 
                 if (carouselOperationMode == PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE) {
-                    return AutoCarouselTemplateNotificationBuilder.construct(
+                    return AutoCarouselNotificationBuilder.construct(
                         context,
                         AutoCarouselPushTemplate(messageData),
                         trackerActivityClass,
@@ -94,14 +104,14 @@ object TemplateUtils {
                     )
                 } else {
                     return if (carouselType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
-                        FilmstripCarouselTemplateNotificationBuilder.construct(
+                        FilmstripCarouselNotificationBuilder.construct(
                             context,
                             ManualCarouselPushTemplate(messageData),
                             trackerActivityClass,
                             broadcastReceiverClass
                         )
                     } else {
-                        return ManualCarouselTemplateNotificationBuilder.construct(
+                        return ManualCarouselNotificationBuilder.construct(
                             context,
                             ManualCarouselPushTemplate(messageData),
                             trackerActivityClass,
@@ -126,7 +136,9 @@ object TemplateUtils {
     @Throws(NotificationConstructionFailedException::class)
     @JvmStatic
     fun constructNotificationBuilder(
-        intent: Intent?
+        intent: Intent?,
+        trackerActivityClass: Class<out Activity>?,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
         if (intent == null) {
             throw NotificationConstructionFailedException("intent is null, cannot build a notification.")
@@ -134,10 +146,6 @@ object TemplateUtils {
 
         val context = ServiceProvider.getInstance().appContextService.applicationContext
             ?: throw NotificationConstructionFailedException("Application context is null, cannot build a notification.")
-        val trackerActivityClass =
-            intent.getSerializableExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME) as Class<out Activity>
-        val broadcastReceiverClass =
-            intent.getSerializableExtra(PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME) as Class<out BroadcastReceiver>
         val pushTemplateType =
             PushTemplateType.fromString(intent.getStringExtra(PushTemplateConstants.IntentKeys.TEMPLATE_TYPE))
 
@@ -148,7 +156,7 @@ object TemplateUtils {
                     SELF_TAG,
                     "Building a basic style push notification."
                 )
-                return BasicTemplateNotificationBuilder.construct(
+                return BasicNotificationBuilder.construct(
                     context,
                     BasicPushTemplate(intent),
                     trackerActivityClass,
@@ -161,14 +169,14 @@ object TemplateUtils {
                 return if (intent.action.equals(PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED) ||
                     intent.action.equals(PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_RIGHT_CLICKED)
                 ) {
-                    ManualCarouselTemplateNotificationBuilder.construct(
+                    ManualCarouselNotificationBuilder.construct(
                         context,
                         pushTemplate,
                         trackerActivityClass,
                         broadcastReceiverClass
                     )
                 } else {
-                    FilmstripCarouselTemplateNotificationBuilder.construct(
+                    FilmstripCarouselNotificationBuilder.construct(
                         context,
                         pushTemplate,
                         trackerActivityClass,

@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.models
 
 import android.app.NotificationManager
 import android.content.Intent
@@ -17,13 +17,15 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateType
 import com.adobe.marketing.mobile.util.DataReader
 
 /**
  * This class is used to parse the push template data payload or an intent and provide the necessary information
  * to build a notification.
  */
-internal sealed class AEPPushTemplate {
+internal sealed class AepPushTemplate {
     /** Enum to denote the type of action  */
     enum class ActionType {
         DEEPLINK, WEBURL, DISMISS, OPENAPP, NONE
@@ -191,7 +193,10 @@ internal sealed class AEPPushTemplate {
         var bodyText = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.BODY, null)
         if (bodyText.isNullOrEmpty()) {
             bodyText =
-                DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY, null)
+                DataReader.optString(
+                    data,
+                    PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY, null
+                )
         }
         if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_body\" or \"_msg\" not found.")
         this.body = bodyText
@@ -289,7 +294,8 @@ internal sealed class AEPPushTemplate {
      * @param intent [Intent] containing key value pairs extracted from a push template data payload
      */
     constructor(intent: Intent) {
-        val intentExtras = intent.extras ?: throw IllegalArgumentException("Intent extras are null.")
+        val intentExtras =
+            intent.extras ?: throw IllegalArgumentException("Intent extras are null.")
         // required values
         title = intentExtras.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT)
             ?: throw IllegalArgumentException("Required field \"adb_title\" not found.")

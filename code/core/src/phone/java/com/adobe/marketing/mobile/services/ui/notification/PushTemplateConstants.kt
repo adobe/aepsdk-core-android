@@ -96,8 +96,6 @@ internal object PushTemplateConstants {
         const val STICKY = "sticky"
         const val TAG = "tag"
         const val TICKER = "ticker"
-        const val TRACKER_NAME = "trackerName"
-        const val BROADCAST_RECEIVER_NAME = "broadcastReceiverName"
         const val PAYLOAD_VERSION = "version"
         const val TEMPLATE_TYPE = "templateType"
         const val CAROUSEL_OPERATION_MODE = "carouselOperationMode"

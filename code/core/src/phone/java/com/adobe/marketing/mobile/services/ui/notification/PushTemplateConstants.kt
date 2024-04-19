@@ -103,6 +103,10 @@ internal object PushTemplateConstants {
         const val CAROUSEL_OPERATION_MODE = "carouselOperationMode"
         const val CAROUSEL_LAYOUT_TYPE = "carouselLayoutType"
         const val CAROUSEL_ITEMS = "carouselItems"
+        const val INPUT_BOX_HINT = "inputBoxHint"
+        const val INPUT_BOX_FEEDBACK_TEXT = "feedbackText"
+        const val INPUT_BOX_FEEDBACK_IMAGE = "feedbackImage"
+        const val INPUT_BOX_INTENT_ACTION = "inputBoxIntentAction"
     }
 
     internal object MethodNames {
@@ -151,6 +155,10 @@ internal object PushTemplateConstants {
         const val REMIND_LATER_EPOCH_TIMESTAMP = "adb_rem_ts"
         const val REMIND_LATER_DELAY_SECONDS = "adb_rem_sec"
         const val CAROUSEL_OPERATION_MODE = "adb_car_mode"
+        const val INPUT_BOX_HINT = "adb_input_txt"
+        const val INPUT_BOX_FEEDBACK_TEXT = "adb_feedback_txt"
+        const val INPUT_BOX_FEEDBACK_IMAGE = "adb_feedback_img"
+        const val INPUT_BOX_INTENT_ACTION = "adb_input_intent"
     }
 
     internal object CarouselItemKeys {

@@ -110,6 +110,15 @@ object TemplateUtils {
                     }
                 }
             }
+            PushTemplateType.INPUT_BOX -> {
+                val inputBoxPushTemplate = InputBoxPushTemplate(messageData as MutableMap<String, String>)
+                return InputBoxTemplateNotificationBuilder.construct(
+                    context,
+                    inputBoxPushTemplate,
+                    trackerActivityClass,
+                    broadcastReceiverClass
+                )
+            }
 
             PushTemplateType.UNKNOWN -> {
                 val basicPushTemplate = BasicPushTemplate(messageData as MutableMap<String, String>)
@@ -120,7 +129,6 @@ object TemplateUtils {
                 )
             }
         }
-        throw NotificationConstructionFailedException("Failed to build notification for the given push template type ${pushTemplateType.value}.")
     }
 
     @Throws(NotificationConstructionFailedException::class)
@@ -176,7 +184,23 @@ object TemplateUtils {
                     )
                 }
             }
+            PushTemplateType.INPUT_BOX -> {
+                return InputBoxTemplateNotificationBuilder.construct(
+                    context,
+                    InputBoxPushTemplate(intent),
+                    trackerActivityClass,
+                    broadcastReceiverClass
+                )
+            }
+
+            PushTemplateType.UNKNOWN -> {
+                val basicPushTemplate = BasicPushTemplate(intent)
+                return LegacyNotificationBuilder.construct(
+                    context,
+                    basicPushTemplate,
+                    trackerActivityClass
+                )
+            }
         }
-        throw NotificationConstructionFailedException("Failed to build notification for the given intent with push template type ${pushTemplateType.value}.")
     }
 }

@@ -19,7 +19,6 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.builders.AutoCarouselNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.builders.BasicNotificationBuilder
-import com.adobe.marketing.mobile.services.ui.notification.builders.FilmstripCarouselNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.builders.LegacyNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.builders.ManualCarouselNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.models.AepPushTemplate
@@ -34,7 +33,7 @@ import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarousel
  * [AepPushTemplate] or [Intent].
  */
 object AepNotificationUtil {
-    private const val SELF_TAG = "TemplateUtils"
+    private const val SELF_TAG = "AepNotificationUtil"
 
     @JvmStatic
     val notificationCompatPriorityMap: Map<Int, String> = mapOf(
@@ -95,29 +94,20 @@ object AepNotificationUtil {
                     "Building a $carouselType carousel style push notification."
                 )
 
-                if (carouselOperationMode == PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE) {
-                    return AutoCarouselNotificationBuilder.construct(
+                return if (carouselOperationMode == PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE) {
+                    AutoCarouselNotificationBuilder.construct(
                         context,
                         AutoCarouselPushTemplate(messageData),
                         trackerActivityClass,
                         broadcastReceiverClass
                     )
                 } else {
-                    return if (carouselType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
-                        FilmstripCarouselNotificationBuilder.construct(
-                            context,
-                            ManualCarouselPushTemplate(messageData),
-                            trackerActivityClass,
-                            broadcastReceiverClass
-                        )
-                    } else {
-                        return ManualCarouselNotificationBuilder.construct(
-                            context,
-                            ManualCarouselPushTemplate(messageData),
-                            trackerActivityClass,
-                            broadcastReceiverClass
-                        )
-                    }
+                    ManualCarouselNotificationBuilder.construct(
+                        context,
+                        ManualCarouselPushTemplate(messageData),
+                        trackerActivityClass,
+                        broadcastReceiverClass
+                    )
                 }
             }
 
@@ -166,23 +156,21 @@ object AepNotificationUtil {
 
             PushTemplateType.CAROUSEL -> {
                 val pushTemplate = ManualCarouselPushTemplate(intent)
-                return if (intent.action.equals(PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED) ||
-                    intent.action.equals(PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_RIGHT_CLICKED)
-                ) {
-                    ManualCarouselNotificationBuilder.construct(
-                        context,
-                        pushTemplate,
-                        trackerActivityClass,
-                        broadcastReceiverClass
-                    )
-                } else {
-                    FilmstripCarouselNotificationBuilder.construct(
-                        context,
-                        pushTemplate,
-                        trackerActivityClass,
-                        broadcastReceiverClass
-                    )
-                }
+                return ManualCarouselNotificationBuilder.construct(
+                    context,
+                    pushTemplate,
+                    trackerActivityClass,
+                    broadcastReceiverClass
+                )
+            }
+
+            PushTemplateType.UNKNOWN -> {
+                val basicPushTemplate = BasicPushTemplate(intent)
+                return LegacyNotificationBuilder.construct(
+                    context,
+                    basicPushTemplate,
+                    trackerActivityClass
+                )
             }
         }
         throw NotificationConstructionFailedException("Failed to build notification for the given intent with push template type ${pushTemplateType.value}.")

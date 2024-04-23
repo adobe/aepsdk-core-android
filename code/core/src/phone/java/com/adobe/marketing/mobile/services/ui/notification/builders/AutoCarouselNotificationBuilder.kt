@@ -35,15 +35,10 @@ internal object AutoCarouselNotificationBuilder {
 
     fun construct(
         context: Context,
-        pushTemplate: AutoCarouselPushTemplate?,
+        pushTemplate: AutoCarouselPushTemplate,
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?,
     ): NotificationCompat.Builder {
-        if (pushTemplate == null) {
-            throw NotificationConstructionFailedException(
-                "push template is null, cannot build an auto carousel template notification."
-            )
-        }
         val cacheService = ServiceProvider.getInstance().cacheService
             ?: throw NotificationConstructionFailedException(
                 (
@@ -101,12 +96,14 @@ internal object AutoCarouselNotificationBuilder {
                 SELF_TAG,
                 "Less than 3 images are available for the auto carousel push template, falling back to a basic push template."
             )
+            val modifiedDataMap = pushTemplate.messageData
+            modifiedDataMap[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] =
+                downloadedImageUris[0]
             return BasicNotificationBuilder.fallbackToBasicNotification(
                 context,
                 trackerActivityClass,
                 broadcastReceiverClass,
-                pushTemplate,
-                downloadedImageUris
+                modifiedDataMap
             )
         }
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
@@ -139,7 +136,7 @@ internal object AutoCarouselNotificationBuilder {
         pushTemplate: CarouselPushTemplate,
         items: MutableList<CarouselPushTemplate.CarouselItem>,
         packageName: String?
-    ): List<String?> {
+    ): List<String> {
         val downloadedImageUris = mutableListOf<String>()
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri

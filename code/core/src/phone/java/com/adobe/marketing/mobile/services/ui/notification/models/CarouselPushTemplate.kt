@@ -12,7 +12,7 @@
 package com.adobe.marketing.mobile.services.ui.notification.models
 
 import android.content.Intent
-import com.adobe.marketing.mobile.services.ui.notification.CarouselTemplateUtil
+import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.DataReaderException
@@ -111,10 +111,48 @@ internal open class CarouselPushTemplate : AepPushTemplate {
                 ?: PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE
         rawCarouselItems =
             intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS) ?: ""
-        carouselItems = CarouselTemplateUtil.parseCarouselItems(rawCarouselItems)
+        carouselItems = parseCarouselItems(rawCarouselItems)
     }
 
     companion object {
+        private const val SELF_TAG = "CarouselPushTemplate"
         const val MINIMUM_FILMSTRIP_SIZE = 3
+
+        private fun parseCarouselItems(carouselItemsString: String?): MutableList<CarouselItem> {
+            val carouselItems = mutableListOf<CarouselItem>()
+            if (carouselItemsString.isNullOrEmpty()) {
+                Log.debug(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "No carousel items found in the push template."
+                )
+                return carouselItems
+            }
+            try {
+                val jsonArray = JSONArray(carouselItemsString)
+                for (i in 0 until jsonArray.length()) {
+                    val item = jsonArray.getJSONObject(i)
+                    val imageUri = item.getString(PushTemplateConstants.CarouselItemKeys.IMAGE)
+                    val captionText =
+                        item.optString(PushTemplateConstants.CarouselItemKeys.TEXT, "")
+                    val interactionUri =
+                        item.optString(PushTemplateConstants.CarouselItemKeys.URL, "")
+                    carouselItems.add(
+                        CarouselPushTemplate.CarouselItem(
+                            imageUri,
+                            captionText,
+                            interactionUri
+                        )
+                    )
+                }
+            } catch (e: JSONException) {
+                Log.debug(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "Failed to parse carousel items from the push template: ${e.localizedMessage}"
+                )
+            }
+            return carouselItems
+        }
     }
 }

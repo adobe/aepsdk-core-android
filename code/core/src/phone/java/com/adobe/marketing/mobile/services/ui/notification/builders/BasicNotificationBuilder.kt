@@ -28,7 +28,6 @@ import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
 import com.adobe.marketing.mobile.services.ui.notification.models.AepPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.models.BasicPushTemplate
-import com.adobe.marketing.mobile.services.ui.notification.models.CarouselPushTemplate
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -42,15 +41,10 @@ internal object BasicNotificationBuilder {
     @Throws(NotificationConstructionFailedException::class)
     fun construct(
         context: Context,
-        pushTemplate: BasicPushTemplate?,
+        pushTemplate: BasicPushTemplate,
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
-        if (pushTemplate == null) {
-            throw NotificationConstructionFailedException(
-                "push template is null, cannot build a basic template notification."
-            )
-        }
         val cacheService = ServiceProvider.getInstance().cacheService
             ?: throw NotificationConstructionFailedException("Cache service is null, basic template notification will not be constructed.")
 
@@ -366,25 +360,9 @@ internal object BasicNotificationBuilder {
         context: Context,
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?,
-        pushTemplate: CarouselPushTemplate,
-        downloadedImageUris: List<String?>
+        dataMap: MutableMap<String, String>
     ): NotificationCompat.Builder {
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "Only %d image(s) for the carousel notification were downloaded while at least %d" +
-                " were expected. Building a basic push notification instead.",
-            downloadedImageUris.size,
-            PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT
-        )
-
-        val modifiedDataMap = pushTemplate.messageData
-        if (downloadedImageUris.isNotEmpty()) {
-            // use the first downloaded image (if available) for the basic template notification
-            modifiedDataMap[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] =
-                downloadedImageUris[0].toString()
-        }
-        val basicPushTemplate = BasicPushTemplate(modifiedDataMap)
+        val basicPushTemplate = BasicPushTemplate(dataMap)
         return construct(
             context,
             basicPushTemplate,

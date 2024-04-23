@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.services.ui.notification.models
 
 import android.content.Intent
-import com.adobe.marketing.mobile.services.ui.notification.CarouselTemplateUtil
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 
 internal class ManualCarouselPushTemplate : CarouselPushTemplate {
@@ -21,14 +20,24 @@ internal class ManualCarouselPushTemplate : CarouselPushTemplate {
     internal var centerImageIndex: Int = PushTemplateConstants.DefaultValues.NO_CENTER_INDEX_SET
 
     constructor(data: Map<String, String>) : super(data) {
-        centerImageIndex = CarouselTemplateUtil.getDefaultCarouselIndex(carouselLayoutType)
+        centerImageIndex = getDefaultCarouselIndex(carouselLayoutType)
     }
 
     constructor(intent: Intent) : super(intent) {
         intentAction = intent.action
         centerImageIndex = intent.getIntExtra(
             PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX,
-            CarouselTemplateUtil.getDefaultCarouselIndex(carouselLayoutType)
+            getDefaultCarouselIndex(carouselLayoutType)
         )
+    }
+
+    companion object {
+        private fun getDefaultCarouselIndex(carouselLayoutType: String): Int {
+            return if (carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
+                PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_CENTER_INDEX
+            } else {
+                PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX
+            }
+        }
     }
 }

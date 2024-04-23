@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit
  */
 
 internal object PushTemplateImageUtil {
-    private const val SELF_TAG = "PushTemplateHelpers"
+    private const val SELF_TAG = "PushTemplateImageUtil"
     private const val FULL_BITMAP_QUALITY = 100
     private const val DOWNLOAD_TIMEOUT = 10
 
@@ -224,7 +224,7 @@ internal object PushTemplateImageUtil {
      *
      * @return [String] containing the asset cache location to use for storing downloaded push template images.
      */
-    private fun getAssetCacheLocation(): String? {
+    internal fun getAssetCacheLocation(): String? {
         val deviceInfoService = ServiceProvider.getInstance().deviceInfoService
             ?: return null
         val applicationCacheDir = deviceInfoService.applicationCacheDir

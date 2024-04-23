@@ -15,7 +15,6 @@ import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.TaskStackBuilder
 import android.content.BroadcastReceiver
 import android.content.ContentResolver
 import android.content.Context
@@ -396,6 +395,10 @@ internal object AepPushNotificationBuilder {
             PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS,
             pushTemplate.rawCarouselItems
         )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.CAROUSEL_LAYOUT_TYPE,
+            pushTemplate.carouselLayoutType
+        )
         return clickIntent
     }
 
@@ -529,7 +532,7 @@ internal object AepPushNotificationBuilder {
         trackerActivityClass?.let {
             intent.setClass(context.applicationContext, trackerActivityClass)
         }
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         intent.putExtra(PushTemplateConstants.PushPayloadKeys.TAG, tag)
         intent.putExtra(PushTemplateConstants.PushPayloadKeys.STICKY, stickyNotification)
         addActionDetailsToIntent(
@@ -538,13 +541,12 @@ internal object AepPushNotificationBuilder {
             actionID
         )
 
-        // adding tracking details
-        return TaskStackBuilder.create(context)
-            .addNextIntentWithParentStack(intent)
-            .getPendingIntent(
-                Random().nextInt(),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+        return PendingIntent.getActivity(
+            context,
+            Random().nextInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     /**

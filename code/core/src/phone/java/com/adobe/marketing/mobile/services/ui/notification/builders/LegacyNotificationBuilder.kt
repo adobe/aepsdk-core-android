@@ -16,7 +16,6 @@ import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.models.BasicPushTemplate
 
@@ -28,15 +27,9 @@ internal object LegacyNotificationBuilder {
 
     fun construct(
         context: Context,
-        pushTemplate: BasicPushTemplate?,
+        pushTemplate: BasicPushTemplate,
         trackerActivityClass: Class<out Activity>?
     ): NotificationCompat.Builder {
-        if (pushTemplate == null) {
-            throw NotificationConstructionFailedException(
-                "push template is null, cannot build a notification."
-            )
-        }
-
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,

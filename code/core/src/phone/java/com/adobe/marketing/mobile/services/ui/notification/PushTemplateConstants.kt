@@ -41,17 +41,16 @@ internal object PushTemplateConstants {
 
     internal object DefaultValues {
         const val SILENT_NOTIFICATION_CHANNEL_ID = "AEPSDK Silent Push Notifications"
+        const val SILENT_SOUND = "silent"
         const val CAROUSEL_MAX_BITMAP_WIDTH = 300
         const val CAROUSEL_MAX_BITMAP_HEIGHT = 200
         const val AUTO_CAROUSEL_MODE = "auto"
-        const val MANUAL_CAROUSEL_MODE = "manual"
         const val DEFAULT_MANUAL_CAROUSEL_MODE = "default"
         const val FILMSTRIP_CAROUSEL_MODE = "filmstrip"
         const val CAROUSEL_MINIMUM_IMAGE_COUNT = 3
         const val MANUAL_CAROUSEL_START_INDEX = 0
         const val FILMSTRIP_CAROUSEL_CENTER_INDEX = 1
         const val NO_CENTER_INDEX_SET = -1
-        const val ACTION_BUTTON_CAPACITY = 3
 
         // TODO: revisit this value. should cache time be configurable rather than have a static
         // value?
@@ -158,7 +157,6 @@ internal object PushTemplateConstants {
     }
 
     internal object CarouselListKeys {
-        const val IMAGES_KEY = "images"
         const val IMAGE_URIS_KEY = "imageUris"
         const val IMAGE_CAPTIONS_KEY = "imageCaptions"
         const val IMAGE_ACTIONS_KEY = "imageActions"

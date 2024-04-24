@@ -52,7 +52,8 @@ internal object AepPushNotificationBuilder {
         channelIdToUse: String,
         trackerActivityClass: Class<out Activity>?,
         smallLayout: RemoteViews,
-        expandedLayout: RemoteViews
+        expandedLayout: RemoteViews,
+        containerLayoutViewId: Int
     ): NotificationCompat.Builder {
         channelId = channelIdToUse
 
@@ -61,7 +62,7 @@ internal object AepPushNotificationBuilder {
             pushTemplate.notificationBackgroundColor,
             smallLayout,
             expandedLayout,
-            R.id.basic_expanded_layout
+            containerLayoutViewId
         )
 
         setNotificationTitleTextColor(

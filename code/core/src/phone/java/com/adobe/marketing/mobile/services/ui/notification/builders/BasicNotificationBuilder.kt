@@ -82,7 +82,8 @@ internal object BasicNotificationBuilder {
             channelIdToUse,
             trackerActivityClass,
             smallLayout,
-            expandedLayout
+            expandedLayout,
+            R.id.basic_expanded_layout
         )
 
         // get push payload data

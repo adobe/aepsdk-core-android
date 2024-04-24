@@ -71,7 +71,8 @@ internal object AutoCarouselNotificationBuilder {
             channelIdToUse,
             trackerActivityClass,
             smallLayout,
-            expandedLayout
+            expandedLayout,
+            R.id.carousel_container_layout
         )
 
         // load images into the carousel

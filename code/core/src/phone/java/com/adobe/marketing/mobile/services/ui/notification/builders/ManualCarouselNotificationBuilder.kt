@@ -91,7 +91,8 @@ internal object ManualCarouselNotificationBuilder {
             channelIdToUse,
             trackerActivityClass,
             smallLayout,
-            expandedLayout
+            expandedLayout,
+            R.id.carousel_container_layout
         )
 
         // download and load images into the carousel

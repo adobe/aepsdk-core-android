@@ -206,7 +206,7 @@ internal object ManualCarouselNotificationBuilder {
                 }
             pushTemplate.centerImageIndex =
                 carouselIndices.second
-        } else { // setup default indices if not building the notification from the intente
+        } else { // setup default indices if not building the notification from an intent
             carouselIndices =
                 if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
                     Triple(

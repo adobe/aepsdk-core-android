@@ -16,7 +16,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
@@ -140,17 +139,18 @@ internal object ManualCarouselNotificationBuilder {
         val captions = downloadedCarouselItems.map { it.captionText }
         val interactionUris = downloadedCarouselItems.map { it.interactionUri }
 
-        // if we have an intent action then we need to calculate a new center index and update the view flipper
+        // if we have an intent action then we need to calculate a new center index and update the view flipper / center filmstrip image
         val centerImageIndex = pushTemplate.centerImageIndex
-        var newIndices = calculateNewIndices(
-            centerImageIndex,
-            imageUris.size,
-            pushTemplate.intentAction
-        )
+        val newIndices =
+            if (pushTemplate.intentAction == PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED || pushTemplate.intentAction == PushTemplateConstants.IntentActions.FILMSTRIP_LEFT_CLICKED) {
+                getNewIndicesForNavigateLeft(centerImageIndex, imageUris.size)
+            } else {
+                getNewIndicesForNavigateRight(centerImageIndex, imageUris.size)
+            }
 
         if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE) {
             if (pushTemplate.intentAction?.isNotEmpty() == true) {
-                pushTemplate.centerImageIndex = newIndices[1]
+                pushTemplate.centerImageIndex = newIndices.second
 
                 // set the new center carousel item
                 expandedLayout.setDisplayedChild(
@@ -160,9 +160,7 @@ internal object ManualCarouselNotificationBuilder {
             }
         } else {
             if (pushTemplate.intentAction?.isNotEmpty() == true) {
-                pushTemplate.centerImageIndex = newIndices[1]
-            } else {
-                newIndices = listOf(centerImageIndex - 1, centerImageIndex, centerImageIndex + 1)
+                pushTemplate.centerImageIndex = newIndices.second
             }
 
             // set the carousel images in the filmstrip carousel
@@ -321,7 +319,7 @@ internal object ManualCarouselNotificationBuilder {
      * @param cacheService the [CacheService] used to cache the downloaded images
      * @param imageCaptions the list of [String] captions for each filmstrip carousel image
      * @param imageClickActions the list of [String] click actions for each filmstrip carousel image
-     * @param newIndices the list of [Int] indices for the new left, center, and right images
+     * @param newIndices a [Triple] of [Int] indices for the new left, center, and right images
      * @param pushTemplate the [ManualCarouselPushTemplate] object containing the push template data
      * @param trackerActivityClass the [Class] of the activity that will be used for tracking interactions with the carousel item
      * @param expandedLayout the [RemoteViews] containing the expanded layout of the notification
@@ -331,17 +329,13 @@ internal object ManualCarouselNotificationBuilder {
         cacheService: CacheService,
         imageCaptions: List<String?>,
         imageClickActions: List<String?>,
-        newIndices: List<Int>,
+        newIndices: Triple<Int, Int, Int>,
         pushTemplate: ManualCarouselPushTemplate,
         trackerActivityClass: Class<out Activity>?,
         expandedLayout: RemoteViews
     ) {
-        val newLeftIndex = newIndices[0]
-        val newCenterIndex = newIndices[1]
-        val newRightIndex = newIndices[2]
-
         // get all captions present then set center caption text
-        val centerCaptionText = imageCaptions[newCenterIndex]
+        val centerCaptionText = imageCaptions[newIndices.second]
         expandedLayout.setTextViewText(
             R.id.manual_carousel_filmstrip_caption,
             centerCaptionText
@@ -359,7 +353,10 @@ internal object ManualCarouselNotificationBuilder {
         }
 
         var cacheResult =
-            cacheService.get(assetCacheLocation, pushTemplate.carouselItems[newLeftIndex].imageUri)
+            cacheService.get(
+                assetCacheLocation,
+                pushTemplate.carouselItems[newIndices.first].imageUri
+            )
         val newLeftImage = BitmapFactory.decodeStream(cacheResult?.data)
         expandedLayout.setImageViewBitmap(
             R.id.manual_carousel_filmstrip_left, newLeftImage
@@ -367,7 +364,7 @@ internal object ManualCarouselNotificationBuilder {
 
         cacheResult = cacheService.get(
             assetCacheLocation,
-            pushTemplate.carouselItems[newCenterIndex].imageUri
+            pushTemplate.carouselItems[newIndices.second].imageUri
         )
         val newCenterImage = BitmapFactory.decodeStream(cacheResult?.data)
         expandedLayout.setImageViewBitmap(
@@ -375,7 +372,10 @@ internal object ManualCarouselNotificationBuilder {
         )
 
         cacheResult =
-            cacheService.get(assetCacheLocation, pushTemplate.carouselItems[newRightIndex].imageUri)
+            cacheService.get(
+                assetCacheLocation,
+                pushTemplate.carouselItems[newIndices.third].imageUri
+            )
         val newRightImage = BitmapFactory.decodeStream(cacheResult?.data)
         expandedLayout.setImageViewBitmap(
             R.id.manual_carousel_filmstrip_right, newRightImage
@@ -383,7 +383,7 @@ internal object ManualCarouselNotificationBuilder {
 
         // assign a click action pending intent to the center image view
         val interactionUri =
-            if (!imageClickActions[newCenterIndex].isNullOrEmpty()) imageClickActions[newCenterIndex] else pushTemplate.actionUri
+            if (!imageClickActions[newIndices.second].isNullOrEmpty()) imageClickActions[newIndices.second] else pushTemplate.actionUri
         AepPushNotificationBuilder.setRemoteViewClickAction(
             context,
             trackerActivityClass,
@@ -396,52 +396,46 @@ internal object ManualCarouselNotificationBuilder {
     }
 
     /**
-     * Calculates a new left, center, and right index given the current center index, total number
-     * of images, and the intent action.
+     * Calculates a new left, center, and right index for a carousel skip left press given the current center index and total number
+     * of images
      *
      * @param centerIndex [Int] containing the current center image index
      * @param listSize `Int` containing the total number of images
-     * @param action [String] containing the action found in the broadcast [Intent]
-     * @return [List] containing the new calculated left, center, and right indices
+     * @return [Triple] containing the calculated left, center, and right indices
      */
-    private fun calculateNewIndices(
+    private fun getNewIndicesForNavigateLeft(
         centerIndex: Int,
-        listSize: Int?,
-        action: String?
-    ): List<Int> {
-        if (listSize == null || listSize < CarouselPushTemplate.MINIMUM_FILMSTRIP_SIZE) return emptyList()
-        val newIndices = mutableListOf<Int>()
-        var newCenterIndex = 0
-        var newLeftIndex = 0
-        var newRightIndex = 0
+        listSize: Int
+    ): Triple<Int, Int, Int> {
+        val newCenterIndex = (centerIndex - 1 + listSize) % listSize
+        val newLeftIndex = (newCenterIndex - 1 + listSize) % listSize
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
-            "Current center index is $centerIndex and list size is $listSize."
+            "Calculated new indices. New center index is $newCenterIndex, new left index is $newLeftIndex, and new right index is $centerIndex."
         )
-        if ((action == PushTemplateConstants.IntentActions.FILMSTRIP_LEFT_CLICKED) || (action == PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED)) {
-            newCenterIndex = (centerIndex - 1 + listSize) % listSize
-            newLeftIndex = (newCenterIndex - 1 + listSize) % listSize
-            newRightIndex = centerIndex
-        } else if ((
-            (action == PushTemplateConstants.IntentActions.FILMSTRIP_RIGHT_CLICKED) || (
-                action ==
-                    PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_RIGHT_CLICKED
-                )
-            )
-        ) {
-            newCenterIndex = (centerIndex + 1) % listSize
-            newLeftIndex = centerIndex
-            newRightIndex = (newCenterIndex + 1) % listSize
-        }
-        newIndices.add(newLeftIndex)
-        newIndices.add(newCenterIndex)
-        newIndices.add(newRightIndex)
+        return Triple(newLeftIndex, newCenterIndex, centerIndex)
+    }
+
+    /**
+     * Calculates a new left, center, and right index for a carousel skip right press given the current center index and total number
+     * of images
+     *
+     * @param centerIndex [Int] containing the current center image index
+     * @param listSize `Int` containing the total number of images
+     * @return [Triple] containing the calculated left, center, and right indices
+     */
+    private fun getNewIndicesForNavigateRight(
+        centerIndex: Int,
+        listSize: Int
+    ): Triple<Int, Int, Int> {
+        val newCenterIndex = (centerIndex + 1) % listSize
+        val newRightIndex = (newCenterIndex + 1) % listSize
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
-            "Calculated new indices. New center index is $newCenterIndex, new left index is $newLeftIndex, and new right index is $newRightIndex."
+            "Calculated new indices. New center index is $newCenterIndex, new left index is $centerIndex, and new right index is $newRightIndex."
         )
-        return newIndices
+        return Triple(centerIndex, newCenterIndex, newRightIndex)
     }
 }

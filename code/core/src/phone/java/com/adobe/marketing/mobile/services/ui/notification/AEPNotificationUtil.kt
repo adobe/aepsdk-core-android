@@ -21,7 +21,7 @@ import com.adobe.marketing.mobile.services.ui.notification.builders.AutoCarousel
 import com.adobe.marketing.mobile.services.ui.notification.builders.BasicNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.builders.LegacyNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.builders.ManualCarouselNotificationBuilder
-import com.adobe.marketing.mobile.services.ui.notification.models.AepPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.models.AutoCarouselPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.models.BasicPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.models.CarouselPushTemplate
@@ -30,7 +30,7 @@ import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarousel
 /**
  * Public facing object to construct a [NotificationCompat.Builder] object for the specified [PushTemplateType].
  * The [constructNotificationBuilder] methods will build the appropriate notification based on the provided
- * [AepPushTemplate] or [Intent].
+ * [AEPPushTemplate] or [Intent].
  */
 object AEPNotificationUtil {
     private const val SELF_TAG = "AepNotificationUtil"

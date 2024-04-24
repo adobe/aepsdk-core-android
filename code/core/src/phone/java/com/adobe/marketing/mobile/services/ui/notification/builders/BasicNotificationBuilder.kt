@@ -26,7 +26,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
-import com.adobe.marketing.mobile.services.ui.notification.models.AepPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.models.BasicPushTemplate
 import org.json.JSONArray
 import org.json.JSONException
@@ -61,14 +61,14 @@ internal object BasicNotificationBuilder {
         if (pushTemplate.isFromIntent == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            AepPushNotificationBuilder.setupSilentNotificationChannel(
+            AEPPushNotificationBuilder.setupSilentNotificationChannel(
                 notificationManager,
                 pushTemplate.getNotificationImportance()
             )
         }
 
         // create the notification channel if needed
-        val channelIdToUse = AepPushNotificationBuilder.createChannel(
+        val channelIdToUse = AEPPushNotificationBuilder.createChannel(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -76,7 +76,7 @@ internal object BasicNotificationBuilder {
         )
 
         // create the notification builder with the common settings applied
-        val notificationBuilder = AepPushNotificationBuilder.construct(
+        val notificationBuilder = AEPPushNotificationBuilder.construct(
             context,
             pushTemplate,
             channelIdToUse,
@@ -149,17 +149,17 @@ internal object BasicNotificationBuilder {
         tag: String?,
         stickyNotification: Boolean
     ) {
-        val actionButtons: List<AepPushTemplate.ActionButton>? =
+        val actionButtons: List<AEPPushTemplate.ActionButton>? =
             getActionButtonsFromString(actionButtonsString)
         if (actionButtons.isNullOrEmpty()) {
             return
         }
         for (eachButton in actionButtons) {
             val pendingIntent: PendingIntent? =
-                if (eachButton.type === AepPushTemplate.ActionType.DEEPLINK ||
-                    eachButton.type === AepPushTemplate.ActionType.WEBURL
+                if (eachButton.type === AEPPushTemplate.ActionType.DEEPLINK ||
+                    eachButton.type === AEPPushTemplate.ActionType.WEBURL
                 ) {
-                    AepPushNotificationBuilder.createPendingIntent(
+                    AEPPushNotificationBuilder.createPendingIntent(
                         context,
                         trackerActivityClass,
                         eachButton.link,
@@ -168,7 +168,7 @@ internal object BasicNotificationBuilder {
                         stickyNotification
                     )
                 } else {
-                    AepPushNotificationBuilder.createPendingIntent(
+                    AEPPushNotificationBuilder.createPendingIntent(
                         context,
                         trackerActivityClass,
                         null,
@@ -181,7 +181,7 @@ internal object BasicNotificationBuilder {
         }
     }
 
-    private fun getActionButtonsFromString(actionButtons: String?): List<AepPushTemplate.ActionButton>? {
+    private fun getActionButtonsFromString(actionButtons: String?): List<AEPPushTemplate.ActionButton>? {
         if (actionButtons == null) {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
@@ -191,7 +191,7 @@ internal object BasicNotificationBuilder {
             )
             return null
         }
-        val actionButtonList = mutableListOf<AepPushTemplate.ActionButton>()
+        val actionButtonList = mutableListOf<AEPPushTemplate.ActionButton>()
         try {
             val jsonArray = JSONArray(actionButtons)
             for (i in 0 until jsonArray.length()) {
@@ -210,24 +210,24 @@ internal object BasicNotificationBuilder {
         return actionButtonList
     }
 
-    private fun getActionButton(jsonObject: JSONObject): AepPushTemplate.ActionButton? {
+    private fun getActionButton(jsonObject: JSONObject): AEPPushTemplate.ActionButton? {
         return try {
-            val label = jsonObject.getString(AepPushTemplate.ActionButtons.LABEL)
+            val label = jsonObject.getString(AEPPushTemplate.ActionButtons.LABEL)
             if (label.isEmpty()) {
                 Log.debug(PushTemplateConstants.LOG_TAG, SELF_TAG, "Label is empty")
                 return null
             }
             var uri: String? = null
-            val type = jsonObject.getString(AepPushTemplate.ActionButtons.TYPE)
-            if (type == AepPushTemplate.ActionButtonType.WEBURL || type == AepPushTemplate.ActionButtonType.DEEPLINK) {
-                uri = jsonObject.optString(AepPushTemplate.ActionButtons.URI)
+            val type = jsonObject.getString(AEPPushTemplate.ActionButtons.TYPE)
+            if (type == AEPPushTemplate.ActionButtonType.WEBURL || type == AEPPushTemplate.ActionButtonType.DEEPLINK) {
+                uri = jsonObject.optString(AEPPushTemplate.ActionButtons.URI)
             }
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
                 "Creating an ActionButton with label ($label), uri ($uri), and type ($type)."
             )
-            AepPushTemplate.ActionButton(label, uri, type)
+            AEPPushTemplate.ActionButton(label, uri, type)
         } catch (e: JSONException) {
             Log.warning(
                 PushTemplateConstants.LOG_TAG,

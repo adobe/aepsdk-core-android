@@ -57,7 +57,7 @@ internal object AutoCarouselNotificationBuilder {
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_auto_carousel)
 
         // Create the notification channel if needed
-        val channelIdToUse = AepPushNotificationBuilder.createChannel(
+        val channelIdToUse = AEPPushNotificationBuilder.createChannel(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -65,7 +65,7 @@ internal object AutoCarouselNotificationBuilder {
         )
 
         // create the notification builder with the common settings applied
-        val notificationBuilder = AepPushNotificationBuilder.construct(
+        val notificationBuilder = AEPPushNotificationBuilder.construct(
             context,
             pushTemplate,
             channelIdToUse,
@@ -158,7 +158,7 @@ internal object AutoCarouselNotificationBuilder {
             // assign a click action pending intent for each carousel item if we have a tracker activity
             trackerActivityClass?.let {
                 val interactionUri = item.interactionUri ?: pushTemplate.actionUri
-                AepPushNotificationBuilder.setRemoteViewClickAction(
+                AEPPushNotificationBuilder.setRemoteViewClickAction(
                     context,
                     trackerActivityClass,
                     carouselItem,

@@ -25,7 +25,7 @@ import com.adobe.marketing.mobile.util.DataReader
  * This class is used to parse the push template data payload or an intent and provide the necessary information
  * to build a notification.
  */
-internal sealed class AepPushTemplate {
+internal sealed class AEPPushTemplate {
     /** Enum to denote the type of action  */
     enum class ActionType {
         DEEPLINK, WEBURL, DISMISS, OPENAPP, NONE

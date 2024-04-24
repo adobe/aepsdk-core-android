@@ -20,7 +20,7 @@ import com.adobe.marketing.mobile.util.JSONUtils
 import org.json.JSONArray
 import org.json.JSONException
 
-internal open class CarouselPushTemplate : AepPushTemplate {
+internal open class CarouselPushTemplate : AEPPushTemplate {
     // Optional, Determines how the carousel will be operated. Valid values are "auto" or "manual".
     // Default is "auto".
     internal var carouselOperationMode: String

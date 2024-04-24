@@ -11,12 +11,12 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
-import com.adobe.marketing.mobile.services.ui.notification.models.AepPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
 import org.junit.Before
 import org.mockito.MockitoAnnotations
 
 class AEPPushTemplateTests {
-    private lateinit var aepPushTemplate: AepPushTemplate
+    private lateinit var aepPushTemplate: AEPPushTemplate
     private lateinit var messageData: HashMap<String, String>
     private lateinit var basicMessageData: HashMap<String, String>
 

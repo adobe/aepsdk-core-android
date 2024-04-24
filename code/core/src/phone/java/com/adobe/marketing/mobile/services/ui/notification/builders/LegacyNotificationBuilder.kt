@@ -37,7 +37,7 @@ internal object LegacyNotificationBuilder {
         )
 
         // create the notification channel
-        val channelId = AepPushNotificationBuilder.createChannel(
+        val channelId = AEPPushNotificationBuilder.createChannel(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -54,7 +54,7 @@ internal object LegacyNotificationBuilder {
             .setNumber(pushTemplate.badgeCount)
 
         // set a large icon if one is present
-        AepPushNotificationBuilder.setLargeIcon(
+        AEPPushNotificationBuilder.setLargeIcon(
             builder,
             pushTemplate.imageUrl,
             pushTemplate.title,
@@ -62,7 +62,7 @@ internal object LegacyNotificationBuilder {
         )
 
         // small Icon must be present, otherwise the notification will not be displayed.
-        AepPushNotificationBuilder.setSmallIcon(
+        AEPPushNotificationBuilder.setSmallIcon(
             context,
             builder,
             pushTemplate.smallIcon,
@@ -70,7 +70,7 @@ internal object LegacyNotificationBuilder {
         )
 
         // set notification visibility
-        AepPushNotificationBuilder.setVisibility(
+        AEPPushNotificationBuilder.setVisibility(
             builder, pushTemplate.getNotificationVisibility()
         )
 
@@ -86,10 +86,10 @@ internal object LegacyNotificationBuilder {
 
         // set custom sound, note this applies to API 25 and lower only as API 26 and up set the
         // sound on the notification channel
-        AepPushNotificationBuilder.setSound(context, builder, pushTemplate.sound)
+        AEPPushNotificationBuilder.setSound(context, builder, pushTemplate.sound)
 
         // assign a click action pending intent to the notification
-        AepPushNotificationBuilder.setNotificationClickAction(
+        AEPPushNotificationBuilder.setNotificationClickAction(
             context,
             trackerActivityClass,
             builder,
@@ -99,7 +99,7 @@ internal object LegacyNotificationBuilder {
         )
 
         // set notification delete action
-        AepPushNotificationBuilder.setNotificationDeleteAction(
+        AEPPushNotificationBuilder.setNotificationDeleteAction(
             context,
             trackerActivityClass,
             builder

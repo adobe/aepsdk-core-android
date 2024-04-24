@@ -15,7 +15,7 @@ import android.content.Intent
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
 
-internal class BasicPushTemplate : AepPushTemplate {
+internal class BasicPushTemplate : AEPPushTemplate {
     // Optional, If present, show a "remind later" button using the value provided as its label
     internal var remindLaterText: String?
         private set

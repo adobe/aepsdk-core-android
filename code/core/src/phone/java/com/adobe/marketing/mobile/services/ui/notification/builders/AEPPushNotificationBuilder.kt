@@ -36,7 +36,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
-import com.adobe.marketing.mobile.services.ui.notification.models.AepPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarouselPushTemplate
 import com.adobe.marketing.mobile.util.UrlUtils
 import java.util.Random
@@ -44,14 +44,14 @@ import java.util.Random
 // TODO: The utilities provided by this builder assumes the id's for various common elements (R.id.basic_small_layout,
 //  R.id.notification_title, R.id.notification_body_expanded) are the same across templates.
 //  We will need to figure out a way to enforce this somehow either programmatically, structurally in the layout or via documentation.
-internal object AepPushNotificationBuilder {
+internal object AEPPushNotificationBuilder {
     private const val SELF_TAG = "AEPPushTemplateNotificationBuilder"
     private lateinit var channelId: String
 
     @Throws(NotificationConstructionFailedException::class)
     fun construct(
         context: Context,
-        pushTemplate: AepPushTemplate,
+        pushTemplate: AEPPushTemplate,
         channelIdToUse: String,
         trackerActivityClass: Class<out Activity>?,
         smallLayout: RemoteViews,

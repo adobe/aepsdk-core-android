@@ -60,14 +60,14 @@ internal object ManualCarouselNotificationBuilder {
         if (pushTemplate.isFromIntent == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            AepPushNotificationBuilder.setupSilentNotificationChannel(
+            AEPPushNotificationBuilder.setupSilentNotificationChannel(
                 notificationManager,
                 pushTemplate.getNotificationImportance()
             )
         }
 
         // create the notification channel if needed
-        val channelIdToUse = AepPushNotificationBuilder.createChannel(
+        val channelIdToUse = AEPPushNotificationBuilder.createChannel(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -85,7 +85,7 @@ internal object ManualCarouselNotificationBuilder {
                 ) else RemoteViews(packageName, R.layout.push_template_manual_carousel)
 
         // create the notification builder with the common settings applied
-        val notificationBuilder = AepPushNotificationBuilder.construct(
+        val notificationBuilder = AEPPushNotificationBuilder.construct(
             context,
             pushTemplate,
             channelIdToUse,
@@ -288,7 +288,7 @@ internal object ManualCarouselNotificationBuilder {
                 )
             }
 
-        val leftClickIntent = AepPushNotificationBuilder.createClickIntent(
+        val leftClickIntent = AEPPushNotificationBuilder.createClickIntent(
             context,
             pushTemplate,
             clickPair.first,
@@ -304,7 +304,7 @@ internal object ManualCarouselNotificationBuilder {
             PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val rightClickIntent = AepPushNotificationBuilder.createClickIntent(
+        val rightClickIntent = AEPPushNotificationBuilder.createClickIntent(
             context,
             pushTemplate,
             clickPair.second,
@@ -368,7 +368,7 @@ internal object ManualCarouselNotificationBuilder {
             val interactionUri =
                 if (item.interactionUri.isNullOrEmpty()) actionUri else item.interactionUri
             interactionUri?.let {
-                AepPushNotificationBuilder.setRemoteViewClickAction(
+                AEPPushNotificationBuilder.setRemoteViewClickAction(
                     context,
                     trackerActivityClass,
                     carouselItemRemoteView,
@@ -462,7 +462,7 @@ internal object ManualCarouselNotificationBuilder {
         // assign a click action pending intent to the center image view
         val interactionUri =
             if (!imageClickActions[newIndices.second].isNullOrEmpty()) imageClickActions[newIndices.second] else pushTemplate.actionUri
-        AepPushNotificationBuilder.setRemoteViewClickAction(
+        AEPPushNotificationBuilder.setRemoteViewClickAction(
             context,
             trackerActivityClass,
             expandedLayout,

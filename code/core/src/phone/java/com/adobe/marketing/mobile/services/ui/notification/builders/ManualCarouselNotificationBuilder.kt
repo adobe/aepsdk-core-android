@@ -95,37 +95,18 @@ internal object ManualCarouselNotificationBuilder {
             R.id.carousel_container_layout
         )
 
-        // download and load images into the carousel
-        val fallbackActionUri = pushTemplate.actionUri
-        val downloadedCarouselItems: List<CarouselPushTemplate.CarouselItem>
-        if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
-            downloadedCarouselItems = downloadFilmstripImages(
-                cacheService,
-                pushTemplate.carouselItems
-            )
-        } else {
-            downloadedCarouselItems = populateManualCarouselImages(
-                context,
-                trackerActivityClass,
-                cacheService,
-                expandedLayout,
-                pushTemplate.carouselItems,
-                packageName,
-                pushTemplate.tag,
-                fallbackActionUri,
-                pushTemplate.isNotificationSticky
-            )
-        }
+        // download carousel images
+        val validCarouselItems = downloadCarouselItems(cacheService, pushTemplate.carouselItems)
 
         // fallback to a basic push template notification builder if less than 3 images were able
         // to be downloaded
-        if (downloadedCarouselItems.size < PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT) {
+        if (validCarouselItems.size < PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
                 "Less than 3 images are available for the manual carousel push template, falling back to a basic push template."
             )
-            val imageUris = downloadedCarouselItems.map { it.imageUri }
+            val imageUris = validCarouselItems.map { it.imageUri }
             val modifiedDataMap = pushTemplate.messageData
             modifiedDataMap[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] = imageUris[0]
             return BasicNotificationBuilder.fallbackToBasicNotification(
@@ -136,35 +117,129 @@ internal object ManualCarouselNotificationBuilder {
             )
         }
 
-        val imageUris = downloadedCarouselItems.map { it.imageUri }
-        val captions = downloadedCarouselItems.map { it.captionText }
-        val interactionUris = downloadedCarouselItems.map { it.interactionUri }
+        // extract image uris, captions, and interaction uris from the validated carousel items
+        val imageUris = validCarouselItems.map { it.imageUri }
+        val captions = validCarouselItems.map { it.captionText }
+        val interactionUris = validCarouselItems.map { it.interactionUri }
+        val fallbackActionUri = pushTemplate.actionUri
 
-        // if we have an intent action then we need to calculate a new center index and update the view flipper / center filmstrip image
-        val centerImageIndex = pushTemplate.centerImageIndex
-        val newIndices =
-            if (pushTemplate.intentAction == PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED || pushTemplate.intentAction == PushTemplateConstants.IntentActions.FILMSTRIP_LEFT_CLICKED) {
-                getNewIndicesForNavigateLeft(centerImageIndex, imageUris.size)
-            } else {
-                getNewIndicesForNavigateRight(centerImageIndex, imageUris.size)
-            }
+        // get the indices for the carousel
+        val carouselIndices = getCarouselIndices(pushTemplate, imageUris)
 
-        if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE) {
-            if (pushTemplate.intentAction?.isNotEmpty() == true) {
-                pushTemplate.centerImageIndex = newIndices.second
+        // populate the images for the manual carousel
+        setupCarouselImages(
+            context,
+            cacheService,
+            captions,
+            interactionUris,
+            carouselIndices,
+            pushTemplate,
+            trackerActivityClass,
+            expandedLayout,
+            validCarouselItems,
+            packageName,
+            fallbackActionUri
+        )
 
-                // set the new center carousel item
-                expandedLayout.setDisplayedChild(
-                    R.id.manual_carousel_view_flipper,
-                    pushTemplate.centerImageIndex
+        // set title text and body text
+        val titleText = pushTemplate.title
+        val smallBodyText = pushTemplate.body
+        val expandedBodyText = pushTemplate.expandedBodyText
+        smallLayout.setTextViewText(R.id.notification_title, titleText)
+        smallLayout.setTextViewText(R.id.notification_body, smallBodyText)
+        expandedLayout.setTextViewText(R.id.notification_title, titleText)
+        expandedLayout.setTextViewText(R.id.notification_body_expanded, expandedBodyText)
+
+        // handle left and right navigation buttons
+        setupNavigationButtons(
+            context,
+            pushTemplate,
+            broadcastReceiverClass,
+            imageUris,
+            captions,
+            interactionUris,
+            expandedLayout
+        )
+
+        return notificationBuilder
+    }
+
+    /**
+     * Downloads the images for a carousel push template.
+     *
+     * @param cacheService the [CacheService] used to cache the downloaded images
+     * @param items the list of [CarouselPushTemplate.CarouselItem] objects to be displayed in the filmstrip carousel
+     * @return a list of `CarouselPushTemplate.CarouselItem` objects that were successfully downloaded
+     */
+    private fun downloadCarouselItems(
+        cacheService: CacheService,
+        items: List<CarouselPushTemplate.CarouselItem>
+    ): List<CarouselPushTemplate.CarouselItem> {
+        val validCarouselItems = mutableListOf<CarouselPushTemplate.CarouselItem>()
+        for (item: CarouselPushTemplate.CarouselItem in items) {
+            val imageUri: String = item.imageUri
+            val pushImage: Bitmap? = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
+            if (pushImage == null) {
+                Log.trace(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "Failed to retrieve an image from $imageUri, will not create a new carousel item."
                 )
+                continue
             }
-        } else {
-            if (pushTemplate.intentAction?.isNotEmpty() == true) {
-                pushTemplate.centerImageIndex = newIndices.second
-            }
+            validCarouselItems.add(item)
+        }
+        return validCarouselItems
+    }
 
-            // set the carousel images in the filmstrip carousel
+    private fun getCarouselIndices(
+        pushTemplate: ManualCarouselPushTemplate,
+        imageUris: List<String?>
+    ): Triple<Int, Int, Int> {
+        val carouselIndices: Triple<Int, Int, Int>
+        if (pushTemplate.intentAction?.isNotEmpty() == true) {
+            carouselIndices =
+                if (pushTemplate.intentAction == PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED || pushTemplate.intentAction == PushTemplateConstants.IntentActions.FILMSTRIP_LEFT_CLICKED) {
+                    getNewIndicesForNavigateLeft(pushTemplate.centerImageIndex, imageUris.size)
+                } else {
+                    getNewIndicesForNavigateRight(pushTemplate.centerImageIndex, imageUris.size)
+                }
+            pushTemplate.centerImageIndex =
+                carouselIndices.second
+        } else { // setup default indices if not building the notification from the intente
+            carouselIndices =
+                if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
+                    Triple(
+                        PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_CENTER_INDEX - 1,
+                        PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_CENTER_INDEX,
+                        PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_CENTER_INDEX + 1
+                    )
+                } else {
+                    Triple(
+                        PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX,
+                        PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX + 1,
+                        PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX + 2
+                    )
+                }
+        }
+
+        return carouselIndices
+    }
+
+    private fun setupCarouselImages(
+        context: Context,
+        cacheService: CacheService,
+        captions: List<String?>,
+        interactionUris: List<String?>,
+        newIndices: Triple<Int, Int, Int>,
+        pushTemplate: ManualCarouselPushTemplate,
+        trackerActivityClass: Class<out Activity>?,
+        expandedLayout: RemoteViews,
+        validCarouselItems: List<CarouselPushTemplate.CarouselItem>,
+        packageName: String?,
+        fallbackActionUri: String?
+    ) {
+        if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
             populateFilmstripCarouselImages(
                 context,
                 cacheService,
@@ -175,23 +250,48 @@ internal object ManualCarouselNotificationBuilder {
                 trackerActivityClass,
                 expandedLayout
             )
+        } else {
+            populateManualCarouselImages(
+                context,
+                trackerActivityClass,
+                cacheService,
+                expandedLayout,
+                validCarouselItems,
+                packageName,
+                pushTemplate.tag,
+                fallbackActionUri,
+                pushTemplate.isNotificationSticky,
+                newIndices.second
+            )
         }
+    }
 
-        val titleText = pushTemplate.title
-        val smallBodyText = pushTemplate.body
-        val expandedBodyText = pushTemplate.expandedBodyText
-        smallLayout.setTextViewText(R.id.notification_title, titleText)
-        smallLayout.setTextViewText(R.id.notification_body, smallBodyText)
-        expandedLayout.setTextViewText(R.id.notification_title, titleText)
-        expandedLayout.setTextViewText(R.id.notification_body_expanded, expandedBodyText)
+    private fun setupNavigationButtons(
+        context: Context,
+        pushTemplate: ManualCarouselPushTemplate,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?,
+        imageUris: List<String?>,
+        captions: List<String?>,
+        interactionUris: List<String?>,
+        expandedLayout: RemoteViews
+    ) {
+        val clickPair =
+            if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE) {
+                Pair(
+                    PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED,
+                    PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_RIGHT_CLICKED
+                )
+            } else {
+                Pair(
+                    PushTemplateConstants.IntentActions.FILMSTRIP_LEFT_CLICKED,
+                    PushTemplateConstants.IntentActions.FILMSTRIP_RIGHT_CLICKED
+                )
+            }
 
-        // handle left and right navigation buttons
-        val clickIntent = AepPushNotificationBuilder.createClickIntent(
+        val leftClickIntent = AepPushNotificationBuilder.createClickIntent(
             context,
             pushTemplate,
-            if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE)
-                PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_LEFT_CLICKED
-            else PushTemplateConstants.IntentActions.FILMSTRIP_LEFT_CLICKED,
+            clickPair.first,
             broadcastReceiverClass,
             imageUris,
             captions,
@@ -200,24 +300,27 @@ internal object ManualCarouselNotificationBuilder {
         val pendingIntentLeftButton = PendingIntent.getBroadcast(
             context,
             0,
-            clickIntent,
+            leftClickIntent,
             PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
-        clickIntent.setAction(
-            if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE)
-                PushTemplateConstants.IntentActions.MANUAL_CAROUSEL_RIGHT_CLICKED
-            else PushTemplateConstants.IntentActions.FILMSTRIP_RIGHT_CLICKED
+
+        val rightClickIntent = AepPushNotificationBuilder.createClickIntent(
+            context,
+            pushTemplate,
+            clickPair.second,
+            broadcastReceiverClass,
+            imageUris,
+            captions,
+            interactionUris
         )
         val pendingIntentRightButton = PendingIntent.getBroadcast(
             context,
             0,
-            clickIntent,
+            rightClickIntent,
             PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         expandedLayout.setOnClickPendingIntent(R.id.leftImageButton, pendingIntentLeftButton)
         expandedLayout.setOnClickPendingIntent(R.id.rightImageButton, pendingIntentRightButton)
-
-        return notificationBuilder
     }
 
     /**
@@ -232,7 +335,6 @@ internal object ManualCarouselNotificationBuilder {
      * @param tag the `String` tag used to identify the notification
      * @param actionUri the `String` URI to be used when the carousel item is clicked
      * @param autoCancel the `Boolean` value to determine if the notification should be automatically canceled when clicked
-     * @return a list of [CarouselPushTemplate.CarouselItem] objects that were successfully downloaded
      */
     private fun populateManualCarouselImages(
         context: Context,
@@ -243,9 +345,9 @@ internal object ManualCarouselNotificationBuilder {
         packageName: String?,
         tag: String?,
         actionUri: String?,
-        autoCancel: Boolean?
-    ): List<CarouselPushTemplate.CarouselItem> {
-        val validCarouselItems = mutableListOf<CarouselPushTemplate.CarouselItem>()
+        autoCancel: Boolean?,
+        centerIndex: Int
+    ) {
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri = item.imageUri
             val pushImage: Bitmap? = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
@@ -257,7 +359,6 @@ internal object ManualCarouselNotificationBuilder {
                 )
                 continue
             }
-            validCarouselItems.add(item)
             val carouselItemRemoteView =
                 RemoteViews(packageName, R.layout.push_template_carousel_item)
             carouselItemRemoteView.setImageViewBitmap(R.id.carousel_item_image_view, pushImage)
@@ -280,37 +381,13 @@ internal object ManualCarouselNotificationBuilder {
 
             // add the carousel item to the view flipper
             expandedLayout.addView(R.id.manual_carousel_view_flipper, carouselItemRemoteView)
-        }
 
-        return validCarouselItems
-    }
-
-    /**
-     * Downloads the images for a filmstrip carousel push template.
-     *
-     * @param cacheService the [CacheService] used to cache the downloaded images
-     * @param items the list of [CarouselPushTemplate.CarouselItem] objects to be displayed in the filmstrip carousel
-     * @return a list of `CarouselPushTemplate.CarouselItem` objects that were successfully downloaded
-     */
-    private fun downloadFilmstripImages(
-        cacheService: CacheService,
-        items: List<CarouselPushTemplate.CarouselItem>
-    ): List<CarouselPushTemplate.CarouselItem> {
-        val validCarouselItems = mutableListOf<CarouselPushTemplate.CarouselItem>()
-        for (item: CarouselPushTemplate.CarouselItem in items) {
-            val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
-            if (pushImage == null) {
-                Log.trace(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Failed to retrieve an image from $imageUri, will not create a new carousel item."
-                )
-                continue
-            }
-            validCarouselItems.add(item)
+            // set the center image
+            expandedLayout.setDisplayedChild(
+                R.id.manual_carousel_view_flipper,
+                centerIndex
+            )
         }
-        return validCarouselItems
     }
 
     /**

@@ -15,7 +15,7 @@ package com.adobe.marketing.mobile.services.ui.notification
  * This object holds all constant values for handling out-of-the-box push template notifications
  */
 internal object PushTemplateConstants {
-    const val LOG_TAG = "AEPSDK Push Templates"
+    const val LOG_TAG = "AEPSDKPushTemplates"
     const val CACHE_BASE_DIR = "pushtemplates"
     const val PUSH_IMAGE_CACHE = "pushimagecache"
     const val DEFAULT_CHANNEL_ID = "AEPSDKPushChannel"
@@ -33,7 +33,7 @@ internal object PushTemplateConstants {
     }
 
     internal class Tracking private constructor() {
-        internal object Keys {
+        internal object TrackingKeys {
             const val ACTION_ID = "actionId"
             const val ACTION_URI = "actionUri"
         }
@@ -154,11 +154,5 @@ internal object PushTemplateConstants {
         const val IMAGE = "img"
         const val TEXT = "txt"
         const val URL = "uri"
-    }
-
-    internal object CarouselListKeys {
-        const val IMAGE_URIS_KEY = "imageUris"
-        const val IMAGE_CAPTIONS_KEY = "imageCaptions"
-        const val IMAGE_ACTIONS_KEY = "imageActions"
     }
 }

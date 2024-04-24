@@ -41,6 +41,9 @@ import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarousel
 import com.adobe.marketing.mobile.util.UrlUtils
 import java.util.Random
 
+// TODO: The utilities provided by this builder assumes the id's for various common elements (R.id.basic_small_layout,
+//  R.id.notification_title, R.id.notification_body_expanded) are the same across templates.
+//  We will need to figure out a way to enforce this somehow either programmatically, structurally in the layout or via documentation.
 internal object AepPushNotificationBuilder {
     private const val SELF_TAG = "AEPPushTemplateNotificationBuilder"
     private lateinit var channelId: String
@@ -563,10 +566,10 @@ internal object AepPushNotificationBuilder {
         actionId: String?
     ) {
         if (!actionUri.isNullOrEmpty()) {
-            intent.putExtra(PushTemplateConstants.Tracking.Keys.ACTION_URI, actionUri)
+            intent.putExtra(PushTemplateConstants.Tracking.TrackingKeys.ACTION_URI, actionUri)
         }
         if (!actionId.isNullOrEmpty()) {
-            intent.putExtra(PushTemplateConstants.Tracking.Keys.ACTION_ID, actionId)
+            intent.putExtra(PushTemplateConstants.Tracking.TrackingKeys.ACTION_ID, actionId)
         }
     }
 

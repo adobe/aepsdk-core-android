@@ -32,39 +32,15 @@ import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarousel
  * The [constructNotificationBuilder] methods will build the appropriate notification based on the provided
  * [AepPushTemplate] or [Intent].
  */
-object AepNotificationUtil {
+object AEPNotificationUtil {
     private const val SELF_TAG = "AepNotificationUtil"
-
-    @JvmStatic
-    val notificationCompatPriorityMap: Map<Int, String> = mapOf(
-        NotificationCompat.PRIORITY_MIN to
-            AepPushTemplate.NotificationPriority.PRIORITY_MIN,
-        NotificationCompat.PRIORITY_LOW to
-            AepPushTemplate.NotificationPriority.PRIORITY_LOW,
-        NotificationCompat.PRIORITY_DEFAULT to
-            AepPushTemplate.NotificationPriority.PRIORITY_DEFAULT,
-        NotificationCompat.PRIORITY_HIGH to
-            AepPushTemplate.NotificationPriority.PRIORITY_HIGH,
-        NotificationCompat.PRIORITY_MAX to
-            AepPushTemplate.NotificationPriority.PRIORITY_MAX
-    )
-
-    @JvmStatic
-    val notificationCompatVisibilityMap: Map<Int, String> = mapOf(
-        NotificationCompat.VISIBILITY_PRIVATE to
-            AepPushTemplate.NotificationVisibility.PRIVATE,
-        NotificationCompat.VISIBILITY_PUBLIC to
-            AepPushTemplate.NotificationVisibility.PUBLIC,
-        NotificationCompat.VISIBILITY_SECRET to
-            AepPushTemplate.NotificationVisibility.SECRET
-    )
 
     @Throws(NotificationConstructionFailedException::class)
     @JvmStatic
     fun constructNotificationBuilder(
+        messageData: Map<String, String>,
         trackerActivityClass: Class<out Activity>?,
-        broadcastReceiverClass: Class<out BroadcastReceiver>?,
-        messageData: Map<String, String>
+        broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
         val context = ServiceProvider.getInstance().appContextService.applicationContext
             ?: throw NotificationConstructionFailedException("Application context is null, cannot build a notification.")
@@ -126,14 +102,10 @@ object AepNotificationUtil {
     @Throws(NotificationConstructionFailedException::class)
     @JvmStatic
     fun constructNotificationBuilder(
-        intent: Intent?,
+        intent: Intent,
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
-        if (intent == null) {
-            throw NotificationConstructionFailedException("intent is null, cannot build a notification.")
-        }
-
         val context = ServiceProvider.getInstance().appContextService.applicationContext
             ?: throw NotificationConstructionFailedException("Application context is null, cannot build a notification.")
         val pushTemplateType =

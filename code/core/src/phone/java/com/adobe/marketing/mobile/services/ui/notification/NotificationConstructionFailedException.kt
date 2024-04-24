@@ -16,4 +16,4 @@ package com.adobe.marketing.mobile.services.ui.notification
  *
  * @param message [String] containing the message for the new exception
  */
-class NotificationConstructionFailedException(message: String?) : Exception(message)
+class NotificationConstructionFailedException(message: String) : Exception(message)

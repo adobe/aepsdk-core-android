@@ -217,8 +217,9 @@ class LifecycleV2Extension {
     }
 
     private String generateAppFullVersion(String appVersion, String appVersionCode) {
-        String validAppVersion = StringUtils.isNullOrEmpty(appVersion) ? "": appVersion;
-        String validAppVersionCode = StringUtils.isNullOrEmpty(appVersionCode) ? "": appVersionCode;
+        String validAppVersion = StringUtils.isNullOrEmpty(appVersion) ? "" : appVersion;
+        String validAppVersionCode =
+                StringUtils.isNullOrEmpty(appVersionCode) ? "" : appVersionCode;
         return String.format("%s(%s)", validAppVersion, validAppVersionCode);
     }
 

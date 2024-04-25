@@ -150,6 +150,50 @@ public class LifecycleV2ExtensionTest {
     }
 
     @Test
+    public void testStart_onUpgrade() {
+        mockPersistence(
+                timestampOneHourEarlierInMilliseconds,
+                timestampTenMinEarlierInMilliseconds,
+                timestampTenMinEarlierInMilliseconds,
+                true);
+        lifecycleV2 =
+                new LifecycleV2Extension(
+                        lifecycleDataStore, mockDeviceInfoService, mockBuilder, extensionApi);
+
+        Map<String, String> additionalContextData = new HashMap<>();
+        additionalContextData.put("TEST_KEY1", "TEXT_VAL1");
+
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(EVENT_DATA_KEY_ADDITIONAL_CONTEXT_DATA, additionalContextData);
+
+        Event testEvent = createLifecycleEvent(eventData, currentTimestampInMilliseconds);
+        lifecycleV2.start(testEvent, false);
+
+        ArgumentCaptor<Long> appStartTimestampCaptor = ArgumentCaptor.forClass(Long.class);
+        verify(lifecycleDataStore, times(1))
+                .setLong(
+                        eq(DATASTORE_KEY_APP_START_TIMESTAMP_MILLIS),
+                        appStartTimestampCaptor.capture());
+        assertEquals(
+                currentTimestampInMilliseconds, appStartTimestampCaptor.getValue().longValue());
+
+        ArgumentCaptor<Long> launchTimestampCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<Boolean> isInstallCaptor = ArgumentCaptor.forClass(Boolean.class);
+        ArgumentCaptor<Boolean> isUpgradeCaptor = ArgumentCaptor.forClass(Boolean.class);
+        verify(mockBuilder, times(1))
+                .buildAppLaunchXDMData(
+                        launchTimestampCaptor.capture(),
+                        isInstallCaptor.capture(),
+                        isUpgradeCaptor.capture());
+        assertEquals(currentTimestampInMilliseconds, launchTimestampCaptor.getValue().longValue());
+        assertFalse(isInstallCaptor.getValue());
+        assertTrue(isUpgradeCaptor.getValue());
+
+        verify(mockBuilder, never())
+                .buildAppCloseXDMData(anyLong(), anyLong(), anyLong(), anyBoolean());
+    }
+
+    @Test
     public void testStart_consecutiveStartEvents_updatesOnlyFirstTime() {
         mockPersistence(
                 timestampOneHourEarlierInMilliseconds,
@@ -520,9 +564,12 @@ public class LifecycleV2ExtensionTest {
         when(lifecycleDataStore.getString(eq(DATASTORE_KEY_LAST_APP_VERSION), anyString()))
                 .thenReturn("1.0");
 
-        if (!isUpgrade) {
+        if (isUpgrade) {
             when(lifecycleDataStore.getString(eq(DATASTORE_KEY_LAST_APP_VERSION), anyString()))
                     .thenReturn("1.1");
+        } else {
+            when(lifecycleDataStore.getString(eq(DATASTORE_KEY_LAST_APP_VERSION), anyString()))
+                    .thenReturn("1.1(12345)");
         }
     }
 }

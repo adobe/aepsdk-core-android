@@ -18,6 +18,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
@@ -89,9 +90,18 @@ internal object BasicNotificationBuilder {
         // get push payload data
         val imageUri = pushTemplate.imageUrl
         val pushImage = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
-        pushImage?.let {
+
+        if (pushImage != null) {
             expandedLayout.setImageViewBitmap(R.id.expanded_template_image, pushImage)
+        } else {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "No image found for basic push template."
+            )
+            expandedLayout.setViewVisibility(R.id.expanded_template_image, View.GONE)
         }
+
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
         smallLayout.setTextViewText(R.id.notification_body, pushTemplate.body)
         expandedLayout.setTextViewText(R.id.notification_title, pushTemplate.title)

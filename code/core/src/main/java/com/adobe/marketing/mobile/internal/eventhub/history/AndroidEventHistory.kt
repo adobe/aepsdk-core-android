@@ -149,8 +149,7 @@ internal class AndroidEventHistory : EventHistory {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Exception executing event history result handler %s",
-                ex
+                "Exception executing event history result handler $ex"
             )
         }
     }

@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.lifecycle;
 
+import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.util.StringUtils;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -86,5 +87,28 @@ final class LifecycleUtil {
         }
 
         return locale.toLanguageTag();
+    }
+
+    /**
+     * Returns the application version in the format of "appVersion (versionCode)". Example: 2.3
+     * (10)
+     *
+     * @param deviceInfoService DeviceInfoService instance
+     * @return application version
+     */
+    static String getAppVersion(final DeviceInforming deviceInfoService) {
+        if (deviceInfoService == null) {
+            return null;
+        }
+        final String applicationVersion = deviceInfoService.getApplicationVersion();
+        final String applicationVersionCode = deviceInfoService.getApplicationVersionCode();
+        return String.format(
+                "%s%s",
+                !StringUtils.isNullOrEmpty(applicationVersion)
+                        ? String.format("%s", applicationVersion)
+                        : "",
+                !StringUtils.isNullOrEmpty(applicationVersionCode)
+                        ? String.format(" (%s)", applicationVersionCode)
+                        : "");
     }
 }

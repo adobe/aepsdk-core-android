@@ -569,7 +569,7 @@ public class LifecycleV2ExtensionTest {
                     .thenReturn("1.1");
         } else {
             when(lifecycleDataStore.getString(eq(DATASTORE_KEY_LAST_APP_VERSION), anyString()))
-                    .thenReturn("1.1(12345)");
+                    .thenReturn("1.1 (12345)");
         }
     }
 }

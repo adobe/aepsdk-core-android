@@ -201,7 +201,8 @@ class LifecycleV2Extension {
 
         return (deviceInfoService != null
                 && !StringUtils.isNullOrEmpty(previousAppVersion)
-                && !previousAppVersion.equalsIgnoreCase(getAppVersion()));
+                && !previousAppVersion.equalsIgnoreCase(
+                        LifecycleUtil.getAppVersion(deviceInfoService)));
     }
 
     /** Persist the application version into datastore */
@@ -209,17 +210,9 @@ class LifecycleV2Extension {
         // Persist app version for xdm workflow
         if (dataStore != null && deviceInfoService != null) {
             dataStore.setString(
-                    LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION, getAppVersion());
+                    LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION,
+                    LifecycleUtil.getAppVersion(deviceInfoService));
         }
-    }
-
-    private String getAppVersion() {
-        String appVersion = deviceInfoService.getApplicationVersion();
-        String appVersionCode = deviceInfoService.getApplicationVersionCode();
-        String validAppVersion = StringUtils.isNullOrEmpty(appVersion) ? "" : appVersion;
-        String validAppVersionCode =
-                StringUtils.isNullOrEmpty(appVersionCode) ? "" : appVersionCode;
-        return String.format("%s(%s)", validAppVersion, validAppVersionCode);
     }
 
     /**

@@ -60,30 +60,35 @@ object AEPNotificationUtil {
 
             PushTemplateType.CAROUSEL -> {
                 val carouselPushTemplate =
-                    CarouselPushTemplate(messageData)
-                val carouselOperationMode = carouselPushTemplate.carouselOperationMode
-                val carouselType = carouselPushTemplate.carouselLayoutType
+                    CarouselPushTemplate.createCarouselPushTemplate(messageData)
 
-                Log.trace(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Building a $carouselType carousel style push notification."
-                )
-
-                return if (carouselOperationMode == PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE) {
-                    AutoCarouselNotificationBuilder.construct(
-                        context,
-                        AutoCarouselPushTemplate(messageData),
-                        trackerActivityClass,
-                        broadcastReceiverClass
-                    )
-                } else {
-                    ManualCarouselNotificationBuilder.construct(
-                        context,
-                        ManualCarouselPushTemplate(messageData),
-                        trackerActivityClass,
-                        broadcastReceiverClass
-                    )
+                when(carouselPushTemplate) {
+                    is AutoCarouselPushTemplate -> {
+                        Log.trace(
+                            PushTemplateConstants.LOG_TAG,
+                            SELF_TAG,
+                            "Building an auto carousel style push notification."
+                        )
+                        return AutoCarouselNotificationBuilder.construct(
+                            context,
+                            carouselPushTemplate,
+                            trackerActivityClass,
+                            broadcastReceiverClass
+                        )
+                    }
+                    is ManualCarouselPushTemplate -> {
+                        Log.trace(
+                            PushTemplateConstants.LOG_TAG,
+                            SELF_TAG,
+                            "Building a manual carousel style push notification."
+                        )
+                        return ManualCarouselNotificationBuilder.construct(
+                            context,
+                            carouselPushTemplate,
+                            trackerActivityClass,
+                            broadcastReceiverClass
+                        )
+                    }
                 }
             }
 

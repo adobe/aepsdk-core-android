@@ -166,8 +166,8 @@ internal object BasicNotificationBuilder {
         }
         for (eachButton in actionButtons) {
             val pendingIntent: PendingIntent? =
-                if (eachButton.type === AEPPushTemplate.ActionType.DEEPLINK ||
-                    eachButton.type === AEPPushTemplate.ActionType.WEBURL
+                if (eachButton.type === PushTemplateConstants.ActionType.DEEPLINK ||
+                    eachButton.type === PushTemplateConstants.ActionType.WEBURL
                 ) {
                     AEPPushNotificationBuilder.createPendingIntent(
                         context,
@@ -222,15 +222,15 @@ internal object BasicNotificationBuilder {
 
     private fun getActionButton(jsonObject: JSONObject): AEPPushTemplate.ActionButton? {
         return try {
-            val label = jsonObject.getString(AEPPushTemplate.ActionButtons.LABEL)
+            val label = jsonObject.getString(PushTemplateConstants.ActionButtons.LABEL)
             if (label.isEmpty()) {
                 Log.debug(PushTemplateConstants.LOG_TAG, SELF_TAG, "Label is empty")
                 return null
             }
             var uri: String? = null
-            val type = jsonObject.getString(AEPPushTemplate.ActionButtons.TYPE)
-            if (type == AEPPushTemplate.ActionButtonType.WEBURL || type == AEPPushTemplate.ActionButtonType.DEEPLINK) {
-                uri = jsonObject.optString(AEPPushTemplate.ActionButtons.URI)
+            val type = jsonObject.getString(PushTemplateConstants.ActionButtons.TYPE)
+            if (type == PushTemplateConstants.ActionType.WEBURL.name || type == PushTemplateConstants.ActionType.DEEPLINK.name) {
+                uri = jsonObject.optString(PushTemplateConstants.ActionButtons.URI)
             }
             Log.trace(
                 PushTemplateConstants.LOG_TAG,

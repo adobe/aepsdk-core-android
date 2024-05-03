@@ -26,50 +26,14 @@ import com.adobe.marketing.mobile.util.DataReader
  * to build a notification.
  */
 internal sealed class AEPPushTemplate {
-    /** Enum to denote the type of action  */
-    enum class ActionType {
-        DEEPLINK, WEBURL, DISMISS, OPENAPP, NONE
-    }
 
     /** Class representing the action button with label, link and type  */
     class ActionButton(val label: String, val link: String?, type: String?) {
-        val type: ActionType
+        val type: PushTemplateConstants.ActionType
 
         init {
-            this.type = ActionType.valueOf(type ?: ActionType.NONE.name)
+            this.type = PushTemplateConstants.ActionType.valueOf(type ?: PushTemplateConstants.ActionType.NONE.name)
         }
-    }
-
-    internal object ActionButtonType {
-        const val DEEPLINK = "DEEPLINK"
-        const val WEBURL = "WEBURL"
-        const val DISMISS = "DISMISS"
-        const val OPENAPP = "OPENAPP"
-    }
-
-    internal object ActionButtons {
-        const val LABEL = "label"
-        const val URI = "uri"
-        const val TYPE = "type"
-    }
-
-    internal object NotificationPriority {
-        fun from(priority: String?): Int {
-            return if (priority == null) NotificationCompat.PRIORITY_DEFAULT else notificationPriorityMap[priority]
-                ?: return NotificationCompat.PRIORITY_DEFAULT
-        }
-
-        const val PRIORITY_DEFAULT = "PRIORITY_DEFAULT"
-        const val PRIORITY_MIN = "PRIORITY_MIN"
-        const val PRIORITY_LOW = "PRIORITY_LOW"
-        const val PRIORITY_HIGH = "PRIORITY_HIGH"
-        const val PRIORITY_MAX = "PRIORITY_MAX"
-    }
-
-    internal object NotificationVisibility {
-        const val PUBLIC = "PUBLIC"
-        const val PRIVATE = "PRIVATE"
-        const val SECRET = "SECRET"
     }
 
     // Message data payload for the push template
@@ -122,7 +86,7 @@ internal sealed class AEPPushTemplate {
         private set
 
     // Optional, action type for the notification
-    private var actionType: ActionType?
+    private var actionType: PushTemplateConstants.ActionType?
 
     // Optional, action uri for the notification
     internal var actionUri: String?
@@ -211,8 +175,8 @@ internal sealed class AEPPushTemplate {
         imageUrl = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.IMAGE_URL, null)
         actionUri =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_URI, null)
-        actionType = ActionType.valueOf(
-            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_TYPE, null) ?: ActionType.NONE.name
+        actionType = PushTemplateConstants.ActionType.valueOf(
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_TYPE, null) ?: PushTemplateConstants.ActionType.NONE.name
         )
         actionButtonsString = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS, null)
         var smallIcon =
@@ -221,7 +185,7 @@ internal sealed class AEPPushTemplate {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                "The \"adb_small_icon\" key is not present in the message data payload, attempting to use \"${PushTemplateConstants.PushPayloadKeys.SMALL_ICON}\" key instead."
+                "The \"${PushTemplateConstants.PushPayloadKeys.SMALL_ICON}\" key is not present in the message data payload, attempting to use \"${PushTemplateConstants.PushPayloadKeys.SMALL_ICON}\" key instead."
             )
             smallIcon = DataReader.optString(
                 data,
@@ -244,7 +208,7 @@ internal sealed class AEPPushTemplate {
                 "Exception in converting notification badge count to int - ${e.localizedMessage}."
             )
         }
-        notificationPriority = NotificationPriority.from(
+        notificationPriority = PushTemplateConstants.NotificationPriority.from(
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY, null)
         )
         notificationImportance =
@@ -310,9 +274,9 @@ internal sealed class AEPPushTemplate {
         sound = intentExtras.getString(PushTemplateConstants.IntentKeys.CUSTOM_SOUND)
         imageUrl = intentExtras.getString(PushTemplateConstants.IntentKeys.IMAGE_URI)
         actionUri = intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_URI)
-        actionType = ActionType.valueOf(
+        actionType = PushTemplateConstants.ActionType.valueOf(
             intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_TYPE)
-                ?: ActionType.NONE.name
+                ?: PushTemplateConstants.ActionType.NONE.name
         )
         expandedBodyText =
             intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT)
@@ -375,25 +339,25 @@ internal sealed class AEPPushTemplate {
 
         @RequiresApi(api = Build.VERSION_CODES.N)
         internal val notificationImportanceMap: Map<String, Int> = mapOf(
-            NotificationPriority.PRIORITY_MIN to NotificationManager.IMPORTANCE_MIN,
-            NotificationPriority.PRIORITY_LOW to NotificationManager.IMPORTANCE_LOW,
-            NotificationPriority.PRIORITY_DEFAULT to NotificationManager.IMPORTANCE_DEFAULT,
-            NotificationPriority.PRIORITY_HIGH to NotificationManager.IMPORTANCE_HIGH,
-            NotificationPriority.PRIORITY_MAX to NotificationManager.IMPORTANCE_MAX
+            PushTemplateConstants.NotificationPriority.PRIORITY_MIN to NotificationManager.IMPORTANCE_MIN,
+            PushTemplateConstants.NotificationPriority.PRIORITY_LOW to NotificationManager.IMPORTANCE_LOW,
+            PushTemplateConstants.NotificationPriority.PRIORITY_DEFAULT to NotificationManager.IMPORTANCE_DEFAULT,
+            PushTemplateConstants.NotificationPriority.PRIORITY_HIGH to NotificationManager.IMPORTANCE_HIGH,
+            PushTemplateConstants.NotificationPriority.PRIORITY_MAX to NotificationManager.IMPORTANCE_MAX
         )
 
         internal val notificationVisibilityMap: Map<String, Int> = mapOf(
-            NotificationVisibility.PRIVATE to NotificationCompat.VISIBILITY_PRIVATE,
-            NotificationVisibility.PUBLIC to NotificationCompat.VISIBILITY_PUBLIC,
-            NotificationVisibility.SECRET to NotificationCompat.VISIBILITY_SECRET
+            PushTemplateConstants.NotificationVisibility.PRIVATE to NotificationCompat.VISIBILITY_PRIVATE,
+            PushTemplateConstants.NotificationVisibility.PUBLIC to NotificationCompat.VISIBILITY_PUBLIC,
+            PushTemplateConstants.NotificationVisibility.SECRET to NotificationCompat.VISIBILITY_SECRET
         )
 
         internal val notificationPriorityMap: Map<String, Int> = mapOf(
-            NotificationPriority.PRIORITY_MIN to NotificationCompat.PRIORITY_MIN,
-            NotificationPriority.PRIORITY_LOW to NotificationCompat.PRIORITY_LOW,
-            NotificationPriority.PRIORITY_DEFAULT to NotificationCompat.PRIORITY_DEFAULT,
-            NotificationPriority.PRIORITY_HIGH to NotificationCompat.PRIORITY_HIGH,
-            NotificationPriority.PRIORITY_MAX to NotificationCompat.PRIORITY_MAX
+            PushTemplateConstants.NotificationPriority.PRIORITY_MIN to NotificationCompat.PRIORITY_MIN,
+            PushTemplateConstants.NotificationPriority.PRIORITY_LOW to NotificationCompat.PRIORITY_LOW,
+            PushTemplateConstants.NotificationPriority.PRIORITY_DEFAULT to NotificationCompat.PRIORITY_DEFAULT,
+            PushTemplateConstants.NotificationPriority.PRIORITY_HIGH to NotificationCompat.PRIORITY_HIGH,
+            PushTemplateConstants.NotificationPriority.PRIORITY_MAX to NotificationCompat.PRIORITY_MAX
         )
     }
 }

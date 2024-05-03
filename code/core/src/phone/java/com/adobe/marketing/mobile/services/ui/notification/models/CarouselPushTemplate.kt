@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.services.ui.notification.models
 
 import android.content.Intent
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.DataReaderException
@@ -47,7 +48,8 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
         val interactionUri: String?
     )
 
-    constructor(data: Map<String, String>) : super(data) {
+    @Throws(NotificationConstructionFailedException::class)
+    protected constructor(data: Map<String, String>) : super(data) {
         carouselLayoutType = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT, null
         ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT}\" not found.")
@@ -111,6 +113,14 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
     companion object {
         private const val SELF_TAG = "CarouselPushTemplate"
         const val MINIMUM_FILMSTRIP_SIZE = 3
+
+        fun createCarouselPushTemplate(data: Map<String, String>): CarouselPushTemplate {
+            val carouselPushTemplate = CarouselPushTemplate(data)
+            return if (carouselPushTemplate.carouselOperationMode == PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE) {
+                AutoCarouselPushTemplate(data)
+            } else
+                ManualCarouselPushTemplate(data)
+        }
 
         private fun parseCarouselItems(carouselItemsString: String?): MutableList<CarouselItem> {
             val carouselItems = mutableListOf<CarouselItem>()

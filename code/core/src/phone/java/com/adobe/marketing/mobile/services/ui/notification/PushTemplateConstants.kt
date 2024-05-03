@@ -11,6 +11,9 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import androidx.core.app.NotificationCompat
+import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
+
 /**
  * This object holds all constant values for handling out-of-the-box push template notifications
  */
@@ -25,6 +28,36 @@ internal object PushTemplateConstants {
     // This will appear in the notification settings for the app.
     const val DEFAULT_CHANNEL_NAME = "AEPSDK Push Notifications"
     const val SILENT_CHANNEL_NAME = "AEPSDK Silent Push Notifications"
+
+    /** Enum to denote the type of action  */
+    enum class ActionType {
+        DEEPLINK, WEBURL, DISMISS, OPENAPP, NONE
+    }
+
+    internal object ActionButtons {
+        const val LABEL = "label"
+        const val URI = "uri"
+        const val TYPE = "type"
+    }
+
+    internal object NotificationPriority {
+        fun from(priority: String?): Int {
+            return if (priority == null) NotificationCompat.PRIORITY_DEFAULT else AEPPushTemplate.notificationPriorityMap[priority]
+                ?: return NotificationCompat.PRIORITY_DEFAULT
+        }
+
+        const val PRIORITY_DEFAULT = "PRIORITY_DEFAULT"
+        const val PRIORITY_MIN = "PRIORITY_MIN"
+        const val PRIORITY_LOW = "PRIORITY_LOW"
+        const val PRIORITY_HIGH = "PRIORITY_HIGH"
+        const val PRIORITY_MAX = "PRIORITY_MAX"
+    }
+
+    internal object NotificationVisibility {
+        const val PUBLIC = "PUBLIC"
+        const val PRIVATE = "PRIVATE"
+        const val SECRET = "SECRET"
+    }
 
     internal object NotificationAction {
         const val DISMISSED = "Notification Dismissed"

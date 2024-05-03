@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit
 internal object PushTemplateImageUtil {
     private const val SELF_TAG = "PushTemplateImageUtil"
     private const val FULL_BITMAP_QUALITY = 100
-    private const val DOWNLOAD_TIMEOUT = 10
+    private const val DOWNLOAD_TIMEOUT_SECS = 10
 
     private val executor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
 

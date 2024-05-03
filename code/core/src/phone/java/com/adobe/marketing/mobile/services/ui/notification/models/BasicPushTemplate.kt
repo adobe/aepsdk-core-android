@@ -28,7 +28,7 @@ internal class BasicPushTemplate : AEPPushTemplate {
     internal var remindLaterDelaySeconds: Int?
         private set
 
-    constructor(data: MutableMap<String, String>) : super(data) {
+    constructor(data: Map<String, String>) : super(data) {
         remindLaterText = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.REMIND_LATER_TEXT, null
         )

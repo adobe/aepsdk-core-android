@@ -37,7 +37,7 @@ internal object LegacyNotificationBuilder {
         )
 
         // create the notification channel
-        val channelId = AEPPushNotificationBuilder.createChannel(
+        val channelId = AEPPushNotificationBuilder.createChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,

@@ -187,7 +187,7 @@ internal sealed class AEPPushTemplate {
         if (data.isNullOrEmpty()) throw IllegalArgumentException("Push template data is null.")
         this.messageData = data.toMutableMap()
         val title = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TITLE, null)
-        if (title.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_title\" not found.")
+        if (title.isNullOrEmpty()) throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.TITLE}\" not found.")
         this.title = title
 
         var bodyText = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.BODY, null)
@@ -198,12 +198,12 @@ internal sealed class AEPPushTemplate {
                     PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY, null
                 )
         }
-        if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_body\" or \"_msg\" not found.")
+        if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.BODY}\" or \"${PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY}\" not found.")
         this.body = bodyText
 
         val payloadVersion =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.VERSION, null)
-        if (payloadVersion.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_version\" not found.")
+        if (payloadVersion.isNullOrEmpty()) throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.VERSION}\" not found.")
         this.payloadVersion = payloadVersion.toInt()
 
         // optional push template data
@@ -212,16 +212,16 @@ internal sealed class AEPPushTemplate {
         actionUri =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_URI, null)
         actionType = ActionType.valueOf(
-            data[PushTemplateConstants.PushPayloadKeys.ACTION_TYPE] ?: ActionType.NONE.name
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_TYPE, null) ?: ActionType.NONE.name
         )
-        actionButtonsString = data[PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS]
+        actionButtonsString = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS, null)
         var smallIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.SMALL_ICON, null)
         if (smallIcon.isNullOrEmpty()) {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                "The \"adb_small_icon\" key is not present in the message data payload, attempting to use \"adb_icon\" key instead."
+                "The \"adb_small_icon\" key is not present in the message data payload, attempting to use \"${PushTemplateConstants.PushPayloadKeys.SMALL_ICON}\" key instead."
             )
             smallIcon = DataReader.optString(
                 data,
@@ -233,7 +233,7 @@ internal sealed class AEPPushTemplate {
         largeIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.LARGE_ICON, null)
         try {
-            val count = data[PushTemplateConstants.PushPayloadKeys.BADGE_NUMBER]
+            val count = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.BADGE_NUMBER, null)
             count?.let {
                 badgeCount = count.toInt()
             }
@@ -245,15 +245,15 @@ internal sealed class AEPPushTemplate {
             )
         }
         notificationPriority = NotificationPriority.from(
-            data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY, null)
         )
         notificationImportance =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) getNotificationImportanceFromString(
-                data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
+                DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY, null)
             ) else null
 
         notificationVisibility = getNotificationVisibilityFromString(
-            data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_VISIBILITY]
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.NOTIFICATION_VISIBILITY, null)
         )
         channelId =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.CHANNEL_ID, null)
@@ -298,12 +298,12 @@ internal sealed class AEPPushTemplate {
             intent.extras ?: throw IllegalArgumentException("Intent extras are null.")
         // required values
         title = intentExtras.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT)
-            ?: throw IllegalArgumentException("Required field \"adb_title\" not found.")
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.TITLE_TEXT}\" not found.")
         body = intentExtras.getString(PushTemplateConstants.IntentKeys.BODY_TEXT)
-            ?: throw IllegalArgumentException("Required field \"adb_body\" not found.")
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.BODY_TEXT}\" not found.")
         payloadVersion = intentExtras.getInt(PushTemplateConstants.IntentKeys.PAYLOAD_VERSION)
         payloadVersion?.let {
-            if (it < 1) throw IllegalArgumentException("Invalid \"payload version\" found.")
+            if (it < 1) throw IllegalArgumentException("Invalid \"${PushTemplateConstants.IntentKeys.PAYLOAD_VERSION}\" found.")
         }
 
         // optional values

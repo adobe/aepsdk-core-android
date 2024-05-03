@@ -69,7 +69,7 @@ internal object BasicNotificationBuilder {
         }
 
         // create the notification channel if needed
-        val channelIdToUse = AEPPushNotificationBuilder.createChannel(
+        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,

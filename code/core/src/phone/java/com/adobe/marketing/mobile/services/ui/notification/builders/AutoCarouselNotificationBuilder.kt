@@ -57,7 +57,7 @@ internal object AutoCarouselNotificationBuilder {
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_auto_carousel)
 
         // Create the notification channel if needed
-        val channelIdToUse = AEPPushNotificationBuilder.createChannel(
+        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -97,14 +97,13 @@ internal object AutoCarouselNotificationBuilder {
                 SELF_TAG,
                 "Less than 3 images are available for the auto carousel push template, falling back to a basic push template."
             )
-            val modifiedDataMap = pushTemplate.messageData
-            modifiedDataMap[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] =
+            pushTemplate.messageData[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] =
                 downloadedImageUris[0]
             return BasicNotificationBuilder.fallbackToBasicNotification(
                 context,
                 trackerActivityClass,
                 broadcastReceiverClass,
-                modifiedDataMap
+                pushTemplate.messageData
             )
         }
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)

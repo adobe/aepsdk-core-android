@@ -33,7 +33,7 @@ import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarousel
  * [AEPPushTemplate] or [Intent].
  */
 object AEPNotificationUtil {
-    private const val SELF_TAG = "AepNotificationUtil"
+    private const val SELF_TAG = "AEPNotificationUtil"
 
     @Throws(NotificationConstructionFailedException::class)
     @JvmStatic
@@ -49,7 +49,7 @@ object AEPNotificationUtil {
 
         when (pushTemplateType) {
             PushTemplateType.BASIC -> {
-                val basicPushTemplate = BasicPushTemplate(messageData as MutableMap<String, String>)
+                val basicPushTemplate = BasicPushTemplate(messageData)
                 return BasicNotificationBuilder.construct(
                     context,
                     basicPushTemplate,
@@ -60,7 +60,7 @@ object AEPNotificationUtil {
 
             PushTemplateType.CAROUSEL -> {
                 val carouselPushTemplate =
-                    CarouselPushTemplate(messageData as MutableMap<String, String>)
+                    CarouselPushTemplate(messageData)
                 val carouselOperationMode = carouselPushTemplate.carouselOperationMode
                 val carouselType = carouselPushTemplate.carouselLayoutType
 

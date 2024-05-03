@@ -48,20 +48,14 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
     )
 
     constructor(data: Map<String, String>) : super(data) {
-        try {
-            carouselLayoutType = DataReader.getString(
-                data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT
-            )
-        } catch (dataReaderException: DataReaderException) {
-            throw IllegalArgumentException("Required field \"adb_car_layout\" not found.")
-        }
-        val carouselItemsString: String = try {
-            DataReader.getString(
-                data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS
-            )
-        } catch (dataReaderException: DataReaderException) {
-            throw IllegalArgumentException("Required field \"adb_items\" not found.")
-        }
+        carouselLayoutType = DataReader.optString(
+            data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT, null
+        ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT}\" not found.")
+
+        val carouselItemsString: String = DataReader.optString(
+                data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS, null
+            ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS}\" not found.")
+
         this.rawCarouselItems = carouselItemsString
         val carouselItemJSONArray: JSONArray
         val carouselItemObjects: MutableList<Any>?

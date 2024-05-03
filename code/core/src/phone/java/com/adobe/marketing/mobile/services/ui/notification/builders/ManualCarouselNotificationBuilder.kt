@@ -67,7 +67,7 @@ internal object ManualCarouselNotificationBuilder {
         }
 
         // create the notification channel if needed
-        val channelIdToUse = AEPPushNotificationBuilder.createChannel(
+        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -107,13 +107,12 @@ internal object ManualCarouselNotificationBuilder {
                 "Less than 3 images are available for the manual carousel push template, falling back to a basic push template."
             )
             val imageUris = validCarouselItems.map { it.imageUri }
-            val modifiedDataMap = pushTemplate.messageData
-            modifiedDataMap[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] = imageUris[0]
+            pushTemplate.messageData[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] = imageUris[0]
             return BasicNotificationBuilder.fallbackToBasicNotification(
                 context,
                 trackerActivityClass,
                 broadcastReceiverClass,
-                modifiedDataMap
+                pushTemplate.messageData
             )
         }
 

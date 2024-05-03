@@ -138,7 +138,7 @@ internal object PushTemplateImageUtil {
         val executorService = executor
         val downloadTask = executorService.submit(DownloadImageCallable(url))
         try {
-            bitmap = downloadTask[DOWNLOAD_TIMEOUT.toLong(), TimeUnit.SECONDS]
+            bitmap = downloadTask[DOWNLOAD_TIMEOUT_SECS.toLong(), TimeUnit.SECONDS]
         } catch (e: Exception) {
             downloadTask.cancel(true)
         }

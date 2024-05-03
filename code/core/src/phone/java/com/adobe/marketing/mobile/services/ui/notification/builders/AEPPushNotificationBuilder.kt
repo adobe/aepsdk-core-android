@@ -856,7 +856,7 @@ internal object AEPPushNotificationBuilder {
      * @param importance [Int] containing the notification importance
      * @return A [String] containing the created or existing channel ID
      */
-    internal fun createChannel(
+    internal fun createChannelIfRequired(
         context: Context,
         channelId: String?,
         customSound: String?,

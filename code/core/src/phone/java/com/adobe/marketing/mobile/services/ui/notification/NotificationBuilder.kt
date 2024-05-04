@@ -32,8 +32,8 @@ import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarousel
  * The [constructNotificationBuilder] methods will build the appropriate notification based on the provided
  * [AEPPushTemplate] or [Intent].
  */
-object AEPNotificationUtil {
-    private const val SELF_TAG = "AEPNotificationUtil"
+object NotificationBuilder {
+    private const val SELF_TAG = "NotificationBuilder"
 
     @Throws(NotificationConstructionFailedException::class)
     @JvmStatic

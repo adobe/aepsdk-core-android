@@ -1030,9 +1030,9 @@ public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSe
 	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 }
 
-public final class com/adobe/marketing/mobile/services/ui/notification/AEPNotificationUtil {
+public final class com/adobe/marketing/mobile/services/ui/notification/NotificationBuilder {
 	public static final field $stable I
-	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/notification/AEPNotificationUtil;
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/notification/NotificationBuilder;
 	public static final fun constructNotificationBuilder (Landroid/content/Intent;Ljava/lang/Class;Ljava/lang/Class;)Landroidx/core/app/NotificationCompat$Builder;
 	public static final fun constructNotificationBuilder (Ljava/util/Map;Ljava/lang/Class;Ljava/lang/Class;)Landroidx/core/app/NotificationCompat$Builder;
 }

@@ -62,7 +62,7 @@ object AEPNotificationUtil {
                 val carouselPushTemplate =
                     CarouselPushTemplate.createCarouselPushTemplate(messageData)
 
-                when(carouselPushTemplate) {
+                when (carouselPushTemplate) {
                     is AutoCarouselPushTemplate -> {
                         Log.trace(
                             PushTemplateConstants.LOG_TAG,

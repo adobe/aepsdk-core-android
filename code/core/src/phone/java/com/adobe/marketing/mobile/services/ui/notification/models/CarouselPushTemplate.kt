@@ -13,10 +13,8 @@ package com.adobe.marketing.mobile.services.ui.notification.models
 
 import android.content.Intent
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
-import com.adobe.marketing.mobile.util.DataReaderException
 import com.adobe.marketing.mobile.util.JSONUtils
 import org.json.JSONArray
 import org.json.JSONException
@@ -48,15 +46,14 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
         val interactionUri: String?
     )
 
-    @Throws(NotificationConstructionFailedException::class)
     protected constructor(data: Map<String, String>) : super(data) {
         carouselLayoutType = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT, null
         ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT}\" not found.")
 
         val carouselItemsString: String = DataReader.optString(
-                data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS, null
-            ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS}\" not found.")
+            data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS, null
+        ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS}\" not found.")
 
         this.rawCarouselItems = carouselItemsString
         val carouselItemJSONArray: JSONArray
@@ -115,8 +112,12 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
         const val MINIMUM_FILMSTRIP_SIZE = 3
 
         fun createCarouselPushTemplate(data: Map<String, String>): CarouselPushTemplate {
-            val carouselPushTemplate = CarouselPushTemplate(data)
-            return if (carouselPushTemplate.carouselOperationMode == PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE) {
+            val carouselOperationMode = DataReader.optString(
+                data,
+                PushTemplateConstants.PushPayloadKeys.CAROUSEL_OPERATION_MODE,
+                PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE
+            )
+            return if (carouselOperationMode == PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE) {
                 AutoCarouselPushTemplate(data)
             } else
                 ManualCarouselPushTemplate(data)

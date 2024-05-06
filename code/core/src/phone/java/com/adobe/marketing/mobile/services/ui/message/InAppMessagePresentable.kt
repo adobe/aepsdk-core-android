@@ -15,6 +15,7 @@ import android.content.Context
 import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
+import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.platform.ComposeView
 import com.adobe.marketing.mobile.services.ui.Alert
 import com.adobe.marketing.mobile.services.ui.InAppMessage
@@ -108,9 +109,9 @@ internal class InAppMessagePresentable(
                         // So always dismiss the message when a gesture is detected
                         dismiss()
 
-                        // If a gesture mapping exists, the notify the listener about the url associated with the gesture
+                        // If a gesture mapping exists, the notify the listener about the uri associated with the gesture
                         inAppMessage.settings.gestureMap[gesture]?.let { link ->
-                            handleInAppUrl(link)
+                            handleInAppUri(link)
                         }
                     }
                 )
@@ -169,32 +170,28 @@ internal class InAppMessagePresentable(
         return InAppMessageWebViewClient(
             inAppMessage.settings,
             presentationUtilityProvider
-        ) { url -> handleInAppUrl(url) }
+        ) { url -> handleInAppUri(url) }
     }
 
     /**
-     * Handles the in-app url. Does so by first checking if the component that created this message
-     * is able to handle the url.
-     * @param url the url to handle
+     * Handles the in-app uri. Does so by first checking if the component that created this message
+     * is able to handle the uri.
+     * @param uri the uri to handle
      * @return true if the url was handled internally by the web-view client, false otherwise
      */
-    private fun handleInAppUrl(url: String): Boolean {
-        // Check if the component that created this message is able to handle the url
-        val handledByListener =
-            inAppMessage.eventListener.onUrlLoading(this@InAppMessagePresentable, url)
+    @VisibleForTesting
+    internal fun handleInAppUri(uri: String): Boolean {
+        // First check if the component that created this message is able to handle the uri.
+        // Otherwise check if this URI can be opened by the utility provider via UriOpening service
+        val handled = inAppMessage.eventListener.onUrlLoading(this@InAppMessagePresentable, uri) ||
+            presentationUtilityProvider.openUri(uri)
 
-        // Check if this URL can be opened by the URLOpening
-        val handled = handledByListener || if (InAppMessageWebViewClient.isValidUrl(url)) {
-            val uriOpened = presentationUtilityProvider.openUri(url)
-            if (uriOpened) {
-                presentationDelegate?.onContentLoaded(
-                    this@InAppMessagePresentable,
-                    PresentationListener.PresentationContent.UrlContent(url)
-                )
-            }
-            true
-        } else {
-            false
+        // Notify the presentation delegate only if the url was handled
+        if (handled) {
+            presentationDelegate?.onContentLoaded(
+                this@InAppMessagePresentable,
+                PresentationListener.PresentationContent.UrlContent(uri)
+            )
         }
 
         return handled

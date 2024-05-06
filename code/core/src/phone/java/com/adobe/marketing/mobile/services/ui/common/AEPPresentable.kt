@@ -33,7 +33,6 @@ import com.adobe.marketing.mobile.services.ui.Presentation
 import com.adobe.marketing.mobile.services.ui.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.Random
@@ -52,10 +51,10 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
     private val presentation: Presentation<T>
     private val presentationUtilityProvider: PresentationUtilityProvider
     private val presentationDelegate: PresentationDelegate?
-    private val mainScope: CoroutineScope
     private val appLifecycleProvider: AppLifecycleProvider
     private val presentationObserver: PresentationObserver
     private val activityCompatOwnerUtils: ActivityCompatOwnerUtils
+    protected val mainScope: CoroutineScope
     protected val presentationStateManager: PresentationStateManager
 
     @VisibleForTesting internal val contentIdentifier: Int = Random().nextInt()
@@ -70,7 +69,8 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         presentation: Presentation<T>,
         presentationUtilityProvider: PresentationUtilityProvider,
         presentationDelegate: PresentationDelegate?,
-        appLifecycleProvider: AppLifecycleProvider
+        appLifecycleProvider: AppLifecycleProvider,
+        mainScope: CoroutineScope
     ) : this(
         presentation,
         presentationUtilityProvider,
@@ -78,7 +78,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         appLifecycleProvider,
         PresentationStateManager(),
         ActivityCompatOwnerUtils(),
-        CoroutineScope(Dispatchers.Main),
+        mainScope,
         PresentationObserver.INSTANCE
     )
 

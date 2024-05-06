@@ -45,7 +45,8 @@ internal class InAppMessagePresentable(
     inAppMessage,
     presentationUtilityProvider,
     presentationDelegate,
-    appLifecycleProvider
+    appLifecycleProvider,
+    mainScope
 ) {
 
     companion object {

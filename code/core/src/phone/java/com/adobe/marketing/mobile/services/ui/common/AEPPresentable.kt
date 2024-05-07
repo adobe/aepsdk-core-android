@@ -54,7 +54,7 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
     private val appLifecycleProvider: AppLifecycleProvider
     private val presentationObserver: PresentationObserver
     private val activityCompatOwnerUtils: ActivityCompatOwnerUtils
-    protected val mainScope: CoroutineScope
+    private val mainScope: CoroutineScope
     protected val presentationStateManager: PresentationStateManager
 
     @VisibleForTesting internal val contentIdentifier: Int = Random().nextInt()

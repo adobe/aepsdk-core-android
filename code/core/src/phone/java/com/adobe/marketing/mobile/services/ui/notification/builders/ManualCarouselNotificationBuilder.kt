@@ -13,12 +13,10 @@ package com.adobe.marketing.mobile.services.ui.notification.builders
 
 import android.app.Activity
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Build
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
@@ -26,8 +24,11 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
+import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.extensions.createNotificationChannelIfRequired
+import com.adobe.marketing.mobile.services.ui.notification.extensions.setRemoteViewClickAction
 import com.adobe.marketing.mobile.services.ui.notification.templates.CarouselPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.templates.ManualCarouselPushTemplate
 
@@ -56,18 +57,10 @@ internal object ManualCarouselNotificationBuilder {
             "Building a manual carousel template push notification."
         )
 
-        // create a silent notification channel if needed
-        if (pushTemplate.isFromIntent == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            AEPPushNotificationBuilder.setupSilentNotificationChannel(
-                notificationManager,
-                pushTemplate.getNotificationImportance()
-            )
-        }
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // create the notification channel if needed
-        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
+        val channelIdToUse = notificationManager.createNotificationChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -157,7 +150,8 @@ internal object ManualCarouselNotificationBuilder {
             imageUris,
             captions,
             interactionUris,
-            expandedLayout
+            expandedLayout,
+            channelIdToUse
         )
 
         return notificationBuilder
@@ -272,7 +266,8 @@ internal object ManualCarouselNotificationBuilder {
         imageUris: List<String?>,
         captions: List<String?>,
         interactionUris: List<String?>,
-        expandedLayout: RemoteViews
+        expandedLayout: RemoteViews,
+        channelId: String
     ) {
         val clickPair =
             if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE) {
@@ -287,37 +282,28 @@ internal object ManualCarouselNotificationBuilder {
                 )
             }
 
-        val leftClickIntent = AEPPushNotificationBuilder.createClickIntent(
+        val pendingIntentLeftButton = PendingIntentUtils.createCarouselNavigationClickPendingIntent(
             context,
             pushTemplate,
             clickPair.first,
             broadcastReceiverClass,
             imageUris,
             captions,
-            interactionUris
-        )
-        val pendingIntentLeftButton = PendingIntent.getBroadcast(
-            context,
-            0,
-            leftClickIntent,
-            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            interactionUris,
+            channelId
         )
 
-        val rightClickIntent = AEPPushNotificationBuilder.createClickIntent(
+        val pendingIntentRightButton = PendingIntentUtils.createCarouselNavigationClickPendingIntent(
             context,
             pushTemplate,
             clickPair.second,
             broadcastReceiverClass,
             imageUris,
             captions,
-            interactionUris
+            interactionUris,
+            channelId
         )
-        val pendingIntentRightButton = PendingIntent.getBroadcast(
-            context,
-            0,
-            rightClickIntent,
-            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+
         expandedLayout.setOnClickPendingIntent(R.id.leftImageButton, pendingIntentLeftButton)
         expandedLayout.setOnClickPendingIntent(R.id.rightImageButton, pendingIntentRightButton)
     }
@@ -367,10 +353,9 @@ internal object ManualCarouselNotificationBuilder {
             val interactionUri =
                 if (item.interactionUri.isNullOrEmpty()) actionUri else item.interactionUri
             interactionUri?.let {
-                AEPPushNotificationBuilder.setRemoteViewClickAction(
+                carouselItemRemoteView.setRemoteViewClickAction(
                     context,
                     trackerActivityClass,
-                    carouselItemRemoteView,
                     R.id.carousel_item_image_view,
                     interactionUri,
                     tag,
@@ -461,10 +446,9 @@ internal object ManualCarouselNotificationBuilder {
         // assign a click action pending intent to the center image view
         val interactionUri =
             if (!imageClickActions[newIndices.second].isNullOrEmpty()) imageClickActions[newIndices.second] else pushTemplate.actionUri
-        AEPPushNotificationBuilder.setRemoteViewClickAction(
+        expandedLayout.setRemoteViewClickAction(
             context,
             trackerActivityClass,
-            expandedLayout,
             R.id.manual_carousel_filmstrip_center,
             interactionUri,
             pushTemplate.tag,

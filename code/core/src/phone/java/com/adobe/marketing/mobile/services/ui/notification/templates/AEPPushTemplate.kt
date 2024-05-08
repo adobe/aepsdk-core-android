@@ -286,7 +286,7 @@ internal sealed class AEPPushTemplate {
         channelId = intentExtras.getString(PushTemplateConstants.IntentKeys.CHANNEL_ID)
         templateType =
             PushTemplateType.fromString(intentExtras.getString(PushTemplateConstants.IntentKeys.TEMPLATE_TYPE))
-        tag = intentExtras.getString(PushTemplateConstants.IntentKeys.TAG) as String
+        tag = intentExtras.getString(PushTemplateConstants.IntentKeys.TAG)
         isNotificationSticky = intentExtras.getBoolean(PushTemplateConstants.IntentKeys.STICKY)
         ticker = intentExtras.getString(PushTemplateConstants.IntentKeys.TICKER)
         expandedBodyText =

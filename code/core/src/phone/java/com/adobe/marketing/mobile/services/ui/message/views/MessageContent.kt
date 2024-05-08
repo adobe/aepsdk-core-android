@@ -48,12 +48,14 @@ internal fun MessageContent(
     onCreated: (WebView) -> Unit,
     gestureTracker: GestureTracker
 ) {
-    // Size variables
+    // Size variables. Ideally, these values can be remembered because generally a configuration
+    // change will refresh the size. However, in-case the configuration changes (e.g. device rotation)
+    // are restricted by the Activity hosting this composable, these values will not be recomputed.
+    // So, we are not remembering these values to ensure that the size is recalculated on every
+    // composition.
     val currentConfiguration = LocalConfiguration.current
-    val heightDp: Dp =
-        remember { ((currentConfiguration.screenHeightDp * inAppMessageSettings.height) / 100).dp }
-    val widthDp: Dp =
-        remember { ((currentConfiguration.screenWidthDp * inAppMessageSettings.width) / 100).dp }
+    val heightDp: Dp = ((currentConfiguration.screenHeightDp * inAppMessageSettings.height) / 100).dp
+    val widthDp: Dp = ((currentConfiguration.screenWidthDp * inAppMessageSettings.width) / 100).dp
 
     // Swipe/Drag variables
     val offsetX = remember { mutableStateOf(0f) }

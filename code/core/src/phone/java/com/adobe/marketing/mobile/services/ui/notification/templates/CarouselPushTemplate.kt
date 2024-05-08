@@ -9,11 +9,12 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.templates
 
 import android.content.Intent
+import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
-import com.adobe.marketing.mobile.util.DataReaderException
 import com.adobe.marketing.mobile.util.JSONUtils
 import org.json.JSONArray
 import org.json.JSONException
@@ -45,21 +46,15 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
         val interactionUri: String?
     )
 
-    constructor(data: Map<String, String>) : super(data) {
-        try {
-            carouselLayoutType = DataReader.getString(
-                data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT
-            )
-        } catch (dataReaderException: DataReaderException) {
-            throw IllegalArgumentException("Required field \"adb_car_layout\" not found.")
-        }
-        val carouselItemsString: String = try {
-            DataReader.getString(
-                data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS
-            )
-        } catch (dataReaderException: DataReaderException) {
-            throw IllegalArgumentException("Required field \"adb_items\" not found.")
-        }
+    protected constructor(data: Map<String, String>) : super(data) {
+        carouselLayoutType = DataReader.optString(
+            data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT, null
+        ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT}\" not found.")
+
+        val carouselItemsString: String = DataReader.optString(
+            data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS, null
+        ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS}\" not found.")
+
         this.rawCarouselItems = carouselItemsString
         val carouselItemJSONArray: JSONArray
         val carouselItemObjects: MutableList<Any>?
@@ -109,10 +104,60 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                 ?: PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE
         rawCarouselItems =
             intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS) ?: ""
-        carouselItems = CarouselTemplateHelpers.parseCarouselItems(rawCarouselItems)
+        carouselItems = parseCarouselItems(rawCarouselItems)
     }
 
     companion object {
+        private const val SELF_TAG = "CarouselPushTemplate"
         const val MINIMUM_FILMSTRIP_SIZE = 3
+
+        fun createCarouselPushTemplate(data: Map<String, String>): CarouselPushTemplate {
+            val carouselOperationMode = DataReader.optString(
+                data,
+                PushTemplateConstants.PushPayloadKeys.CAROUSEL_OPERATION_MODE,
+                PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE
+            )
+            return if (carouselOperationMode == PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE) {
+                AutoCarouselPushTemplate(data)
+            } else
+                ManualCarouselPushTemplate(data)
+        }
+
+        private fun parseCarouselItems(carouselItemsString: String?): MutableList<CarouselItem> {
+            val carouselItems = mutableListOf<CarouselItem>()
+            if (carouselItemsString.isNullOrEmpty()) {
+                Log.debug(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "No carousel items found in the push template."
+                )
+                return carouselItems
+            }
+            try {
+                val jsonArray = JSONArray(carouselItemsString)
+                for (i in 0 until jsonArray.length()) {
+                    val item = jsonArray.getJSONObject(i)
+                    val imageUri = item.getString(PushTemplateConstants.CarouselItemKeys.IMAGE)
+                    val captionText =
+                        item.optString(PushTemplateConstants.CarouselItemKeys.TEXT, "")
+                    val interactionUri =
+                        item.optString(PushTemplateConstants.CarouselItemKeys.URL, "")
+                    carouselItems.add(
+                        CarouselPushTemplate.CarouselItem(
+                            imageUri,
+                            captionText,
+                            interactionUri
+                        )
+                    )
+                }
+            } catch (e: JSONException) {
+                Log.debug(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "Failed to parse carousel items from the push template: ${e.localizedMessage}"
+                )
+            }
+            return carouselItems
+        }
     }
 }

@@ -9,13 +9,15 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.builders
 
 import android.app.Activity
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
 
 /**
  * Object responsible for constructing a legacy push notification.
@@ -25,15 +27,9 @@ internal object LegacyNotificationBuilder {
 
     fun construct(
         context: Context,
-        pushTemplate: BasicPushTemplate?,
+        pushTemplate: BasicPushTemplate,
         trackerActivityClass: Class<out Activity>?
     ): NotificationCompat.Builder {
-        if (pushTemplate == null) {
-            throw NotificationConstructionFailedException(
-                "push template is null, cannot build a notification."
-            )
-        }
-
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
@@ -41,7 +37,7 @@ internal object LegacyNotificationBuilder {
         )
 
         // create the notification channel
-        val channelId = AEPPushTemplateNotificationBuilder.createChannelAndGetChannelID(
+        val channelId = AEPPushNotificationBuilder.createChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -58,7 +54,7 @@ internal object LegacyNotificationBuilder {
             .setNumber(pushTemplate.badgeCount)
 
         // set a large icon if one is present
-        AEPPushTemplateNotificationBuilder.setLargeIcon(
+        AEPPushNotificationBuilder.setLargeIcon(
             builder,
             pushTemplate.imageUrl,
             pushTemplate.title,
@@ -66,7 +62,7 @@ internal object LegacyNotificationBuilder {
         )
 
         // small Icon must be present, otherwise the notification will not be displayed.
-        AEPPushTemplateNotificationBuilder.setSmallIcon(
+        AEPPushNotificationBuilder.setSmallIcon(
             context,
             builder,
             pushTemplate.smallIcon,
@@ -74,12 +70,12 @@ internal object LegacyNotificationBuilder {
         )
 
         // set notification visibility
-        AEPPushTemplateNotificationBuilder.setVisibility(
+        AEPPushNotificationBuilder.setVisibility(
             builder, pushTemplate.getNotificationVisibility()
         )
 
         // add any action buttons defined for the notification
-        BasicTemplateNotificationBuilder.addActionButtons(
+        BasicNotificationBuilder.addActionButtons(
             context,
             trackerActivityClass,
             builder,
@@ -90,10 +86,10 @@ internal object LegacyNotificationBuilder {
 
         // set custom sound, note this applies to API 25 and lower only as API 26 and up set the
         // sound on the notification channel
-        AEPPushTemplateNotificationBuilder.setSound(context, builder, pushTemplate.sound)
+        AEPPushNotificationBuilder.setSound(context, builder, pushTemplate.sound)
 
         // assign a click action pending intent to the notification
-        AEPPushTemplateNotificationBuilder.setNotificationClickAction(
+        AEPPushNotificationBuilder.setNotificationClickAction(
             context,
             trackerActivityClass,
             builder,
@@ -103,7 +99,7 @@ internal object LegacyNotificationBuilder {
         )
 
         // set notification delete action
-        AEPPushTemplateNotificationBuilder.setNotificationDeleteAction(
+        AEPPushNotificationBuilder.setNotificationDeleteAction(
             context,
             trackerActivityClass,
             builder

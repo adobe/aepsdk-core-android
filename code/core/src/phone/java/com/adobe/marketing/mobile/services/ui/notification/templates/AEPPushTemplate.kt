@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.templates
 
 import android.app.NotificationManager
 import android.content.Intent
@@ -17,6 +17,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ui.notification.NotificationPriority
+import com.adobe.marketing.mobile.services.ui.notification.NotificationVisibility
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateType
 import com.adobe.marketing.mobile.util.DataReader
 
 /**
@@ -24,50 +28,14 @@ import com.adobe.marketing.mobile.util.DataReader
  * to build a notification.
  */
 internal sealed class AEPPushTemplate {
-    /** Enum to denote the type of action  */
-    enum class ActionType {
-        DEEPLINK, WEBURL, DISMISS, OPENAPP, NONE
-    }
 
     /** Class representing the action button with label, link and type  */
     class ActionButton(val label: String, val link: String?, type: String?) {
-        val type: ActionType
+        val type: PushTemplateConstants.ActionType
 
         init {
-            this.type = ActionType.valueOf(type ?: ActionType.NONE.name)
+            this.type = PushTemplateConstants.ActionType.valueOf(type ?: PushTemplateConstants.ActionType.NONE.name)
         }
-    }
-
-    internal object ActionButtonType {
-        const val DEEPLINK = "DEEPLINK"
-        const val WEBURL = "WEBURL"
-        const val DISMISS = "DISMISS"
-        const val OPENAPP = "OPENAPP"
-    }
-
-    internal object ActionButtons {
-        const val LABEL = "label"
-        const val URI = "uri"
-        const val TYPE = "type"
-    }
-
-    internal object NotificationPriority {
-        fun from(priority: String?): Int {
-            return if (priority == null) NotificationCompat.PRIORITY_DEFAULT else notificationPriorityMap[priority]
-                ?: return NotificationCompat.PRIORITY_DEFAULT
-        }
-
-        const val PRIORITY_DEFAULT = "PRIORITY_DEFAULT"
-        const val PRIORITY_MIN = "PRIORITY_MIN"
-        const val PRIORITY_LOW = "PRIORITY_LOW"
-        const val PRIORITY_HIGH = "PRIORITY_HIGH"
-        const val PRIORITY_MAX = "PRIORITY_MAX"
-    }
-
-    internal object NotificationVisibility {
-        const val PUBLIC = "PUBLIC"
-        const val PRIVATE = "PRIVATE"
-        const val SECRET = "SECRET"
     }
 
     // Message data payload for the push template
@@ -120,7 +88,7 @@ internal sealed class AEPPushTemplate {
         private set
 
     // Optional, action type for the notification
-    private var actionType: ActionType?
+    private var actionType: PushTemplateConstants.ActionType?
 
     // Optional, action uri for the notification
     internal var actionUri: String?
@@ -185,20 +153,16 @@ internal sealed class AEPPushTemplate {
         if (data.isNullOrEmpty()) throw IllegalArgumentException("Push template data is null.")
         this.messageData = data.toMutableMap()
         val title = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.TITLE, null)
-        if (title.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_title\" not found.")
+        if (title.isNullOrEmpty()) throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.TITLE}\" not found.")
         this.title = title
 
-        var bodyText = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.BODY, null)
-        if (bodyText.isNullOrEmpty()) {
-            bodyText =
-                DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY, null)
-        }
-        if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_body\" or \"_msg\" not found.")
+        val bodyText = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.BODY, null)
+        if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.BODY}\" or \"${PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY}\" not found.")
         this.body = bodyText
 
         val payloadVersion =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.VERSION, null)
-        if (payloadVersion.isNullOrEmpty()) throw IllegalArgumentException("Required field \"adb_version\" not found.")
+        if (payloadVersion.isNullOrEmpty()) throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.VERSION}\" not found.")
         this.payloadVersion = payloadVersion.toInt()
 
         // optional push template data
@@ -206,17 +170,17 @@ internal sealed class AEPPushTemplate {
         imageUrl = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.IMAGE_URL, null)
         actionUri =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_URI, null)
-        actionType = ActionType.valueOf(
-            data[PushTemplateConstants.PushPayloadKeys.ACTION_TYPE] ?: ActionType.NONE.name
+        actionType = PushTemplateConstants.ActionType.valueOf(
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_TYPE, null) ?: PushTemplateConstants.ActionType.NONE.name
         )
-        actionButtonsString = data[PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS]
+        actionButtonsString = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS, null)
         var smallIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.SMALL_ICON, null)
         if (smallIcon.isNullOrEmpty()) {
             Log.debug(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                "The \"adb_small_icon\" key is not present in the message data payload, attempting to use \"adb_icon\" key instead."
+                "The \"${PushTemplateConstants.PushPayloadKeys.SMALL_ICON}\" key is not present in the message data payload, attempting to use \"${PushTemplateConstants.PushPayloadKeys.SMALL_ICON}\" key instead."
             )
             smallIcon = DataReader.optString(
                 data,
@@ -228,7 +192,7 @@ internal sealed class AEPPushTemplate {
         largeIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.LARGE_ICON, null)
         try {
-            val count = data[PushTemplateConstants.PushPayloadKeys.BADGE_NUMBER]
+            val count = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.BADGE_NUMBER, null)
             count?.let {
                 badgeCount = count.toInt()
             }
@@ -239,16 +203,16 @@ internal sealed class AEPPushTemplate {
                 "Exception in converting notification badge count to int - ${e.localizedMessage}."
             )
         }
-        notificationPriority = NotificationPriority.from(
-            data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
+        notificationPriority = NotificationPriority.getNotificationCompatPriorityFromString(
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY, null)
         )
         notificationImportance =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) getNotificationImportanceFromString(
-                data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY]
+                DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY, null)
             ) else null
 
-        notificationVisibility = getNotificationVisibilityFromString(
-            data[PushTemplateConstants.PushPayloadKeys.NOTIFICATION_VISIBILITY]
+        notificationVisibility = NotificationVisibility.getNotificationCompatVisibilityFromString(
+            DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.NOTIFICATION_VISIBILITY, null)
         )
         channelId =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.CHANNEL_ID, null)
@@ -289,24 +253,25 @@ internal sealed class AEPPushTemplate {
      * @param intent [Intent] containing key value pairs extracted from a push template data payload
      */
     constructor(intent: Intent) {
-        val intentExtras = intent.extras ?: throw IllegalArgumentException("Intent extras are null.")
+        val intentExtras =
+            intent.extras ?: throw IllegalArgumentException("Intent extras are null.")
         // required values
         title = intentExtras.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT)
-            ?: throw IllegalArgumentException("Required field \"adb_title\" not found.")
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.TITLE_TEXT}\" not found.")
         body = intentExtras.getString(PushTemplateConstants.IntentKeys.BODY_TEXT)
-            ?: throw IllegalArgumentException("Required field \"adb_body\" not found.")
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.BODY_TEXT}\" not found.")
         payloadVersion = intentExtras.getInt(PushTemplateConstants.IntentKeys.PAYLOAD_VERSION)
         payloadVersion?.let {
-            if (it < 1) throw IllegalArgumentException("Invalid \"payload version\" found.")
+            if (it < 1) throw IllegalArgumentException("Invalid \"${PushTemplateConstants.IntentKeys.PAYLOAD_VERSION}\" found.")
         }
 
         // optional values
         sound = intentExtras.getString(PushTemplateConstants.IntentKeys.CUSTOM_SOUND)
         imageUrl = intentExtras.getString(PushTemplateConstants.IntentKeys.IMAGE_URI)
         actionUri = intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_URI)
-        actionType = ActionType.valueOf(
+        actionType = PushTemplateConstants.ActionType.valueOf(
             intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_TYPE)
-                ?: ActionType.NONE.name
+                ?: PushTemplateConstants.ActionType.NONE.name
         )
         expandedBodyText =
             intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT)
@@ -352,42 +317,16 @@ internal sealed class AEPPushTemplate {
             ?: return NotificationManager.IMPORTANCE_DEFAULT
     }
 
-    /**
-     * Returns the notification visibility from the string. If the string is null or not a valid
-     * visibility, returns Notification.VISIBILITY_PRIVATE.
-     *
-     * @param visibility [String] representing the visibility of the notification
-     * @return [Int] representing the visibility of the notification
-     */
-    private fun getNotificationVisibilityFromString(visibility: String?): Int {
-        return if (visibility.isNullOrEmpty()) NotificationCompat.VISIBILITY_PRIVATE else notificationVisibilityMap[visibility]
-            ?: return NotificationCompat.VISIBILITY_PRIVATE
-    }
-
     companion object {
         private const val SELF_TAG = "AEPPushTemplate"
 
         @RequiresApi(api = Build.VERSION_CODES.N)
         internal val notificationImportanceMap: Map<String, Int> = mapOf(
-            NotificationPriority.PRIORITY_MIN to NotificationManager.IMPORTANCE_MIN,
-            NotificationPriority.PRIORITY_LOW to NotificationManager.IMPORTANCE_LOW,
-            NotificationPriority.PRIORITY_DEFAULT to NotificationManager.IMPORTANCE_DEFAULT,
-            NotificationPriority.PRIORITY_HIGH to NotificationManager.IMPORTANCE_HIGH,
-            NotificationPriority.PRIORITY_MAX to NotificationManager.IMPORTANCE_MAX
-        )
-
-        internal val notificationVisibilityMap: Map<String, Int> = mapOf(
-            NotificationVisibility.PRIVATE to NotificationCompat.VISIBILITY_PRIVATE,
-            NotificationVisibility.PUBLIC to NotificationCompat.VISIBILITY_PUBLIC,
-            NotificationVisibility.SECRET to NotificationCompat.VISIBILITY_SECRET
-        )
-
-        internal val notificationPriorityMap: Map<String, Int> = mapOf(
-            NotificationPriority.PRIORITY_MIN to NotificationCompat.PRIORITY_MIN,
-            NotificationPriority.PRIORITY_LOW to NotificationCompat.PRIORITY_LOW,
-            NotificationPriority.PRIORITY_DEFAULT to NotificationCompat.PRIORITY_DEFAULT,
-            NotificationPriority.PRIORITY_HIGH to NotificationCompat.PRIORITY_HIGH,
-            NotificationPriority.PRIORITY_MAX to NotificationCompat.PRIORITY_MAX
+            NotificationPriority.PRIORITY_MIN.toString() to NotificationManager.IMPORTANCE_MIN,
+            NotificationPriority.PRIORITY_LOW.toString() to NotificationManager.IMPORTANCE_LOW,
+            NotificationPriority.PRIORITY_DEFAULT.toString() to NotificationManager.IMPORTANCE_DEFAULT,
+            NotificationPriority.PRIORITY_HIGH.toString() to NotificationManager.IMPORTANCE_HIGH,
+            NotificationPriority.PRIORITY_MAX.toString() to NotificationManager.IMPORTANCE_MAX
         )
     }
 }

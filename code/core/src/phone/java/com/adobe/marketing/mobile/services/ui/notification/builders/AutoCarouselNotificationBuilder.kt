@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.builders
 
 import android.app.Activity
 import android.content.BroadcastReceiver
@@ -21,25 +21,24 @@ import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
-import com.adobe.marketing.mobile.services.ui.notification.AEPPushTemplateNotificationBuilder.createChannelAndGetChannelID
+import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.templates.AutoCarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.CarouselPushTemplate
 
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a auto carousel push template notification.
  */
-internal object AutoCarouselTemplateNotificationBuilder {
+internal object AutoCarouselNotificationBuilder {
     private const val SELF_TAG = "AutoCarouselTemplateNotificationBuilder"
 
     fun construct(
         context: Context,
-        pushTemplate: AutoCarouselPushTemplate?,
+        pushTemplate: AutoCarouselPushTemplate,
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?,
     ): NotificationCompat.Builder {
-        if (pushTemplate == null) {
-            throw NotificationConstructionFailedException(
-                "push template is null, cannot build an auto carousel template notification."
-            )
-        }
         val cacheService = ServiceProvider.getInstance().cacheService
             ?: throw NotificationConstructionFailedException(
                 (
@@ -58,7 +57,7 @@ internal object AutoCarouselTemplateNotificationBuilder {
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_auto_carousel)
 
         // Create the notification channel if needed
-        val channelIdToUse = createChannelAndGetChannelID(
+        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -66,13 +65,14 @@ internal object AutoCarouselTemplateNotificationBuilder {
         )
 
         // create the notification builder with the common settings applied
-        val notificationBuilder = AEPPushTemplateNotificationBuilder.construct(
+        val notificationBuilder = AEPPushNotificationBuilder.construct(
             context,
             pushTemplate,
             channelIdToUse,
             trackerActivityClass,
             smallLayout,
-            expandedLayout
+            expandedLayout,
+            R.id.carousel_container_layout
         )
 
         // load images into the carousel
@@ -97,12 +97,13 @@ internal object AutoCarouselTemplateNotificationBuilder {
                 SELF_TAG,
                 "Less than 3 images are available for the auto carousel push template, falling back to a basic push template."
             )
-            return PushTemplateHelpers.fallbackToBasicNotification(
+            pushTemplate.messageData[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] =
+                downloadedImageUris[0]
+            return BasicNotificationBuilder.fallbackToBasicNotification(
                 context,
                 trackerActivityClass,
                 broadcastReceiverClass,
-                pushTemplate,
-                downloadedImageUris
+                pushTemplate.messageData
             )
         }
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
@@ -135,19 +136,18 @@ internal object AutoCarouselTemplateNotificationBuilder {
         pushTemplate: CarouselPushTemplate,
         items: MutableList<CarouselPushTemplate.CarouselItem>,
         packageName: String?
-    ): List<String?> {
-        val imageProcessingStartTime = System.currentTimeMillis()
+    ): List<String> {
         val downloadedImageUris = mutableListOf<String>()
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateHelpers.downloadImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
                     "Failed to retrieve an image from $imageUri, will not create a new carousel item."
                 )
-                break
+                continue
             }
             val carouselItem = RemoteViews(packageName, R.layout.push_template_carousel_item)
             downloadedImageUris.add(imageUri)
@@ -157,7 +157,7 @@ internal object AutoCarouselTemplateNotificationBuilder {
             // assign a click action pending intent for each carousel item if we have a tracker activity
             trackerActivityClass?.let {
                 val interactionUri = item.interactionUri ?: pushTemplate.actionUri
-                AEPPushTemplateNotificationBuilder.setRemoteViewClickAction(
+                AEPPushNotificationBuilder.setRemoteViewClickAction(
                     context,
                     trackerActivityClass,
                     carouselItem,
@@ -172,15 +172,6 @@ internal object AutoCarouselTemplateNotificationBuilder {
             expandedLayout.addView(R.id.auto_carousel_view_flipper, carouselItem)
         }
 
-        // log time needed to process the carousel images
-        val imageProcessingElapsedTime = System.currentTimeMillis() - imageProcessingStartTime
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "Processed %d auto carousel image(s) in %d milliseconds.",
-            downloadedImageUris.size,
-            imageProcessingElapsedTime
-        )
         return downloadedImageUris
     }
 }

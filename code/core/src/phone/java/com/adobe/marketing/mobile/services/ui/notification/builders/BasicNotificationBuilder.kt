@@ -9,18 +9,26 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.builders
 
 import android.app.Activity
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -28,21 +36,16 @@ import org.json.JSONObject
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a basic push template notification.
  */
-internal object BasicTemplateNotificationBuilder {
+internal object BasicNotificationBuilder {
     private const val SELF_TAG = "BasicTemplateNotificationBuilder"
 
     @Throws(NotificationConstructionFailedException::class)
     fun construct(
         context: Context,
-        pushTemplate: BasicPushTemplate?,
+        pushTemplate: BasicPushTemplate,
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
-        if (pushTemplate == null) {
-            throw NotificationConstructionFailedException(
-                "push template is null, cannot build a basic template notification."
-            )
-        }
         val cacheService = ServiceProvider.getInstance().cacheService
             ?: throw NotificationConstructionFailedException("Cache service is null, basic template notification will not be constructed.")
 
@@ -55,8 +58,18 @@ internal object BasicTemplateNotificationBuilder {
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_expanded)
 
-        // Create the notification channel if needed
-        val channelIdToUse = AEPPushTemplateNotificationBuilder.createChannelAndGetChannelID(
+        // create a silent notification channel if needed
+        if (pushTemplate.isFromIntent == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            AEPPushNotificationBuilder.setupSilentNotificationChannel(
+                notificationManager,
+                pushTemplate.getNotificationImportance()
+            )
+        }
+
+        // create the notification channel if needed
+        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -64,21 +77,31 @@ internal object BasicTemplateNotificationBuilder {
         )
 
         // create the notification builder with the common settings applied
-        val notificationBuilder = AEPPushTemplateNotificationBuilder.construct(
+        val notificationBuilder = AEPPushNotificationBuilder.construct(
             context,
             pushTemplate,
             channelIdToUse,
             trackerActivityClass,
             smallLayout,
-            expandedLayout
+            expandedLayout,
+            R.id.basic_expanded_layout
         )
 
         // get push payload data
         val imageUri = pushTemplate.imageUrl
-        val pushImage = PushTemplateHelpers.downloadImage(cacheService, imageUri)
-        pushImage?.let {
+        val pushImage = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
+
+        if (pushImage != null) {
             expandedLayout.setImageViewBitmap(R.id.expanded_template_image, pushImage)
+        } else {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "No image found for basic push template."
+            )
+            expandedLayout.setViewVisibility(R.id.expanded_template_image, View.GONE)
         }
+
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
         smallLayout.setTextViewText(R.id.notification_body, pushTemplate.body)
         expandedLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
@@ -104,7 +127,6 @@ internal object BasicTemplateNotificationBuilder {
                 val remindIntent =
                     createRemindPendingIntent(
                         context,
-                        trackerActivityClass,
                         broadcastReceiverClass,
                         channelIdToUse,
                         pushTemplate
@@ -144,10 +166,10 @@ internal object BasicTemplateNotificationBuilder {
         }
         for (eachButton in actionButtons) {
             val pendingIntent: PendingIntent? =
-                if (eachButton.type === AEPPushTemplate.ActionType.DEEPLINK ||
-                    eachButton.type === AEPPushTemplate.ActionType.WEBURL
+                if (eachButton.type === PushTemplateConstants.ActionType.DEEPLINK ||
+                    eachButton.type === PushTemplateConstants.ActionType.WEBURL
                 ) {
-                    AEPPushTemplateNotificationBuilder.createPendingIntent(
+                    AEPPushNotificationBuilder.createPendingIntent(
                         context,
                         trackerActivityClass,
                         eachButton.link,
@@ -156,7 +178,7 @@ internal object BasicTemplateNotificationBuilder {
                         stickyNotification
                     )
                 } else {
-                    AEPPushTemplateNotificationBuilder.createPendingIntent(
+                    AEPPushNotificationBuilder.createPendingIntent(
                         context,
                         trackerActivityClass,
                         null,
@@ -200,15 +222,15 @@ internal object BasicTemplateNotificationBuilder {
 
     private fun getActionButton(jsonObject: JSONObject): AEPPushTemplate.ActionButton? {
         return try {
-            val label = jsonObject.getString(AEPPushTemplate.ActionButtons.LABEL)
+            val label = jsonObject.getString(PushTemplateConstants.ActionButtons.LABEL)
             if (label.isEmpty()) {
                 Log.debug(PushTemplateConstants.LOG_TAG, SELF_TAG, "Label is empty")
                 return null
             }
             var uri: String? = null
-            val type = jsonObject.getString(AEPPushTemplate.ActionButtons.TYPE)
-            if (type == AEPPushTemplate.ActionButtonType.WEBURL || type == AEPPushTemplate.ActionButtonType.DEEPLINK) {
-                uri = jsonObject.optString(AEPPushTemplate.ActionButtons.URI)
+            val type = jsonObject.getString(PushTemplateConstants.ActionButtons.TYPE)
+            if (type == PushTemplateConstants.ActionType.WEBURL.name || type == PushTemplateConstants.ActionType.DEEPLINK.name) {
+                uri = jsonObject.optString(PushTemplateConstants.ActionButtons.URI)
             }
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
@@ -228,7 +250,6 @@ internal object BasicTemplateNotificationBuilder {
 
     private fun createRemindPendingIntent(
         context: Context,
-        trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?,
         channelId: String,
         pushTemplate: BasicPushTemplate
@@ -250,11 +271,6 @@ internal object BasicTemplateNotificationBuilder {
         remindIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         remindIntent.putExtra(
             PushTemplateConstants.IntentKeys.TEMPLATE_TYPE, pushTemplate.templateType?.value
-        )
-        remindIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityClass)
-        remindIntent.putExtra(
-            PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME,
-            broadcastReceiverClass
         )
         remindIntent.putExtra(
             PushTemplateConstants.IntentKeys.IMAGE_URI, pushTemplate.imageUrl
@@ -315,7 +331,8 @@ internal object BasicTemplateNotificationBuilder {
             PushTemplateConstants.IntentKeys.REMIND_EPOCH_TS, pushTemplate.remindLaterEpochTimestamp
         )
         remindIntent.putExtra(
-            PushTemplateConstants.IntentKeys.REMIND_DELAY_SECONDS, pushTemplate.remindLaterDelaySeconds
+            PushTemplateConstants.IntentKeys.REMIND_DELAY_SECONDS,
+            pushTemplate.remindLaterDelaySeconds
         )
         remindIntent.putExtra(
             PushTemplateConstants.IntentKeys.REMIND_LABEL, pushTemplate.remindLaterText
@@ -346,6 +363,22 @@ internal object BasicTemplateNotificationBuilder {
             0,
             remindIntent,
             PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
+    @Throws(NotificationConstructionFailedException::class)
+    internal fun fallbackToBasicNotification(
+        context: Context,
+        trackerActivityClass: Class<out Activity>?,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?,
+        dataMap: MutableMap<String, String>
+    ): NotificationCompat.Builder {
+        val basicPushTemplate = BasicPushTemplate(dataMap)
+        return construct(
+            context,
+            basicPushTemplate,
+            trackerActivityClass,
+            broadcastReceiverClass
         )
     }
 }

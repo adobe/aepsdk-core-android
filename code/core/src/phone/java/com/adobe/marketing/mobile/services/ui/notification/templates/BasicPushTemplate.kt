@@ -9,9 +9,10 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.templates
 
 import android.content.Intent
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
 
 internal class BasicPushTemplate : AEPPushTemplate {
@@ -27,7 +28,7 @@ internal class BasicPushTemplate : AEPPushTemplate {
     internal var remindLaterDelaySeconds: Int?
         private set
 
-    constructor(data: MutableMap<String, String>) : super(data) {
+    constructor(data: Map<String, String>) : super(data) {
         remindLaterText = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.REMIND_LATER_TEXT, null
         )
@@ -37,7 +38,10 @@ internal class BasicPushTemplate : AEPPushTemplate {
         remindLaterEpochTimestamp =
             if (epochTimestampString.isNullOrEmpty()) null else epochTimestampString.toLong()
 
-        val delaySeconds = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.REMIND_LATER_DELAY_SECONDS, null)
+        val delaySeconds = DataReader.optString(
+            data,
+            PushTemplateConstants.PushPayloadKeys.REMIND_LATER_DELAY_SECONDS, null
+        )
         remindLaterDelaySeconds = if (delaySeconds.isNullOrEmpty()) null else delaySeconds.toInt()
     }
 
@@ -46,7 +50,8 @@ internal class BasicPushTemplate : AEPPushTemplate {
             intent.extras ?: throw IllegalArgumentException("Intent extras are null")
         remindLaterEpochTimestamp =
             intentExtras.getLong(PushTemplateConstants.IntentKeys.REMIND_EPOCH_TS)
-        remindLaterDelaySeconds = intentExtras.getInt(PushTemplateConstants.IntentKeys.REMIND_DELAY_SECONDS)
+        remindLaterDelaySeconds =
+            intentExtras.getInt(PushTemplateConstants.IntentKeys.REMIND_DELAY_SECONDS)
         remindLaterText =
             intentExtras.getString(PushTemplateConstants.IntentKeys.REMIND_LABEL)
     }

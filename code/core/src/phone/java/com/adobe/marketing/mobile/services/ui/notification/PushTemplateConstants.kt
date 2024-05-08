@@ -11,11 +11,13 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
+import java.util.concurrent.TimeUnit
+
 /**
  * This object holds all constant values for handling out-of-the-box push template notifications
  */
 internal object PushTemplateConstants {
-    const val LOG_TAG = "AEPSDK Push Templates"
+    const val LOG_TAG = "AEPSDKPushTemplates"
     const val CACHE_BASE_DIR = "pushtemplates"
     const val PUSH_IMAGE_CACHE = "pushimagecache"
     const val DEFAULT_CHANNEL_ID = "AEPSDKPushChannel"
@@ -26,6 +28,17 @@ internal object PushTemplateConstants {
     const val DEFAULT_CHANNEL_NAME = "AEPSDK Push Notifications"
     const val SILENT_CHANNEL_NAME = "AEPSDK Silent Push Notifications"
 
+    /** Enum to denote the type of action  */
+    enum class ActionType {
+        DEEPLINK, WEBURL, DISMISS, OPENAPP, NONE
+    }
+
+    internal object ActionButtons {
+        const val LABEL = "label"
+        const val URI = "uri"
+        const val TYPE = "type"
+    }
+
     internal object NotificationAction {
         const val DISMISSED = "Notification Dismissed"
         const val OPENED = "Notification Opened"
@@ -33,7 +46,7 @@ internal object PushTemplateConstants {
     }
 
     internal class Tracking private constructor() {
-        internal object Keys {
+        internal object TrackingKeys {
             const val ACTION_ID = "actionId"
             const val ACTION_URI = "actionUri"
         }
@@ -41,21 +54,20 @@ internal object PushTemplateConstants {
 
     internal object DefaultValues {
         const val SILENT_NOTIFICATION_CHANNEL_ID = "AEPSDK Silent Push Notifications"
+        const val SILENT_SOUND = "silent"
         const val CAROUSEL_MAX_BITMAP_WIDTH = 300
         const val CAROUSEL_MAX_BITMAP_HEIGHT = 200
         const val AUTO_CAROUSEL_MODE = "auto"
-        const val MANUAL_CAROUSEL_MODE = "manual"
         const val DEFAULT_MANUAL_CAROUSEL_MODE = "default"
         const val FILMSTRIP_CAROUSEL_MODE = "filmstrip"
         const val CAROUSEL_MINIMUM_IMAGE_COUNT = 3
         const val MANUAL_CAROUSEL_START_INDEX = 0
         const val FILMSTRIP_CAROUSEL_CENTER_INDEX = 1
         const val NO_CENTER_INDEX_SET = -1
-        const val ACTION_BUTTON_CAPACITY = 3
 
         // TODO: revisit this value. should cache time be configurable rather than have a static
         // value?
-        const val PUSH_NOTIFICATION_IMAGE_CACHE_EXPIRY_IN_MILLISECONDS: Long = 259200000 // 3 days
+        val PUSH_NOTIFICATION_IMAGE_CACHE_EXPIRY_IN_MILLISECONDS: Long = TimeUnit.DAYS.toMillis(3) // 3 days
     }
 
     internal object IntentActions {
@@ -96,8 +108,6 @@ internal object PushTemplateConstants {
         const val STICKY = "sticky"
         const val TAG = "tag"
         const val TICKER = "ticker"
-        const val TRACKER_NAME = "trackerName"
-        const val BROADCAST_RECEIVER_NAME = "broadcastReceiverName"
         const val PAYLOAD_VERSION = "version"
         const val TEMPLATE_TYPE = "templateType"
         const val CAROUSEL_OPERATION_MODE = "carouselOperationMode"
@@ -165,12 +175,5 @@ internal object PushTemplateConstants {
         const val IMAGE = "img"
         const val TEXT = "txt"
         const val URL = "uri"
-    }
-
-    internal object CarouselListKeys {
-        const val IMAGES_KEY = "images"
-        const val IMAGE_URIS_KEY = "imageUris"
-        const val IMAGE_CAPTIONS_KEY = "imageCaptions"
-        const val IMAGE_ACTIONS_KEY = "imageActions"
     }
 }

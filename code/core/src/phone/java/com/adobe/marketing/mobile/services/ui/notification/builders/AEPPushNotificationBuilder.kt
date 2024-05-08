@@ -9,32 +9,42 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.builders
 
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.TaskStackBuilder
 import android.content.BroadcastReceiver
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.view.View
 import android.widget.RemoteViews
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.ManualCarouselPushTemplate
 import com.adobe.marketing.mobile.util.UrlUtils
 import java.util.Random
 
-internal object AEPPushTemplateNotificationBuilder {
+// TODO: The utilities provided by this builder assumes the id's for various common elements (R.id.basic_small_layout,
+//  R.id.notification_title, R.id.notification_body_expanded) are the same across templates.
+//  We will need to figure out a way to enforce this somehow either programmatically, structurally in the layout or via documentation.
+internal object AEPPushNotificationBuilder {
     private const val SELF_TAG = "AEPPushTemplateNotificationBuilder"
     private lateinit var channelId: String
 
@@ -45,7 +55,8 @@ internal object AEPPushTemplateNotificationBuilder {
         channelIdToUse: String,
         trackerActivityClass: Class<out Activity>?,
         smallLayout: RemoteViews,
-        expandedLayout: RemoteViews
+        expandedLayout: RemoteViews,
+        containerLayoutViewId: Int
     ): NotificationCompat.Builder {
         channelId = channelIdToUse
 
@@ -54,7 +65,7 @@ internal object AEPPushTemplateNotificationBuilder {
             pushTemplate.notificationBackgroundColor,
             smallLayout,
             expandedLayout,
-            R.id.basic_expanded_layout
+            containerLayoutViewId
         )
 
         setNotificationTitleTextColor(
@@ -146,22 +157,28 @@ internal object AEPPushTemplateNotificationBuilder {
         containerViewId: Int
     ) {
         // get custom color from hex string and set it the notification background
-        if (!backgroundColor.isNullOrEmpty()) {
-            setElementColor(
-                smallLayout,
-                R.id.basic_small_layout,
-                "#$backgroundColor",
-                PushTemplateConstants.MethodNames.SET_BACKGROUND_COLOR,
-                PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BACKGROUND
+        if (backgroundColor.isNullOrEmpty()) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Empty background color hex string found, custom color will not be applied to the notification background."
             )
-            setElementColor(
-                expandedLayout,
-                containerViewId,
-                "#$backgroundColor",
-                PushTemplateConstants.MethodNames.SET_BACKGROUND_COLOR,
-                PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BACKGROUND
-            )
+            return
         }
+        setElementColor(
+            smallLayout,
+            R.id.basic_small_layout,
+            "#$backgroundColor",
+            PushTemplateConstants.MethodNames.SET_BACKGROUND_COLOR,
+            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BACKGROUND
+        )
+        setElementColor(
+            expandedLayout,
+            containerViewId,
+            "#$backgroundColor",
+            PushTemplateConstants.MethodNames.SET_BACKGROUND_COLOR,
+            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BACKGROUND
+        )
     }
 
     /**
@@ -177,22 +194,28 @@ internal object AEPPushTemplateNotificationBuilder {
         expandedLayout: RemoteViews
     ) {
         // get custom color from hex string and set it the notification title
-        if (!titleTextColor.isNullOrEmpty()) {
-            setElementColor(
-                smallLayout,
-                R.id.notification_title,
-                "#$titleTextColor",
-                PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
-                PushTemplateConstants.FriendlyViewNames.NOTIFICATION_TITLE
+        if (titleTextColor.isNullOrEmpty()) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Empty title text color hex string found, custom color will not be applied to the notification title text."
             )
-            setElementColor(
-                expandedLayout,
-                R.id.notification_title,
-                "#$titleTextColor",
-                PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
-                PushTemplateConstants.FriendlyViewNames.NOTIFICATION_TITLE
-            )
+            return
         }
+        setElementColor(
+            smallLayout,
+            R.id.notification_title,
+            "#$titleTextColor",
+            PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
+            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_TITLE
+        )
+        setElementColor(
+            expandedLayout,
+            R.id.notification_title,
+            "#$titleTextColor",
+            PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
+            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_TITLE
+        )
     }
 
     /**
@@ -209,22 +232,28 @@ internal object AEPPushTemplateNotificationBuilder {
         expandedLayout: RemoteViews
     ) {
         // get custom color from hex string and set it the notification body text
-        if (!expandedBodyTextColor.isNullOrEmpty()) {
-            setElementColor(
-                smallLayout,
-                R.id.notification_body,
-                "#$expandedBodyTextColor",
-                PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
-                PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BODY_TEXT
+        if (expandedBodyTextColor.isNullOrEmpty()) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Empty expanded body text color hex string found, custom color will not be applied to the notification body text."
             )
-            setElementColor(
-                expandedLayout,
-                R.id.notification_body_expanded,
-                "#$expandedBodyTextColor",
-                PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
-                PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BODY_TEXT
-            )
+            return
         }
+        setElementColor(
+            smallLayout,
+            R.id.notification_body,
+            "#$expandedBodyTextColor",
+            PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
+            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BODY_TEXT
+        )
+        setElementColor(
+            expandedLayout,
+            R.id.notification_body_expanded,
+            "#$expandedBodyTextColor",
+            PushTemplateConstants.MethodNames.SET_TEXT_COLOR,
+            PushTemplateConstants.FriendlyViewNames.NOTIFICATION_BODY_TEXT
+        )
     }
 
     /**
@@ -273,7 +302,6 @@ internal object AEPPushTemplateNotificationBuilder {
      * @param context the application [Context]
      * @param pushTemplate the [ManualCarouselPushTemplate] object containing the manual carousel push template data
      * @param intentAction [String] containing the intent action
-     * @param trackerActivityClass the [Class] of the activity to set in the created pending intent for tracking purposes
      * @param broadcastReceiverClass the [Class] of the broadcast receiver to set in the created pending intent
      * @param downloadedImageUris [List] of String` containing the downloaded image URIs
      * @param imageCaptions `List` of String` containing the image captions
@@ -284,7 +312,6 @@ internal object AEPPushTemplateNotificationBuilder {
         context: Context,
         pushTemplate: ManualCarouselPushTemplate,
         intentAction: String,
-        trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?,
         downloadedImageUris: List<String?>,
         imageCaptions: List<String?>,
@@ -299,11 +326,6 @@ internal object AEPPushTemplateNotificationBuilder {
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.TEMPLATE_TYPE,
             pushTemplate.templateType?.value
-        )
-        clickIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityClass)
-        clickIntent.putExtra(
-            PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME,
-            broadcastReceiverClass
         )
         clickIntent.putExtra(PushTemplateConstants.IntentKeys.CHANNEL_ID, channelId)
         clickIntent.putExtra(
@@ -376,6 +398,10 @@ internal object AEPPushTemplateNotificationBuilder {
         clickIntent.putExtra(
             PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS,
             pushTemplate.rawCarouselItems
+        )
+        clickIntent.putExtra(
+            PushTemplateConstants.IntentKeys.CAROUSEL_LAYOUT_TYPE,
+            pushTemplate.carouselLayoutType
         )
         return clickIntent
     }
@@ -510,7 +536,7 @@ internal object AEPPushTemplateNotificationBuilder {
         trackerActivityClass?.let {
             intent.setClass(context.applicationContext, trackerActivityClass)
         }
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         intent.putExtra(PushTemplateConstants.PushPayloadKeys.TAG, tag)
         intent.putExtra(PushTemplateConstants.PushPayloadKeys.STICKY, stickyNotification)
         addActionDetailsToIntent(
@@ -519,13 +545,12 @@ internal object AEPPushTemplateNotificationBuilder {
             actionID
         )
 
-        // adding tracking details
-        return TaskStackBuilder.create(context)
-            .addNextIntentWithParentStack(intent)
-            .getPendingIntent(
-                Random().nextInt(),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+        return PendingIntent.getActivity(
+            context,
+            Random().nextInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     /**
@@ -541,10 +566,10 @@ internal object AEPPushTemplateNotificationBuilder {
         actionId: String?
     ) {
         if (!actionUri.isNullOrEmpty()) {
-            intent.putExtra(PushTemplateConstants.Tracking.Keys.ACTION_URI, actionUri)
+            intent.putExtra(PushTemplateConstants.Tracking.TrackingKeys.ACTION_URI, actionUri)
         }
         if (!actionId.isNullOrEmpty()) {
-            intent.putExtra(PushTemplateConstants.Tracking.Keys.ACTION_ID, actionId)
+            intent.putExtra(PushTemplateConstants.Tracking.TrackingKeys.ACTION_ID, actionId)
         }
     }
 
@@ -579,9 +604,7 @@ internal object AEPPushTemplateNotificationBuilder {
             SELF_TAG,
             "Setting sound from bundle named $customSound."
         )
-        notificationBuilder.setSound(
-            PushTemplateHelpers.getSoundUriForResourceName(customSound, context)
-        )
+        notificationBuilder.setSound(getSoundUriForResourceName(customSound, context))
     }
 
     /**
@@ -603,7 +626,7 @@ internal object AEPPushTemplateNotificationBuilder {
     ) {
         // Quick bail out if there is no image url
         if (imageUrl.isNullOrEmpty()) return
-        val bitmap: Bitmap = PushTemplateHelpers.download(imageUrl) ?: return
+        val bitmap: Bitmap = PushTemplateImageUtil.download(imageUrl) ?: return
 
         // Bail out if the download fails
         notificationBuilder.setLargeIcon(bitmap)
@@ -702,8 +725,17 @@ internal object AEPPushTemplateNotificationBuilder {
             remoteView.setViewVisibility(R.id.large_icon, View.GONE)
             return
         }
+
         if (UrlUtils.isValidUrl(largeIcon)) {
-            val downloadedIcon: Bitmap? = PushTemplateHelpers.downloadImage(
+            setRemoteLargeIcon(largeIcon, remoteView)
+        } else {
+            setBundledLargeIcon(largeIcon, remoteView)
+        }
+    }
+
+    private fun setRemoteLargeIcon(largeIcon: String?, remoteView: RemoteViews) {
+        if (UrlUtils.isValidUrl(largeIcon)) {
+            val downloadedIcon: Bitmap? = PushTemplateImageUtil.downloadImage(
                 ServiceProvider.getInstance().cacheService, largeIcon
             )
             if (downloadedIcon == null) {
@@ -716,28 +748,28 @@ internal object AEPPushTemplateNotificationBuilder {
                 return
             }
             remoteView.setImageViewBitmap(R.id.large_icon, downloadedIcon)
-        } else {
-            val bundledIconId: Int? = ServiceProvider.getInstance()
-                .appContextService
-                .applicationContext?.let {
-                    getIconWithResourceName(
-                        largeIcon,
-                        it
-                    )
-                }
-            if (bundledIconId == 0) {
-                Log.trace(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Unable to find a bundled image with name $largeIcon, large icon will not be applied."
-                )
-                remoteView.setViewVisibility(R.id.large_icon, View.GONE)
-                return
-            }
-            if (bundledIconId != null) {
-                remoteView.setImageViewResource(R.id.large_icon, bundledIconId)
-            }
         }
+    }
+
+    private fun setBundledLargeIcon(largeIcon: String?, remoteView: RemoteViews) {
+        val bundledIconId: Int? = ServiceProvider.getInstance()
+            .appContextService
+            .applicationContext?.let {
+                getIconWithResourceName(
+                    largeIcon,
+                    it
+                )
+            }
+        if (bundledIconId == null || bundledIconId == 0) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Unable to find a bundled image with name $largeIcon, large icon will not be applied."
+            )
+            remoteView.setViewVisibility(R.id.large_icon, View.GONE)
+            return
+        }
+        remoteView.setImageViewResource(R.id.large_icon, bundledIconId)
     }
 
     private fun getDefaultAppIcon(context: Context): Int {
@@ -814,106 +846,96 @@ internal object AEPPushTemplateNotificationBuilder {
     }
 
     /**
-     * Creates a channel if it does not exist and returns the channel ID. If a channel ID is
-     * received from the payload and if channel exists for the channel ID, the same channel ID is
-     * returned. If a channel ID is received from the payload and if channel does not exist for the
-     * channel ID, Campaign Classic extension's default channel is used. If no channel ID is
-     * received from the payload, Campaign Classic extension's default channel is used. For Android
-     * versions below O, no channel is created. Just return the obtained channel ID.
+     * Creates a notification channel if the device is running on Android O or higher. If the channel
+     * already exists, the same channel is used. A default channel ID will be used if no channel ID
+     * is received from the payload.
      *
      * @param context the application [Context]
-     * @param channelId `String` containing the notification channel id
-     * @param customSound `String` containing the custom sound to use
-     * @param importance `int` containing the notification importance
-     * @return the channel ID
+     * @param channelId [String] containing the notification channel id
+     * @param customSound `String` containing the custom sound to apply on the notification channel
+     * @param importance [Int] containing the notification importance
+     * @return A [String] containing the created or existing channel ID
      */
-    internal fun createChannelAndGetChannelID(
+    internal fun createChannelIfRequired(
         context: Context,
         channelId: String?,
         customSound: String?,
         importance: Int
     ): String {
+        // No channel creation required.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            // For Android versions below O, no channel is created. Just return the obtained channel
-            // ID.
             return channelId ?: PushTemplateConstants.DEFAULT_CHANNEL_ID
-        } else {
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            // For Android versions O and above, create a channel if it does not exist and return
-            // the channel ID.
-            channelId?.let { channelIdFromPayload ->
-                // setup a silent channel for notification carousel item change
-                setupSilentNotificationChannel(context, notificationManager, importance)
-
-                // if a channel from the payload is not null and if a channel exists for the channel ID
-                // from the payload, use the same channel ID.
-                if (notificationManager.getNotificationChannel(channelIdFromPayload) != null
-                ) {
-                    Log.debug(
-                        PushTemplateConstants.LOG_TAG,
-                        SELF_TAG,
-                        "Channel exists for channel ID: $channelIdFromPayload. Using the existing channel for the push notification."
-                    )
-                    return channelIdFromPayload
-                } else {
-                    Log.debug(
-                        PushTemplateConstants.LOG_TAG,
-                        SELF_TAG,
-                        "Channel does not exist for channel ID obtained from payload ($channelIdFromPayload). Creating a channel with the retrieved channel name."
-                    )
-                    val channel = NotificationChannel(
-                        channelIdFromPayload, PushTemplateConstants.DEFAULT_CHANNEL_NAME, importance
-                    )
-
-                    // set a custom sound on the channel
-                    setNotificationChannelSound(context, channel, customSound, false)
-
-                    // add the channel to the notification manager
-                    notificationManager.createNotificationChannel(channel)
-                    return channelIdFromPayload
-                }
-            }
-
-            // Use the default channel ID if the channel ID from the payload is null or if a channel
-            // does not exist for the channel ID from the payload.
-            if (notificationManager.getNotificationChannel(PushTemplateConstants.DEFAULT_CHANNEL_ID) != null) {
-                Log.debug(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Channel already exists for the default channel ID: ${PushTemplateConstants.DEFAULT_CHANNEL_ID}"
-                )
-            } else {
-                Log.debug(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    ("Creating a new channel for the default channel ID: ${PushTemplateConstants.DEFAULT_CHANNEL_ID}.")
-                )
-                val channel = NotificationChannel(
-                    PushTemplateConstants.DEFAULT_CHANNEL_ID,
-                    PushTemplateConstants.DEFAULT_CHANNEL_NAME,
-                    importance
-                )
-                notificationManager.createNotificationChannel(channel)
-            }
-            return PushTemplateConstants.DEFAULT_CHANNEL_ID
         }
+
+        // Decide on which channel to use provided or default
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelIdToUse = channelId ?: PushTemplateConstants.DEFAULT_CHANNEL_ID
+
+        // create the channel
+        createNotificationChannel(
+            context,
+            notificationManager,
+            channelIdToUse,
+            customSound,
+            importance
+        )
+        // return the id of the channel.
+        return channelIdToUse
     }
 
-    private fun setupSilentNotificationChannel(
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationChannel(
         context: Context,
+        notificationManager: NotificationManager,
+        channelId: String,
+        customSound: String?,
+        importance: Int
+    ) {
+        // Don't create a channel if it already exists
+        if (notificationManager.getNotificationChannel(channelId) != null) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Using previously created notification channel: $channelId."
+            )
+            return
+        }
+
+        // Create a channel
+        val channel = NotificationChannel(
+            channelId, PushTemplateConstants.DEFAULT_CHANNEL_NAME, importance
+        )
+
+        // Add a sound if required.
+        val sound = if ((customSound.isNullOrEmpty())) {
+            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        } else getSoundUriForResourceName(customSound, context)
+        channel.setSound(sound, null)
+
+        Log.trace(
+            PushTemplateConstants.LOG_TAG,
+            SELF_TAG,
+            "Creating a new notification channel with ID: $channelId. ${if (customSound.isNullOrEmpty()) "and default sound." else "and custom sound: $customSound."}"
+        )
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    /**
+     * Creates a silent notification channel if the device is running on Android O or higher. If the
+     * channel already exists, the same channel is used.
+     *
+     * @param notificationManager the [NotificationManager]
+     * @param importance [Int] containing the notification importance
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    internal fun setupSilentNotificationChannel(
         notificationManager: NotificationManager,
         importance: Int
     ) {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-            return
-        }
-        if ((
-            notificationManager.getNotificationChannel(
-                    PushTemplateConstants.DefaultValues.SILENT_NOTIFICATION_CHANNEL_ID
-                )
-                != null
-            )
+        if (notificationManager.getNotificationChannel(
+                PushTemplateConstants.DefaultValues.SILENT_NOTIFICATION_CHANNEL_ID
+            ) != null
         ) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
@@ -923,67 +945,33 @@ internal object AEPPushTemplateNotificationBuilder {
             return
         }
 
-        // create a channel containing no sound to be used when displaying an updated carousel
-        // notification
         val silentChannel = NotificationChannel(
             PushTemplateConstants.DefaultValues.SILENT_NOTIFICATION_CHANNEL_ID,
             PushTemplateConstants.SILENT_CHANNEL_NAME,
             importance
         )
-
-        // set no sound on the silent channel
-        setNotificationChannelSound(context, silentChannel, null, true)
-
-        // add the silent channel to the notification manager
+        silentChannel.setSound(null, null)
         notificationManager.createNotificationChannel(silentChannel)
     }
 
     /**
-     * Sets the sound for the provided `NotificationChannel`. If a sound is received from the
-     * payload, the same is used. If a sound is not received from the payload, the default sound is
-     * used.
+     * Returns the Uri for the sound file with the given name. The sound file must be in the res/raw
+     * directory. The sound file should be in format of .mp3, .wav, or .ogg
      *
+     * @param soundName [String] containing the name of the sound file
      * @param context the application [Context]
-     * @param notificationChannel the [NotificationChannel] to assign the sound to
-     * @param customSound `String` containing the custom sound file name to load from the
-     * bundled assets
+     * @return the [Uri] for the sound file with the given name
      */
-    private fun setNotificationChannelSound(
-        context: Context,
-        notificationChannel: NotificationChannel,
-        customSound: String?,
-        isSilent: Boolean
-    ) {
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
-            return
-        }
-        if (isSilent) {
-            Log.trace(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "Creating a silent notification channel."
-            )
-            notificationChannel.setSound(null, null)
-            return
-        }
-        if (customSound.isNullOrEmpty()) {
-            Log.trace(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "No custom sound found in the push template, using the default notification sound for the notification channel named ${notificationChannel.name}."
-            )
-            notificationChannel.setSound(
-                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), null
-            )
-            return
-        }
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "Setting sound from bundle named $customSound for the notification channel named ${notificationChannel.name}.",
-        )
-        notificationChannel.setSound(
-            PushTemplateHelpers.getSoundUriForResourceName(customSound, context), null
+    private fun getSoundUriForResourceName(
+        soundName: String?,
+        context: Context
+    ): Uri {
+        return Uri.parse(
+            ContentResolver.SCHEME_ANDROID_RESOURCE +
+                "://" +
+                context.packageName +
+                "/raw/" +
+                soundName
         )
     }
 }

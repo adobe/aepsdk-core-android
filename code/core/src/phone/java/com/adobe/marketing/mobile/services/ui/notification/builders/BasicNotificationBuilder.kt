@@ -27,8 +27,8 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
-import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
-import com.adobe.marketing.mobile.services.ui.notification.models.BasicPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject

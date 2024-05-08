@@ -36,8 +36,8 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
-import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
-import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.ManualCarouselPushTemplate
 import com.adobe.marketing.mobile.util.UrlUtils
 import java.util.Random
 

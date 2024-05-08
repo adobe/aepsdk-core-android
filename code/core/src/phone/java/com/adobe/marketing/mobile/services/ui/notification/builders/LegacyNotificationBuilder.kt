@@ -17,7 +17,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.models.BasicPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
 
 /**
  * Object responsible for constructing a legacy push notification.

@@ -11,8 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
-import androidx.core.app.NotificationCompat
-import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
+import java.util.concurrent.TimeUnit
 
 /**
  * This object holds all constant values for handling out-of-the-box push template notifications
@@ -38,25 +37,6 @@ internal object PushTemplateConstants {
         const val LABEL = "label"
         const val URI = "uri"
         const val TYPE = "type"
-    }
-
-    internal object NotificationPriority {
-        fun from(priority: String?): Int {
-            return if (priority == null) NotificationCompat.PRIORITY_DEFAULT else AEPPushTemplate.notificationPriorityMap[priority]
-                ?: return NotificationCompat.PRIORITY_DEFAULT
-        }
-
-        const val PRIORITY_DEFAULT = "PRIORITY_DEFAULT"
-        const val PRIORITY_MIN = "PRIORITY_MIN"
-        const val PRIORITY_LOW = "PRIORITY_LOW"
-        const val PRIORITY_HIGH = "PRIORITY_HIGH"
-        const val PRIORITY_MAX = "PRIORITY_MAX"
-    }
-
-    internal object NotificationVisibility {
-        const val PUBLIC = "PUBLIC"
-        const val PRIVATE = "PRIVATE"
-        const val SECRET = "SECRET"
     }
 
     internal object NotificationAction {
@@ -87,7 +67,7 @@ internal object PushTemplateConstants {
 
         // TODO: revisit this value. should cache time be configurable rather than have a static
         // value?
-        const val PUSH_NOTIFICATION_IMAGE_CACHE_EXPIRY_IN_MILLISECONDS: Long = 259200000 // 3 days
+        val PUSH_NOTIFICATION_IMAGE_CACHE_EXPIRY_IN_MILLISECONDS: Long = TimeUnit.DAYS.toMillis(3) // 3 days
     }
 
     internal object IntentActions {

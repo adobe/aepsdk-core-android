@@ -28,8 +28,8 @@ import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
-import com.adobe.marketing.mobile.services.ui.notification.models.CarouselPushTemplate
-import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.CarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.ManualCarouselPushTemplate
 
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a manual or filmstrip carousel push template notification.

@@ -24,8 +24,8 @@ import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
-import com.adobe.marketing.mobile.services.ui.notification.models.AutoCarouselPushTemplate
-import com.adobe.marketing.mobile.services.ui.notification.models.CarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.AutoCarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.CarouselPushTemplate
 
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing a auto carousel push template notification.

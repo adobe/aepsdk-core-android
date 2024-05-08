@@ -9,7 +9,7 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification.models
+package com.adobe.marketing.mobile.services.ui.notification.templates
 
 import android.content.Intent
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants

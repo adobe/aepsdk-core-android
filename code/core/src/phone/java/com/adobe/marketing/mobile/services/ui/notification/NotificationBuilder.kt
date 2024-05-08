@@ -21,11 +21,11 @@ import com.adobe.marketing.mobile.services.ui.notification.builders.AutoCarousel
 import com.adobe.marketing.mobile.services.ui.notification.builders.BasicNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.builders.LegacyNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.builders.ManualCarouselNotificationBuilder
-import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
-import com.adobe.marketing.mobile.services.ui.notification.models.AutoCarouselPushTemplate
-import com.adobe.marketing.mobile.services.ui.notification.models.BasicPushTemplate
-import com.adobe.marketing.mobile.services.ui.notification.models.CarouselPushTemplate
-import com.adobe.marketing.mobile.services.ui.notification.models.ManualCarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.AutoCarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.CarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.ManualCarouselPushTemplate
 
 /**
  * Public facing object to construct a [NotificationCompat.Builder] object for the specified [PushTemplateType].

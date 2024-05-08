@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.notification
 
-import com.adobe.marketing.mobile.services.ui.notification.models.AEPPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
 import org.junit.Before
 import org.mockito.MockitoAnnotations
 

@@ -9,8 +9,8 @@
 
     <ImageView
         android:id="@+id/large_icon"
-        android:layout_height="35dp"
-        android:layout_width="35dp"
+        android:layout_height="@dimen/large_icon_height"
+        android:layout_width="@dimen/large_icon_width"
         android:layout_alignParentRight="true" />
 
     <TextView

@@ -9,8 +9,8 @@
 
     <ImageView
         android:id="@+id/large_icon"
-        android:layout_height="35dp"
-        android:layout_width="35dp"
+        android:layout_height="@dimen/large_icon_height"
+        android:layout_width="@dimen/large_icon_width"
         android:layout_alignParentRight="true" />
 
     <TextView
@@ -37,22 +37,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scaleType="fitCenter"
-        android:layout_below="@id/notification_body_expanded"
-        android:adjustViewBounds="true">
-    </ViewFlipper>
+        android:adjustViewBounds="true"
+        android:layout_below="@id/notification_body_expanded" />
 
     <ImageButton
         android:id="@+id/leftImageButton"
-        android:layout_width="15dp"
-        android:layout_height="20dp"
+        android:layout_width="@dimen/carousel_skip_button_width"
+        android:layout_height="@dimen/carousel_skip_button_height"
         android:layout_centerVertical="true"
         android:layout_alignParentStart="true"
         android:background="@drawable/skipleft" />
 
     <ImageButton
         android:id="@+id/rightImageButton"
-        android:layout_width="15dp"
-        android:layout_height="20dp"
+        android:layout_width="@dimen/carousel_skip_button_width"
+        android:layout_height="@dimen/carousel_skip_button_height"
         android:layout_centerVertical="true"
         android:layout_alignEnd="@id/manual_carousel_view_flipper"
         android:background="@drawable/skipright" />

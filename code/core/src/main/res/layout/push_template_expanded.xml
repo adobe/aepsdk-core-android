@@ -9,8 +9,8 @@
 
     <ImageView
         android:id="@+id/large_icon"
-        android:layout_height="35dp"
-        android:layout_width="35dp"
+        android:layout_height="@dimen/large_icon_height"
+        android:layout_width="@dimen/large_icon_width"
         android:layout_alignParentRight="true" />
 
     <TextView
@@ -35,7 +35,7 @@
     <ImageView
         android:id="@+id/expanded_template_image"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="@dimen/basic_expanded_image_height"
         android:layout_gravity="center"
         android:adjustViewBounds="true"
         android:layout_below="@id/notification_body_expanded"/>

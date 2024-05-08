@@ -1030,6 +1030,52 @@ public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSe
 	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageGesture;
 }
 
+public final class com/adobe/marketing/mobile/services/ui/notification/NotificationBuilder {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/notification/NotificationBuilder;
+	public static final fun constructNotificationBuilder (Landroid/content/Intent;Ljava/lang/Class;Ljava/lang/Class;)Landroidx/core/app/NotificationCompat$Builder;
+	public static final fun constructNotificationBuilder (Ljava/util/Map;Ljava/lang/Class;Ljava/lang/Class;)Landroidx/core/app/NotificationCompat$Builder;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/notification/NotificationConstructionFailedException : java/lang/Exception {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class com/adobe/marketing/mobile/services/ui/notification/NotificationPriority : java/lang/Enum {
+	public static final field Companion Lcom/adobe/marketing/mobile/services/ui/notification/NotificationPriority$Companion;
+	public static final field PRIORITY_DEFAULT Lcom/adobe/marketing/mobile/services/ui/notification/NotificationPriority;
+	public static final field PRIORITY_HIGH Lcom/adobe/marketing/mobile/services/ui/notification/NotificationPriority;
+	public static final field PRIORITY_LOW Lcom/adobe/marketing/mobile/services/ui/notification/NotificationPriority;
+	public static final field PRIORITY_MAX Lcom/adobe/marketing/mobile/services/ui/notification/NotificationPriority;
+	public static final field PRIORITY_MIN Lcom/adobe/marketing/mobile/services/ui/notification/NotificationPriority;
+	public static final fun getNotificationPriority (Ljava/lang/Integer;)Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/notification/NotificationPriority;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/notification/NotificationPriority;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/notification/NotificationPriority$Companion {
+	public final fun getNotificationPriority (Ljava/lang/Integer;)Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/notification/NotificationVisibility : java/lang/Enum {
+	public static final field Companion Lcom/adobe/marketing/mobile/services/ui/notification/NotificationVisibility$Companion;
+	public static final field VISIBILITY_PRIVATE Lcom/adobe/marketing/mobile/services/ui/notification/NotificationVisibility;
+	public static final field VISIBILITY_PUBLIC Lcom/adobe/marketing/mobile/services/ui/notification/NotificationVisibility;
+	public static final field VISIBILITY_SECRET Lcom/adobe/marketing/mobile/services/ui/notification/NotificationVisibility;
+	public static final fun getNotificationVisibility (Ljava/lang/Integer;)Ljava/lang/String;
+	public final fun getVisibility ()I
+	public final fun getVisibilityString ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/ui/notification/NotificationVisibility;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/ui/notification/NotificationVisibility;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/notification/NotificationVisibility$Companion {
+	public final fun getNotificationVisibility (Ljava/lang/Integer;)Ljava/lang/String;
+}
+
 public abstract interface class com/adobe/marketing/mobile/services/uri/URIHandler {
 	public abstract fun getURIDestination (Ljava/lang/String;)Landroid/content/Intent;
 }

@@ -3,6 +3,8 @@
     android:id="@+id/carousel_container_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:clipChildren="false"
     android:orientation="vertical">
 
     <ImageView
@@ -15,7 +17,7 @@
         android:id="@+id/notification_title"
         style="@style/Title"
         android:layout_width="match_parent"
-        android:layout_height="20dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="start"
         android:textAlignment="viewStart"
         android:layout_toLeftOf="@+id/large_icon"/>
@@ -24,7 +26,7 @@
         android:id="@+id/notification_body_expanded"
         style="@style/Body"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="wrap_content"
         android:layout_below="@id/notification_title"
         android:layout_gravity="start"
         android:textAlignment="viewStart"
@@ -32,20 +34,19 @@
 
     <ImageView
         android:id="@+id/manual_carousel_filmstrip_center"
-        android:scaleType="centerCrop"
+        android:scaleType="fitCenter"
         android:adjustViewBounds="true"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:layout_gravity="center"
-        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true"
         android:layout_below="@id/notification_body_expanded">
     </ImageView>
 
     <TextView
         android:id="@+id/manual_carousel_filmstrip_caption"
-        style="@style/TextAppearance.Compat.Notification.Title"
+        style="@style/Caption"
         android:layout_width="wrap_content"
-        android:layout_height="20dp"
+        android:layout_height="wrap_content"
         android:layout_below="@id/manual_carousel_filmstrip_center"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center" />
@@ -54,6 +55,8 @@
         android:id="@+id/manual_carousel_filmstrip_left"
         android:scaleType="centerCrop"
         android:adjustViewBounds="true"
+        android:layout_gravity="center"
+        android:layout_centerHorizontal="true"
         android:layout_width="100dp"
         android:layout_height="175dp"
         android:layout_marginRight="2dp"
@@ -66,6 +69,8 @@
         android:id="@+id/manual_carousel_filmstrip_right"
         android:scaleType="centerCrop"
         android:adjustViewBounds="true"
+        android:layout_gravity="center"
+        android:layout_centerHorizontal="true"
         android:layout_width="100dp"
         android:layout_height="175dp"
         android:layout_marginLeft="2dp"
@@ -76,17 +81,17 @@
 
     <ImageButton
         android:id="@+id/leftImageButton"
-        android:layout_width="30dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="130dp"
+        android:layout_width="15dp"
+        android:layout_height="20dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
         android:background="@drawable/skipleft" />
 
     <ImageButton
         android:id="@+id/rightImageButton"
-        android:layout_width="30dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="130dp"
+        android:layout_width="15dp"
+        android:layout_height="20dp"
+        android:layout_centerVertical="true"
         android:layout_alignEnd="@id/manual_carousel_filmstrip_right"
-        android:layout_alignParentEnd="true"
         android:background="@drawable/skipright" />
 </RelativeLayout>

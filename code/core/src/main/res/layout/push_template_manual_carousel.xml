@@ -3,6 +3,8 @@
     android:id="@+id/carousel_container_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:clipChildren="false"
     android:orientation="vertical">
 
     <ImageView
@@ -15,7 +17,7 @@
         android:id="@+id/notification_title"
         style="@style/Title"
         android:layout_width="match_parent"
-        android:layout_height="20dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="start"
         android:textAlignment="viewStart"
         android:layout_toLeftOf="@+id/large_icon"/>
@@ -24,7 +26,7 @@
         android:id="@+id/notification_body_expanded"
         style="@style/Body"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="start"
         android:textAlignment="viewStart"
         android:layout_below="@id/notification_title"
@@ -33,27 +35,25 @@
     <ViewFlipper
         android:id="@+id/manual_carousel_view_flipper"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_gravity="center"
-        android:scaleType="centerCrop"
-        android:layout_centerInParent="true"
-        android:adjustViewBounds="true"
-        android:layout_below="@id/notification_body_expanded">
+        android:layout_height="wrap_content"
+        android:scaleType="fitCenter"
+        android:layout_below="@id/notification_body_expanded"
+        android:adjustViewBounds="true">
     </ViewFlipper>
 
     <ImageButton
         android:id="@+id/leftImageButton"
-        android:layout_width="30dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="120dp"
+        android:layout_width="15dp"
+        android:layout_height="20dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
         android:background="@drawable/skipleft" />
 
     <ImageButton
         android:id="@+id/rightImageButton"
-        android:layout_width="30dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="120dp"
+        android:layout_width="15dp"
+        android:layout_height="20dp"
+        android:layout_centerVertical="true"
         android:layout_alignEnd="@id/manual_carousel_view_flipper"
-        android:layout_alignParentEnd="true"
         android:background="@drawable/skipright" />
 </RelativeLayout>

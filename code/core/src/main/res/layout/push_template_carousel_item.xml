@@ -3,22 +3,24 @@
     android:id="@+id/carousel_container_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:clipChildren="false"
     android:orientation="vertical">
 
-    <ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    <ImageView
         android:id="@+id/carousel_item_image_view"
         android:layout_centerHorizontal="true"
         android:layout_width="250dp"
-        android:scaleType="centerCrop"
+        android:scaleType="fitCenter"
         android:adjustViewBounds="true"
         android:layout_gravity="center"
         android:layout_height="200dp" />
 
     <TextView
         android:id="@+id/carousel_item_caption"
-        style="@style/TextAppearance.Compat.Notification.Title"
+        style="@style/Caption"
         android:layout_width="wrap_content"
-        android:layout_height="20dp"
+        android:layout_height="wrap_content"
         android:layout_below="@id/carousel_item_image_view"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center" />

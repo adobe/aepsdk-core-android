@@ -49,11 +49,13 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
     protected constructor(data: Map<String, String>) : super(data) {
         carouselLayoutType = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT, null
-        ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT}\" not found.")
+        )
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT}\" not found.")
 
         val carouselItemsString: String = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS, null
-        ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS}\" not found.")
+        )
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS}\" not found.")
 
         this.rawCarouselItems = carouselItemsString
         val carouselItemJSONArray: JSONArray
@@ -109,7 +111,6 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
 
     companion object {
         private const val SELF_TAG = "CarouselPushTemplate"
-        const val MINIMUM_FILMSTRIP_SIZE = 3
 
         fun createCarouselPushTemplate(data: Map<String, String>): CarouselPushTemplate {
             val carouselOperationMode = DataReader.optString(
@@ -143,7 +144,7 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                     val interactionUri =
                         item.optString(PushTemplateConstants.CarouselItemKeys.URL, "")
                     carouselItems.add(
-                        CarouselPushTemplate.CarouselItem(
+                        CarouselItem(
                             imageUri,
                             captionText,
                             interactionUri

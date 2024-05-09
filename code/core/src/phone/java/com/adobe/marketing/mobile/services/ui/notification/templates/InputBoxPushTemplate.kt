@@ -9,14 +9,15 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.templates
 
 import android.content.Intent
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
 
 internal class InputBoxPushTemplate : AEPPushTemplate {
-    // Optional, the intent action name to be used when the user submits the feedback
-    internal var inputBoxIntentActionName: String?
+    // Required, the intent action name to be used when the user submits the feedback.
+    internal var inputBoxReceiverName: String?
 
     // Optional, If present, use it as the placeholder text for the text input field
     internal var inputTextHint: String?
@@ -30,10 +31,11 @@ internal class InputBoxPushTemplate : AEPPushTemplate {
     internal var feedbackImage: String?
         private set
 
-    constructor(data: MutableMap<String, String>) : super(data) {
-        inputBoxIntentActionName = DataReader.optString(
-            data, PushTemplateConstants.PushPayloadKeys.INPUT_BOX_INTENT_ACTION, null
+    constructor(data: Map<String, String>) : super(data) {
+        inputBoxReceiverName = DataReader.optString(
+            data, PushTemplateConstants.PushPayloadKeys.INPUT_BOX_RECEIVER_NAME, null
         )
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.INPUT_BOX_RECEIVER_NAME}\" not found.")
         inputTextHint = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.INPUT_BOX_HINT, null
         )
@@ -48,9 +50,12 @@ internal class InputBoxPushTemplate : AEPPushTemplate {
     constructor(intent: Intent) : super(intent) {
         val intentExtras =
             intent.extras ?: throw IllegalArgumentException("Intent extras are null")
-        inputBoxIntentActionName = intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_INTENT_ACTION)
+        inputBoxReceiverName =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_RECEIVER_NAME)
         inputTextHint = intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_HINT)
-        feedbackText = intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_FEEDBACK_TEXT)
-        feedbackImage = intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_FEEDBACK_IMAGE)
+        feedbackText =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_FEEDBACK_TEXT)
+        feedbackImage =
+            intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_FEEDBACK_IMAGE)
     }
 }

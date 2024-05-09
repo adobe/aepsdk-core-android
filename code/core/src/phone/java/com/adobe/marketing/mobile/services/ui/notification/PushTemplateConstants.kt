@@ -54,7 +54,6 @@ internal object PushTemplateConstants {
 
     internal object DefaultValues {
         const val SILENT_NOTIFICATION_CHANNEL_ID = "AEPSDK Silent Push Notifications"
-        const val SILENT_SOUND = "silent"
         const val CAROUSEL_MAX_BITMAP_WIDTH = 300
         const val CAROUSEL_MAX_BITMAP_HEIGHT = 200
         const val AUTO_CAROUSEL_MODE = "auto"
@@ -67,7 +66,8 @@ internal object PushTemplateConstants {
 
         // TODO: revisit this value. should cache time be configurable rather than have a static
         // value?
-        val PUSH_NOTIFICATION_IMAGE_CACHE_EXPIRY_IN_MILLISECONDS: Long = TimeUnit.DAYS.toMillis(3) // 3 days
+        val PUSH_NOTIFICATION_IMAGE_CACHE_EXPIRY_IN_MILLISECONDS: Long =
+            TimeUnit.DAYS.toMillis(3) // 3 days
     }
 
     internal object IntentActions {
@@ -76,6 +76,7 @@ internal object PushTemplateConstants {
         const val REMIND_LATER_CLICKED = "remind_clicked"
         const val MANUAL_CAROUSEL_LEFT_CLICKED = "manual_left"
         const val MANUAL_CAROUSEL_RIGHT_CLICKED = "manual_right"
+        const val INPUT_RECEIVED = "input_received"
     }
 
     internal object IntentKeys {
@@ -116,7 +117,7 @@ internal object PushTemplateConstants {
         const val INPUT_BOX_HINT = "inputBoxHint"
         const val INPUT_BOX_FEEDBACK_TEXT = "feedbackText"
         const val INPUT_BOX_FEEDBACK_IMAGE = "feedbackImage"
-        const val INPUT_BOX_INTENT_ACTION = "inputBoxIntentAction"
+        const val INPUT_BOX_RECEIVER_NAME = "feedbackReceiverName"
     }
 
     internal object MethodNames {
@@ -168,7 +169,7 @@ internal object PushTemplateConstants {
         const val INPUT_BOX_HINT = "adb_input_txt"
         const val INPUT_BOX_FEEDBACK_TEXT = "adb_feedback_txt"
         const val INPUT_BOX_FEEDBACK_IMAGE = "adb_feedback_img"
-        const val INPUT_BOX_INTENT_ACTION = "adb_input_intent"
+        const val INPUT_BOX_RECEIVER_NAME = "adb_input_receiver"
     }
 
     internal object CarouselItemKeys {

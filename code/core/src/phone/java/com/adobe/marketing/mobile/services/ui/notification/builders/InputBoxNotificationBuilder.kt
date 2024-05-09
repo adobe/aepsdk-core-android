@@ -9,39 +9,41 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.builders
 
 import android.app.Activity
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.templates.InputBoxPushTemplate
 
 /**
  * Object responsible for constructing a [NotificationCompat.Builder] object containing an input box push template notification.
  */
-internal object InputBoxTemplateNotificationBuilder {
-    private const val SELF_TAG = "InputBoxPushTemplateNotificationBuilder"
+internal object InputBoxNotificationBuilder {
+    private const val SELF_TAG = "InputBoxNotificationBuilder"
 
     @Throws(NotificationConstructionFailedException::class)
     fun construct(
         context: Context,
-        pushTemplate: InputBoxPushTemplate?,
+        pushTemplate: InputBoxPushTemplate,
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
-        if (pushTemplate == null) {
-            throw NotificationConstructionFailedException(
-                "push template is null, cannot build an input box template notification."
-            )
-        }
         val cacheService = ServiceProvider.getInstance().cacheService
-            ?: throw NotificationConstructionFailedException("Cache service is null, input box template notification will not be constructed.")
+            ?: throw NotificationConstructionFailedException("Cache service is null, input box push notification will not be constructed.")
 
         Log.trace(
             PushTemplateConstants.LOG_TAG,
@@ -52,8 +54,18 @@ internal object InputBoxTemplateNotificationBuilder {
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_expanded)
 
-        // Create the notification channel if needed
-        val channelIdToUse = AEPPushTemplateNotificationBuilder.createChannelAndGetChannelID(
+        // create a silent notification channel if needed
+        if (pushTemplate.isFromIntent == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            AEPPushNotificationBuilder.setupSilentNotificationChannel(
+                notificationManager,
+                pushTemplate.getNotificationImportance()
+            )
+        }
+
+        // create the notification channel if needed
+        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
@@ -61,46 +73,55 @@ internal object InputBoxTemplateNotificationBuilder {
         )
 
         // create the notification builder with the common settings applied
-        val notificationBuilder = AEPPushTemplateNotificationBuilder.construct(
+        val notificationBuilder = AEPPushNotificationBuilder.construct(
             context,
             pushTemplate,
             channelIdToUse,
             trackerActivityClass,
             smallLayout,
-            expandedLayout
+            expandedLayout,
+            R.id.basic_expanded_layout
         )
 
-        // get push payload data
-        val imageUri: String
-        val notificationBodyText: String
-        if (pushTemplate.isFromIntent != true) {
-            imageUri = pushTemplate.imageUrl ?: ""
-            notificationBodyText = pushTemplate.body ?: ""
+        // get push payload data. if we are handling an intent then we know that we should be building a feedback received notification.
+        val imageUri =
+            if (pushTemplate.isFromIntent != true) pushTemplate.imageUrl else pushTemplate.feedbackImage
+        val pushImage = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
+
+        if (pushImage != null) {
+            expandedLayout.setImageViewBitmap(R.id.expanded_template_image, pushImage)
         } else {
-            imageUri = pushTemplate.feedbackImage ?: ""
-            notificationBodyText = pushTemplate.feedbackText ?: ""
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "No image found for input box push template."
+            )
+            expandedLayout.setViewVisibility(R.id.expanded_template_image, View.GONE)
         }
 
-        val pushImage = PushTemplateHelpers.downloadImage(cacheService, imageUri)
-        pushImage?.let {
-            expandedLayout.setImageViewBitmap(R.id.expanded_template_image, pushImage)
-        }
+        val bodyText =
+            if (pushTemplate.isFromIntent != true) pushTemplate.body else pushTemplate.feedbackText
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
-        smallLayout.setTextViewText(R.id.notification_body, notificationBodyText)
+        smallLayout.setTextViewText(R.id.notification_body, pushTemplate.body)
         expandedLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
         expandedLayout.setTextViewText(
-            R.id.notification_body_expanded, notificationBodyText
+            R.id.notification_body_expanded, bodyText
         )
 
         // add an input box to capture user feedback
-        if (pushTemplate.isFromIntent != true && !pushTemplate.inputBoxIntentActionName.isNullOrEmpty()) {
+        if (pushTemplate.isFromIntent != true && !pushTemplate.inputBoxReceiverName.isNullOrEmpty()) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Adding an input box to capture text input. The input box receiver name is ${pushTemplate.inputBoxReceiverName}."
+            )
             addInputTextAction(
                 context,
-                trackerActivityClass,
                 broadcastReceiverClass,
                 notificationBuilder,
                 channelIdToUse,
-                pushTemplate)
+                pushTemplate
+            )
         }
 
         return notificationBuilder
@@ -110,7 +131,6 @@ internal object InputBoxTemplateNotificationBuilder {
      * Adds an input text action for the notification.
      *
      * @param context the application [Context]
-     * @param trackerActivityClass the [Activity] class to use as the tracker activity
      * @param broadcastReceiverClass the [BroadcastReceiver] class to use as the broadcast receiver
      * @param builder the [NotificationCompat.Builder] to attach the action buttons
      * @param channelId the [String] containing the channel ID to use for the notification
@@ -119,13 +139,12 @@ internal object InputBoxTemplateNotificationBuilder {
      */
     private fun addInputTextAction(
         context: Context,
-        trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?,
         builder: NotificationCompat.Builder,
         channelId: String,
         pushTemplate: InputBoxPushTemplate
     ) {
-        val remoteInput = pushTemplate.inputBoxIntentActionName?.let {
+        val remoteInput = pushTemplate.inputBoxReceiverName?.let {
             androidx.core.app.RemoteInput.Builder(it)
                 .setLabel(pushTemplate.inputTextHint)
                 .build()
@@ -142,7 +161,6 @@ internal object InputBoxTemplateNotificationBuilder {
 
         val inputReceivedIntent = createInputReceivedIntent(
             context,
-            trackerActivityClass,
             broadcastReceiverClass,
             channelId,
             pushTemplate
@@ -159,8 +177,10 @@ internal object InputBoxTemplateNotificationBuilder {
             }
 
         val action =
-            NotificationCompat.Action.Builder(R.drawable.ic_reply_icon,
-                pushTemplate.inputTextHint, replyPendingIntent)
+            NotificationCompat.Action.Builder(
+                null,
+                pushTemplate.inputTextHint, replyPendingIntent
+            )
                 .addRemoteInput(remoteInput)
                 .build()
 
@@ -169,7 +189,6 @@ internal object InputBoxTemplateNotificationBuilder {
 
     private fun createInputReceivedIntent(
         context: Context,
-        trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?,
         channelId: String,
         pushTemplate: InputBoxPushTemplate
@@ -183,7 +202,7 @@ internal object InputBoxTemplateNotificationBuilder {
             "Creating a text input received intent from a push template object."
         )
 
-        val inputReceivedIntent = Intent(pushTemplate.inputBoxIntentActionName)
+        val inputReceivedIntent = Intent(PushTemplateConstants.IntentActions.INPUT_RECEIVED)
         broadcastReceiverClass.let {
             inputReceivedIntent.setClass(context.applicationContext, broadcastReceiverClass)
         }
@@ -191,11 +210,6 @@ internal object InputBoxTemplateNotificationBuilder {
         inputReceivedIntent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         inputReceivedIntent.putExtra(
             PushTemplateConstants.IntentKeys.TEMPLATE_TYPE, pushTemplate.templateType?.value
-        )
-        inputReceivedIntent.putExtra(PushTemplateConstants.IntentKeys.TRACKER_NAME, trackerActivityClass)
-        inputReceivedIntent.putExtra(
-            PushTemplateConstants.IntentKeys.BROADCAST_RECEIVER_NAME,
-            broadcastReceiverClass
         )
         inputReceivedIntent.putExtra(
             PushTemplateConstants.IntentKeys.IMAGE_URI, pushTemplate.imageUrl
@@ -257,6 +271,10 @@ internal object InputBoxTemplateNotificationBuilder {
         )
         inputReceivedIntent.putExtra(
             PushTemplateConstants.IntentKeys.INPUT_BOX_FEEDBACK_IMAGE, pushTemplate.feedbackImage
+        )
+        inputReceivedIntent.putExtra(
+            PushTemplateConstants.IntentKeys.INPUT_BOX_RECEIVER_NAME,
+            pushTemplate.inputBoxReceiverName
         )
         inputReceivedIntent.putExtra(
             PushTemplateConstants.IntentKeys.ACTION_BUTTONS_STRING,

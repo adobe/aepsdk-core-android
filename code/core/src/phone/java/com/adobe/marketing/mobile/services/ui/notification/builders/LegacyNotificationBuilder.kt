@@ -51,7 +51,8 @@ internal object LegacyNotificationBuilder {
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
+            pushTemplate.getNotificationImportance(),
+            pushTemplate.isFromIntent
         )
 
         // Create the notification builder object and set the ticker, title, body, and badge count

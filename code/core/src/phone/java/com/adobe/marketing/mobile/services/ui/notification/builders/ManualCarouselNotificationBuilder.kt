@@ -95,7 +95,8 @@ internal object ManualCarouselNotificationBuilder {
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
+            pushTemplate.getNotificationImportance(),
+            pushTemplate.isFromIntent
         )
 
         // create the notification builder with the common settings applied

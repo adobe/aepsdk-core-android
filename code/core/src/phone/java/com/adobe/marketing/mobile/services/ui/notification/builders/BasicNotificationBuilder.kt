@@ -75,7 +75,7 @@ internal object BasicNotificationBuilder {
             R.id.basic_expanded_layout
         )
 
-        // get push payload data
+        // set the image on the notification
         val imageUri = pushTemplate.imageUrl
         val pushImage = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
 
@@ -89,13 +89,6 @@ internal object BasicNotificationBuilder {
             )
             expandedLayout.setViewVisibility(R.id.expanded_template_image, View.GONE)
         }
-
-        smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
-        smallLayout.setTextViewText(R.id.notification_body, pushTemplate.body)
-        expandedLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
-        expandedLayout.setTextViewText(
-            R.id.notification_body_expanded, pushTemplate.expandedBodyText
-        )
 
         // add any action buttons defined for the notification
         notificationBuilder.addActionButtons(

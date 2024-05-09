@@ -59,27 +59,6 @@ internal object AutoCarouselNotificationBuilder {
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_auto_carousel)
 
-        val notificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        // Create the notification channel if needed
-        val channelIdToUse = notificationManager.createNotificationChannelIfRequired(
-            context,
-            pushTemplate.channelId,
-            pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
-        )
-
-        // create the notification builder with the common settings applied
-        val notificationBuilder = AEPPushNotificationBuilder.construct(
-            context,
-            pushTemplate,
-            channelIdToUse,
-            trackerActivityClass,
-            smallLayout,
-            expandedLayout,
-            R.id.carousel_container_layout
-        )
-
         // load images into the carousel
         val downloadedImageUris = populateAutoCarouselImages(
             context,
@@ -111,14 +90,28 @@ internal object AutoCarouselNotificationBuilder {
                 pushTemplate.messageData
             )
         }
-        smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
-        smallLayout.setTextViewText(R.id.notification_body, pushTemplate.body)
-        expandedLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
-        expandedLayout.setTextViewText(
-            R.id.notification_body_expanded, pushTemplate.expandedBodyText
+
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Create the notification channel if needed
+        val channelIdToUse = notificationManager.createNotificationChannelIfRequired(
+            context,
+            pushTemplate.channelId,
+            pushTemplate.sound,
+            pushTemplate.getNotificationImportance()
         )
 
-        return notificationBuilder
+        // create the notification builder with the common settings applied
+        return AEPPushNotificationBuilder.construct(
+            context,
+            pushTemplate,
+            channelIdToUse,
+            trackerActivityClass,
+            smallLayout,
+            expandedLayout,
+            R.id.carousel_container_layout
+        )
     }
 
     /**

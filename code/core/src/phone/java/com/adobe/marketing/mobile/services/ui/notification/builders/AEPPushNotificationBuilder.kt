@@ -46,6 +46,15 @@ internal object AEPPushNotificationBuilder {
         containerLayoutViewId: Int
     ): NotificationCompat.Builder {
 
+        // set the title and body text on the notification
+        val titleText = pushTemplate.title
+        val smallBodyText = pushTemplate.body
+        val expandedBodyText = pushTemplate.expandedBodyText
+        smallLayout.setTextViewText(R.id.notification_title, titleText)
+        smallLayout.setTextViewText(R.id.notification_body, smallBodyText)
+        expandedLayout.setTextViewText(R.id.notification_title, titleText)
+        expandedLayout.setTextViewText(R.id.notification_body_expanded, expandedBodyText)
+
         // set custom colors on the notification background, title text, and body text
         smallLayout.setNotificationBackgroundColor(
             pushTemplate.notificationBackgroundColor,

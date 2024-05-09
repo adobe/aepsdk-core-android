@@ -57,37 +57,6 @@ internal object ManualCarouselNotificationBuilder {
             "Building a manual carousel template push notification."
         )
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        // create the notification channel if needed
-        val channelIdToUse = notificationManager.createNotificationChannelIfRequired(
-            context,
-            pushTemplate.channelId,
-            pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
-        )
-
-        // set the expanded layout depending on the carousel type
-        val packageName = context.packageName
-        val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
-        val expandedLayout =
-            if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE)
-                RemoteViews(
-                    packageName,
-                    R.layout.push_template_filmstrip_carousel
-                ) else RemoteViews(packageName, R.layout.push_template_manual_carousel)
-
-        // create the notification builder with the common settings applied
-        val notificationBuilder = AEPPushNotificationBuilder.construct(
-            context,
-            pushTemplate,
-            channelIdToUse,
-            trackerActivityClass,
-            smallLayout,
-            expandedLayout,
-            R.id.carousel_container_layout
-        )
-
         // download carousel images
         val validCarouselItems = downloadCarouselItems(cacheService, pushTemplate.carouselItems)
 
@@ -108,6 +77,37 @@ internal object ManualCarouselNotificationBuilder {
                 pushTemplate.messageData
             )
         }
+
+        // set the expanded layout depending on the carousel type
+        val packageName = context.packageName
+        val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
+        val expandedLayout =
+            if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE)
+                RemoteViews(
+                    packageName,
+                    R.layout.push_template_filmstrip_carousel
+                ) else RemoteViews(packageName, R.layout.push_template_manual_carousel)
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // create the notification channel if needed
+        val channelIdToUse = notificationManager.createNotificationChannelIfRequired(
+            context,
+            pushTemplate.channelId,
+            pushTemplate.sound,
+            pushTemplate.getNotificationImportance()
+        )
+
+        // create the notification builder with the common settings applied
+        val notificationBuilder = AEPPushNotificationBuilder.construct(
+            context,
+            pushTemplate,
+            channelIdToUse,
+            trackerActivityClass,
+            smallLayout,
+            expandedLayout,
+            R.id.carousel_container_layout
+        )
 
         // extract image uris, captions, and interaction uris from the validated carousel items
         val imageUris = validCarouselItems.map { it.imageUri }
@@ -132,15 +132,6 @@ internal object ManualCarouselNotificationBuilder {
             packageName,
             fallbackActionUri
         )
-
-        // set title text and body text
-        val titleText = pushTemplate.title
-        val smallBodyText = pushTemplate.body
-        val expandedBodyText = pushTemplate.expandedBodyText
-        smallLayout.setTextViewText(R.id.notification_title, titleText)
-        smallLayout.setTextViewText(R.id.notification_body, smallBodyText)
-        expandedLayout.setTextViewText(R.id.notification_title, titleText)
-        expandedLayout.setTextViewText(R.id.notification_body_expanded, expandedBodyText)
 
         // handle left and right navigation buttons
         setupNavigationButtons(

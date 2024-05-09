@@ -273,8 +273,6 @@ internal sealed class AEPPushTemplate {
             intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_TYPE)
                 ?: PushTemplateConstants.ActionType.NONE.name
         )
-        expandedBodyText =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT)
         actionButtonsString =
             intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_BUTTONS_STRING)
         smallIcon = intentExtras.getString(PushTemplateConstants.IntentKeys.SMALL_ICON)

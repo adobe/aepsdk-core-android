@@ -101,6 +101,12 @@ private fun NotificationCompat.Builder.setSmallIconColor(
     return
 }
 
+/**
+ * Sets the visibility of the notification. If a visibility is received from the payload, the
+ * same is used. If a visibility is not received from the payload, the default visibility is used.
+ *
+ * @param pushTemplate the [AEPPushTemplate] containing the visibility value
+ */
 internal fun NotificationCompat.Builder.setVisibility(
     pushTemplate: AEPPushTemplate
 ): NotificationCompat.Builder {
@@ -256,7 +262,6 @@ internal fun NotificationCompat.Builder.setNotificationDeleteAction(
  *
  * @param context the application [Context]
  * @param trackerActivityClass the [Activity] class to use as the tracker activity
- * @param builder the [NotificationCompat.Builder] to attach the action buttons
  * @param actionButtonsString `String` a JSON string containing action buttons to attach
  * to the notification
  * notification

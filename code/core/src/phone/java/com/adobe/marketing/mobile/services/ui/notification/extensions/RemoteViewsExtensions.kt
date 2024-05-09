@@ -219,6 +219,12 @@ internal fun RemoteViews.setRemoteViewClickAction(
     setOnClickPendingIntent(targetViewResourceId, pendingIntent)
 }
 
+/**
+ * Sets the large icon for the provided [RemoteViews] by downloading the image from the provided URL.
+ * If the image cannot be downloaded, the large icon visibility is set to [View.GONE].
+ *
+ * @param largeIcon `String` containing the large icon URL to download and use
+ */
 internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
     if (UrlUtils.isValidUrl(largeIcon)) {
         val downloadedIcon: Bitmap? = PushTemplateImageUtil.downloadImage(
@@ -237,6 +243,12 @@ internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
     }
 }
 
+/**
+ * Sets the large icon resource bundled with the app for the provided [RemoteViews].
+ * If the resource does not exist, the [RemoteViews] visibility is set to [View.GONE].
+ *
+ * @param largeIcon `String` containing the large icon to use
+ */
 internal fun RemoteViews.setBundledLargeIcon(largeIcon: String?) {
     val bundledIconId: Int? = ServiceProvider.getInstance()
         .appContextService

@@ -21,8 +21,9 @@ import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTe
 import com.adobe.marketing.mobile.services.ui.notification.templates.ManualCarouselPushTemplate
 import java.util.Random
 
-private const val SELF_TAG = "IntentUtils"
 internal object PendingIntentUtils {
+
+    private const val SELF_TAG = "IntentUtils"
 
     /**
      * Creates a pending intent for a notification.
@@ -208,7 +209,7 @@ internal object PendingIntentUtils {
     }
 
     /**
-     * Creates a remind later pending intent for a notification.
+     * Creates a pending intent for remind later button in a notification.
      *
      * @param context the application [Context]
      * @param broadcastReceiverClass the [Class] of the broadcast receiver to set in the created pending intent

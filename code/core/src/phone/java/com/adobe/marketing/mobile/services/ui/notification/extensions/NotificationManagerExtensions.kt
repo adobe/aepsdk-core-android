@@ -31,6 +31,7 @@ private const val SELF_TAG = "NotificationManagerExtensions"
  * @param channelId [String] containing the notification channel id
  * @param customSound `String` containing the custom sound to apply on the notification channel
  * @param importance [Int] containing the notification importance
+ * @param isFromIntent `Boolean` flag indicating if the push is from an intent
  * @return A [String] containing the created or existing channel ID
  */
 internal fun NotificationManager.createNotificationChannelIfRequired(

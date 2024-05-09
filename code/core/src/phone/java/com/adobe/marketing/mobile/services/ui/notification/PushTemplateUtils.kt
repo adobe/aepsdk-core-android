@@ -52,6 +52,12 @@ internal object PushTemplateUtils {
         return icon > 0
     }
 
+    /**
+     * Returns the default application icon.
+     *
+     * @param context the application [Context]
+     * @return the resource id for the default application icon
+     */
     internal fun getDefaultAppIcon(context: Context): Int {
         val packageName = context.packageName
         try {
@@ -87,6 +93,12 @@ internal object PushTemplateUtils {
         )
     }
 
+    /**
+     * Converts the string containing json array of actionButtons to a list of [AEPPushTemplate.ActionButton].
+     *
+     * @param actionButtons [String] containing the action buttons json string
+     * @return a list of [AEPPushTemplate.ActionButton] or null if the conversion fails
+     */
     internal fun getActionButtonsFromString(actionButtons: String?): List<AEPPushTemplate.ActionButton>? {
         if (actionButtons == null) {
             Log.debug(
@@ -116,6 +128,13 @@ internal object PushTemplateUtils {
         return actionButtonList
     }
 
+    /**
+     * Converts the json object representing an action button to an [AEPPushTemplate.ActionButton].
+     * Action button must have a non-empty label, type and uri
+     *
+     * @param jsonObject [JSONObject] containing the action button details
+     * @return an [AEPPushTemplate.ActionButton] or null if the conversion fails
+     */
     @VisibleForTesting
     internal fun getActionButtonFromJSONObject(jsonObject: JSONObject): AEPPushTemplate.ActionButton? {
         return try {

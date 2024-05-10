@@ -99,30 +99,34 @@ internal object InputBoxNotificationBuilder {
             expandedLayout.setViewVisibility(R.id.expanded_template_image, View.GONE)
         }
 
-        val bodyText =
-            if (pushTemplate.isFromIntent != true) pushTemplate.body else pushTemplate.feedbackText
+        val expandedBodyText =
+            if (pushTemplate.isFromIntent == true) pushTemplate.feedbackText else pushTemplate.expandedBodyText
+        val collapsedBodyText =
+            if (pushTemplate.isFromIntent == true) pushTemplate.feedbackText else pushTemplate.body
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
-        smallLayout.setTextViewText(R.id.notification_body, pushTemplate.body)
+        smallLayout.setTextViewText(R.id.notification_body, collapsedBodyText)
         expandedLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
         expandedLayout.setTextViewText(
-            R.id.notification_body_expanded, bodyText
+            R.id.notification_body_expanded, expandedBodyText
         )
 
-        // add an input box to capture user feedback
-        if (pushTemplate.isFromIntent != true && !pushTemplate.inputBoxReceiverName.isNullOrEmpty()) {
-            Log.trace(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "Adding an input box to capture text input. The input box receiver name is ${pushTemplate.inputBoxReceiverName}."
-            )
-            addInputTextAction(
-                context,
-                broadcastReceiverClass,
-                notificationBuilder,
-                channelIdToUse,
-                pushTemplate
-            )
+        // add an input box to capture user feedback if the push template is not from an intent
+        if (pushTemplate.isFromIntent == true || pushTemplate.inputBoxReceiverName.isNullOrEmpty()) {
+            return notificationBuilder
         }
+
+        Log.trace(
+            PushTemplateConstants.LOG_TAG,
+            SELF_TAG,
+            "Adding an input box to capture text input. The input box receiver name is ${pushTemplate.inputBoxReceiverName}."
+        )
+        addInputTextAction(
+            context,
+            broadcastReceiverClass,
+            notificationBuilder,
+            channelIdToUse,
+            pushTemplate
+        )
 
         return notificationBuilder
     }

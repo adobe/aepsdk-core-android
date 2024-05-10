@@ -13,8 +13,10 @@ package com.adobe.marketing.mobile.services.ui.notification.builders
 
 import android.app.Activity
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.widget.RemoteViews
@@ -24,7 +26,6 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
-import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
 import com.adobe.marketing.mobile.services.ui.notification.extensions.createNotificationChannelIfRequired
@@ -274,7 +275,7 @@ internal object ManualCarouselNotificationBuilder {
                 )
             }
 
-        val pendingIntentLeftButton = PendingIntentUtils.createCarouselNavigationClickPendingIntent(
+        val pendingIntentLeftButton = createCarouselNavigationClickPendingIntent(
             context,
             pushTemplate,
             clickPair.first,
@@ -285,7 +286,7 @@ internal object ManualCarouselNotificationBuilder {
             channelId
         )
 
-        val pendingIntentRightButton = PendingIntentUtils.createCarouselNavigationClickPendingIntent(
+        val pendingIntentRightButton = createCarouselNavigationClickPendingIntent(
             context,
             pushTemplate,
             clickPair.second,
@@ -490,5 +491,128 @@ internal object ManualCarouselNotificationBuilder {
             "Calculated new indices. New center index is $newCenterIndex, new left index is $centerIndex, and new right index is $newRightIndex."
         )
         return Triple(centerIndex, newCenterIndex, newRightIndex)
+    }
+
+    /**
+     * Creates a click intent for the specified [Intent] action. This intent is used to handle interactions
+     * with the skip left and skip right buttons in a filmstrip or manual carousel push template notification.
+     *
+     * @param context the application [Context]
+     * @param pushTemplate the [ManualCarouselPushTemplate] object containing the manual carousel push template data
+     * @param intentAction [String] containing the intent action
+     * @param broadcastReceiverClass the [Class] of the broadcast receiver to set in the created pending intent
+     * @param downloadedImageUris [List] of String` containing the downloaded image URIs
+     * @param imageCaptions `List` of String` containing the image captions
+     * @param imageClickActions `List` of String` containing the image click actions
+     * @return the created click [Intent]
+     */
+    private fun createCarouselNavigationClickPendingIntent(
+        context: Context,
+        pushTemplate: ManualCarouselPushTemplate,
+        intentAction: String,
+        broadcastReceiverClass: Class<out BroadcastReceiver>?,
+        downloadedImageUris: List<String?>,
+        imageCaptions: List<String?>,
+        imageClickActions: List<String?>,
+        channelId: String
+    ): PendingIntent {
+        val clickIntent = Intent(intentAction).apply {
+            broadcastReceiverClass?.let {
+                setClass(context, broadcastReceiverClass)
+            }
+
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(
+                PushTemplateConstants.IntentKeys.TEMPLATE_TYPE,
+                pushTemplate.templateType?.value
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.CHANNEL_ID,
+                channelId
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.CUSTOM_SOUND, pushTemplate.sound
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.CENTER_IMAGE_INDEX,
+                pushTemplate.centerImageIndex
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.IMAGE_URLS,
+                downloadedImageUris.toTypedArray()
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.IMAGE_CAPTIONS,
+                imageCaptions.toTypedArray()
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.IMAGE_CLICK_ACTIONS,
+                imageClickActions.toTypedArray()
+            )
+            putExtra(PushTemplateConstants.IntentKeys.TITLE_TEXT, pushTemplate.title)
+            putExtra(PushTemplateConstants.IntentKeys.BODY_TEXT, pushTemplate.body)
+            putExtra(
+                PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT,
+                pushTemplate.expandedBodyText
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.NOTIFICATION_BACKGROUND_COLOR,
+                pushTemplate.notificationBackgroundColor
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.TITLE_TEXT_COLOR,
+                pushTemplate.titleTextColor
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT_COLOR,
+                pushTemplate.expandedBodyTextColor
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.SMALL_ICON, pushTemplate.smallIcon
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.LARGE_ICON, pushTemplate.largeIcon
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.SMALL_ICON_COLOR,
+                pushTemplate.smallIconColor
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.VISIBILITY,
+                pushTemplate.getNotificationVisibility()
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.IMPORTANCE,
+                pushTemplate.getNotificationImportance()
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.TICKER, pushTemplate.ticker
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.TAG, pushTemplate.tag
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.STICKY, pushTemplate.isNotificationSticky
+            )
+            putExtra(PushTemplateConstants.IntentKeys.ACTION_URI, pushTemplate.actionUri)
+            putExtra(
+                PushTemplateConstants.IntentKeys.PAYLOAD_VERSION, pushTemplate.payloadVersion
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS,
+                pushTemplate.rawCarouselItems
+            )
+            putExtra(
+                PushTemplateConstants.IntentKeys.CAROUSEL_LAYOUT_TYPE,
+                pushTemplate.carouselLayoutType
+            )
+        }
+
+        return PendingIntent.getBroadcast(
+            context,
+            0,
+            clickIntent,
+            PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
     }
 }

@@ -71,7 +71,7 @@ internal object LegacyNotificationBuilder {
             .addActionButtons(
                 context,
                 trackerActivityClass,
-                pushTemplate.actionButtonsString,
+                pushTemplate.actionButtonsList,
                 pushTemplate.tag,
                 pushTemplate.isNotificationSticky ?: false
             )

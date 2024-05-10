@@ -24,7 +24,6 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateUtils
 import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
 import java.util.Random
 
@@ -45,16 +44,16 @@ internal fun NotificationCompat.Builder.setSmallIcon(
     smallIcon: String?,
     iconColor: String?
 ): NotificationCompat.Builder {
-    val iconFromPayload = PushTemplateUtils.getIconWithResourceName(smallIcon, context)
+    val iconFromPayload = context.getIconWithResourceName(smallIcon)
     val iconFromMobileCore = MobileCore.getSmallIconResourceID()
     val iconResourceId: Int
-    if (PushTemplateUtils.isValidIcon(iconFromPayload)) {
+    if (isValidIcon(iconFromPayload)) {
         iconResourceId = iconFromPayload
-    } else if (PushTemplateUtils.isValidIcon(iconFromMobileCore)) {
+    } else if (isValidIcon(iconFromMobileCore)) {
         iconResourceId = iconFromMobileCore
     } else {
-        val iconFromApp = PushTemplateUtils.getDefaultAppIcon(context)
-        if (PushTemplateUtils.isValidIcon(iconFromApp)) {
+        val iconFromApp = context.getDefaultAppIcon()
+        if (isValidIcon(iconFromApp)) {
             iconResourceId = iconFromApp
         } else {
             Log.warning(
@@ -165,9 +164,8 @@ internal fun NotificationCompat.Builder.setSound(
         "Setting sound from bundle named $customSound."
     )
     setSound(
-        PushTemplateUtils.getSoundUriForResourceName(
-            customSound,
-            context
+        context.getSoundUriForResourceName(
+            customSound
         )
     )
     return this
@@ -272,12 +270,10 @@ internal fun NotificationCompat.Builder.setNotificationDeleteAction(
 internal fun NotificationCompat.Builder.addActionButtons(
     context: Context,
     trackerActivityClass: Class<out Activity>?,
-    actionButtonsString: String?,
+    actionButtons: List<AEPPushTemplate.ActionButton>?,
     tag: String?,
     stickyNotification: Boolean
 ): NotificationCompat.Builder {
-    val actionButtons: List<AEPPushTemplate.ActionButton>? =
-        PushTemplateUtils.getActionButtonsFromString(actionButtonsString)
     if (actionButtons.isNullOrEmpty()) {
         return this
     }
@@ -307,4 +303,14 @@ internal fun NotificationCompat.Builder.addActionButtons(
         addAction(0, eachButton.label, pendingIntent)
     }
     return this
+}
+
+/**
+ * Checks if the icon is valid.
+ *
+ * @param icon the icon to be checked
+ * @return true if the icon is valid, false otherwise
+ */
+private fun isValidIcon(icon: Int): Boolean {
+    return icon > 0
 }

@@ -25,7 +25,6 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateUtils
 import com.adobe.marketing.mobile.util.UrlUtils
 
 private const val SELF_TAG = "RemoteViewExtensions"
@@ -226,21 +225,22 @@ internal fun RemoteViews.setRemoteViewClickAction(
  * @param largeIcon `String` containing the large icon URL to download and use
  */
 internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
-    if (UrlUtils.isValidUrl(largeIcon)) {
-        val downloadedIcon: Bitmap? = PushTemplateImageUtil.downloadImage(
-            ServiceProvider.getInstance().cacheService, largeIcon
-        )
-        if (downloadedIcon == null) {
-            Log.trace(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "Unable to download an image from $largeIcon, large icon will not be applied."
-            )
-            setViewVisibility(R.id.large_icon, View.GONE)
-            return
-        }
-        setImageViewBitmap(R.id.large_icon, downloadedIcon)
+    if (!UrlUtils.isValidUrl(largeIcon)) {
+        return
     }
+    val downloadedIcon: Bitmap? = PushTemplateImageUtil.downloadImage(
+        ServiceProvider.getInstance().cacheService, largeIcon
+    )
+    if (downloadedIcon == null) {
+        Log.trace(
+            PushTemplateConstants.LOG_TAG,
+            SELF_TAG,
+            "Unable to download an image from $largeIcon, large icon will not be applied."
+        )
+        setViewVisibility(R.id.large_icon, View.GONE)
+        return
+    }
+    setImageViewBitmap(R.id.large_icon, downloadedIcon)
 }
 
 /**
@@ -251,13 +251,7 @@ internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
  */
 internal fun RemoteViews.setBundledLargeIcon(largeIcon: String?) {
     val bundledIconId: Int? = ServiceProvider.getInstance()
-        .appContextService
-        .applicationContext?.let {
-            PushTemplateUtils.getIconWithResourceName(
-                largeIcon,
-                it
-            )
-        }
+        .appContextService.applicationContext?.getIconWithResourceName(largeIcon)
     if (bundledIconId == null || bundledIconId == 0) {
         Log.trace(
             PushTemplateConstants.LOG_TAG,

@@ -18,7 +18,6 @@ import android.media.RingtoneManager
 import android.os.Build
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateUtils
 
 private const val SELF_TAG = "NotificationManagerExtensions"
 
@@ -39,7 +38,7 @@ internal fun NotificationManager.createNotificationChannelIfRequired(
     channelId: String?,
     customSound: String?,
     importance: Int,
-    isFromIntent: Boolean? = null
+    isFromIntent: Boolean?
 ): String {
     // create a silent notification channel if push is from intent
     // if not from intent and channel id is not provided, use the default channel id
@@ -74,7 +73,7 @@ internal fun NotificationManager.createNotificationChannelIfRequired(
     } else {
         val sound = if (customSound.isNullOrEmpty()) {
             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        } else PushTemplateUtils.getSoundUriForResourceName(customSound, context)
+        } else context.getSoundUriForResourceName(customSound)
         channel.setSound(sound, null)
     }
 

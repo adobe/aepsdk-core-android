@@ -15,7 +15,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.RectF
+import com.adobe.marketing.mobile.services.HttpConnecting
+import com.adobe.marketing.mobile.services.HttpMethod
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.NetworkCallback
+import com.adobe.marketing.mobile.services.NetworkRequest
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheEntry
 import com.adobe.marketing.mobile.services.caching.CacheExpiry
@@ -27,11 +31,8 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
-import java.net.URL
-import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 /**
  * Utility functions to assist in downloading and caching images for push template notifications.
@@ -41,37 +42,6 @@ internal object PushTemplateImageUtil {
     private const val SELF_TAG = "PushTemplateImageUtil"
     private const val FULL_BITMAP_QUALITY = 100
     private const val DOWNLOAD_TIMEOUT_SECS = 10
-
-    private val executor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
-
-    private class DownloadImageCallable(val url: String?) :
-        Callable<Bitmap?> {
-        override fun call(): Bitmap? {
-            var bitmap: Bitmap? = null
-            var connection: HttpURLConnection? = null
-            try {
-                val imageUrl = URL(url)
-                connection = imageUrl.openConnection() as HttpURLConnection
-                connection.inputStream.use { inputStream ->
-                    bitmap = BitmapFactory.decodeStream(inputStream)
-                    Log.trace(
-                        PushTemplateConstants.LOG_TAG,
-                        SELF_TAG,
-                        "Downloaded push notification image from url ($url)"
-                    )
-                }
-            } catch (e: IOException) {
-                Log.warning(
-                    PushTemplateConstants.LOG_TAG,
-                    SELF_TAG,
-                    "Failed to download push notification image from url ($url). Exception: ${e.message}"
-                )
-            } finally {
-                connection?.disconnect()
-            }
-            return bitmap
-        }
-    }
 
     /**
      * Downloads an image using the provided uri `String`. Prior to downloading, the image uri
@@ -83,10 +53,105 @@ internal object PushTemplateImageUtil {
      *
      * @param cacheService the AEPSDK [CacheService] to use for caching or retrieving
      * downloaded image assets
-     * @param uri [String] containing an image asset url
+     * @param uriList [String] containing an image asset url
      * @return [Bitmap] containing the image referenced by the `String` uri
      */
-    internal fun downloadImage(cacheService: CacheService, uri: String?): Bitmap? {
+    internal fun downloadImage(
+        cacheService: CacheService,
+        uriList: List<String?>
+    ): Int {
+        val assetCacheLocation = getAssetCacheLocation()
+        if (assetCacheLocation.isNullOrEmpty() || uriList.isEmpty()) {
+            return 0
+        }
+
+        var downloadedImageCount = 0
+        val latch = CountDownLatch(uriList.size)
+        for (uri in uriList) {
+            if (uri == null || !UrlUtils.isValidUrl(uri)) {
+                latch.countDown()
+                continue
+            }
+
+            val cacheResult = cacheService[assetCacheLocation, uri]
+            if (cacheResult != null) {
+                Log.trace(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "Found cached image for $uriList"
+                )
+                downloadedImageCount++
+                latch.countDown()
+                continue
+            }
+
+            download(uri) { image ->
+                image?.let {
+                    Log.trace(
+                        PushTemplateConstants.LOG_TAG,
+                        SELF_TAG,
+                        "Successfully download image from $uriList"
+                    )
+                    downloadedImageCount++
+
+                    // scale down the bitmap to 300dp x 200dp as we don't want to use a full
+                    // size image due to memory constraints
+                    val pushImage = scaleBitmap(image)
+                    // write bitmap to cache
+                    try {
+                        bitmapToInputStream(pushImage).use { bitmapInputStream ->
+                            cacheBitmapInputStream(
+                                cacheService,
+                                bitmapInputStream,
+                                uri
+                            )
+                        }
+                    } catch (exception: IOException) {
+                        Log.trace(
+                            PushTemplateConstants.LOG_TAG,
+                            SELF_TAG,
+                            "Exception occurred creating an input stream from a bitmap: ${exception.localizedMessage}."
+                        )
+                    }
+                }
+                latch.countDown()
+            }
+        }
+        latch.await()
+        return downloadedImageCount
+    }
+
+    /**
+     * Downloads an image using the provided uri `String`. A [Future] task is created to download
+     * the image using a [DownloadImageCallable]. The task is submitted to an [ExecutorService].
+     * @param url [String] containing the image url to download
+     * @return [Bitmap] containing the downloaded image
+     */
+    internal fun download(
+        url: String,
+        completionCallback: (Bitmap?) -> Unit
+    ) {
+        val networkRequest = NetworkRequest(
+            url,
+            HttpMethod.GET,
+            null,
+            null,
+            DOWNLOAD_TIMEOUT_SECS,
+            DOWNLOAD_TIMEOUT_SECS
+        )
+
+        val networkCallback = NetworkCallback { connection: HttpConnecting? ->
+            val image = handleDownloadResponse(url, connection)
+            connection?.close()
+            completionCallback.invoke(image)
+        }
+
+        ServiceProvider.getInstance()
+            .networkService
+            .connectAsync(networkRequest, networkCallback)
+    }
+
+    internal fun getImageFromCache(cacheService: CacheService, uri: String?): Bitmap? {
         val assetCacheLocation = getAssetCacheLocation()
         if (assetCacheLocation.isNullOrEmpty() || uri.isNullOrEmpty()) {
             return null
@@ -96,51 +161,33 @@ internal object PushTemplateImageUtil {
             Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Found cached image for $uri")
             return BitmapFactory.decodeStream(cacheResult.data)
         }
-        if (!UrlUtils.isValidUrl(uri)) {
+        return null
+    }
+
+    private fun handleDownloadResponse(url: String?, connection: HttpConnecting?): Bitmap? {
+        if (connection == null) {
+            Log.warning(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Failed to download push notification image from url ($url), received a null connection."
+            )
             return null
         }
-        val image = download(uri) ?: return null
-        Log.trace(
-            PushTemplateConstants.LOG_TAG,
-            SELF_TAG,
-            "Successfully download image from $uri"
-        )
-        // scale down the bitmap to 300dp x 200dp as we don't want to use a full
-        // size image due to memory constraints
-        val pushImage = scaleBitmap(image)
-        // write bitmap to cache
-        try {
-            bitmapToInputStream(pushImage).use { bitmapInputStream ->
-                cacheBitmapInputStream(
-                    cacheService,
-                    bitmapInputStream,
-                    uri
-                )
-            }
-        } catch (exception: IOException) {
+        if ((connection.responseCode != HttpURLConnection.HTTP_OK)) {
+            Log.debug(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Failed to download push notification image from url ($url). Response code was: ${connection.responseCode}."
+            )
+            return null
+        }
+        val bitmap = BitmapFactory.decodeStream(connection.inputStream)
+        bitmap?.let {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
-                "Exception occurred creating an input stream from a bitmap: ${exception.localizedMessage}."
+                "Downloaded push notification image from url ($url)"
             )
-        }
-        return pushImage
-    }
-
-    /**
-     * Downloads an image using the provided uri `String`. A [Future] task is created to download
-     * the image using a [DownloadImageCallable]. The task is submitted to an [ExecutorService].
-     * @param url [String] containing the image url to download
-     * @return [Bitmap] containing the downloaded image
-     */
-    internal fun download(url: String?): Bitmap? {
-        var bitmap: Bitmap? = null
-        val executorService = executor
-        val downloadTask = executorService.submit(DownloadImageCallable(url))
-        try {
-            bitmap = downloadTask[DOWNLOAD_TIMEOUT_SECS.toLong(), TimeUnit.SECONDS]
-        } catch (e: Exception) {
-            downloadTask.cancel(true)
         }
         return bitmap
     }

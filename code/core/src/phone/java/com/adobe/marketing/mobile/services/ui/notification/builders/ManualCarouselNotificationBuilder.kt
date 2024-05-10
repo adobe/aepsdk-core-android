@@ -56,23 +56,33 @@ internal object ManualCarouselNotificationBuilder {
             "Building a manual carousel template push notification."
         )
 
-        // create a silent notification channel if needed
-        if (pushTemplate.isFromIntent == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            AEPPushNotificationBuilder.setupSilentNotificationChannel(
-                notificationManager,
-                pushTemplate.getNotificationImportance()
+        // download carousel images
+        val downloadedImagesCount = PushTemplateImageUtil.downloadImage(
+            cacheService,
+            pushTemplate.carouselItems.map { it.imageUri }
+        )
+
+        val validCarouselItems = downloadCarouselItems(cacheService, pushTemplate.carouselItems)
+
+        // fallback to a basic push template notification builder if less than 3 images were able
+        // to be downloaded
+        if (downloadedImagesCount < PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT) {
+            Log.trace(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Less than 3 images are available for the manual carousel push template, falling back to a basic push template."
+            )
+            if (downloadedImagesCount > 0) {
+                val imageUris = validCarouselItems.map { it.imageUri }
+                pushTemplate.messageData[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] = imageUris[0]
+            }
+            return BasicNotificationBuilder.fallbackToBasicNotification(
+                context,
+                trackerActivityClass,
+                broadcastReceiverClass,
+                pushTemplate.messageData
             )
         }
-
-        // create the notification channel if needed
-        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
-            context,
-            pushTemplate.channelId,
-            pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
-        )
 
         // set the expanded layout depending on the carousel type
         val packageName = context.packageName
@@ -83,38 +93,6 @@ internal object ManualCarouselNotificationBuilder {
                     packageName,
                     R.layout.push_template_filmstrip_carousel
                 ) else RemoteViews(packageName, R.layout.push_template_manual_carousel)
-
-        // create the notification builder with the common settings applied
-        val notificationBuilder = AEPPushNotificationBuilder.construct(
-            context,
-            pushTemplate,
-            channelIdToUse,
-            trackerActivityClass,
-            smallLayout,
-            expandedLayout,
-            R.id.carousel_container_layout
-        )
-
-        // download carousel images
-        val validCarouselItems = downloadCarouselItems(cacheService, pushTemplate.carouselItems)
-
-        // fallback to a basic push template notification builder if less than 3 images were able
-        // to be downloaded
-        if (validCarouselItems.size < PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT) {
-            Log.trace(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "Less than 3 images are available for the manual carousel push template, falling back to a basic push template."
-            )
-            val imageUris = validCarouselItems.map { it.imageUri }
-            pushTemplate.messageData[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] = imageUris[0]
-            return BasicNotificationBuilder.fallbackToBasicNotification(
-                context,
-                trackerActivityClass,
-                broadcastReceiverClass,
-                pushTemplate.messageData
-            )
-        }
 
         // extract image uris, captions, and interaction uris from the validated carousel items
         val imageUris = validCarouselItems.map { it.imageUri }
@@ -149,6 +127,35 @@ internal object ManualCarouselNotificationBuilder {
         expandedLayout.setTextViewText(R.id.notification_title, titleText)
         expandedLayout.setTextViewText(R.id.notification_body_expanded, expandedBodyText)
 
+        // create a silent notification channel if needed
+        if (pushTemplate.isFromIntent == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            AEPPushNotificationBuilder.setupSilentNotificationChannel(
+                notificationManager,
+                pushTemplate.getNotificationImportance()
+            )
+        }
+
+        // create the notification channel if needed
+        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
+            context,
+            pushTemplate.channelId,
+            pushTemplate.sound,
+            pushTemplate.getNotificationImportance()
+        )
+
+        // create the notification builder with the common settings applied
+        val notificationBuilder = AEPPushNotificationBuilder.construct(
+            context,
+            pushTemplate,
+            channelIdToUse,
+            trackerActivityClass,
+            smallLayout,
+            expandedLayout,
+            R.id.carousel_container_layout
+        )
+
         // handle left and right navigation buttons
         setupNavigationButtons(
             context,
@@ -177,7 +184,7 @@ internal object ManualCarouselNotificationBuilder {
         val validCarouselItems = mutableListOf<CarouselPushTemplate.CarouselItem>()
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtil.getImageFromCache(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
@@ -349,7 +356,7 @@ internal object ManualCarouselNotificationBuilder {
     ) {
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtil.getImageFromCache(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,

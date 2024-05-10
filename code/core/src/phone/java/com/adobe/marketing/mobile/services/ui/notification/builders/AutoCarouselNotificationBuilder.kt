@@ -56,23 +56,10 @@ internal object AutoCarouselNotificationBuilder {
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_auto_carousel)
 
-        // Create the notification channel if needed
-        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
-            context,
-            pushTemplate.channelId,
-            pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
-        )
-
-        // create the notification builder with the common settings applied
-        val notificationBuilder = AEPPushNotificationBuilder.construct(
-            context,
-            pushTemplate,
-            channelIdToUse,
-            trackerActivityClass,
-            smallLayout,
-            expandedLayout,
-            R.id.carousel_container_layout
+        // load images into the carousel
+        val downloadedImageCount = PushTemplateImageUtil.downloadImage(
+            cacheService,
+            pushTemplate.carouselItems.map { it.imageUri }
         )
 
         // load images into the carousel
@@ -87,18 +74,16 @@ internal object AutoCarouselNotificationBuilder {
         )
 
         // fallback to a basic push template notification builder if less than 3 images were able to be downloaded
-        if ((
-            downloadedImageUris.size
-                < PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT
-            )
-        ) {
+        if (downloadedImageCount < PushTemplateConstants.DefaultValues.CAROUSEL_MINIMUM_IMAGE_COUNT) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
                 "Less than 3 images are available for the auto carousel push template, falling back to a basic push template."
             )
-            pushTemplate.messageData[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] =
-                downloadedImageUris[0]
+            if (downloadedImageCount > 0) {
+                pushTemplate.messageData[PushTemplateConstants.PushPayloadKeys.IMAGE_URL] =
+                    downloadedImageUris[0]
+            }
             return BasicNotificationBuilder.fallbackToBasicNotification(
                 context,
                 trackerActivityClass,
@@ -113,7 +98,24 @@ internal object AutoCarouselNotificationBuilder {
             R.id.notification_body_expanded, pushTemplate.expandedBodyText
         )
 
-        return notificationBuilder
+        // Create the notification channel if needed
+        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
+            context,
+            pushTemplate.channelId,
+            pushTemplate.sound,
+            pushTemplate.getNotificationImportance()
+        )
+
+        // create the notification builder with the common settings applied
+        return AEPPushNotificationBuilder.construct(
+            context,
+            pushTemplate,
+            channelIdToUse,
+            trackerActivityClass,
+            smallLayout,
+            expandedLayout,
+            R.id.carousel_container_layout
+        )
     }
 
     /**
@@ -140,7 +142,7 @@ internal object AutoCarouselNotificationBuilder {
         val downloadedImageUris = mutableListOf<String>()
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtil.getImageFromCache(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,

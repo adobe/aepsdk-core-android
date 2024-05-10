@@ -89,17 +89,20 @@ internal object BasicNotificationBuilder {
 
         // get push payload data
         val imageUri = pushTemplate.imageUrl
-        val pushImage = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
+        val downloadedImageCount = PushTemplateImageUtil.downloadImage(cacheService, listOf(imageUri))
 
-        if (pushImage != null) {
-            expandedLayout.setImageViewBitmap(R.id.expanded_template_image, pushImage)
-        } else {
+        if (downloadedImageCount == 0) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
                 "No image found for basic push template."
             )
             expandedLayout.setViewVisibility(R.id.expanded_template_image, View.GONE)
+        } else {
+            expandedLayout.setImageViewBitmap(
+                R.id.expanded_template_image,
+                PushTemplateImageUtil.getImageFromCache(cacheService, imageUri)
+            )
         }
 
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)

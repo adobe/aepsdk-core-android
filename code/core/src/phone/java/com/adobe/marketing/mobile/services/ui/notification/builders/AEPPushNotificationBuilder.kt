@@ -20,7 +20,6 @@ import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.RingtoneManager
 import android.net.Uri
@@ -626,9 +625,18 @@ internal object AEPPushNotificationBuilder {
     ) {
         // Quick bail out if there is no image url
         if (imageUrl.isNullOrEmpty()) return
-        val bitmap: Bitmap = PushTemplateImageUtil.download(imageUrl) ?: return
+        val cacheService = ServiceProvider.getInstance().cacheService
+        val downloadedIconCount: Int = PushTemplateImageUtil.downloadImage(
+            cacheService,
+            listOf(imageUrl)
+        )
 
         // Bail out if the download fails
+        if (downloadedIconCount == 0) {
+            return
+        }
+
+        val bitmap = PushTemplateImageUtil.getImageFromCache(cacheService, imageUrl)
         notificationBuilder.setLargeIcon(bitmap)
         val bigPictureStyle = NotificationCompat.BigPictureStyle()
         bigPictureStyle.bigPicture(bitmap)
@@ -735,10 +743,9 @@ internal object AEPPushNotificationBuilder {
 
     private fun setRemoteLargeIcon(largeIcon: String?, remoteView: RemoteViews) {
         if (UrlUtils.isValidUrl(largeIcon)) {
-            val downloadedIcon: Bitmap? = PushTemplateImageUtil.downloadImage(
-                ServiceProvider.getInstance().cacheService, largeIcon
-            )
-            if (downloadedIcon == null) {
+            val cacheService = ServiceProvider.getInstance().cacheService
+            val downloadedIconCount = PushTemplateImageUtil.downloadImage(cacheService, listOf(largeIcon))
+            if (downloadedIconCount == 0) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
@@ -747,7 +754,10 @@ internal object AEPPushNotificationBuilder {
                 remoteView.setViewVisibility(R.id.large_icon, View.GONE)
                 return
             }
-            remoteView.setImageViewBitmap(R.id.large_icon, downloadedIcon)
+            remoteView.setImageViewBitmap(
+                R.id.large_icon,
+                PushTemplateImageUtil.getImageFromCache(cacheService, largeIcon)
+            )
         }
     }
 

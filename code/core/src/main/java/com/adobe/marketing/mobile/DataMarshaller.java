@@ -138,10 +138,18 @@ class DataMarshaller {
                     newKey = LOCAL_NOTIFICATION_ID_KEY;
                 }
 
-                Object value = extraBundle.get(key);
-
-                if (value != null && value.toString().length() > 0) {
-                    this.launchData.put(newKey, value);
+                try {
+                    Object value = extraBundle.get(key);
+                    if (value != null && value.toString().length() > 0) {
+                        this.launchData.put(newKey, value);
+                    }
+                } catch (Exception e) {
+                    Log.warning(
+                            CoreConstants.LOG_TAG,
+                            TAG,
+                            "Failed to retrieve data (key = %s) from Activity, error is: %s",
+                            key,
+                            e.getLocalizedMessage());
                 }
             }
 

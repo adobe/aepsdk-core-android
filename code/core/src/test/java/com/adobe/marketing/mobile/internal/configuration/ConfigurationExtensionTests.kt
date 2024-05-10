@@ -60,7 +60,7 @@ import kotlin.test.assertTrue
 @RunWith(MockitoJUnitRunner.Silent::class)
 class ConfigurationExtensionTests {
 
-    private var EXTENSION_VERSION = "2.6.2"
+    private var EXTENSION_VERSION = "2.6.3"
 
     @Mock
     private lateinit var mockServiceProvider: ServiceProvider

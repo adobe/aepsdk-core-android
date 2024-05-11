@@ -32,7 +32,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 
 /**
  * Utility functions to assist in downloading and caching images for push template notifications.
@@ -44,53 +44,51 @@ internal object PushTemplateImageUtil {
     private const val DOWNLOAD_TIMEOUT_SECS = 10
 
     /**
-     * Downloads an image using the provided uri `String`. Prior to downloading, the image uri
+     * Downloads an image using the provided url `String`. Prior to downloading, the image url
      * is used to retrieve a [CacheResult] containing a previously cached image. If no cache
      * result is returned, a call to [download] is made to download then cache the image.
      *
-     * If a valid cache result is returned then no image is downloaded. Instead, a `Bitmap`
-     * is created from the cache result and returned by this method.
+     * If a valid cache result is returned then no image is downloaded.
      *
-     * @param cacheService the AEPSDK [CacheService] to use for caching or retrieving
-     * downloaded image assets
-     * @param uriList [String] containing an image asset url
-     * @return [Bitmap] containing the image referenced by the `String` uri
+     * @param cacheService the AEPSDK [CacheService] to use for caching downloaded image assets
+     * @param urlList [String] containing an image asset url
+     * @return [Int] number of images that were found in cache or successfully downloaded
      */
     internal fun downloadImage(
         cacheService: CacheService,
-        uriList: List<String?>
+        urlList: List<String?>
     ): Int {
         val assetCacheLocation = getAssetCacheLocation()
-        if (assetCacheLocation.isNullOrEmpty() || uriList.isEmpty()) {
+        if (urlList.isEmpty() || assetCacheLocation.isNullOrEmpty()) {
             return 0
         }
 
         var downloadedImageCount = 0
-        val latch = CountDownLatch(uriList.size)
-        for (uri in uriList) {
-            if (uri == null || !UrlUtils.isValidUrl(uri)) {
+        val latch = CountDownLatch(urlList.size)
+        for (url in urlList) {
+            if (url == null || !UrlUtils.isValidUrl(url)) {
                 latch.countDown()
                 continue
             }
 
-            val cacheResult = cacheService[assetCacheLocation, uri]
+            val cacheResult = cacheService[assetCacheLocation, url]
             if (cacheResult != null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
-                    "Found cached image for $uriList"
+                    "Found cached image for $urlList"
                 )
                 downloadedImageCount++
                 latch.countDown()
                 continue
             }
 
-            download(uri) { image ->
+            download(url) { image ->
                 image?.let {
                     Log.trace(
                         PushTemplateConstants.LOG_TAG,
                         SELF_TAG,
-                        "Successfully download image from $uriList"
+                        "Successfully download image from $urlList"
                     )
                     downloadedImageCount++
 
@@ -103,7 +101,7 @@ internal object PushTemplateImageUtil {
                             cacheBitmapInputStream(
                                 cacheService,
                                 bitmapInputStream,
-                                uri
+                                url
                             )
                         }
                     } catch (exception: IOException) {
@@ -117,15 +115,16 @@ internal object PushTemplateImageUtil {
                 latch.countDown()
             }
         }
-        latch.await()
+        latch.await(DOWNLOAD_TIMEOUT_SECS.toLong(), TimeUnit.SECONDS)
         return downloadedImageCount
     }
 
     /**
-     * Downloads an image using the provided uri `String`. A [Future] task is created to download
-     * the image using a [DownloadImageCallable]. The task is submitted to an [ExecutorService].
+     * Downloads an image using the provided url `String`.
+     *
      * @param url [String] containing the image url to download
-     * @return [Bitmap] containing the downloaded image
+     * @param completionCallback callback to be invoked with the downloaded [Bitmap]
+     * when image specified by the given url is downloaded
      */
     internal fun download(
         url: String,
@@ -151,14 +150,21 @@ internal object PushTemplateImageUtil {
             .connectAsync(networkRequest, networkCallback)
     }
 
-    internal fun getImageFromCache(cacheService: CacheService, uri: String?): Bitmap? {
+    /**
+     * Retrieves an image from the cache using the provided url `String`.
+     *
+     * @param cacheService the AEPSDK [CacheService] to use for caching downloaded image assets
+     * @param url [String] containing the image url to retrieve from cache
+     * @return [Bitmap] containing the image retrieved from cache, or `null` if no image is found
+     */
+    internal fun getImageFromCache(cacheService: CacheService, url: String?): Bitmap? {
         val assetCacheLocation = getAssetCacheLocation()
-        if (assetCacheLocation.isNullOrEmpty() || uri.isNullOrEmpty()) {
+        if (assetCacheLocation.isNullOrEmpty() || url.isNullOrEmpty()) {
             return null
         }
-        val cacheResult = cacheService[assetCacheLocation, uri]
+        val cacheResult = cacheService[assetCacheLocation, url]
         if (cacheResult != null) {
-            Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Found cached image for $uri")
+            Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Found cached image for $url")
             return BitmapFactory.decodeStream(cacheResult.data)
         }
         return null
@@ -210,17 +216,17 @@ internal object PushTemplateImageUtil {
      *
      * @param cacheService [CacheService] the AEPSDK cache service
      * @param bitmapInputStream [InputStream] created from a download [Bitmap]
-     * @param imageUri [String] containing the image uri to be used a cache key
+     * @param imageUrl [String] containing the image url to be used a cache key
      */
     private fun cacheBitmapInputStream(
         cacheService: CacheService,
         bitmapInputStream: InputStream,
-        imageUri: String
+        imageUrl: String
     ) {
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
-            "Caching image downloaded from $imageUri."
+            "Caching image downloaded from $imageUrl."
         )
         getAssetCacheLocation()?.let {
             // cache push notification images for 3 days
@@ -231,7 +237,7 @@ internal object PushTemplateImageUtil {
                 ),
                 null
             )
-            cacheService[it, imageUri] = cacheEntry
+            cacheService[it, imageUrl] = cacheEntry
         }
     }
 

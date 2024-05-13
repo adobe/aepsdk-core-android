@@ -29,7 +29,18 @@ internal class BasicPushTemplate : AEPPushTemplate {
         val type: PushTemplateConstants.ActionType
 
         init {
-            this.type = PushTemplateConstants.ActionType.valueOf(type ?: PushTemplateConstants.ActionType.NONE.name)
+            this.type = try {
+                PushTemplateConstants.ActionType.valueOf(
+                    type ?: PushTemplateConstants.ActionType.NONE.name
+                )
+            } catch (e: IllegalArgumentException) {
+                Log.warning(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "Invalid action button type provided, defaulting to NONE. Error : ${e.localizedMessage}"
+                )
+                PushTemplateConstants.ActionType.NONE
+            }
         }
 
         companion object {

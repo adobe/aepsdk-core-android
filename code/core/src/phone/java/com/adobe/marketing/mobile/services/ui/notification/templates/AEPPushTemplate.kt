@@ -22,66 +22,12 @@ import com.adobe.marketing.mobile.services.ui.notification.NotificationVisibilit
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateType
 import com.adobe.marketing.mobile.util.DataReader
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
 
 /**
  * This class is used to parse the push template data payload or an intent and provide the necessary information
  * to build a notification.
  */
 internal sealed class AEPPushTemplate {
-
-    /** Class representing the action button with label, link and type  */
-    class ActionButton(val label: String, val link: String?, type: String?) {
-        val type: PushTemplateConstants.ActionType
-
-        init {
-            this.type = PushTemplateConstants.ActionType.valueOf(type ?: PushTemplateConstants.ActionType.NONE.name)
-        }
-
-        companion object {
-            private const val SELF_TAG = "ActionButton"
-
-            /**
-             * Converts the json object representing an action button to an [AEPPushTemplate.ActionButton].
-             * Action button must have a non-empty label, type and uri
-             *
-             * @param jsonObject [JSONObject] containing the action button details
-             * @return an [AEPPushTemplate.ActionButton] or null if the conversion fails
-             */
-            fun getActionButtonFromJSONObject(jsonObject: JSONObject): ActionButton? {
-                return try {
-                    val label = jsonObject.getString(PushTemplateConstants.ActionButtons.LABEL)
-                    if (label.isEmpty()) {
-                        Log.debug(
-                            PushTemplateConstants.LOG_TAG,
-                            SELF_TAG, "Label is empty"
-                        )
-                        return null
-                    }
-                    var uri: String? = null
-                    val type = jsonObject.getString(PushTemplateConstants.ActionButtons.TYPE)
-                    if (type == PushTemplateConstants.ActionType.WEBURL.name || type == PushTemplateConstants.ActionType.DEEPLINK.name) {
-                        uri = jsonObject.optString(PushTemplateConstants.ActionButtons.URI)
-                    }
-                    Log.trace(
-                        PushTemplateConstants.LOG_TAG,
-                        SELF_TAG,
-                        "Creating an ActionButton with label ($label), uri ($uri), and type ($type)."
-                    )
-                    ActionButton(label, uri, type)
-                } catch (e: JSONException) {
-                    Log.warning(
-                        PushTemplateConstants.LOG_TAG,
-                        SELF_TAG,
-                        "Exception in converting actionButtons json string to json object, Error : ${e.localizedMessage}."
-                    )
-                    null
-                }
-            }
-        }
-    }
 
     // Message data payload for the push template
     internal lateinit var messageData: MutableMap<String, String>
@@ -139,14 +85,6 @@ internal sealed class AEPPushTemplate {
     internal var actionUri: String?
         private set
 
-    // Optional, action buttons for the notification
-    internal var actionButtonsString: String?
-        private set
-
-    // Optional, list of ActionButton for the notification
-    internal var actionButtonsList: List<ActionButton>?
-        private set
-
     // Optional, Body of the message shown in the expanded message layout (setCustomBigContentView)
     internal var expandedBodyText: String?
         private set
@@ -189,7 +127,7 @@ internal sealed class AEPPushTemplate {
         private set
 
     // flag to denote if the PushTemplate was built from an intent
-    internal var isFromIntent: Boolean?
+    internal var isFromIntent: Boolean
         private set
 
     /**
@@ -222,8 +160,6 @@ internal sealed class AEPPushTemplate {
         actionType = PushTemplateConstants.ActionType.valueOf(
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_TYPE, null) ?: PushTemplateConstants.ActionType.NONE.name
         )
-        actionButtonsString = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS, null)
-        actionButtonsList = getActionButtonsFromString(actionButtonsString)
         var smallIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.SMALL_ICON, null)
         if (smallIcon.isNullOrEmpty()) {
@@ -323,9 +259,6 @@ internal sealed class AEPPushTemplate {
             intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_TYPE)
                 ?: PushTemplateConstants.ActionType.NONE.name
         )
-        actionButtonsString =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_BUTTONS_STRING)
-        actionButtonsList = getActionButtonsFromString(actionButtonsString)
         smallIcon = intentExtras.getString(PushTemplateConstants.IntentKeys.SMALL_ICON)
         largeIcon = intentExtras.getString(PushTemplateConstants.IntentKeys.LARGE_ICON)
         badgeCount = intentExtras.getInt(PushTemplateConstants.IntentKeys.BADGE_COUNT)
@@ -364,41 +297,6 @@ internal sealed class AEPPushTemplate {
     private fun getNotificationImportanceFromString(priority: String?): Int {
         return if (priority.isNullOrEmpty()) NotificationManager.IMPORTANCE_DEFAULT else notificationImportanceMap[priority]
             ?: return NotificationManager.IMPORTANCE_DEFAULT
-    }
-
-    /**
-     * Converts the string containing json array of actionButtons to a list of [AEPPushTemplate.ActionButton].
-     *
-     * @param actionButtons [String] containing the action buttons json string
-     * @return a list of [AEPPushTemplate.ActionButton] or null if the conversion fails
-     */
-    private fun getActionButtonsFromString(actionButtons: String?): List<ActionButton>? {
-        if (actionButtons == null) {
-            Log.debug(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "Exception in converting actionButtons json string to json object, Error :" +
-                    " actionButtons is null"
-            )
-            return null
-        }
-        val actionButtonList = mutableListOf<ActionButton>()
-        try {
-            val jsonArray = JSONArray(actionButtons)
-            for (i in 0 until jsonArray.length()) {
-                val jsonObject = jsonArray.getJSONObject(i)
-                val button = ActionButton.getActionButtonFromJSONObject(jsonObject) ?: continue
-                actionButtonList.add(button)
-            }
-        } catch (e: JSONException) {
-            Log.warning(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "Exception in converting actionButtons json string to json object, Error : ${e.localizedMessage}"
-            )
-            return null
-        }
-        return actionButtonList
     }
 
     companion object {

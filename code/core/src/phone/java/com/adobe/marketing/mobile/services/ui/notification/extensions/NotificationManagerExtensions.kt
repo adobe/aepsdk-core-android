@@ -38,11 +38,11 @@ internal fun NotificationManager.createNotificationChannelIfRequired(
     channelId: String?,
     customSound: String?,
     importance: Int,
-    isFromIntent: Boolean?
+    isFromIntent: Boolean
 ): String {
     // create a silent notification channel if push is from intent
     // if not from intent and channel id is not provided, use the default channel id
-    val channelIdToUse = if (isFromIntent == true) PushTemplateConstants.DefaultValues.SILENT_NOTIFICATION_CHANNEL_ID
+    val channelIdToUse = if (isFromIntent) PushTemplateConstants.DefaultValues.SILENT_NOTIFICATION_CHANNEL_ID
     else channelId ?: PushTemplateConstants.DEFAULT_CHANNEL_ID
 
     // No channel creation required.
@@ -63,12 +63,12 @@ internal fun NotificationManager.createNotificationChannelIfRequired(
     // Create a channel
     val channel = NotificationChannel(
         channelIdToUse,
-        if (isFromIntent == true) PushTemplateConstants.SILENT_CHANNEL_NAME else PushTemplateConstants.DEFAULT_CHANNEL_NAME,
+        if (isFromIntent) PushTemplateConstants.SILENT_CHANNEL_NAME else PushTemplateConstants.DEFAULT_CHANNEL_NAME,
         importance
     )
 
     // Add a sound if required.
-    if (isFromIntent == true) {
+    if (isFromIntent) {
         channel.setSound(null, null)
     } else {
         val sound = if (customSound.isNullOrEmpty()) {

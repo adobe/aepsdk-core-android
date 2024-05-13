@@ -29,4 +29,24 @@ class PushTemplateTypeTest {
         val templateType = PushTemplateType.fromString("templateType")
         assertEquals(templateType, PushTemplateType.UNKNOWN)
     }
+
+    @Test
+    fun `test getValue returns basic value for BASIC`() {
+        assertEquals(PushTemplateType.BASIC.value, "basic")
+    }
+
+    @Test
+    fun `test getValue returns car value for CAROUSEL`() {
+        assertEquals(PushTemplateType.CAROUSEL.value, "car")
+    }
+
+    @Test
+    fun `test getValue returns input value for INPUT_BOX`() {
+        assertEquals(PushTemplateType.INPUT_BOX.value, "input")
+    }
+
+    @Test
+    fun `test getValue returns unknown value for UNKNOWN`() {
+        assertEquals(PushTemplateType.UNKNOWN.value, "unknown")
+    }
 }

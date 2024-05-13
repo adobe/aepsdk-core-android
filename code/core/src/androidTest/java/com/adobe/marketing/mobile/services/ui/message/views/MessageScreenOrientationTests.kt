@@ -1,3 +1,14 @@
+/*
+  Copyright 2024 Adobe. All rights reserved.
+  This file is licensed to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License. You may obtain a copy
+  of the License at http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software distributed under
+  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+  OF ANY KIND, either express or implied. See the License for the specific language
+  governing permissions and limitations under the License.
+*/
+
 package com.adobe.marketing.mobile.services.ui.message.views
 
 import android.view.View
@@ -45,16 +56,15 @@ class MessageScreenOrientationTests {
     private val presentationStateManager = PresentationStateManager()
 
     private val HTML_TEXT_SAMPLE = "<html>\n" +
-            "<head>\n" +
-            "<title>A Sample HTML Page</title>\n" +
-            "</head>\n" +
-            "<body>\n" +
-            "\n" +
-            "<h1>This is a sample HTML page</h1>\n" +
-            "\n" +
-            "</body>\n" +
-            "</html>"
-
+        "<head>\n" +
+        "<title>A Sample HTML Page</title>\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "\n" +
+        "<h1>This is a sample HTML page</h1>\n" +
+        "\n" +
+        "</body>\n" +
+        "</html>"
 
     // ----------------------------------------------------------------------------------------------
     // Test cases for orientation changes
@@ -87,7 +97,6 @@ class MessageScreenOrientationTests {
             activityHeightDp.value = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp.value = with(LocalDensity.current) { activityRoot.width.toDp() }
 
-
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -118,7 +127,8 @@ class MessageScreenOrientationTests {
             screenWidthDp.value,
             activityHeightDp.value,
             heightPercentage,
-            widthPercentage)
+            widthPercentage
+        )
 
         MessageScreenTestHelper.validateViewSize(
             contentBounds,
@@ -152,7 +162,8 @@ class MessageScreenOrientationTests {
             screenWidthDp.value,
             activityHeightDp.value,
             heightPercentage,
-            widthPercentage)
+            widthPercentage
+        )
 
         MessageScreenTestHelper.validateViewSize(
             landscapeContentBounds,
@@ -185,7 +196,8 @@ class MessageScreenOrientationTests {
             screenWidthDp.value,
             activityHeightDp.value,
             heightPercentage,
-            widthPercentage)
+            widthPercentage
+        )
 
         val naturalContentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
@@ -236,5 +248,4 @@ class MessageScreenOrientationTests {
     fun tearDown() {
         resetState()
     }
-
 }

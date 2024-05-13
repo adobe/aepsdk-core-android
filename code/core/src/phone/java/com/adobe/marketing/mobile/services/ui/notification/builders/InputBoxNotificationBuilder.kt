@@ -34,6 +34,7 @@ import com.adobe.marketing.mobile.services.ui.notification.templates.InputBoxPus
  */
 internal object InputBoxNotificationBuilder {
     private const val SELF_TAG = "InputBoxNotificationBuilder"
+    private const val DEFAULT_REPLY_LABEL = "Reply"
 
     @Throws(NotificationConstructionFailedException::class)
     fun construct(
@@ -148,9 +149,11 @@ internal object InputBoxNotificationBuilder {
         channelId: String,
         pushTemplate: InputBoxPushTemplate
     ) {
+        val label =
+            if (!pushTemplate.inputTextHint.isNullOrEmpty()) pushTemplate.inputTextHint else DEFAULT_REPLY_LABEL
         val remoteInput = pushTemplate.inputBoxReceiverName?.let {
             androidx.core.app.RemoteInput.Builder(it)
-                .setLabel(pushTemplate.inputTextHint)
+                .setLabel(label)
                 .build()
         }
 

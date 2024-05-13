@@ -19,7 +19,7 @@ internal class InputBoxPushTemplate : AEPPushTemplate {
     // Required, the intent action name to be used when the user submits the feedback.
     internal var inputBoxReceiverName: String?
 
-    // Optional, If present, use it as the placeholder text for the text input field
+    // Optional, If present, use it as the placeholder text for the text input field. Otherwise, use the default placeholder text of "Reply".
     internal var inputTextHint: String?
         private set
 

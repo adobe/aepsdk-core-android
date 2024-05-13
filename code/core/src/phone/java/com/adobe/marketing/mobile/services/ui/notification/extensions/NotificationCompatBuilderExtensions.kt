@@ -25,6 +25,7 @@ import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
 import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
 import java.util.Random
 
 private const val SELF_TAG = "RemoteViewExtensions"
@@ -270,7 +271,7 @@ internal fun NotificationCompat.Builder.setNotificationDeleteAction(
 internal fun NotificationCompat.Builder.addActionButtons(
     context: Context,
     trackerActivityClass: Class<out Activity>?,
-    actionButtons: List<AEPPushTemplate.ActionButton>?,
+    actionButtons: List<BasicPushTemplate.ActionButton>?,
     tag: String?,
     stickyNotification: Boolean
 ): NotificationCompat.Builder {

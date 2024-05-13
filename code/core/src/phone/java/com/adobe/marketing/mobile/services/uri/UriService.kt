@@ -47,7 +47,7 @@ internal class UriService : UriOpening {
             currentActivity.startActivity(intent)
             true
         } catch (e: Exception) {
-            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Failed to open URI: $uri")
+            Log.debug(ServiceConstants.LOG_TAG, LOG_TAG, "Failed to open URI: $uri. ${e.message}")
             false
         }
     }

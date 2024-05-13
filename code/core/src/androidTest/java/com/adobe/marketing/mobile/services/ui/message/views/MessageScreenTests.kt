@@ -25,7 +25,7 @@ import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.test.performGesture
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpRect
@@ -236,7 +236,7 @@ class MessageScreenTests {
         composeTestRule.waitForIdle()
         validateMessageAppeared(true)
         // Swipe gestures
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performTouchInput {
             // create a swipe right gesture
             swipeWithVelocity(
                 start = Offset(100f, 10f),
@@ -274,7 +274,7 @@ class MessageScreenTests {
         validateMessageAppeared(false)
 
         // Swipe gestures
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performTouchInput {
             // create a swipe right gesture
             swipeWithVelocity(
                 start = Offset(100f, 10f),
@@ -312,7 +312,7 @@ class MessageScreenTests {
         validateMessageAppeared(true)
 
         // Swipe gestures
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performGesture {
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).assertIsDisplayed().performTouchInput {
             // create a swipe down gesture
             swipeWithVelocity(
                 start = Offset(0f, 10f),
@@ -320,9 +320,10 @@ class MessageScreenTests {
                 endVelocity = 1000f
             )
         }
+
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).performGesture {
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).assertIsDisplayed().performTouchInput {
             click(
                 Offset(100f, 10f)
             )

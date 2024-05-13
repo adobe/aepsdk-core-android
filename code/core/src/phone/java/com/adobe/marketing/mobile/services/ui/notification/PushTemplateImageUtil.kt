@@ -76,7 +76,7 @@ internal object PushTemplateImageUtil {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
                     SELF_TAG,
-                    "Found cached image for $urlList"
+                    "Found cached image for $url"
                 )
                 downloadedImageCount++
                 latch.countDown()
@@ -88,7 +88,7 @@ internal object PushTemplateImageUtil {
                     Log.trace(
                         PushTemplateConstants.LOG_TAG,
                         SELF_TAG,
-                        "Successfully download image from $urlList"
+                        "Successfully download image from $url"
                     )
                     downloadedImageCount++
 
@@ -108,7 +108,7 @@ internal object PushTemplateImageUtil {
                         Log.trace(
                             PushTemplateConstants.LOG_TAG,
                             SELF_TAG,
-                            "Exception occurred creating an input stream from a bitmap: ${exception.localizedMessage}."
+                            "Exception occurred creating an input stream from a bitmap for {$url}: ${exception.localizedMessage}."
                         )
                     }
                 }
@@ -167,6 +167,7 @@ internal object PushTemplateImageUtil {
             Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Found cached image for $url")
             return BitmapFactory.decodeStream(cacheResult.data)
         }
+        Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Image not found in cache for $url")
         return null
     }
 

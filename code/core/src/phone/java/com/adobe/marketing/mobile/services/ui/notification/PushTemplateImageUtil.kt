@@ -118,7 +118,27 @@ internal object PushTemplateImageUtil {
                 latch.countDown()
             }
         }
-        latch.await(DOWNLOAD_TIMEOUT_SECS.toLong(), TimeUnit.SECONDS)
+        try {
+            if (latch.await(DOWNLOAD_TIMEOUT_SECS.toLong(), TimeUnit.SECONDS)) {
+                Log.trace(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "All image downloads have completed."
+                )
+            } else {
+                Log.warning(
+                    PushTemplateConstants.LOG_TAG,
+                    SELF_TAG,
+                    "Timed out waiting for image downloads to complete."
+                )
+            }
+        } catch (e: InterruptedException) {
+            Log.warning(
+                PushTemplateConstants.LOG_TAG,
+                SELF_TAG,
+                "Interrupted while waiting for image downloads to complete: ${e.localizedMessage}"
+            )
+        }
         return downloadedImageCount.get()
     }
 

@@ -13,14 +13,10 @@ package com.adobe.marketing.mobile.services.ui.message.views
 
 import android.view.ViewGroup
 import android.webkit.WebView
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,8 +41,7 @@ import java.nio.charset.StandardCharsets
 @Composable
 internal fun MessageContent(
     inAppMessageSettings: InAppMessageSettings,
-    onCreated: (WebView) -> Unit,
-    gestureTracker: GestureTracker
+    onCreated: (WebView) -> Unit
 ) {
     // Size variables
     val currentConfiguration = LocalConfiguration.current
@@ -54,11 +49,6 @@ internal fun MessageContent(
         remember { ((currentConfiguration.screenHeightDp * inAppMessageSettings.height) / 100).dp }
     val widthDp: Dp =
         remember { ((currentConfiguration.screenWidthDp * inAppMessageSettings.width) / 100).dp }
-
-    // Swipe/Drag variables
-    val offsetX = remember { mutableStateOf(0f) }
-    val offsetY = remember { mutableStateOf(0f) }
-    val dragVelocity = remember { mutableStateOf(0f) }
 
     AndroidView(
         factory = {
@@ -93,30 +83,6 @@ internal fun MessageContent(
             .height(heightDp)
             .width(widthDp)
             .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
-            .draggable(
-                state = rememberDraggableState { delta ->
-                    offsetX.value += delta
-                },
-                orientation = Orientation.Horizontal,
-                onDragStopped = { velocity ->
-                    gestureTracker.onDragFinished(offsetX.value, offsetY.value, velocity)
-                    dragVelocity.value = 0f
-                    offsetY.value = 0f
-                    offsetX.value = 0f
-                }
-            )
-            .draggable(
-                state = rememberDraggableState { delta ->
-                    offsetY.value += delta
-                },
-                orientation = Orientation.Vertical,
-                onDragStopped = { velocity ->
-                    gestureTracker.onDragFinished(offsetX.value, offsetY.value, velocity)
-                    dragVelocity.value = 0f
-                    offsetY.value = 0f
-                    offsetX.value = 0f
-                }
-            ).testTag(MessageTestTags.MESSAGE_CONTENT)
-
+            .testTag(MessageTestTags.MESSAGE_CONTENT)
     )
 }

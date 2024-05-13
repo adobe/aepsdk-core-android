@@ -58,22 +58,22 @@ internal fun MessageFrame(
     onDisposed: () -> Unit
 ) {
     val currentConfiguration = LocalConfiguration.current
-    val horizontalOffset =
-        remember {
-            MessageOffsetMapper.getHorizontalOffset(
-                inAppMessageSettings.horizontalAlignment,
-                inAppMessageSettings.horizontalInset,
-                currentConfiguration.screenWidthDp.dp
-            )
-        }
-    val verticalOffset =
-        remember {
-            MessageOffsetMapper.getVerticalOffset(
-                inAppMessageSettings.verticalAlignment,
-                inAppMessageSettings.verticalInset,
-                currentConfiguration.screenHeightDp.dp
-            )
-        }
+
+    // Ideally, these values can be remembered because generally a configuration
+    // change will refresh the size. However, in-case the configuration changes (e.g. device rotation)
+    // are restricted by the Activity hosting this composable, these values will not be recomputed.
+    // So, we are not remembering these values to ensure that the size is recalculated on every
+    // composition.
+    val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
+        inAppMessageSettings.horizontalAlignment,
+        inAppMessageSettings.horizontalInset,
+        currentConfiguration.screenWidthDp.dp
+    )
+    val verticalOffset = MessageOffsetMapper.getVerticalOffset(
+        inAppMessageSettings.verticalAlignment,
+        inAppMessageSettings.verticalInset,
+        currentConfiguration.screenHeightDp.dp
+    )
 
     val allowGestures = remember { inAppMessageSettings.gestureMap.isNotEmpty() }
     val offsetX = remember { mutableStateOf(0f) }

@@ -17,7 +17,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEqualTo
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
@@ -27,15 +26,14 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeWithVelocity
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpRect
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.height
-import androidx.compose.ui.unit.width
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
+import com.adobe.marketing.mobile.services.ui.message.views.MessageScreenTestHelper.validateBounds
+import com.adobe.marketing.mobile.services.ui.message.views.MessageScreenTestHelper.validateMessageAppeared
+import com.adobe.marketing.mobile.services.ui.message.views.MessageScreenTestHelper.validateViewSize
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -108,7 +106,11 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
@@ -135,7 +137,11 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         // Change the state of the presentation state manager to hidden to remove the message
         presentationStateManager.onHidden()
@@ -173,7 +179,11 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = true,
+            clipped = false
+        )
 
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
@@ -200,7 +210,11 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = true,
+            clipped = false
+        )
 
         // Press back
         Espresso.pressBack()
@@ -234,7 +248,11 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = true,
+            clipped = false
+        )
         // Swipe gestures
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performTouchInput {
             // create a swipe right gesture
@@ -271,7 +289,11 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         // Swipe gestures
         composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).performTouchInput {
@@ -309,25 +331,31 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = true,
+            clipped = false
+        )
 
         // Swipe gestures
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).assertIsDisplayed().performTouchInput {
-            // create a swipe down gesture
-            swipeWithVelocity(
-                start = Offset(0f, 10f),
-                end = Offset(0f, 600f),
-                endVelocity = 1000f
-            )
-        }
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).assertIsDisplayed()
+            .performTouchInput {
+                // create a swipe down gesture
+                swipeWithVelocity(
+                    start = Offset(0f, 10f),
+                    end = Offset(0f, 600f),
+                    endVelocity = 1000f
+                )
+            }
 
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).assertIsDisplayed().performTouchInput {
-            click(
-                Offset(100f, 10f)
-            )
-        }
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).assertIsDisplayed()
+            .performTouchInput {
+                click(
+                    Offset(100f, 10f)
+                )
+            }
         composeTestRule.waitForIdle()
 
         assertTrue(onCreatedCalled)
@@ -338,10 +366,10 @@ class MessageScreenTests {
     }
 
     // ----------------------------------------------------------------------------------------------
-    // Test cases for orientation changes
+    // Test cases for configuration changes
     // ----------------------------------------------------------------------------------------------
     @Test
-    fun testMessageScreenIsRestoredOnOrientationChange() {
+    fun testMessageScreenIsRestoredOnConfigurationChange() {
         val restorationTester = StateRestorationTester(composeTestRule)
         restorationTester.setContent { // setting our composable as content for test
             MessageScreen(
@@ -360,7 +388,11 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         assertTrue(onCreatedCalled)
         assertFalse(onDisposedCalled)
@@ -371,7 +403,11 @@ class MessageScreenTests {
         restorationTester.emulateSavedInstanceStateRestore()
 
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
     }
 
     // ----------------------------------------------------------------------------------------------
@@ -394,7 +430,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
 
@@ -414,14 +451,20 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         validateViewSize(frameBounds, activityHeightDp, screenWidthDp)
 
         // Message Content(WebView) is 100% of height and width, as allowed by the activity
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         validateViewSize(contentBounds, activityHeightDp, screenWidthDp)
     }
 
@@ -444,7 +487,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -463,7 +507,11 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
         val frameBounds =
@@ -475,9 +523,17 @@ class MessageScreenTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         if ((screenHeightDp * (heightPercentage / 100f)) > activityHeightDp) {
-            validateViewSize(contentBounds, activityHeightDp, screenWidthDp * (widthPercentage / 100f))
+            validateViewSize(
+                contentBounds,
+                activityHeightDp,
+                screenWidthDp * (widthPercentage / 100f)
+            )
         } else {
-            validateViewSize(contentBounds, screenHeightDp * (heightPercentage / 100f), screenWidthDp * (widthPercentage / 100f))
+            validateViewSize(
+                contentBounds,
+                screenHeightDp * (heightPercentage / 100f),
+                screenWidthDp * (widthPercentage / 100f)
+            )
         }
     }
 
@@ -504,7 +560,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -523,16 +580,28 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
+        val contentBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
 
         // Frame is same size as its parent so bounds should match the root bounds
-        validateBounds(frameBounds, rootBounds.top, rootBounds.bottom, rootBounds.left, rootBounds.right)
+        validateBounds(
+            frameBounds,
+            rootBounds.top,
+            rootBounds.bottom,
+            rootBounds.left,
+            rootBounds.right
+        )
 
         // Content is top aligned vertically and centered horizontally and takes 80% of screen width
         validateBounds(
@@ -564,7 +633,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -583,16 +653,28 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
+        val contentBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
 
         // Frame is same size as its parent so bounds should match the root bounds
-        validateBounds(frameBounds, rootBounds.top, rootBounds.bottom, rootBounds.left, rootBounds.right)
+        validateBounds(
+            frameBounds,
+            rootBounds.top,
+            rootBounds.bottom,
+            rootBounds.left,
+            rootBounds.right
+        )
 
         // Content is bottom aligned vertically and centered horizontally and takes 80% of screen width
         validateBounds(
@@ -624,7 +706,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -643,16 +726,28 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
+        val contentBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val contentWidth = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame is same size as its parent so bounds should match the root bounds
-        validateBounds(frameBounds, rootBounds.top, rootBounds.bottom, rootBounds.left, rootBounds.right)
+        validateBounds(
+            frameBounds,
+            rootBounds.top,
+            rootBounds.bottom,
+            rootBounds.left,
+            rootBounds.right
+        )
 
         // Content is center aligned vertically and left aligned horizontally and takes heightPercent% of screen height
         validateBounds(
@@ -684,7 +779,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -703,16 +799,28 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
+        val contentBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val contentWidth = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame is same size as its parent so bounds should match the root bounds
-        validateBounds(frameBounds, rootBounds.top, rootBounds.bottom, rootBounds.left, rootBounds.right)
+        validateBounds(
+            frameBounds,
+            rootBounds.top,
+            rootBounds.bottom,
+            rootBounds.left,
+            rootBounds.right
+        )
 
         // Content is center aligned vertically and right aligned horizontally and takes heightPercent% of screen height
         validateBounds(
@@ -745,7 +853,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -764,16 +873,28 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
+        val contentBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val contentWidth = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame is same size as its parent so bounds should match the root bounds
-        validateBounds(frameBounds, rootBounds.top, rootBounds.bottom, rootBounds.left, rootBounds.right)
+        validateBounds(
+            frameBounds,
+            rootBounds.top,
+            rootBounds.bottom,
+            rootBounds.left,
+            rootBounds.right
+        )
 
         // Content is center aligned vertically and right aligned horizontally and takes heightPercent% of screen height
         validateBounds(
@@ -810,7 +931,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -829,11 +951,17 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false, clipped = true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
         val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
@@ -879,7 +1007,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -898,11 +1027,17 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false, clipped = true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
         val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
@@ -948,7 +1083,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -967,11 +1103,17 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false, clipped = true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
         val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
@@ -1017,7 +1159,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -1036,11 +1179,17 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false, clipped = true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
         val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
@@ -1086,7 +1235,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -1105,11 +1255,17 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false, clipped = true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
         val verticalContentPaddingDp = (activityHeightDp - contentHeightDp) / 2
@@ -1156,7 +1312,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -1175,11 +1332,17 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false, clipped = true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
         val verticalContentPaddingDp = (activityHeightDp - contentHeightDp) / 2
@@ -1226,7 +1389,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -1245,11 +1409,17 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false, clipped = true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
         val verticalContentPaddingDp = (activityHeightDp - contentHeightDp) / 2
@@ -1296,7 +1466,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -1315,11 +1486,17 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false, clipped = true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
         val verticalContentPaddingDp = (activityHeightDp - contentHeightDp) / 2
@@ -1368,7 +1545,8 @@ class MessageScreenTests {
             screenHeightDp = currentConfiguration.screenHeightDp.dp
             screenWidthDp = currentConfiguration.screenWidthDp.dp
 
-            val activityRoot = composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
+            val activityRoot =
+                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
             activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
             activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
@@ -1387,11 +1565,17 @@ class MessageScreenTests {
         // Change the state of the presentation state manager to shown to display the message
         presentationStateManager.onShown()
         composeTestRule.waitForIdle()
-        validateMessageAppeared(false, clipped = true)
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
 
         val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
-        val frameBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getUnclippedBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
         val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
         val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
         val heightOffset = screenHeightDp * offsetPercent.toFloat() / 100f
@@ -1426,22 +1610,6 @@ class MessageScreenTests {
         detectedGestures.clear()
     }
 
-    private fun validateMessageAppeared(withBackdrop: Boolean, clipped: Boolean = false) {
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertExists().also {
-            if (!clipped) it.assertIsDisplayed()
-        }
-        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).assertExists().also {
-            if (!clipped) it.assertIsDisplayed()
-        }
-        if (withBackdrop) {
-            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).assertExists().also {
-                if (!clipped) it.assertIsDisplayed()
-            }
-        } else {
-            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_BACKDROP).assertDoesNotExist()
-        }
-    }
-
     private fun getSettings(withUiTakeOver: Boolean): InAppMessageSettings {
         return InAppMessageSettings.Builder()
             .backdropOpacity(0.5f)
@@ -1456,17 +1624,5 @@ class MessageScreenTests {
             .content(HTML_TEXT_SAMPLE)
             .gestureMap(acceptedGestures)
             .build()
-    }
-
-    private fun validateViewSize(viewBounds: DpRect, height: Dp, width: Dp) {
-        viewBounds.height.assertIsEqualTo(height, "failed", Dp(2f))
-        viewBounds.width.assertIsEqualTo(width, "failed", Dp(2f))
-    }
-
-    private fun validateBounds(viewBounds: DpRect, top: Dp, bottom: Dp, left: Dp, right: Dp) {
-        viewBounds.top.assertIsEqualTo(top, "failed", Dp(2f))
-        viewBounds.bottom.assertIsEqualTo(bottom, "failed", Dp(2f))
-        viewBounds.left.assertIsEqualTo(left, "failed", Dp(2f))
-        viewBounds.right.assertIsEqualTo(right, "failed", Dp(2f))
     }
 }

@@ -101,7 +101,7 @@ internal object BasicNotificationBuilder {
         } else {
             expandedLayout.setImageViewBitmap(
                 R.id.expanded_template_image,
-                PushTemplateImageUtil.getImageFromCache(cacheService, imageUri)
+                PushTemplateImageUtil.getCachedImage(cacheService, imageUri)
             )
         }
 

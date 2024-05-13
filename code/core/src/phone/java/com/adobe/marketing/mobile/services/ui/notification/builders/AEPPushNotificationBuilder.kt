@@ -636,7 +636,7 @@ internal object AEPPushNotificationBuilder {
             return
         }
 
-        val bitmap = PushTemplateImageUtil.getImageFromCache(cacheService, imageUrl)
+        val bitmap = PushTemplateImageUtil.getCachedImage(cacheService, imageUrl)
         notificationBuilder.setLargeIcon(bitmap)
         val bigPictureStyle = NotificationCompat.BigPictureStyle()
         bigPictureStyle.bigPicture(bitmap)
@@ -756,7 +756,7 @@ internal object AEPPushNotificationBuilder {
             }
             remoteView.setImageViewBitmap(
                 R.id.large_icon,
-                PushTemplateImageUtil.getImageFromCache(cacheService, largeIcon)
+                PushTemplateImageUtil.getCachedImage(cacheService, largeIcon)
             )
         }
     }

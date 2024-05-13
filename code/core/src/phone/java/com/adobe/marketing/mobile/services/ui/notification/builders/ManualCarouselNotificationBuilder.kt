@@ -184,7 +184,7 @@ internal object ManualCarouselNotificationBuilder {
         val validCarouselItems = mutableListOf<CarouselPushTemplate.CarouselItem>()
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtil.getImageFromCache(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtil.getCachedImage(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
@@ -356,7 +356,7 @@ internal object ManualCarouselNotificationBuilder {
     ) {
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtil.getImageFromCache(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtil.getCachedImage(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,

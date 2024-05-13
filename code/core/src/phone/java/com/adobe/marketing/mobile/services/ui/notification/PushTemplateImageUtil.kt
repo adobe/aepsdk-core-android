@@ -33,6 +33,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Utility functions to assist in downloading and caching images for push template notifications.
@@ -45,10 +46,12 @@ internal object PushTemplateImageUtil {
 
     /**
      * Downloads an image using the provided url `String`. Prior to downloading, the image url
-     * is used to retrieve a [CacheResult] containing a previously cached image. If no cache
-     * result is returned, a call to [download] is made to download then cache the image.
-     *
+     * is used to retrieve a [CacheResult] containing a previously cached image.
      * If a valid cache result is returned then no image is downloaded.
+     * If no cache result is returned, a call to [download] is made to download then cache the image.
+     *
+     * This is a blocking method that returns only after the download for all images
+     * have finished either by failing or successfully downloading, or the timeout has been reached.
      *
      * @param cacheService the AEPSDK [CacheService] to use for caching downloaded image assets
      * @param urlList [String] containing an image asset url
@@ -63,7 +66,7 @@ internal object PushTemplateImageUtil {
             return 0
         }
 
-        var downloadedImageCount = 0
+        var downloadedImageCount = AtomicInteger(0)
         val latch = CountDownLatch(urlList.size)
         for (url in urlList) {
             if (url == null || !UrlUtils.isValidUrl(url)) {
@@ -78,7 +81,7 @@ internal object PushTemplateImageUtil {
                     SELF_TAG,
                     "Found cached image for $url"
                 )
-                downloadedImageCount++
+                downloadedImageCount.incrementAndGet()
                 latch.countDown()
                 continue
             }
@@ -90,7 +93,7 @@ internal object PushTemplateImageUtil {
                         SELF_TAG,
                         "Successfully download image from $url"
                     )
-                    downloadedImageCount++
+                    downloadedImageCount.incrementAndGet()
 
                     // scale down the bitmap to 300dp x 200dp as we don't want to use a full
                     // size image due to memory constraints
@@ -116,7 +119,7 @@ internal object PushTemplateImageUtil {
             }
         }
         latch.await(DOWNLOAD_TIMEOUT_SECS.toLong(), TimeUnit.SECONDS)
-        return downloadedImageCount
+        return downloadedImageCount.get()
     }
 
     /**
@@ -157,7 +160,7 @@ internal object PushTemplateImageUtil {
      * @param url [String] containing the image url to retrieve from cache
      * @return [Bitmap] containing the image retrieved from cache, or `null` if no image is found
      */
-    internal fun getImageFromCache(cacheService: CacheService, url: String?): Bitmap? {
+    internal fun getCachedImage(cacheService: CacheService, url: String?): Bitmap? {
         val assetCacheLocation = getAssetCacheLocation()
         if (assetCacheLocation.isNullOrEmpty() || url.isNullOrEmpty()) {
             return null

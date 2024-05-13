@@ -7,7 +7,7 @@
     <activity android:name="com.adobe.marketing.mobile.internal.DataMarshallerTests$TestActivity" />
     <activity
         android:name="com.adobe.marketing.mobile.services.ui.RestrictedConfigActivity"
-        android:configChanges="orientation"
+        android:configChanges="orientation|screenSize"
         />
   </application>
   <uses-permission android:name="android.permission.INTERNET" />

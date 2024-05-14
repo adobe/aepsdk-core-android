@@ -8,15 +8,21 @@
         <item name="android:windowIsFloating">true</item>
         <item name="android:backgroundDimEnabled">false</item>
     </style>
-    <style name="Title" parent="android:Widget.TextView">
-        <item name="android:textColor">@android:color/black</item>
+    <style name="Title" parent="android:TextAppearance.Material.Title">
+        <item name="android:textColor">?android:textColorPrimary</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">12sp</item>
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>
     </style>
-    <style name="Body" parent="android:Widget.TextView">
-        <item name="android:textColor">@android:color/black</item>
+    <style name="Body" parent="android:TextAppearance.Material.Body1">
+        <item name="android:textColor">?android:textColorPrimary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:maxLines">3</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <style name="Caption" parent="android:TextAppearance.Material.Caption">
+        <item name="android:textColor">?android:textColorPrimary</item>
         <item name="android:textSize">12sp</item>
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>

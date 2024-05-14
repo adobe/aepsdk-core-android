@@ -3,19 +3,21 @@
     android:id="@+id/basic_expanded_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:clipChildren="false"
     android:orientation="vertical">
 
     <ImageView
         android:id="@+id/large_icon"
-        android:layout_height="35dp"
-        android:layout_width="35dp"
+        android:layout_height="@dimen/large_icon_height"
+        android:layout_width="@dimen/large_icon_width"
         android:layout_alignParentRight="true" />
 
     <TextView
         android:id="@+id/notification_title"
         style="@style/Title"
         android:layout_width="match_parent"
-        android:layout_height="20dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="start"
         android:textAlignment="viewStart"
         android:layout_toLeftOf="@+id/large_icon"/>
@@ -24,7 +26,7 @@
         android:id="@+id/notification_body_expanded"
         style="@style/Body"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
+        android:layout_height="wrap_content"
         android:layout_below="@id/notification_title"
         android:layout_gravity="start"
         android:textAlignment="viewStart"
@@ -33,7 +35,7 @@
     <ImageView
         android:id="@+id/expanded_template_image"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="@dimen/basic_expanded_image_height"
         android:layout_gravity="center"
         android:adjustViewBounds="true"
         android:layout_below="@id/notification_body_expanded"/>

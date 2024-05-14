@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="large_icon_height">35dp</dimen>
+    <dimen name="large_icon_width">35dp</dimen>
+    <dimen name="basic_expanded_image_height">200dp</dimen>
+    <dimen name="carousel_item_layout_height">200dp</dimen>
+    <dimen name="carousel_item_layout_width">250dp</dimen>
+    <dimen name="carousel_skip_button_height">20dp</dimen>
+    <dimen name="carousel_skip_button_width">15dp</dimen>
+    <dimen name="filmstrip_carousel_center_image_height">200dp</dimen>
+    <dimen name="filmstrip_carousel_center_image_width">200dp</dimen>
+    <dimen name="filmstrip_carousel_side_image_height">175dp</dimen>
+    <dimen name="filmstrip_carousel_side_image_width">100dp</dimen>
+    <dimen name="filmstrip_carousel_side_image_margin_edge">2dp</dimen>
+    <dimen name="filmstrip_carousel_side_image_margin_top">15dp</dimen>
+</resources>

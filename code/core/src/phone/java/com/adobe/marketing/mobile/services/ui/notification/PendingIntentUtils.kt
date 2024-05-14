@@ -19,7 +19,7 @@ import java.util.Random
 
 internal object PendingIntentUtils {
 
-    private const val SELF_TAG = "IntentUtils"
+    private const val SELF_TAG = "PendingIntentUtils"
 
     /**
      * Creates a pending intent for a notification.

@@ -15,7 +15,7 @@ package com.adobe.marketing.mobile.services.ui.notification
  * Enum class representing the different types of out-of-the-box push templates.
  */
 internal enum class PushTemplateType(val value: String) {
-    BASIC("basic"), CAROUSEL("car"), INPUT_BOX("input"), UNKNOWN("unknown");
+    BASIC("basic"), CAROUSEL("car"), INPUT_BOX("input"), ZERO_BEZEL("zb"), UNKNOWN("unknown");
 
     companion object {
         /**
@@ -29,6 +29,7 @@ internal enum class PushTemplateType(val value: String) {
                 "basic" -> BASIC
                 "car" -> CAROUSEL
                 "input" -> INPUT_BOX
+                "zb" -> ZERO_BEZEL
                 else -> UNKNOWN
             }
         }

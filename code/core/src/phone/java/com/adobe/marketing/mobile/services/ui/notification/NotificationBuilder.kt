@@ -21,11 +21,13 @@ import com.adobe.marketing.mobile.services.ui.notification.builders.AutoCarousel
 import com.adobe.marketing.mobile.services.ui.notification.builders.BasicNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.builders.LegacyNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.builders.ManualCarouselNotificationBuilder
+import com.adobe.marketing.mobile.services.ui.notification.builders.ZeroBezelNotificationBuilder
 import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.templates.AutoCarouselPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.templates.CarouselPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.templates.ManualCarouselPushTemplate
+import com.adobe.marketing.mobile.services.ui.notification.templates.ZeroBezelPushTemplate
 
 /**
  * Public facing object to construct a [NotificationCompat.Builder] object for the specified [PushTemplateType].
@@ -90,6 +92,15 @@ object NotificationBuilder {
                         )
                     }
                 }
+            }
+
+            PushTemplateType.ZERO_BEZEL -> {
+                val zeroBezelPushTemplate = ZeroBezelPushTemplate(messageData)
+                return ZeroBezelNotificationBuilder.construct(
+                    context,
+                    zeroBezelPushTemplate,
+                    trackerActivityClass
+                )
             }
 
             PushTemplateType.UNKNOWN -> {

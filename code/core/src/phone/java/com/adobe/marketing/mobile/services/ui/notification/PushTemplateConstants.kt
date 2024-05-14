@@ -161,6 +161,7 @@ internal object PushTemplateConstants {
         const val REMIND_LATER_EPOCH_TIMESTAMP = "adb_rem_ts"
         const val REMIND_LATER_DELAY_SECONDS = "adb_rem_sec"
         const val CAROUSEL_OPERATION_MODE = "adb_car_mode"
+        const val ZERO_BEZEL_COLLAPSED_STYLE = "adb_col_style"
     }
 
     internal object CarouselItemKeys {

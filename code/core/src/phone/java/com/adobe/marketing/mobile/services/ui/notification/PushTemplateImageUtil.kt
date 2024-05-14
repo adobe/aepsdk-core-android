@@ -88,13 +88,6 @@ internal object PushTemplateImageUtil {
 
             download(url) { image ->
                 image?.let {
-                    Log.trace(
-                        PushTemplateConstants.LOG_TAG,
-                        SELF_TAG,
-                        "Successfully download image from $url"
-                    )
-                    downloadedImageCount.incrementAndGet()
-
                     // scale down the bitmap to 300dp x 200dp as we don't want to use a full
                     // size image due to memory constraints
                     val pushImage = scaleBitmap(image)
@@ -107,6 +100,7 @@ internal object PushTemplateImageUtil {
                                 url
                             )
                         }
+                        downloadedImageCount.incrementAndGet()
                     } catch (exception: IOException) {
                         Log.trace(
                             PushTemplateConstants.LOG_TAG,
@@ -182,7 +176,7 @@ internal object PushTemplateImageUtil {
      */
     internal fun getCachedImage(cacheService: CacheService, url: String?): Bitmap? {
         val assetCacheLocation = getAssetCacheLocation()
-        if (assetCacheLocation.isNullOrEmpty() || url.isNullOrEmpty()) {
+        if (url == null || !UrlUtils.isValidUrl(url) || assetCacheLocation.isNullOrEmpty()) {
             return null
         }
         val cacheResult = cacheService[assetCacheLocation, url]

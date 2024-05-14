@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.services.ui.notification.builders
 
 import android.app.Activity
+import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.graphics.Bitmap
@@ -24,6 +25,8 @@ import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.extensions.createNotificationChannelIfRequired
+import com.adobe.marketing.mobile.services.ui.notification.extensions.setRemoteViewClickAction
 import com.adobe.marketing.mobile.services.ui.notification.templates.AutoCarouselPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.templates.CarouselPushTemplate
 
@@ -91,19 +94,17 @@ internal object AutoCarouselNotificationBuilder {
                 pushTemplate.messageData
             )
         }
-        smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
-        smallLayout.setTextViewText(R.id.notification_body, pushTemplate.body)
-        expandedLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
-        expandedLayout.setTextViewText(
-            R.id.notification_body_expanded, pushTemplate.expandedBodyText
-        )
+
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Create the notification channel if needed
-        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
+        val channelIdToUse = notificationManager.createNotificationChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
+            pushTemplate.getNotificationImportance(),
+            pushTemplate.isFromIntent
         )
 
         // create the notification builder with the common settings applied
@@ -159,10 +160,9 @@ internal object AutoCarouselNotificationBuilder {
             // assign a click action pending intent for each carousel item if we have a tracker activity
             trackerActivityClass?.let {
                 val interactionUri = item.interactionUri ?: pushTemplate.actionUri
-                AEPPushNotificationBuilder.setRemoteViewClickAction(
+                carouselItem.setRemoteViewClickAction(
                     context,
                     trackerActivityClass,
-                    carouselItem,
                     R.id.carousel_item_image_view,
                     interactionUri,
                     pushTemplate.tag,

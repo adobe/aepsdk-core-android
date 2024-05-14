@@ -12,7 +12,10 @@
 package com.adobe.marketing.mobile.identity
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.VisitorID
@@ -52,6 +55,7 @@ import java.net.HttpURLConnection
 import java.util.Random
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertNotEquals
 
 private typealias NetworkMonitor = (url: String) -> Unit
 
@@ -2036,5 +2040,148 @@ class IdentityFunctionalTests {
         )
 
         countDownLatch.await()
+    }
+
+    @Test(timeout = 10000)
+    fun test_resetIdentities_doesNotDispatch_analyticsForIdentityRequest() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+
+        val oldMid = identityExtension.mid
+
+        doAnswer { invocation ->
+            fail("Did not expect any dispatched events but found ${invocation.arguments.size}!")
+        }.`when`(mockedExtensionApi).dispatch(any())
+
+        identityExtension.handleIdentityRequestReset(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.generic.identity",
+                "com.adobe.eventSource.requestReset"
+            ).build()
+        )
+
+        assertNotEquals(oldMid, identityExtension.mid)
+    }
+
+    @Test(timeout = 10000)
+    fun test_setPushIdentifier_validToken_dispatchesAnalyticsForIdentityRequest() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+
+        val countDownLatch = CountDownLatch(1)
+        doAnswer { invocation ->
+            val event: Event? = invocation.arguments[0] as Event?
+            assertEquals(EventType.ANALYTICS, event?.type)
+            assertEquals(EventSource.REQUEST_CONTENT, event?.source)
+            val eventData = event?.eventData
+            assertNotNull(eventData)
+            val jsonObject = JSONObject(eventData)
+            assertEquals("Push", jsonObject.getString("action"))
+            assertTrue(jsonObject.getBoolean("trackinternal"))
+            val jsonContextObject = jsonObject.getJSONObject("contextdata")
+            assertEquals("true", jsonContextObject.getString("a.push.optin"))
+            countDownLatch.countDown()
+        }.`when`(mockedExtensionApi).dispatch(any())
+
+        identityExtension.processIdentityRequest(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.generic.identity",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(
+                mapOf(
+                    "pushidentifier" to "D52DB39EEE21395B2B67B895FC478301CE6E936D82521E095902A5E0F57EE0B3"
+                )
+            ).build()
+        )
+
+        countDownLatch.await()
+    }
+
+    @Test(timeout = 10000)
+    fun test_setPushIdentifier_null_dispatchesAnalyticsForIdentityRequest() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+
+        val countDownLatch = CountDownLatch(1)
+        doAnswer { invocation ->
+            val event: Event? = invocation.arguments[0] as Event?
+            assertEquals(EventType.ANALYTICS, event?.type)
+            assertEquals(EventSource.REQUEST_CONTENT, event?.source)
+            val eventData = event?.eventData
+            assertNotNull(eventData)
+            val jsonObject = JSONObject(eventData)
+            assertEquals("Push", jsonObject.getString("action"))
+            assertTrue(jsonObject.getBoolean("trackinternal"))
+            val jsonContextObject = jsonObject.getJSONObject("contextdata")
+            assertEquals("false", jsonContextObject.getString("a.push.optin"))
+            countDownLatch.countDown()
+        }.`when`(mockedExtensionApi).dispatch(any())
+
+        identityExtension.processIdentityRequest(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.generic.identity",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(
+                mapOf(
+                    "pushidentifier" to null
+                )
+            ).build()
+        )
+
+        countDownLatch.await()
+    }
+    @Test(timeout = 10000)
+    fun test_updatePrivacyStatusOptedOut_doesNotDispatch_analyticsForIdentityRequest() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+
+        assertNotNull(identityExtension.mid)
+
+        doAnswer { invocation ->
+            fail("Did not expect any dispatched events but found ${invocation.arguments.size}!")
+        }.`when`(mockedExtensionApi).dispatch(any())
+
+        identityExtension.handleConfiguration(
+            Event.Builder(
+                "configuration response",
+                "com.adobe.eventType.configuration",
+                "com.adobe.eventSource.responseContent"
+            ).setEventData(
+                mapOf("global.privacy" to MobilePrivacyStatus.OPT_OUT.value)
+            ).build()
+        )
+
+        assertNull(identityExtension.mid)
     }
 }

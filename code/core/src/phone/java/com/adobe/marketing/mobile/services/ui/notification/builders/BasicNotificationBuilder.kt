@@ -25,7 +25,7 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
 import com.adobe.marketing.mobile.services.ui.notification.extensions.addActionButtons
 import com.adobe.marketing.mobile.services.ui.notification.extensions.createNotificationChannelIfRequired
 import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
@@ -78,7 +78,7 @@ internal object BasicNotificationBuilder {
 
         // set the image on the notification
         val imageUri = pushTemplate.imageUrl
-        val downloadedImageCount = PushTemplateImageUtil.downloadImage(cacheService, listOf(imageUri))
+        val downloadedImageCount = PushTemplateImageUtils.cacheImages(cacheService, listOf(imageUri))
 
         if (downloadedImageCount == 0) {
             Log.trace(
@@ -90,7 +90,7 @@ internal object BasicNotificationBuilder {
         } else {
             expandedLayout.setImageViewBitmap(
                 R.id.expanded_template_image,
-                PushTemplateImageUtil.getCachedImage(cacheService, imageUri)
+                PushTemplateImageUtils.getCachedImage(cacheService, imageUri)
             )
         }
 

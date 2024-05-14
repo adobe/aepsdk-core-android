@@ -23,7 +23,7 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
 import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
 import java.util.Random
@@ -190,7 +190,7 @@ internal fun NotificationCompat.Builder.setLargeIcon(
     // Quick bail out if there is no image url
     if (imageUrl.isNullOrEmpty()) return this
     val cacheService = ServiceProvider.getInstance().cacheService
-    val downloadedIconCount: Int = PushTemplateImageUtil.downloadImage(
+    val downloadedIconCount: Int = PushTemplateImageUtils.cacheImages(
         cacheService,
         listOf(imageUrl)
     )
@@ -200,7 +200,7 @@ internal fun NotificationCompat.Builder.setLargeIcon(
         return this
     }
 
-    val bitmap = PushTemplateImageUtil.getCachedImage(cacheService, imageUrl)
+    val bitmap = PushTemplateImageUtils.getCachedImage(cacheService, imageUrl)
     setLargeIcon(bitmap)
     val bigPictureStyle = NotificationCompat.BigPictureStyle()
     bigPictureStyle.bigPicture(bitmap)

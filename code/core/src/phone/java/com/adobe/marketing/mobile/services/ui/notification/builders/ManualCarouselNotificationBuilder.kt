@@ -27,7 +27,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
 import com.adobe.marketing.mobile.services.ui.notification.extensions.createNotificationChannelIfRequired
 import com.adobe.marketing.mobile.services.ui.notification.extensions.setRemoteViewClickAction
 import com.adobe.marketing.mobile.services.ui.notification.templates.CarouselPushTemplate
@@ -59,7 +59,7 @@ internal object ManualCarouselNotificationBuilder {
         )
 
         // download carousel images
-        val downloadedImagesCount = PushTemplateImageUtil.downloadImage(
+        val downloadedImagesCount = PushTemplateImageUtils.cacheImages(
             cacheService,
             pushTemplate.carouselItems.map { it.imageUri }
         )
@@ -171,7 +171,7 @@ internal object ManualCarouselNotificationBuilder {
         val validCarouselItems = mutableListOf<CarouselPushTemplate.CarouselItem>()
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtil.getCachedImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtils.getCachedImage(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
@@ -335,7 +335,7 @@ internal object ManualCarouselNotificationBuilder {
     ) {
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtil.getCachedImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtils.getCachedImage(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
@@ -404,7 +404,7 @@ internal object ManualCarouselNotificationBuilder {
         )
 
         // set the downloaded bitmaps in the filmstrip image views
-        val assetCacheLocation = PushTemplateImageUtil.getAssetCacheLocation()
+        val assetCacheLocation = PushTemplateImageUtils.getAssetCacheLocation()
         if (assetCacheLocation.isNullOrEmpty()) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,

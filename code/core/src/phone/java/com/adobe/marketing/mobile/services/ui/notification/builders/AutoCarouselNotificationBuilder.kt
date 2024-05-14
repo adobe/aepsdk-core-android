@@ -24,7 +24,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
 import com.adobe.marketing.mobile.services.ui.notification.extensions.createNotificationChannelIfRequired
 import com.adobe.marketing.mobile.services.ui.notification.extensions.setRemoteViewClickAction
 import com.adobe.marketing.mobile.services.ui.notification.templates.AutoCarouselPushTemplate
@@ -60,7 +60,7 @@ internal object AutoCarouselNotificationBuilder {
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_auto_carousel)
 
         // load images into the carousel
-        val downloadedImageCount = PushTemplateImageUtil.downloadImage(
+        val downloadedImageCount = PushTemplateImageUtils.cacheImages(
             cacheService,
             pushTemplate.carouselItems.map { it.imageUri }
         )
@@ -143,7 +143,7 @@ internal object AutoCarouselNotificationBuilder {
         val downloadedImageUris = mutableListOf<String>()
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtil.getCachedImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtils.getCachedImage(cacheService, imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,

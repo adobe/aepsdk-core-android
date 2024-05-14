@@ -23,7 +23,7 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
 import com.adobe.marketing.mobile.util.UrlUtils
 
 private const val SELF_TAG = "RemoteViewExtensions"
@@ -228,7 +228,7 @@ internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
         return
     }
     val cacheService = ServiceProvider.getInstance().cacheService
-    val downloadedIconCount = PushTemplateImageUtil.downloadImage(cacheService, listOf(largeIcon))
+    val downloadedIconCount = PushTemplateImageUtils.cacheImages(cacheService, listOf(largeIcon))
     if (downloadedIconCount == 0) {
         Log.trace(
             PushTemplateConstants.LOG_TAG,
@@ -240,7 +240,7 @@ internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
     }
     setImageViewBitmap(
         R.id.large_icon,
-        PushTemplateImageUtil.getCachedImage(cacheService, largeIcon)
+        PushTemplateImageUtils.getCachedImage(cacheService, largeIcon)
     )
 }
 

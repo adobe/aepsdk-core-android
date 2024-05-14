@@ -39,16 +39,16 @@ import java.util.concurrent.atomic.AtomicInteger
  * Utility functions to assist in downloading and caching images for push template notifications.
  */
 
-internal object PushTemplateImageUtil {
+internal object PushTemplateImageUtils {
     private const val SELF_TAG = "PushTemplateImageUtil"
     private const val FULL_BITMAP_QUALITY = 100
     private const val DOWNLOAD_TIMEOUT_SECS = 10
 
     /**
-     * Downloads an image using the provided url `String`. Prior to downloading, the image url
+     * Downloads and caches images provided in the [urlList]. Prior to downloading, the image url
      * is used to retrieve a [CacheResult] containing a previously cached image.
      * If a valid cache result is returned then no image is downloaded.
-     * If no cache result is returned, a call to [download] is made to download then cache the image.
+     * If no cache result is returned, a call to [downloadImage] is made to download then cache the image.
      *
      * This is a blocking method that returns only after the download for all images
      * have finished either by failing or successfully downloading, or the timeout has been reached.
@@ -57,7 +57,7 @@ internal object PushTemplateImageUtil {
      * @param urlList [String] containing an image asset url
      * @return [Int] number of images that were found in cache or successfully downloaded
      */
-    internal fun downloadImage(
+    internal fun cacheImages(
         cacheService: CacheService,
         urlList: List<String?>
     ): Int {
@@ -86,7 +86,7 @@ internal object PushTemplateImageUtil {
                 continue
             }
 
-            download(url) { image ->
+            downloadImage(url) { image ->
                 image?.let {
                     // scale down the bitmap to 300dp x 200dp as we don't want to use a full
                     // size image due to memory constraints
@@ -143,7 +143,7 @@ internal object PushTemplateImageUtil {
      * @param completionCallback callback to be invoked with the downloaded [Bitmap]
      * when image specified by the given url is downloaded
      */
-    internal fun download(
+    private fun downloadImage(
         url: String,
         completionCallback: (Bitmap?) -> Unit
     ) {

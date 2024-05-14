@@ -203,8 +203,6 @@ internal object ManualCarouselNotificationBuilder {
                 } else {
                     getNewIndicesForNavigateRight(pushTemplate.centerImageIndex, imageUris.size)
                 }
-            pushTemplate.centerImageIndex =
-                carouselIndices.second
         } else { // setup default indices if not building the notification from an intent
             carouselIndices =
                 if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
@@ -215,13 +213,14 @@ internal object ManualCarouselNotificationBuilder {
                     )
                 } else {
                     Triple(
+                        imageUris.size - 1,
                         PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX,
-                        PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX + 1,
-                        PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX + 2
+                        PushTemplateConstants.DefaultValues.MANUAL_CAROUSEL_START_INDEX + 1
                     )
                 }
         }
 
+        pushTemplate.centerImageIndex = carouselIndices.second
         return carouselIndices
     }
 

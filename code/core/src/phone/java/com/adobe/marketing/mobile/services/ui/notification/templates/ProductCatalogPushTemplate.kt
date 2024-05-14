@@ -19,9 +19,6 @@ import org.json.JSONArray
 import org.json.JSONException
 
 internal class ProductCatalogPushTemplate : AEPPushTemplate {
-    internal var intentAction: String? = null
-        private set
-
     // Required, Text to be shown on the CTA button
     internal var ctaButtonText: String? = null
         private set
@@ -82,7 +79,6 @@ internal class ProductCatalogPushTemplate : AEPPushTemplate {
     }
 
     constructor(intent: Intent) : super(intent) {
-        intentAction = intent.action
         ctaButtonText =
             intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_TEXT)
         ctaButtonUri =

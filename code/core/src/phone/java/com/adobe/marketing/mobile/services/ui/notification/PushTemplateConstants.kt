@@ -54,7 +54,6 @@ internal object PushTemplateConstants {
 
     internal object DefaultValues {
         const val SILENT_NOTIFICATION_CHANNEL_ID = "AEPSDK Silent Push Notifications"
-        const val SILENT_SOUND = "silent"
         const val CAROUSEL_MAX_BITMAP_WIDTH = 300
         const val CAROUSEL_MAX_BITMAP_HEIGHT = 200
         const val AUTO_CAROUSEL_MODE = "auto"
@@ -113,6 +112,10 @@ internal object PushTemplateConstants {
         const val CAROUSEL_OPERATION_MODE = "carouselOperationMode"
         const val CAROUSEL_LAYOUT_TYPE = "carouselLayoutType"
         const val CAROUSEL_ITEMS = "carouselItems"
+        const val CATALOG_CTA_BUTTON_TEXT = "ctaButtonText"
+        const val CATALOG_CTA_BUTTON_URI = "ctaButtonUri"
+        const val CATALOG_LAYOUT = "displayLayout"
+        const val CATALOG_ITEMS = "catalogItems"
     }
 
     internal object MethodNames {
@@ -149,9 +152,6 @@ internal object PushTemplateConstants {
         const val VERSION = "adb_version"
         const val CAROUSEL_LAYOUT = "adb_car_layout"
         const val CAROUSEL_ITEMS = "adb_items"
-        const val CAROUSEL_ITEM_IMAGE = "img"
-        const val CAROUSEL_ITEM_TEXT = "txt"
-        const val CAROUSEL_ITEM_URI = "uri"
         const val EXPANDED_BODY_TEXT = "adb_body_ex"
         const val EXPANDED_BODY_TEXT_COLOR = "adb_clr_body"
         const val TITLE_TEXT_COLOR = "adb_clr_title"
@@ -161,11 +161,23 @@ internal object PushTemplateConstants {
         const val REMIND_LATER_EPOCH_TIMESTAMP = "adb_rem_ts"
         const val REMIND_LATER_DELAY_SECONDS = "adb_rem_sec"
         const val CAROUSEL_OPERATION_MODE = "adb_car_mode"
+        const val CATALOG_CTA_BUTTON_TEXT = "adb_cta_txt"
+        const val CATALOG_CTA_BUTTON_URI = "adb_cta_uri"
+        const val CATALOG_LAYOUT = "adb_display"
+        const val CATALOG_ITEMS = "adb_items"
     }
 
     internal object CarouselItemKeys {
         const val IMAGE = "img"
         const val TEXT = "txt"
-        const val URL = "uri"
+        const val URI = "uri"
+    }
+
+    internal object CatalogItemKeys {
+        const val TITLE = "title"
+        const val BODY = "body"
+        const val IMAGE = "img"
+        const val PRICE = "price"
+        const val URI = "uri"
     }
 }

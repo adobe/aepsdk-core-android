@@ -76,12 +76,12 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                 val carouselItemMap = carouselObject as Map<String, String>
                 // the image uri is required, do not create a CarouselItem if it is missing
                 val carouselImage =
-                    carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_IMAGE]
+                    carouselItemMap[PushTemplateConstants.CarouselItemKeys.IMAGE]
                 if (carouselImage.isNullOrEmpty()) break
                 val text =
-                    carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_TEXT]
+                    carouselItemMap[PushTemplateConstants.CarouselItemKeys.TEXT]
                 val uri =
-                    carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_URI]
+                    carouselItemMap[PushTemplateConstants.CarouselItemKeys.URI]
                 val carouselItem =
                     CarouselItem(
                         carouselImage,
@@ -141,9 +141,9 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                     val captionText =
                         item.optString(PushTemplateConstants.CarouselItemKeys.TEXT, "")
                     val interactionUri =
-                        item.optString(PushTemplateConstants.CarouselItemKeys.URL, "")
+                        item.optString(PushTemplateConstants.CarouselItemKeys.URI, "")
                     carouselItems.add(
-                        CarouselPushTemplate.CarouselItem(
+                        CarouselItem(
                             imageUri,
                             captionText,
                             interactionUri

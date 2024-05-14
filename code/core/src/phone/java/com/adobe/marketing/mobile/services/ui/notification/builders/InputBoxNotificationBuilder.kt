@@ -17,7 +17,6 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -27,6 +26,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.extensions.createNotificationChannelIfRequired
 import com.adobe.marketing.mobile.services.ui.notification.templates.InputBoxPushTemplate
 
 /**
@@ -55,22 +55,14 @@ internal object InputBoxNotificationBuilder {
         val smallLayout = RemoteViews(packageName, R.layout.push_template_collapsed)
         val expandedLayout = RemoteViews(packageName, R.layout.push_template_expanded)
 
-        // create a silent notification channel if needed
-        if (pushTemplate.isFromIntent == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            AEPPushNotificationBuilder.setupSilentNotificationChannel(
-                notificationManager,
-                pushTemplate.getNotificationImportance()
-            )
-        }
-
-        // create the notification channel if needed
-        val channelIdToUse = AEPPushNotificationBuilder.createChannelIfRequired(
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelIdToUse: String = notificationManager.createNotificationChannelIfRequired(
             context,
             pushTemplate.channelId,
             pushTemplate.sound,
-            pushTemplate.getNotificationImportance()
+            pushTemplate.getNotificationImportance(),
+            pushTemplate.isFromIntent
         )
 
         // create the notification builder with the common settings applied
@@ -86,7 +78,7 @@ internal object InputBoxNotificationBuilder {
 
         // get push payload data. if we are handling an intent then we know that we should be building a feedback received notification.
         val imageUri =
-            if (pushTemplate.isFromIntent != true) pushTemplate.imageUrl else pushTemplate.feedbackImage
+            if (!pushTemplate.isFromIntent) pushTemplate.imageUrl else pushTemplate.feedbackImage
         val pushImage = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
 
         if (pushImage != null) {
@@ -101,9 +93,9 @@ internal object InputBoxNotificationBuilder {
         }
 
         val expandedBodyText =
-            if (pushTemplate.isFromIntent == true) pushTemplate.feedbackText else pushTemplate.expandedBodyText
+            if (pushTemplate.isFromIntent) pushTemplate.feedbackText else pushTemplate.expandedBodyText
         val collapsedBodyText =
-            if (pushTemplate.isFromIntent == true) pushTemplate.feedbackText else pushTemplate.body
+            if (pushTemplate.isFromIntent) pushTemplate.feedbackText else pushTemplate.body
         smallLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
         smallLayout.setTextViewText(R.id.notification_body, collapsedBodyText)
         expandedLayout.setTextViewText(R.id.notification_title, pushTemplate.title)
@@ -112,7 +104,7 @@ internal object InputBoxNotificationBuilder {
         )
 
         // add an input box to capture user feedback if the push template is not from an intent
-        if (pushTemplate.isFromIntent == true || pushTemplate.inputBoxReceiverName.isNullOrEmpty()) {
+        if (pushTemplate.isFromIntent || pushTemplate.inputBoxReceiverName.isNullOrEmpty()) {
             return notificationBuilder
         }
 
@@ -149,11 +141,11 @@ internal object InputBoxNotificationBuilder {
         channelId: String,
         pushTemplate: InputBoxPushTemplate
     ) {
-        val label =
+        val inputHint =
             if (!pushTemplate.inputTextHint.isNullOrEmpty()) pushTemplate.inputTextHint else DEFAULT_REPLY_LABEL
         val remoteInput = pushTemplate.inputBoxReceiverName?.let {
             androidx.core.app.RemoteInput.Builder(it)
-                .setLabel(label)
+                .setLabel(inputHint)
                 .build()
         }
 
@@ -186,7 +178,7 @@ internal object InputBoxNotificationBuilder {
         val action =
             NotificationCompat.Action.Builder(
                 null,
-                pushTemplate.inputTextHint, replyPendingIntent
+                inputHint, replyPendingIntent
             )
                 .addRemoteInput(remoteInput)
                 .build()
@@ -282,10 +274,6 @@ internal object InputBoxNotificationBuilder {
         inputReceivedIntent.putExtra(
             PushTemplateConstants.IntentKeys.INPUT_BOX_RECEIVER_NAME,
             pushTemplate.inputBoxReceiverName
-        )
-        inputReceivedIntent.putExtra(
-            PushTemplateConstants.IntentKeys.ACTION_BUTTONS_STRING,
-            pushTemplate.actionButtonsString
         )
         inputReceivedIntent.putExtra(
             PushTemplateConstants.IntentKeys.STICKY, pushTemplate.isNotificationSticky

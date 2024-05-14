@@ -38,6 +38,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -2043,35 +2044,6 @@ class IdentityFunctionalTests {
     }
 
     @Test(timeout = 10000)
-    fun test_resetIdentities_doesNotDispatch_analyticsForIdentityRequest() {
-        val configuration = mapOf(
-            "experienceCloud.org" to "orgid",
-            "experienceCloud.server" to "test.com",
-            "global.privacy" to "optedin"
-        )
-        val identityExtension = initializeIdentityExtensionWithPreset(
-            FRESH_INSTALL_WITHOUT_CACHE,
-            configuration
-        )
-
-        val oldMid = identityExtension.mid
-
-        doAnswer { invocation ->
-            fail("Did not expect any dispatched events but found ${invocation.arguments.size}!")
-        }.`when`(mockedExtensionApi).dispatch(any())
-
-        identityExtension.handleIdentityRequestReset(
-            Event.Builder(
-                "event",
-                "com.adobe.eventType.generic.identity",
-                "com.adobe.eventSource.requestReset"
-            ).build()
-        )
-
-        assertNotEquals(oldMid, identityExtension.mid)
-    }
-
-    @Test(timeout = 10000)
     fun test_setPushIdentifier_validToken_dispatchesAnalyticsForIdentityRequest() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -2085,6 +2057,7 @@ class IdentityFunctionalTests {
 
         val countDownLatch = CountDownLatch(1)
         doAnswer { invocation ->
+            assertEquals(1, invocation.arguments.size)
             val event: Event? = invocation.arguments[0] as Event?
             assertEquals(EventType.ANALYTICS, event?.type)
             assertEquals(EventSource.REQUEST_CONTENT, event?.source)
@@ -2098,6 +2071,10 @@ class IdentityFunctionalTests {
             countDownLatch.countDown()
         }.`when`(mockedExtensionApi).dispatch(any())
 
+        val persistedData = capturePersistedData()
+
+        val pushToken = "D52DB39EEE21395B2B67B895FC478301CE6E936D82521E095902A5E0F57EE0B3"
+
         identityExtension.processIdentityRequest(
             Event.Builder(
                 "event",
@@ -2105,12 +2082,16 @@ class IdentityFunctionalTests {
                 "com.adobe.eventSource.requestContent"
             ).setEventData(
                 mapOf(
-                    "pushidentifier" to "D52DB39EEE21395B2B67B895FC478301CE6E936D82521E095902A5E0F57EE0B3"
+                    "pushidentifier" to pushToken
                 )
             ).build()
         )
 
         countDownLatch.await()
+
+        assertEquals(pushToken, persistedData["ADOBEMOBILE_PUSH_IDENTIFIER"] as? String)
+        assertTrue(persistedData["ADOBEMOBILE_ANALYTICS_PUSH_SYNC"] as? Boolean ?: false)
+        assertTrue(persistedData["ADOBEMOBILE_PUSH_ENABLED"] as? Boolean ?: false)
     }
 
     @Test(timeout = 10000)
@@ -2127,6 +2108,7 @@ class IdentityFunctionalTests {
 
         val countDownLatch = CountDownLatch(1)
         doAnswer { invocation ->
+            assertEquals(1, invocation.arguments.size)
             val event: Event? = invocation.arguments[0] as Event?
             assertEquals(EventType.ANALYTICS, event?.type)
             assertEquals(EventSource.REQUEST_CONTENT, event?.source)
@@ -2139,6 +2121,8 @@ class IdentityFunctionalTests {
             assertEquals("false", jsonContextObject.getString("a.push.optin"))
             countDownLatch.countDown()
         }.`when`(mockedExtensionApi).dispatch(any())
+
+        val persistedData = capturePersistedData()
 
         identityExtension.processIdentityRequest(
             Event.Builder(
@@ -2153,6 +2137,10 @@ class IdentityFunctionalTests {
         )
 
         countDownLatch.await()
+
+        assertNull(persistedData["ADOBEMOBILE_PUSH_IDENTIFIER"] as? String)
+        assertTrue(persistedData["ADOBEMOBILE_ANALYTICS_PUSH_SYNC"] as? Boolean ?: false)
+        assertFalse(persistedData["ADOBEMOBILE_PUSH_ENABLED"] as? Boolean ?: true)
     }
     @Test(timeout = 10000)
     fun test_updatePrivacyStatusOptedOut_doesNotDispatch_analyticsForIdentityRequest() {
@@ -2183,5 +2171,49 @@ class IdentityFunctionalTests {
         )
 
         assertNull(identityExtension.mid)
+    }
+
+    @Test(timeout = 10000)
+    fun test_resetIdentities_doesNotDispatch_analyticsForIdentityRequest() {
+        val configuration = mapOf(
+            "experienceCloud.org" to "orgid",
+            "experienceCloud.server" to "test.com",
+            "global.privacy" to "optedin"
+        )
+        val identityExtension = initializeIdentityExtensionWithPreset(
+            FRESH_INSTALL_WITHOUT_CACHE,
+            configuration
+        )
+
+        val oldMid = identityExtension.mid
+
+        doAnswer { invocation ->
+            fail("Did not expect any dispatched events but found ${invocation.arguments.size}!")
+        }.`when`(mockedExtensionApi).dispatch(any())
+
+        identityExtension.handleIdentityRequestReset(
+            Event.Builder(
+                "event",
+                "com.adobe.eventType.generic.identity",
+                "com.adobe.eventSource.requestReset"
+            ).build()
+        )
+
+        assertNotEquals(oldMid, identityExtension.mid)
+    }
+
+    private fun capturePersistedData(): Map<String, Any> {
+        val persistedData = mutableMapOf<String, Any>()
+        doAnswer {
+            val key = it.arguments[0] as String
+            val value = it.arguments[1] as String
+            persistedData[key] = value
+        }.`when`(mockedNamedCollection).setString(anyString(), anyString())
+        doAnswer {
+            val key = it.arguments[0] as String
+            val value = it.arguments[1] as Boolean
+            persistedData[key] = value
+        }.`when`(mockedNamedCollection).setBoolean(anyString(), anyBoolean())
+        return persistedData
     }
 }

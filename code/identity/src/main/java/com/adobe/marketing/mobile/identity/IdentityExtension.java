@@ -499,18 +499,8 @@ public final class IdentityExtension extends Extension {
                     "handleIdentityRequestReset: Privacy is opt-out, ignoring event.");
             return;
         }
-        mid = null;
-        advertisingIdentifier = null;
-        blob = null;
-        locationHint = null;
-        customerIds = null;
-        pushIdentifier = null;
 
-        if (namedCollection != null) {
-            namedCollection.remove(DataStoreKeys.AID_SYNCED_KEY);
-            namedCollection.remove(DataStoreKeys.PUSH_ENABLED);
-        }
-
+        clearIdentifiers();
         savePersistently(); // clear datastore
 
         // When resetting identifiers, need to generate new Experience Cloud ID for the user
@@ -1857,17 +1847,7 @@ public final class IdentityExtension extends Extension {
                 privacyStatus.getValue());
 
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            mid = null;
-            advertisingIdentifier = null;
-            blob = null;
-            locationHint = null;
-            customerIds = null;
-
-            if (namedCollection != null) {
-                namedCollection.remove(DataStoreKeys.AID_SYNCED_KEY);
-            }
-
-            updatePushIdentifier(null);
+            clearIdentifiers();
             savePersistently(); // clear datastore
             getApi().createSharedState(packageEventData(), event);
         } else if (StringUtils.isNullOrEmpty(mid)) {
@@ -2449,6 +2429,21 @@ public final class IdentityExtension extends Extension {
                         Defaults.DEFAULT_MOBILE_PRIVACY.getValue());
 
         privacyStatus = MobilePrivacyStatus.fromString(privacyString);
+    }
+
+    /** Clears in-memory identifiers and persisted push ID flags. */
+    private void clearIdentifiers() {
+        mid = null;
+        advertisingIdentifier = null;
+        blob = null;
+        locationHint = null;
+        customerIds = null;
+        pushIdentifier = null;
+
+        if (namedCollection != null) {
+            namedCollection.remove(DataStoreKeys.AID_SYNCED_KEY);
+            namedCollection.remove(DataStoreKeys.PUSH_ENABLED);
+        }
     }
 
     @VisibleForTesting

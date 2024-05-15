@@ -21,6 +21,7 @@ import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
 import com.adobe.marketing.mobile.services.ui.alert.views.AlertScreen
 import com.adobe.marketing.mobile.services.ui.common.AEPPresentable
 import com.adobe.marketing.mobile.services.ui.common.AppLifecycleProvider
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Represents an Alert presentable.
@@ -33,12 +34,14 @@ internal class AlertPresentable(
     val alert: Alert,
     presentationDelegate: PresentationDelegate?,
     presentationUtilityProvider: PresentationUtilityProvider,
-    appLifecycleProvider: AppLifecycleProvider
+    appLifecycleProvider: AppLifecycleProvider,
+    mainScope: CoroutineScope
 ) : AEPPresentable<Alert>(
     alert,
     presentationUtilityProvider,
     presentationDelegate,
-    appLifecycleProvider
+    appLifecycleProvider,
+    mainScope
 ) {
     override fun getContent(activityContext: Context): ComposeView {
         return ComposeView(activityContext).apply {

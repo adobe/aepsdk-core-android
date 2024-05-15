@@ -17,6 +17,7 @@ import com.adobe.marketing.mobile.services.ui.InAppMessage
 import com.adobe.marketing.mobile.services.ui.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
 import com.adobe.marketing.mobile.services.ui.common.AppLifecycleProvider
+import kotlinx.coroutines.CoroutineScope
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
@@ -47,6 +48,9 @@ class FloatingButtonPresentableTest {
     @Mock
     private lateinit var mockFloatingButtonSettings: FloatingButtonSettings
 
+    @Mock
+    private lateinit var mockScope: CoroutineScope
+
     private lateinit var floatingButtonPresentable: FloatingButtonPresentable
 
     @Before
@@ -61,7 +65,8 @@ class FloatingButtonPresentableTest {
             mockFloatingButtonViewModel,
             mockPresentationDelegate,
             mockPresentationUtilityProvider,
-            mockAppLifecycleProvider
+            mockAppLifecycleProvider,
+            mockScope
         )
 
         verify(mockFloatingButtonViewModel).onGraphicUpdate(mockFloatingButtonSettings.initialGraphic)

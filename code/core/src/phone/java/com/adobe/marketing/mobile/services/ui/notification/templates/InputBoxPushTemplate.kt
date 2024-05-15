@@ -15,9 +15,13 @@ import android.content.Intent
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
 
+/**
+ * This class is used to parse the push template data payload or an intent and provide the necessary information
+ * to build a notification containing an input box.
+ */
 internal class InputBoxPushTemplate : AEPPushTemplate {
     // Required, the intent action name to be used when the user submits the feedback.
-    internal var inputBoxReceiverName: String?
+    internal var inputBoxReceiverName: String
 
     // Optional, If present, use it as the placeholder text for the text input field. Otherwise, use the default placeholder text of "Reply".
     internal var inputTextHint: String?
@@ -50,9 +54,14 @@ internal class InputBoxPushTemplate : AEPPushTemplate {
     constructor(intent: Intent) : super(intent) {
         val intentExtras =
             intent.extras ?: throw IllegalArgumentException("Intent extras are null")
-        inputBoxReceiverName =
+        val receiverName =
             intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_RECEIVER_NAME)
-        inputTextHint = intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_HINT)
+        inputBoxReceiverName = receiverName
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.INPUT_BOX_RECEIVER_NAME}\" not found.")
+        inputTextHint = intentExtras.getString(
+            PushTemplateConstants.IntentKeys.INPUT_BOX_HINT,
+            PushTemplateConstants.DefaultValues.INPUT_BOX_DEFAULT_REPLY_TEXT
+        )
         feedbackText =
             intentExtras.getString(PushTemplateConstants.IntentKeys.INPUT_BOX_FEEDBACK_TEXT)
         feedbackImage =

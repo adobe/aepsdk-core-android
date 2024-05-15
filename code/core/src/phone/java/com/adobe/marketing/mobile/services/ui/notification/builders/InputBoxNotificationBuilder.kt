@@ -35,7 +35,6 @@ import com.adobe.marketing.mobile.services.ui.notification.templates.InputBoxPus
  */
 internal object InputBoxNotificationBuilder {
     private const val SELF_TAG = "InputBoxNotificationBuilder"
-    private const val DEFAULT_REPLY_LABEL = "Reply"
 
     @Throws(NotificationConstructionFailedException::class)
     fun construct(
@@ -143,21 +142,10 @@ internal object InputBoxNotificationBuilder {
         pushTemplate: InputBoxPushTemplate
     ) {
         val inputHint =
-            if (pushTemplate.inputTextHint.isNullOrEmpty()) DEFAULT_REPLY_LABEL else pushTemplate.inputTextHint
-        val remoteInput = pushTemplate.inputBoxReceiverName?.let {
-            RemoteInput.Builder(it)
-                .setLabel(inputHint)
-                .build()
-        }
-
-        if (remoteInput == null) {
-            Log.warning(
-                PushTemplateConstants.LOG_TAG,
-                SELF_TAG,
-                "Failed to create a remote input for the input box action, will not add the action."
-            )
-            return
-        }
+            if (pushTemplate.inputTextHint.isNullOrEmpty()) PushTemplateConstants.DefaultValues.INPUT_BOX_DEFAULT_REPLY_TEXT else pushTemplate.inputTextHint
+        val remoteInput = RemoteInput.Builder(pushTemplate.inputBoxReceiverName)
+            .setLabel(inputHint)
+            .build()
 
         val inputReceivedIntent = createInputReceivedIntent(
             context,

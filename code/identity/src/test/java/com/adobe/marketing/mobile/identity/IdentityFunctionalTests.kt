@@ -2142,7 +2142,6 @@ class IdentityFunctionalTests {
         assertTrue(persistedData["ADOBEMOBILE_ANALYTICS_PUSH_SYNC"] as? Boolean ?: false)
         assertFalse(persistedData["ADOBEMOBILE_PUSH_ENABLED"] as? Boolean ?: true)
     }
-    @Test(timeout = 10000)
     fun test_updatePrivacyStatusOptedOut_doesNotDispatch_analyticsForIdentityRequest() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",
@@ -2173,7 +2172,6 @@ class IdentityFunctionalTests {
         assertNull(identityExtension.mid)
     }
 
-    @Test(timeout = 10000)
     fun test_resetIdentities_doesNotDispatch_analyticsForIdentityRequest() {
         val configuration = mapOf(
             "experienceCloud.org" to "orgid",

@@ -133,7 +133,7 @@ class LifecycleV2MetricsBuilder {
 
         xdmApplicationInfoLaunch.setName(deviceInfoService.getApplicationName());
         xdmApplicationInfoLaunch.setId(deviceInfoService.getApplicationPackageName());
-        xdmApplicationInfoLaunch.setVersion(LifecycleUtil.getAppVersion(deviceInfoService));
+        xdmApplicationInfoLaunch.setVersion(LifecycleUtil.getV2AppVersion(deviceInfoService));
         xdmApplicationInfoLaunch.setLanguage(
                 LifecycleUtil.formatLocaleXDM(deviceInfoService.getActiveLocale()));
 

@@ -561,8 +561,6 @@ public class LifecycleV2ExtensionTest {
 
         when(lifecycleDataStore.getLong(eq(DATASTORE_KEY_INSTALL_DATE), anyLong()))
                 .thenReturn(timestampOneDayEarlierMilliseconds);
-        when(lifecycleDataStore.getString(eq(DATASTORE_KEY_LAST_APP_VERSION), anyString()))
-                .thenReturn("1.0");
 
         if (isUpgrade) {
             when(lifecycleDataStore.getString(eq(DATASTORE_KEY_LAST_APP_VERSION), anyString()))

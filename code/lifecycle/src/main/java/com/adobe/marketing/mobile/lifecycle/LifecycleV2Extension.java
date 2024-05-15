@@ -202,7 +202,7 @@ class LifecycleV2Extension {
         return (deviceInfoService != null
                 && !StringUtils.isNullOrEmpty(previousAppVersion)
                 && !previousAppVersion.equalsIgnoreCase(
-                        LifecycleUtil.getAppVersion(deviceInfoService)));
+                        LifecycleUtil.getV2AppVersion(deviceInfoService)));
     }
 
     /** Persist the application version into datastore */
@@ -211,7 +211,7 @@ class LifecycleV2Extension {
         if (dataStore != null && deviceInfoService != null) {
             dataStore.setString(
                     LifecycleV2Constants.DataStoreKeys.LAST_APP_VERSION,
-                    LifecycleUtil.getAppVersion(deviceInfoService));
+                    LifecycleUtil.getV2AppVersion(deviceInfoService));
         }
     }
 

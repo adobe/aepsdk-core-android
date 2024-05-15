@@ -343,6 +343,81 @@ public class LifecycleV2FunctionalTest {
 
     @Test
     public void
+            testLifecycleV2__When__SecondLaunch_VersionNumberCode__Then__GetApplicationLaunchEvent__withIsUpgradeTrue()
+                    throws InterruptedException {
+        // setup
+        // both session starts dispatch application launch event
+        setExpectationEvent(
+                EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH, 2, mockExtensionApi);
+        // session pauses dispatches application close event
+        setExpectationEvent(
+                EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE, 1, mockExtensionApi);
+
+        // test
+        mockExtensionApi.simulateComingEvent(createStartEvent(null, currentTimestampMillis));
+        mockExtensionApi.simulateComingEvent(
+                createPauseEvent(currentTimestampMillis + TimeUnit.SECONDS.toMillis(10)));
+
+        sleep(1000);
+        mockDeviceInfoService.applicationVersionCode = "123456";
+
+        long secondSessionStartTimeInMillis = currentTimestampMillis + TimeUnit.DAYS.toMillis(1);
+        final Event secondStartEvent = createStartEvent(null, secondSessionStartTimeInMillis);
+        mockExtensionApi.simulateComingEvent(secondStartEvent);
+
+        // verify
+        assertExpectedEvents(mockExtensionApi);
+
+        Map<String, Object> expectedApplicationInfo = new HashMap<>();
+        expectedApplicationInfo.put("name", "TEST_APPLICATION_NAME");
+        expectedApplicationInfo.put("version", "1.1 (123456)");
+        expectedApplicationInfo.put("isUpgrade", true);
+        expectedApplicationInfo.put("isLaunch", true);
+        expectedApplicationInfo.put("id", "TEST_PACKAGE_NAME");
+        expectedApplicationInfo.put(
+                "_dc",
+                new HashMap<String, Object>() {
+                    {
+                        put("language", "en-US");
+                    }
+                });
+
+        Map<String, Object> expectedXDMData =
+                new HashMap<String, Object>() {
+                    {
+                        put("environment", expectedEnvironmentInfo);
+                        put("device", expectedDeviceInfo);
+                        put("application", expectedApplicationInfo);
+                        put(
+                                "timestamp",
+                                LifecycleUtil.dateTimeISO8601String(
+                                        new Date(secondSessionStartTimeInMillis)));
+                        put("eventType", "application.launch");
+                    }
+                };
+        Map<String, Object> expectedEventData =
+                new HashMap<String, Object>() {
+                    {
+                        put(XDM, expectedXDMData);
+                    }
+                };
+
+        Event secondSessionStartApplicationLaunchEvent = mockExtensionApi.dispatchedEvents.get(2);
+        assertEquals(
+                "Application Launch (Foreground)",
+                secondSessionStartApplicationLaunchEvent.getName());
+        assertEquals(EventType.LIFECYCLE, secondSessionStartApplicationLaunchEvent.getType());
+        assertEquals(
+                EventSource.APPLICATION_LAUNCH,
+                secondSessionStartApplicationLaunchEvent.getSource());
+        assertEquals(expectedEventData, secondSessionStartApplicationLaunchEvent.getEventData());
+        assertEquals(
+                secondStartEvent.getUniqueIdentifier(),
+                secondSessionStartApplicationLaunchEvent.getParentID());
+    }
+
+    @Test
+    public void
             testLifecycleV2__When__SecondLaunch_VersionNumberNotChanged__Then__GetApplicationLaunchEvent()
                     throws InterruptedException {
         // setup

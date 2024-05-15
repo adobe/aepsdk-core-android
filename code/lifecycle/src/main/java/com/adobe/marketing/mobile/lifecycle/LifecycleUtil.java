@@ -96,7 +96,7 @@ final class LifecycleUtil {
      * @param deviceInfoService DeviceInfoService instance
      * @return application version
      */
-    static String getAppVersion(final DeviceInforming deviceInfoService) {
+    static String getV2AppVersion(final DeviceInforming deviceInfoService) {
         if (deviceInfoService == null) {
             return null;
         }

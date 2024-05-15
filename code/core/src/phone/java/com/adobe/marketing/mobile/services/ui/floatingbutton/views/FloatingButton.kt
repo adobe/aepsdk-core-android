@@ -58,8 +58,8 @@ internal fun FloatingButton(
     onDragFinished: (Offset) -> Unit
 ) {
     // Floating button draggable area dimensions
-    val heightDp = with(LocalConfiguration.current) { remember { mutableStateOf(screenHeightDp.dp) } }
-    val widthDp = with(LocalConfiguration.current) { remember { mutableStateOf(screenWidthDp.dp) } }
+    val heightDp = with(LocalConfiguration.current) { mutableStateOf(screenHeightDp.dp) }
+    val widthDp = with(LocalConfiguration.current) { mutableStateOf(screenWidthDp.dp) }
 
     // Floating button dimensions
     val fbHeightDp: Dp = remember { settings.height.dp }

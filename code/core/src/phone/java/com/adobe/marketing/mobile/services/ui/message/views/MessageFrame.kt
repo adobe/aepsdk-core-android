@@ -15,6 +15,9 @@ import android.webkit.WebView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -22,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -54,22 +58,27 @@ internal fun MessageFrame(
     onDisposed: () -> Unit
 ) {
     val currentConfiguration = LocalConfiguration.current
-    val horizontalOffset =
-        remember {
-            MessageOffsetMapper.getHorizontalOffset(
-                inAppMessageSettings.horizontalAlignment,
-                inAppMessageSettings.horizontalInset,
-                currentConfiguration.screenWidthDp.dp
-            )
-        }
-    val verticalOffset =
-        remember {
-            MessageOffsetMapper.getVerticalOffset(
-                inAppMessageSettings.verticalAlignment,
-                inAppMessageSettings.verticalInset,
-                currentConfiguration.screenHeightDp.dp
-            )
-        }
+
+    // Ideally, these values can be remembered because generally a configuration
+    // change will refresh the size. However, in-case the configuration changes (e.g. device rotation)
+    // are restricted by the Activity hosting this composable, these values will not be recomputed.
+    // So, we are not remembering these values to ensure that the size is recalculated on every
+    // composition.
+    val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
+        inAppMessageSettings.horizontalAlignment,
+        inAppMessageSettings.horizontalInset,
+        currentConfiguration.screenWidthDp.dp
+    )
+    val verticalOffset = MessageOffsetMapper.getVerticalOffset(
+        inAppMessageSettings.verticalAlignment,
+        inAppMessageSettings.verticalInset,
+        currentConfiguration.screenHeightDp.dp
+    )
+
+    val allowGestures = remember { inAppMessageSettings.gestureMap.isNotEmpty() }
+    val offsetX = remember { mutableStateOf(0f) }
+    val offsetY = remember { mutableStateOf(0f) }
+    val dragVelocity = remember { mutableStateOf(0f) }
 
     AnimatedVisibility(
         visibleState = visibility,
@@ -92,8 +101,46 @@ internal fun MessageFrame(
             // The content of the InAppMessage. This needs to be placed inside a Card with .99 alpha to ensure that
             // the WebView message is clipped to the rounded corners for API versions 22 and below. This does not
             // affect the appearance of the message on API versions 23 and above.
-            Card(modifier = Modifier.clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp)).alpha(0.99f)) {
-                MessageContent(inAppMessageSettings, onCreated, gestureTracker)
+            Card(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
+                    .alpha(0.99f)
+                    .draggable(
+                        enabled = allowGestures,
+                        state = rememberDraggableState { delta ->
+                            offsetX.value += delta
+                        },
+                        orientation = Orientation.Horizontal,
+                        onDragStopped = { velocity ->
+                            gestureTracker.onDragFinished(
+                                offsetX.value,
+                                offsetY.value,
+                                velocity
+                            )
+                            dragVelocity.value = 0f
+                            offsetY.value = 0f
+                            offsetX.value = 0f
+                        }
+                    )
+                    .draggable(
+                        enabled = allowGestures,
+                        state = rememberDraggableState { delta ->
+                            offsetY.value += delta
+                        },
+                        orientation = Orientation.Vertical,
+                        onDragStopped = { velocity ->
+                            gestureTracker.onDragFinished(
+                                offsetX.value,
+                                offsetY.value,
+                                velocity
+                            )
+                            dragVelocity.value = 0f
+                            offsetY.value = 0f
+                            offsetX.value = 0f
+                        }
+                    )
+            ) {
+                MessageContent(inAppMessageSettings, onCreated)
             }
 
             // This is a one-time effect that will be called when this composable is completely removed from the composition

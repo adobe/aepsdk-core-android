@@ -49,6 +49,7 @@ dependencies {
     implementation(BuildConstants.Dependencies.ANDROIDX_LIFECYCLE_KTX)
 
     androidTestImplementation(BuildConstants.Dependencies.MOCKITO_CORE)
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
     //TODO: Consider moving this to the aep-library plugin later
     androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline:2.28.3")
 }

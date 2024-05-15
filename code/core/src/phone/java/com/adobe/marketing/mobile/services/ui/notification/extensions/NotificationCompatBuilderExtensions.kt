@@ -15,7 +15,6 @@ import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
@@ -23,7 +22,7 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
 import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
 import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
 import java.util.Random
@@ -189,9 +188,16 @@ internal fun NotificationCompat.Builder.setLargeIcon(
 ): NotificationCompat.Builder {
     // Quick bail out if there is no image url
     if (imageUrl.isNullOrEmpty()) return this
-    val bitmap: Bitmap = PushTemplateImageUtil.download(imageUrl) ?: return this
+    val downloadedIconCount: Int = PushTemplateImageUtils.cacheImages(
+        listOf(imageUrl)
+    )
 
     // Bail out if the download fails
+    if (downloadedIconCount == 0) {
+        return this
+    }
+
+    val bitmap = PushTemplateImageUtils.getCachedImage(imageUrl)
     setLargeIcon(bitmap)
     val bigPictureStyle = NotificationCompat.BigPictureStyle()
     bigPictureStyle.bigPicture(bitmap)

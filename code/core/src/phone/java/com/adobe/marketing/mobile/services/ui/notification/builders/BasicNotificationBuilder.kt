@@ -22,10 +22,9 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
 import com.adobe.marketing.mobile.services.ui.notification.extensions.addActionButtons
 import com.adobe.marketing.mobile.services.ui.notification.extensions.createNotificationChannelIfRequired
 import com.adobe.marketing.mobile.services.ui.notification.templates.BasicPushTemplate
@@ -43,9 +42,6 @@ internal object BasicNotificationBuilder {
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
-        val cacheService = ServiceProvider.getInstance().cacheService
-            ?: throw NotificationConstructionFailedException("Cache service is null, basic template notification will not be constructed.")
-
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
@@ -78,17 +74,20 @@ internal object BasicNotificationBuilder {
 
         // set the image on the notification
         val imageUri = pushTemplate.imageUrl
-        val pushImage = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
+        val downloadedImageCount = PushTemplateImageUtils.cacheImages(listOf(imageUri))
 
-        if (pushImage != null) {
-            expandedLayout.setImageViewBitmap(R.id.expanded_template_image, pushImage)
-        } else {
+        if (downloadedImageCount == 0) {
             Log.trace(
                 PushTemplateConstants.LOG_TAG,
                 SELF_TAG,
                 "No image found for basic push template."
             )
             expandedLayout.setViewVisibility(R.id.expanded_template_image, View.GONE)
+        } else {
+            expandedLayout.setImageViewBitmap(
+                R.id.expanded_template_image,
+                PushTemplateImageUtils.getCachedImage(imageUri)
+            )
         }
 
         // add any action buttons defined for the notification

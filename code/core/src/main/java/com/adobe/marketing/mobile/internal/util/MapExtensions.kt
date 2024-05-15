@@ -136,8 +136,8 @@ private fun serializeKeyValuePair(key: String?, value: String?): String? {
  * @param delimiter the `String` to be used as the delimiter between all elements
  * @return [String] containing the elements joined by delimiters
  */
-private fun join(elements: Iterable<*>, delimiter: String?): String {
-    return elements.joinToString(delimiter ?: ",")
+private fun join(elements: Iterable<*>, delimiter: String): String {
+    return elements.joinToString(delimiter)
 }
 
 /**

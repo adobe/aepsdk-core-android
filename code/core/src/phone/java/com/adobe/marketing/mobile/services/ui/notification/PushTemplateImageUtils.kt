@@ -33,6 +33,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -53,12 +54,10 @@ internal object PushTemplateImageUtils {
      * This is a blocking method that returns only after the download for all images
      * have finished either by failing or successfully downloading, or the timeout has been reached.
      *
-     * @param cacheService the AEPSDK [CacheService] to use for caching downloaded image assets
      * @param urlList [String] containing an image asset url
      * @return [Int] number of images that were found in cache or successfully downloaded
      */
     internal fun cacheImages(
-        cacheService: CacheService,
         urlList: List<String?>
     ): Int {
         val assetCacheLocation = getAssetCacheLocation()
@@ -66,7 +65,9 @@ internal object PushTemplateImageUtils {
             return 0
         }
 
-        var downloadedImageCount = AtomicInteger(0)
+        val cacheService = ServiceProvider.getInstance().cacheService
+        val downloadedImageCount = AtomicInteger(0)
+        val latchAborted = AtomicBoolean(false)
         val latch = CountDownLatch(urlList.size)
         for (url in urlList) {
             if (url == null || !UrlUtils.isValidUrl(url)) {
@@ -86,30 +87,34 @@ internal object PushTemplateImageUtils {
                 continue
             }
 
-            downloadImage(url) { image ->
-                image?.let {
+            downloadImage(url) { connection ->
+                if (!latchAborted.get()) {
+                    val image = handleDownloadResponse(url, connection)
                     // scale down the bitmap to 300dp x 200dp as we don't want to use a full
                     // size image due to memory constraints
-                    val pushImage = scaleBitmap(image)
-                    // write bitmap to cache
-                    try {
-                        bitmapToInputStream(pushImage).use { bitmapInputStream ->
-                            cacheBitmapInputStream(
-                                cacheService,
-                                bitmapInputStream,
-                                url
+                    image?.let {
+                        val pushImage = scaleBitmap(it)
+                        // write bitmap to cache
+                        try {
+                            bitmapToInputStream(pushImage).use { bitmapInputStream ->
+                                cacheBitmapInputStream(
+                                    cacheService,
+                                    bitmapInputStream,
+                                    url
+                                )
+                            }
+                            downloadedImageCount.incrementAndGet()
+                        } catch (exception: IOException) {
+                            Log.trace(
+                                PushTemplateConstants.LOG_TAG,
+                                SELF_TAG,
+                                "Exception occurred creating an input stream from a bitmap for {$url}: ${exception.localizedMessage}."
                             )
                         }
-                        downloadedImageCount.incrementAndGet()
-                    } catch (exception: IOException) {
-                        Log.trace(
-                            PushTemplateConstants.LOG_TAG,
-                            SELF_TAG,
-                            "Exception occurred creating an input stream from a bitmap for {$url}: ${exception.localizedMessage}."
-                        )
                     }
+                    latch.countDown()
                 }
-                latch.countDown()
+                connection?.close()
             }
         }
         try {
@@ -125,6 +130,7 @@ internal object PushTemplateImageUtils {
                     SELF_TAG,
                     "Timed out waiting for image downloads to complete."
                 )
+                latchAborted.set(true)
             }
         } catch (e: InterruptedException) {
             Log.warning(
@@ -132,20 +138,21 @@ internal object PushTemplateImageUtils {
                 SELF_TAG,
                 "Interrupted while waiting for image downloads to complete: ${e.localizedMessage}"
             )
+            latchAborted.set(true)
         }
         return downloadedImageCount.get()
     }
 
     /**
-     * Downloads an image using the provided url `String`.
+     * Initiates a network request to download the image provided by the url `String`.
      *
      * @param url [String] containing the image url to download
-     * @param completionCallback callback to be invoked with the downloaded [Bitmap]
-     * when image specified by the given url is downloaded
+     * @param completionCallback callback to be invoked with the [HttpConnecting] object
+     * when download is complete
      */
     private fun downloadImage(
         url: String,
-        completionCallback: (Bitmap?) -> Unit
+        completionCallback: (HttpConnecting?) -> Unit
     ) {
         val networkRequest = NetworkRequest(
             url,
@@ -157,9 +164,7 @@ internal object PushTemplateImageUtils {
         )
 
         val networkCallback = NetworkCallback { connection: HttpConnecting? ->
-            val image = handleDownloadResponse(url, connection)
-            connection?.close()
-            completionCallback.invoke(image)
+            completionCallback.invoke(connection)
         }
 
         ServiceProvider.getInstance()
@@ -170,22 +175,21 @@ internal object PushTemplateImageUtils {
     /**
      * Retrieves an image from the cache using the provided url `String`.
      *
-     * @param cacheService the AEPSDK [CacheService] to use for caching downloaded image assets
      * @param url [String] containing the image url to retrieve from cache
      * @return [Bitmap] containing the image retrieved from cache, or `null` if no image is found
      */
-    internal fun getCachedImage(cacheService: CacheService, url: String?): Bitmap? {
+    internal fun getCachedImage(url: String?): Bitmap? {
         val assetCacheLocation = getAssetCacheLocation()
         if (url == null || !UrlUtils.isValidUrl(url) || assetCacheLocation.isNullOrEmpty()) {
             return null
         }
-        val cacheResult = cacheService[assetCacheLocation, url]
-        if (cacheResult != null) {
-            Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Found cached image for $url")
-            return BitmapFactory.decodeStream(cacheResult.data)
+        val cacheResult = ServiceProvider.getInstance().cacheService[assetCacheLocation, url]
+        if (cacheResult == null) {
+            Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Image not found in cache for $url")
+            return null
         }
-        Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Image not found in cache for $url")
-        return null
+        Log.trace(PushTemplateConstants.LOG_TAG, SELF_TAG, "Found cached image for $url")
+        return BitmapFactory.decodeStream(cacheResult.data)
     }
 
     private fun handleDownloadResponse(url: String?, connection: HttpConnecting?): Bitmap? {

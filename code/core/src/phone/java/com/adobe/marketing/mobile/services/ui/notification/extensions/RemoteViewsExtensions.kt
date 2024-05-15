@@ -227,8 +227,7 @@ internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
     if (!UrlUtils.isValidUrl(largeIcon)) {
         return
     }
-    val cacheService = ServiceProvider.getInstance().cacheService
-    val downloadedIconCount = PushTemplateImageUtils.cacheImages(cacheService, listOf(largeIcon))
+    val downloadedIconCount = PushTemplateImageUtils.cacheImages(listOf(largeIcon))
     if (downloadedIconCount == 0) {
         Log.trace(
             PushTemplateConstants.LOG_TAG,
@@ -240,7 +239,7 @@ internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
     }
     setImageViewBitmap(
         R.id.large_icon,
-        PushTemplateImageUtils.getCachedImage(cacheService, largeIcon)
+        PushTemplateImageUtils.getCachedImage(largeIcon)
     )
 }
 

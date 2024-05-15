@@ -18,12 +18,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.caching.CacheService
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
@@ -46,12 +44,6 @@ internal object ManualCarouselNotificationBuilder {
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
-        val cacheService = ServiceProvider.getInstance().cacheService
-            ?: throw NotificationConstructionFailedException(
-                (
-                    "Cache service is null, manual carousel push notification will not be constructed."
-                    )
-            )
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
@@ -60,11 +52,10 @@ internal object ManualCarouselNotificationBuilder {
 
         // download carousel images
         val downloadedImagesCount = PushTemplateImageUtils.cacheImages(
-            cacheService,
             pushTemplate.carouselItems.map { it.imageUri }
         )
 
-        val validCarouselItems = downloadCarouselItems(cacheService, pushTemplate.carouselItems)
+        val validCarouselItems = downloadCarouselItems(pushTemplate.carouselItems)
 
         // fallback to a basic push template notification builder if less than 3 images were able
         // to be downloaded
@@ -108,7 +99,6 @@ internal object ManualCarouselNotificationBuilder {
         // populate the images for the manual carousel
         setupCarouselImages(
             context,
-            cacheService,
             captions,
             interactionUris,
             carouselIndices,
@@ -160,18 +150,16 @@ internal object ManualCarouselNotificationBuilder {
     /**
      * Downloads the images for a carousel push template.
      *
-     * @param cacheService the [CacheService] used to cache the downloaded images
      * @param items the list of [CarouselPushTemplate.CarouselItem] objects to be displayed in the filmstrip carousel
      * @return a list of `CarouselPushTemplate.CarouselItem` objects that were successfully downloaded
      */
     private fun downloadCarouselItems(
-        cacheService: CacheService,
         items: List<CarouselPushTemplate.CarouselItem>
     ): List<CarouselPushTemplate.CarouselItem> {
         val validCarouselItems = mutableListOf<CarouselPushTemplate.CarouselItem>()
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtils.getCachedImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtils.getCachedImage(imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
@@ -221,7 +209,6 @@ internal object ManualCarouselNotificationBuilder {
 
     private fun setupCarouselImages(
         context: Context,
-        cacheService: CacheService,
         captions: List<String?>,
         interactionUris: List<String?>,
         newIndices: Triple<Int, Int, Int>,
@@ -235,7 +222,6 @@ internal object ManualCarouselNotificationBuilder {
         if (pushTemplate.carouselLayoutType == PushTemplateConstants.DefaultValues.FILMSTRIP_CAROUSEL_MODE) {
             populateFilmstripCarouselImages(
                 context,
-                cacheService,
                 captions,
                 interactionUris,
                 newIndices,
@@ -247,7 +233,6 @@ internal object ManualCarouselNotificationBuilder {
             populateManualCarouselImages(
                 context,
                 trackerActivityClass,
-                cacheService,
                 expandedLayout,
                 validCarouselItems,
                 packageName,
@@ -324,7 +309,6 @@ internal object ManualCarouselNotificationBuilder {
     private fun populateManualCarouselImages(
         context: Context,
         trackerActivityClass: Class<out Activity>?,
-        cacheService: CacheService,
         expandedLayout: RemoteViews,
         items: List<CarouselPushTemplate.CarouselItem>,
         packageName: String?,
@@ -335,7 +319,7 @@ internal object ManualCarouselNotificationBuilder {
     ) {
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtils.getCachedImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtils.getCachedImage(imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,
@@ -388,7 +372,6 @@ internal object ManualCarouselNotificationBuilder {
      */
     private fun populateFilmstripCarouselImages(
         context: Context,
-        cacheService: CacheService,
         imageCaptions: List<String?>,
         imageClickActions: List<String?>,
         newIndices: Triple<Int, Int, Int>,
@@ -414,31 +397,23 @@ internal object ManualCarouselNotificationBuilder {
             return
         }
 
-        var cacheResult =
-            cacheService.get(
-                assetCacheLocation,
-                pushTemplate.carouselItems[newIndices.first].imageUri
-            )
-        val newLeftImage = BitmapFactory.decodeStream(cacheResult?.data)
+        val newLeftImage = PushTemplateImageUtils.getCachedImage(
+            pushTemplate.carouselItems[newIndices.first].imageUri
+        )
         expandedLayout.setImageViewBitmap(
             R.id.manual_carousel_filmstrip_left, newLeftImage
         )
 
-        cacheResult = cacheService.get(
-            assetCacheLocation,
+        val newCenterImage = PushTemplateImageUtils.getCachedImage(
             pushTemplate.carouselItems[newIndices.second].imageUri
         )
-        val newCenterImage = BitmapFactory.decodeStream(cacheResult?.data)
         expandedLayout.setImageViewBitmap(
             R.id.manual_carousel_filmstrip_center, newCenterImage
         )
 
-        cacheResult =
-            cacheService.get(
-                assetCacheLocation,
-                pushTemplate.carouselItems[newIndices.third].imageUri
-            )
-        val newRightImage = BitmapFactory.decodeStream(cacheResult?.data)
+        val newRightImage = PushTemplateImageUtils.getCachedImage(
+            pushTemplate.carouselItems[newIndices.third].imageUri
+        )
         expandedLayout.setImageViewBitmap(
             R.id.manual_carousel_filmstrip_right, newRightImage
         )

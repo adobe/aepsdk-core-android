@@ -22,7 +22,6 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
@@ -43,9 +42,6 @@ internal object BasicNotificationBuilder {
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?
     ): NotificationCompat.Builder {
-        val cacheService = ServiceProvider.getInstance().cacheService
-            ?: throw NotificationConstructionFailedException("Cache service is null, basic template notification will not be constructed.")
-
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
@@ -78,7 +74,7 @@ internal object BasicNotificationBuilder {
 
         // set the image on the notification
         val imageUri = pushTemplate.imageUrl
-        val downloadedImageCount = PushTemplateImageUtils.cacheImages(cacheService, listOf(imageUri))
+        val downloadedImageCount = PushTemplateImageUtils.cacheImages(listOf(imageUri))
 
         if (downloadedImageCount == 0) {
             Log.trace(
@@ -90,7 +86,7 @@ internal object BasicNotificationBuilder {
         } else {
             expandedLayout.setImageViewBitmap(
                 R.id.expanded_template_image,
-                PushTemplateImageUtils.getCachedImage(cacheService, imageUri)
+                PushTemplateImageUtils.getCachedImage(imageUri)
             )
         }
 

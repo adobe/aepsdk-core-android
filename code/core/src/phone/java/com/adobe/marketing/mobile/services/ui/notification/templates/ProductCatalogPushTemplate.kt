@@ -23,6 +23,10 @@ internal class ProductCatalogPushTemplate : AEPPushTemplate {
     internal var ctaButtonText: String? = null
         private set
 
+    // Required, Color for the CTA button. Represented as six character hex, e.g. 00FF00
+    internal var ctaButtonColor: String? = null
+        private set
+
     // Required, URI to be handled when the user clicks the CTA button
     internal var ctaButtonUri: String? = null
         private set
@@ -63,6 +67,10 @@ internal class ProductCatalogPushTemplate : AEPPushTemplate {
             data, PushTemplateConstants.PushPayloadKeys.CATALOG_CTA_BUTTON_TEXT, null
         )
             ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CATALOG_CTA_BUTTON_TEXT}\" not found.")
+        ctaButtonColor = DataReader.optString(
+            data, PushTemplateConstants.PushPayloadKeys.CATALOG_CTA_BUTTON_COLOR, null
+        )
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CATALOG_CTA_BUTTON_COLOR}\" not found.")
         ctaButtonUri = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.CATALOG_CTA_BUTTON_URI, null
         )
@@ -81,6 +89,8 @@ internal class ProductCatalogPushTemplate : AEPPushTemplate {
     constructor(intent: Intent) : super(intent) {
         ctaButtonText =
             intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_TEXT)
+        ctaButtonColor =
+            intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_COLOR)
         ctaButtonUri =
             intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_URI)
         displayLayout = intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_LAYOUT)

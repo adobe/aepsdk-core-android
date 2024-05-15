@@ -125,6 +125,9 @@ internal object ManualCarouselNotificationBuilder {
         // get the indices for the carousel
         val carouselIndices = getCarouselIndices(pushTemplate, imageUris)
 
+        // store the updated center image index
+        pushTemplate.centerImageIndex = carouselIndices.second
+
         // populate the images for the manual carousel
         setupCarouselImages(
             context,
@@ -220,7 +223,6 @@ internal object ManualCarouselNotificationBuilder {
                 }
         }
 
-        pushTemplate.centerImageIndex = carouselIndices.second
         return carouselIndices
     }
 

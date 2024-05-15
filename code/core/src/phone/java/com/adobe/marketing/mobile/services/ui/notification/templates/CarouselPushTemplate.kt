@@ -78,7 +78,6 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
 
     companion object {
         private const val SELF_TAG = "CarouselPushTemplate"
-        const val MINIMUM_FILMSTRIP_SIZE = 3
 
         fun createCarouselPushTemplate(data: Map<String, String>): CarouselPushTemplate {
             val carouselOperationMode = DataReader.optString(

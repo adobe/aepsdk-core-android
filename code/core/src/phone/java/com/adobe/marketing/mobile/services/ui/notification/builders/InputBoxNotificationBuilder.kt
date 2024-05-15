@@ -20,6 +20,7 @@ import android.content.Intent
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
+import androidx.core.app.RemoteInput
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
@@ -78,7 +79,7 @@ internal object InputBoxNotificationBuilder {
 
         // get push payload data. if we are handling an intent then we know that we should be building a feedback received notification.
         val imageUri =
-            if (!pushTemplate.isFromIntent) pushTemplate.imageUrl else pushTemplate.feedbackImage
+            if (pushTemplate.isFromIntent) pushTemplate.feedbackImage else pushTemplate.imageUrl
         val pushImage = PushTemplateImageUtil.downloadImage(cacheService, imageUri)
 
         if (pushImage != null) {
@@ -104,10 +105,10 @@ internal object InputBoxNotificationBuilder {
         )
 
         // add an input box to capture user feedback if the push template is not from an intent
-        if (pushTemplate.isFromIntent || pushTemplate.inputBoxReceiverName.isNullOrEmpty()) {
+        // otherwise, we are done building the notification
+        if (pushTemplate.isFromIntent) {
             return notificationBuilder
         }
-
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
@@ -142,9 +143,9 @@ internal object InputBoxNotificationBuilder {
         pushTemplate: InputBoxPushTemplate
     ) {
         val inputHint =
-            if (!pushTemplate.inputTextHint.isNullOrEmpty()) pushTemplate.inputTextHint else DEFAULT_REPLY_LABEL
+            if (pushTemplate.inputTextHint.isNullOrEmpty()) DEFAULT_REPLY_LABEL else pushTemplate.inputTextHint
         val remoteInput = pushTemplate.inputBoxReceiverName?.let {
-            androidx.core.app.RemoteInput.Builder(it)
+            RemoteInput.Builder(it)
                 .setLabel(inputHint)
                 .build()
         }
@@ -176,10 +177,7 @@ internal object InputBoxNotificationBuilder {
             }
 
         val action =
-            NotificationCompat.Action.Builder(
-                null,
-                inputHint, replyPendingIntent
-            )
+            NotificationCompat.Action.Builder(null, inputHint, replyPendingIntent)
                 .addRemoteInput(remoteInput)
                 .build()
 

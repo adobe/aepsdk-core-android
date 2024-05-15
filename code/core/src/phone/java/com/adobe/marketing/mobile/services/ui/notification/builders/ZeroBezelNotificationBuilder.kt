@@ -35,9 +35,6 @@ internal object ZeroBezelNotificationBuilder {
         pushTemplate: ZeroBezelPushTemplate,
         trackerActivityClass: Class<out Activity>?
     ): NotificationCompat.Builder {
-        val cacheService = ServiceProvider.getInstance().cacheService
-            ?: throw NotificationConstructionFailedException("Cache service is null, zero bezel template notification will not be constructed.")
-
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
@@ -49,13 +46,13 @@ internal object ZeroBezelNotificationBuilder {
 
         // download and cache the image used in the notification
         val downloadedImageCount =
-            PushTemplateImageUtils.cacheImages(cacheService, listOf(pushTemplate.imageUrl))
+            PushTemplateImageUtils.cacheImages(listOf(pushTemplate.imageUrl))
 
         // Check if the image was downloaded
         if (downloadedImageCount > 0) {
             // set the image on the notification if it was downloaded
             val pushImage =
-                PushTemplateImageUtils.getCachedImage(cacheService, pushTemplate.imageUrl)
+                PushTemplateImageUtils.getCachedImage(pushTemplate.imageUrl)
             expandedLayout.setImageViewBitmap(R.id.expanded_template_image, pushImage)
 
             // only set image on the collapsed view if the style is "img"

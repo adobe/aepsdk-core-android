@@ -20,9 +20,6 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ServiceProvider
-import com.adobe.marketing.mobile.services.caching.CacheService
-import com.adobe.marketing.mobile.services.ui.notification.NotificationConstructionFailedException
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
 import com.adobe.marketing.mobile.services.ui.notification.extensions.createNotificationChannelIfRequired
@@ -42,13 +39,6 @@ internal object AutoCarouselNotificationBuilder {
         trackerActivityClass: Class<out Activity>?,
         broadcastReceiverClass: Class<out BroadcastReceiver>?,
     ): NotificationCompat.Builder {
-        val cacheService = ServiceProvider.getInstance().cacheService
-            ?: throw NotificationConstructionFailedException(
-                (
-                    "Cache service is null, auto carousel push notification will not be" +
-                        " constructed."
-                    )
-            )
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
@@ -61,7 +51,6 @@ internal object AutoCarouselNotificationBuilder {
 
         // load images into the carousel
         val downloadedImageCount = PushTemplateImageUtils.cacheImages(
-            cacheService,
             pushTemplate.carouselItems.map { it.imageUri }
         )
 
@@ -69,7 +58,6 @@ internal object AutoCarouselNotificationBuilder {
         val downloadedImageUris = populateAutoCarouselImages(
             context,
             trackerActivityClass,
-            cacheService,
             expandedLayout,
             pushTemplate,
             pushTemplate.carouselItems,
@@ -124,7 +112,6 @@ internal object AutoCarouselNotificationBuilder {
      *
      * @param context the current [Context] of the application
      * @param trackerActivityClass the [Class] of the activity that will be used for tracking interactions with the carousel item
-     * @param cacheService the [CacheService] used to cache the downloaded images
      * @param expandedLayout the [RemoteViews] containing the expanded layout of the notification
      * @param pushTemplate the [CarouselPushTemplate] object containing the push template data
      * @param items the list of [CarouselPushTemplate.CarouselItem] objects to be displayed in the carousel
@@ -134,7 +121,6 @@ internal object AutoCarouselNotificationBuilder {
     private fun populateAutoCarouselImages(
         context: Context,
         trackerActivityClass: Class<out Activity>?,
-        cacheService: CacheService,
         expandedLayout: RemoteViews,
         pushTemplate: CarouselPushTemplate,
         items: MutableList<CarouselPushTemplate.CarouselItem>,
@@ -143,7 +129,7 @@ internal object AutoCarouselNotificationBuilder {
         val downloadedImageUris = mutableListOf<String>()
         for (item: CarouselPushTemplate.CarouselItem in items) {
             val imageUri: String = item.imageUri
-            val pushImage: Bitmap? = PushTemplateImageUtils.getCachedImage(cacheService, imageUri)
+            val pushImage: Bitmap? = PushTemplateImageUtils.getCachedImage(imageUri)
             if (pushImage == null) {
                 Log.trace(
                     PushTemplateConstants.LOG_TAG,

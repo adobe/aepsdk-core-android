@@ -20,7 +20,6 @@ import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.services.Log
-import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
@@ -189,9 +188,7 @@ internal fun NotificationCompat.Builder.setLargeIcon(
 ): NotificationCompat.Builder {
     // Quick bail out if there is no image url
     if (imageUrl.isNullOrEmpty()) return this
-    val cacheService = ServiceProvider.getInstance().cacheService
     val downloadedIconCount: Int = PushTemplateImageUtils.cacheImages(
-        cacheService,
         listOf(imageUrl)
     )
 
@@ -200,7 +197,7 @@ internal fun NotificationCompat.Builder.setLargeIcon(
         return this
     }
 
-    val bitmap = PushTemplateImageUtils.getCachedImage(cacheService, imageUrl)
+    val bitmap = PushTemplateImageUtils.getCachedImage(imageUrl)
     setLargeIcon(bitmap)
     val bigPictureStyle = NotificationCompat.BigPictureStyle()
     bigPictureStyle.bigPicture(bitmap)

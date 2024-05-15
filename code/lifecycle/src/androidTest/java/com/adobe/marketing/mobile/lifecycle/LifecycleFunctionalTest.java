@@ -624,6 +624,100 @@ public class LifecycleFunctionalTest {
 
     @Test
     public void
+            testLifecycle__When__SecondLaunch_VersionCodeChanged__Then__GetApplicationLaunchEvent__withIsUpgradeFalse() {
+        // setup
+        long firstSessionStartTimeMillis = currentTimestampMillis;
+        long firstSessionPauseTimeMillis =
+                firstSessionStartTimeMillis + TimeUnit.SECONDS.toMillis(10);
+        long secondSessionStartTimeMillis = firstSessionPauseTimeMillis + TimeUnit.DAYS.toMillis(1);
+
+        Map<String, Object> configurationMap = new HashMap<>();
+        configurationMap.put(LIFECYCLE_CONFIG_SESSION_TIMEOUT, 30L);
+
+        TestableExtensionApi mockExtensionApi2 = new TestableExtensionApi();
+        mockExtensionApi2.ignoreEvent(EventType.LIFECYCLE, EventSource.APPLICATION_CLOSE);
+        mockExtensionApi2.ignoreEvent(EventType.LIFECYCLE, EventSource.APPLICATION_LAUNCH);
+        mockExtensionApi2.simulateSharedState(
+                "com.adobe.module.configuration", SharedStateStatus.SET, configurationMap);
+
+        // test
+        mockExtensionApi.simulateComingEvent(createStartEvent(null, firstSessionStartTimeMillis));
+        mockExtensionApi.simulateComingEvent(createPauseEvent(firstSessionPauseTimeMillis));
+
+        mockDeviceInfoService.applicationVersionCode = "123456";
+        LifecycleExtension lifecycleSession2 =
+                new LifecycleExtension(
+                        mockExtensionApi2, lifecycleDataStore, mockDeviceInfoService);
+        lifecycleSession2.onRegistered();
+        mockExtensionApi2.resetDispatchedEventAndCreatedSharedState();
+        mockExtensionApi2.simulateComingEvent(createStartEvent(null, secondSessionStartTimeMillis));
+
+        // verify
+        Map<String, String> expectedContextData =
+                new HashMap<String, String>() {
+                    {
+                        put(LAUNCH_EVENT, "LaunchEvent");
+                        put(HOUR_OF_DAY, hourOfDay);
+                        put(DAY_OF_WEEK, getDayOfWeek(secondSessionStartTimeMillis));
+                        put(LAUNCHES, "2");
+                        put(OPERATING_SYSTEM, "TEST_OS 5.55");
+                        put(LOCALE, "en-US");
+                        put(SYSTEM_LOCALE, "fr-FR");
+                        put(DEVICE_RESOLUTION, "100x100");
+                        put(CARRIER_NAME, "TEST_CARRIER");
+                        put(DEVICE_NAME, "deviceName");
+                        put(APP_ID, "TEST_APPLICATION_NAME 1.1 (123456)");
+                        put(RUN_MODE, "APPLICATION");
+                        put(PREVIOUS_SESSION_LENGTH, "10");
+                        put(DAYS_SINCE_FIRST_LAUNCH, "1");
+                        put(DAYS_SINCE_LAST_LAUNCH, "1");
+                        put(PREVIOUS_APPID, "TEST_APPLICATION_NAME 1.1 (12345)");
+                        put(PREVIOUS_OS, "TEST_OS 5.55");
+                        put(DAILY_ENGAGED_EVENT, "DailyEngUserEvent");
+                    }
+                };
+        Map<String, Object> expectedEventData =
+                new HashMap<String, Object>() {
+                    {
+                        put(
+                                PREVIOUS_SESSION_START_TIMESTAMP,
+                                roundedToNearestSecond(firstSessionStartTimeMillis));
+                        put(
+                                PREVIOUS_SESSION_PAUSE_TIMESTAMP,
+                                roundedToNearestSecond(firstSessionPauseTimeMillis));
+                        put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
+                        put(
+                                SESSION_START_TIMESTAMP,
+                                roundedToNearestSecond(secondSessionStartTimeMillis));
+                        put(SESSION_EVENT, LIFECYCLE_START);
+                        put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
+                    }
+                };
+        Map<String, Object> expectedSharedState =
+                new HashMap<String, Object>() {
+                    {
+                        put(MAX_SESSION_LENGTH, MAX_SESSION_LENGTH_SECONDS);
+                        put(
+                                SESSION_START_TIMESTAMP,
+                                roundedToNearestSecond(secondSessionStartTimeMillis));
+                        put(LIFECYCLE_CONTEXT_DATA, expectedContextData);
+                    }
+                };
+
+        Map<String, Object> secondSessionStartResponseEventData =
+                mockExtensionApi2.dispatchedEvents.get(0).getEventData();
+        assertEquals(expectedEventData, secondSessionStartResponseEventData);
+        Map<String, Object> secondSessionStarSharedState =
+                mockExtensionApi2.createdSharedState.get(0);
+        assertEquals(expectedSharedState, secondSessionStarSharedState);
+
+        assertEquals(
+                TimeUnit.MILLISECONDS.toSeconds(firstSessionStartTimeMillis),
+                lifecycleDataStore.getLong("InstallDate", 0L));
+    }
+
+    @Test
+    public void
             testLifecycle__When__SecondLaunch_ThreeDaysAfterInstall__Then__DaysSinceFirstUseIs3() {
         // setup
         long firstSessionStartTime = currentTimestampMillis;

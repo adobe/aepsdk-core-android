@@ -87,12 +87,13 @@ internal object PushTemplateImageUtils {
                 continue
             }
 
-            downloadImage(url) { image ->
+            downloadImage(url) { connection ->
                 if (!latchAborted.get()) {
+                    val image = handleDownloadResponse(url, connection)
+                    // scale down the bitmap to 300dp x 200dp as we don't want to use a full
+                    // size image due to memory constraints
                     image?.let {
-                        // scale down the bitmap to 300dp x 200dp as we don't want to use a full
-                        // size image due to memory constraints
-                        val pushImage = scaleBitmap(image)
+                        val pushImage = scaleBitmap(it)
                         // write bitmap to cache
                         try {
                             bitmapToInputStream(pushImage).use { bitmapInputStream ->
@@ -113,6 +114,7 @@ internal object PushTemplateImageUtils {
                     }
                     latch.countDown()
                 }
+                connection?.close()
             }
         }
         try {
@@ -142,15 +144,15 @@ internal object PushTemplateImageUtils {
     }
 
     /**
-     * Downloads an image using the provided url `String`.
+     * Initiates a network request to download the image provided by the url `String`.
      *
      * @param url [String] containing the image url to download
-     * @param completionCallback callback to be invoked with the downloaded [Bitmap]
-     * when image specified by the given url is downloaded
+     * @param completionCallback callback to be invoked with the [HttpConnecting] object
+     * when download is complete
      */
     private fun downloadImage(
         url: String,
-        completionCallback: (Bitmap?) -> Unit
+        completionCallback: (HttpConnecting?) -> Unit
     ) {
         val networkRequest = NetworkRequest(
             url,
@@ -162,9 +164,7 @@ internal object PushTemplateImageUtils {
         )
 
         val networkCallback = NetworkCallback { connection: HttpConnecting? ->
-            val image = handleDownloadResponse(url, connection)
-            connection?.close()
-            completionCallback.invoke(image)
+            completionCallback.invoke(connection)
         }
 
         ServiceProvider.getInstance()

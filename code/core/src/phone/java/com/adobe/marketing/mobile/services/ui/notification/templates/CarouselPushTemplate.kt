@@ -15,7 +15,6 @@ import android.content.Intent
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
 import com.adobe.marketing.mobile.util.DataReader
-import com.adobe.marketing.mobile.util.JSONUtils
 import org.json.JSONArray
 import org.json.JSONException
 
@@ -51,46 +50,16 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
             data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT, null
         ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_LAYOUT}\" not found.")
 
-        val carouselItemsString: String = DataReader.optString(
+        rawCarouselItems = DataReader.optString(
             data, PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS, null
         ) ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEMS}\" not found.")
 
-        this.rawCarouselItems = carouselItemsString
-        val carouselItemJSONArray: JSONArray
-        val carouselItemObjects: MutableList<Any>?
-        try {
-            carouselItemJSONArray = JSONArray(carouselItemsString)
-            carouselItemObjects = JSONUtils.toList(carouselItemJSONArray)
-        } catch (exception: JSONException) {
-            throw IllegalArgumentException(
-                "Unable to create a JSONObject from the carousel items string."
-            )
-        }
         carouselOperationMode = DataReader.optString(
             data,
             PushTemplateConstants.PushPayloadKeys.CAROUSEL_OPERATION_MODE,
             PushTemplateConstants.DefaultValues.AUTO_CAROUSEL_MODE
         )
-        carouselItemObjects?.let {
-            for (carouselObject in carouselItemObjects) {
-                val carouselItemMap = carouselObject as Map<String, String>
-                // the image uri is required, do not create a CarouselItem if it is missing
-                val carouselImage =
-                    carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_IMAGE]
-                if (carouselImage.isNullOrEmpty()) break
-                val text =
-                    carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_TEXT]
-                val uri =
-                    carouselItemMap[PushTemplateConstants.PushPayloadKeys.CAROUSEL_ITEM_URI]
-                val carouselItem =
-                    CarouselItem(
-                        carouselImage,
-                        text,
-                        uri
-                    )
-                carouselItems.add(carouselItem)
-            }
-        }
+        carouselItems = parseCarouselItemsFromString(rawCarouselItems)
     }
 
     constructor(intent: Intent) : super(intent) {
@@ -104,12 +73,11 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                 ?: PushTemplateConstants.DefaultValues.DEFAULT_MANUAL_CAROUSEL_MODE
         rawCarouselItems =
             intentExtras.getString(PushTemplateConstants.IntentKeys.CAROUSEL_ITEMS) ?: ""
-        carouselItems = parseCarouselItems(rawCarouselItems)
+        carouselItems = parseCarouselItemsFromString(rawCarouselItems)
     }
 
     companion object {
         private const val SELF_TAG = "CarouselPushTemplate"
-        const val MINIMUM_FILMSTRIP_SIZE = 3
 
         fun createCarouselPushTemplate(data: Map<String, String>): CarouselPushTemplate {
             val carouselOperationMode = DataReader.optString(
@@ -123,7 +91,7 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                 ManualCarouselPushTemplate(data)
         }
 
-        private fun parseCarouselItems(carouselItemsString: String?): MutableList<CarouselItem> {
+        private fun parseCarouselItemsFromString(carouselItemsString: String?): MutableList<CarouselItem> {
             val carouselItems = mutableListOf<CarouselItem>()
             if (carouselItemsString.isNullOrEmpty()) {
                 Log.debug(
@@ -143,7 +111,7 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                     val interactionUri =
                         item.optString(PushTemplateConstants.CarouselItemKeys.URL, "")
                     carouselItems.add(
-                        CarouselPushTemplate.CarouselItem(
+                        CarouselItem(
                             imageUri,
                             captionText,
                             interactionUri

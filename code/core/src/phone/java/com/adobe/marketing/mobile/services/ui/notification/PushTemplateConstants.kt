@@ -63,6 +63,7 @@ internal object PushTemplateConstants {
         const val MANUAL_CAROUSEL_START_INDEX = 0
         const val FILMSTRIP_CAROUSEL_CENTER_INDEX = 1
         const val NO_CENTER_INDEX_SET = -1
+        const val PRODUCT_CATALOG_START_INDEX = 0
 
         // TODO: revisit this value. should cache time be configurable rather than have a static
         // value?
@@ -117,6 +118,7 @@ internal object PushTemplateConstants {
         const val CATALOG_CTA_BUTTON_URI = "ctaButtonUri"
         const val CATALOG_LAYOUT = "displayLayout"
         const val CATALOG_ITEMS = "catalogItems"
+        const val CATALOG_ITEM_INDEX = "catalogIndex"
     }
 
     internal object MethodNames {

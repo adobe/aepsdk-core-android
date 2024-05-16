@@ -20,30 +20,32 @@ import org.json.JSONException
 
 internal class ProductCatalogPushTemplate : AEPPushTemplate {
     // Required, Text to be shown on the CTA button
-    internal var ctaButtonText: String? = null
+    internal var ctaButtonText: String
         private set
 
     // Required, Color for the CTA button. Represented as six character hex, e.g. 00FF00
-    internal var ctaButtonColor: String? = null
+    internal var ctaButtonColor: String
         private set
 
     // Required, URI to be handled when the user clicks the CTA button
-    internal var ctaButtonUri: String? = null
+    internal var ctaButtonUri: String
         private set
 
     // Required, Determines if the layout of the catalog goes left-to-right or top-to-bottom.
     // Value will either be "horizontal" (left-to-right) or "vertical" (top-to-bottom).
-    internal var displayLayout: String? = null
+    internal var displayLayout: String
         private set
 
     // Required, Three entries describing the items in the product catalog.
     // The value is an encoded JSON string.
-    internal var rawCatalogItems: String? = null
+    internal var rawCatalogItems: String
         private set
 
     // Required, One or more items in the product catalog defined by the CatalogItem class
     internal var catalogItems = mutableListOf<CatalogItem>()
         private set
+
+    internal var currentIndex: Int = PushTemplateConstants.DefaultValues.PRODUCT_CATALOG_START_INDEX
 
     data class CatalogItem(
         // Required, Text to use in the title if this product is selected
@@ -87,15 +89,29 @@ internal class ProductCatalogPushTemplate : AEPPushTemplate {
     }
 
     constructor(intent: Intent) : super(intent) {
-        ctaButtonText =
+        val buttonText =
             intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_TEXT)
-        ctaButtonColor =
+        ctaButtonText = buttonText
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_TEXT}\" not found.")
+        val buttonColor =
             intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_COLOR)
-        ctaButtonUri =
+        ctaButtonColor = buttonColor
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_COLOR}\" not found.")
+        val buttonUri =
             intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_URI)
-        displayLayout = intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_LAYOUT)
-        rawCatalogItems = intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_ITEMS)
+        ctaButtonUri = buttonUri
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.CATALOG_CTA_BUTTON_URI}\" not found.")
+        val layout = intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_LAYOUT)
+        displayLayout = layout
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.CATALOG_LAYOUT}\" not found.")
+        val items = intent.getStringExtra(PushTemplateConstants.IntentKeys.CATALOG_ITEMS)
+        rawCatalogItems = items
+            ?: throw IllegalArgumentException("Required field \"${PushTemplateConstants.IntentKeys.CATALOG_ITEMS}\" not found.")
         catalogItems = parseCatalogItemsFromString(rawCatalogItems)
+        currentIndex = intent.getIntExtra(
+            PushTemplateConstants.IntentKeys.CATALOG_ITEM_INDEX,
+            PushTemplateConstants.DefaultValues.PRODUCT_CATALOG_START_INDEX
+        )
     }
 
     companion object {
@@ -103,7 +119,7 @@ internal class ProductCatalogPushTemplate : AEPPushTemplate {
 
         private fun parseCatalogItemsFromString(catalogItemsString: String?): MutableList<CatalogItem> {
             val catalogItems = mutableListOf<CatalogItem>()
-            var jsonArray: JSONArray? = null
+            val jsonArray: JSONArray?
             try {
                 jsonArray = JSONArray(catalogItemsString)
             } catch (e: JSONException) {
@@ -112,10 +128,11 @@ internal class ProductCatalogPushTemplate : AEPPushTemplate {
                     SELF_TAG,
                     "Exception occurred when creating json array from the catalog items string: ${e.localizedMessage}"
                 )
+                throw IllegalArgumentException("Catalog items string containing a valid json array was not found.")
             }
 
             // fast fail if the array is not the expected size
-            if (jsonArray?.length() != 3) {
+            if (jsonArray.length() != 3) {
                 throw IllegalArgumentException("3 catalog items are required for a Product Catalog notification.")
             }
 

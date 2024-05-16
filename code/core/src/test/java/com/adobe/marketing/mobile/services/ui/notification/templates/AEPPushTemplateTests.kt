@@ -9,20 +9,37 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.services.ui.notification
+package com.adobe.marketing.mobile.services.ui.notification.templates
 
-import com.adobe.marketing.mobile.services.ui.notification.templates.AEPPushTemplate
+import android.content.Intent
+import android.os.Bundle
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
+import kotlin.test.assertFailsWith
 
+@RunWith(MockitoJUnitRunner::class)
 class AEPPushTemplateTests {
     private lateinit var aepPushTemplate: AEPPushTemplate
     private lateinit var messageData: HashMap<String, String>
     private lateinit var basicMessageData: HashMap<String, String>
 
+    private lateinit var mockIntent: Intent
+    private lateinit var mockBundle: Bundle
     @Before
     fun setUp() {
-        MockitoAnnotations.openMocks(this)
+       // MockitoAnnotations.openMocks(this)
+        mockIntent = mock(Intent::class.java)
+        setupBundle()
         messageData = hashMapOf(
             PushTemplateConstants.PushPayloadKeys.TAG to "notificationTag",
             PushTemplateConstants.PushPayloadKeys.TEMPLATE_TYPE to "basic",
@@ -51,6 +68,36 @@ class AEPPushTemplateTests {
             PushTemplateConstants.PushPayloadKeys.VERSION to "1",
             PushTemplateConstants.PushPayloadKeys.STICKY to "true"
         )
+    }
+
+    private fun setupBundle() {
+        mockBundle = mock(Bundle::class.java)
+        `when`(mockIntent.extras).thenReturn(mockBundle)
+        `when`(mockBundle.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT)).thenReturn("Test Title")
+        `when`(mockBundle.getString(PushTemplateConstants.IntentKeys.BODY_TEXT)).thenReturn("Test Body")
+        `when`(mockBundle.getInt(PushTemplateConstants.IntentKeys.PAYLOAD_VERSION)).thenReturn(1)
+    }
+
+    @Test
+    fun `Test exception with missing data adb_title`() {
+        val data: MutableMap<String, String> = HashMap()
+        data["title"] = "Example Title"
+        data["body"] = "This is the body text"
+        data["version"] = "1"
+        val exception = assertFailsWith<IllegalArgumentException> {
+            BasicPushTemplate(data)
+        }
+        assertEquals("Required field \"adb_title\" not found.", exception.message)
+    }
+
+    @Test
+    fun `Test BasicPushTemplate initialization with Intent`() {
+        val template = BasicPushTemplate(mockIntent)
+
+        assertEquals("Example Title", template.title)
+        assertEquals("This is the body text", template.body)
+        assertEquals(1, template.payloadVersion)
+        assertEquals("Remind Me Later", template.remindLaterText)
     }
 
 //    @Test

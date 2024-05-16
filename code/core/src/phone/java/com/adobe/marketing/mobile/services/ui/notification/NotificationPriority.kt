@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.services.ui.notification
 
 import androidx.core.app.NotificationCompat
 
-enum class NotificationPriority(private val priority: Int, private val priorityString: String) {
+enum class NotificationPriority(private val priority: Int, val priorityString: String) {
     PRIORITY_DEFAULT(NotificationCompat.PRIORITY_DEFAULT, "PRIORITY_DEFAULT"),
     PRIORITY_MIN(NotificationCompat.PRIORITY_MIN, "PRIORITY_MIN"),
     PRIORITY_LOW(NotificationCompat.PRIORITY_LOW, "PRIORITY_LOW"),

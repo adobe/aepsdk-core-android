@@ -22,12 +22,26 @@ enum class NotificationPriority(private val priority: Int, val priorityString: S
 
     companion object {
         private val notificationPriorityMap = values().associateBy(NotificationPriority::priorityString, NotificationPriority::priority)
+
+        /**
+         * Returns the [NotificationCompat] priority value represented by the [String].
+         *
+         * @param priority [String] representation of the [NotificationCompat] priority
+         * @return [Int] containing the [NotificationCompat] priority value
+         */
         internal fun getNotificationCompatPriorityFromString(priority: String?): Int {
             return if (priority == null) NotificationCompat.PRIORITY_DEFAULT
             else notificationPriorityMap[priority] ?: NotificationCompat.PRIORITY_DEFAULT
         }
 
         private val notificationCompatPriorityMap: Map<Int, String> = values().associateBy(NotificationPriority::priority, NotificationPriority::priorityString)
+
+        /**
+         * Returns the [String] representation for the [NotificationCompat] priority value.
+         *
+         * @param priority [Int] containing the [NotificationCompat] priority value
+         * @return [String] representation of the [NotificationCompat] priority
+         */
         @JvmStatic
         fun getNotificationPriority(priority: Int?): String {
             return if (priority == null) PRIORITY_DEFAULT.priorityString

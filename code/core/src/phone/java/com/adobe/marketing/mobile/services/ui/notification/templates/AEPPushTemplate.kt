@@ -29,15 +29,6 @@ import com.adobe.marketing.mobile.util.DataReader
  */
 internal sealed class AEPPushTemplate {
 
-    /** Class representing the action button with label, link and type  */
-    class ActionButton(val label: String, val link: String?, type: String?) {
-        val type: PushTemplateConstants.ActionType
-
-        init {
-            this.type = PushTemplateConstants.ActionType.valueOf(type ?: PushTemplateConstants.ActionType.NONE.name)
-        }
-    }
-
     // Message data payload for the push template
     internal lateinit var messageData: MutableMap<String, String>
         private set
@@ -94,10 +85,6 @@ internal sealed class AEPPushTemplate {
     internal var actionUri: String?
         private set
 
-    // Optional, action buttons for the notification
-    internal var actionButtonsString: String?
-        private set
-
     // Optional, Body of the message shown in the expanded message layout (setCustomBigContentView)
     internal var expandedBodyText: String?
         private set
@@ -140,7 +127,7 @@ internal sealed class AEPPushTemplate {
         private set
 
     // flag to denote if the PushTemplate was built from an intent
-    internal var isFromIntent: Boolean?
+    internal var isFromIntent: Boolean
         private set
 
     /**
@@ -173,7 +160,6 @@ internal sealed class AEPPushTemplate {
         actionType = PushTemplateConstants.ActionType.valueOf(
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_TYPE, null) ?: PushTemplateConstants.ActionType.NONE.name
         )
-        actionButtonsString = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS, null)
         var smallIcon =
             DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.SMALL_ICON, null)
         if (smallIcon.isNullOrEmpty()) {
@@ -273,10 +259,6 @@ internal sealed class AEPPushTemplate {
             intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_TYPE)
                 ?: PushTemplateConstants.ActionType.NONE.name
         )
-        expandedBodyText =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.EXPANDED_BODY_TEXT)
-        actionButtonsString =
-            intentExtras.getString(PushTemplateConstants.IntentKeys.ACTION_BUTTONS_STRING)
         smallIcon = intentExtras.getString(PushTemplateConstants.IntentKeys.SMALL_ICON)
         largeIcon = intentExtras.getString(PushTemplateConstants.IntentKeys.LARGE_ICON)
         badgeCount = intentExtras.getInt(PushTemplateConstants.IntentKeys.BADGE_COUNT)
@@ -286,7 +268,7 @@ internal sealed class AEPPushTemplate {
         channelId = intentExtras.getString(PushTemplateConstants.IntentKeys.CHANNEL_ID)
         templateType =
             PushTemplateType.fromString(intentExtras.getString(PushTemplateConstants.IntentKeys.TEMPLATE_TYPE))
-        tag = intentExtras.getString(PushTemplateConstants.IntentKeys.TAG) as String
+        tag = intentExtras.getString(PushTemplateConstants.IntentKeys.TAG)
         isNotificationSticky = intentExtras.getBoolean(PushTemplateConstants.IntentKeys.STICKY)
         ticker = intentExtras.getString(PushTemplateConstants.IntentKeys.TICKER)
         expandedBodyText =

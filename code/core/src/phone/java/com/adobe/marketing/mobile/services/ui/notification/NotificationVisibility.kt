@@ -20,12 +20,26 @@ enum class NotificationVisibility(val visibility: Int, val visibilityString: Str
 
     companion object {
         private val notificationVisibilityMap = values().associateBy(NotificationVisibility::visibilityString, NotificationVisibility::visibility)
+
+        /**
+         * Returns the [NotificationCompat.NotificationVisibility] value represented by the [String].
+         *
+         * @param visibility [String] representation of the [NotificationCompat.NotificationVisibility]
+         * @return [Int] containing the [NotificationCompat.NotificationVisibility] value
+         */
         internal fun getNotificationCompatVisibilityFromString(visibility: String?): Int {
             return if (visibility == null) NotificationCompat.VISIBILITY_PRIVATE
             else notificationVisibilityMap[visibility] ?: NotificationCompat.VISIBILITY_PRIVATE
         }
 
         private val notificationCompatVisibilityMap: Map<Int, String> = values().associateBy(NotificationVisibility::visibility, NotificationVisibility::visibilityString)
+
+        /**
+         * Returns the [String] representation for the [NotificationCompat.NotificationVisibility] value.
+         *
+         * @param visibility [Int] containing the [NotificationCompat.NotificationVisibility] value
+         * @return [String] representation of the [NotificationCompat.NotificationVisibility]
+         */
         @JvmStatic
         fun getNotificationVisibility(visibility: Int?): String {
             return if (visibility == null) VISIBILITY_PRIVATE.visibilityString

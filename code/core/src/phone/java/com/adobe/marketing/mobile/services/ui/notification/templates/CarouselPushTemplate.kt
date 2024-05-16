@@ -109,7 +109,7 @@ internal open class CarouselPushTemplate : AEPPushTemplate {
                     val captionText =
                         item.optString(PushTemplateConstants.CarouselItemKeys.TEXT, "")
                     val interactionUri =
-                        item.optString(PushTemplateConstants.CarouselItemKeys.URL, "")
+                        item.optString(PushTemplateConstants.CarouselItemKeys.URI, "")
                     carouselItems.add(
                         CarouselItem(
                             imageUri,

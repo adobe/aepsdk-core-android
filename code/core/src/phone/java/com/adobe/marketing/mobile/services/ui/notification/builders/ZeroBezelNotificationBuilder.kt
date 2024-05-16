@@ -93,7 +93,7 @@ internal object ZeroBezelNotificationBuilder {
             trackerActivityClass,
             smallLayout,
             expandedLayout,
-            R.id.basic_expanded_layout
+            R.id.zero_bezel_expanded_layout
         )
     }
 }

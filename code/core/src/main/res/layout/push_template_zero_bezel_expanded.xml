@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/zero_bezel_expanded_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/expanded_template_image"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"/>
+
+    <ImageView
+        android:id="@+id/gradient_template_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@+id/expanded_template_image"
+        android:background="@drawable/zero_bazel_gradient"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignBottom="@+id/expanded_template_image"
+        android:paddingLeft="@dimen/zero_bezel_padding_horizontal"
+        android:paddingStart="@dimen/zero_bezel_padding_horizontal"
+        android:paddingRight="@dimen/zero_bezel_padding_horizontal"
+        android:paddingEnd="@dimen/zero_bezel_padding_horizontal"
+        android:paddingBottom="@dimen/zero_bezel_padding_vertical"
+        android:paddingTop="@dimen/zero_bezel_padding_vertical">
+
+        <TextView
+            android:id="@+id/notification_title"
+            style="@style/Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/zero_bezel_title_margin_vertical"
+            android:layout_gravity="start"
+            android:textAlignment="viewStart"/>
+
+        <TextView
+            android:id="@+id/notification_body_expanded"
+            style="@style/Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:textAlignment="viewStart"/>
+
+    </LinearLayout>
+</RelativeLayout>

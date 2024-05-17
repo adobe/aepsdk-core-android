@@ -64,6 +64,7 @@ internal object PushTemplateConstants {
         const val FILMSTRIP_CAROUSEL_CENTER_INDEX = 1
         const val NO_CENTER_INDEX_SET = -1
         const val INPUT_BOX_DEFAULT_REPLY_TEXT = "Reply"
+        const val PRODUCT_CATALOG_START_INDEX = 0
 
         // TODO: revisit this value. should cache time be configurable rather than have a static
         // value?
@@ -119,6 +120,12 @@ internal object PushTemplateConstants {
         const val INPUT_BOX_FEEDBACK_TEXT = "feedbackText"
         const val INPUT_BOX_FEEDBACK_IMAGE = "feedbackImage"
         const val INPUT_BOX_RECEIVER_NAME = "feedbackReceiverName"
+        const val CATALOG_CTA_BUTTON_TEXT = "ctaButtonText"
+        const val CATALOG_CTA_BUTTON_COLOR = "ctaButtonColor"
+        const val CATALOG_CTA_BUTTON_URI = "ctaButtonUri"
+        const val CATALOG_LAYOUT = "displayLayout"
+        const val CATALOG_ITEMS = "catalogItems"
+        const val CATALOG_ITEM_INDEX = "catalogIndex"
     }
 
     internal object MethodNames {
@@ -155,9 +162,6 @@ internal object PushTemplateConstants {
         const val VERSION = "adb_version"
         const val CAROUSEL_LAYOUT = "adb_car_layout"
         const val CAROUSEL_ITEMS = "adb_items"
-        const val CAROUSEL_ITEM_IMAGE = "img"
-        const val CAROUSEL_ITEM_TEXT = "txt"
-        const val CAROUSEL_ITEM_URI = "uri"
         const val EXPANDED_BODY_TEXT = "adb_body_ex"
         const val EXPANDED_BODY_TEXT_COLOR = "adb_clr_body"
         const val TITLE_TEXT_COLOR = "adb_clr_title"
@@ -171,11 +175,25 @@ internal object PushTemplateConstants {
         const val INPUT_BOX_FEEDBACK_TEXT = "adb_feedback_txt"
         const val INPUT_BOX_FEEDBACK_IMAGE = "adb_feedback_img"
         const val INPUT_BOX_RECEIVER_NAME = "adb_input_receiver"
+        const val ZERO_BEZEL_COLLAPSED_STYLE = "adb_col_style"
+        const val CATALOG_CTA_BUTTON_TEXT = "adb_cta_txt"
+        const val CATALOG_CTA_BUTTON_COLOR = "adb_cta_clr"
+        const val CATALOG_CTA_BUTTON_URI = "adb_cta_uri"
+        const val CATALOG_LAYOUT = "adb_display"
+        const val CATALOG_ITEMS = "adb_items"
     }
 
     internal object CarouselItemKeys {
         const val IMAGE = "img"
         const val TEXT = "txt"
-        const val URL = "uri"
+        const val URI = "uri"
+    }
+
+    internal object CatalogItemKeys {
+        const val TITLE = "title"
+        const val BODY = "body"
+        const val IMAGE = "img"
+        const val PRICE = "price"
+        const val URI = "uri"
     }
 }

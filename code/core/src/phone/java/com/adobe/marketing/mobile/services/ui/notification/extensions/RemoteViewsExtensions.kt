@@ -14,7 +14,6 @@ package com.adobe.marketing.mobile.services.ui.notification.extensions
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.view.View
 import android.widget.RemoteViews
@@ -24,7 +23,7 @@ import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.notification.PendingIntentUtils
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
-import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtil
+import com.adobe.marketing.mobile.services.ui.notification.PushTemplateImageUtils
 import com.adobe.marketing.mobile.util.UrlUtils
 
 private const val SELF_TAG = "RemoteViewExtensions"
@@ -228,10 +227,8 @@ internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
     if (!UrlUtils.isValidUrl(largeIcon)) {
         return
     }
-    val downloadedIcon: Bitmap? = PushTemplateImageUtil.downloadImage(
-        ServiceProvider.getInstance().cacheService, largeIcon
-    )
-    if (downloadedIcon == null) {
+    val downloadedIconCount = PushTemplateImageUtils.cacheImages(listOf(largeIcon))
+    if (downloadedIconCount == 0) {
         Log.trace(
             PushTemplateConstants.LOG_TAG,
             SELF_TAG,
@@ -240,7 +237,10 @@ internal fun RemoteViews.setRemoteLargeIcon(largeIcon: String?) {
         setViewVisibility(R.id.large_icon, View.GONE)
         return
     }
-    setImageViewBitmap(R.id.large_icon, downloadedIcon)
+    setImageViewBitmap(
+        R.id.large_icon,
+        PushTemplateImageUtils.getCachedImage(largeIcon)
+    )
 }
 
 /**

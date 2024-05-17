@@ -2439,8 +2439,10 @@ public final class IdentityExtension extends Extension {
 
         if (namedCollection != null) {
             namedCollection.remove(DataStoreKeys.AID_SYNCED_KEY);
-            namedCollection.remove(DataStoreKeys.PUSH_ENABLED);
             namedCollection.remove(DataStoreKeys.ANALYTICS_PUSH_SYNC);
+            synchronized (pushEnabledMutex) {
+                namedCollection.remove(DataStoreKeys.PUSH_ENABLED);
+            }
         }
     }
 

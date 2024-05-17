@@ -1674,8 +1674,8 @@ public final class IdentityExtension extends Extension {
     }
 
     /**
-     * Updates the persisted {@code ADOBEMOBILE_PUSH_ENABLED} field and dispatches an event to generate a corresponding
-     * Analytics request
+     * Updates the persisted {@code ADOBEMOBILE_PUSH_ENABLED} field and dispatches an event to
+     * generate a corresponding Analytics request
      *
      * @param isEnabled whether the user is opted in to receive push notifications
      */
@@ -1732,7 +1732,8 @@ public final class IdentityExtension extends Extension {
     }
 
     /**
-     * Updates the persisted {@code ADOBEMOBILE_PUSH_ENABLED} flag in DataStore with the provided value.
+     * Updates the persisted {@code ADOBEMOBILE_PUSH_ENABLED} flag in DataStore with the provided
+     * value.
      *
      * @param enabled new push status value to be updated
      */

@@ -80,7 +80,6 @@ public final class IdentityExtension extends Extension {
 
     private static final String LOG_SOURCE = "IdentityExtension";
     private HitQueuing hitQueue;
-    private static boolean pushEnabled = false;
     private static final Object pushEnabledMutex = new Object();
     @VisibleForTesting ConfigurationSharedStateIdentity latestValidConfig;
     private final NamedCollection namedCollection;
@@ -1673,7 +1672,7 @@ public final class IdentityExtension extends Extension {
     }
 
     /**
-     * Updates the {@link #pushEnabled} field and dispatches an event to generate a corresponding
+     * Updates the persisted {@code ADOBEMOBILE_PUSH_ENABLED} field and dispatches an event to generate a corresponding
      * Analytics request
      *
      * @param isEnabled whether the user is opted in to receive push notifications
@@ -1726,14 +1725,12 @@ public final class IdentityExtension extends Extension {
                 return false;
             }
 
-            pushEnabled = namedCollection.getBoolean(DataStoreKeys.PUSH_ENABLED, false);
+            return namedCollection.getBoolean(DataStoreKeys.PUSH_ENABLED, false);
         }
-
-        return pushEnabled;
     }
 
     /**
-     * Updates the {@link #pushEnabled} flag in DataStore with the provided value.
+     * Updates the persisted {@code ADOBEMOBILE_PUSH_ENABLED} flag in DataStore with the provided value.
      *
      * @param enabled new push status value to be updated
      */
@@ -1741,6 +1738,11 @@ public final class IdentityExtension extends Extension {
         synchronized (pushEnabledMutex) {
             if (namedCollection != null) {
                 namedCollection.setBoolean(DataStoreKeys.PUSH_ENABLED, enabled);
+                Log.trace(
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "setPushStatus : Push notifications status is now: "
+                                + (enabled ? "Enabled" : "Disabled"));
             } else {
                 Log.trace(
                         IdentityConstants.LOG_TAG,
@@ -1748,13 +1750,6 @@ public final class IdentityExtension extends Extension {
                         "setPushStatus : Unable to update push flag because the"
                                 + " LocalStorageService was not available.");
             }
-
-            pushEnabled = enabled;
-            Log.trace(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "setPushStatus : Push notifications status is now: "
-                            + (pushEnabled ? "Enabled" : "Disabled"));
         }
     }
 

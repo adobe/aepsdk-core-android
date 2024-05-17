@@ -1086,7 +1086,9 @@ public final class IdentityExtension extends Extension {
             return;
         }
 
-        if (pushId == null && !isPushEnabled()) {
+        final boolean pushEnabled = isPushEnabled();
+
+        if (pushId == null && !pushEnabled) {
             changePushStatusAndHitAnalytics(false);
             Log.debug(
                     IdentityConstants.LOG_TAG,
@@ -1094,7 +1096,7 @@ public final class IdentityExtension extends Extension {
                     "updatePushIdentifier : First time sending a.push.optin false");
         } else if (pushId == null) { // push is enabled
             changePushStatusAndHitAnalytics(false);
-        } else if (!isPushEnabled()) { // push ID is not null
+        } else if (!pushEnabled) { // push ID is not null
             changePushStatusAndHitAnalytics(true);
         }
     }

@@ -13,4 +13,8 @@
     <dimen name="filmstrip_carousel_side_image_width">100dp</dimen>
     <dimen name="filmstrip_carousel_side_image_margin_edge">2dp</dimen>
     <dimen name="filmstrip_carousel_side_image_margin_top">15dp</dimen>
+    <dimen name="zero_bezel_padding_horizontal">16dp</dimen>
+    <dimen name="zero_bezel_padding_vertical">3dp</dimen>
+    <dimen name="zero_bezel_title_margin_vertical">3dp</dimen>
+    <dimen name="zero_bezel_title_margin_horizontal">3dp</dimen>
 </resources>

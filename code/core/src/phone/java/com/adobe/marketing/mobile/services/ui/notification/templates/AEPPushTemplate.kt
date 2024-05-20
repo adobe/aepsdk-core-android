@@ -144,7 +144,7 @@ internal sealed class AEPPushTemplate {
         this.title = title
 
         val bodyText = DataReader.optString(data, PushTemplateConstants.PushPayloadKeys.BODY, null)
-        if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.BODY}\" or \"${PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY}\" not found.")
+        if (bodyText.isNullOrEmpty()) throw IllegalArgumentException("Required field \"${PushTemplateConstants.PushPayloadKeys.BODY}\" not found.")
         this.body = bodyText
 
         val payloadVersion =

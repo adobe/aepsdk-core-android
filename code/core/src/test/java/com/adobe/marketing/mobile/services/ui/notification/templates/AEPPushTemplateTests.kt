@@ -14,90 +14,119 @@ package com.adobe.marketing.mobile.services.ui.notification.templates
 import android.content.Intent
 import android.os.Bundle
 import com.adobe.marketing.mobile.services.ui.notification.PushTemplateConstants
+import com.adobe.marketing.mobile.services.ui.notification.testutils.MOCKED_BODY
+import com.adobe.marketing.mobile.services.ui.notification.testutils.MOCKED_PAYLOAD_VERSION
+import com.adobe.marketing.mobile.services.ui.notification.testutils.MOCKED_TITLE
+import com.adobe.marketing.mobile.services.ui.notification.testutils.getMockedBundleWithMinimalData
+import com.adobe.marketing.mobile.services.ui.notification.testutils.getMockedBundleWithoutBody
+import com.adobe.marketing.mobile.services.ui.notification.testutils.getMockedBundleWithoutTitle
+import com.adobe.marketing.mobile.services.ui.notification.testutils.getMockedDataMapWithBasicData
+import com.adobe.marketing.mobile.services.ui.notification.testutils.getMockedIntent
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
-import org.mockito.MockitoAnnotations
+import org.mockito.junit.MockitoJUnit
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.whenever
+import org.mockito.junit.MockitoRule
+import org.mockito.quality.Strictness
 import kotlin.test.assertFailsWith
 
-@RunWith(MockitoJUnitRunner::class)
+
+@RunWith(MockitoJUnitRunner.Silent::class)
 class AEPPushTemplateTests {
+
+    @Rule
+    @JvmField
+    val rule: MockitoRule = MockitoJUnit.rule().strictness(Strictness.LENIENT)
+
     private lateinit var aepPushTemplate: AEPPushTemplate
-    private lateinit var messageData: HashMap<String, String>
     private lateinit var basicMessageData: HashMap<String, String>
 
     private lateinit var mockIntent: Intent
     private lateinit var mockBundle: Bundle
+
     @Before
     fun setUp() {
        // MockitoAnnotations.openMocks(this)
-        mockIntent = mock(Intent::class.java)
-        setupBundle()
-        messageData = hashMapOf(
-            PushTemplateConstants.PushPayloadKeys.TAG to "notificationTag",
-            PushTemplateConstants.PushPayloadKeys.TEMPLATE_TYPE to "basic",
-            PushTemplateConstants.PushPayloadKeys.ACTION_URI to "actionUri",
-            PushTemplateConstants.PushPayloadKeys.ACC_PAYLOAD_BODY to "accPayloadBody",
-            PushTemplateConstants.PushPayloadKeys.ACTION_TYPE to "actionType",
-            PushTemplateConstants.PushPayloadKeys.ACTION_BUTTONS to "[{\"label\":\"Go to chess.com\",\"uri\":\"https://chess.com/games/552\",\"type\":\"DEEPLINK\"},{\"label\":\"Open the app\",\"uri\":\"\",\"type\":\"OPENAPP\"}]",
-            PushTemplateConstants.PushPayloadKeys.BADGE_NUMBER to "5",
-            PushTemplateConstants.PushPayloadKeys.BODY to "body",
-            PushTemplateConstants.PushPayloadKeys.CHANNEL_ID to "channelId",
-            PushTemplateConstants.PushPayloadKeys.EXPANDED_BODY_TEXT to "expandedBodyText",
-            PushTemplateConstants.PushPayloadKeys.EXPANDED_BODY_TEXT_COLOR to "FFD966",
-            PushTemplateConstants.PushPayloadKeys.IMAGE_URL to "imageUrl",
-            PushTemplateConstants.PushPayloadKeys.LARGE_ICON to "largeIcon",
-            PushTemplateConstants.PushPayloadKeys.NOTIFICATION_BACKGROUND_COLOR to "FFD966",
-            PushTemplateConstants.PushPayloadKeys.NOTIFICATION_PRIORITY to "PRIORITY_HIGH",
-            PushTemplateConstants.PushPayloadKeys.NOTIFICATION_VISIBILITY to "PUBLIC",
-            PushTemplateConstants.PushPayloadKeys.REMIND_LATER_TEXT to "remind me",
-            PushTemplateConstants.PushPayloadKeys.REMIND_LATER_EPOCH_TIMESTAMP to "1234567890",
-            PushTemplateConstants.PushPayloadKeys.SOUND to "bell",
-            PushTemplateConstants.PushPayloadKeys.SMALL_ICON to "notificationIcon",
-            PushTemplateConstants.PushPayloadKeys.SMALL_ICON_COLOR to "FFD966",
-            PushTemplateConstants.PushPayloadKeys.TITLE to "title",
-            PushTemplateConstants.PushPayloadKeys.TITLE_TEXT_COLOR to "FFD966",
-            PushTemplateConstants.PushPayloadKeys.TICKER to "ticker",
-            PushTemplateConstants.PushPayloadKeys.VERSION to "1",
-            PushTemplateConstants.PushPayloadKeys.STICKY to "true"
-        )
     }
 
-    private fun setupBundle() {
-        mockBundle = mock(Bundle::class.java)
-        `when`(mockIntent.extras).thenReturn(mockBundle)
-        `when`(mockBundle.getString(PushTemplateConstants.IntentKeys.TITLE_TEXT)).thenReturn("Test Title")
-        `when`(mockBundle.getString(PushTemplateConstants.IntentKeys.BODY_TEXT)).thenReturn("Test Body")
-        `when`(mockBundle.getInt(PushTemplateConstants.IntentKeys.PAYLOAD_VERSION)).thenReturn(1)
+    /**
+     * Test Suit for testing data initialization using Map
+     */
+
+    @Test
+    fun `Test BasicPushTemplate initialization with Map`() {
+        basicMessageData = getMockedDataMapWithBasicData()
+        aepPushTemplate = BasicPushTemplate(basicMessageData)
+        assertEquals(MOCKED_TITLE, aepPushTemplate.title)
+        assertEquals(MOCKED_BODY, aepPushTemplate.body)
+        assertEquals(MOCKED_PAYLOAD_VERSION, aepPushTemplate.payloadVersion)
     }
 
     @Test
     fun `Test exception with missing data adb_title`() {
-        val data: MutableMap<String, String> = HashMap()
-        data["title"] = "Example Title"
-        data["body"] = "This is the body text"
-        data["version"] = "1"
+        basicMessageData = getMockedDataMapWithBasicData()
+        basicMessageData.remove(PushTemplateConstants.PushPayloadKeys.TITLE)
         val exception = assertFailsWith<IllegalArgumentException> {
-            BasicPushTemplate(data)
+            BasicPushTemplate(basicMessageData)
         }
-        assertEquals("Required field \"adb_title\" not found.", exception.message)
+        assertEquals("Required field \"${PushTemplateConstants.PushPayloadKeys.TITLE}\" not found.", exception.message)
     }
 
     @Test
-    fun `Test BasicPushTemplate initialization with Intent`() {
-        val template = BasicPushTemplate(mockIntent)
+    fun `Test exception with missing data adb_body`() {
+        basicMessageData = getMockedDataMapWithBasicData()
+        basicMessageData.remove(PushTemplateConstants.PushPayloadKeys.BODY)
+        val exception = assertFailsWith<IllegalArgumentException> {
+            BasicPushTemplate(basicMessageData)
+        }
+        assertEquals("Required field \"${PushTemplateConstants.PushPayloadKeys.BODY}\" not found.", exception.message)
+    }
 
-        assertEquals("Example Title", template.title)
-        assertEquals("This is the body text", template.body)
-        assertEquals(1, template.payloadVersion)
-        assertEquals("Remind Me Later", template.remindLaterText)
+    /**
+     * Test Suit for testing data initialization using Intent
+     */
+
+    @Test
+    fun `Test BasicPushTemplate initialization with Intent`() {
+        mockIntent = getMockedIntent()
+        mockBundle = getMockedBundleWithMinimalData()
+        `when`(mockIntent.extras).thenReturn(mockBundle)
+        val template = BasicPushTemplate(mockIntent)
+        assertEquals(MOCKED_TITLE, template.title)
+        assertEquals(MOCKED_BODY, template.body)
+        assertEquals(MOCKED_PAYLOAD_VERSION, template.payloadVersion)
+    }
+
+    @Test
+    fun `Test BasicPushTemplate initialization with Intent without title`() {
+        mockIntent = getMockedIntent()
+        mockBundle = getMockedBundleWithoutTitle()
+        `when`(mockIntent.extras).thenReturn(mockBundle)
+        val exception = assertFailsWith<IllegalArgumentException> {
+            BasicPushTemplate(mockIntent)
+        }
+        assertEquals(
+            "Required field \"${PushTemplateConstants.IntentKeys.TITLE_TEXT}\" not found.",
+            exception.message
+        )
+    }
+
+    @Test
+    fun `Test BasicPushTemplate initialization with Intent without body`() {
+        mockIntent = getMockedIntent()
+        mockBundle = getMockedBundleWithoutBody()
+        `when`(mockIntent.extras).thenReturn(mockBundle)
+        val exception = assertFailsWith<IllegalArgumentException> {
+            BasicPushTemplate(mockIntent)
+        }
+        assertEquals(
+            "Required field \"${PushTemplateConstants.IntentKeys.BODY_TEXT}\" not found.",
+            exception.message
+        )
     }
 
 //    @Test

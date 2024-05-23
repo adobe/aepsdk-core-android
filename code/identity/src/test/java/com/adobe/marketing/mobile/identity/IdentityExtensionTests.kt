@@ -28,6 +28,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.util.DataReader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -37,6 +38,7 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.never
@@ -634,6 +636,79 @@ class IdentityExtensionTests {
         )
 
         verify(spiedIdentityExtension, never()).processIdentityRequest(any())
+    }
+
+    @Test
+    fun `handleIdentityRequestReset() - clears identifiers`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.latestValidConfig = ConfigurationSharedStateIdentity(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "global.privacy" to "optunknown"
+            )
+        )
+
+        identityExtension.mid = "test-mid"
+
+        val persistedData = capturePersistedData()
+        val clearedPersistedDataList = captureRemovedPersistedData()
+
+        identityExtension.handleIdentityRequestReset(
+            Event.Builder("event", EventType.IDENTITY, EventSource.REQUEST_RESET).build()
+        )
+
+        // Verify expected keys passed to NamedCollection.remove()
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PERSISTED_MID"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_ADVERTISING_IDENTIFIER"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PUSH_IDENTIFIER"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_VISITORID_IDS"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PERSISTED_MID_HINT"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PERSISTED_MID_BLOB"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_AID_SYNCED"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PUSH_ENABLED"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_ANALYTICS_PUSH_SYNC"))
+
+        // Verify new ECID set to persistence
+        assertEquals(1, persistedData.size)
+        assertNotNull(persistedData["ADOBEMOBILE_PERSISTED_MID"])
+        assertNotEquals("test-mid", persistedData["ADOBEMOBILE_PERSISTED_MID"])
+        assertEquals(persistedData["ADOBEMOBILE_PERSISTED_MID"], identityExtension.mid)
+    }
+
+    @Test
+    fun `processPrivacyChange() - on optedout clears identifiers`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.latestValidConfig = ConfigurationSharedStateIdentity(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "global.privacy" to "optunknown"
+            )
+        )
+
+        identityExtension.mid = "test-mid"
+
+        val persistedData = capturePersistedData()
+        val clearedPersistedDataList = captureRemovedPersistedData()
+
+        identityExtension.processPrivacyChange(
+            Event.Builder("event", EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT).build(),
+            mapOf("global.privacy" to "optedout")
+        )
+
+        // Verify expected keys passed to NamedCollection.remove()
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PERSISTED_MID"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_ADVERTISING_IDENTIFIER"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PUSH_IDENTIFIER"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_VISITORID_IDS"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PERSISTED_MID_HINT"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PERSISTED_MID_BLOB"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_AID_SYNCED"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_PUSH_ENABLED"))
+        assertTrue(clearedPersistedDataList.contains("ADOBEMOBILE_ANALYTICS_PUSH_SYNC"))
+
+        // Verify ECID is not set
+        assertTrue(persistedData.isEmpty())
+        assertNull(identityExtension.mid)
     }
 
     // ==============================================================================================================
@@ -1861,5 +1936,36 @@ class IdentityExtensionTests {
             customerIdString.append(visitorID.authenticationState.value)
         }
         return customerIdString.toString()
+    }
+
+    private fun capturePersistedData(): Map<String, Any> {
+        val persistedData = mutableMapOf<String, Any>()
+        doAnswer {
+            val key = it.arguments[0] as String
+            val value = it.arguments[1] as String
+            persistedData[key] = value
+        }.`when`(mockedNamedCollection).setString(
+            ArgumentMatchers.anyString(),
+            ArgumentMatchers.anyString()
+        )
+        doAnswer {
+            val key = it.arguments[0] as String
+            val value = it.arguments[1] as Boolean
+            persistedData[key] = value
+        }.`when`(mockedNamedCollection).setBoolean(
+            ArgumentMatchers.anyString(),
+            ArgumentMatchers.anyBoolean()
+        )
+        return persistedData
+    }
+
+    private fun captureRemovedPersistedData(): List<String> {
+        val removedData = mutableListOf<String>()
+        doAnswer {
+            val key = it.arguments[0] as String
+            removedData.add(key)
+        }.`when`(mockedNamedCollection).remove(ArgumentMatchers.anyString())
+
+        return removedData
     }
 }

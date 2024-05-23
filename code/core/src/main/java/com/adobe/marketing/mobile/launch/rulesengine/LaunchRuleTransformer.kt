@@ -55,13 +55,7 @@ internal object LaunchRuleTransformer {
     private fun addTypeTransform(transformer: Transformer) {
         transformer.register(LaunchRulesEngineConstants.Transform.TRANSFORM_TO_INT) { value ->
             when (value) {
-                is String -> {
-                    try {
-                        value.toInt()
-                    } catch (e: NumberFormatException) {
-                        value
-                    }
-                }
+                is String -> value.toIntOrNull() ?: value
                 is Number -> value.toInt()
                 is Boolean -> if (value) 1 else 0
                 else -> value
@@ -72,13 +66,7 @@ internal object LaunchRuleTransformer {
         }
         transformer.register(LaunchRulesEngineConstants.Transform.TRANSFORM_TO_DOUBLE) { value ->
             when (value) {
-                is String -> {
-                    try {
-                        value.toDouble()
-                    } catch (e: NumberFormatException) {
-                        value
-                    }
-                }
+                is String -> value.toDoubleOrNull() ?: value
                 is Number -> value.toDouble()
                 is Boolean -> if (value) 1.0 else 0.0
                 else -> value

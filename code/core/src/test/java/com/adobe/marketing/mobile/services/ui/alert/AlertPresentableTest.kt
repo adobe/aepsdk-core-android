@@ -17,6 +17,7 @@ import com.adobe.marketing.mobile.services.ui.InAppMessage
 import com.adobe.marketing.mobile.services.ui.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
 import com.adobe.marketing.mobile.services.ui.common.AppLifecycleProvider
+import kotlinx.coroutines.CoroutineScope
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
@@ -40,12 +41,15 @@ class AlertPresentableTest {
     @Mock
     private lateinit var mockAppLifecycleProvider: AppLifecycleProvider
 
+    @Mock
+    private lateinit var mockScope: CoroutineScope
+
     private lateinit var alertPresentable: AlertPresentable
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        alertPresentable = AlertPresentable(mockAlert, mockPresentationDelegate, mockPresentationUtilityProvider, mockAppLifecycleProvider)
+        alertPresentable = AlertPresentable(mockAlert, mockPresentationDelegate, mockPresentationUtilityProvider, mockAppLifecycleProvider, mockScope)
     }
 
     @Test

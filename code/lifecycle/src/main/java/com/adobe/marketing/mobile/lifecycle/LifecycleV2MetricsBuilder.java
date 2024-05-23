@@ -13,7 +13,6 @@ package com.adobe.marketing.mobile.lifecycle;
 
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.Log;
-import com.adobe.marketing.mobile.util.StringUtils;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -134,7 +133,7 @@ class LifecycleV2MetricsBuilder {
 
         xdmApplicationInfoLaunch.setName(deviceInfoService.getApplicationName());
         xdmApplicationInfoLaunch.setId(deviceInfoService.getApplicationPackageName());
-        xdmApplicationInfoLaunch.setVersion(getAppVersion());
+        xdmApplicationInfoLaunch.setVersion(LifecycleUtil.getV2AppVersion(deviceInfoService));
         xdmApplicationInfoLaunch.setLanguage(
                 LifecycleUtil.formatLocaleXDM(deviceInfoService.getActiveLocale()));
 
@@ -237,28 +236,6 @@ class LifecycleV2MetricsBuilder {
         xdmDeviceInfo.setManufacturer(deviceInfoService.getDeviceManufacturer());
 
         return xdmDeviceInfo;
-    }
-
-    /**
-     * Returns the application version in the format appVersion (versionCode). Example: 2.3 (10)
-     *
-     * @return the app version as a {@link String} formatted in the specified format.
-     */
-    private String getAppVersion() {
-        if (deviceInfoService == null) {
-            return null;
-        }
-
-        final String applicationVersion = deviceInfoService.getApplicationVersion();
-        final String applicationVersionCode = deviceInfoService.getApplicationVersionCode();
-        return String.format(
-                "%s%s",
-                !StringUtils.isNullOrEmpty(applicationVersion)
-                        ? String.format("%s", applicationVersion)
-                        : "",
-                !StringUtils.isNullOrEmpty(applicationVersionCode)
-                        ? String.format(" (%s)", applicationVersionCode)
-                        : "");
     }
 
     /**

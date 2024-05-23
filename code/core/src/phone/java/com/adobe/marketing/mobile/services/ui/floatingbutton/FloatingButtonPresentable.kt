@@ -21,6 +21,7 @@ import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
 import com.adobe.marketing.mobile.services.ui.common.AEPPresentable
 import com.adobe.marketing.mobile.services.ui.common.AppLifecycleProvider
 import com.adobe.marketing.mobile.services.ui.floatingbutton.views.FloatingButtonScreen
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Represents a presentable floating button presentation
@@ -35,12 +36,14 @@ internal class FloatingButtonPresentable(
     private val floatingButtonViewModel: FloatingButtonViewModel,
     presentationDelegate: PresentationDelegate?,
     presentationUtilityProvider: PresentationUtilityProvider,
-    appLifecycleProvider: AppLifecycleProvider
+    appLifecycleProvider: AppLifecycleProvider,
+    mainScope: CoroutineScope
 ) : AEPPresentable<FloatingButton>(
     floatingButton,
     presentationUtilityProvider,
     presentationDelegate,
-    appLifecycleProvider
+    appLifecycleProvider,
+    mainScope
 ) {
     // event handler for the floating button
     private val floatingButtonEventHandler = object : FloatingButtonEventHandler {

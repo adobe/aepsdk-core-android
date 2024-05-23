@@ -12,19 +12,40 @@
 package com.adobe.marketing.mobile.services.ui
 
 import android.app.Application
+import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.alert.AlertPresentable
 import com.adobe.marketing.mobile.services.ui.common.AppLifecycleProvider
 import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonPresentable
 import com.adobe.marketing.mobile.services.ui.floatingbutton.FloatingButtonViewModel
 import com.adobe.marketing.mobile.services.ui.message.InAppMessagePresentable
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 /**
  * UI Service implementation for AEP SDK
  */
 internal class AEPUIService : UIService {
+    companion object {
+        private const val LOG_TAG = "AEPUIService"
+    }
+
     private var presentationDelegate: PresentationDelegate? = null
+
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.error(
+            ServiceConstants.LOG_TAG,
+            LOG_TAG,
+            "An error occurred while processing the presentation: ${throwable.message}",
+            throwable
+        )
+    }
+
+    private val mainScope by lazy {
+        CoroutineScope(Dispatchers.Main + SupervisorJob() + exceptionHandler)
+    }
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Presentation<T>> create(
@@ -44,7 +65,7 @@ internal class AEPUIService : UIService {
                     presentationDelegate,
                     presentationUtilityProvider,
                     AppLifecycleProvider.INSTANCE,
-                    CoroutineScope(Dispatchers.Main)
+                    mainScope
                 ) as Presentable<T>
             }
 
@@ -53,7 +74,8 @@ internal class AEPUIService : UIService {
                     presentation,
                     presentationDelegate,
                     presentationUtilityProvider,
-                    AppLifecycleProvider.INSTANCE
+                    AppLifecycleProvider.INSTANCE,
+                    mainScope
                 ) as Presentable<T>
             }
 
@@ -63,7 +85,8 @@ internal class AEPUIService : UIService {
                     FloatingButtonViewModel(presentation.settings),
                     presentationDelegate,
                     presentationUtilityProvider,
-                    AppLifecycleProvider.INSTANCE
+                    AppLifecycleProvider.INSTANCE,
+                    mainScope
                 ) as Presentable<T>
             }
 

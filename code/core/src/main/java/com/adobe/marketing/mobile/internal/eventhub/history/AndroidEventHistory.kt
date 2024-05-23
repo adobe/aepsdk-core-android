@@ -89,14 +89,14 @@ internal class AndroidEventHistory : EventHistory {
                 Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "EventHistoryRequest[%s] - (%d of %d) for hash(%s)" +
+                    "EventHistoryRequest[%d] - (%d of %d) for hash(%d)" +
                         " with enforceOrder(%s) returned %d events",
                     eventHistoryRequests.hashCode(),
                     index + 1,
                     eventHistoryRequests.size,
                     eventHash,
                     if (enforceOrder) "true" else "false",
-                    res
+                    res?.count ?: -1
                 )
 
                 if (res == null) {
@@ -149,7 +149,7 @@ internal class AndroidEventHistory : EventHistory {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                String.format("Exception executing event history result handler %s", ex)
+                "Exception executing event history result handler $ex"
             )
         }
     }

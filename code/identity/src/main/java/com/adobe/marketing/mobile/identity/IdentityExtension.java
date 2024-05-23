@@ -80,7 +80,6 @@ public final class IdentityExtension extends Extension {
 
     private static final String LOG_SOURCE = "IdentityExtension";
     private HitQueuing hitQueue;
-    private static boolean pushEnabled = false;
     private static final Object pushEnabledMutex = new Object();
     @VisibleForTesting ConfigurationSharedStateIdentity latestValidConfig;
     private final NamedCollection namedCollection;
@@ -499,18 +498,8 @@ public final class IdentityExtension extends Extension {
                     "handleIdentityRequestReset: Privacy is opt-out, ignoring event.");
             return;
         }
-        mid = null;
-        advertisingIdentifier = null;
-        blob = null;
-        locationHint = null;
-        customerIds = null;
-        pushIdentifier = null;
 
-        if (namedCollection != null) {
-            namedCollection.remove(DataStoreKeys.AID_SYNCED_KEY);
-            namedCollection.remove(DataStoreKeys.PUSH_ENABLED);
-        }
-
+        clearIdentifiers();
         savePersistently(); // clear datastore
 
         // When resetting identifiers, need to generate new Experience Cloud ID for the user
@@ -1097,7 +1086,9 @@ public final class IdentityExtension extends Extension {
             return;
         }
 
-        if (pushId == null && !isPushEnabled()) {
+        final boolean pushEnabled = isPushEnabled();
+
+        if (pushId == null && !pushEnabled) {
             changePushStatusAndHitAnalytics(false);
             Log.debug(
                     IdentityConstants.LOG_TAG,
@@ -1105,7 +1096,7 @@ public final class IdentityExtension extends Extension {
                     "updatePushIdentifier : First time sending a.push.optin false");
         } else if (pushId == null) { // push is enabled
             changePushStatusAndHitAnalytics(false);
-        } else if (!isPushEnabled()) { // push ID is not null
+        } else if (!pushEnabled) { // push ID is not null
             changePushStatusAndHitAnalytics(true);
         }
     }
@@ -1683,8 +1674,8 @@ public final class IdentityExtension extends Extension {
     }
 
     /**
-     * Updates the {@link #pushEnabled} field and dispatches an event to generate a corresponding
-     * Analytics request
+     * Updates the persisted {@code ADOBEMOBILE_PUSH_ENABLED} field and dispatches an event to
+     * generate a corresponding Analytics request
      *
      * @param isEnabled whether the user is opted in to receive push notifications
      */
@@ -1736,14 +1727,13 @@ public final class IdentityExtension extends Extension {
                 return false;
             }
 
-            pushEnabled = namedCollection.getBoolean(DataStoreKeys.PUSH_ENABLED, false);
+            return namedCollection.getBoolean(DataStoreKeys.PUSH_ENABLED, false);
         }
-
-        return pushEnabled;
     }
 
     /**
-     * Updates the {@link #pushEnabled} flag in DataStore with the provided value.
+     * Updates the persisted {@code ADOBEMOBILE_PUSH_ENABLED} flag in DataStore with the provided
+     * value.
      *
      * @param enabled new push status value to be updated
      */
@@ -1751,6 +1741,11 @@ public final class IdentityExtension extends Extension {
         synchronized (pushEnabledMutex) {
             if (namedCollection != null) {
                 namedCollection.setBoolean(DataStoreKeys.PUSH_ENABLED, enabled);
+                Log.trace(
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "setPushStatus : Push notifications status is now: "
+                                + (enabled ? "Enabled" : "Disabled"));
             } else {
                 Log.trace(
                         IdentityConstants.LOG_TAG,
@@ -1758,13 +1753,6 @@ public final class IdentityExtension extends Extension {
                         "setPushStatus : Unable to update push flag because the"
                                 + " LocalStorageService was not available.");
             }
-
-            pushEnabled = enabled;
-            Log.trace(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "setPushStatus : Push notifications status is now: "
-                            + (pushEnabled ? "Enabled" : "Disabled"));
         }
     }
 
@@ -1857,17 +1845,7 @@ public final class IdentityExtension extends Extension {
                 privacyStatus.getValue());
 
         if (privacyStatus == MobilePrivacyStatus.OPT_OUT) {
-            mid = null;
-            advertisingIdentifier = null;
-            blob = null;
-            locationHint = null;
-            customerIds = null;
-
-            if (namedCollection != null) {
-                namedCollection.remove(DataStoreKeys.AID_SYNCED_KEY);
-            }
-
-            updatePushIdentifier(null);
+            clearIdentifiers();
             savePersistently(); // clear datastore
             getApi().createSharedState(packageEventData(), event);
         } else if (StringUtils.isNullOrEmpty(mid)) {
@@ -2449,6 +2427,24 @@ public final class IdentityExtension extends Extension {
                         Defaults.DEFAULT_MOBILE_PRIVACY.getValue());
 
         privacyStatus = MobilePrivacyStatus.fromString(privacyString);
+    }
+
+    /** Clears in-memory identifiers and persisted push ID flags. */
+    private void clearIdentifiers() {
+        mid = null;
+        advertisingIdentifier = null;
+        blob = null;
+        locationHint = null;
+        customerIds = null;
+        pushIdentifier = null;
+
+        if (namedCollection != null) {
+            namedCollection.remove(DataStoreKeys.AID_SYNCED_KEY);
+            namedCollection.remove(DataStoreKeys.ANALYTICS_PUSH_SYNC);
+            synchronized (pushEnabledMutex) {
+                namedCollection.remove(DataStoreKeys.PUSH_ENABLED);
+            }
+        }
     }
 
     @VisibleForTesting

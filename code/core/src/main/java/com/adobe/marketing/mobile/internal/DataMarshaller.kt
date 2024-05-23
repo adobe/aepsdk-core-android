@@ -70,9 +70,13 @@ internal object DataMarshaller {
                 NOTIFICATION_IDENTIFIER_KEY -> LOCAL_NOTIFICATION_ID_KEY
                 else -> key
             }
-            val value = extraBundle[key]
-            if (value?.toString()?.isNotEmpty() == true) {
-                marshalledData[newKey] = value
+            try {
+                val value = extraBundle[key]
+                if (value?.toString()?.isNotEmpty() == true) {
+                    marshalledData[newKey] = value
+                }
+            } catch (e: Exception) {
+                Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data (key = $key) from Activity, error is: ${e.message}")
             }
         }
 

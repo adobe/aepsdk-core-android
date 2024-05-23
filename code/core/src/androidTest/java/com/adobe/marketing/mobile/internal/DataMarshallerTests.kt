@@ -21,6 +21,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.Serializable
 
 @RunWith(AndroidJUnit4::class)
 class DataMarshallerTests {
@@ -176,6 +177,23 @@ class DataMarshallerTests {
 
     @Test
     fun marshalInvalidUrl_NoCrash() {
+        val throwsException = ObjectThrowsOnToString()
+        val intent =
+            Intent(ApplicationProvider.getApplicationContext(), TestActivity::class.java).apply {
+                putExtra("key", "value")
+                putExtra("exceptionKey", throwsException)
+            }
+
+        val activity = activityTestRule.launchActivity(intent)
+        val result = DataMarshaller.marshal(activity)
+        assertEquals(
+            mapOf("key" to "value"),
+            result
+        )
+    }
+
+    @Test
+    fun marshal_whenBundleThrowException_NoCrash() {
         val intent =
             Intent(ApplicationProvider.getApplicationContext(), TestActivity::class.java).apply {
                 data = Uri.parse("abc:abc")
@@ -188,7 +206,11 @@ class DataMarshallerTests {
             result
         )
     }
-
+    private class ObjectThrowsOnToString : Serializable {
+        override fun toString(): String {
+            throw IllegalStateException("This is a test exception")
+        }
+    }
     companion object {
         const val LEGACY_PUSH_MESSAGE_ID = "adb_m_id"
         const val PUSH_MESSAGE_ID_KEY = "pushmessageid"

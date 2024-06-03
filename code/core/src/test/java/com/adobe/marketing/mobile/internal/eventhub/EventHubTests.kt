@@ -43,6 +43,7 @@ import java.lang.UnsupportedOperationException
 import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
@@ -148,6 +149,23 @@ internal class EventHubTests {
         }
     }
 
+    private class TestExtension_InitCallback(api: ExtensionApi) : Extension(api) {
+        companion object {
+            const val EXTENSION_NAME = "TestExtension_InitCallback"
+
+            // Calls this during initialization
+            var initCallback: (() -> Unit)? = null
+        }
+
+        init {
+            initCallback?.invoke()
+        }
+
+        override fun getName(): String {
+            return EXTENSION_NAME
+        }
+    }
+
     private lateinit var eventHub: EventHub
     private val eventType = "Type"
     private val eventSource = "Source"
@@ -197,6 +215,26 @@ internal class EventHubTests {
     fun testRegisterExtensionSuccess() {
         var ret = registerExtension(TestExtension2::class.java)
         assertEquals(EventHubError.None, ret)
+    }
+
+    @Test
+    fun testExecutionOrderBeforeExtensionInitialization() {
+        val latch = CountDownLatch(1)
+        val flag = AtomicBoolean(false)
+        TestExtension_InitCallback.initCallback = {
+            if (flag.get()) {
+                latch.countDown()
+            }
+        }
+
+        // This should complete before the extension instance is created.
+        eventHub.executeInEventHubExecutor {
+            flag.set(true)
+        }
+        val ret = registerExtension(TestExtension_InitCallback::class.java)
+        assertEquals(EventHubError.None, ret)
+
+        assertTrue { latch.await(250, TimeUnit.MILLISECONDS) }
     }
 
     @Test

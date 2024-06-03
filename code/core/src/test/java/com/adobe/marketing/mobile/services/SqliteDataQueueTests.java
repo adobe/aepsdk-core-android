@@ -32,7 +32,8 @@ public class SqliteDataQueueTests {
 
     private DataQueue dataQueue;
 
-    private static final String DATABASE_NAME = "test.sqlite";
+    private static final String DATABASE_PATH = "test.sqlite";
+    private static final String DATABSE_NAME = "test_database";
     private static final String TABLE_NAME = "TB_AEP_DATA_ENTITY";
     private static final String EMPTY_JSON_STRING = "{}";
 
@@ -48,7 +49,7 @@ public class SqliteDataQueueTests {
         DataEntity dataEntity = new DataEntity(EMPTY_JSON_STRING);
         try (MockedStatic<SQLiteDatabaseHelper> helperMock =
                 Mockito.mockStatic(SQLiteDatabaseHelper.class)) {
-            dataQueue = new SQLiteDataQueue(DATABASE_NAME);
+            dataQueue = new SQLiteDataQueue(DATABSE_NAME, DATABASE_PATH);
             helperMock
                     .when(
                             () ->
@@ -74,7 +75,7 @@ public class SqliteDataQueueTests {
         DataEntity dataEntity = new DataEntity(EMPTY_JSON_STRING);
         try (MockedStatic<SQLiteDatabaseHelper> helperMock =
                 Mockito.mockStatic(SQLiteDatabaseHelper.class)) {
-            dataQueue = new SQLiteDataQueue(DATABASE_NAME);
+            dataQueue = new SQLiteDataQueue(DATABSE_NAME, DATABASE_PATH);
             helperMock
                     .when(
                             () ->
@@ -104,7 +105,7 @@ public class SqliteDataQueueTests {
                     .when(() -> SQLiteDatabaseHelper.clearTable(anyString(), anyString()))
                     .thenReturn(true);
             // Actions
-            boolean result = SQLiteDatabaseHelper.clearTable(DATABASE_NAME, TABLE_NAME);
+            boolean result = SQLiteDatabaseHelper.clearTable(DATABASE_PATH, TABLE_NAME);
 
             // Assertions
             assertTrue(result);
@@ -121,7 +122,7 @@ public class SqliteDataQueueTests {
                     .when(() -> SQLiteDatabaseHelper.getTableSize(anyString(), anyString()))
                     .thenReturn(mockedTableSize);
             // Actions
-            int tableSize = SQLiteDatabaseHelper.getTableSize(DATABASE_NAME, TABLE_NAME);
+            int tableSize = SQLiteDatabaseHelper.getTableSize(DATABASE_PATH, TABLE_NAME);
 
             // Assertions
             assertEquals(tableSize, mockedTableSize);
@@ -132,7 +133,7 @@ public class SqliteDataQueueTests {
     public void testClose() {
         try (MockedStatic<SQLiteDatabaseHelper> helperMock =
                 Mockito.mockStatic(SQLiteDatabaseHelper.class)) {
-            dataQueue = new SQLiteDataQueue(DATABASE_NAME);
+            dataQueue = new SQLiteDataQueue(DATABSE_NAME, DATABASE_PATH);
             helperMock
                     .when(
                             () ->
@@ -159,7 +160,7 @@ public class SqliteDataQueueTests {
     public void addDataEntityWithDatabaseOpenError() {
         try (MockedStatic<SQLiteDatabaseHelper> helperMock =
                 Mockito.mockStatic(SQLiteDatabaseHelper.class)) {
-            dataQueue = new SQLiteDataQueue(DATABASE_NAME);
+            dataQueue = new SQLiteDataQueue(DATABSE_NAME, DATABASE_PATH);
             helperMock
                     .when(
                             () ->
@@ -176,7 +177,7 @@ public class SqliteDataQueueTests {
                     .when(
                             () ->
                                     SQLiteDatabaseHelper.openDatabase(
-                                            DATABASE_NAME,
+                                            DATABASE_PATH,
                                             SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE))
                     .thenThrow(SQLiteException.class);
             boolean result = dataQueue.add(new DataEntity(EMPTY_JSON_STRING));
@@ -190,7 +191,7 @@ public class SqliteDataQueueTests {
     public void clearTableWithDatabaseOpenError() {
         try (MockedStatic<SQLiteDatabaseHelper> helperMock =
                 Mockito.mockStatic(SQLiteDatabaseHelper.class)) {
-            dataQueue = new SQLiteDataQueue(DATABASE_NAME);
+            dataQueue = new SQLiteDataQueue(DATABSE_NAME, DATABASE_PATH);
             helperMock
                     .when(
                             () ->
@@ -204,7 +205,7 @@ public class SqliteDataQueueTests {
                     .when(
                             () ->
                                     SQLiteDatabaseHelper.openDatabase(
-                                            DATABASE_NAME,
+                                            DATABASE_PATH,
                                             SQLiteDatabaseHelper.DatabaseOpenMode.READ_WRITE))
                     .thenThrow(SQLiteException.class);
             boolean result = dataQueue.clear();
@@ -218,7 +219,7 @@ public class SqliteDataQueueTests {
     public void getTableSizeWithDatabaseOpenError() {
         try (MockedStatic<SQLiteDatabaseHelper> helperMock =
                 Mockito.mockStatic(SQLiteDatabaseHelper.class)) {
-            dataQueue = new SQLiteDataQueue(DATABASE_NAME);
+            dataQueue = new SQLiteDataQueue(DATABSE_NAME, DATABASE_PATH);
             helperMock
                     .when(
                             () ->
@@ -232,7 +233,7 @@ public class SqliteDataQueueTests {
                     .when(
                             () ->
                                     SQLiteDatabaseHelper.openDatabase(
-                                            DATABASE_NAME,
+                                            DATABASE_PATH,
                                             SQLiteDatabaseHelper.DatabaseOpenMode.READ_ONLY))
                     .thenThrow(SQLiteException.class);
             int result = dataQueue.count();

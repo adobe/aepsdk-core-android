@@ -91,7 +91,7 @@ public class DataQueueServiceTests {
         FileUtils.deleteFile(context.getDatabasePath(TEST_DATABASE_NAME).getParentFile(), true);
         assertFalse(context.getDatabasePath(TEST_DATABASE_NAME).exists());
         File cacheDatabaseFile = new File(context.getCacheDir(), TEST_DATABASE_NAME);
-        DataQueue dataQueue = new SQLiteDataQueue(cacheDatabaseFile.getPath());
+        DataQueue dataQueue = new SQLiteDataQueue(TEST_DATABASE_NAME, cacheDatabaseFile.getPath());
         dataQueue.add(new DataEntity("test_data_1"));
         DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
         Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
@@ -102,7 +102,7 @@ public class DataQueueServiceTests {
     public void testGetDataQueue_DataQueueMigrationFromCacheDirectory_DatabasesDirectoryAbsent() {
         assertFalse(context.getDatabasePath(TEST_DATABASE_NAME).exists());
         File cacheDatabaseFile = new File(context.getCacheDir(), TEST_DATABASE_NAME);
-        DataQueue dataQueue = new SQLiteDataQueue(cacheDatabaseFile.getPath());
+        DataQueue dataQueue = new SQLiteDataQueue(TEST_DATABASE_NAME, cacheDatabaseFile.getPath());
         dataQueue.add(new DataEntity("test_data_1"));
         DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
         Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());
@@ -112,7 +112,7 @@ public class DataQueueServiceTests {
     @Test
     public void testGetDataQueue_DataQueueExistsInDatabaseDirectory() {
         File databaseFile = context.getDatabasePath(TEST_DATABASE_NAME);
-        DataQueue dataQueue = new SQLiteDataQueue(databaseFile.getPath());
+        DataQueue dataQueue = new SQLiteDataQueue(TEST_DATABASE_NAME, databaseFile.getPath());
         dataQueue.add(new DataEntity("test_data_1"));
         DataQueue dataQueueExisting = new DataQueueService().getDataQueue(TEST_DATABASE_NAME);
         Assert.assertEquals("test_data_1", dataQueueExisting.peek().getData());

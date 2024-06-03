@@ -123,18 +123,28 @@ public final class MobileCore {
         ServiceProvider.getInstance().getAppContextService().setApplication(application);
         App.INSTANCE.registerActivityResumedListener(MobileCore::collectLaunchInfo);
 
-        try {
-            V4Migrator migrator = new V4Migrator();
-            migrator.migrate();
-        } catch (Exception e) {
-            Log.error(
-                    CoreConstants.LOG_TAG,
-                    LOG_TAG,
-                    "Migration from V4 SDK failed with error - " + e.getLocalizedMessage());
-        }
+        // Migration and EventHistory operations must complete in a background thread before any
+        // extensions are registered.
+        // To ensure these tasks are completed before any registerExtension calls are made,
+        // reuse the eventHubExecutor instead of using a separate executor instance.
+        EventHub.Companion.getShared()
+                .executeInEventHubExecutor(
+                        () -> {
+                            try {
+                                V4Migrator migrator = new V4Migrator();
+                                migrator.migrate();
+                            } catch (Exception e) {
+                                Log.error(
+                                        CoreConstants.LOG_TAG,
+                                        LOG_TAG,
+                                        "Migration from V4 SDK failed with error - "
+                                                + e.getLocalizedMessage());
+                            }
 
-        // Initialize event history
-        EventHub.Companion.getShared().initializeEventHistory();
+                            // Initialize event history
+                            EventHub.Companion.getShared().initializeEventHistory();
+                            return null;
+                        });
     }
 
     /**

@@ -29,14 +29,11 @@ public class SqliteDataQueueTests {
 
     private DataQueue dataQueue;
     private static final String QUEUE_NAME = "test.dataQueue";
-    private static final String TEST_DATABASE_NAME = "TEST_DATABASE_NAME";
 
     @Before
     public void setUp() {
         Context context = ApplicationProvider.getApplicationContext();
-        dataQueue =
-                new SQLiteDataQueue(
-                        TEST_DATABASE_NAME, context.getDatabasePath(QUEUE_NAME).getPath());
+        dataQueue = new SQLiteDataQueue(QUEUE_NAME, context.getDatabasePath(QUEUE_NAME).getPath());
     }
 
     @After

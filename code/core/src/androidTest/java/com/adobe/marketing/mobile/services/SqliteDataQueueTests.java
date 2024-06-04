@@ -33,7 +33,7 @@ public class SqliteDataQueueTests {
     @Before
     public void setUp() {
         Context context = ApplicationProvider.getApplicationContext();
-        dataQueue = new SQLiteDataQueue(context.getDatabasePath(QUEUE_NAME).getPath());
+        dataQueue = new SQLiteDataQueue(QUEUE_NAME, context.getDatabasePath(QUEUE_NAME).getPath());
     }
 
     @After

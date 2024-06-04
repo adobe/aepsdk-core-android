@@ -59,7 +59,7 @@ class DataQueueService implements DataQueuing {
                                 databaseName);
                         return null;
                     }
-                    dataQueue = new SQLiteDataQueue(databaseDirDataQueue.getPath());
+                    dataQueue = new SQLiteDataQueue(databaseName, databaseDirDataQueue.getPath());
                     dataQueueCache.put(databaseName, dataQueue);
                 }
             }

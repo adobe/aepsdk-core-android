@@ -44,9 +44,9 @@ public class SQLiteDatabaseHelper {
                     CoreConstants.LOG_TAG,
                     LOG_PREFIX,
                     String.format(
-                            "createTableIfNotExists - Error in creating/accessing table. Error:"
-                                    + " (%s)",
-                            e.getMessage()));
+                            "createTableIfNotExists - Error in creating/accessing database (%s)."
+                                    + "Error: (%s)",
+                            dbPath, e.getMessage()));
             return false;
         } finally {
             closeDatabase(database);
@@ -73,9 +73,9 @@ public class SQLiteDatabaseHelper {
                     CoreConstants.LOG_TAG,
                     LOG_PREFIX,
                     String.format(
-                            "getTableSize - Error in querying table(%s) size. Returning 0. Error:"
-                                    + " (%s)",
-                            tableName, e.getMessage()));
+                            "getTableSize - Error in querying table(%s) size from database(%s)."
+                                    + "Returning 0. Error: (%s)",
+                            tableName, dbPath, e.getMessage()));
             return 0;
         } finally {
             closeDatabase(database);
@@ -101,9 +101,9 @@ public class SQLiteDatabaseHelper {
                     CoreConstants.LOG_TAG,
                     LOG_PREFIX,
                     String.format(
-                            "clearTable - Error in clearing table(%s). Returning false. Error:"
-                                    + " (%s)",
-                            tableName, e.getMessage()));
+                            "clearTable - Error in clearing table(%s) from database(%s)."
+                                    + "Returning false. Error: (%s)",
+                            tableName, dbPath, e.getMessage()));
             return false;
         } finally {
             closeDatabase(database);
@@ -208,7 +208,9 @@ public class SQLiteDatabaseHelper {
             Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_PREFIX,
-                    "Failed to open database -" + e.getLocalizedMessage());
+                    "Failed to open database (%s). Error: %s",
+                    filePath,
+                    e.getLocalizedMessage());
             return false;
         } finally {
             if (database != null) {

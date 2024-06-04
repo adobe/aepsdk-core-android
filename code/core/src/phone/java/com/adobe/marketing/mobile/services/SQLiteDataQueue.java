@@ -30,12 +30,13 @@ final class SQLiteDataQueue implements DataQueue {
     private static final String TB_KEY_UNIQUE_IDENTIFIER = "uniqueIdentifier";
     private static final String TB_KEY_TIMESTAMP = "timestamp";
     private static final String TB_KEY_DATA = "data";
-    private static final String LOG_PREFIX = "SQLiteDataQueue";
+    private final String LOG_PREFIX;
     private final String databasePath;
     private boolean isClose = false;
     private final Object dbMutex = new Object();
 
-    SQLiteDataQueue(final String databasePath) {
+    SQLiteDataQueue(final String databaseName, final String databasePath) {
+        this.LOG_PREFIX = "SQLiteDataQueue-" + databaseName;
         this.databasePath = databasePath;
         createTableIfNotExists();
     }
@@ -121,24 +122,20 @@ final class SQLiteDataQueue implements DataQueue {
                                     ServiceConstants.LOG_TAG,
                                     LOG_PREFIX,
                                     String.format(
-                                            "query - Successfully read %d rows from table(%s)",
-                                            rows.size(), TABLE_NAME));
+                                            "query - Successfully read %d rows from table.",
+                                            rows.size()));
                             return true;
                         } catch (final SQLiteException e) {
                             Log.warning(
                                     ServiceConstants.LOG_TAG,
                                     LOG_PREFIX,
                                     String.format(
-                                            "query - Error in querying database table (%s). Error:"
+                                            "query - Error in querying database table. Error:"
                                                     + " (%s)",
-                                            TABLE_NAME, e.getLocalizedMessage()));
+                                            e.getLocalizedMessage()));
                             return false;
                         }
                     });
-        }
-
-        if (rows.isEmpty()) {
-            return new ArrayList<>();
         }
 
         final List<DataEntity> dataEntitiesList = new ArrayList<>(rows.size());
@@ -238,8 +235,8 @@ final class SQLiteDataQueue implements DataQueue {
                                             LOG_PREFIX,
                                             String.format(
                                                     "removeRows - Error in deleting rows from"
-                                                        + " table(%s). Returning 0. Error: (%s)",
-                                                    TABLE_NAME, e.getMessage()));
+                                                            + " table. Returning 0. Error: (%s)",
+                                                    e.getMessage()));
                                     return false;
                                 }
                             });
@@ -273,8 +270,7 @@ final class SQLiteDataQueue implements DataQueue {
                     ServiceConstants.LOG_TAG,
                     LOG_PREFIX,
                     String.format(
-                            "clear - %s in clearing Table %s",
-                            (result ? "Successful" : "Failed"), TABLE_NAME));
+                            "clear - %s in clearing table", (result ? "Successful" : "Failed")));
 
             if (!result) {
                 resetDatabase();
@@ -323,10 +319,8 @@ final class SQLiteDataQueue implements DataQueue {
                 Log.trace(
                         ServiceConstants.LOG_TAG,
                         LOG_PREFIX,
-                        String.format(
-                                "createTableIfNotExists - Successfully created/already existed"
-                                        + " table (%s) ",
-                                TABLE_NAME));
+                        "createTableIfNotExists - Successfully created/already existed"
+                                + " table.");
                 return;
             }
         }
@@ -334,9 +328,7 @@ final class SQLiteDataQueue implements DataQueue {
         Log.warning(
                 ServiceConstants.LOG_TAG,
                 LOG_PREFIX,
-                String.format(
-                        "createTableIfNotExists - Error creating/accessing table (%s)  ",
-                        TABLE_NAME));
+                "createTableIfNotExists - Error creating/accessing table.");
     }
 
     /**

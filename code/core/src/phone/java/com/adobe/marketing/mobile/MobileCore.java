@@ -105,12 +105,16 @@ public final class MobileCore {
         // Direct boot mode is supported on Android N and above
         if (VERSION.SDK_INT >= VERSION_CODES.N) {
             if (UserManagerCompat.isUserUnlocked(application)) {
-                Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Device is not in direct boot mode.");
+                Log.debug(
+                        CoreConstants.LOG_TAG,
+                        LOG_TAG,
+                        "setApplication failed - device is unlocked.");
             } else {
                 Log.error(
                         CoreConstants.LOG_TAG,
                         LOG_TAG,
-                        "Device is in direct boot mode, SDK will not be initialized.");
+                        "setApplication failed - device is in direct boot mode, SDK will not be"
+                                + " initialized.");
                 return;
             }
         }
@@ -119,7 +123,7 @@ public final class MobileCore {
             Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Ignoring as setApplication was already called.");
+                    "setApplication failed - ignoring as setApplication was already called.");
             return;
         }
 

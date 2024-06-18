@@ -108,7 +108,7 @@ public final class MobileCore {
                 Log.debug(
                         CoreConstants.LOG_TAG,
                         LOG_TAG,
-                        "setApplication failed - device is unlocked.");
+                        "setApplication - device is unlocked, initializing the SDK.");
             } else {
                 Log.error(
                         CoreConstants.LOG_TAG,

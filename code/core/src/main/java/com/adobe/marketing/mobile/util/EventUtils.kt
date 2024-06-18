@@ -22,7 +22,7 @@ private const val KEY_DEBUG_EVENT_TYPE = "eventType"
 private const val KEY_DEBUG_EVENT_SOURCE = "eventSource"
 
 /**
- * Returns the debug event type (identified by data.debug.eventType) from the event data if present, otherwise null.
+ * Returns the debug event type (identified by debug.eventType) from the event data if present, otherwise null.
  * @return the debug event type if present, otherwise null
  */
 fun Event.getDebugEventType(): String? {
@@ -34,7 +34,7 @@ fun Event.getDebugEventType(): String? {
 }
 
 /**
- * Returns the debug event source (identified by data.debug.eventSource) from the event data if present, otherwise null.
+ * Returns the debug event source (identified by debug.eventSource) from the event data if present, otherwise null.
  * @return the debug event source if present, otherwise null
  */
 fun Event.getDebugEventSource(): String? {

@@ -47,7 +47,7 @@ fun Event.getDebugEventSource(): String? {
 
 /**
  * Returns the debug event data (identified by data.debug) from the event if present, otherwise null.
- * @return the content of "debug" key withing "Event.data" if present,
+ * @return the content of "debug" key within "Event.data" if present,
  *         null if the event is not a debug event or if the debug data does not exist
  */
 private fun Event.getDebugEventData(): Map<String, Any?>? {

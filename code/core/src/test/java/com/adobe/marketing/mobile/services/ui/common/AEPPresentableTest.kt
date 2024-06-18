@@ -832,8 +832,6 @@ internal class AEPPresentableTest {
             }
         )
 
-        // simulate initial detached state
-        // `when`(mockPresentationStateManager.presentableState).thenReturn(mutableStateOf(Presentable.State.DETACHED))
         // simulate that the presentation delegate allows the presentation to be shown
         `when`(mockPresentationDelegate.canShow(aepPresentableWithGatedDisplay)).thenReturn(true)
         // simulate a valid activity being present
@@ -918,8 +916,6 @@ internal class AEPPresentableTest {
             }
         )
 
-        // simulate initial detached state
-        // `when`(mockPresentationStateManager.presentableState).thenReturn(mutableStateOf(Presentable.State.DETACHED))
         // simulate that the presentation delegate allows the presentation to be shown
         `when`(mockPresentationDelegate.canShow(aepPresentableWithGatedDisplay)).thenReturn(true)
         // simulate a valid activity being present

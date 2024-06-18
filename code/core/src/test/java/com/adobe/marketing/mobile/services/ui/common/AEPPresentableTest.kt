@@ -901,6 +901,87 @@ internal class AEPPresentableTest {
     }
 
     @Test
+    fun `Test that presentable not detached and re-attached when the same Activity instance resumes`() {
+        // setup
+        val presentationStateManager = PresentationStateManager()
+        val aepPresentableWithGatedDisplay = TestAEPPresentableGatedDisplay(
+            mockPresentation,
+            mockPresentationUtilityProvider,
+            mockPresentationDelegate,
+            mockAppLifecycleProvider,
+            presentationStateManager,
+            mockActivityCompatLifecycleUtils,
+            mockMainScope,
+            mockPresentationObserver,
+            conflictLogic = { visible ->
+                visible.any { it is Alert }
+            }
+        )
+
+        // simulate initial detached state
+        // `when`(mockPresentationStateManager.presentableState).thenReturn(mutableStateOf(Presentable.State.DETACHED))
+        // simulate that the presentation delegate allows the presentation to be shown
+        `when`(mockPresentationDelegate.canShow(aepPresentableWithGatedDisplay)).thenReturn(true)
+        // simulate a valid activity being present
+        `when`(mockPresentationUtilityProvider.getCurrentActivity()).thenReturn(mockActivity)
+        // simulate no existing ComposeView being present
+        `when`(mockActivity.findViewById<ComposeView?>(aepPresentableWithGatedDisplay.contentIdentifier)).thenReturn(
+            null
+        )
+        `when`(mockActivity.findViewById<ViewGroup>(eq(android.R.id.content))).thenReturn(
+            mockViewGroup
+        )
+
+        `when`(mockPresentationObserver.getVisiblePresentations()).thenReturn(
+            mutableListOf(mock(FloatingButton::class.java))
+        )
+
+        runTest {
+            // Part-1: Simulate presentable shown for the first time
+            aepPresentableWithGatedDisplay.show()
+
+            // verify that the presentation delegate is called because display is gated
+            verify(mockPresentationDelegate).canShow(aepPresentableWithGatedDisplay)
+
+            // verify that the lifecycle provider is called to register the listener
+            verify(mockAppLifecycleProvider).registerListener(aepPresentableWithGatedDisplay)
+
+            // Verify that the compose view is added to the viewgroup
+            val composeViewCaptor: KArgumentCaptor<ComposeView> = argumentCaptor()
+            verify(mockViewGroup, times(1)).addView(composeViewCaptor.capture())
+
+            // verify that the listener, delegate, and state manager are notified of content show
+            verify(mockPresentationDelegate).onShow(aepPresentableWithGatedDisplay)
+            verify(mockPresentationListener).onShow(aepPresentableWithGatedDisplay)
+            assertTrue { presentationStateManager.presentableState.value == Presentable.State.VISIBLE }
+
+            // verify that the presentation observer is notified of the new presentation
+            verify(mockPresentationObserver).onPresentationVisible(aepPresentableWithGatedDisplay.getPresentation())
+
+            // Part-2: Simulate same activity resuming when presentable is already shown, like
+            // going to background and coming back to foreground or a notification drawer being closed
+
+            // We already asserted above the presentable has been attached. So return the captured ComposeView
+            `when`(mockActivity.findViewById<ComposeView?>(aepPresentableWithGatedDisplay.contentIdentifier)).thenReturn(
+                composeViewCaptor.firstValue
+            )
+
+            // Test the same activity instance resuming
+            aepPresentableWithGatedDisplay.onActivityResumed(mockActivity)
+
+            // verify that the compose view is not removed from the viewgroup since it's the same activity
+            verify(mockViewGroup, never()).removeView(any())
+            // verify that no changes are made to the viewgroup
+            verifyNoMoreInteractions(mockViewGroup)
+
+            // verify that the listener, delegate are not re-notified because this is implicit
+            verifyNoMoreInteractions(mockPresentationDelegate)
+            verifyNoMoreInteractions(mockPresentationListener)
+            assertTrue { presentationStateManager.presentableState.value == Presentable.State.VISIBLE }
+        }
+    }
+
+    @Test
     fun `Test that AEPPresentable#onActivityResumed bails when presentable is HIDDEN`() {
         // setup
         val aepPresentableWithGatedDisplay = TestAEPPresentableGatedDisplay(

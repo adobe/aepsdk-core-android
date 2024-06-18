@@ -39,7 +39,8 @@ class MobileCoreRobolectricTests {
 
     @Test
     @Config(sdk = [23])
-    fun testA() {
+    fun `test setApplication when the device doesn't support direct boot mode`() {
+        // Android supports direct boot mode on API level 24 and above
         val app = RuntimeEnvironment.application as Application
         val mockedEventHub = Mockito.mock(EventHub::class.java)
         Mockito.mockStatic(UserManagerCompat::class.java).use { mockedStaticUserManagerCompat ->
@@ -54,11 +55,12 @@ class MobileCoreRobolectricTests {
 
     @Test
     @Config(sdk = [24])
-    fun testB() {
+    fun `test setApplication when the app is not configured to run in direct boot mode`() {
         val app = RuntimeEnvironment.application as Application
         val mockedEventHub = Mockito.mock(EventHub::class.java)
         EventHub.shared = mockedEventHub
         Mockito.mockStatic(UserManagerCompat::class.java).use { mockedStaticUserManagerCompat ->
+            // when initializing SDK, the app is not in direct boot mode (device is unlocked)
             mockedStaticUserManagerCompat.`when`<Any> { UserManagerCompat.isUserUnlocked(Mockito.any()) }.thenReturn(true)
             MobileCore.setApplication(app)
             mockedStaticUserManagerCompat.verify({ UserManagerCompat.isUserUnlocked(Mockito.any()) }, times(1))
@@ -69,10 +71,11 @@ class MobileCoreRobolectricTests {
 
     @Test
     @Config(sdk = [24])
-    fun testc() {
+    fun `test setApplication when the app is launched in direct boot mode`() {
         val app = RuntimeEnvironment.application as Application
         val mockedEventHub = Mockito.mock(EventHub::class.java)
         Mockito.mockStatic(UserManagerCompat::class.java).use { mockedStaticUserManagerCompat ->
+            // when initializing SDK, the app is in direct boot mode (device is still locked)
             mockedStaticUserManagerCompat.`when`<Any> { UserManagerCompat.isUserUnlocked(Mockito.any()) }.thenReturn(false)
             MobileCore.setApplication(app)
             mockedStaticUserManagerCompat.verify({ UserManagerCompat.isUserUnlocked(Mockito.any()) }, times(1))

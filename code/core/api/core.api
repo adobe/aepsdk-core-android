@@ -62,6 +62,7 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field CONSENT_PREFERENCE Ljava/lang/String;
 	public static final field CONTENT_COMPLETE Ljava/lang/String;
 	public static final field CREATE_TRACKER Ljava/lang/String;
+	public static final field DEBUG Ljava/lang/String;
 	public static final field ERROR_RESPONSE_CONTENT Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
@@ -1086,6 +1087,11 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 	public static fun castFromGenericType (Ljava/util/Map;)Ljava/util/Map;
 	public static fun clone (Ljava/util/Map;)Ljava/util/Map;
 	public static fun immutableClone (Ljava/util/Map;)Ljava/util/Map;
+}
+
+public final class com/adobe/marketing/mobile/util/EventUtils {
+	public static final fun getDebugEventSource (Lcom/adobe/marketing/mobile/Event;)Ljava/lang/String;
+	public static final fun getDebugEventType (Lcom/adobe/marketing/mobile/Event;)Ljava/lang/String;
 }
 
 public final class com/adobe/marketing/mobile/util/JSONUtils {

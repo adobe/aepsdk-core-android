@@ -14,6 +14,8 @@
 package com.adobe.marketing.mobile.util
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 
 private const val KEY_EVENT_DATA_DEBUG = "debug"
 private const val KEY_DEBUG_EVENT_TYPE = "eventType"
@@ -24,18 +26,16 @@ private const val KEY_DEBUG_EVENT_SOURCE = "eventSource"
  * @return the debug event type if present, otherwise null
  */
 fun Event.getDebugEventType(): String? {
-    if (eventData == null) {
-        return null
-    }
+    if (type != EventType.SYSTEM || source != EventSource.DEBUG) return null
+
+    if (eventData == null) return null
 
     val debugData = DataReader.optTypedMap(Any::class.java, eventData, KEY_EVENT_DATA_DEBUG, null)
         ?: return null
 
     val debugEventType = debugData[KEY_DEBUG_EVENT_TYPE]
 
-    if (debugEventType !is String) {
-        return null
-    }
+    if (debugEventType !is String) return null
 
     return debugEventType
 }
@@ -45,18 +45,16 @@ fun Event.getDebugEventType(): String? {
  * @return the debug event source if present, otherwise null
  */
 fun Event.getDebugEventSource(): String? {
-    if (eventData == null) {
-        return null
-    }
+    if (type != EventType.SYSTEM || source != EventSource.DEBUG) return null
+
+    if (eventData == null) return null
 
     val debugData = DataReader.optTypedMap(Any::class.java, eventData, KEY_EVENT_DATA_DEBUG, null)
         ?: return null
 
     val debugEventSource = debugData[KEY_DEBUG_EVENT_SOURCE]
 
-    if (debugEventSource !is String) {
-        return null
-    }
+    if (debugEventSource !is String) return null
 
     return debugEventSource
 }

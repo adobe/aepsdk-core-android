@@ -21,8 +21,15 @@ import kotlin.test.assertEquals
 class EventUtilsTest {
     companion object {
         private const val TEST_EVENT_NAME = "testName"
-        private const val TEST_EVENT_TYPE = "testType"
-        private const val TEST_EVENT_SOURCE = "testSource"
+        private const val TEST_EVENT_TYPE = EventType.SYSTEM
+        private const val TEST_EVENT_SOURCE = EventSource.DEBUG
+    }
+
+    @Test
+    fun `Test getDebugEventType returns null on non debug event`() {
+        val event = Event.Builder(TEST_EVENT_NAME, EventType.HUB, EventSource.REQUEST_CONTENT).build()
+
+        assertNull(event.getDebugEventType())
     }
 
     @Test
@@ -97,6 +104,13 @@ class EventUtilsTest {
             ).build()
 
         assertNull(event.getDebugEventType())
+    }
+
+    @Test
+    fun `Test getDebugEventSource returns null on non debug event`() {
+        val event = Event.Builder(TEST_EVENT_NAME, EventType.HUB, EventSource.REQUEST_CONTENT).build()
+
+        assertNull(event.getDebugEventSource())
     }
 
     @Test

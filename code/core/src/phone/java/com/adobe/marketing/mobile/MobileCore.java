@@ -108,7 +108,8 @@ public final class MobileCore {
                 Log.debug(
                         CoreConstants.LOG_TAG,
                         LOG_TAG,
-                        "setApplication - device is unlocked and not in direct boot mode, initializing the SDK.");
+                        "setApplication - device is unlocked and not in direct boot mode,"
+                                + " initializing the SDK.");
             } else {
                 Log.error(
                         CoreConstants.LOG_TAG,

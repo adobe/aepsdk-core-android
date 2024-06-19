@@ -11,10 +11,12 @@
 package com.adobe.marketing.mobile.core.testapp
 
 import android.app.Application
-import com.adobe.marketing.mobile.MobileCore
+import android.util.Log
+import androidx.core.os.UserManagerCompat
 import com.adobe.marketing.mobile.Identity
 import com.adobe.marketing.mobile.Lifecycle
 import com.adobe.marketing.mobile.LoggingMode
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.core.testapp.extension.PerfExtension
 
@@ -22,6 +24,7 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        Log.i("MyApp", "Application.onCreate() - start to initialize Adobe SDK. UserManagerCompat.isUserUnlocked(): ${UserManagerCompat.isUserUnlocked(this)}")
         MobileCore.setApplication(this)
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
 

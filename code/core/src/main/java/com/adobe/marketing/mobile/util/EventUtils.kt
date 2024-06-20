@@ -25,35 +25,24 @@ private const val KEY_DEBUG_EVENT_SOURCE = "eventSource"
  * The debug event type (identified by debug.eventType) from the event data if present, otherwise null
  */
 val Event.debugEventType: String?
-    get() {
-        val debugData = getDebugEventData() ?: return null
-        val eventType = debugData[KEY_DEBUG_EVENT_TYPE]
-        if (eventType !is String) return null
-
-        return eventType
-    }
+    get() = debugEventData?.get(KEY_DEBUG_EVENT_TYPE) as? String
 
 /**
  * The debug event source (identified by debug.eventSource) from the event data if present, otherwise null.
  */
 val Event.debugEventSource: String?
-    get() {
-        val debugData = getDebugEventData() ?: return null
-        val eventSource = debugData[KEY_DEBUG_EVENT_SOURCE]
-        if (eventSource !is String) return null
-
-        return eventSource
-    }
+    get() = debugEventData?.get(KEY_DEBUG_EVENT_SOURCE) as? String
 
 /**
  * Returns the debug event data (identified by data.debug) from the event if present, otherwise null.
  * @return the content of "debug" key within "Event.data" if present,
  *         null if the event is not a debug event or if the debug data does not exist
  */
-private fun Event.getDebugEventData(): Map<String, Any?>? {
-    if (type != EventType.SYSTEM || source != EventSource.DEBUG) return null
+val Event.debugEventData: Map<String, Any?>?
+    get() {
+        if (type != EventType.SYSTEM || source != EventSource.DEBUG) return null
 
-    if (eventData == null) return null
+        if (eventData == null) return null
 
-    return DataReader.optTypedMap(Any::class.java, eventData, KEY_EVENT_DATA_DEBUG, null) ?: null
-}
+        return DataReader.optTypedMap(Any::class.java, eventData, KEY_EVENT_DATA_DEBUG, null) ?: null
+    }

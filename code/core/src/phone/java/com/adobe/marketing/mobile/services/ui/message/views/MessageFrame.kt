@@ -102,6 +102,7 @@ internal fun MessageFrame(
             // the WebView message is clipped to the rounded corners for API versions 22 and below. This does not
             // affect the appearance of the message on API versions 23 and above.
             Card(
+                backgroundColor = Color.Transparent,
                 modifier = Modifier
                     .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
                     .alpha(0.99f)

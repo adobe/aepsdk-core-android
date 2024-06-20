@@ -13,9 +13,13 @@ package com.adobe.marketing.mobile;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Application.ActivityLifecycleCallbacks;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.core.os.UserManagerCompat;
 import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.DataMarshaller;
@@ -82,8 +86,8 @@ public final class MobileCore {
 
     /**
      * Set the Android {@link Application}, which enables the SDK get the app {@code Context},
-     * register a {@link Application.ActivityLifecycleCallbacks} to monitor the lifecycle of the app
-     * and get the {@link android.app.Activity} on top of the screen.
+     * register a {@link ActivityLifecycleCallbacks} to monitor the lifecycle of the app and get the
+     * {@link Activity} on top of the screen.
      *
      * <p>NOTE: This method should be called right after the app starts, so it gives the SDK all the
      * contexts it needed.
@@ -91,22 +95,40 @@ public final class MobileCore {
      * @param application the Android {@link Application} instance. It should not be null.
      */
     public static void setApplication(@NonNull final Application application) {
+
         if (application == null) {
             Log.error(
                     CoreConstants.LOG_TAG, LOG_TAG, "setApplication failed - application is null");
             return;
         }
 
+        // Direct boot mode is supported on Android N and above
+        if (VERSION.SDK_INT >= VERSION_CODES.N) {
+            if (UserManagerCompat.isUserUnlocked(application)) {
+                Log.debug(
+                        CoreConstants.LOG_TAG,
+                        LOG_TAG,
+                        "setApplication - device is unlocked and not in direct boot mode,"
+                                + " initializing the SDK.");
+            } else {
+                Log.error(
+                        CoreConstants.LOG_TAG,
+                        LOG_TAG,
+                        "setApplication failed - device is in direct boot mode, SDK will not be"
+                                + " initialized.");
+                return;
+            }
+        }
+
         if (sdkInitializedWithContext.getAndSet(true)) {
             Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Ignoring as setApplication was already called.");
+                    "setApplication failed - ignoring as setApplication was already called.");
             return;
         }
 
-        if (android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.O
-                || android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.O_MR1) {
+        if (VERSION.SDK_INT == VERSION_CODES.O || VERSION.SDK_INT == VERSION_CODES.O_MR1) {
             // AMSDK-8502
             // Workaround to prevent a crash happening on Android 8.0/8.1 related to
             // TimeZoneNamesImpl

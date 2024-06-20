@@ -38,7 +38,7 @@ val Event.debugEventSource: String?
  * @return the content of "debug" key within "Event.data" if present,
  *         null if the event is not a debug event or if the debug data does not exist
  */
-val Event.debugEventData: Map<String, Any?>?
+private val Event.debugEventData: Map<String, Any?>?
     get() {
         if (type != EventType.SYSTEM || source != EventSource.DEBUG) return null
 

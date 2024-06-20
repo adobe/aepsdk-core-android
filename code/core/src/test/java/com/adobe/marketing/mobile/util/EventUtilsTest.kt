@@ -26,37 +26,37 @@ class EventUtilsTest {
     }
 
     @Test
-    fun `Test getDebugEventType returns null on non debug event`() {
+    fun `Test debugEventType returns null on non debug event`() {
         val event = Event.Builder(TEST_EVENT_NAME, EventType.HUB, EventSource.REQUEST_CONTENT).build()
 
-        assertNull(event.getDebugEventType())
+        assertNull(event.debugEventType)
     }
 
     @Test
-    fun `Test getDebugEventType returns null on no eventData`() {
+    fun `Test debugEventType returns null on no eventData`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE).build()
 
-        assertNull(event.getDebugEventType())
+        assertNull(event.debugEventType)
     }
 
     @Test
-    fun `Test getDebugEventType returns null on no debug data`() {
+    fun `Test debugEventType returns null on no debug data`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(mapOf("key" to "value")).build()
 
-        assertNull(event.getDebugEventType())
+        assertNull(event.debugEventType)
     }
 
     @Test
-    fun `Test getDebugEventType returns null when debug is not a map`() {
+    fun `Test debugEventType returns null when debug is not a map`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(mapOf("debug" to "value")).build()
 
-        assertNull(event.getDebugEventType())
+        assertNull(event.debugEventType)
     }
 
     @Test
-    fun `Test getDebugEventType returns null on invalid debug key`() {
+    fun `Test debugEventType returns null on invalid debug key`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(
                 mapOf(
@@ -67,11 +67,11 @@ class EventUtilsTest {
                 )
             ).build()
 
-        assertNull(event.getDebugEventType())
+        assertNull(event.debugEventType)
     }
 
     @Test
-    fun `Test getDebugEventType returns null when key is absent`() {
+    fun `Test debugEventType returns null when key is absent`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(
                 mapOf(
@@ -81,11 +81,11 @@ class EventUtilsTest {
                 )
             ).build()
 
-        assertNull(event.getDebugEventType())
+        assertNull(event.debugEventType)
     }
 
     @Test
-    fun `Test getDebugEventType returns debug event type`() {
+    fun `Test debugEventType returns debug event type`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(
                 mapOf(
@@ -96,11 +96,11 @@ class EventUtilsTest {
                 )
             ).build()
 
-        assertEquals(EventType.RULES_ENGINE, event.getDebugEventType())
+        assertEquals(EventType.RULES_ENGINE, event.debugEventType)
     }
 
     @Test
-    fun `Test getDebugEventType returns null when debugEvent type is not a string`() {
+    fun `Test debugEventType returns null when debugEvent type is not a string`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(
                 mapOf(
@@ -111,41 +111,41 @@ class EventUtilsTest {
                 )
             ).build()
 
-        assertNull(event.getDebugEventType())
+        assertNull(event.debugEventType)
     }
 
     @Test
-    fun `Test getDebugEventSource returns null on non debug event`() {
+    fun `Test debugEventSource returns null on non debug event`() {
         val event = Event.Builder(TEST_EVENT_NAME, EventType.HUB, EventSource.REQUEST_CONTENT).build()
 
-        assertNull(event.getDebugEventSource())
+        assertNull(event.debugEventSource)
     }
 
     @Test
-    fun `Test getDebugEventSource returns null on no eventData`() {
+    fun `Test debugEventSource returns null on no eventData`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE).build()
 
-        assertNull(event.getDebugEventSource())
+        assertNull(event.debugEventSource)
     }
 
     @Test
-    fun `Test getDebugEventSource returns null when debug is not a map`() {
+    fun `Test debugEventSource returns null when debug is not a map`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(mapOf("debug" to "value")).build()
 
-        assertNull(event.getDebugEventSource())
+        assertNull(event.debugEventSource)
     }
 
     @Test
-    fun `Test getDebugEventSource returns null on no debug data`() {
+    fun `Test debugEventSource returns null on no debug data`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(mapOf("key" to "value")).build()
 
-        assertNull(event.getDebugEventSource())
+        assertNull(event.debugEventSource)
     }
 
     @Test
-    fun `Test getDebugEventSource returns null on invalid debug key`() {
+    fun `Test debugEventSource returns null on invalid debug key`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(
                 mapOf(
@@ -156,11 +156,11 @@ class EventUtilsTest {
                 )
             ).build()
 
-        assertNull(event.getDebugEventSource())
+        assertNull(event.debugEventSource)
     }
 
     @Test
-    fun `Test getDebugEventSource returns debug event source`() {
+    fun `Test debugEventSource returns debug event source`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(
                 mapOf(
@@ -171,11 +171,11 @@ class EventUtilsTest {
                 )
             ).build()
 
-        assertEquals(EventSource.RESET_COMPLETE, event.getDebugEventSource())
+        assertEquals(EventSource.RESET_COMPLETE, event.debugEventSource)
     }
 
     @Test
-    fun `Test getDebugEventSource returns null when debugEvent source is not a string`() {
+    fun `Test debugEventSource returns null when debugEvent source is not a string`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(
                 mapOf(
@@ -186,11 +186,11 @@ class EventUtilsTest {
                 )
             ).build()
 
-        assertNull(event.getDebugEventSource())
+        assertNull(event.debugEventSource)
     }
 
     @Test
-    fun `Test getDebugEventSource returns null when key is absent`() {
+    fun `Test debugEventSource returns null when key is absent`() {
         val event = Event.Builder(TEST_EVENT_NAME, TEST_EVENT_TYPE, TEST_EVENT_SOURCE)
             .setEventData(
                 mapOf(
@@ -200,6 +200,6 @@ class EventUtilsTest {
                 )
             ).build()
 
-        assertNull(event.getDebugEventSource())
+        assertNull(event.debugEventSource)
     }
 }

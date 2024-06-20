@@ -22,28 +22,28 @@ private const val KEY_DEBUG_EVENT_TYPE = "eventType"
 private const val KEY_DEBUG_EVENT_SOURCE = "eventSource"
 
 /**
- * Returns the debug event type (identified by debug.eventType) from the event data if present, otherwise null.
- * @return the debug event type if present, otherwise null
+ * The debug event type (identified by debug.eventType) from the event data if present, otherwise null
  */
-fun Event.getDebugEventType(): String? {
-    val debugData = getDebugEventData() ?: return null
-    val debugEventType = debugData[KEY_DEBUG_EVENT_TYPE]
-    if (debugEventType !is String) return null
+val Event.debugEventType: String?
+    get() {
+        val debugData = getDebugEventData() ?: return null
+        val eventType = debugData[KEY_DEBUG_EVENT_TYPE]
+        if (eventType !is String) return null
 
-    return debugEventType
-}
+        return eventType
+    }
 
 /**
- * Returns the debug event source (identified by debug.eventSource) from the event data if present, otherwise null.
- * @return the debug event source if present, otherwise null
+ * The debug event source (identified by debug.eventSource) from the event data if present, otherwise null.
  */
-fun Event.getDebugEventSource(): String? {
-    val debugData = getDebugEventData() ?: return null
-    val debugEventSource = debugData[KEY_DEBUG_EVENT_SOURCE]
-    if (debugEventSource !is String) return null
+val Event.debugEventSource: String?
+    get() {
+        val debugData = getDebugEventData() ?: return null
+        val eventSource = debugData[KEY_DEBUG_EVENT_SOURCE]
+        if (eventSource !is String) return null
 
-    return debugEventSource
-}
+        return eventSource
+    }
 
 /**
  * Returns the debug event data (identified by data.debug) from the event if present, otherwise null.

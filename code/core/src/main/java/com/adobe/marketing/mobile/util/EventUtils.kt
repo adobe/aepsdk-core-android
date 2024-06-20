@@ -22,38 +22,27 @@ private const val KEY_DEBUG_EVENT_TYPE = "eventType"
 private const val KEY_DEBUG_EVENT_SOURCE = "eventSource"
 
 /**
- * Returns the debug event type (identified by debug.eventType) from the event data if present, otherwise null.
- * @return the debug event type if present, otherwise null
+ * The debug event type (identified by debug.eventType) from the event data if present, otherwise null
  */
-fun Event.getDebugEventType(): String? {
-    val debugData = getDebugEventData() ?: return null
-    val debugEventType = debugData[KEY_DEBUG_EVENT_TYPE]
-    if (debugEventType !is String) return null
-
-    return debugEventType
-}
+val Event.debugEventType: String?
+    get() = debugEventData?.get(KEY_DEBUG_EVENT_TYPE) as? String
 
 /**
- * Returns the debug event source (identified by debug.eventSource) from the event data if present, otherwise null.
- * @return the debug event source if present, otherwise null
+ * The debug event source (identified by debug.eventSource) from the event data if present, otherwise null.
  */
-fun Event.getDebugEventSource(): String? {
-    val debugData = getDebugEventData() ?: return null
-    val debugEventSource = debugData[KEY_DEBUG_EVENT_SOURCE]
-    if (debugEventSource !is String) return null
-
-    return debugEventSource
-}
+val Event.debugEventSource: String?
+    get() = debugEventData?.get(KEY_DEBUG_EVENT_SOURCE) as? String
 
 /**
  * Returns the debug event data (identified by data.debug) from the event if present, otherwise null.
  * @return the content of "debug" key within "Event.data" if present,
  *         null if the event is not a debug event or if the debug data does not exist
  */
-private fun Event.getDebugEventData(): Map<String, Any?>? {
-    if (type != EventType.SYSTEM || source != EventSource.DEBUG) return null
+private val Event.debugEventData: Map<String, Any?>?
+    get() {
+        if (type != EventType.SYSTEM || source != EventSource.DEBUG) return null
 
-    if (eventData == null) return null
+        if (eventData == null) return null
 
-    return DataReader.optTypedMap(Any::class.java, eventData, KEY_EVENT_DATA_DEBUG, null) ?: null
-}
+        return DataReader.optTypedMap(Any::class.java, eventData, KEY_EVENT_DATA_DEBUG, null) ?: null
+    }

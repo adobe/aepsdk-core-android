@@ -216,6 +216,13 @@ internal class EventHub {
         }
 
     /**
+     * Submits a task to be executed in the event hub executor.
+     */
+    fun executeInEventHubExecutor(task: () -> Unit) {
+        eventHubExecutor.submit(task)
+    }
+
+    /**
      * Initializes event history. This must be called after the SDK has application context.
      */
     fun initializeEventHistory() {

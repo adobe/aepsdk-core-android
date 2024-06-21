@@ -123,20 +123,30 @@ public final class MobileCore {
         ServiceProvider.getInstance().getAppContextService().setApplication(application);
         App.INSTANCE.registerActivityResumedListener(MobileCore::collectLaunchInfo);
 
-        try {
-            V4ToV5Migration migrationTool = new V4ToV5Migration();
-            migrationTool.migrate();
-        } catch (Exception e) {
-            Log.error(
-                    CoreConstants.LOG_TAG,
-                    LOG_TAG,
-                    "V4 to V5 migration failed - " + e.getLocalizedMessage());
-        }
+        // Migration and EventHistory operations must complete in a background thread before any
+        // extensions are registered.
+        // To ensure these tasks are completed before any registerExtension calls are made,
+        // reuse the eventHubExecutor instead of using a separate executor instance.
+        EventHub.Companion.getShared()
+                .executeInEventHubExecutor(
+                        () -> {
+                            try {
+                                V4ToV5Migration migrationTool = new V4ToV5Migration();
+                                migrationTool.migrate();
+                            } catch (Exception e) {
+                                Log.error(
+                                        CoreConstants.LOG_TAG,
+                                        LOG_TAG,
+                                        "V4 to V5 migration failed - " + e.getLocalizedMessage());
+                            }
 
-        // Initialize event history
-        EventHub.Companion.getShared().initializeEventHistory();
-        // Register configuration extension
-        EventHub.Companion.getShared().registerExtension(ConfigurationExtension.class);
+                            // Initialize event history
+                            EventHub.Companion.getShared().initializeEventHistory();
+                            // Register configuration extension
+                            EventHub.Companion.getShared()
+                                    .registerExtension(ConfigurationExtension.class);
+                            return null;
+                        });
     }
 
     /**

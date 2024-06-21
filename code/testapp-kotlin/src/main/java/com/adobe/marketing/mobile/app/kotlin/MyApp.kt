@@ -11,6 +11,8 @@
 package com.adobe.marketing.mobile.app.kotlin
 
 import android.app.Application
+import android.util.Log
+import androidx.core.os.UserManagerCompat
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Identity
 import com.adobe.marketing.mobile.Lifecycle
@@ -22,6 +24,8 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        Log.i("MyApp", "[Android 2.x] Application.onCreate() - start to initialize Adobe SDK. UserManagerCompat.isUserUnlocked(): ${UserManagerCompat.isUserUnlocked(this)}")
         MobileCore.setApplication(this)
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
         // MobileCore.configureWithAppID("YOUR_APP_ID")

@@ -35,7 +35,7 @@ import kotlin.test.assertTrue
 @RunWith(MockitoJUnitRunner.Silent::class)
 class MobileCoreTests {
 
-    private var EXTENSION_VERSION = "2.6.3"
+    private var EXTENSION_VERSION = "2.6.4"
 
     @Mock
     private lateinit var mockedEventHub: EventHub

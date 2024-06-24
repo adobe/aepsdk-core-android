@@ -13,9 +13,12 @@ package com.adobe.marketing.mobile;
 
 import android.app.Activity;
 import android.app.Application;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.core.os.UserManagerCompat;
 import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
@@ -95,6 +98,23 @@ public final class MobileCore {
             Log.error(
                     CoreConstants.LOG_TAG, LOG_TAG, "setApplication failed - application is null");
             return;
+        }
+        // Direct boot mode is supported on Android N and above
+        if (VERSION.SDK_INT >= VERSION_CODES.N) {
+            if (UserManagerCompat.isUserUnlocked(application)) {
+                Log.debug(
+                        CoreConstants.LOG_TAG,
+                        LOG_TAG,
+                        "setApplication - device is unlocked and not in direct boot mode,"
+                                + " initializing the SDK.");
+            } else {
+                Log.error(
+                        CoreConstants.LOG_TAG,
+                        LOG_TAG,
+                        "setApplication failed - device is in direct boot mode, SDK will not be"
+                                + " initialized.");
+                return;
+            }
         }
 
         if (sdkInitializedWithContext.getAndSet(true)) {

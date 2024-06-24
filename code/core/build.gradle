@@ -117,7 +117,7 @@ dependencies {
     testImplementation 'org.mockito:mockito-inline:4.5.1'
     //noinspection GradleDependency
     testImplementation 'commons-codec:commons-codec:1.15'
-    testImplementation 'org.robolectric:robolectric:3.6.2'
+    testImplementation 'org.robolectric:robolectric:4.7'
     testImplementation "org.mockito.kotlin:mockito-kotlin:3.2.0"
     //noinspection GradleDependency
     testImplementation 'org.json:json:20160810'

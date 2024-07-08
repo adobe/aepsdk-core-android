@@ -103,6 +103,7 @@ internal fun MessageFrame(
             // affect the appearance of the message on API versions 23 and above.
             Card(
                 backgroundColor = Color.Transparent,
+                elevation = 0.dp, // Ensure that the card does not cast a shadow
                 modifier = Modifier
                     .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
                     .alpha(0.99f)

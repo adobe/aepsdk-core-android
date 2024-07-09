@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.os.Build
 import android.webkit.WebView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -80,6 +81,8 @@ internal fun MessageFrame(
     val offsetY = remember { mutableStateOf(0f) }
     val dragVelocity = remember { mutableStateOf(0f) }
 
+    val adjustAlphaForClipping = remember { Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1 }
+
     AnimatedVisibility(
         visibleState = visibility,
         enter = MessageAnimationMapper.getEnterTransitionFor(inAppMessageSettings.displayAnimation),
@@ -98,14 +101,17 @@ internal fun MessageFrame(
             ),
             verticalAlignment = MessageAlignmentMapper.getVerticalAlignment(inAppMessageSettings.verticalAlignment)
         ) {
-            // The content of the InAppMessage. This needs to be placed inside a Card with .99 alpha to ensure that
-            // the WebView message is clipped to the rounded corners for API versions 22 and below. This does not
-            // affect the appearance of the message on API versions 23 and above.
+            // The content of the InAppMessage.
             Card(
                 backgroundColor = Color.Transparent,
+                elevation = 0.dp, // Ensure that the card does not cast a shadow
                 modifier = Modifier
                     .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
-                    .alpha(0.99f)
+                    .let {
+                        // Needs .99 alpha to ensure that the WebView message is clipped to
+                        // the rounded corners for API versions 22 and below.
+                        if (adjustAlphaForClipping) it.alpha(0.99f) else it
+                    }
                     .draggable(
                         enabled = allowGestures,
                         state = rememberDraggableState { delta ->

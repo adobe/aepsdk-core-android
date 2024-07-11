@@ -10,7 +10,13 @@
  */
 package com.adobe.marketing.mobile.core.testapp
 
+import android.app.Service
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
+import com.adobe.marketing.mobile.MobileCore
+import com.adobe.marketing.mobile.services.NetworkRequest
+import com.adobe.marketing.mobile.services.ObservableNetworkService
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.Alert
 import com.adobe.marketing.mobile.services.ui.Presentable
@@ -50,4 +56,27 @@ internal fun showAlert(message: String) {
 
     val alertPresentable = ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
     alertPresentable.show()
+}
+
+internal object SDKObserver{
+    fun init(){
+        MobileCore.registerEventListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT) {
+            latestConfiguration = it.eventData
+        }
+        ServiceProvider.getInstance().networkService = ObservableNetworkService { latestNetworkRequest = it }
+    }
+    private var latestConfiguration: Map<String,Any>? = null
+    private var latestNetworkRequest: NetworkRequest? = null
+    fun clearLatestNetworkRequest() {
+        latestNetworkRequest = null
+    }
+    fun getLatestNetworkRequest(): NetworkRequest? {
+        return latestNetworkRequest
+    }
+    fun getLatestConfiguration(): Map<String,Any>? {
+        return latestConfiguration
+    }
+    fun clearLatestConfiguration() {
+        latestConfiguration = null
+    }
 }

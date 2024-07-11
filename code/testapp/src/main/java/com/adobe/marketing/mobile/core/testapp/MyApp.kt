@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile.core.testapp
 import android.app.Application
 import android.util.Log
 import androidx.core.os.UserManagerCompat
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Identity
 import com.adobe.marketing.mobile.Lifecycle
 import com.adobe.marketing.mobile.LoggingMode
@@ -32,6 +34,7 @@ class MyApp : Application() {
         // MobileCore.configureWithAppID("YOUR_APP_ID")
         val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
         MobileCore.registerExtensions(extensions) {}
+        SDKObserver.init()
     }
 
 }

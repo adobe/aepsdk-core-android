@@ -5,5 +5,6 @@
   "global.privacy": "optedin",
   "property.id": "PR16596147e65c4d37980310bae3097e6b",
   "bundled_configuration": true,
+  "custom_configuration_name": true,
   "build.environment": "dev"
 }

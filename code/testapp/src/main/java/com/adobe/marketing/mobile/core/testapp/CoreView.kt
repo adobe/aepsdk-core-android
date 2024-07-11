@@ -253,21 +253,6 @@ fun CoreView(navController: NavHostController) {
                 Text(text = "trackState")
             }
             Button(onClick = {
-                MobileCore.lifecycleStart(null)
-            }) {
-                Text(text = "lifecycleStart")
-            }
-            Button(onClick = {
-                MobileCore.lifecycleStart(mapOf("key" to "value"))
-            }) {
-                Text(text = "lifecycleStart(contextData)")
-            }
-            Button(onClick = {
-                MobileCore.lifecyclePause()
-            }) {
-                Text(text = "lifecyclePause")
-            }
-            Button(onClick = {
                 MobileCore.resetIdentities()
             }) {
                 Text(text = "resetIdentities")

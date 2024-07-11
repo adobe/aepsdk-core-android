@@ -17,14 +17,32 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Signal
+import com.adobe.marketing.mobile.core.testapp.ui.theme.AEPSDKCoreAndroidTheme
+import kotlinx.coroutines.delay
 
 @Composable
 fun LifecycleView(navController: NavHostController) {
+    var showLifecycleEvent by remember { mutableStateOf(false) }
+    LaunchedEffect(showLifecycleEvent) {
+        if (showLifecycleEvent) {
+            delay(1000)
+            showAlert("Lifecycle event: ${SDKObserver.getLatestLifecycleEvent()?.toString()}")
+            showLifecycleEvent = false
+        }
+    }
     Column(Modifier.padding(8.dp)) {
         Button(onClick = {
             navController.navigate(NavRoutes.HomeView.route)
@@ -37,6 +55,35 @@ fun LifecycleView(navController: NavHostController) {
                 horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Signal extension version - ${Signal.extensionVersion()}")
+            Button(onClick = {
+                SDKObserver.clearLatestLifecycleEvent()
+                MobileCore.lifecycleStart(null)
+                showLifecycleEvent = true
+            }) {
+                Text(text = "lifecycleStart")
+            }
+            Button(onClick = {
+                SDKObserver.clearLatestLifecycleEvent()
+                MobileCore.lifecycleStart(mapOf("key" to "value"))
+                showLifecycleEvent = true
+            }) {
+                Text(text = "lifecycleStart(contextData)")
+            }
+            Button(onClick = {
+                SDKObserver.clearLatestLifecycleEvent()
+                MobileCore.lifecyclePause()
+                showLifecycleEvent = true
+            }) {
+                Text(text = "lifecyclePause")
+            }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreviewForCoreViewForLifecycleView() {
+    AEPSDKCoreAndroidTheme {
+        LifecycleView(rememberNavController())
     }
 }

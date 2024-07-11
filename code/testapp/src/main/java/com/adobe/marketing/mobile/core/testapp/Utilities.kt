@@ -63,10 +63,21 @@ internal object SDKObserver{
         MobileCore.registerEventListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT) {
             latestConfiguration = it.eventData
         }
+        MobileCore.registerEventListener(EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT) {
+            latestLifecycleEvent = it
+        }
         ServiceProvider.getInstance().networkService = ObservableNetworkService { latestNetworkRequest = it }
     }
     private var latestConfiguration: Map<String,Any>? = null
     private var latestNetworkRequest: NetworkRequest? = null
+    private var latestLifecycleEvent: Event? = null
+
+    fun clearLatestLifecycleEvent() {
+        latestLifecycleEvent = null
+    }
+    fun getLatestLifecycleEvent(): Event? {
+        return latestLifecycleEvent
+    }
     fun clearLatestNetworkRequest() {
         latestNetworkRequest = null
     }

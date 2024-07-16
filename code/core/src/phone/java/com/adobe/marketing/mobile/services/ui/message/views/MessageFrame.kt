@@ -11,6 +11,9 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import android.view.View
 import android.webkit.WebView
@@ -39,7 +42,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.adobe.marketing.mobile.internal.util.findActivity
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
@@ -179,4 +181,16 @@ internal fun MessageFrame(
             }
         }
     }
+}
+
+/**
+ * An extension for finding the activity from a context.
+ */
+private fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
 }

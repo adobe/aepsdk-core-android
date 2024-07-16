@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
-import android.app.Activity
 import android.os.Build
 import android.view.View
 import android.webkit.WebView
@@ -40,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.adobe.marketing.mobile.internal.util.findActivity
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
@@ -68,7 +68,7 @@ internal fun MessageFrame(
     // The current context is the activity that is hosting the message. We can safely cast it to
     // an Activity because this composable is always used within the context of the activity in
     // the current implementation of UIService
-    val currentActivity = LocalContext.current as? Activity ?: run {
+    val currentActivity = LocalContext.current.findActivity() ?: run {
         onDisposed()
         Log.debug(ServiceConstants.LOG_TAG, "MessageFrame", "Unable to get the current activity. Dismissing the message.")
         return

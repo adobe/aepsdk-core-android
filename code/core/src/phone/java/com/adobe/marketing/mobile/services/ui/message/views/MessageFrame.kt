@@ -84,8 +84,8 @@ internal fun MessageFrame(
     val contentView = currentActivity.findViewById<View>(android.R.id.content)
     val contentHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
     val contentWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
-    val heightDp = remember { ((contentHeightDp * inAppMessageSettings.height) / 100) }
-    val widthDp = remember { ((contentWidthDp * inAppMessageSettings.width) / 100) }
+    val heightDp = ((contentHeightDp * inAppMessageSettings.height) / 100)
+    val widthDp = ((contentWidthDp * inAppMessageSettings.width) / 100)
 
     val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
         inAppMessageSettings.horizontalAlignment,

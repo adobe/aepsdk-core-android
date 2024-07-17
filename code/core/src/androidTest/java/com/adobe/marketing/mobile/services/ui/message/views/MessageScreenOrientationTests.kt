@@ -11,15 +11,19 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.app.Activity
 import android.view.View
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
+import androidx.compose.ui.unit.width
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
@@ -82,20 +86,20 @@ class MessageScreenOrientationTests {
             .content(HTML_TEXT_SAMPLE)
             .build()
 
-        val screenHeightDp = mutableStateOf(0.dp)
-        val screenWidthDp = mutableStateOf(0.dp)
-        val activityHeightDp = mutableStateOf(0.dp)
-        val activityWidthDp = mutableStateOf(0.dp)
+        val contentViewHeightDp = mutableStateOf(0.dp)
+        val contentViewWidthDp = mutableStateOf(0.dp)
+        val contentHeightDp = mutableStateOf(0.dp)
+        val contentWidthDp = mutableStateOf(0.dp)
         composeTestRule.setContent { // setting our composable as content for test
             // Get the screen dimensions
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp.value = currentConfiguration.screenHeightDp.dp
-            screenWidthDp.value = currentConfiguration.screenWidthDp.dp
-
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp.value = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp.value = with(LocalDensity.current) { activityRoot.width.toDp() }
+            LocalConfiguration.current.run {
+                val activity = LocalContext.current as Activity
+                val contentView = activity.findViewById<View>(android.R.id.content)
+                contentViewHeightDp.value = with(LocalDensity.current) { contentView.height.toDp() }
+                contentViewWidthDp.value = with(LocalDensity.current) { contentView.width.toDp() }
+                contentHeightDp.value = ((contentViewHeightDp.value * settings.height) / 100)
+                contentWidthDp.value = ((contentViewWidthDp.value * settings.width) / 100)
+            }
 
             MessageScreen(
                 presentationStateManager = presentationStateManager,
@@ -123,9 +127,9 @@ class MessageScreenOrientationTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val (expectedInitialHeight, expectedInitialWidth) = calculateDimensions(
-            screenHeightDp.value,
-            screenWidthDp.value,
-            activityHeightDp.value,
+            contentViewHeightDp.value,
+            contentViewWidthDp.value,
+            contentHeightDp.value,
             heightPercentage,
             widthPercentage
         )
@@ -158,9 +162,9 @@ class MessageScreenOrientationTests {
         val landscapeContentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val (expectedLandscapeHeight, expectedLandscapeWidth) = calculateDimensions(
-            screenHeightDp.value,
-            screenWidthDp.value,
-            activityHeightDp.value,
+            contentViewHeightDp.value,
+            contentViewWidthDp.value,
+            contentHeightDp.value,
             heightPercentage,
             widthPercentage
         )
@@ -190,17 +194,17 @@ class MessageScreenOrientationTests {
             clipped = false
         )
 
+        val naturalContentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
+
         // Verify that the message content is restored to its original size
         val (expectedNaturalHeight, expectedNaturalWidth) = calculateDimensions(
-            screenHeightDp.value,
-            screenWidthDp.value,
-            activityHeightDp.value,
+            contentViewHeightDp.value,
+            contentViewWidthDp.value,
+            contentHeightDp.value,
             heightPercentage,
             widthPercentage
         )
-
-        val naturalContentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
-            .getUnclippedBoundsInRoot()
 
         MessageScreenTestHelper.validateViewSize(
             naturalContentBounds,

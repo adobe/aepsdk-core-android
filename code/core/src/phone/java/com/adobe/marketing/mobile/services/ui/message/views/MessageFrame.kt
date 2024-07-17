@@ -11,7 +11,11 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
+import android.view.View
 import android.webkit.WebView
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
@@ -21,7 +25,9 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
@@ -32,9 +38,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAlignmentMapper
@@ -58,22 +67,35 @@ internal fun MessageFrame(
     onCreated: (WebView) -> Unit,
     onDisposed: () -> Unit
 ) {
-    val currentConfiguration = LocalConfiguration.current
+    // The current context is the activity that is hosting the message. We can safely cast it to
+    // an Activity because this composable is always used within the context of the activity in
+    // the current implementation of UIService
+    val currentActivity = LocalContext.current.findActivity() ?: run {
+        onDisposed()
+        Log.debug(ServiceConstants.LOG_TAG, "MessageFrame", "Unable to get the current activity. Dismissing the message.")
+        return
+    }
 
-    // Ideally, these values can be remembered because generally a configuration
-    // change will refresh the size. However, in-case the configuration changes (e.g. device rotation)
-    // are restricted by the Activity hosting this composable, these values will not be recomputed.
-    // So, we are not remembering these values to ensure that the size is recalculated on every
-    // composition.
+    // We want to calculate the height and width of the message based on the host activity's
+    // content view. This is because the message is displayed on top of the content view and
+    // we want to ensure that the message is displayed relative to the activity's size.
+    // This allows the message to be displayed correctly in split screen mode and other
+    // multi-window modes.
+    val contentView = currentActivity.findViewById<View>(android.R.id.content)
+    val contentHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+    val contentWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+    val heightDp = ((contentHeightDp * inAppMessageSettings.height) / 100)
+    val widthDp = ((contentWidthDp * inAppMessageSettings.width) / 100)
+
     val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
         inAppMessageSettings.horizontalAlignment,
         inAppMessageSettings.horizontalInset,
-        currentConfiguration.screenWidthDp.dp
+        widthDp
     )
     val verticalOffset = MessageOffsetMapper.getVerticalOffset(
         inAppMessageSettings.verticalAlignment,
         inAppMessageSettings.verticalInset,
-        currentConfiguration.screenHeightDp.dp
+        heightDp
     )
 
     val allowGestures = remember { inAppMessageSettings.gestureMap.isNotEmpty() }
@@ -147,7 +169,7 @@ internal fun MessageFrame(
                         }
                     )
             ) {
-                MessageContent(inAppMessageSettings, onCreated)
+                MessageContent(Modifier.height(heightDp).width(widthDp), inAppMessageSettings, onCreated)
             }
 
             // This is a one-time effect that will be called when this composable is completely removed from the composition
@@ -159,4 +181,16 @@ internal fun MessageFrame(
             }
         }
     }
+}
+
+/**
+ * An extension for finding the activity from a context.
+ */
+private fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
 }

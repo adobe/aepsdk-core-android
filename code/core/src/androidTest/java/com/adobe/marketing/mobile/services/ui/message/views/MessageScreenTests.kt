@@ -11,10 +11,11 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.app.Activity
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.click
@@ -421,19 +422,17 @@ class MessageScreenTests {
             .content(HTML_TEXT_SAMPLE)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
-
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = ((contentViewWidthDp * settings.width) / 100)
 
             MessageScreen(
                 presentationStateManager = presentationStateManager,
@@ -460,12 +459,12 @@ class MessageScreenTests {
         // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
         val frameBounds =
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        validateViewSize(frameBounds, activityHeightDp, screenWidthDp)
+        validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
 
         // Message Content(WebView) is 100% of height and width, as allowed by the activity
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        validateViewSize(contentBounds, activityHeightDp, screenWidthDp)
+        validateViewSize(contentBounds, messageContentHeightDp, messageContentWidthDp)
     }
 
     @Test
@@ -478,19 +477,16 @@ class MessageScreenTests {
             .content(HTML_TEXT_SAMPLE)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -516,23 +512,23 @@ class MessageScreenTests {
         // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
         val frameBounds =
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
-        validateViewSize(frameBounds, activityHeightDp, screenWidthDp)
+        validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
 
         // Message Content(WebView) is 95% of the screen height and heightPercent% of the screen width.
         // If the height exceeds what is allowed by the activity (due to actionbar), it takes up the full height of the activity
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        if ((screenHeightDp * (heightPercentage / 100f)) > activityHeightDp) {
+        if ((contentViewHeightDp * (heightPercentage / 100f)) > messageContentHeightDp) {
             validateViewSize(
                 contentBounds,
-                activityHeightDp,
-                screenWidthDp * (widthPercentage / 100f)
+                messageContentHeightDp,
+                contentViewWidthDp * (widthPercentage / 100f)
             )
         } else {
             validateViewSize(
                 contentBounds,
-                screenHeightDp * (heightPercentage / 100f),
-                screenWidthDp * (widthPercentage / 100f)
+                contentViewHeightDp * (heightPercentage / 100f),
+                contentViewWidthDp * (widthPercentage / 100f)
             )
         }
     }
@@ -551,19 +547,16 @@ class MessageScreenTests {
             .verticalAlignment(InAppMessageSettings.MessageAlignment.TOP)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -591,8 +584,7 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
         val contentBounds =
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
+        val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
 
         // Frame is same size as its parent so bounds should match the root bounds
         validateBounds(
@@ -607,7 +599,7 @@ class MessageScreenTests {
         validateBounds(
             contentBounds,
             rootBounds.top, // top bound is same as the top bound of root
-            rootBounds.top + contentHeightDp, // bottom bound is top bound plus content height
+            rootBounds.top + messageContentHeightDp, // bottom bound is top bound plus content height
             rootBounds.left + horizontalContentPaddingDp, // left bound is left bound of root plus content padding
             rootBounds.right - horizontalContentPaddingDp // right bound is right bound of root minus content padding
         )
@@ -624,19 +616,16 @@ class MessageScreenTests {
             .verticalAlignment(InAppMessageSettings.MessageAlignment.BOTTOM)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -664,8 +653,7 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
         val contentBounds =
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
+        val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
 
         // Frame is same size as its parent so bounds should match the root bounds
         validateBounds(
@@ -679,7 +667,7 @@ class MessageScreenTests {
         // Content is bottom aligned vertically and centered horizontally and takes 80% of screen width
         validateBounds(
             contentBounds,
-            rootBounds.bottom - contentHeightDp, // top bound is bottom bound minus content height
+            rootBounds.bottom - messageContentHeightDp, // top bound is bottom bound minus content height
             rootBounds.bottom, // bottom bound is same as the bottom bound of root
             rootBounds.left + horizontalContentPaddingDp, // left bound is left bound of root plus content padding
             rootBounds.right - horizontalContentPaddingDp // right bound is right bound of root minus content padding
@@ -697,19 +685,18 @@ class MessageScreenTests {
             .horizontalAlignment(InAppMessageSettings.MessageAlignment.LEFT)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = ((contentViewWidthDp * settings.width) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -737,8 +724,6 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
         val contentBounds =
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val contentWidth = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame is same size as its parent so bounds should match the root bounds
         validateBounds(
@@ -752,10 +737,10 @@ class MessageScreenTests {
         // Content is center aligned vertically and left aligned horizontally and takes heightPercent% of screen height
         validateBounds(
             contentBounds,
-            rootBounds.top + ((activityHeightDp - contentHeightDp) / 2), // top bound is half of the difference between the activity height and the content height
-            rootBounds.bottom - ((activityHeightDp - contentHeightDp) / 2), // top bound is the remaining half of the difference between the activity height and the content height
+            rootBounds.top + ((contentViewHeightDp - messageContentHeightDp) / 2), // top bound is half of the difference between the activity height and the content height
+            rootBounds.bottom - ((contentViewHeightDp - messageContentHeightDp) / 2), // top bound is the remaining half of the difference between the activity height and the content height
             rootBounds.left, // left bound is same as left bound of the root
-            rootBounds.left + contentWidth // right bound is left bound plus width of content
+            rootBounds.left + messageContentWidthDp // right bound is left bound plus width of content
         )
     }
 
@@ -770,19 +755,18 @@ class MessageScreenTests {
             .horizontalAlignment(InAppMessageSettings.MessageAlignment.RIGHT)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = ((contentViewWidthDp * settings.width) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -810,8 +794,6 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
         val contentBounds =
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val contentWidth = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame is same size as its parent so bounds should match the root bounds
         validateBounds(
@@ -825,9 +807,9 @@ class MessageScreenTests {
         // Content is center aligned vertically and right aligned horizontally and takes heightPercent% of screen height
         validateBounds(
             contentBounds,
-            rootBounds.top + ((activityHeightDp - contentHeightDp) / 2), // top bound is top bound of root plus half of the difference between the activity height and the content height
-            rootBounds.bottom - ((activityHeightDp - contentHeightDp) / 2), // bottom bound is bottom bound of root plys the remaining half of the difference between the activity height and the content height
-            rootBounds.right - contentWidth, // left bound is right bound minus width of content
+            rootBounds.top + ((contentViewHeightDp - messageContentHeightDp) / 2), // top bound is top bound of root plus half of the difference between the activity height and the content height
+            rootBounds.bottom - ((contentViewHeightDp - messageContentHeightDp) / 2), // bottom bound is bottom bound of root plys the remaining half of the difference between the activity height and the content height
+            rootBounds.right - messageContentWidthDp, // left bound is right bound minus width of content
             rootBounds.right // right bound is same as right bound of the root
         )
     }
@@ -844,19 +826,18 @@ class MessageScreenTests {
             .horizontalAlignment(InAppMessageSettings.MessageAlignment.RIGHT)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = ((contentViewWidthDp * settings.width) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -884,8 +865,6 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getBoundsInRoot()
         val contentBounds =
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT).getBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val contentWidth = screenWidthDp * widthPercent.toFloat() / 100f
 
         // Frame is same size as its parent so bounds should match the root bounds
         validateBounds(
@@ -899,9 +878,9 @@ class MessageScreenTests {
         // Content is center aligned vertically and right aligned horizontally and takes heightPercent% of screen height
         validateBounds(
             contentBounds,
-            rootBounds.bottom - contentHeightDp, // top bound is bottom bound minus content height
+            rootBounds.bottom - messageContentHeightDp, // top bound is bottom bound minus content height
             rootBounds.bottom, // bottom bound is same as the bottom bound of root
-            rootBounds.right - contentWidth, // left bound is right bound minus width of content
+            rootBounds.right - messageContentWidthDp, // left bound is right bound minus width of content
             rootBounds.right // right bound is same as right bound of the root
         )
     }
@@ -922,19 +901,16 @@ class MessageScreenTests {
             .verticalInset(offsetPercent)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -962,9 +938,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
-        val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
+        val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
+        val offsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom bounds are offset downwards by the inset value from the top
         validateBounds(
@@ -979,7 +954,7 @@ class MessageScreenTests {
         validateBounds(
             contentBounds,
             rootBounds.top + offsetDp, // top bound is offset downwards by the inset value from the top bound of the root
-            rootBounds.top + contentHeightDp + offsetDp, // bottom bound is the top bound of the root plus content height offset downwards by the inset value
+            rootBounds.top + messageContentHeightDp + offsetDp, // bottom bound is the top bound of the root plus content height offset downwards by the inset value
             rootBounds.left + horizontalContentPaddingDp, // left bound is left bound of root plus content padding
             rootBounds.right - horizontalContentPaddingDp // right bound is right bound of root minus content padding
         )
@@ -998,19 +973,16 @@ class MessageScreenTests {
             .verticalInset(-offsetPercent)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -1038,9 +1010,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
-        val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
+        val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
+        val offsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom bounds are offset upwards by the inset value from the top
         validateBounds(
@@ -1055,7 +1026,7 @@ class MessageScreenTests {
         validateBounds(
             contentBounds,
             rootBounds.top - offsetDp, // top bound is offset upwards by the inset value from the top bound of the root
-            rootBounds.top + contentHeightDp - offsetDp, // bottom bound is the top bound of the root plus content height offset upwards by the inset value
+            rootBounds.top + messageContentHeightDp - offsetDp, // bottom bound is the top bound of the root plus content height offset upwards by the inset value
             rootBounds.left + horizontalContentPaddingDp, // left bound is left bound of root plus content padding
             rootBounds.right - horizontalContentPaddingDp // right bound is right bound of root minus content padding
         )
@@ -1074,19 +1045,16 @@ class MessageScreenTests {
             .verticalInset(offsetPercent)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -1114,9 +1082,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
-        val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
+        val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
+        val offsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom bounds are offset upwards by the inset value from the bottom
         validateBounds(
@@ -1130,7 +1097,7 @@ class MessageScreenTests {
         // Content is bottom aligned vertically and offset upwards and centered horizontally and takes 80% of screen width
         validateBounds(
             contentBounds,
-            rootBounds.bottom - contentHeightDp - offsetDp, // top bound is the bottom bound of the root minus content height offset upwards by the inset value
+            rootBounds.bottom - messageContentHeightDp - offsetDp, // top bound is the bottom bound of the root minus content height offset upwards by the inset value
             rootBounds.bottom - offsetDp, // bottom bound is the bottom bound of the root offset upwards by the inset value
             rootBounds.left + horizontalContentPaddingDp, // left bound is left bound of root plus content padding
             rootBounds.right - horizontalContentPaddingDp // right bound is right bound of root minus content padding
@@ -1150,19 +1117,16 @@ class MessageScreenTests {
             .verticalInset(-offsetPercent)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -1190,9 +1154,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val horizontalContentPaddingDp = (screenWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
-        val offsetDp = screenHeightDp * offsetPercent.toFloat() / 100f
+        val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
+        val offsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom bounds are offset downwards by the inset value from the bottom
         validateBounds(
@@ -1206,7 +1169,7 @@ class MessageScreenTests {
         // Content is bottom aligned vertically and offset upwards and centered horizontally and takes 80% of screen width
         validateBounds(
             contentBounds,
-            rootBounds.bottom - contentHeightDp + offsetDp, // top bound is the bottom bound of the root minus content height offset downwards by the inset value
+            rootBounds.bottom - messageContentHeightDp + offsetDp, // top bound is the bottom bound of the root minus content height offset downwards by the inset value
             rootBounds.bottom + offsetDp, // bottom bound is the bottom bound of the root offset downwards by the inset value
             rootBounds.left + horizontalContentPaddingDp, // left bound is left bound of root plus content padding
             rootBounds.right - horizontalContentPaddingDp // right bound is right bound of root minus content padding
@@ -1226,19 +1189,18 @@ class MessageScreenTests {
             .horizontalInset(offsetPercent)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = ((contentViewWidthDp * settings.width) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -1266,10 +1228,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
-        val verticalContentPaddingDp = (activityHeightDp - contentHeightDp) / 2
-        val offsetDp = screenWidthDp * offsetPercent.toFloat() / 100f
+        val verticalContentPaddingDp = (contentViewHeightDp - messageContentHeightDp) / 2
+        val offsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame left and right bounds are offset leftwards by the inset value from the left
         validateBounds(
@@ -1286,7 +1246,7 @@ class MessageScreenTests {
             rootBounds.top + verticalContentPaddingDp, // top bound is the top round of the root plus content padding
             rootBounds.bottom - verticalContentPaddingDp, // bottom bound is the bottom bound of the root minus content padding
             rootBounds.left + offsetDp, // left bound is the left bound of the root offset leftwards by the inset value
-            rootBounds.left + contentWidthDp + offsetDp // right bound is left bound of root plus content width offset leftwards by the inset value
+            rootBounds.left + messageContentWidthDp + offsetDp // right bound is left bound of root plus content width offset leftwards by the inset value
         )
     }
 
@@ -1303,19 +1263,18 @@ class MessageScreenTests {
             .horizontalInset(-offsetPercent)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = ((contentViewWidthDp * settings.width) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -1343,10 +1302,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
-        val verticalContentPaddingDp = (activityHeightDp - contentHeightDp) / 2
-        val offsetDp = screenWidthDp * offsetPercent.toFloat() / 100f
+        val verticalContentPaddingDp = (contentViewHeightDp - messageContentHeightDp) / 2
+        val offsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame left and right bounds are offset rightwards by the inset value from the left
         validateBounds(
@@ -1363,7 +1320,7 @@ class MessageScreenTests {
             rootBounds.top + verticalContentPaddingDp, // top bound is the top round of the root plus content padding
             rootBounds.bottom - verticalContentPaddingDp, // bottom bound is the bottom bound of the root minus content padding
             rootBounds.left - offsetDp, // left bound is the left bound of the root offset rightwards by the inset value
-            rootBounds.left + contentWidthDp - offsetDp // right bound is left bound of root plus content width offset rightwards by the inset value
+            rootBounds.left + messageContentWidthDp - offsetDp // right bound is left bound of root plus content width offset rightwards by the inset value
         )
     }
 
@@ -1380,19 +1337,18 @@ class MessageScreenTests {
             .horizontalInset(offsetPercent)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = ((contentViewWidthDp * settings.width) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -1420,10 +1376,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
-        val verticalContentPaddingDp = (activityHeightDp - contentHeightDp) / 2
-        val offsetDp = screenWidthDp * offsetPercent.toFloat() / 100f
+        val verticalContentPaddingDp = (contentViewHeightDp - messageContentHeightDp) / 2
+        val offsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame left and right bounds are offset leftwards by the inset value from the right
         validateBounds(
@@ -1439,7 +1393,7 @@ class MessageScreenTests {
             contentBounds,
             rootBounds.top + verticalContentPaddingDp, // top bound is the top round of the root plus content padding
             rootBounds.bottom - verticalContentPaddingDp, // bottom bound is the bottom bound of the root minus content padding
-            rootBounds.right - contentWidthDp - offsetDp, // left bound is the right bound of the root minus content width offset leftwards by the inset value
+            rootBounds.right - messageContentWidthDp - offsetDp, // left bound is the right bound of the root minus content width offset leftwards by the inset value
             rootBounds.right - offsetDp // right bound is right bound of root offset leftwards by the inset value
         )
     }
@@ -1457,19 +1411,18 @@ class MessageScreenTests {
             .horizontalInset(-offsetPercent)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = ((contentViewWidthDp * settings.width) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -1497,10 +1450,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
-        val verticalContentPaddingDp = (activityHeightDp - contentHeightDp) / 2
-        val offsetDp = screenWidthDp * offsetPercent.toFloat() / 100f
+        val verticalContentPaddingDp = (contentViewHeightDp - messageContentHeightDp) / 2
+        val offsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame left and right bounds are offset rightwards by the inset value from the right
         validateBounds(
@@ -1516,7 +1467,7 @@ class MessageScreenTests {
             contentBounds,
             rootBounds.top + verticalContentPaddingDp, // top bound is the top round of the root plus content padding
             rootBounds.bottom - verticalContentPaddingDp, // bottom bound is the bottom bound of the root minus content padding
-            rootBounds.right - contentWidthDp + offsetDp, // left bound is the right bound of the root minus content width offset rightwards by the inset value
+            rootBounds.right - messageContentWidthDp + offsetDp, // left bound is the right bound of the root minus content width offset rightwards by the inset value
             rootBounds.right + offsetDp // right bound is right bound of root offset rightwards by the inset value
         )
     }
@@ -1536,19 +1487,18 @@ class MessageScreenTests {
             .horizontalInset(-offsetPercent)
             .build()
 
-        var screenHeightDp = 0.dp
-        var screenWidthDp = 0.dp
-        var activityHeightDp = 0.dp
-        var activityWidthDp = 0.dp
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
-            val currentConfiguration = LocalConfiguration.current
-            screenHeightDp = currentConfiguration.screenHeightDp.dp
-            screenWidthDp = currentConfiguration.screenWidthDp.dp
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = ((contentViewWidthDp * settings.width) / 100)
 
-            val activityRoot =
-                composeTestRule.activity.window.decorView.findViewById<View>(android.R.id.content)
-            activityHeightDp = with(LocalDensity.current) { activityRoot.height.toDp() }
-            activityWidthDp = with(LocalDensity.current) { activityRoot.width.toDp() }
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
@@ -1576,17 +1526,15 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val contentHeightDp = screenHeightDp * heightPercent.toFloat() / 100f
-        val contentWidthDp = screenWidthDp * widthPercent.toFloat() / 100f
-        val heightOffset = screenHeightDp * offsetPercent.toFloat() / 100f
-        val widthOffsetDp = screenWidthDp * offsetPercent.toFloat() / 100f
+        val heightOffsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
+        val widthOffsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom  bounds are offset upwards by the inset from the bottom
         // left and right bounds are offset rightwards by the inset value from the right
         validateBounds(
             frameBounds,
-            rootBounds.top - heightOffset,
-            rootBounds.bottom - heightOffset,
+            rootBounds.top - heightOffsetDp,
+            rootBounds.bottom - heightOffsetDp,
             rootBounds.left + widthOffsetDp,
             rootBounds.right + widthOffsetDp
         )
@@ -1594,9 +1542,9 @@ class MessageScreenTests {
         // Content is bottom aligned vertically and offset upwards and centered horizontally and takes 80% of screen width
         validateBounds(
             contentBounds,
-            rootBounds.bottom - contentHeightDp - heightOffset, // top bound is the bottom bound of the root minus content height offset upwards by the inset value
-            rootBounds.bottom - heightOffset, // bottom bound is the bottom bound of the root offset upwards by the inset value
-            rootBounds.right - contentWidthDp + widthOffsetDp, // left bound is the right bound of the root minus content width offset rightwards by the inset value
+            rootBounds.bottom - messageContentHeightDp - heightOffsetDp, // top bound is the bottom bound of the root minus content height offset upwards by the inset value
+            rootBounds.bottom - heightOffsetDp, // bottom bound is the bottom bound of the root offset upwards by the inset value
+            rootBounds.right - messageContentWidthDp + widthOffsetDp, // left bound is the right bound of the root minus content width offset rightwards by the inset value
             rootBounds.right + widthOffsetDp // right bound is right bound of root offset rightwards by the inset value
         )
     }

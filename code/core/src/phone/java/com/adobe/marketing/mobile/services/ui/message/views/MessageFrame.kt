@@ -88,7 +88,6 @@ internal fun MessageFrame(
     val contentWidthDp = with(density) { contentView.width.toDp() }
     val heightDp = remember { mutableStateOf(((contentHeightDp * inAppMessageSettings.height) / 100)) }
     val widthDp = remember { mutableStateOf(((contentWidthDp * inAppMessageSettings.width) / 100)) }
-    Log.debug(ServiceConstants.LOG_TAG, "MessageFrame", "Height: ${contentHeightDp.value} Width: ${contentWidthDp.value}")
 
     val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
         inAppMessageSettings.horizontalAlignment,
@@ -120,17 +119,6 @@ internal fun MessageFrame(
                 .onPlaced {
                     heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
                     widthDp.value = with(density) { ((contentView.width.toDp() * inAppMessageSettings.width) / 100) }
-                    Log.debug(
-                        ServiceConstants.LOG_TAG,
-                        "MessageFrame",
-                        "Placed message frame with height: ${heightDp.value} and width: ${widthDp.value}"
-                    )
-
-                    Log.debug(
-                        ServiceConstants.LOG_TAG,
-                        "MessageFrame",
-                        "Placed message frame with content height: ${contentView.height} and width: ${contentView.width}"
-                    )
                 }
                 .offset(x = horizontalOffset, y = verticalOffset)
                 .background(Color.Transparent)

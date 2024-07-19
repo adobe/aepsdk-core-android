@@ -493,7 +493,7 @@ internal class ConfigurationExtension : Extension {
         triggerEvent: Event? = null
     ) {
         val builder = Event.Builder(
-            "Configuration Response Event",
+            CoreConstants.EventNames.CONFIGURATION_RESPONSE,
             EventType.CONFIGURATION,
             EventSource.RESPONSE_CONTENT
         ).setEventData(eventData)
@@ -509,7 +509,7 @@ internal class ConfigurationExtension : Extension {
 
     private fun dispatchConfigurationRequest(eventData: Map<String, Any?>) {
         val event = Event.Builder(
-            "Configure with AppID Internal",
+            CoreConstants.EventNames.CONFIGURATION_REQUEST,
             EventType.CONFIGURATION,
             EventSource.REQUEST_CONTENT
         )

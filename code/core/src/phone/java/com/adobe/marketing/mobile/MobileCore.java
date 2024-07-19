@@ -395,7 +395,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "SetAdvertisingIdentifier",
+                                CoreConstants.EventNames.SET_ADVERTISING_IDENTIFIER,
                                 EventType.GENERIC_IDENTITY,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -414,7 +414,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "SetPushIdentifier",
+                                CoreConstants.EventNames.SET_PUSH_IDENTIFIER,
                                 EventType.GENERIC_IDENTITY,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -440,7 +440,10 @@ public final class MobileCore {
         final Map<String, Object> eventData = new HashMap<>();
         eventData.put(CoreConstants.EventDataKeys.Signal.SIGNAL_CONTEXT_DATA, data);
         Event event =
-                new Event.Builder("CollectPII", EventType.GENERIC_PII, EventSource.REQUEST_CONTENT)
+                new Event.Builder(
+                                CoreConstants.EventNames.COLLECT_PII,
+                                EventType.GENERIC_PII,
+                                EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
@@ -474,7 +477,10 @@ public final class MobileCore {
         }
 
         Event event =
-                new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS)
+                new Event.Builder(
+                                CoreConstants.EventNames.COLLECT_DATA,
+                                EventType.GENERIC_DATA,
+                                EventSource.OS)
                         .setEventData(messageInfo)
                         .build();
         dispatchEvent(event);
@@ -512,7 +518,10 @@ public final class MobileCore {
         }
 
         Event event =
-                new Event.Builder("CollectData", EventType.GENERIC_DATA, EventSource.OS)
+                new Event.Builder(
+                                CoreConstants.EventNames.COLLECT_DATA,
+                                EventType.GENERIC_DATA,
+                                EventSource.OS)
                         .setEventData(marshalledData)
                         .build();
         dispatchEvent(event);
@@ -546,7 +555,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "Configure with AppID",
+                                CoreConstants.EventNames.CONFIGURE_WITH_APP_ID,
                                 EventType.CONFIGURATION,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -590,7 +599,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "Configure with FilePath",
+                                CoreConstants.EventNames.CONFIGURE_WITH_FILE_PATH,
                                 EventType.CONFIGURATION,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -633,7 +642,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "Configure with FilePath",
+                                CoreConstants.EventNames.CONFIGURE_WITH_FILE_PATH,
                                 EventType.CONFIGURATION,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -671,7 +680,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "Configuration Update",
+                                CoreConstants.EventNames.CONFIGURATION_UPDATE,
                                 EventType.CONFIGURATION,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -694,7 +703,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "Configuration Update",
+                                CoreConstants.EventNames.CLEAR_UPDATED_CONFIGURATION,
                                 EventType.CONFIGURATION,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -755,7 +764,7 @@ public final class MobileCore {
                 true);
         Event event =
                 new Event.Builder(
-                                "PrivacyStatusRequest",
+                                CoreConstants.EventNames.PRIVACY_STATUS_REQUEST,
                                 EventType.CONFIGURATION,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -831,7 +840,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "getSdkIdentities",
+                                CoreConstants.EventNames.GET_SDK_IDENTITIES,
                                 EventType.CONFIGURATION,
                                 EventSource.REQUEST_IDENTITY)
                         .build();
@@ -844,7 +853,7 @@ public final class MobileCore {
     public static void resetIdentities() {
         Event event =
                 new Event.Builder(
-                                "Reset Identities Request",
+                                CoreConstants.EventNames.RESET_IDENTITIES_REQUEST,
                                 EventType.GENERIC_IDENTITY,
                                 EventSource.REQUEST_RESET)
                         .build();
@@ -882,7 +891,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "LifecycleResume",
+                                CoreConstants.EventNames.LIFECYCLE_RESUME,
                                 EventType.GENERIC_LIFECYCLE,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -913,7 +922,7 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                "LifecyclePause",
+                                CoreConstants.EventNames.LIFECYCLE_PAUSE,
                                 EventType.GENERIC_LIFECYCLE,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -947,7 +956,7 @@ public final class MobileCore {
                 contextData == null ? new HashMap<String, String>() : contextData);
         Event event =
                 new Event.Builder(
-                                "Analytics Track",
+                                CoreConstants.EventNames.ANALYTICS_TRACK,
                                 EventType.GENERIC_TRACK,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
@@ -978,7 +987,7 @@ public final class MobileCore {
                 contextData == null ? new HashMap<String, String>() : contextData);
         Event event =
                 new Event.Builder(
-                                "Analytics Track",
+                                CoreConstants.EventNames.ANALYTICS_TRACK,
                                 EventType.GENERIC_TRACK,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)

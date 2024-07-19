@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.internal
 
 internal object CoreConstants {
     const val LOG_TAG = "MobileCore"
-    const val VERSION = "3.1.0"
+    const val VERSION = "3.1.1"
 
     object EventDataKeys {
         /**
@@ -88,5 +88,24 @@ internal object CoreConstants {
             const val XAMARIN = "X"
             const val NONE = "N"
         }
+    }
+
+    object EventNames {
+        const val ANALYTICS_TRACK = "Analytics Track"
+        const val COLLECT_PII = "Collect PII"
+        const val COLLECT_DATA = "Collect Data"
+        const val CONFIGURE_WITH_APP_ID = "Configure with App ID"
+        const val CONFIGURE_WITH_FILE_PATH = "Configure with File Path"
+        const val CLEAR_UPDATED_CONFIGURATION = "Clear Updated Configuration"
+        const val CONFIGURATION_REQUEST = "Configuration Request"
+        const val CONFIGURATION_RESPONSE = "Configuration Response"
+        const val CONFIGURATION_UPDATE = "Configuration Update"
+        const val GET_SDK_IDENTITIES = "Get SDK Identities"
+        const val LIFECYCLE_PAUSE = "Lifecycle Pause"
+        const val LIFECYCLE_RESUME = "Lifecycle Resume"
+        const val PRIVACY_STATUS_REQUEST = "Privacy Status Request"
+        const val SET_PUSH_IDENTIFIER = "Set Push Identifier"
+        const val SET_ADVERTISING_IDENTIFIER = "Set Advertising Identifier"
+        const val RESET_IDENTITIES_REQUEST = "Reset Identities Request"
     }
 }

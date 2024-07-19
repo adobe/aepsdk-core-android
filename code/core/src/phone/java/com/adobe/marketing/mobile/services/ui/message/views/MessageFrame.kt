@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -81,21 +82,22 @@ internal fun MessageFrame(
     // we want to ensure that the message is displayed relative to the activity's size.
     // This allows the message to be displayed correctly in split screen mode and other
     // multi-window modes.
+    val density = LocalDensity.current
     val contentView = currentActivity.findViewById<View>(android.R.id.content)
-    val contentHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
-    val contentWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
-    val heightDp = ((contentHeightDp * inAppMessageSettings.height) / 100)
-    val widthDp = ((contentWidthDp * inAppMessageSettings.width) / 100)
+    val contentHeightDp = with(density) { contentView.height.toDp() }
+    val contentWidthDp = with(density) { contentView.width.toDp() }
+    val heightDp = remember { mutableStateOf(((contentHeightDp * inAppMessageSettings.height) / 100)) }
+    val widthDp = remember { mutableStateOf(((contentWidthDp * inAppMessageSettings.width) / 100)) }
 
     val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
         inAppMessageSettings.horizontalAlignment,
         inAppMessageSettings.horizontalInset,
-        widthDp
+        widthDp.value
     )
     val verticalOffset = MessageOffsetMapper.getVerticalOffset(
         inAppMessageSettings.verticalAlignment,
         inAppMessageSettings.verticalInset,
-        heightDp
+        heightDp.value
     )
 
     val allowGestures = remember { inAppMessageSettings.gestureMap.isNotEmpty() }
@@ -104,7 +106,6 @@ internal fun MessageFrame(
     val dragVelocity = remember { mutableStateOf(0f) }
 
     val adjustAlphaForClipping = remember { Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1 }
-
     AnimatedVisibility(
         visibleState = visibility,
         enter = MessageAnimationMapper.getEnterTransitionFor(inAppMessageSettings.displayAnimation),
@@ -115,6 +116,10 @@ internal fun MessageFrame(
         Row(
             modifier = Modifier
                 .fillMaxSize()
+                .onPlaced {
+                    heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
+                    widthDp.value = with(density) { ((contentView.width.toDp() * inAppMessageSettings.width) / 100) }
+                }
                 .offset(x = horizontalOffset, y = verticalOffset)
                 .background(Color.Transparent)
                 .testTag(MessageTestTags.MESSAGE_FRAME),
@@ -169,7 +174,7 @@ internal fun MessageFrame(
                         }
                     )
             ) {
-                MessageContent(Modifier.height(heightDp).width(widthDp), inAppMessageSettings, onCreated)
+                MessageContent(Modifier.height(heightDp.value).width(widthDp.value), inAppMessageSettings, onCreated)
             }
 
             // This is a one-time effect that will be called when this composable is completely removed from the composition

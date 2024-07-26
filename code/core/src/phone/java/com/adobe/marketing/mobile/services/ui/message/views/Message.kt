@@ -16,6 +16,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
@@ -62,13 +64,38 @@ internal fun MessageScreen(
         onBackPressed()
     }
 
-    Message(
-        isVisible = presentationStateManager.visibilityState,
-        inAppMessageSettings = inAppMessageSettings,
-        gestureTracker = gestureTracker,
-        onCreated = { onCreated(it) },
-        onDisposed = { onDisposed() }
-    )
+    if (inAppMessageSettings.shouldTakeOverUi) {
+        /**
+         * Dialog is used to take over the UI when the InAppMessage is set to take over the UI.
+         * This is necessary to ensure that the InAppMessage is displayed on top of the UI.
+         * Which will ensure that ScreenReader can read the content of the InAppMessage only and not the underlying UI.
+         */
+        Dialog(
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = false
+            ),
+            onDismissRequest = {
+                onBackPressed()
+            }) {
+            Message(
+                isVisible = presentationStateManager.visibilityState,
+                inAppMessageSettings = inAppMessageSettings,
+                gestureTracker = gestureTracker,
+                onCreated = { onCreated(it) },
+                onDisposed = { onDisposed() }
+            )
+        }
+    } else {
+        Message(
+            isVisible = presentationStateManager.visibilityState,
+            inAppMessageSettings = inAppMessageSettings,
+            gestureTracker = gestureTracker,
+            onCreated = { onCreated(it) },
+            onDisposed = { onDisposed() }
+        )
+    }
 }
 
 /**

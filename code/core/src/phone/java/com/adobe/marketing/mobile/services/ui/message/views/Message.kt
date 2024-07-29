@@ -11,13 +11,18 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.view.Window
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
@@ -80,6 +85,17 @@ internal fun MessageScreen(
                 onBackPressed()
             }
         ) {
+            /** Remove the default dim and animations for the dialog window
+             * Customer can set their own dim and animations if needed and those will be honoured in MessageBackdrop inside Message
+            */
+            val dialogWindow = getDialogWindow()
+            SideEffect {
+                dialogWindow?.let {
+                    it.setDimAmount(0f)
+                    it.setWindowAnimations(-1)
+                }
+            }
+
             Message(
                 isVisible = presentationStateManager.visibilityState,
                 inAppMessageSettings = inAppMessageSettings,
@@ -133,3 +149,8 @@ internal fun Message(
         onDisposed = onDisposed
     )
 }
+
+
+@ReadOnlyComposable
+@Composable
+fun getDialogWindow(): Window? = (LocalView.current.parent as? DialogWindowProvider)?.window

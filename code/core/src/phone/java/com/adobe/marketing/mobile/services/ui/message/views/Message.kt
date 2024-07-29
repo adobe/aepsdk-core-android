@@ -87,7 +87,7 @@ internal fun MessageScreen(
         ) {
             /** Remove the default dim and animations for the dialog window
              * Customer can set their own dim and animations if needed and those will be honoured in MessageBackdrop inside Message
-            */
+             */
             val dialogWindow = getDialogWindow()
             SideEffect {
                 dialogWindow?.let {
@@ -149,7 +149,6 @@ internal fun Message(
         onDisposed = onDisposed
     )
 }
-
 
 @ReadOnlyComposable
 @Composable

@@ -78,7 +78,8 @@ internal fun MessageScreen(
             ),
             onDismissRequest = {
                 onBackPressed()
-            }) {
+            }
+        ) {
             Message(
                 isVisible = presentationStateManager.visibilityState,
                 inAppMessageSettings = inAppMessageSettings,

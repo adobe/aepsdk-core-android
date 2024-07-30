@@ -69,50 +69,14 @@ internal fun MessageScreen(
         onBackPressed()
     }
 
-    if (inAppMessageSettings.shouldTakeOverUi) {
-        /**
-         * Dialog is used to take over the UI when the InAppMessage is set to take over the UI.
-         * This is necessary to ensure that the InAppMessage is displayed on top of the UI.
-         * Which will ensure that ScreenReader can read the content of the InAppMessage only and not the underlying UI.
-         */
-        Dialog(
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                dismissOnBackPress = true,
-                dismissOnClickOutside = false
-            ),
-            onDismissRequest = {
-                onBackPressed()
-            }
-        ) {
-            /** Remove the default dim and animations for the dialog window
-             * Customer can set their own dim and animations if needed and those will be honoured in MessageBackdrop inside Message
-             */
-            val dialogWindow = getDialogWindow()
-            SideEffect {
-                dialogWindow?.let {
-                    it.setDimAmount(0f)
-                    it.setWindowAnimations(-1)
-                }
-            }
-
-            Message(
-                isVisible = presentationStateManager.visibilityState,
-                inAppMessageSettings = inAppMessageSettings,
-                gestureTracker = gestureTracker,
-                onCreated = { onCreated(it) },
-                onDisposed = { onDisposed() }
-            )
-        }
-    } else {
-        Message(
-            isVisible = presentationStateManager.visibilityState,
-            inAppMessageSettings = inAppMessageSettings,
-            gestureTracker = gestureTracker,
-            onCreated = { onCreated(it) },
-            onDisposed = { onDisposed() }
-        )
-    }
+    Message(
+        isVisible = presentationStateManager.visibilityState,
+        inAppMessageSettings = inAppMessageSettings,
+        gestureTracker = gestureTracker,
+        onCreated = { onCreated(it) },
+        onDisposed = { onDisposed() },
+        onBackPressed = onBackPressed
+    )
 }
 
 /**
@@ -129,25 +93,62 @@ internal fun Message(
     inAppMessageSettings: InAppMessageSettings,
     gestureTracker: GestureTracker,
     onCreated: (WebView) -> Unit,
-    onDisposed: () -> Unit
+    onDisposed: () -> Unit,
+    onBackPressed: () -> Unit,
 ) {
-    // Backdrop for the InAppMessage only takes into effect if the InAppMessage is taking over the UI
     if (inAppMessageSettings.shouldTakeOverUi) {
-        MessageBackdrop(
+        /* Dialog is used to take over the UI when the InAppMessage is set to take over the UI.
+         This is necessary to ensure that the InAppMessage is displayed on top of the UI.
+         Which will ensure that ScreenReader can read the content of the InAppMessage only and not the underlying UI.
+         */
+        Dialog(
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnBackPress = true,
+                dismissOnClickOutside = false
+            ),
+            onDismissRequest = {
+                onBackPressed()
+            }
+        ) {
+            /* Remove the default dim and animations for the dialog window
+               Customer can set their own dim and animations if needed and those will be honoured in MessageBackdrop inside Message
+             */
+
+            val dialogWindow = getDialogWindow()
+            SideEffect {
+                dialogWindow?.let {
+                    it.setDimAmount(0f)
+                    it.setWindowAnimations(-1)
+                }
+            }
+
+            // Backdrop for the InAppMessage only takes into effect if the InAppMessage is taking over the UI
+            MessageBackdrop(
+                visibility = isVisible,
+                inAppMessageSettings = inAppMessageSettings,
+                gestureTracker = gestureTracker
+            )
+
+            // Frame that holds the InAppMessage
+            MessageFrame(
+                visibility = isVisible,
+                inAppMessageSettings = inAppMessageSettings,
+                gestureTracker = gestureTracker,
+                onCreated = onCreated,
+                onDisposed = onDisposed
+            )
+        }
+    } else {
+        // Frame that holds the InAppMessage
+        MessageFrame(
             visibility = isVisible,
             inAppMessageSettings = inAppMessageSettings,
-            gestureTracker = gestureTracker
+            gestureTracker = gestureTracker,
+            onCreated = onCreated,
+            onDisposed = onDisposed
         )
     }
-
-    // Frame that holds the InAppMessage
-    MessageFrame(
-        visibility = isVisible,
-        inAppMessageSettings = inAppMessageSettings,
-        gestureTracker = gestureTracker,
-        onCreated = onCreated,
-        onDisposed = onDisposed
-    )
 }
 
 @ReadOnlyComposable

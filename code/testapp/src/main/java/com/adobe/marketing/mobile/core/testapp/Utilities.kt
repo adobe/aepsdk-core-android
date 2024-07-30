@@ -10,13 +10,7 @@
  */
 package com.adobe.marketing.mobile.core.testapp
 
-import android.app.Service
 import com.adobe.marketing.mobile.Event
-import com.adobe.marketing.mobile.EventSource
-import com.adobe.marketing.mobile.EventType
-import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.services.NetworkRequest
-import com.adobe.marketing.mobile.services.ObservableNetworkService
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.Alert
 import com.adobe.marketing.mobile.services.ui.Presentable
@@ -35,59 +29,29 @@ internal val alertEventListener = object : AlertEventListener {
 }
 
 internal fun showAlert(event: Event) {
-    val alert = Alert(AlertSettings.Builder()
-        .title("Event")
-        .message(event.toString())
-        .positiveButtonText("OK")
-        .build()
-        , alertEventListener)
+    val alert = Alert(
+        AlertSettings.Builder()
+            .title("Event")
+            .message(event.toString())
+            .positiveButtonText("OK")
+            .build(), alertEventListener
+    )
 
-    val alertPresentable = ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
+    val alertPresentable =
+        ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
     alertPresentable.show()
 }
 
 internal fun showAlert(message: String) {
-    val alert = Alert(AlertSettings.Builder()
-        .title("Message")
-        .message(message)
-        .positiveButtonText("OK")
-        .build()
-        , alertEventListener)
+    val alert = Alert(
+        AlertSettings.Builder()
+            .title("Message")
+            .message(message)
+            .positiveButtonText("OK")
+            .build(), alertEventListener
+    )
 
-    val alertPresentable = ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
+    val alertPresentable =
+        ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
     alertPresentable.show()
-}
-
-internal object SDKObserver{
-    fun init(){
-        MobileCore.registerEventListener(EventType.CONFIGURATION, EventSource.RESPONSE_CONTENT) {
-            latestConfiguration = it.eventData
-        }
-        MobileCore.registerEventListener(EventType.GENERIC_LIFECYCLE, EventSource.REQUEST_CONTENT) {
-            latestLifecycleEvent = it
-        }
-        ServiceProvider.getInstance().networkService = ObservableNetworkService { latestNetworkRequest = it }
-    }
-    private var latestConfiguration: Map<String,Any>? = null
-    private var latestNetworkRequest: NetworkRequest? = null
-    private var latestLifecycleEvent: Event? = null
-
-    fun clearLatestLifecycleEvent() {
-        latestLifecycleEvent = null
-    }
-    fun getLatestLifecycleEvent(): Event? {
-        return latestLifecycleEvent
-    }
-    fun clearLatestNetworkRequest() {
-        latestNetworkRequest = null
-    }
-    fun getLatestNetworkRequest(): NetworkRequest? {
-        return latestNetworkRequest
-    }
-    fun getLatestConfiguration(): Map<String,Any>? {
-        return latestConfiguration
-    }
-    fun clearLatestConfiguration() {
-        latestConfiguration = null
-    }
 }

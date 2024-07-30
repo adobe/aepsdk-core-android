@@ -34,7 +34,6 @@ class MyApp : Application() {
         // MobileCore.configureWithAppID("YOUR_APP_ID")
         val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
         MobileCore.registerExtensions(extensions) {}
-        SDKObserver.init()
     }
 
 }

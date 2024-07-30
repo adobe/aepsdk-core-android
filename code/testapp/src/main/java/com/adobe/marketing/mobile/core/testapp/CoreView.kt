@@ -28,7 +28,6 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.adobe.marketing.mobile.LoggingMode
@@ -47,19 +45,10 @@ import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.core.testapp.ui.theme.AEPSDKCoreAndroidTheme
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
-import kotlinx.coroutines.delay
 
 @Composable
 fun CoreView(navController: NavHostController) {
     var appId by remember { mutableStateOf("your-appId") }
-    var showNetworkRequest by remember { mutableStateOf(false) }
-    LaunchedEffect(showNetworkRequest) {
-        if (showNetworkRequest) {
-            delay(1000)
-            showAlert("Network Request: ${SDKObserver.getLatestNetworkRequest()?.url}")
-            showNetworkRequest = false
-        }
-    }
     Column(Modifier.padding(8.dp)) {
         Button(onClick = {
             navController.navigate(NavRoutes.HomeView.route)
@@ -77,22 +66,6 @@ fun CoreView(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(onClick = {
-                showCoreVersion()
-            }) {
-                Text(text = "extensionVersion")
-            }
-            Button(onClick = {
-                SDKObserver.getLatestConfiguration()?.let {
-                    showAlert("latestConfiguration: $it")
-                } ?: run {
-                    showAlert("latestConfiguration: null")
-                }
-            }) {
-                Text(text = "latestConfiguration")
-            }
-
-            Button(onClick = {
-                SDKObserver.clearLatestConfiguration()
                 MobileCore.configureWithFileInAssets("ADBMobileConfig_custom.json")
             }) {
                 Text(text = "configureWithFileInAssets()")
@@ -112,7 +85,6 @@ fun CoreView(navController: NavHostController) {
                         label = { Text("appId") }
                     )
                     Button(onClick = {
-                        SDKObserver.clearLatestConfiguration()
                         MobileCore.configureWithAppID(appId)
                     }) {
                         Text(text = "configureWithAppID(\"appId\")")
@@ -149,9 +121,8 @@ fun CoreView(navController: NavHostController) {
                 Text(text = "getPrivacyStatus")
             }
             Button(onClick = {
-                SDKObserver.clearLatestNetworkRequest()
-                MobileCore.trackAction("action", null)
-                showNetworkRequest = true
+                // The bundled rule is configured to triggers a postbackk for the following condition: a trackAction event with the action type 'bundled_trigger_postback'.
+                MobileCore.trackAction("bundled_trigger_postback", null)
             }) {
                 Text(text = "trigger rule consequence(postback)")
             }

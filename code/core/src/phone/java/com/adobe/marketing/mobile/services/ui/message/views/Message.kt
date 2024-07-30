@@ -115,7 +115,8 @@ internal fun Message(
                Customer can set their own dim and animations if needed and those will be honoured in MessageBackdrop inside Message
              */
 
-            val dialogWindow = getDialogWindow()
+            val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+
             SideEffect {
                 dialogWindow?.let {
                     it.setDimAmount(0f)
@@ -150,7 +151,3 @@ internal fun Message(
         )
     }
 }
-
-@ReadOnlyComposable
-@Composable
-fun getDialogWindow(): Window? = (LocalView.current.parent as? DialogWindowProvider)?.window

@@ -121,7 +121,7 @@ fun CoreView(navController: NavHostController) {
                 Text(text = "getPrivacyStatus")
             }
             Button(onClick = {
-                // The bundled rule is configured to triggers a postbackk for the following condition: a trackAction event with the action type 'bundled_trigger_postback'.
+                // The bundled rule is configured to triggers a postback for the following condition: a trackAction event with the action type 'bundled_trigger_postback'.
                 MobileCore.trackAction("bundled_trigger_postback", null)
             }) {
                 Text(text = "trigger rule consequence(postback)")

@@ -11,20 +11,30 @@
 package com.adobe.marketing.mobile.core.testapp
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -38,6 +48,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 
 @Composable
 fun CoreView(navController: NavHostController) {
+    var appId by remember { mutableStateOf("your-appId") }
     Column(Modifier.padding(8.dp)) {
         Button(onClick = {
             navController.navigate(NavRoutes.HomeView.route)
@@ -55,10 +66,32 @@ fun CoreView(navController: NavHostController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(onClick = {
-                showCoreVersion()
+                MobileCore.configureWithFileInAssets("ADBMobileConfig_custom.json")
             }) {
-                Text(text = "extensionVersion")
+                Text(text = "configureWithFileInAssets()")
             }
+            Surface(
+                border = BorderStroke(1.dp, Color.Gray),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(PaddingValues(8.dp)),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    OutlinedTextField(
+                        value = appId,
+                        onValueChange = { appId = it },
+                        label = { Text("appId") }
+                    )
+                    Button(onClick = {
+                        MobileCore.configureWithAppID(appId)
+                    }) {
+                        Text(text = "configureWithAppID(\"appId\")")
+                    }
+                }
+            }
+
             Button(onClick = {
                 updateConfiguration()
             }) {
@@ -86,6 +119,12 @@ fun CoreView(navController: NavHostController) {
 
             }) {
                 Text(text = "getPrivacyStatus")
+            }
+            Button(onClick = {
+                // The bundled rule is configured to triggers a postback for the following condition: a trackAction event with the action type 'bundled_trigger_postback'.
+                MobileCore.trackAction("bundled_trigger_postback", null)
+            }) {
+                Text(text = "trigger rule consequence(postback)")
             }
             Button(onClick = {
                 MobileCore.setLogLevel(LoggingMode.VERBOSE)
@@ -183,21 +222,6 @@ fun CoreView(navController: NavHostController) {
                 MobileCore.trackState("state", mapOf("key" to "value"))
             }) {
                 Text(text = "trackState")
-            }
-            Button(onClick = {
-                MobileCore.lifecycleStart(null)
-            }) {
-                Text(text = "lifecycleStart")
-            }
-            Button(onClick = {
-                MobileCore.lifecycleStart(mapOf("key" to "value"))
-            }) {
-                Text(text = "lifecycleStart(contextData)")
-            }
-            Button(onClick = {
-                MobileCore.lifecyclePause()
-            }) {
-                Text(text = "lifecyclePause")
             }
             Button(onClick = {
                 MobileCore.resetIdentities()

@@ -13,6 +13,8 @@ package com.adobe.marketing.mobile.core.testapp
 import android.app.Application
 import android.util.Log
 import androidx.core.os.UserManagerCompat
+import com.adobe.marketing.mobile.EventSource
+import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Identity
 import com.adobe.marketing.mobile.Lifecycle
 import com.adobe.marketing.mobile.LoggingMode

@@ -15,7 +15,6 @@ import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
-import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.SharedStateResolution
@@ -38,6 +37,7 @@ class SignalExtension : TenantAwareExtension {
     companion object {
         private const val CLASS_NAME = "SignalExtension"
     }
+
 
     constructor(extensionApi: ExtensionApi,tenant: Tenant) : super(extensionApi,tenant) {
         this.tenant = tenant

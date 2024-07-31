@@ -10,7 +10,6 @@ object EventHubManager {
         mapOf(Tenant() to EventHub())
     )
 
-    // Lock for thread safety
     private val accessLock = ReentrantLock()
 
     // Create or retrieve an EventHub instance for a specific tenant

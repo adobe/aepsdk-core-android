@@ -25,7 +25,7 @@ import kotlin.math.max
  * The Android implementation of [EventHistory] which provides functionality for performing
  * database operations on an [AndroidEventHistoryDatabase].
  */
-internal class AndroidEventHistory(private val tenant: Tenant) : EventHistory {
+internal class AndroidEventHistory(tenant: Tenant) : EventHistory {
     private val androidEventHistoryDatabase = AndroidEventHistoryDatabase(tenant)
     companion object {
         private const val LOG_TAG = "AndroidEventHistory"

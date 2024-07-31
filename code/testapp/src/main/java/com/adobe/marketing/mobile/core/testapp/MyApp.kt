@@ -31,10 +31,14 @@ class MyApp : Application() {
 
         // The test app uses bundled config. Uncomment this and change the app ID for testing the mobile tags property.
         MobileCore.configureWithAppID(LAUNCH_ENVIRONMENT_FILE_ID)
-        val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
+        val extensions = listOf(
+            Identity.EXTENSION,
+            Signal.EXTENSION,
+            Lifecycle.EXTENSION,
+            PerfExtension::class.java
+        )
         // Default tenant
         MobileCore.registerExtensions(extensions) {}
-
 
         // Initializing a new tenant. Only extensions which are tenant aware will be initialized for this instance.
         val partnerTenant = "partner"

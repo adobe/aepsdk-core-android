@@ -15,19 +15,18 @@ import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.Tenant
-import com.adobe.marketing.mobile.internal.eventhub.tenantAwareName
 import com.adobe.marketing.mobile.internal.util.FileUtils.moveFile
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import java.io.File
 
-internal class AndroidEventHistoryDatabase(val tenant: Tenant) : EventHistoryDatabase {
+internal class AndroidEventHistoryDatabase(tenant: Tenant) : EventHistoryDatabase {
     private val dbMutex = Any()
     private val databaseFile: File
     private var database: SQLiteDatabase? = null
-    val dbName: String = DATABASE_NAME +"$tenant-${tenant.id}"
-    val dbName_1x = DATABASE_NAME_1X + "$tenant-${tenant.id}"
+    private val DB_NAME: String = DATABASE_NAME +"$tenant-${tenant.id}"
+    private val DB_NAME_1X = DATABASE_NAME_1X + "$tenant-${tenant.id}"
 
     /**
      * Constructor.
@@ -57,9 +56,9 @@ internal class AndroidEventHistoryDatabase(val tenant: Tenant) : EventHistoryDat
     private fun openOrMigrateEventHistoryDatabaseFile(): File {
         val appContext = ServiceProvider.getInstance().appContextService.applicationContext
             ?: throw EventHistoryDatabaseCreationException(
-                "Failed to create/open database $dbName, error message: ApplicationContext is null"
+                "Failed to create/open database $DB_NAME, error message: ApplicationContext is null"
             )
-        val database = appContext.getDatabasePath(dbName)
+        val database = appContext.getDatabasePath(DB_NAME)
         if (database.exists()) {
             return database
         }
@@ -68,20 +67,20 @@ internal class AndroidEventHistoryDatabase(val tenant: Tenant) : EventHistoryDat
         val applicationCacheDir =
             ServiceProvider.getInstance().deviceInfoService.applicationCacheDir ?: return database
         try {
-            val cacheDirDatabase = File(applicationCacheDir, dbName_1x)
+            val cacheDirDatabase = File(applicationCacheDir, DB_NAME_1X)
             if (cacheDirDatabase.exists()) {
                 moveFile(cacheDirDatabase, database)
                 Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "Successfully moved database $dbName_1x from cache directory to database directory"
+                    "Successfully moved database $DB_NAME_1X from cache directory to database directory"
                 )
             }
         } catch (e: Exception) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Failed to move database $dbName_1x from cache directory to database directory"
+                "Failed to move database $DB_NAME_1X from cache directory to database directory"
             )
         }
         return database

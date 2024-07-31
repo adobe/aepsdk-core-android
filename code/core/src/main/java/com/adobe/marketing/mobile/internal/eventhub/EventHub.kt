@@ -50,10 +50,11 @@ internal class EventHub {
 
     companion object {
         //        const val LOG_TAG = "EventHub"
+        @JvmStatic
         fun instance(tenant: Tenant): EventHub? {
             return EventHubManager.instance(tenant)
         }
-
+        @JvmStatic
         fun create(tenant: Tenant): EventHub {
             return EventHubManager.createInstance(tenant)
         }
@@ -259,7 +260,7 @@ internal class EventHub {
         }
 
         eventHistory = try {
-            AndroidEventHistory()
+            AndroidEventHistory(tenant)
         } catch (ex: Exception) {
             Log.warning(
                 CoreConstants.LOG_TAG,

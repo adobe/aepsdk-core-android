@@ -21,6 +21,8 @@ import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.Signal
+import com.adobe.marketing.mobile.internal.TenantAwareExtension
+import com.adobe.marketing.mobile.internal.eventhub.Tenant
 import com.adobe.marketing.mobile.services.HitQueuing
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.PersistentHitQueue
@@ -29,21 +31,24 @@ import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.SQLiteUtils
 import com.adobe.marketing.mobile.util.UrlUtils
 
-class SignalExtension : Extension {
+class SignalExtension : TenantAwareExtension {
     private val hitQueue: HitQueuing
+    lateinit var tenant: Tenant
 
     companion object {
         private const val CLASS_NAME = "SignalExtension"
     }
 
-    constructor(extensionApi: ExtensionApi) : super(extensionApi) {
+    constructor(extensionApi: ExtensionApi,tenant: Tenant) : super(extensionApi,tenant) {
+        this.tenant = tenant
+        val dataQueueName = SignalConstants.EXTENSION_NAME + "$tenant-${tenant.id}"
         val dataQueue =
-            ServiceProvider.getInstance().dataQueueService.getDataQueue(SignalConstants.EXTENSION_NAME)
+            ServiceProvider.getInstance().dataQueueService.getDataQueue(dataQueueName)
         hitQueue = PersistentHitQueue(dataQueue, SignalHitProcessor())
     }
 
     @VisibleForTesting
-    constructor(extensionApi: ExtensionApi, hitQueue: HitQueuing) : super(extensionApi) {
+    constructor(extensionApi: ExtensionApi, hitQueue: HitQueuing,tenant: Tenant) : super(extensionApi,tenant) {
         this.hitQueue = hitQueue
     }
 

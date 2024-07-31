@@ -45,11 +45,49 @@ import java.util.concurrent.atomic.AtomicInteger
  * EventHub class is responsible for delivering events to listeners and maintaining registered extension's lifecycle.
  */
 internal class EventHub {
+    private lateinit var LOG_TAG: String
+    private lateinit var tenant: Tenant
 
     companion object {
-        const val LOG_TAG = "EventHub"
-        var shared = EventHub()
+        //        const val LOG_TAG = "EventHub"
+        fun instance(tenant: Tenant): EventHub? {
+            return EventHubManager.instance(tenant)
+        }
+
+        fun create(tenant: Tenant): EventHub {
+            return EventHubManager.createInstance(tenant)
+        }
+
+        var shared = create(Tenant())
     }
+
+    constructor(tenant: Tenant) {
+        this.tenant = tenant
+        this.LOG_TAG = "EventHub" + "$tenant-${tenant.id}"
+        val desc = tenant.id ?: "default"
+        android.util.Log.d(LOG_TAG, "Initializing EventHub for tenant $desc")
+        if (eventHistory != null) {
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Event history is already initialized"
+            )
+            return
+        }
+
+        eventHistory = try {
+            AndroidEventHistory(tenant)
+        } catch (ex: Exception) {
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Event history initialization failed with exception ${ex.message}"
+            )
+            null
+        }
+    }
+
+    constructor()
 
     /**
      * Executor for eventhub callbacks and response listeners
@@ -199,6 +237,7 @@ internal class EventHub {
             ).get()
         }
 
+
     /**
      * Submits a task to be executed in the event hub executor.
      */
@@ -299,7 +338,7 @@ internal class EventHub {
                 return@submit
             }
 
-            val container = ExtensionContainer(extensionClass) { error ->
+            val container = ExtensionContainer(this,tenant,extensionClass) { error ->
                 eventHubExecutor.submit {
                     completion?.let { executeCompletionHandler { it(error) } }
                     extensionPostRegistration(extensionClass, error)

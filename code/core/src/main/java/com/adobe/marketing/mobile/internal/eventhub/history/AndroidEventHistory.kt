@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResultHandler
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.internal.eventhub.Tenant
 import com.adobe.marketing.mobile.internal.util.convertMapToFnv1aHash
 import com.adobe.marketing.mobile.services.Log
 import java.util.concurrent.Executors
@@ -24,8 +25,8 @@ import kotlin.math.max
  * The Android implementation of [EventHistory] which provides functionality for performing
  * database operations on an [AndroidEventHistoryDatabase].
  */
-internal class AndroidEventHistory : EventHistory {
-    private val androidEventHistoryDatabase = AndroidEventHistoryDatabase()
+internal class AndroidEventHistory(private val tenant: Tenant) : EventHistory {
+    private val androidEventHistoryDatabase = AndroidEventHistoryDatabase(tenant)
     companion object {
         private const val LOG_TAG = "AndroidEventHistory"
     }

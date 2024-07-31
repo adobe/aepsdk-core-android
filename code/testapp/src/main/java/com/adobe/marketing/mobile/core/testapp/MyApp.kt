@@ -21,6 +21,7 @@ import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.core.testapp.extension.PerfExtension
 
 class MyApp : Application() {
+    private val LAUNCH_ENVIRONMENT_FILE_ID = "94f571f308d5/bc09a100649b/launch-6df8e3eea690-development"
 
     override fun onCreate() {
         super.onCreate()
@@ -29,9 +30,18 @@ class MyApp : Application() {
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
 
         // The test app uses bundled config. Uncomment this and change the app ID for testing the mobile tags property.
-        // MobileCore.configureWithAppID("YOUR_APP_ID")
+        MobileCore.configureWithAppID(LAUNCH_ENVIRONMENT_FILE_ID)
         val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
+        // Default tenant
         MobileCore.registerExtensions(extensions) {}
+
+
+        // Initializing a new tenant. Only extensions which are tenant aware will be initialized for this instance.
+        val partnerTenant = "partner"
+        val partnerLaunchEnvironmentID = "94f571f308d5/39273f51e930/launch-00ac4ce72151-development"
+        MobileCore.configureWithAppID(partnerTenant, partnerLaunchEnvironmentID)
+        MobileCore.registerExtensions(partnerTenant, extensions) {}
+
     }
 
 }

@@ -15,7 +15,6 @@ import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
-import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.CoreConstants
@@ -76,25 +75,30 @@ internal class ConfigurationExtension : TenantAwareExtension {
     private val retryWorker: ScheduledExecutorService
     private var retryConfigurationCounter: Int = 0
     private var retryConfigTaskHandle: Future<*>? = null
-    val tenant = Tenant()
+    private val tenant: Tenant
 
-    constructor(extensionApi: ExtensionApi) : this(
+    constructor(extensionApi: ExtensionApi, tenant: Tenant) : this(
         extensionApi,
-        AppIdManager(),
-        LaunchRulesEngine("Configuration", extensionApi),
+        tenant,
+        AppIdManager(tenant),
+        LaunchRulesEngine("Configuration" + "$tenant-${tenant.id}", extensionApi),
         Executors.newSingleThreadScheduledExecutor()
     )
+
+    constructor(extensionApi: ExtensionApi):this(extensionApi, Tenant())
 
     /**
      * Exists only for cascading components for dependency injection.
      */
     private constructor(
         extensionApi: ExtensionApi,
+        tenant: Tenant,
         appIdManager: AppIdManager,
         launchRulesEngine: LaunchRulesEngine,
         retryWorker: ScheduledExecutorService
     ) : this(
         extensionApi,
+        tenant,
         appIdManager,
         launchRulesEngine,
         retryWorker,
@@ -105,6 +109,7 @@ internal class ConfigurationExtension : TenantAwareExtension {
     @VisibleForTesting
     internal constructor(
         extensionApi: ExtensionApi,
+        tenant: Tenant,
         appIdManager: AppIdManager,
         launchRulesEngine: LaunchRulesEngine,
         retryWorker: ScheduledExecutorService,
@@ -112,6 +117,7 @@ internal class ConfigurationExtension : TenantAwareExtension {
         configurationRulesManager: ConfigurationRulesManager
     ) : super(extensionApi,tenant) {
         this.appIdManager = appIdManager
+        this.tenant = tenant
         this.launchRulesEngine = launchRulesEngine
         this.retryWorker = retryWorker
         this.configurationStateManager = configurationStateManager

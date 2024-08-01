@@ -19,6 +19,7 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.core.testapp.extension.PerfExtension
+import com.adobe.marketing.mobile.internal.eventhub.Tenant
 
 class MyApp : Application() {
     private val LAUNCH_ENVIRONMENT_FILE_ID = "94f571f308d5/bc09a100649b/launch-6df8e3eea690-development"
@@ -41,10 +42,10 @@ class MyApp : Application() {
         MobileCore.registerExtensions(extensions) {}
 
         // Initializing a new tenant. Only extensions which are tenant aware will be initialized for this instance.
-        val partnerTenant = "partner"
+        val partnerTenant = Tenant(id = "partner")
         val partnerLaunchEnvironmentID = "94f571f308d5/39273f51e930/launch-00ac4ce72151-development"
-        MobileCore.configureWithAppID(partnerTenant, partnerLaunchEnvironmentID)
-        MobileCore.registerExtensions(partnerTenant, extensions) {}
+        MobileCore.configureWithAppID(partnerLaunchEnvironmentID, partnerTenant)
+        MobileCore.registerExtensions(extensions, partnerTenant) {}
 
     }
 

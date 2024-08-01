@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.configuration
 
+import com.adobe.marketing.mobile.internal.eventhub.Tenant
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.ServiceProvider
@@ -18,7 +19,7 @@ import com.adobe.marketing.mobile.services.ServiceProvider
 /**
  * Manages the storage and retrieval of AEP appID from shared preferences and the app manifest.
  */
-internal class AppIdManager {
+internal class AppIdManager(val tenant: Tenant) {
 
     companion object {
         private const val LOG_TAG = "AppIdManager"
@@ -26,7 +27,7 @@ internal class AppIdManager {
 
     private val configStateStoreCollection: NamedCollection? =
         ServiceProvider.getInstance().dataStoreService
-            .getNamedCollection(ConfigurationStateManager.DATASTORE_KEY)
+            .getNamedCollection(ConfigurationStateManager.DATASTORE_KEY + "$tenant-${tenant.id}")
 
     /**
      * Saves the appId provided into shared preferences.

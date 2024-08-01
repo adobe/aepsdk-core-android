@@ -249,7 +249,7 @@ internal class EventHub {
     /**
      * Initializes event history. This must be called after the SDK has application context.
      */
-    fun initializeEventHistory() {
+    fun initializeEventHistory(tenant: Tenant) {
         if (eventHistory != null) {
             Log.warning(
                 CoreConstants.LOG_TAG,

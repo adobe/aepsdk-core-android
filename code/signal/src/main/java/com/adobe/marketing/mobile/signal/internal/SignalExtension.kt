@@ -47,8 +47,10 @@ class SignalExtension : TenantAwareExtension {
         hitQueue = PersistentHitQueue(dataQueue, SignalHitProcessor())
     }
 
+//    constructor(extensionApi: ExtensionApi):super(extensionApi,Tenant())
+
     @VisibleForTesting
-    constructor(extensionApi: ExtensionApi, hitQueue: HitQueuing,tenant: Tenant) : super(extensionApi,tenant) {
+    constructor(extensionApi: ExtensionApi, hitQueue: HitQueuing) : super(extensionApi, Tenant()) {
         this.hitQueue = hitQueue
     }
 

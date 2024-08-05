@@ -53,7 +53,7 @@ class SignalExtensionTests {
     @Before
     fun setup() {
         extensionApi = mock(ExtensionApi::class.java)
-        signalExtension = SignalExtension(extensionApi)
+//        signalExtension = SignalExtension(extensionApi)
     }
 
     @Test

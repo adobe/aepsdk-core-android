@@ -25,8 +25,9 @@ internal class AndroidEventHistoryDatabase(tenant: Tenant) : EventHistoryDatabas
     private val dbMutex = Any()
     private val databaseFile: File
     private var database: SQLiteDatabase? = null
-    private val DB_NAME: String = DATABASE_NAME +"$tenant-${tenant.id}"
-    private val DB_NAME_1X = DATABASE_NAME_1X + "$tenant-${tenant.id}"
+    private val DB_SUFFIX = tenant.id ?: "default"
+    private val DB_NAME: String = DATABASE_NAME + DB_SUFFIX
+    private val DB_NAME_1X = DATABASE_NAME_1X + DB_SUFFIX
 
     /**
      * Constructor.

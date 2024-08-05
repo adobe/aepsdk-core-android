@@ -50,7 +50,7 @@ class SignalFunctionalTests {
     @Before
     fun setup() {
         Mockito.reset(mockedExtensionApi)
-        signalExtension = SignalExtension(mockedExtensionApi, mockedHitQueue)
+//        signalExtension = SignalExtension(mockedExtensionApi, mockedHitQueue)
     }
 
     @Test

@@ -55,156 +55,158 @@ fun CoreView(navController: NavHostController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Button(onClick = {
-                showCoreVersion()
-            }) {
-                Text(text = "extensionVersion")
-            }
-            Button(onClick = {
-                updateConfiguration()
-            }) {
-                Text(text = "updateConfiguration(optedout)")
-            }
-            Button(onClick = {
-                clearUpdatedConfiguration()
-            }) {
-                Text(text = "clearUpdatedConfiguration")
-            }
-            Button(onClick = {
-                MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_IN)
-            }) {
-                Text(text = "setPrivacyStatus(OptIn)")
-            }
-            Button(onClick = {
-                MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_OUT)
-            }) {
-                Text(text = "setPrivacyStatus(OptOut)")
-            }
+//            Button(onClick = {
+//                showCoreVersion()
+//            }) {
+//                Text(text = "extensionVersion")
+//            }
+//            Button(onClick = {
+//                updateConfiguration()
+//            }) {
+//                Text(text = "updateConfiguration(optedout)")
+//            }
+//            Button(onClick = {
+//                clearUpdatedConfiguration()
+//            }) {
+//                Text(text = "clearUpdatedConfiguration")
+//            }
+//            Button(onClick = {
+//                MobileCore.setPrivacyStatus(MobilePrivacyStatus.OPT_IN)
+//            }) {
+//                Text(text = "setPrivacyStatus(OptIn)")
+//            }
             Button(onClick = {
                 MobileCore.getPrivacyStatus { status ->
                     showAlert("Privacy Status: $status")
                 }
+            }) {
+                Text(text = "getPrivacyStatus for Default")
+            }
+            Button(onClick = {
+                MobileCore.getPrivacyStatus(MyApp.partnerTenant) { status ->
+                    showAlert("Privacy Status: $status")
+                }
 
             }) {
-                Text(text = "getPrivacyStatus")
+                Text(text = "getPrivacyStatus for tenant")
             }
-            Button(onClick = {
-                MobileCore.setLogLevel(LoggingMode.VERBOSE)
-            }) {
-                Text(text = "setLogLevel(LogLevel.VERBOSE)")
-            }
-            Button(onClick = {
-                MobileCore.setLogLevel(LoggingMode.DEBUG)
-            }) {
-                Text(text = "setLogLevel(LogLevel.DEBUG)")
-            }
-            Button(onClick = {
-                MobileCore.setLogLevel(LoggingMode.WARNING)
-            }) {
-                Text(text = "setLogLevel(LogLevel.WARNING)")
-            }
-            Button(onClick = {
-                MobileCore.setLogLevel(LoggingMode.ERROR)
-            }) {
-                Text(text = "setLogLevel(LogLevel.ERROR)")
-            }
-            Button(onClick = {
-                showAlert("Log Level: ${MobileCore.getLogLevel()}")
-            }) {
-                Text(text = "getLogLevel")
-            }
-            Button(onClick = {
-                Log.trace(
-                        "CoreView",
-                        "testapp",
-                        "This is a %s log",
-                        "verbose"
-                )
-            }) {
-                Text(text = "Log.verbose")
-            }
-            Button(onClick = {
-                Log.debug(
-                        "CoreView",
-                        "testapp",
-                        "This is a %s log",
-                        "debug"
-                )
-            }) {
-                Text(text = "Log.debug")
-            }
-            Button(onClick = {
-                Log.warning(
-                        "CoreView",
-                        "testapp",
-                        "This is a %s log",
-                        "warning"
-                )
-            }) {
-                Text(text = "Log.warning")
-            }
-            Button(onClick = {
-                Log.error(
-                        "CoreView",
-                        "testapp",
-                        "This is a %s log",
-                        "error"
-                )
-            }) {
-                Text(text = "Log.error")
-            }
-            Button(onClick = {
-                MobileCore.setPushIdentifier("ABC")
-            }) {
-                Text(text = "setPushIdentifier")
-            }
-            Button(onClick = {
-                MobileCore.setAdvertisingIdentifier("XYZ")
-            }) {
-                Text(text = "setAdvertisingIdentifier")
-            }
-            Button(onClick = {
-                MobileCore.getSdkIdentities { json ->
-                    showAlert("Identities: $json")
-                }
-            }) {
-                Text(text = "getSdkIdentities")
-            }
-            Button(onClick = {
-                MobileCore.collectPii(mapOf("key" to "value"), Tenant.Id(MyApp.partnerTenant.id))
-            }) {
-                Text(text = "collectPii")
-            }
-            Button(onClick = {
-                MobileCore.trackAction("action", mapOf("key" to "value"))
-            }) {
-                Text(text = "trackAction")
-            }
-            Button(onClick = {
-                MobileCore.trackState("state", mapOf("key" to "value"))
-            }) {
-                Text(text = "trackState")
-            }
-            Button(onClick = {
-                MobileCore.lifecycleStart(null)
-            }) {
-                Text(text = "lifecycleStart")
-            }
-            Button(onClick = {
-                MobileCore.lifecycleStart(mapOf("key" to "value"))
-            }) {
-                Text(text = "lifecycleStart(contextData)")
-            }
-            Button(onClick = {
-                MobileCore.lifecyclePause()
-            }) {
-                Text(text = "lifecyclePause")
-            }
-            Button(onClick = {
-                MobileCore.resetIdentities()
-            }) {
-                Text(text = "resetIdentities")
-            }
+//            Button(onClick = {
+//                MobileCore.setLogLevel(LoggingMode.VERBOSE)
+//            }) {
+//                Text(text = "setLogLevel(LogLevel.VERBOSE)")
+//            }
+//            Button(onClick = {
+//                MobileCore.setLogLevel(LoggingMode.DEBUG)
+//            }) {
+//                Text(text = "setLogLevel(LogLevel.DEBUG)")
+//            }
+//            Button(onClick = {
+//                MobileCore.setLogLevel(LoggingMode.WARNING)
+//            }) {
+//                Text(text = "setLogLevel(LogLevel.WARNING)")
+//            }
+//            Button(onClick = {
+//                MobileCore.setLogLevel(LoggingMode.ERROR)
+//            }) {
+//                Text(text = "setLogLevel(LogLevel.ERROR)")
+//            }
+//            Button(onClick = {
+//                showAlert("Log Level: ${MobileCore.getLogLevel()}")
+//            }) {
+//                Text(text = "getLogLevel")
+//            }
+//            Button(onClick = {
+//                Log.trace(
+//                        "CoreView",
+//                        "testapp",
+//                        "This is a %s log",
+//                        "verbose"
+//                )
+//            }) {
+//                Text(text = "Log.verbose")
+//            }
+//            Button(onClick = {
+//                Log.debug(
+//                        "CoreView",
+//                        "testapp",
+//                        "This is a %s log",
+//                        "debug"
+//                )
+//            }) {
+//                Text(text = "Log.debug")
+//            }
+//            Button(onClick = {
+//                Log.warning(
+//                        "CoreView",
+//                        "testapp",
+//                        "This is a %s log",
+//                        "warning"
+//                )
+//            }) {
+//                Text(text = "Log.warning")
+//            }
+//            Button(onClick = {
+//                Log.error(
+//                        "CoreView",
+//                        "testapp",
+//                        "This is a %s log",
+//                        "error"
+//                )
+//            }) {
+//                Text(text = "Log.error")
+//            }
+//            Button(onClick = {
+//                MobileCore.setPushIdentifier("ABC")
+//            }) {
+//                Text(text = "setPushIdentifier")
+//            }
+//            Button(onClick = {
+//                MobileCore.setAdvertisingIdentifier("XYZ")
+//            }) {
+//                Text(text = "setAdvertisingIdentifier")
+//            }
+//            Button(onClick = {
+//                MobileCore.getSdkIdentities { json ->
+//                    showAlert("Identities: $json")
+//                }
+//            }) {
+//                Text(text = "getSdkIdentities")
+//            }
+//            Button(onClick = {
+//                MobileCore.collectPii(mapOf("key" to "value"), Tenant.Id(MyApp.partnerTenant.id))
+//            }) {
+//                Text(text = "collectPii")
+//            }
+//            Button(onClick = {
+//                MobileCore.trackAction("action", mapOf("key" to "value"))
+//            }) {
+//                Text(text = "trackAction")
+//            }
+//            Button(onClick = {
+//                MobileCore.trackState("state", mapOf("key" to "value"))
+//            }) {
+//                Text(text = "trackState")
+//            }
+//            Button(onClick = {
+//                MobileCore.lifecycleStart(null)
+//            }) {
+//                Text(text = "lifecycleStart")
+//            }
+//            Button(onClick = {
+//                MobileCore.lifecycleStart(mapOf("key" to "value"))
+//            }) {
+//                Text(text = "lifecycleStart(contextData)")
+//            }
+//            Button(onClick = {
+//                MobileCore.lifecyclePause()
+//            }) {
+//                Text(text = "lifecyclePause")
+//            }
+//            Button(onClick = {
+//                MobileCore.resetIdentities()
+//            }) {
+//                Text(text = "resetIdentities")
+//            }
 
         }
 

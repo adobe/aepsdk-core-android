@@ -341,11 +341,10 @@ public final class MobileCore {
                 }
             }
         }
-
+        EventHub eventHub = EventHub.create(tenant);
         final AtomicInteger registeredExtensions = new AtomicInteger(0);
         for (final Class<? extends Extension> extension : extensionsToRegister) {
-            EventHub.instance(tenant)
-                    .registerExtension(
+            eventHub.registerExtension(
                             extension,
                             eventHubError -> {
                                 if (registeredExtensions.incrementAndGet()
@@ -1117,8 +1116,7 @@ public final class MobileCore {
     }
 
 
-
-    public static void getPrivacyStatus(final AdobeCallback<MobilePrivacyStatus> callback, Tenant tenant) {
+    public static void getPrivacyStatus(Tenant tenant, final AdobeCallback<MobilePrivacyStatus> callback) {
         if (callback == null) {
             Log.error(
                     CoreConstants.LOG_TAG,

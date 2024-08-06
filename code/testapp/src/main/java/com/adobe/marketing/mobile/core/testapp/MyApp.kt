@@ -48,8 +48,9 @@ class MyApp : Application() {
 
         val partnerLaunchEnvironmentID = "94f571f308d5/39273f51e930/launch-00ac4ce72151-development"
 //        MobileCore.setApplication(this, partnerTenant)
-        MobileCore.configureWithAppID(partnerLaunchEnvironmentID, partnerTenant)
-        MobileCore.registerExtensions(extensions, partnerTenant) {}
+        MobileCore.registerExtensions(extensions, partnerTenant) {
+            MobileCore.configureWithAppID(partnerLaunchEnvironmentID, partnerTenant)
+        }
 
     }
 

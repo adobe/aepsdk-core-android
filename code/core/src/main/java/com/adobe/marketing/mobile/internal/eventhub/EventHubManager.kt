@@ -1,5 +1,6 @@
 package com.adobe.marketing.mobile.internal.eventhub
 
+import android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 
@@ -17,7 +18,12 @@ object EventHubManager {
 
 
         tenant.id.let {
+
             return tenantStore[it] ?: return EventHub(tenant).also { hub ->
+                Log.d(
+                    "prattham",
+                    "EventHubManager createInstance: adding to tenantStore for ${tenant.id} "
+                )
                 tenantStore[it] = hub
             }
         }
@@ -29,6 +35,7 @@ object EventHubManager {
     // Retrieve an EventHub instance for a specific tenant or return the default instance
     internal fun instance(tenant: Tenant): EventHub? {
 //        return accessLock.withLock {
+//        val hub = tenantStore[tenant.id] ?: tenantStore[Tenant.Default.id]
         return tenantStore[tenant.id] ?: tenantStore[Tenant.Default.id]
 //        }
     }

@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
+import android.icu.text.Normalizer.NO
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.AdobeCallbackWithError
@@ -57,6 +58,7 @@ internal class EventHub {
         }
         @JvmStatic
         fun create(tenant: Tenant): EventHub {
+            android.util.Log.d("prattham", "EventHub create called for ${tenant.id}")
             return EventHubManager.createInstance(tenant)
         }
 
@@ -90,7 +92,11 @@ internal class EventHub {
         }
     }
 
-    constructor()
+    constructor(){
+        this.LOG_TAG = "EventHub -> Default"
+        android.util.Log.d(LOG_TAG, "default constructor called for EventHub")
+
+    }
 
     /**
      * Executor for eventhub callbacks and response listeners
@@ -293,7 +299,7 @@ internal class EventHub {
      * @param event the [Event] to be dispatched to listeners
      */
     fun dispatch(event: Event) {
-        android.util.Log.d("EventHub", "dispatch: event = " + event.eventData)
+        android.util.Log.d(LOG_TAG, "dispatch: event = " + event.eventData)
         eventHubExecutor.submit {
             dispatchInternal(event)
         }

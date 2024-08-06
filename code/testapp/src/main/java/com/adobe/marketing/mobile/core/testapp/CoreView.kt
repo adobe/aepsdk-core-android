@@ -33,6 +33,7 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.MobilePrivacyStatus
 import com.adobe.marketing.mobile.core.testapp.ui.theme.AEPSDKCoreAndroidTheme
+import com.adobe.marketing.mobile.internal.eventhub.Tenant
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 
@@ -170,7 +171,7 @@ fun CoreView(navController: NavHostController) {
                 Text(text = "getSdkIdentities")
             }
             Button(onClick = {
-                MobileCore.collectPii(mapOf("key" to "value"))
+                MobileCore.collectPii(mapOf("key" to "value"), Tenant.Id(MyApp.partnerTenant.id))
             }) {
                 Text(text = "collectPii")
             }

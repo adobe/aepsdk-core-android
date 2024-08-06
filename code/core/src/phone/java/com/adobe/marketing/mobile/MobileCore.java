@@ -158,7 +158,7 @@ public final class MobileCore {
                             }
 
                             // Initialize event history
-                            EventHub.Companion.getShared().initializeEventHistory(new Tenant());
+                            EventHub.Companion.getShared().initializeEventHistory(Tenant.Default.INSTANCE);
                             return null;
                         });
     }
@@ -203,7 +203,7 @@ public final class MobileCore {
             Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "setApplication failed - ignoring as setApplication was already called.");
+                    "setApplication failed - ignoring as setApplication was already called for tenant " + tenant.getId());
             return;
         }
 
@@ -443,6 +443,8 @@ public final class MobileCore {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEvent - event is null");
             return;
         }
+
+        android.util.Log.d(LOG_TAG, "dispatchEvent: event = " + event.getEventData() + " tenant =" + tenant.getId());
 
         EventHub.instance(tenant).dispatch(event);
     }

@@ -25,9 +25,11 @@ internal class AppIdManager(val tenant: Tenant) {
         private const val LOG_TAG = "AppIdManager"
     }
 
+    private val namedCollection = tenant.id ?: "default"
+
     private val configStateStoreCollection: NamedCollection? =
         ServiceProvider.getInstance().dataStoreService
-            .getNamedCollection(ConfigurationStateManager.DATASTORE_KEY + "$tenant-${tenant.id}")
+            .getNamedCollection(ConfigurationStateManager.DATASTORE_KEY + namedCollection)
 
     /**
      * Saves the appId provided into shared preferences.

@@ -81,11 +81,11 @@ internal class ConfigurationExtension : TenantAwareExtension {
         extensionApi,
         tenant,
         AppIdManager(tenant),
-        LaunchRulesEngine("Configuration" + "$tenant-${tenant.id}", extensionApi),
+        LaunchRulesEngine("Configuration" + (tenant.id ?: "default"), extensionApi),
         Executors.newSingleThreadScheduledExecutor()
     )
 
-    constructor(extensionApi: ExtensionApi):this(extensionApi, Tenant())
+    constructor(extensionApi: ExtensionApi):this(extensionApi, Tenant.Default)
 
     /**
      * Exists only for cascading components for dependency injection.

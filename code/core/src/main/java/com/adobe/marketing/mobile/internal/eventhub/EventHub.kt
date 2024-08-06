@@ -40,6 +40,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.log
 
 /**
  * EventHub class is responsible for delivering events to listeners and maintaining registered extension's lifecycle.
@@ -59,12 +60,13 @@ internal class EventHub {
             return EventHubManager.createInstance(tenant)
         }
 
-        var shared = create(Tenant())
+        var shared = create(Tenant.Default)
     }
 
     constructor(tenant: Tenant) {
         this.tenant = tenant
-        this.LOG_TAG = "EventHub" + "$tenant-${tenant.id}"
+        val logTag = tenant.id ?: "default"
+        this.LOG_TAG = "EventHub -> $logTag"
         val desc = tenant.id ?: "default"
         android.util.Log.d(LOG_TAG, "Initializing EventHub for tenant $desc")
         if (eventHistory != null) {
@@ -291,6 +293,7 @@ internal class EventHub {
      * @param event the [Event] to be dispatched to listeners
      */
     fun dispatch(event: Event) {
+        android.util.Log.d("EventHub", "dispatch: event = " + event.eventData)
         eventHubExecutor.submit {
             dispatchInternal(event)
         }

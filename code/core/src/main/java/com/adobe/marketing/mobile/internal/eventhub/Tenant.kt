@@ -1,10 +1,7 @@
 package com.adobe.marketing.mobile.internal.eventhub
 
 
-data class Tenant(
-    val id: String? = null
-) {
-    companion object {
-        const val DEFAULT_TENANT = "default"
-    }
+sealed class Tenant(val id: String) {
+    data class Id(val tenantId: String) : Tenant(id = tenantId)
+    object Default : Tenant(id = "default")
 }

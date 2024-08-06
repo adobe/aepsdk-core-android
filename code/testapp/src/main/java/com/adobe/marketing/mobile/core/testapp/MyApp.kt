@@ -24,6 +24,9 @@ import com.adobe.marketing.mobile.internal.eventhub.Tenant
 class MyApp : Application() {
     private val LAUNCH_ENVIRONMENT_FILE_ID = "94f571f308d5/bc09a100649b/launch-6df8e3eea690-development"
 
+    companion object {
+        val partnerTenant = Tenant.Id("partner")
+    }
     override fun onCreate() {
         super.onCreate()
         Log.i("MyApp", "Application.onCreate() - start to initialize Adobe SDK. UserManagerCompat.isUserUnlocked(): ${UserManagerCompat.isUserUnlocked(this)}")
@@ -41,9 +44,10 @@ class MyApp : Application() {
         // Default tenant
         MobileCore.registerExtensions(extensions) {}
 
-        // Initializing a new tenant. Only extensions which are tenant aware will be initialized for this instance.
-        val partnerTenant = Tenant(id = "partner")
+//         Initializing a new tenant. Only extensions which are tenant aware will be initialized for this instance.
+
         val partnerLaunchEnvironmentID = "94f571f308d5/39273f51e930/launch-00ac4ce72151-development"
+//        MobileCore.setApplication(this, partnerTenant)
         MobileCore.configureWithAppID(partnerLaunchEnvironmentID, partnerTenant)
         MobileCore.registerExtensions(extensions, partnerTenant) {}
 

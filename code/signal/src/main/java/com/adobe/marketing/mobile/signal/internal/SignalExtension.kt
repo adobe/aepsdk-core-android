@@ -41,16 +41,17 @@ class SignalExtension : TenantAwareExtension {
 
     constructor(extensionApi: ExtensionApi,tenant: Tenant) : super(extensionApi,tenant) {
         this.tenant = tenant
-        val dataQueueName = SignalConstants.EXTENSION_NAME + "$tenant-${tenant.id}"
+       val extensionName = tenant.id ?: "default"
+        val dataQueueName = SignalConstants.EXTENSION_NAME + extensionName
         val dataQueue =
             ServiceProvider.getInstance().dataQueueService.getDataQueue(dataQueueName)
         hitQueue = PersistentHitQueue(dataQueue, SignalHitProcessor())
     }
 
-//    constructor(extensionApi: ExtensionApi):super(extensionApi,Tenant())
+//    constructor(extensionApi: ExtensionApi):super(extensionApi,Tenant.Default)
 
     @VisibleForTesting
-    constructor(extensionApi: ExtensionApi, hitQueue: HitQueuing) : super(extensionApi, Tenant()) {
+    constructor(extensionApi: ExtensionApi, hitQueue: HitQueuing) : super(extensionApi, Tenant.Default) {
         this.hitQueue = hitQueue
     }
 

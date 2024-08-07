@@ -21,14 +21,18 @@ import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.internal.TenantAwareExtension
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
+import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentLinkedQueue
 
 internal class ExtensionContainer constructor(
+    eventHub: EventHub, val tenant: Tenant,
     private val extensionClass: Class<out Extension>,
     callback: (EventHubError) -> Unit
 ) : ExtensionApi() {
+    private var eventHub: WeakReference<EventHub>? = null
 
     companion object {
         const val LOG_TAG = "ExtensionContainer"
@@ -77,7 +81,12 @@ internal class ExtensionContainer constructor(
         }
 
     private val initJob = Runnable {
-        val extension = extensionClass.initWith(this)
+        val extension: Extension? =
+            if (TenantAwareExtension::class.java.isAssignableFrom(extensionClass)) {
+                extensionClass.initWith(this, tenant)
+            } else {
+                extensionClass.initWith(this)
+            }
         if (extension == null) {
             callback(EventHubError.ExtensionInitializationFailure)
             return@Runnable
@@ -125,7 +134,7 @@ internal class ExtensionContainer constructor(
         SerialWorkDispatcher(extensionClass.extensionTypeName, dispatchJob)
 
     init {
-
+        this.eventHub = WeakReference(eventHub)
         eventProcessor.setInitialJob(initJob)
         eventProcessor.setFinalJob(teardownJob)
         eventProcessor.start()
@@ -162,7 +171,9 @@ internal class ExtensionContainer constructor(
     override fun dispatch(
         event: Event
     ) {
-        EventHub.shared.dispatch(event)
+        eventHub?.let {
+            it.get()?.dispatch(event)
+        }
     }
 
     override fun startEvents() {
@@ -186,12 +197,11 @@ internal class ExtensionContainer constructor(
             return
         }
 
-        EventHub.shared.createSharedState(
-            SharedStateType.STANDARD,
-            sharedStateName,
-            state,
-            event
-        )
+        eventHub?.let {
+            it.get()?.createSharedState(
+                SharedStateType.STANDARD, sharedStateName, state, event
+            )
+        }
     }
 
     override fun createPendingSharedState(
@@ -206,11 +216,12 @@ internal class ExtensionContainer constructor(
             return null
         }
 
-        return EventHub.shared.createPendingSharedState(
-            SharedStateType.STANDARD,
-            sharedStateName,
-            event
-        )
+        eventHub?.let {
+            return it.get()?.createPendingSharedState(
+                SharedStateType.STANDARD, sharedStateName, event
+            )
+        } ?: return null
+
     }
 
     override fun getSharedState(
@@ -219,13 +230,11 @@ internal class ExtensionContainer constructor(
         barrier: Boolean,
         resolution: SharedStateResolution
     ): SharedStateResult? {
-        return EventHub.shared.getSharedState(
-            SharedStateType.STANDARD,
-            extensionName,
-            event,
-            barrier,
-            resolution
-        )
+        eventHub?.let {
+            return it.get()?.getSharedState(
+                SharedStateType.STANDARD, extensionName, event, barrier, resolution
+            )
+        } ?: return null
     }
 
     override fun createXDMSharedState(
@@ -241,7 +250,10 @@ internal class ExtensionContainer constructor(
             return
         }
 
-        EventHub.shared.createSharedState(SharedStateType.XDM, sharedStateName, state, event)
+        eventHub?.let {
+            it.get()?.createSharedState(SharedStateType.XDM, sharedStateName, state, event)
+        }
+
     }
 
     override fun createPendingXDMSharedState(
@@ -256,7 +268,10 @@ internal class ExtensionContainer constructor(
             return null
         }
 
-        return EventHub.shared.createPendingSharedState(SharedStateType.XDM, sharedStateName, event)
+        eventHub?.let {
+            return it.get()?.createPendingSharedState(SharedStateType.XDM, sharedStateName, event)
+        } ?: return null
+
     }
 
     override fun getXDMSharedState(
@@ -265,17 +280,17 @@ internal class ExtensionContainer constructor(
         barrier: Boolean,
         resolution: SharedStateResolution
     ): SharedStateResult? {
-        return EventHub.shared.getSharedState(
-            SharedStateType.XDM,
-            extensionName,
-            event,
-            barrier,
-            resolution
-        )
+        eventHub?.let {
+            return it.get()?.getSharedState(
+                SharedStateType.XDM, extensionName, event, barrier, resolution
+            )
+        } ?: return null
     }
 
     override fun unregisterExtension() {
-        EventHub.shared.unregisterExtension(extensionClass) {}
+        eventHub?.let {
+            it.get()?.unregisterExtension(extensionClass) {}
+        }
     }
 
     override fun getHistoricalEvents(
@@ -283,6 +298,8 @@ internal class ExtensionContainer constructor(
         enforceOrder: Boolean,
         handler: EventHistoryResultHandler<Int>
     ) {
-        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler)
+        eventHub?.let { eventHub ->
+            eventHub.get()?.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler)
+        }
     }
 }

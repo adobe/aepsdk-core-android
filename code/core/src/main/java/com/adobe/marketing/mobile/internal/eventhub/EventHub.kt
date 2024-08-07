@@ -45,10 +45,49 @@ import java.util.concurrent.atomic.AtomicInteger
  * EventHub class is responsible for delivering events to listeners and maintaining registered extension's lifecycle.
  */
 internal class EventHub {
+    private lateinit var LOG_TAG: String
+    private lateinit var tenant: Tenant
 
     companion object {
-        const val LOG_TAG = "EventHub"
-        var shared = EventHub()
+        @JvmStatic
+        fun instance(tenant: Tenant): EventHub? {
+            return EventHubManager.instance(tenant)
+        }
+        @JvmStatic
+        fun create(tenant: Tenant): EventHub {
+            return EventHubManager.createInstance(tenant)
+        }
+
+        var shared = create(Tenant.Default)
+    }
+
+    constructor(tenant: Tenant) {
+        this.tenant = tenant
+        this.LOG_TAG = "EventHub -> ${tenant.id}"
+        android.util.Log.d(LOG_TAG, "Initializing EventHub for tenant ${tenant.id}")
+        if (eventHistory != null) {
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Event history is already initialized"
+            )
+            return
+        }
+
+        eventHistory = try {
+            AndroidEventHistory(tenant)
+        } catch (ex: Exception) {
+            Log.warning(
+                CoreConstants.LOG_TAG,
+                LOG_TAG,
+                "Event history initialization failed with exception ${ex.message}"
+            )
+            null
+        }
+    }
+
+    constructor(){
+        this.LOG_TAG = "EventHub -> Default"
     }
 
     /**
@@ -199,6 +238,7 @@ internal class EventHub {
             ).get()
         }
 
+
     /**
      * Submits a task to be executed in the event hub executor.
      */
@@ -209,7 +249,7 @@ internal class EventHub {
     /**
      * Initializes event history. This must be called after the SDK has application context.
      */
-    fun initializeEventHistory() {
+    fun initializeEventHistory(tenant: Tenant) {
         if (eventHistory != null) {
             Log.warning(
                 CoreConstants.LOG_TAG,
@@ -220,7 +260,7 @@ internal class EventHub {
         }
 
         eventHistory = try {
-            AndroidEventHistory()
+            AndroidEventHistory(tenant)
         } catch (ex: Exception) {
             Log.warning(
                 CoreConstants.LOG_TAG,
@@ -299,7 +339,7 @@ internal class EventHub {
                 return@submit
             }
 
-            val container = ExtensionContainer(extensionClass) { error ->
+            val container = ExtensionContainer(this,tenant,extensionClass) { error ->
                 eventHubExecutor.submit {
                     completion?.let { executeCompletionHandler { it(error) } }
                     extensionPostRegistration(extensionClass, error)

@@ -16,7 +16,6 @@ import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.ExtensionHelper
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.services.Log
-import java.lang.Exception
 
 // Type extensions for [Extension] to allow for easier usage
 
@@ -30,6 +29,20 @@ internal fun Class<out Extension>.initWith(extensionApi: ExtensionApi): Extensio
         return extensionConstructor.newInstance(extensionApi)
     } catch (ex: Exception) {
         Log.debug(CoreConstants.LOG_TAG, "ExtensionExt", "Initializing Extension $this failed with $ex")
+    }
+
+    return null
+}
+
+internal fun Class<out Extension>.initWith(extensionApi: ExtensionApi, tenant: Tenant): Extension? {
+    try {
+        val extensionConstructor = this.getDeclaredConstructor(ExtensionApi::class.java)
+        extensionConstructor.isAccessible = true
+        return extensionConstructor.newInstance(extensionApi, tenant)
+    } catch (ex: Exception) {
+        Log.debug(
+            CoreConstants.LOG_TAG, "ExtensionExt", "Initializing Extension $this failed with $ex"
+        )
     }
 
     return null

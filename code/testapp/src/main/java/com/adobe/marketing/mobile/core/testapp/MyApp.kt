@@ -19,9 +19,14 @@ import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.core.testapp.extension.PerfExtension
+import com.adobe.marketing.mobile.internal.eventhub.Tenant
 
 class MyApp : Application() {
+    private val LAUNCH_ENVIRONMENT_FILE_ID = "94f571f308d5/bc09a100649b/launch-6df8e3eea690-development"
 
+    companion object {
+        val partnerTenant = Tenant.Id("partner")
+    }
     override fun onCreate() {
         super.onCreate()
         Log.i("MyApp", "Application.onCreate() - start to initialize Adobe SDK. UserManagerCompat.isUserUnlocked(): ${UserManagerCompat.isUserUnlocked(this)}")
@@ -29,9 +34,20 @@ class MyApp : Application() {
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
 
         // The test app uses bundled config. Uncomment this and change the app ID for testing the mobile tags property.
-        // MobileCore.configureWithAppID("YOUR_APP_ID")
-        val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
+        MobileCore.configureWithAppID(LAUNCH_ENVIRONMENT_FILE_ID)
+        val extensions = listOf(
+            Identity.EXTENSION,
+            Signal.EXTENSION,
+            Lifecycle.EXTENSION,
+            PerfExtension::class.java
+        )
+//        // Default tenant
         MobileCore.registerExtensions(extensions) {}
+
+        val partnerLaunchEnvironmentID = "94f571f308d5/39273f51e930/launch-00ac4ce72151-development"
+        MobileCore.registerExtensions(extensions, partnerTenant) {
+            MobileCore.configureWithAppID(partnerLaunchEnvironmentID, partnerTenant)
+        }
     }
 
 }

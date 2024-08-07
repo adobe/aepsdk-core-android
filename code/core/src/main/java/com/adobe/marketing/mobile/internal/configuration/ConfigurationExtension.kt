@@ -15,11 +15,12 @@ import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
-import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.internal.TenantAwareExtension
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import com.adobe.marketing.mobile.internal.eventhub.Tenant
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngine
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.DataReader
@@ -33,7 +34,7 @@ import java.util.concurrent.TimeUnit
  * Responsible for retrieving the configuration of the SDK, updating the shared state and
  * dispatching configuration updates through the `EventHub`
  */
-internal class ConfigurationExtension : Extension {
+internal class ConfigurationExtension : TenantAwareExtension {
 
     companion object {
         internal const val TAG = "Configuration"
@@ -74,24 +75,30 @@ internal class ConfigurationExtension : Extension {
     private val retryWorker: ScheduledExecutorService
     private var retryConfigurationCounter: Int = 0
     private var retryConfigTaskHandle: Future<*>? = null
+    private val tenant: Tenant
 
-    constructor(extensionApi: ExtensionApi) : this(
+    constructor(extensionApi: ExtensionApi, tenant: Tenant) : this(
         extensionApi,
-        AppIdManager(),
-        LaunchRulesEngine("Configuration", extensionApi),
+        tenant,
+        AppIdManager(tenant),
+        LaunchRulesEngine("Configuration" + (tenant.id ?: "default"), extensionApi),
         Executors.newSingleThreadScheduledExecutor()
     )
+
+    constructor(extensionApi: ExtensionApi):this(extensionApi, Tenant.Default)
 
     /**
      * Exists only for cascading components for dependency injection.
      */
     private constructor(
         extensionApi: ExtensionApi,
+        tenant: Tenant,
         appIdManager: AppIdManager,
         launchRulesEngine: LaunchRulesEngine,
         retryWorker: ScheduledExecutorService
     ) : this(
         extensionApi,
+        tenant,
         appIdManager,
         launchRulesEngine,
         retryWorker,
@@ -102,13 +109,15 @@ internal class ConfigurationExtension : Extension {
     @VisibleForTesting
     internal constructor(
         extensionApi: ExtensionApi,
+        tenant: Tenant,
         appIdManager: AppIdManager,
         launchRulesEngine: LaunchRulesEngine,
         retryWorker: ScheduledExecutorService,
         configurationStateManager: ConfigurationStateManager,
         configurationRulesManager: ConfigurationRulesManager
-    ) : super(extensionApi) {
+    ) : super(extensionApi,tenant) {
         this.appIdManager = appIdManager
+        this.tenant = tenant
         this.launchRulesEngine = launchRulesEngine
         this.retryWorker = retryWorker
         this.configurationStateManager = configurationStateManager
@@ -116,7 +125,11 @@ internal class ConfigurationExtension : Extension {
 
         loadInitialConfiguration()
 
-        EventHub.shared.registerEventPreprocessor { e ->
+//        EventHub.shared.registerEventPreprocessor { e ->
+//            launchRulesEngine.processEvent(e)
+//        }
+
+        EventHub.instance(tenant)?.registerEventPreprocessor { e ->
             launchRulesEngine.processEvent(e)
         }
     }

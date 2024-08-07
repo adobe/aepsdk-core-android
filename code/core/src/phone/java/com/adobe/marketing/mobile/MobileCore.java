@@ -16,21 +16,25 @@ import android.app.Application;
 import android.app.Application.ActivityLifecycleCallbacks;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.os.UserManagerCompat;
+
 import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.DataMarshaller;
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
+import com.adobe.marketing.mobile.internal.eventhub.Tenant;
 import com.adobe.marketing.mobile.internal.migration.V4Migrator;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.util.DataReader;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -84,16 +88,6 @@ public final class MobileCore {
         EventHub.Companion.getShared().setWrapperType(wrapperType);
     }
 
-    /**
-     * Set the Android {@link Application}, which enables the SDK get the app {@code Context},
-     * register a {@link ActivityLifecycleCallbacks} to monitor the lifecycle of the app and get the
-     * {@link Activity} on top of the screen.
-     *
-     * <p>NOTE: This method should be called right after the app starts, so it gives the SDK all the
-     * contexts it needed.
-     *
-     * @param application the Android {@link Application} instance. It should not be null.
-     */
     public static void setApplication(@NonNull final Application application) {
 
         if (application == null) {
@@ -164,19 +158,96 @@ public final class MobileCore {
                             }
 
                             // Initialize event history
-                            EventHub.Companion.getShared().initializeEventHistory();
+                            EventHub.Companion.getShared().initializeEventHistory(Tenant.Default.INSTANCE);
                             return null;
                         });
     }
 
     /**
-     * Get the global {@link Application} object of the current process.
+     * Set the Android {@link Application}, which enables the SDK get the app {@code Context},
+     * register a {@link ActivityLifecycleCallbacks} to monitor the lifecycle of the app and get the
+     * {@link Activity} on top of the screen.
      *
-     * <p>NOTE: {@link #setApplication(Application)} must be called before calling this method.
+     * <p>NOTE: This method should be called right after the app starts, so it gives the SDK all the
+     * contexts it needed.
      *
-     * @return the current {@code Application}, or null if no {@code Application} was set or the
-     *     {@code Application} process was destroyed.
+     * @param application the Android {@link Application} instance. It should not be null.
      */
+    public static void setApplication(@NonNull final Application application, Tenant tenant) {
+
+        if (application == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG, LOG_TAG, "setApplication failed - application is null");
+            return;
+        }
+
+        // Direct boot mode is supported on Android N and above
+        if (VERSION.SDK_INT >= VERSION_CODES.N) {
+            if (UserManagerCompat.isUserUnlocked(application)) {
+                Log.debug(
+                        CoreConstants.LOG_TAG,
+                        LOG_TAG,
+                        "setApplication - device is unlocked and not in direct boot mode,"
+                                + " initializing the SDK.");
+            } else {
+                Log.error(
+                        CoreConstants.LOG_TAG,
+                        LOG_TAG,
+                        "setApplication failed - device is in direct boot mode, SDK will not be"
+                                + " initialized.");
+                return;
+            }
+        }
+
+        if (sdkInitializedWithContext.getAndSet(true)) {
+            Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "setApplication failed - ignoring as setApplication was already called for tenant " + tenant.getId());
+            return;
+        }
+
+        if (VERSION.SDK_INT == VERSION_CODES.O || VERSION.SDK_INT == VERSION_CODES.O_MR1) {
+            // AMSDK-8502
+            // Workaround to prevent a crash happening on Android 8.0/8.1 related to
+            // TimeZoneNamesImpl
+            // https://issuetracker.google.com/issues/110848122
+            try {
+                new Date().toString();
+            } catch (AssertionError e) {
+                // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
+            } catch (Exception e) {
+                // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
+            }
+        }
+
+        ServiceProvider.getInstance().getAppContextService().setApplication(application);
+        App.INSTANCE.registerActivityResumedListener(MobileCore::collectLaunchInfo);
+
+        // Migration and EventHistory operations must complete in a background thread before any
+        // extensions are registered.
+        // To ensure these tasks are completed before any registerExtension calls are made,
+        // reuse the eventHubExecutor instead of using a separate executor instance.
+
+        EventHub.instance(tenant).executeInEventHubExecutor(
+                () -> {
+                    try {
+                        V4Migrator migrator = new V4Migrator();
+                        migrator.migrate();
+                    } catch (Exception e) {
+                        Log.error(
+                                CoreConstants.LOG_TAG,
+                                LOG_TAG,
+                                "Migration from V4 SDK failed with error - "
+                                        + e.getLocalizedMessage());
+                    }
+
+                    // Initialize event history
+                    EventHub.instance(tenant).initializeEventHistory(tenant);
+                    return null;
+                });
+    }
+
     @Nullable public static Application getApplication() {
         return ServiceProvider.getInstance().getAppContextService().getApplication();
     }
@@ -204,17 +275,6 @@ public final class MobileCore {
         return com.adobe.marketing.mobile.services.Log.getLogLevel();
     }
 
-    /**
-     * Registers all extensions with Core and starts event processing.
-     *
-     * <p>This method needs to be called after {@link MobileCore#setApplication(Application)} is
-     * called.
-     *
-     * @param extensions List of extension classes whose parent is {@link Extension}. It should not
-     *     be null.
-     * @param completionCallback an optional {@link AdobeCallback} invoked after registrations are
-     *     completed
-     */
     public static void registerExtensions(
             @NonNull final List<Class<? extends Extension>> extensions,
             @Nullable final AdobeCallback<?> completionCallback) {
@@ -245,6 +305,51 @@ public final class MobileCore {
                                 if (registeredExtensions.incrementAndGet()
                                         == extensionsToRegister.size()) {
                                     EventHub.Companion.getShared().start();
+                                    try {
+                                        if (completionCallback != null) {
+                                            completionCallback.call(null);
+                                        }
+                                    } catch (Exception ex) {
+                                    }
+                                }
+                                return null;
+                            });
+        }
+    }
+
+
+
+    public static void registerExtensions(
+            @NonNull final List<Class<? extends Extension>> extensions,
+            Tenant tenant,
+            @Nullable final AdobeCallback<?> completionCallback
+    ) {
+        if (!sdkInitializedWithContext.get()) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to registerExtensions - setApplication not called");
+            return;
+        }
+
+        final List<Class<? extends Extension>> extensionsToRegister = new ArrayList<>();
+        extensionsToRegister.add(ConfigurationExtension.class);
+        if (extensions != null) {
+            for (final Class<? extends Extension> extension : extensions) {
+                if (extension != null) {
+                    extensionsToRegister.add(extension);
+                }
+            }
+        }
+        EventHub eventHub = EventHub.create(tenant);
+        final AtomicInteger registeredExtensions = new AtomicInteger(0);
+        for (final Class<? extends Extension> extension : extensionsToRegister) {
+            eventHub.registerExtension(
+                            extension,
+                            eventHubError -> {
+                                if (registeredExtensions.incrementAndGet()
+                                        == extensionsToRegister.size()) {
+                                    EventHub.instance(tenant).start();
                                     try {
                                         if (completionCallback != null) {
                                             completionCallback.call(null);
@@ -289,12 +394,40 @@ public final class MobileCore {
         EventHub.Companion.getShared().registerListener(eventType, eventSource, callback);
     }
 
+
+
+    public static void registerEventListener(
+            @NonNull final String eventType,
+            @NonNull final String eventSource,
+            @NonNull final AdobeCallback<Event> callback,
+            Tenant tenant) {
+        if (callback == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to registerEventListener - callback is null",
+                    Log.UNEXPECTED_NULL_VALUE);
+            return;
+        }
+
+        if (eventType == null || eventSource == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to registerEventListener - event type/source is null");
+            return;
+        }
+
+        EventHub.instance(tenant).registerListener(eventType, eventSource, callback);
+    }
+
     /**
      * This method will dispatch the provided {@code Event} to dispatch an event for other
      * extensions or the internal SDK to consume.
      *
      * @param event the {@link Event} to be dispatched. It should not be null
      */
+
     public static void dispatchEvent(@NonNull final Event event) {
         if (event == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEvent - event is null");
@@ -302,6 +435,14 @@ public final class MobileCore {
         }
 
         EventHub.Companion.getShared().dispatch(event);
+    }
+
+    public static void dispatchEvent(@NonNull final Event event, Tenant tenant) {
+        if (event == null) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to dispatchEvent - event is null");
+            return;
+        }
+        EventHub.instance(tenant).dispatch(event);
     }
 
     /**
@@ -341,6 +482,33 @@ public final class MobileCore {
 
         EventHub.Companion.getShared().registerResponseListener(event, timeoutMS, responseCallback);
         EventHub.Companion.getShared().dispatch(event);
+    }
+
+
+    public static void dispatchEventWithResponseCallback(
+            @NonNull final Event event,
+            final long timeoutMS,
+            @NonNull final AdobeCallbackWithError<Event> responseCallback,
+            Tenant tenant) {
+        if (responseCallback == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to dispatchEventWithResponseCallback - callback is null");
+            return;
+        }
+
+        if (event == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to dispatchEventWithResponseCallback - event is null");
+            responseCallback.fail(AdobeError.UNEXPECTED_ERROR);
+            return;
+        }
+
+        EventHub.instance(tenant).registerResponseListener(event, timeoutMS, responseCallback);
+        EventHub.instance(tenant).dispatch(event);
     }
 
     /**
@@ -395,12 +563,28 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.SET_ADVERTISING_IDENTIFIER,
-                                EventType.GENERIC_IDENTITY,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.SET_ADVERTISING_IDENTIFIER,
+                        EventType.GENERIC_IDENTITY,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
+    }
+
+
+    public static void setAdvertisingIdentifier(@Nullable final String advertisingIdentifier, Tenant tenant) {
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Identity.ADVERTISING_IDENTIFIER, advertisingIdentifier);
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.SET_ADVERTISING_IDENTIFIER,
+                        EventType.GENERIC_IDENTITY,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
     }
 
     /**
@@ -414,12 +598,27 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.SET_PUSH_IDENTIFIER,
-                                EventType.GENERIC_IDENTITY,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.SET_PUSH_IDENTIFIER,
+                        EventType.GENERIC_IDENTITY,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
+    }
+
+
+    public static void setPushIdentifier(@Nullable final String pushIdentifier, Tenant tenant) {
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(CoreConstants.EventDataKeys.Identity.PUSH_IDENTIFIER, pushIdentifier);
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.SET_PUSH_IDENTIFIER,
+                        EventType.GENERIC_IDENTITY,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
     }
 
     /**
@@ -441,32 +640,37 @@ public final class MobileCore {
         eventData.put(CoreConstants.EventDataKeys.Signal.SIGNAL_CONTEXT_DATA, data);
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.COLLECT_PII,
-                                EventType.GENERIC_PII,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.COLLECT_PII,
+                        EventType.GENERIC_PII,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
     }
 
-    /**
-     * Collects message data from various points in the application.
-     *
-     * <p>This method can be invoked to support the following use cases:
-     *
-     * <ol>
-     *   <li>Tracking Push Message receive and click.
-     *   <li>Tracking Local Notification receive and click.
-     * </ol>
-     *
-     * <p>The message tracking information can be supplied in the {@code messageInfo} Map. For
-     * scenarios where the application is launched as a result of notification click, {@link
-     * #collectLaunchInfo(Activity)} will be invoked with the target Activity and message data will
-     * be extracted from the Intent extras.
-     *
-     * @param messageInfo {@code Map<String, Object>} containing message tracking information. It
-     *     should not be null or empty.
-     */
+
+    public static void collectPii(@NonNull final Map<String, String> data, Tenant tenant) {
+        if (data == null || data.isEmpty()) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Could not trigger PII, the data is null or empty.");
+            return;
+        }
+
+        final Map<String, Object> eventData = new HashMap<>();
+        eventData.put(CoreConstants.EventDataKeys.Signal.SIGNAL_CONTEXT_DATA, data);
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.COLLECT_PII,
+                        EventType.GENERIC_PII,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
+    }
+
+
     public static void collectMessageInfo(@NonNull final Map<String, Object> messageInfo) {
         if (messageInfo == null || messageInfo.isEmpty()) {
             Log.error(
@@ -478,12 +682,32 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.COLLECT_DATA,
-                                EventType.GENERIC_DATA,
-                                EventSource.OS)
+                        CoreConstants.EventNames.COLLECT_DATA,
+                        EventType.GENERIC_DATA,
+                        EventSource.OS)
                         .setEventData(messageInfo)
                         .build();
         dispatchEvent(event);
+    }
+
+
+    public static void collectMessageInfo(@NonNull final Map<String, Object> messageInfo, Tenant tenant) {
+        if (messageInfo == null || messageInfo.isEmpty()) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "collectData: Could not dispatch generic data event, data is null or empty.");
+            return;
+        }
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.COLLECT_DATA,
+                        EventType.GENERIC_DATA,
+                        EventSource.OS)
+                        .setEventData(messageInfo)
+                        .build();
+        dispatchEvent(event, tenant);
     }
 
     /**
@@ -519,12 +743,34 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.COLLECT_DATA,
-                                EventType.GENERIC_DATA,
-                                EventSource.OS)
+                        CoreConstants.EventNames.COLLECT_DATA,
+                        EventType.GENERIC_DATA,
+                        EventSource.OS)
                         .setEventData(marshalledData)
                         .build();
         dispatchEvent(event);
+    }
+
+
+    @VisibleForTesting
+    static void collectLaunchInfo(final Activity activity, Tenant tenant) {
+        final Map<String, Object> marshalledData = DataMarshaller.marshal(activity);
+        if (marshalledData == null || marshalledData.isEmpty()) {
+            Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "collectData: Could not dispatch generic data event, data is null or empty.");
+            return;
+        }
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.COLLECT_DATA,
+                        EventType.GENERIC_DATA,
+                        EventSource.OS)
+                        .setEventData(marshalledData)
+                        .build();
+        dispatchEvent(event, tenant);
     }
 
     // ========================================================
@@ -555,33 +801,36 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.CONFIGURE_WITH_APP_ID,
-                                EventType.CONFIGURATION,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.CONFIGURE_WITH_APP_ID,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
     }
 
-    /**
-     * Load configuration from the file in the assets folder. SDK automatically reads config from
-     * `ADBMobileConfig.json` file if it exists in the assets folder. Use this API only if the
-     * config needs to be read from a different file.
-     *
-     * <p>On application relaunch, the configuration from the file at {@code filepath} is not
-     * preserved and this method must be called again if desired.
-     *
-     * <p>On failure to read the file or parse the JSON contents, the existing configuration remains
-     * unchanged.
-     *
-     * <p>Calls to this API will replace any existing SDK configuration except those set using
-     * {@link #updateConfiguration(Map)} or {@link #setPrivacyStatus(MobilePrivacyStatus)}.
-     * Configuration updates made using {@link #updateConfiguration(Map)} and {@link
-     * #setPrivacyStatus(MobilePrivacyStatus)} are always applied on top of configuration changes
-     * made using this API.
-     *
-     * @param fileName the name of the configure file in the assets folder. It should not be null.
-     */
+
+    public static void configureWithAppID(@NonNull final String appId, Tenant tenant) {
+        if (appId == null) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "configureWithAppID failed - appId is null.");
+            return;
+        }
+
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Configuration.CONFIGURATION_REQUEST_CONTENT_JSON_APP_ID,
+                appId);
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.CONFIGURE_WITH_APP_ID,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
+    }
+
     public static void configureWithFileInAssets(@NonNull final String fileName) {
         if (fileName == null) {
             Log.error(
@@ -599,32 +848,14 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.CONFIGURE_WITH_FILE_PATH,
-                                EventType.CONFIGURATION,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.CONFIGURE_WITH_FILE_PATH,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
     }
 
-    /**
-     * Load configuration from local file.
-     *
-     * <p>Configure the SDK by reading a local file containing the JSON configuration. On
-     * application relaunch, the configuration from the file at {@code filepath} is not preserved
-     * and this method must be called again if desired.
-     *
-     * <p>On failure to read the file or parse the JSON contents, the existing configuration remains
-     * unchanged.
-     *
-     * <p>Calls to this API will replace any existing SDK configuration except those set using
-     * {@link #updateConfiguration(Map)} or {@link #setPrivacyStatus(MobilePrivacyStatus)}.
-     * Configuration updates made using {@link #updateConfiguration(Map)} and {@link
-     * #setPrivacyStatus(MobilePrivacyStatus)} are always applied on top of configuration changes
-     * made using this API.
-     *
-     * @param filePath absolute path to a local configuration file. It should not be null.
-     */
     public static void configureWithFileInPath(@NonNull final String filePath) {
         if (filePath == null) {
             Log.error(
@@ -642,27 +873,14 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.CONFIGURE_WITH_FILE_PATH,
-                                EventType.CONFIGURATION,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.CONFIGURE_WITH_FILE_PATH,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
     }
 
-    /**
-     * Update specific configuration parameters.
-     *
-     * <p>Update the current SDK configuration with specific key/value pairs. Keys not found in the
-     * current configuration are added. Configuration updates are preserved and applied over
-     * existing or new configurations set by calling {@link #configureWithAppID(String)} or {@link
-     * #configureWithFileInPath(String)}, even across application restarts.
-     *
-     * <p>Using {@code null} values is allowed and effectively removes the configuration parameter
-     * from the current configuration.
-     *
-     * @param configMap configuration key/value pairs to be updated or added. It should not be null.
-     */
     public static void updateConfiguration(@NonNull final Map<String, Object> configMap) {
         if (configMap == null) {
             Log.error(
@@ -680,20 +898,92 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.CONFIGURATION_UPDATE,
-                                EventType.CONFIGURATION,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.CONFIGURATION_UPDATE,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
     }
 
-    /**
-     * Clear the changes made by {@link #updateConfiguration(Map)} and {@link
-     * #setPrivacyStatus(MobilePrivacyStatus)} to the initial configuration provided either by
-     * {@link #configureWithAppID(String)} or {@link #configureWithFileInPath(String)} or {@link
-     * #configureWithFileInAssets(String)}
-     */
+
+    public static void configureWithFileInAssets(@NonNull final String fileName, Tenant tenant) {
+        if (fileName == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "configureWithFileInAssets failed - fileName is null.");
+            return;
+        }
+
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Configuration
+                        .CONFIGURATION_REQUEST_CONTENT_JSON_ASSET_FILE,
+                fileName);
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.CONFIGURE_WITH_FILE_PATH,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
+    }
+
+
+    public static void configureWithFileInPath(@NonNull final String filePath, Tenant tenant) {
+        if (filePath == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "configureWithFileInPath failed - filePath is null.");
+            return;
+        }
+
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Configuration
+                        .CONFIGURATION_REQUEST_CONTENT_JSON_FILE_PATH,
+                filePath);
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.CONFIGURE_WITH_FILE_PATH,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
+    }
+
+
+    public static void updateConfiguration(@NonNull final Map<String, Object> configMap, Tenant tenant) {
+        if (configMap == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "updateConfiguration failed - configMap is null.");
+            return;
+        }
+
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Configuration
+                        .CONFIGURATION_REQUEST_CONTENT_UPDATE_CONFIG,
+                configMap);
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.CONFIGURATION_UPDATE,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
+    }
+
     public static void clearUpdatedConfiguration() {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(
@@ -703,24 +993,32 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.CLEAR_UPDATED_CONFIGURATION,
-                                EventType.CONFIGURATION,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.CLEAR_UPDATED_CONFIGURATION,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
     }
 
-    /**
-     * Set the Adobe Mobile Privacy status.
-     *
-     * <p>Sets the {@link MobilePrivacyStatus} for this SDK. The set privacy status is preserved and
-     * applied over any new configuration changes from calls to {@link #configureWithAppID(String)}
-     * or {@link #configureWithFileInPath(String)}, even across application restarts.
-     *
-     * @param privacyStatus {@link MobilePrivacyStatus} to be set to the SDK
-     * @see MobilePrivacyStatus
-     */
+
+    public static void clearUpdatedConfiguration(Tenant tenant) {
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Configuration
+                        .CONFIGURATION_REQUEST_CONTENT_CLEAR_UPDATED_CONFIG,
+                true);
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.CLEAR_UPDATED_CONFIGURATION,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
+    }
+
     public static void setPrivacyStatus(@NonNull final MobilePrivacyStatus privacyStatus) {
         if (privacyStatus == null) {
             Log.error(
@@ -735,6 +1033,22 @@ public final class MobileCore {
                 CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
                 privacyStatus.getValue());
         updateConfiguration(privacyStatusUpdateConfig);
+    }
+
+    public static void setPrivacyStatus(@NonNull final MobilePrivacyStatus privacyStatus, Tenant tenant) {
+        if (privacyStatus == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "setPrivacyStatus failed - privacyStatus is null.");
+            return;
+        }
+
+        Map<String, Object> privacyStatusUpdateConfig = new HashMap<>();
+        privacyStatusUpdateConfig.put(
+                CoreConstants.EventDataKeys.Configuration.GLOBAL_CONFIG_PRIVACY,
+                privacyStatus.getValue());
+        updateConfiguration(privacyStatusUpdateConfig, tenant);
     }
 
     /**
@@ -764,9 +1078,9 @@ public final class MobileCore {
                 true);
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.PRIVACY_STATUS_REQUEST,
-                                EventType.CONFIGURATION,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.PRIVACY_STATUS_REQUEST,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
 
@@ -796,6 +1110,57 @@ public final class MobileCore {
                 };
 
         dispatchEventWithResponseCallback(event, API_TIMEOUT_MS, callbackWithError);
+    }
+
+
+    public static void getPrivacyStatus(Tenant tenant, final AdobeCallback<MobilePrivacyStatus> callback) {
+        if (callback == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to retrieve the privacy status - callback is null");
+            return;
+        }
+
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Configuration
+                        .CONFIGURATION_REQUEST_CONTENT_RETRIEVE_CONFIG,
+                true);
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.PRIVACY_STATUS_REQUEST,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+
+        AdobeCallbackWithError<Event> callbackWithError =
+                new AdobeCallbackWithError<Event>() {
+                    @Override
+                    public void fail(final AdobeError error) {
+                        if (callback instanceof AdobeCallbackWithError) {
+                            ((AdobeCallbackWithError<?>) callback)
+                                    .fail(AdobeError.CALLBACK_TIMEOUT);
+                        } else {
+                            // Todo - Check if this is a valid return value.
+                            callback.call(null);
+                        }
+                    }
+
+                    @Override
+                    public void call(final Event event) {
+                        String status =
+                                DataReader.optString(
+                                        event.getEventData(),
+                                        CoreConstants.EventDataKeys.Configuration
+                                                .GLOBAL_CONFIG_PRIVACY,
+                                        null);
+                        callback.call(MobilePrivacyStatus.fromString(status));
+                    }
+                };
+
+        dispatchEventWithResponseCallback(event, API_TIMEOUT_MS, callbackWithError, tenant);
     }
 
     /**
@@ -840,11 +1205,55 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.GET_SDK_IDENTITIES,
-                                EventType.CONFIGURATION,
-                                EventSource.REQUEST_IDENTITY)
+                        CoreConstants.EventNames.GET_SDK_IDENTITIES,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_IDENTITY)
                         .build();
         dispatchEventWithResponseCallback(event, API_TIMEOUT_MS, callbackWithError);
+    }
+
+
+
+    public static void getSdkIdentities(@NonNull final AdobeCallback<String> callback, Tenant tenant) {
+        if (callback == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to get SDK identities - callback is null");
+            return;
+        }
+
+        AdobeCallbackWithError<Event> callbackWithError =
+                new AdobeCallbackWithError<Event>() {
+                    @Override
+                    public void fail(final AdobeError error) {
+                        if (callback instanceof AdobeCallbackWithError) {
+                            ((AdobeCallbackWithError<?>) callback)
+                                    .fail(AdobeError.CALLBACK_TIMEOUT);
+                        } else {
+                            callback.call("{}");
+                        }
+                    }
+
+                    @Override
+                    public void call(final Event event) {
+                        String value =
+                                DataReader.optString(
+                                        event.getEventData(),
+                                        CoreConstants.EventDataKeys.Configuration
+                                                .CONFIGURATION_RESPONSE_IDENTITY_ALL_IDENTIFIERS,
+                                        "{}");
+                        callback.call(value);
+                    }
+                };
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.GET_SDK_IDENTITIES,
+                        EventType.CONFIGURATION,
+                        EventSource.REQUEST_IDENTITY)
+                        .build();
+        dispatchEventWithResponseCallback(event, API_TIMEOUT_MS, callbackWithError, tenant);
     }
 
     /**
@@ -853,11 +1262,22 @@ public final class MobileCore {
     public static void resetIdentities() {
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.RESET_IDENTITIES_REQUEST,
-                                EventType.GENERIC_IDENTITY,
-                                EventSource.REQUEST_RESET)
+                        CoreConstants.EventNames.RESET_IDENTITIES_REQUEST,
+                        EventType.GENERIC_IDENTITY,
+                        EventSource.REQUEST_RESET)
                         .build();
         dispatchEvent(event);
+    }
+
+
+    public static void resetIdentities(Tenant tenant) {
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.RESET_IDENTITIES_REQUEST,
+                        EventType.GENERIC_IDENTITY,
+                        EventSource.REQUEST_RESET)
+                        .build();
+        dispatchEvent(event, tenant);
     }
 
     // ========================================================
@@ -891,29 +1311,33 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.LIFECYCLE_RESUME,
-                                EventType.GENERIC_LIFECYCLE,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.LIFECYCLE_RESUME,
+                        EventType.GENERIC_LIFECYCLE,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
     }
 
-    /**
-     * Pause/stop lifecycle session.
-     *
-     * <p>Pauses the current lifecycle session. Calling pause on an already paused session updates
-     * the paused timestamp, having the effect of resetting the session timeout timer. If no
-     * lifecycle session is running, then calling this method does nothing.
-     *
-     * <p>A paused session is resumed if {@link #lifecycleStart(Map)} is called before the session
-     * timeout. After the session timeout, a paused session is closed and calling {@link
-     * #lifecycleStart(Map)} will create a new session. The session timeout is defined by the {@code
-     * lifecycle.sessionTimeout} configuration parameter. If not defined, the default session
-     * timeout is five minutes.
-     *
-     * <p>This method should be called from the Activity onPause method.
-     */
+    public static void lifecycleStart(@Nullable final Map<String, String> additionalContextData, Tenant tenant) {
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY,
+                CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_START);
+        eventData.put(
+                CoreConstants.EventDataKeys.Lifecycle.ADDITIONAL_CONTEXT_DATA,
+                additionalContextData);
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.LIFECYCLE_RESUME,
+                        EventType.GENERIC_LIFECYCLE,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
+    }
+
     public static void lifecyclePause() {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(
@@ -922,12 +1346,28 @@ public final class MobileCore {
 
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.LIFECYCLE_PAUSE,
-                                EventType.GENERIC_LIFECYCLE,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.LIFECYCLE_PAUSE,
+                        EventType.GENERIC_LIFECYCLE,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
+    }
+
+    public static void lifecyclePause(Tenant tenant) {
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY,
+                CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE);
+
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.LIFECYCLE_PAUSE,
+                        EventType.GENERIC_LIFECYCLE,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
     }
 
     // ========================================================
@@ -956,12 +1396,31 @@ public final class MobileCore {
                 contextData == null ? new HashMap<String, String>() : contextData);
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.ANALYTICS_TRACK,
-                                EventType.GENERIC_TRACK,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.ANALYTICS_TRACK,
+                        EventType.GENERIC_TRACK,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
+    }
+
+
+    public static void trackAction(
+            @NonNull final String action, @Nullable final Map<String, String> contextData, Tenant tenant) {
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Analytics.TRACK_ACTION, action == null ? "" : action);
+        eventData.put(
+                CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA,
+                contextData == null ? new HashMap<String, String>() : contextData);
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.ANALYTICS_TRACK,
+                        EventType.GENERIC_TRACK,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
     }
 
     /**
@@ -978,6 +1437,31 @@ public final class MobileCore {
      *     to attach on this hit
      */
     public static void trackState(
+            @NonNull final String state, @Nullable final Map<String, String> contextData, Tenant tenant) {
+        Map<String, Object> eventData = new HashMap<>();
+        eventData.put(
+                CoreConstants.EventDataKeys.Analytics.TRACK_STATE, state == null ? "" : state);
+        eventData.put(
+                CoreConstants.EventDataKeys.Analytics.CONTEXT_DATA,
+                contextData == null ? new HashMap<String, String>() : contextData);
+        Event event =
+                new Event.Builder(
+                        CoreConstants.EventNames.ANALYTICS_TRACK,
+                        EventType.GENERIC_TRACK,
+                        EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event, tenant);
+    }
+
+    @VisibleForTesting
+    static void resetSDK(Tenant tenant) {
+        EventHub.instance(tenant).shutdown();
+        EventHub.create(tenant);
+        sdkInitializedWithContext.set(false);
+    }
+
+    public static void trackState(
             @NonNull final String state, @Nullable final Map<String, String> contextData) {
         Map<String, Object> eventData = new HashMap<>();
         eventData.put(
@@ -987,9 +1471,9 @@ public final class MobileCore {
                 contextData == null ? new HashMap<String, String>() : contextData);
         Event event =
                 new Event.Builder(
-                                CoreConstants.EventNames.ANALYTICS_TRACK,
-                                EventType.GENERIC_TRACK,
-                                EventSource.REQUEST_CONTENT)
+                        CoreConstants.EventNames.ANALYTICS_TRACK,
+                        EventType.GENERIC_TRACK,
+                        EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);

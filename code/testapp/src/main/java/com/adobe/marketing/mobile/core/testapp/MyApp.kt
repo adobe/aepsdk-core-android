@@ -41,13 +41,11 @@ class MyApp : Application() {
             Lifecycle.EXTENSION,
             PerfExtension::class.java
         )
-        // Default tenant
+//        // Default tenant
         MobileCore.registerExtensions(extensions) {}
 
-//         Initializing a new tenant. Only extensions which are tenant aware will be initialized for this instance.
 
         val partnerLaunchEnvironmentID = "94f571f308d5/39273f51e930/launch-00ac4ce72151-development"
-//        MobileCore.setApplication(this, partnerTenant)
         MobileCore.registerExtensions(extensions, partnerTenant) {
             MobileCore.configureWithAppID(partnerLaunchEnvironmentID, partnerTenant)
         }

@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
-import android.icu.text.Normalizer.NO
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.AdobeCallbackWithError
@@ -41,7 +40,6 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.math.log
 
 /**
  * EventHub class is responsible for delivering events to listeners and maintaining registered extension's lifecycle.
@@ -51,14 +49,12 @@ internal class EventHub {
     private lateinit var tenant: Tenant
 
     companion object {
-        //        const val LOG_TAG = "EventHub"
         @JvmStatic
         fun instance(tenant: Tenant): EventHub? {
             return EventHubManager.instance(tenant)
         }
         @JvmStatic
         fun create(tenant: Tenant): EventHub {
-            android.util.Log.d("prattham", "EventHub create called for ${tenant.id}")
             return EventHubManager.createInstance(tenant)
         }
 
@@ -67,10 +63,8 @@ internal class EventHub {
 
     constructor(tenant: Tenant) {
         this.tenant = tenant
-        val logTag = tenant.id ?: "default"
-        this.LOG_TAG = "EventHub -> $logTag"
-        val desc = tenant.id ?: "default"
-        android.util.Log.d(LOG_TAG, "Initializing EventHub for tenant $desc")
+        this.LOG_TAG = "EventHub -> ${tenant.id}"
+        android.util.Log.d(LOG_TAG, "Initializing EventHub for tenant ${tenant.id}")
         if (eventHistory != null) {
             Log.warning(
                 CoreConstants.LOG_TAG,
@@ -94,8 +88,6 @@ internal class EventHub {
 
     constructor(){
         this.LOG_TAG = "EventHub -> Default"
-        android.util.Log.d(LOG_TAG, "default constructor called for EventHub")
-
     }
 
     /**
@@ -299,7 +291,6 @@ internal class EventHub {
      * @param event the [Event] to be dispatched to listeners
      */
     fun dispatch(event: Event) {
-        android.util.Log.d(LOG_TAG, "dispatch: event = " + event.eventData)
         eventHubExecutor.submit {
             dispatchInternal(event)
         }

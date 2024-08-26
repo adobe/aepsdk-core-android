@@ -95,7 +95,7 @@ fun CoreView(navController: NavHostController) {
             Button(onClick = {
                 updateConfiguration()
             }) {
-                Text(text = "updateConfiguration(optedout)")
+                Text(text = "updateConfiguration")
             }
             Button(onClick = {
                 clearUpdatedConfiguration()
@@ -124,7 +124,7 @@ fun CoreView(navController: NavHostController) {
                 // The bundled rule is configured to triggers a postback for the following condition: a trackAction event with the action type 'bundled_trigger_postback'.
                 MobileCore.trackAction("bundled_trigger_postback", null)
             }) {
-                Text(text = "trigger rule consequence(postback)")
+                Text(text = "Trigger bundled rule consequence(postback)")
             }
             Button(onClick = {
                 MobileCore.setLogLevel(LoggingMode.VERBOSE)
@@ -244,7 +244,7 @@ private fun showCoreVersion() {
 }
 
 private fun updateConfiguration() {
-    MobileCore.updateConfiguration(mapOf("global.privacy" to "optedout"))
+    MobileCore.updateConfiguration(mapOf("custom_key" to "custom_value"))
 }
 
 private fun clearUpdatedConfiguration() {

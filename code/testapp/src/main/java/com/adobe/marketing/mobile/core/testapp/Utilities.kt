@@ -29,25 +29,29 @@ internal val alertEventListener = object : AlertEventListener {
 }
 
 internal fun showAlert(event: Event) {
-    val alert = Alert(AlertSettings.Builder()
-        .title("Event")
-        .message(event.toString())
-        .positiveButtonText("OK")
-        .build()
-        , alertEventListener)
+    val alert = Alert(
+        AlertSettings.Builder()
+            .title("Event")
+            .message(event.toString())
+            .positiveButtonText("OK")
+            .build(), alertEventListener
+    )
 
-    val alertPresentable = ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
+    val alertPresentable =
+        ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
     alertPresentable.show()
 }
 
 internal fun showAlert(message: String) {
-    val alert = Alert(AlertSettings.Builder()
-        .title("Message")
-        .message(message)
-        .positiveButtonText("OK")
-        .build()
-        , alertEventListener)
+    val alert = Alert(
+        AlertSettings.Builder()
+            .title("Message")
+            .message(message)
+            .positiveButtonText("OK")
+            .build(), alertEventListener
+    )
 
-    val alertPresentable = ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
+    val alertPresentable =
+        ServiceProvider.getInstance().uiService.create(alert, DefaultPresentationUtilityProvider())
     alertPresentable.show()
 }

@@ -28,13 +28,16 @@ public class AdobeError implements Serializable {
     public static final AdobeError CALLBACK_NULL = new AdobeError("general.callback.null", 2);
 
     /** when a server error happens. */
-    public static final AdobeError SERVER_ERROR = new AdobeError("general.callback.server.error", 4);
+    public static final AdobeError SERVER_ERROR =
+            new AdobeError("general.callback.server.error", 4);
 
     /** when a network error happens. */
-    public static final AdobeError NETWORK_ERROR = new AdobeError("general.callback.network.error", 5);
+    public static final AdobeError NETWORK_ERROR =
+            new AdobeError("general.callback.network.error", 5);
 
     /** when an invalid request is made. */
-    public static final AdobeError INVALID_REQUEST = new AdobeError("general.callback.invalid.request", 6);
+    public static final AdobeError INVALID_REQUEST =
+            new AdobeError("general.callback.invalid.request", 6);
 
     /** when a extension is not initialized. */
     public static final AdobeError EXTENSION_NOT_INITIALIZED =

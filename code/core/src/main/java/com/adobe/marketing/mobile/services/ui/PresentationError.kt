@@ -27,7 +27,7 @@ sealed class DismissFailed(val reason: String) : PresentationError
 /**
  * Represents a failure to show a Presentable because a conflicting presentation is already shown.
  */
-object ConflictingPresentation : ShowFailed("Conflicting presentation is visible.")
+object ConflictingPresentation : ShowFailed("Conflict")
 
 /**
  * Represents a failure to show a Presentable because there is no activity to show it on.
@@ -37,7 +37,13 @@ object NoAttachableActivity : ShowFailed("No attachable activity available.")
 /**
  * Represents a failure to show a Presentable because the delegate gate was not met.
  */
+@Deprecated("Use SuppressedByAppDeveloper instead", ReplaceWith("SuppressedByAppDeveloper"))
 object DelegateGateNotMet : ShowFailed("PresentationDelegate suppressed the presentation from being shown.")
+
+/**
+ * Represents a failure to show a Presentable because the app developer has suppressed [Presentable]s.
+ */
+object SuppressedByAppDeveloper : ShowFailed("SuppressedByAppDeveloper")
 
 /**
  * Represents a failure to show a Presentable because it is already shown.

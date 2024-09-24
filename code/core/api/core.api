@@ -778,6 +778,11 @@ public final class com/adobe/marketing/mobile/services/ui/ConflictingPresentatio
 	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/ConflictingPresentation;
 }
 
+public final class com/adobe/marketing/mobile/services/ui/DelegateGateNotMet : com/adobe/marketing/mobile/services/ui/ShowFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/DelegateGateNotMet;
+}
+
 public abstract class com/adobe/marketing/mobile/services/ui/DismissFailed : com/adobe/marketing/mobile/services/ui/PresentationError {
 	public static final field $stable I
 	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V

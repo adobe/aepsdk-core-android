@@ -35,6 +35,12 @@ object ConflictingPresentation : ShowFailed("Conflict")
 object NoAttachableActivity : ShowFailed("No attachable activity available.")
 
 /**
+ * Represents a failure to show a Presentable because the delegate gate was not met.
+ */
+@Deprecated("Use SuppressedByAppDeveloper instead", ReplaceWith("SuppressedByAppDeveloper"))
+object DelegateGateNotMet : ShowFailed("PresentationDelegate suppressed the presentation from being shown.")
+
+/**
  * Represents a failure to show a Presentable because the app developer has suppressed [Presentable]s.
  */
 object SuppressedByAppDeveloper : ShowFailed("SuppressedByAppDeveloper")

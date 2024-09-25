@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.internal
 
 internal object CoreConstants {
     const val LOG_TAG = "MobileCore"
-    const val VERSION = "3.1.2"
+    const val VERSION = "3.2.0"
 
     object EventDataKeys {
         /**

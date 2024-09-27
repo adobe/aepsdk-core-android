@@ -19,7 +19,6 @@ import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import java.io.UnsupportedEncodingException
 import java.lang.ref.WeakReference

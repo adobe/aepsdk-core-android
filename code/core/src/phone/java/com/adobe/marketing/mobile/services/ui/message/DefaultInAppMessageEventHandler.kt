@@ -19,7 +19,6 @@ import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import java.io.UnsupportedEncodingException
 import java.lang.ref.WeakReference
@@ -119,7 +118,6 @@ internal class DefaultInAppMessageEventHandler internal constructor(
     @MainThread
     internal fun onNewWebView(webView: WebView?) {
         Log.debug(ServiceConstants.LOG_TAG, LOG_SOURCE, "Internal web view was reset.")
-        mainScope.coroutineContext.cancelChildren()
 
         webView?.let {
             this@DefaultInAppMessageEventHandler.webView = WeakReference(it)

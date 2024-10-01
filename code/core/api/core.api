@@ -10,6 +10,10 @@ public class com/adobe/marketing/mobile/AdobeError : java/io/Serializable {
 	public static final field CALLBACK_NULL Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field CALLBACK_TIMEOUT Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field EXTENSION_NOT_INITIALIZED Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field INVALID_REQUEST Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field INVALID_RESPONSE Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field NETWORK_ERROR Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field SERVER_ERROR Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field UNEXPECTED_ERROR Lcom/adobe/marketing/mobile/AdobeError;
 	protected fun <init> (Ljava/lang/String;I)V
 	public fun getErrorCode ()I
@@ -889,6 +893,11 @@ public abstract class com/adobe/marketing/mobile/services/ui/ShowFailed : com/ad
 	public static final field $stable I
 	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getReason ()Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/services/ui/SuppressedByAppDeveloper : com/adobe/marketing/mobile/services/ui/ShowFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/SuppressedByAppDeveloper;
 }
 
 public abstract interface class com/adobe/marketing/mobile/services/ui/UIService {

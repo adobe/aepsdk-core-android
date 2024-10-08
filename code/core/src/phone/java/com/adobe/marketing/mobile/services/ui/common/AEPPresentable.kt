@@ -25,13 +25,13 @@ import com.adobe.marketing.mobile.services.ui.AlreadyDismissed
 import com.adobe.marketing.mobile.services.ui.AlreadyHidden
 import com.adobe.marketing.mobile.services.ui.AlreadyShown
 import com.adobe.marketing.mobile.services.ui.ConflictingPresentation
-import com.adobe.marketing.mobile.services.ui.DelegateGateNotMet
 import com.adobe.marketing.mobile.services.ui.NoActivityToDetachFrom
 import com.adobe.marketing.mobile.services.ui.NoAttachableActivity
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.Presentation
 import com.adobe.marketing.mobile.services.ui.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
+import com.adobe.marketing.mobile.services.ui.SuppressedByAppDeveloper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
@@ -58,6 +58,14 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
     protected val presentationStateManager: PresentationStateManager
 
     @VisibleForTesting internal val contentIdentifier: Int = Random().nextInt()
+
+    /**
+     * Represents the activity to which the presentable is currently attached.
+     * This SHOULD always be updated whenever the presentable is attached or detached from an
+     * activity. For the sake of maintainability, modify this only in [attach] and [detach] and
+     * limit queries to this field in activity lifecycle methods.
+     */
+    private var attachmentHandle: WeakReference<Activity?> = WeakReference(null)
 
     /**
      * @param presentation the [Presentation] to be used by this [Presentable]
@@ -150,7 +158,8 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
             if (gateDisplay()) {
                 val canShow = (presentationDelegate?.canShow(this@AEPPresentable) ?: true)
                 if (!canShow) {
-                    presentation.listener.onError(this@AEPPresentable, DelegateGateNotMet)
+                    Log.debug(ServiceConstants.LOG_TAG, LOG_SOURCE, "Presentable couldn't be displayed, PresentationDelegate#canShow states the presentable should not be displayed.")
+                    presentation.listener.onError(this@AEPPresentable, SuppressedByAppDeveloper)
                     return@launch
                 }
             }
@@ -241,6 +250,22 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
             if (getState() != Presentable.State.VISIBLE) {
                 return@launch
             }
+
+            // If the activity that has currently resumed is not the same as the one the presentable
+            // is attached to, then it means that another activity has launched on top of/beside
+            // current activity. Detach the presentable from the current activity before attaching
+            // it to the newly resumed activity.
+            val currentAttachmentHandle = attachmentHandle.get()
+            if (currentAttachmentHandle != null && currentAttachmentHandle != activity) {
+                Log.trace(
+                    ServiceConstants.LOG_TAG,
+                    LOG_SOURCE,
+                    "Detaching from $currentAttachmentHandle before attaching to $activity."
+                )
+
+                detach(currentAttachmentHandle)
+            }
+
             attach(activity)
         }
     }
@@ -327,6 +352,10 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         composeView.id = contentIdentifier
         val rootViewGroup = activityToAttach.findViewById<ViewGroup>(android.R.id.content)
         rootViewGroup.addView(composeView)
+
+        // Update the attachment handle to the currently attached activity.
+        attachmentHandle = WeakReference(activityToAttach)
+
         Log.trace(
             ServiceConstants.LOG_TAG,
             LOG_SOURCE,
@@ -373,6 +402,20 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
         }
         existingComposeView.removeAllViews()
         rootViewGroup.removeView(existingComposeView)
+
+        // Clear the attachment handle if the current attachment handle is the same as the activity
+        // to detach. If not, the handle would have already been cleared when the presentable
+        // was attached due to another activity being resumed on top of the presentable.
+        val currentAttachmentHandle = attachmentHandle.get()
+        if (currentAttachmentHandle == activityToDetach) {
+            Log.trace(
+                ServiceConstants.LOG_TAG,
+                LOG_SOURCE,
+                "Clearing attachment handle ($activityToDetach)."
+            )
+            attachmentHandle.clear()
+        }
+
         activityCompatOwnerUtils.detachActivityCompatOwner(activityToDetach)
         Log.trace(ServiceConstants.LOG_TAG, LOG_SOURCE, "Detached ${contentIdentifier}from $activityToDetach.")
     }

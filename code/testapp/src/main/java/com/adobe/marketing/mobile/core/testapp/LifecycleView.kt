@@ -19,9 +19,13 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Signal
+import com.adobe.marketing.mobile.core.testapp.ui.theme.AEPSDKCoreAndroidTheme
 
 @Composable
 fun LifecycleView(navController: NavHostController) {
@@ -37,6 +41,29 @@ fun LifecycleView(navController: NavHostController) {
                 horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Signal extension version - ${Signal.extensionVersion()}")
+            Button(onClick = {
+                MobileCore.lifecycleStart(null)
+            }) {
+                Text(text = "lifecycleStart")
+            }
+            Button(onClick = {
+                MobileCore.lifecycleStart(mapOf("key" to "value"))
+            }) {
+                Text(text = "lifecycleStart(contextData)")
+            }
+            Button(onClick = {
+                MobileCore.lifecyclePause()
+            }) {
+                Text(text = "lifecyclePause")
+            }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreviewForCoreViewForLifecycleView() {
+    AEPSDKCoreAndroidTheme {
+        LifecycleView(rememberNavController())
     }
 }

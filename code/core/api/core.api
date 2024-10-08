@@ -10,6 +10,10 @@ public class com/adobe/marketing/mobile/AdobeError : java/io/Serializable {
 	public static final field CALLBACK_NULL Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field CALLBACK_TIMEOUT Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field EXTENSION_NOT_INITIALIZED Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field INVALID_REQUEST Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field INVALID_RESPONSE Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field NETWORK_ERROR Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field SERVER_ERROR Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field UNEXPECTED_ERROR Lcom/adobe/marketing/mobile/AdobeError;
 	protected fun <init> (Ljava/lang/String;I)V
 	public fun getErrorCode ()I
@@ -62,6 +66,7 @@ public final class com/adobe/marketing/mobile/EventSource {
 	public static final field CONSENT_PREFERENCE Ljava/lang/String;
 	public static final field CONTENT_COMPLETE Ljava/lang/String;
 	public static final field CREATE_TRACKER Ljava/lang/String;
+	public static final field DEBUG Ljava/lang/String;
 	public static final field ERROR_RESPONSE_CONTENT Ljava/lang/String;
 	public static final field NONE Ljava/lang/String;
 	public static final field OS Ljava/lang/String;
@@ -890,6 +895,11 @@ public abstract class com/adobe/marketing/mobile/services/ui/ShowFailed : com/ad
 	public final fun getReason ()Ljava/lang/String;
 }
 
+public final class com/adobe/marketing/mobile/services/ui/SuppressedByAppDeveloper : com/adobe/marketing/mobile/services/ui/ShowFailed {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/services/ui/SuppressedByAppDeveloper;
+}
+
 public abstract interface class com/adobe/marketing/mobile/services/ui/UIService {
 	public abstract fun create (Lcom/adobe/marketing/mobile/services/ui/Presentation;Lcom/adobe/marketing/mobile/services/ui/PresentationUtilityProvider;)Lcom/adobe/marketing/mobile/services/ui/Presentable;
 	public abstract fun setPresentationDelegate (Lcom/adobe/marketing/mobile/services/ui/PresentationDelegate;)V
@@ -1086,6 +1096,11 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 	public static fun castFromGenericType (Ljava/util/Map;)Ljava/util/Map;
 	public static fun clone (Ljava/util/Map;)Ljava/util/Map;
 	public static fun immutableClone (Ljava/util/Map;)Ljava/util/Map;
+}
+
+public final class com/adobe/marketing/mobile/util/EventUtils {
+	public static final fun getDebugEventSource (Lcom/adobe/marketing/mobile/Event;)Ljava/lang/String;
+	public static final fun getDebugEventType (Lcom/adobe/marketing/mobile/Event;)Ljava/lang/String;
 }
 
 public final class com/adobe/marketing/mobile/util/JSONUtils {

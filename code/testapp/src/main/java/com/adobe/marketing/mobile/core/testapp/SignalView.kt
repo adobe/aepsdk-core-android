@@ -51,34 +51,14 @@ fun SignalView(navController: NavHostController) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Example of the malformed URL: https://www.adobe.com:_80/", fontSize = 10.sp)
-            OutlinedTextField(
-                value = url,
-                onValueChange = { url = it },
-                label = { Text("URL") }
-            )
-            Button(onClick = {
-                MobileCore.dispatchEvent(
-                    Event.Builder("consequence event", EventType.RULES_ENGINE, EventSource.RESPONSE_CONTENT).setEventData(
-                    mapOf(
-                        "triggeredconsequence" to mapOf(
-                            "type" to "pii",
-                            "detail" to mapOf(
-                                "timeout" to 0,
-                                "templateurl" to url
-                            )
-                        )
-                    )
-                ).build())
-
-            }) {
-                Text(text = "post back")
-            }
-            // openURL is covered by automation test, we can enable it later if needed for customer issue verification
-            Button(onClick = {},enabled = false) {
-                Text(text = "open URL")
-            }
             Text(text = "Signal extension version - ${Signal.extensionVersion()}")
+
+            Button(onClick = {
+                // To test this, configure a rule in your launch property that triggers a postbackk for the following condition: a trackAction event with the action type 'trigger_postback'.
+                MobileCore.trackAction("trigger_postback", null)
+            }) {
+                Text(text = "trigger rule consequence(postback)")
+            }
         }
 
     }

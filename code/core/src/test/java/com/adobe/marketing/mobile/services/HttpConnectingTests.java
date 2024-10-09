@@ -138,9 +138,13 @@ public class HttpConnectingTests {
     @Test
     public void testGetResponsePropertyValue_ValidKey() {
         // Setup
-        when(httpURLConnection.getHeaderFields()).thenReturn(new HashMap<String, List<String>>() {{
-            put("key", Arrays.asList("value"));
-        }});
+        when(httpURLConnection.getHeaderFields())
+                .thenReturn(
+                        new HashMap<String, List<String>>() {
+                            {
+                                put("key", Arrays.asList("value"));
+                            }
+                        });
         HttpConnection connection = new HttpConnection(httpURLConnection);
         // Test
         String value = connection.getResponsePropertyValue("key");
@@ -151,9 +155,13 @@ public class HttpConnectingTests {
     @Test
     public void testGetResponsePropertyValue_MixedCasing() {
         // Setup
-        when(httpURLConnection.getHeaderFields()).thenReturn(new HashMap<String, List<String>>() {{
-            put("some-key", Arrays.asList("value"));
-        }});
+        when(httpURLConnection.getHeaderFields())
+                .thenReturn(
+                        new HashMap<String, List<String>>() {
+                            {
+                                put("some-key", Arrays.asList("value"));
+                            }
+                        });
         HttpConnection connection = new HttpConnection(httpURLConnection);
         // Test
         String value = connection.getResponsePropertyValue("Some-Key");
@@ -164,9 +172,13 @@ public class HttpConnectingTests {
     @Test
     public void testGetResponsePropertyValue_MixedCasingTwo() {
         // Setup
-        when(httpURLConnection.getHeaderFields()).thenReturn(new HashMap<String, List<String>>() {{
-            put("Some-Key", Arrays.asList("value"));
-        }});
+        when(httpURLConnection.getHeaderFields())
+                .thenReturn(
+                        new HashMap<String, List<String>>() {
+                            {
+                                put("Some-Key", Arrays.asList("value"));
+                            }
+                        });
         HttpConnection connection = new HttpConnection(httpURLConnection);
         // Test
         String value = connection.getResponsePropertyValue("some-key");
@@ -177,9 +189,13 @@ public class HttpConnectingTests {
     @Test
     public void testGetResponsePropertyValue_MixedCasingThree() {
         // Setup
-        when(httpURLConnection.getHeaderFields()).thenReturn(new HashMap<String, List<String>>() {{
-            put("SoMe-KEy", Arrays.asList("value"));
-        }});
+        when(httpURLConnection.getHeaderFields())
+                .thenReturn(
+                        new HashMap<String, List<String>>() {
+                            {
+                                put("SoMe-KEy", Arrays.asList("value"));
+                            }
+                        });
         HttpConnection connection = new HttpConnection(httpURLConnection);
         // Test
         String value = connection.getResponsePropertyValue("sOmE-keY");
@@ -190,10 +206,14 @@ public class HttpConnectingTests {
     @Test
     public void testGetResponsePropertyValue_DuplicateKeys() {
         // Setup
-        when(httpURLConnection.getHeaderFields()).thenReturn(new HashMap<String, List<String>>() {{
-            put("some-key", Arrays.asList("value"));
-            put("Some-Key", Arrays.asList("anotherValue"));
-        }});
+        when(httpURLConnection.getHeaderFields())
+                .thenReturn(
+                        new HashMap<String, List<String>>() {
+                            {
+                                put("some-key", Arrays.asList("value"));
+                                put("Some-Key", Arrays.asList("anotherValue"));
+                            }
+                        });
         HttpConnection connection = new HttpConnection(httpURLConnection);
         // Test
         String value = connection.getResponsePropertyValue("SOME-KEY");
@@ -204,9 +224,13 @@ public class HttpConnectingTests {
     @Test
     public void testGetResponsePropertyValue_DuplicateValuesForKey() {
         // Setup
-        when(httpURLConnection.getHeaderFields()).thenReturn(new HashMap<String, List<String>>() {{
-            put("some-key", Arrays.asList("value", "anotherValue"));
-        }});
+        when(httpURLConnection.getHeaderFields())
+                .thenReturn(
+                        new HashMap<String, List<String>>() {
+                            {
+                                put("some-key", Arrays.asList("value", "anotherValue"));
+                            }
+                        });
         HttpConnection connection = new HttpConnection(httpURLConnection);
         // Test
         String value = connection.getResponsePropertyValue("some-key");
@@ -217,9 +241,13 @@ public class HttpConnectingTests {
     @Test
     public void testGetResponsePropertyValue_SpecialCharacters() {
         // Setup
-        when(httpURLConnection.getHeaderFields()).thenReturn(new HashMap<String, List<String>>() {{
-            put("$om3-Ke?", Arrays.asList("value"));
-        }});
+        when(httpURLConnection.getHeaderFields())
+                .thenReturn(
+                        new HashMap<String, List<String>>() {
+                            {
+                                put("$om3-Ke?", Arrays.asList("value"));
+                            }
+                        });
         HttpConnection connection = new HttpConnection(httpURLConnection);
         // Test
         String value = connection.getResponsePropertyValue("$om3-Ke?");

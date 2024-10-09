@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.services;
 
 import com.adobe.marketing.mobile.util.StringUtils;
-
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.UnknownServiceException;
@@ -135,9 +134,9 @@ class HttpConnection implements HttpConnecting {
      * <p>This is protocol specific. For example, HTTP urls could have properties like
      * "last-modified", or "ETag" set.
      *
-     * In alignment with OS behavior for responses where there are duplicate entries in the header,
-     * calling this method produces a non-deterministic result. Per HTTP RFC, header field name
-     * look ups should be case-insensitive.
+     * <p>In alignment with OS behavior for responses where there are duplicate entries in the
+     * header, calling this method produces a non-deterministic result. Per HTTP RFC, header field
+     * name look ups should be case-insensitive.
      *
      * @param responsePropertyKey {@link String} containing response property key
      * @return {@code String} corresponding to the response property value for the key specified, or

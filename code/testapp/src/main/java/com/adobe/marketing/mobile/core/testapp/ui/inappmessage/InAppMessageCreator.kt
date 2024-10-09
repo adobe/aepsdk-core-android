@@ -10,8 +10,6 @@
  */
 package com.adobe.marketing.mobile.core.testapp.ui.inappmessage
 
-import android.webkit.WebView
-import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.ui.InAppMessage
@@ -55,14 +53,10 @@ object InAppMessageCreator {
             "</body>\n" +
             "</html>"
 
-    val fileName = "transparentBg.html"
-    val app = MobileCore.getApplication()
-    val html = app?.assets?.open(fileName)?.bufferedReader().use { it?.readText() } ?: sampleHTML
-
     private val iamSettings = InAppMessageSettings.Builder()
-        .content(html)
-//        .height(40)
-//        .width(70)
+        .content(sampleHTML)
+        .height(40)
+        .width(70)
         .backgroundColor("#FF0000")
         .cornerRadius(10f)
         .displayAnimation(InAppMessageSettings.MessageAnimation.BOTTOM)

@@ -12,7 +12,6 @@
 package com.adobe.marketing.mobile.services.ui.message
 
 import android.content.Context
-import android.graphics.Color
 import android.view.ViewGroup
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -143,11 +142,6 @@ internal class InAppMessagePresentable(
      * @return the webview with the settings applied
      */
     private fun applyWebViewSettings(webView: WebView): WebView {
-        webView.apply {
-            setLayerType(WebView.LAYER_TYPE_SOFTWARE, null)
-            setBackgroundColor(Color.TRANSPARENT)
-        }
-
         webView.settings.apply {
             // base settings
             javaScriptEnabled = true
@@ -166,6 +160,7 @@ internal class InAppMessagePresentable(
 
             isScrollbarFadingEnabled = true
             scrollBarStyle = WebView.SCROLLBARS_INSIDE_OVERLAY
+            setBackgroundColor(0)
         }
 
         webView.webViewClient = createWebViewClient()

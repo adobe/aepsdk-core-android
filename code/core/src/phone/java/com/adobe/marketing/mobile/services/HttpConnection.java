@@ -11,9 +11,14 @@
 
 package com.adobe.marketing.mobile.services;
 
+import com.adobe.marketing.mobile.util.StringUtils;
+
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.UnknownServiceException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 class HttpConnection implements HttpConnecting {
 
@@ -130,13 +135,40 @@ class HttpConnection implements HttpConnecting {
      * <p>This is protocol specific. For example, HTTP urls could have properties like
      * "last-modified", or "ETag" set.
      *
+     * In alignment with OS behavior for responses where there are duplicate entries in the header,
+     * calling this method produces a non-deterministic result. Per HTTP RFC, header field name
+     * look ups should be case-insensitive.
+     *
      * @param responsePropertyKey {@link String} containing response property key
      * @return {@code String} corresponding to the response property value for the key specified, or
      *     null, if the key does not exist
      */
     @Override
     public String getResponsePropertyValue(final String responsePropertyKey) {
-        return httpUrlConnection.getHeaderField(responsePropertyKey);
+        if (StringUtils.isNullOrEmpty(responsePropertyKey)) {
+            return null;
+        }
+
+        return getLowercaseHeaders().get(responsePropertyKey.toLowerCase());
+    }
+
+    /**
+     * Converts header keys to lowercase.
+     *
+     * @return a map of headers with all lowercase keys.
+     */
+    private Map<String, String> getLowercaseHeaders() {
+        final Map<String, String> lowercaseHeaders = new HashMap<>();
+        final Map<String, List<String>> originalHeaders = httpUrlConnection.getHeaderFields();
+
+        for (final String header : originalHeaders.keySet()) {
+            final List<String> valuesForHeader = originalHeaders.get(header);
+            if (valuesForHeader != null && !valuesForHeader.isEmpty()) {
+                lowercaseHeaders.put(header.toLowerCase(), valuesForHeader.get(0));
+            }
+        }
+
+        return lowercaseHeaders;
     }
 
     /**

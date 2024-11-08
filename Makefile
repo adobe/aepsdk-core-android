@@ -2,7 +2,7 @@
 clean:
 	  (./code/gradlew -p code clean)
 
-checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-checkstyle testutils-checkstyle
+checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-checkstyle
 
 checkformat: core-checkformat signal-checkformat lifecycle-checkformat identity-checkformat testutils-checkformat
 
@@ -214,9 +214,6 @@ identity-publish-maven-local-jitpack:
 		(./code/gradlew -p code/identity publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
 
 ### TestUtils
-
-testutils-checkstyle:
-		(./code/gradlew -p code/testutils checkstyle)
 
 testutils-checkformat:
 		(./code/gradlew -p code/testutils spotlessCheck)

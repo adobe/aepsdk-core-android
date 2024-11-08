@@ -25,7 +25,6 @@ aepLibrary {
     moduleName = "testutils"
     moduleVersion = "3.0.0"
     enableSpotless = true
-    enableCheckStyle = true
     enableSpotlessPrettierForJava = true
     enableDokkaDoc = true
 

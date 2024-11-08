@@ -9,7 +9,7 @@ jobs:
     executor:
       name: android/android-docker
       resource-class: large
-      tag: 2024.01.1
+      tag: 2024.01.1-node
 
     steps:
       - checkout

@@ -52,5 +52,7 @@ dependencies {
     androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
     //TODO: Consider moving this to the aep-library plugin later
     androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline:2.28.3")
+    androidTestImplementation(project(":testutils"))
     testImplementation("org.robolectric:robolectric:4.7")
+    testImplementation(project(":testutils"))
 }

@@ -2,25 +2,27 @@
 clean:
 	  (./code/gradlew -p code clean)
 
-checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-checkstyle
+checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-checkstyle testutils-checkstyle
 
-checkformat: core-checkformat signal-checkformat lifecycle-checkformat identity-checkformat
+checkformat: core-checkformat signal-checkformat lifecycle-checkformat identity-checkformat testutils-checkformat
 
-format: core-format signal-format lifecycle-format identity-format
+format: core-format signal-format lifecycle-format identity-format testutils-format
 
 api-dump: 
 		(./code/gradlew -p code/core apiDump)
+		(./code/gradlew -p code/testutils apiDump)
 
 api-check: 
 		(./code/gradlew -p code/core apiCheck)
+		(./code/gradlew -p code/testutils apiCheck)
 
 assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-phone identity-assemble-phone
 
 assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release identity-assemble-phone-release
 
-unit-test: core-unit-test signal-unit-test lifecycle-unit-test
+unit-test: core-unit-test signal-unit-test lifecycle-unit-test testutils-unit-test
 
-unit-test-coverage: core-unit-test-coverage signal-unit-test-coverage lifecycle-unit-test-coverage
+unit-test-coverage: core-unit-test-coverage signal-unit-test-coverage lifecycle-unit-test-coverage testutils-unit-test-coverage
 
 functional-test: core-functional-test signal-functional-test lifecycle-functional-test identity-functional-test
 
@@ -210,3 +212,24 @@ identity-publish-maven-local:
 identity-publish-maven-local-jitpack:
 		(./code/gradlew -p code/identity assemblePhone)
 		(./code/gradlew -p code/identity publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
+
+### TestUtils
+
+testutils-checkstyle:
+		(./code/gradlew -p code/testutils checkstyle)
+
+testutils-checkformat:
+		(./code/gradlew -p code/testutils spotlessCheck)
+
+testutils-format:
+		(./code/gradlew -p code/testutils spotlessApply)
+
+testutils-unit-test:
+		(./code/gradlew -p code/testutils testPhoneDebugUnitTest)
+
+testutils-unit-test-coverage:
+		(./code/gradlew -p code/testutils createPhoneDebugUnitTestCoverageReport)
+
+testutils-publish-maven-local-jitpack:
+		(./code/gradlew -p code/testutils assemblePhone)
+		(./code/gradlew -p code/testutils publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)

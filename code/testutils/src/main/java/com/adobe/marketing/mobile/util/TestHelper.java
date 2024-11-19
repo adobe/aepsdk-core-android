@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.util;
 
 import static com.adobe.marketing.mobile.util.MonitorExtension.EventSpec;
+import static com.adobe.marketing.mobile.util.StringUtils.isNullOrEmpty;
 import static com.adobe.marketing.mobile.util.TestConstants.LOG_TAG;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -340,27 +341,52 @@ public class TestHelper {
 
 	/**
 	 * Sets an expectation for a specific event type and source and how many times the event should be dispatched.
-	 * @param type the event type
-	 * @param source the event source
-	 * @param count the expected number of times the event is dispatched
-	 * @throws IllegalArgumentException if {@code count} is less than 1
+	 * @param type the event type (must not be null or empty)
+	 * @param source the event source (must not be null or empty)
+	 * @param count the expected number of times the event is dispatched (must be 1 or more)
+	 * @throws IllegalArgumentException if {@code type} or {@code source} are null or empty, or if {@code count} is less than 1
 	 */
 	public static void setExpectationEvent(final String type, final String source, final int count) {
+		if (isNullOrEmpty(type)) {
+			throw new IllegalArgumentException("Event type must not be null or empty.");
+		}
+		if (isNullOrEmpty(source)) {
+			throw new IllegalArgumentException("Event source must not be null or empty.");
+		}
 		if (count < 1) {
-			throw new IllegalArgumentException("Cannot set expectation event count less than 1!");
+			throw new IllegalArgumentException("Cannot set expectation event count less than 1.");
 		}
 
 		MonitorExtension.setExpectedEvent(type, source, count);
 	}
 
 	/**
-	 * Asserts if all the expected events were received and fails if an unexpected event was seen.
-	 * @param ignoreUnexpectedEvents if set on false, an assertion is made on unexpected events, otherwise the unexpected events are ignored
-	 * @throws InterruptedException
+	 * Asserts that all expected events have occurred within the specified timeout and validates their counts.
+	 * This method uses the default timeout value defined by {@link TestConstants.Defaults#WAIT_EVENT_TIMEOUT_MS}.
+	 *
+	 * @param ignoreUnexpectedEvents a boolean flag indicating whether to ignore unexpected events.
+	 *                               If set to {@code true}, unexpected events are not checked.
+	 * @throws InterruptedException if the thread is interrupted while waiting
+	 * @throws AssertionError if no expected events are registered or if the assertion fails
 	 * @see #setExpectationEvent(String, String, int)
 	 * @see #assertUnexpectedEvents()
 	 */
 	public static void assertExpectedEvents(final boolean ignoreUnexpectedEvents) throws InterruptedException {
+		assertExpectedEvents(ignoreUnexpectedEvents, TestConstants.Defaults.WAIT_EVENT_TIMEOUT_MS);
+	}
+
+	/**
+	 * Asserts that all expected events have occurred within the specified timeout and validates their counts.
+	 *
+	 * @param ignoreUnexpectedEvents a boolean flag indicating whether to ignore unexpected events.
+	 *                               If set to {@code true}, unexpected events are not checked.
+	 * @param timeout the maximum time to wait for the expected events, in milliseconds
+	 * @throws InterruptedException if the thread is interrupted while waiting
+	 * @throws AssertionError if no expected events are registered or if the assertion fails
+	 * @see #setExpectationEvent(String, String, int)
+	 * @see #assertUnexpectedEvents()
+	 */
+	public static void assertExpectedEvents(final boolean ignoreUnexpectedEvents, final int timeout) throws InterruptedException {
 		Map<EventSpec, ADBCountDownLatch> expectedEvents = MonitorExtension.getExpectedEvents();
 
 		if (expectedEvents.isEmpty()) {
@@ -371,7 +397,7 @@ public class TestHelper {
 		for (Map.Entry<EventSpec, ADBCountDownLatch> expected : expectedEvents.entrySet()) {
 			boolean awaitResult = expected
 				.getValue()
-				.await(TestConstants.Defaults.WAIT_EVENT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+				.await(timeout, TimeUnit.MILLISECONDS);
 			assertTrue(
 				"Timed out waiting for event type " +
 				expected.getKey().type +
@@ -391,33 +417,33 @@ public class TestHelper {
 		}
 
 		if (!ignoreUnexpectedEvents) {
-			assertUnexpectedEvents(false);
+			assertUnexpectedEvents(timeout);
 		}
 	}
 
 	/**
-	 * Asserts if any unexpected event was received. Use this method to verify the received events
-	 * are correct when setting event expectations. Waits a short time before evaluating received
-	 * events to allow all events to come in.
-	 * @see #setExpectationEvent
+	 * Asserts whether any unexpected events were received, including receiving more events than expected
+	 * or events without any expectation. Use this method to verify that the received events align with
+	 * the set event expectations.
+	 * <p>
+	 * This method uses a default timeout value defined by {@code TestConstants.Defaults.WAIT_TIMEOUT_MS}.
+	 * </p>
+	 * @throws InterruptedException if the thread is interrupted while waiting
 	 */
 	public static void assertUnexpectedEvents() throws InterruptedException {
-		assertUnexpectedEvents(true);
+		assertUnexpectedEvents(TestConstants.Defaults.WAIT_TIMEOUT_MS);
 	}
 
 	/**
-	 * Asserts if any unexpected event was received. Use this method to verify the received events
-	 * are correct when setting event expectations.
-	 * @see #setExpectationEvent
+	 * Asserts whether any unexpected events were received, including receiving more events than expected
+	 * or events without any expectation. Use this method to verify that the received events align with
+	 * the set event expectations.
 	 *
-	 * @param shouldWait waits a short time to allow events to be received when true
+	 * @param timeout the maximum time to wait, in milliseconds
+	 * @throws InterruptedException if the thread is interrupted while waiting
+	 * @see #setExpectationEvent
 	 */
-	public static void assertUnexpectedEvents(final boolean shouldWait) throws InterruptedException {
-		// Short wait to allow events to come in
-		if (shouldWait) {
-			sleep(TestConstants.Defaults.WAIT_TIMEOUT_MS);
-		}
-
+	public static void assertUnexpectedEvents(final int timeout) throws InterruptedException {
 		int unexpectedEventsReceivedCount = 0;
 		StringBuilder unexpectedEventsErrorString = new StringBuilder();
 
@@ -428,7 +454,7 @@ public class TestHelper {
 			ADBCountDownLatch expectedEventLatch = expectedEvents.get(receivedEvent.getKey());
 
 			if (expectedEventLatch != null) {
-				expectedEventLatch.await(TestConstants.Defaults.WAIT_EVENT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+				expectedEventLatch.await(timeout, TimeUnit.MILLISECONDS);
 				int expectedCount = expectedEventLatch.getInitialCount();
 				int receivedCount = receivedEvent.getValue().size();
 				String failMessage = String.format(
@@ -470,14 +496,21 @@ public class TestHelper {
 	}
 
 	/**
-	 * Returns the {@code Event}(s) dispatched through the Event Hub, or empty if none was found.
-	 * Use this API after calling {@link #setExpectationEvent(String, String, int)} to wait for
-	 * the expected events. The wait time for each event is {@link TestConstants.Defaults#WAIT_EVENT_TIMEOUT_MS}ms.
-	 * @param type the event type as in the expectation
-	 * @param source the event source as in the expectation
-	 * @return list of events with the provided {@code type} and {@code source}, or empty if none was dispatched
-	 * @throws InterruptedException
+	 * Retrieves the {@code Event}(s) dispatched through the Event Hub that match the provided type and source.
+	 *
+	 * This method behaves in two ways based on whether an expectation has been set for the specified event:
+	 * 1. <b>If the event expectation is set:</b> It waits for the events to be dispatched within the specified timeout.
+	 * 2. <b>If no event expectation is set:</b> It waits for the full timeout period before attempting to retrieve the events.
+	 *
+	 * This method uses the default timeout value defined by {@link TestConstants.Defaults#WAIT_EVENT_TIMEOUT_MS}.
+	 *
+	 * @param type the event type
+	 * @param source the event source
+	 * @return a list of {@code Event} objects with the specified {@code type} and {@code source},
+	 *         or an empty list if no matching events were dispatched
+	 * @throws InterruptedException if the thread is interrupted while waiting
 	 * @throws IllegalArgumentException if {@code type} or {@code source} are null or empty strings
+	 * @see #setExpectationEvent(String, String, int)
 	 */
 	public static List<Event> getDispatchedEventsWith(final String type, final String source)
 		throws InterruptedException {
@@ -485,14 +518,20 @@ public class TestHelper {
 	}
 
 	/**
-	 * Returns the {@code Event}(s) dispatched through the Event Hub, or empty if none was found.
-	 * Use this API after calling {@link #setExpectationEvent(String, String, int)} to wait for the right amount of time
-	 * @param type the event type as in the expectation
-	 * @param source the event source as in the expectation
-	 * @param timeout how long should this method wait for the expected event, in milliseconds.
-	 * @return list of events with the provided {@code type} and {@code source}, or empty if none was dispatched
-	 * @throws InterruptedException
+	 * Retrieves the {@code Event}(s) dispatched through the Event Hub that match the provided type and source.
+	 *
+	 * This method behaves in two ways based on whether an expectation has been set for the specified event:
+	 * 1. <b>If the event expectation is set:</b> It waits for the events to be dispatched within the specified timeout.
+	 * 2. <b>If no event expectation is set:</b> It waits for the full timeout period before attempting to retrieve the events.
+	 *
+	 * @param type the event type
+	 * @param source the event source
+	 * @param timeout the maximum time to wait, in milliseconds
+	 * @return a list of {@code Event} objects with the specified {@code type} and {@code source},
+	 *         or an empty list if no matching events were dispatched
+	 * @throws InterruptedException if the thread is interrupted while waiting
 	 * @throws IllegalArgumentException if {@code type} or {@code source} are null or empty strings
+	 * @see #setExpectationEvent(String, String, int)
 	 */
 	public static List<Event> getDispatchedEventsWith(final String type, final String source, int timeout)
 		throws InterruptedException {
@@ -510,7 +549,7 @@ public class TestHelper {
 				awaitResult
 			);
 		} else {
-			sleep(TestConstants.Defaults.WAIT_TIMEOUT_MS);
+			sleep(timeout);
 		}
 
 		return receivedEvents.containsKey(eventSpec) ? receivedEvents.get(eventSpec) : Collections.emptyList();
@@ -545,7 +584,7 @@ public class TestHelper {
 		final Map<String, Object> sharedState = new HashMap<>();
 		MobileCore.dispatchEventWithResponseCallback(
 			event,
-			TestConstants.Defaults.WAIT_SHARED_STATE_TIMEOUT_MS,
+			timeout,
 			new AdobeCallbackWithError<Event>() {
 				@Override
 				public void call(final Event event) {
@@ -602,7 +641,7 @@ public class TestHelper {
 		final Map<String, Object> sharedState = new HashMap<>();
 		MobileCore.dispatchEventWithResponseCallback(
 			event,
-			TestConstants.Defaults.WAIT_SHARED_STATE_TIMEOUT_MS,
+			timeout,
 			new AdobeCallbackWithError<Event>() {
 				@Override
 				public void fail(AdobeError adobeError) {

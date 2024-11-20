@@ -567,8 +567,9 @@ public class com/adobe/marketing/mobile/util/TestConstants$SharedState {
 public class com/adobe/marketing/mobile/util/TestHelper {
 	public fun <init> ()V
 	public static fun assertExpectedEvents (Z)V
+	public static fun assertExpectedEvents (ZI)V
 	public static fun assertUnexpectedEvents ()V
-	public static fun assertUnexpectedEvents (Z)V
+	public static fun assertUnexpectedEvents (I)V
 	public static fun getAsset (Ljava/lang/String;)Ljava/io/InputStream;
 	public static fun getDispatchedEventsWith (Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
 	public static fun getDispatchedEventsWith (Ljava/lang/String;Ljava/lang/String;I)Ljava/util/List;

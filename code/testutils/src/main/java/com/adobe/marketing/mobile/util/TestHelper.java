@@ -386,7 +386,8 @@ public class TestHelper {
 	 * @see #setExpectationEvent(String, String, int)
 	 * @see #assertUnexpectedEvents()
 	 */
-	public static void assertExpectedEvents(final boolean ignoreUnexpectedEvents, final int timeout) throws InterruptedException {
+	public static void assertExpectedEvents(final boolean ignoreUnexpectedEvents, final int timeout)
+		throws InterruptedException {
 		Map<EventSpec, ADBCountDownLatch> expectedEvents = MonitorExtension.getExpectedEvents();
 
 		if (expectedEvents.isEmpty()) {
@@ -395,9 +396,7 @@ public class TestHelper {
 		}
 
 		for (Map.Entry<EventSpec, ADBCountDownLatch> expected : expectedEvents.entrySet()) {
-			boolean awaitResult = expected
-				.getValue()
-				.await(timeout, TimeUnit.MILLISECONDS);
+			boolean awaitResult = expected.getValue().await(timeout, TimeUnit.MILLISECONDS);
 			assertTrue(
 				"Timed out waiting for event type " +
 				expected.getKey().type +

@@ -45,8 +45,8 @@ public class RulesLoader {
 
     private static final String TAG = "RulesLoader";
 
-    private static final int DEFAULT_CONNECTION_TIMEOUT_MS = 10000;
-    private static final int DEFAULT_READ_TIMEOUT_MS = 10000;
+    private static final int DEFAULT_CONNECTION_TIMEOUT_SECONDS = 10;
+    private static final int DEFAULT_READ_TIMEOUT_SECONDS = 10;
 
     static final String HTTP_HEADER_IF_MODIFIED_SINCE = "If-Modified-Since";
     static final String HTTP_HEADER_IF_NONE_MATCH = "If-None-Match";
@@ -98,8 +98,8 @@ public class RulesLoader {
                         HttpMethod.GET,
                         null,
                         extractHeadersFromCache(cacheResult),
-                        DEFAULT_CONNECTION_TIMEOUT_MS,
-                        DEFAULT_READ_TIMEOUT_MS);
+                        DEFAULT_CONNECTION_TIMEOUT_SECONDS,
+                        DEFAULT_READ_TIMEOUT_SECONDS);
 
         final NetworkCallback networkCallback =
                 response -> {

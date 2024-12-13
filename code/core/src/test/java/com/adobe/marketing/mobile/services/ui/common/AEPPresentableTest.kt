@@ -21,7 +21,6 @@ import com.adobe.marketing.mobile.services.ui.Alert
 import com.adobe.marketing.mobile.services.ui.AlreadyDismissed
 import com.adobe.marketing.mobile.services.ui.AlreadyHidden
 import com.adobe.marketing.mobile.services.ui.AlreadyShown
-import com.adobe.marketing.mobile.services.ui.DelegateGateNotMet
 import com.adobe.marketing.mobile.services.ui.FloatingButton
 import com.adobe.marketing.mobile.services.ui.InAppMessage
 import com.adobe.marketing.mobile.services.ui.NoActivityToDetachFrom
@@ -29,6 +28,7 @@ import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.Presentation
 import com.adobe.marketing.mobile.services.ui.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
+import com.adobe.marketing.mobile.services.ui.SuppressedByAppDeveloper
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageEventListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -175,7 +175,7 @@ internal class AEPPresentableTest {
             verify(mockPresentationDelegate).canShow(aepPresentableWithGatedDisplay)
 
             // verify that the listener is notified of the error
-            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, DelegateGateNotMet)
+            verify(mockPresentationListener).onError(aepPresentableWithGatedDisplay, SuppressedByAppDeveloper)
 
             // verify that the lifecycle provider is called to register the listener
             verify(mockAppLifecycleProvider, never()).registerListener(

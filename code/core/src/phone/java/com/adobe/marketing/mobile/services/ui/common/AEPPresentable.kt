@@ -25,13 +25,13 @@ import com.adobe.marketing.mobile.services.ui.AlreadyDismissed
 import com.adobe.marketing.mobile.services.ui.AlreadyHidden
 import com.adobe.marketing.mobile.services.ui.AlreadyShown
 import com.adobe.marketing.mobile.services.ui.ConflictingPresentation
-import com.adobe.marketing.mobile.services.ui.DelegateGateNotMet
 import com.adobe.marketing.mobile.services.ui.NoActivityToDetachFrom
 import com.adobe.marketing.mobile.services.ui.NoAttachableActivity
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.Presentation
 import com.adobe.marketing.mobile.services.ui.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
+import com.adobe.marketing.mobile.services.ui.SuppressedByAppDeveloper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
@@ -158,7 +158,8 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
             if (gateDisplay()) {
                 val canShow = (presentationDelegate?.canShow(this@AEPPresentable) ?: true)
                 if (!canShow) {
-                    presentation.listener.onError(this@AEPPresentable, DelegateGateNotMet)
+                    Log.debug(ServiceConstants.LOG_TAG, LOG_SOURCE, "Presentable couldn't be displayed, PresentationDelegate#canShow states the presentable should not be displayed.")
+                    presentation.listener.onError(this@AEPPresentable, SuppressedByAppDeveloper)
                     return@launch
                 }
             }

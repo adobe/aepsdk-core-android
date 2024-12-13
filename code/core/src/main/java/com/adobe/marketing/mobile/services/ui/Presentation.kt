@@ -37,7 +37,7 @@ sealed class Presentation<T : Presentation<T>>(val listener: PresentationEventLi
 /**
  * Represents an InAppMessage presentation.
  * @param settings the settings for the InAppMessage
- * @param eventListener the listener for the getting notified about InAppMessage lifecycle events
+ * @param eventListener the listener for getting notifications about InAppMessage lifecycle events
  * @param eventHandler the event handler performing operations on the InAppMessage
  */
 class InAppMessage(
@@ -54,7 +54,7 @@ class InAppMessage(
 
 /**
  * Represents a FloatingButton presentation.
- * @param eventListener the listener for the getting notified about FloatingButton lifecycle events
+ * @param eventListener the listener for getting notifications about FloatingButton lifecycle events
  * @param settings the settings for the FloatingButton
  */
 class FloatingButton(
@@ -72,7 +72,7 @@ class FloatingButton(
 /**
  * Represents an Alert presentation.
  * @param settings the settings for the Alert
- * @param eventListener the listener for the getting notified about Alert lifecycle events
+ * @param eventListener the listener for getting notifications about Alert lifecycle events
  */
 class Alert(
     val settings: AlertSettings,

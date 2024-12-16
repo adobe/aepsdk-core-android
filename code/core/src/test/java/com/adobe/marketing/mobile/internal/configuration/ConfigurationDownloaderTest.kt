@@ -309,8 +309,8 @@ class ConfigurationDownloaderTest {
                     Locale.US
                 )
             ),
-            10000,
-            10000
+            10,
+            10
         )
         verifyNetworkRequestParams(expectedNetworkRequest, networkRequestCaptor.firstValue)
 

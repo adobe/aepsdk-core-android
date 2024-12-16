@@ -47,8 +47,8 @@ internal class ConfigurationDownloader {
         const val HTTP_HEADER_LAST_MODIFIED = "Last-Modified"
         const val HTTP_HEADER_ETAG = "ETag"
         internal const val CONFIG_CACHE_NAME = "config"
-        private const val DEFAULT_CONNECTION_TIMEOUT_MS = 10000
-        private const val DEFAULT_READ_TIMEOUT_MS = 10000
+        private const val DEFAULT_CONNECTION_TIMEOUT_SECONDS = 10
+        private const val DEFAULT_READ_TIMEOUT_SECONDS = 10
     }
 
     /**
@@ -103,8 +103,8 @@ internal class ConfigurationDownloader {
             HttpMethod.GET,
             null,
             headers,
-            DEFAULT_CONNECTION_TIMEOUT_MS,
-            DEFAULT_READ_TIMEOUT_MS
+            DEFAULT_CONNECTION_TIMEOUT_SECONDS,
+            DEFAULT_READ_TIMEOUT_SECONDS
         )
 
         val networkCallback = NetworkCallback { response: HttpConnecting? ->

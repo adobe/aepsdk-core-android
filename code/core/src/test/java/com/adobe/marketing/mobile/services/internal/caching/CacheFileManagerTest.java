@@ -14,13 +14,13 @@ package com.adobe.marketing.mobile.services.internal.caching;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
-import com.adobe.marketing.mobile.internal.util.StringEncoder;
 import com.adobe.marketing.mobile.services.DeviceInforming;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.services.caching.CacheEntry;
 import com.adobe.marketing.mobile.services.caching.CacheExpiry;
 import com.adobe.marketing.mobile.test.util.FileTestHelper;
 import com.adobe.marketing.mobile.util.StreamUtils;
+import com.adobe.marketing.mobile.util.StringEncoder;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;

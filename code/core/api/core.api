@@ -1151,6 +1151,12 @@ public final class com/adobe/marketing/mobile/util/StreamUtils {
 	public static fun readAsString (Ljava/io/InputStream;)Ljava/lang/String;
 }
 
+public final class com/adobe/marketing/mobile/util/StringEncoder {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/util/StringEncoder;
+	public static final fun sha2hash (Ljava/lang/String;)Ljava/lang/String;
+}
+
 public final class com/adobe/marketing/mobile/util/StringUtils {
 	public static fun isNullOrEmpty (Ljava/lang/String;)Z
 }

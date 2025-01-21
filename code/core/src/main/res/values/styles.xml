@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <!-- This theme exists to override specific attributes from the base application theme to make
+    AEP UI Service Presentables look as desired. This theme intentionally does not have a parent
+    and should be used in conjunction with applyStyle() on the base application theme. -->
+    <style name="AepSdkUiService.OverrideTheme" parent="">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+</resources>

@@ -39,7 +39,7 @@ internal class ExtensionDiscovery {
                         val extensionClass = Class.forName(key) as? Class<out Extension>
                         if (extensionClass != null) {
                             extensions.add(extensionClass)
-                            Log.trace(CoreConstants.LOG_TAG, LOG_TAG, "Discovered extension: $key bundled with the app.")
+                            Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Discovered extension: $key bundled with the app.")
                         } else {
                             Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Class $key is not a valid Extension.")
                         }

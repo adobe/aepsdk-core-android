@@ -166,11 +166,11 @@ internal class MobileCoreInitializer(
         }
 
         scope.launch {
-            // mutex.withLock {
-            EventHub.shared.registerExtensions(extensionsToRegister) {
-                completionCallback?.call(null)
+            mutex.withLock {
+                EventHub.shared.registerExtensions(extensionsToRegister) {
+                    completionCallback?.call(null)
+                }
             }
-            // }
         }
     }
 

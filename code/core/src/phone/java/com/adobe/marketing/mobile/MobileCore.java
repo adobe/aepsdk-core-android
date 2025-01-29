@@ -42,8 +42,8 @@ public final class MobileCore {
 
     /**
      * Initializes the AEP SDK with the specified {@link InitOptions}. This automatically registers
-     * all bundled extensions and sets up lifecycle tracking. You can disable lifecycle tracking
-     * using {@link InitOptions}.
+     * all bundled extensions and sets up lifecycle tracking. You can disable automatic lifecycle
+     * tracking using {@link InitOptions}.
      *
      * @param application The Android {@link Application} instance. It should not be null.
      * @param initOptions The {@link InitOptions} to configure the SDK. It should not be null.

@@ -12,19 +12,9 @@ package com.adobe.marketing.mobile.core.testapp
 
 import android.app.Application
 import android.util.Log
-import androidx.core.os.UserManagerCompat
-import com.adobe.marketing.mobile.EventSource
-import com.adobe.marketing.mobile.EventType
-import com.adobe.marketing.mobile.Identity
 import com.adobe.marketing.mobile.InitOptions
-import com.adobe.marketing.mobile.Lifecycle
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
-import com.adobe.marketing.mobile.Signal
-import com.adobe.marketing.mobile.core.testapp.extension.PerfExtension
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MyApp : Application() {
 

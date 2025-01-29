@@ -17,6 +17,8 @@ import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.internal.context.App
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.After
@@ -307,6 +309,13 @@ class MobileCoreInitializerTests {
 
     @Test
     fun `test extension registration happens after event hub initialization and migration completes`() {
+
+        mobileCoreInitializer = MobileCoreInitializer(
+            scope = CoroutineScope(Dispatchers.IO),
+            isUserUnlocked = { true },
+            extensionDiscovery = extensionDiscovery
+        )
+
         var orderOfCalls = mutableListOf<String>()
 
         var latch = CountDownLatch(1)

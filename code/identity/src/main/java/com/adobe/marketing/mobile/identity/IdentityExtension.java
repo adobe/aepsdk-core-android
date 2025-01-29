@@ -611,8 +611,8 @@ public final class IdentityExtension extends Extension {
                         HttpMethod.GET,
                         null,
                         null,
-                        IdentityConstants.Defaults.TIMEOUT,
-                        IdentityConstants.Defaults.TIMEOUT);
+                        Defaults.TIMEOUT_SECONDS,
+                        Defaults.TIMEOUT_SECONDS);
         networkService.connectAsync(
                 networkRequest,
                 connection -> {

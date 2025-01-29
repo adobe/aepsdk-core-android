@@ -816,14 +816,11 @@ internal class EventHub {
         // 2) If event is null, start with version 0 if shared state is empty.
         //    We start with '0' because extensions can call createSharedState() to export initial state
         //    before handling any event and other extensions should be able to read this state.
-        var version = 0
-        if (event != null) {
-            version = getEventNumber(event) ?: 0
-        } else if (!sharedStateManager.isEmpty()) {
-            version = lastEventNumber.incrementAndGet()
+        return when {
+            event != null -> getEventNumber(event) ?: 0
+            !sharedStateManager.isEmpty() -> lastEventNumber.incrementAndGet()
+            else -> 0
         }
-
-        return version
     }
 
     /**

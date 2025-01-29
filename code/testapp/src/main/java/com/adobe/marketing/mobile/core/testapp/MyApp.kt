@@ -16,24 +16,29 @@ import androidx.core.os.UserManagerCompat
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Identity
+import com.adobe.marketing.mobile.InitOptions
 import com.adobe.marketing.mobile.Lifecycle
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.Signal
 import com.adobe.marketing.mobile.core.testapp.extension.PerfExtension
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.i("MyApp", "Application.onCreate() - start to initialize Adobe SDK. UserManagerCompat.isUserUnlocked(): ${UserManagerCompat.isUserUnlocked(this)}")
-        MobileCore.setApplication(this)
         MobileCore.setLogLevel(LoggingMode.VERBOSE)
-
+        val options = InitOptions()
+        MobileCore.initialize(this, options) {
+            Log.i("MyApp", "AEP SDK initialized")
+        }
         // The test app uses bundled config. Uncomment this and change the app ID for testing the mobile tags property.
-        // MobileCore.configureWithAppID("YOUR_APP_ID")
-        val extensions = listOf(Identity.EXTENSION, Signal.EXTENSION, Lifecycle.EXTENSION, PerfExtension::class.java)
-        MobileCore.registerExtensions(extensions) {}
+        // MobileCore.initialize(this, "YOUR_APP_ID")
+
+
     }
 
 }

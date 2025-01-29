@@ -14,27 +14,27 @@ package com.adobe.marketing.mobile
 import android.app.Application
 import androidx.core.os.UserManagerCompat
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
-import junit.framework.TestCase.assertTrue
+import com.adobe.marketing.mobile.services.ServiceProvider
+import com.adobe.marketing.mobile.services.internal.context.App
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito
-import org.mockito.kotlin.any
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.test.assertFalse
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 @RunWith(RobolectricTestRunner::class)
 class MobileCoreRobolectricTests {
 
     @Before
     fun setup() {
-        MobileCore.sdkInitializedWithContext = AtomicBoolean(false)
+        MobileCore.resetSDK()
+        App.reset()
     }
 
     @Test
@@ -47,10 +47,12 @@ class MobileCoreRobolectricTests {
             mockedStaticUserManagerCompat.`when`<Any> { UserManagerCompat.isUserUnlocked(Mockito.any()) }
                 .thenReturn(false)
             MobileCore.setApplication(app)
-            mockedStaticUserManagerCompat.verify({ UserManagerCompat.isUserUnlocked(Mockito.any()) }, never())
+            mockedStaticUserManagerCompat.verify(
+                { UserManagerCompat.isUserUnlocked(Mockito.any()) },
+                never()
+            )
         }
-        verify(mockedEventHub, never()).executeInEventHubExecutor(any())
-        assertTrue(MobileCore.sdkInitializedWithContext.get())
+        assertEquals(app, ServiceProvider.getInstance().appContextService.application)
     }
 
     @Test
@@ -65,8 +67,7 @@ class MobileCoreRobolectricTests {
             MobileCore.setApplication(app)
             mockedStaticUserManagerCompat.verify({ UserManagerCompat.isUserUnlocked(Mockito.any()) }, times(1))
         }
-        verify(mockedEventHub, times(1)).executeInEventHubExecutor(any())
-        assertTrue(MobileCore.sdkInitializedWithContext.get())
+        assertEquals(app, ServiceProvider.getInstance().appContextService.application)
     }
 
     @Test
@@ -80,7 +81,6 @@ class MobileCoreRobolectricTests {
             MobileCore.setApplication(app)
             mockedStaticUserManagerCompat.verify({ UserManagerCompat.isUserUnlocked(Mockito.any()) }, times(1))
         }
-        verify(mockedEventHub, never()).executeInEventHubExecutor(any())
-        assertFalse(MobileCore.sdkInitializedWithContext.get())
+        assertNull(ServiceProvider.getInstance().appContextService.application)
     }
 }

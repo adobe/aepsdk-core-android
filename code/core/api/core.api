@@ -147,6 +147,11 @@ public abstract class com/adobe/marketing/mobile/ExtensionApi {
 	public abstract fun unregisterExtension ()V
 }
 
+public class com/adobe/marketing/mobile/ExtensionDiscoveryService : android/app/Service {
+	public fun <init> ()V
+	public fun onBind (Landroid/content/Intent;)Landroid/os/IBinder;
+}
+
 public abstract interface class com/adobe/marketing/mobile/ExtensionEventListener {
 	public abstract fun hear (Lcom/adobe/marketing/mobile/Event;)V
 }
@@ -158,6 +163,25 @@ public class com/adobe/marketing/mobile/ExtensionHelper {
 	public static fun getVersion (Lcom/adobe/marketing/mobile/Extension;)Ljava/lang/String;
 	public static fun notifyRegistered (Lcom/adobe/marketing/mobile/Extension;)V
 	public static fun notifyUnregistered (Lcom/adobe/marketing/mobile/Extension;)V
+}
+
+public final class com/adobe/marketing/mobile/InitOptions {
+	public static final field $stable I
+	public static final field Companion Lcom/adobe/marketing/mobile/InitOptions$Companion;
+	public fun <init> ()V
+	public static final fun configureWithAppID (Ljava/lang/String;)Lcom/adobe/marketing/mobile/InitOptions;
+	public static final fun configureWithFileInAssets (Ljava/lang/String;)Lcom/adobe/marketing/mobile/InitOptions;
+	public static final fun configureWithFileInPath (Ljava/lang/String;)Lcom/adobe/marketing/mobile/InitOptions;
+	public final fun getLifecycleAdditionalContextData ()Ljava/util/Map;
+	public final fun getLifecycleAutomaticTrackingEnabled ()Z
+	public final fun setLifecycleAdditionalContextData (Ljava/util/Map;)V
+	public final fun setLifecycleAutomaticTrackingEnabled (Z)V
+}
+
+public final class com/adobe/marketing/mobile/InitOptions$Companion {
+	public final fun configureWithAppID (Ljava/lang/String;)Lcom/adobe/marketing/mobile/InitOptions;
+	public final fun configureWithFileInAssets (Ljava/lang/String;)Lcom/adobe/marketing/mobile/InitOptions;
+	public final fun configureWithFileInPath (Ljava/lang/String;)Lcom/adobe/marketing/mobile/InitOptions;
 }
 
 public final class com/adobe/marketing/mobile/LoggingMode : java/lang/Enum {
@@ -186,6 +210,9 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun getPrivacyStatus (Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun getSdkIdentities (Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun getSmallIconResourceID ()I
+	public static fun initialize (Landroid/app/Application;Lcom/adobe/marketing/mobile/InitOptions;Lcom/adobe/marketing/mobile/AdobeCallback;)V
+	public static fun initialize (Landroid/app/Application;Ljava/lang/String;)V
+	public static fun initialize (Landroid/app/Application;Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 	public static fun lifecyclePause ()V
 	public static fun lifecycleStart (Ljava/util/Map;)V
 	public static fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/AdobeCallback;)V

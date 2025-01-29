@@ -14,7 +14,6 @@ package com.adobe.marketing.mobile.services.internal.context
 import android.app.Activity
 import android.app.Application
 import android.content.ComponentCallbacks2
-import android.content.ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
 import android.content.Context
 import android.content.res.Configuration
 import android.net.ConnectivityManager
@@ -23,15 +22,12 @@ import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.services.AppContextService
 import com.adobe.marketing.mobile.services.AppState
 import java.lang.ref.WeakReference
-import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * The [App] holds some variables related to the current application, including app [Context],
- * the current [Activity]. Also provides the method to get the orientation of the device, and the
- * methods to get and set icons for notifications.
+ * the current [Activity].
  */
-
-internal object App : AppContextService, Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
+internal object App : AppContextService {
 
     @Volatile
     private var application: WeakReference<Application>? = null
@@ -40,187 +36,170 @@ internal object App : AppContextService, Application.ActivityLifecycleCallbacks,
     private var applicationContext: WeakReference<Context>? = null
 
     @Volatile
-    private var currentActivity: WeakReference<Activity>? = null
-
-    @Volatile
-    private var appState = AppState.UNKNOWN
-
-    private var onActivityResumed: SimpleCallback<Activity>? = null
-
-    private var appStateListeners: ConcurrentLinkedQueue<AppStateListener> = ConcurrentLinkedQueue()
-
     private var connectivityManager: ConnectivityManager? = null
 
-    // AppContextService overrides
+    private var activityTracker = ActivityTracker()
+    private var appStateTracker = AppStateTracker()
+
+    // Activity lifecycle callbacks registered with the Android Application instance
+    private var systemActivityLifecycleCallbacks: InternalActivityLifecycleCallbacks? = null
+
+    /**
+     * Sets the application context and registers the necessary lifecycle and component callbacks.
+     * @param application The application instance to be set.
+     */
     override fun setApplication(application: Application) {
-        if (this.application?.get() != null) {
-            return
-        }
+        if (this.application?.get() != null) return
 
         this.application = WeakReference(application)
-        setAppContext(application)
-        registerActivityLifecycleCallbacks(application)
+        application.applicationContext?.let {
+            this.applicationContext = WeakReference(it)
+        }
         this.connectivityManager = application.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-    }
 
-    override fun getApplication(): Application? {
-        return application?.get()
-    }
-
-    override fun getApplicationContext(): Context? {
-        return applicationContext?.get()
-    }
-
-    override fun getCurrentActivity(): Activity? {
-        return this.currentActivity?.get()
-    }
-
-    override fun getAppState(): AppState {
-        return appState
-    }
-
-    override fun getConnectivityManager(): ConnectivityManager? {
-        return connectivityManager
-    }
-
-    // Android Lifecycle overrides
-    override fun onActivityResumed(activity: Activity) {
-        setAppState(AppState.FOREGROUND)
-        onActivityResumed?.call(activity)
-        setCurrentActivity(activity)
-    }
-
-    override fun onActivityPaused(activity: Activity) {
-        // do nothing
-    }
-
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-        // do nothing
-    }
-
-    override fun onActivityStarted(activity: Activity) {
-        // do nothing
-    }
-
-    override fun onActivityStopped(activity: Activity) {
-        // do nothing
-    }
-
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
-        // do nothing
-    }
-
-    override fun onActivityDestroyed(activity: Activity) {
-        // do nothing
-    }
-
-    override fun onConfigurationChanged(paramConfiguration: Configuration) {
-        // do nothing
-    }
-
-    override fun onLowMemory() {
-        // do nothing
-    }
-
-    override fun onTrimMemory(level: Int) {
-        // https://developer.android.com/reference/android/content/ComponentCallbacks2.html#TRIM_MEMORY_UI_HIDDEN
-        if (level >= TRIM_MEMORY_UI_HIDDEN) {
-            setAppState(AppState.BACKGROUND)
-        }
-    }
-
-    // Internal methods called current from Core.
-    @JvmName("setAppContext")
-    internal fun setAppContext(appContext: Context?) {
-        val context = appContext?.applicationContext
-        if (context != null) {
-            this.applicationContext = WeakReference(context)
-        }
-    }
-
-    @JvmName("setCurrentActivity")
-    internal fun setCurrentActivity(activity: Activity?) {
-        this.currentActivity = if (activity != null) { WeakReference(activity) } else { null }
-    }
-
-    @JvmName("registerActivityResumedListener")
-    internal fun registerActivityResumedListener(resumedListener: SimpleCallback<Activity>) {
-        onActivityResumed = resumedListener
+        val listeners = listOf(
+            activityTracker,
+            appStateTracker
+        )
+        systemActivityLifecycleCallbacks = InternalActivityLifecycleCallbacks(listeners)
+        application.registerActivityLifecycleCallbacks(systemActivityLifecycleCallbacks)
+        application.registerComponentCallbacks(systemActivityLifecycleCallbacks)
     }
 
     /**
-     * Registers a `AppStateListener` which will gets called when the app state changes.
-     *
-     * @param listener the [AppStateListener] to receive app state change events
+     * Gets the application instance that was previously set.
+     * @return The application instance or null if it was not set.
      */
-    fun registerListener(listener: AppStateListener) {
-        appStateListeners.add(listener)
-    }
+    override fun getApplication(): Application? = application?.get()
 
     /**
-     * Unregisters a `AppStateListener`.
-     *
-     * @param listener the [AppStateListener] to unregister
+     * Gets the application context that was previously set.
+     * @return The application context or null if it was not set.
      */
-    fun unregisterListener(listener: AppStateListener) {
-        appStateListeners.remove(listener)
+    override fun getApplicationContext(): Context? = applicationContext?.get()
+
+    /**
+     * Gets the current activity.
+     * @return The current [Activity] or null if no activity is currently tracked.
+     */
+    override fun getCurrentActivity(): Activity? = activityTracker.currentActivity?.get()
+
+    /**
+     * Gets the current app state (e.g., foreground or background).
+     * @return The current [AppState] of the app.
+     */
+    override fun getAppState(): AppState = appStateTracker.appState
+
+    /**
+     * Gets the connectivity manager for managing network connections.
+     * @return The [ConnectivityManager] instance or null if not available.
+     */
+    override fun getConnectivityManager(): ConnectivityManager? = connectivityManager
+
+    /**
+     * Registers activity lifecycle callbacks to receive notifications of activity state changes.
+     * @param callback The [ActivityLifecycleCallbacks] to be registered.
+     */
+    fun registerActivityLifecycleCallbacks(callback: ActivityLifecycleCallbacks) {
+        activityTracker.activityCallbacks.add(callback)
     }
 
-    // This method is used only for testing
     @VisibleForTesting
-    @JvmName("resetInstance")
-    internal fun resetInstance() {
+    fun reset() {
         application?.get()?.let {
-            unregisterActivityLifecycleCallbacks(it)
+            it.unregisterActivityLifecycleCallbacks(systemActivityLifecycleCallbacks)
+            it.unregisterComponentCallbacks(systemActivityLifecycleCallbacks)
         }
-        applicationContext = null
-        currentActivity = null
         application = null
+        applicationContext = null
+        systemActivityLifecycleCallbacks = null
+        connectivityManager = null
 
-        appStateListeners = ConcurrentLinkedQueue()
-        appState = AppState.UNKNOWN
+        activityTracker = ActivityTracker()
+        appStateTracker = AppStateTracker()
     }
 
-    private fun setAppState(state: AppState) {
-        if (appState == state) {
-            return
+    /**
+     * Interface for listening to activity lifecycle events.
+     * This is used by core components to observe and respond to activity lifecycle changes
+     * (e.g., activity resumed, paused, etc.) within the application.
+     */
+    interface ActivityLifecycleCallbacks {
+        fun onActivityResumed(activity: Activity) {}
+        fun onActivityPaused(activity: Activity) {}
+    }
+
+    /**
+     * Internal interface used by various components inside App class.
+     */
+    private interface InternalActivityLifecycleListener : ActivityLifecycleCallbacks {
+        fun onTrimMemory(level: Int) {}
+    }
+
+    /**
+     * Tracks the app state (e.g., FOREGROUND or BACKGROUND) based on lifecycle events.
+     * This value is currently used by Analytics extension.
+     */
+    class AppStateTracker : InternalActivityLifecycleListener {
+        @Volatile
+        var appState = AppState.UNKNOWN
+
+        override fun onActivityResumed(activity: Activity) {
+            appState = AppState.FOREGROUND
         }
 
-        appState = state
-        notifyAppStateListeners()
-    }
-
-    private fun notifyAppStateListeners() {
-        for (listener in appStateListeners) {
-            if (appState == AppState.FOREGROUND) {
-                listener.onForeground()
-            } else if (appState == AppState.BACKGROUND) {
-                listener.onBackground()
+        override fun onTrimMemory(level: Int) {
+            // https://developer.android.com/reference/android/content/ComponentCallbacks2.html#TRIM_MEMORY_UI_HIDDEN
+            if (level >= ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
+                appState = AppState.BACKGROUND
             }
         }
     }
 
     /**
-     * Registers `this` as the activity lifecycle callback for the `Application`.
-     *
-     * @param application       the [Application] of the app
+     * Tracks the current activity and notifies listeners when an activity resumes/pauses.
      */
-    private fun registerActivityLifecycleCallbacks(
-        application: Application
-    ) {
-        application.registerActivityLifecycleCallbacks(this)
-        application.registerComponentCallbacks(this)
+    class ActivityTracker : InternalActivityLifecycleListener {
+        @Volatile
+        var currentActivity: WeakReference<Activity>? = null
+
+        @Volatile
+        var activityCallbacks: MutableList<ActivityLifecycleCallbacks> = mutableListOf()
+
+        override fun onActivityResumed(activity: Activity) {
+            currentActivity = WeakReference(activity)
+            activityCallbacks.forEach {
+                it.onActivityResumed(activity)
+            }
+        }
+
+        override fun onActivityPaused(activity: Activity) {
+            activityCallbacks.forEach {
+                it.onActivityPaused(activity)
+            }
+        }
     }
 
-    /**
-     * Unregisters `this` as the activity lifecycle callback for the `Application`.
-     *
-     * @param application       the [Application] of the app
-     */
-    private fun unregisterActivityLifecycleCallbacks(
-        application: Application
-    ) {
-        application.unregisterActivityLifecycleCallbacks(this)
-        application.unregisterComponentCallbacks(this)
+    private class InternalActivityLifecycleCallbacks(private val listeners: List<InternalActivityLifecycleListener>) : Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
+        override fun onActivityResumed(activity: Activity) {
+            listeners.forEach { it.onActivityResumed(activity) }
+        }
+
+        override fun onActivityPaused(activity: Activity) {
+            listeners.forEach { it.onActivityPaused(activity) }
+        }
+
+        override fun onTrimMemory(level: Int) {
+            listeners.forEach { it.onTrimMemory(level) }
+        }
+
+        // no-op
+        override fun onActivityStopped(activity: Activity) {}
+        override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+        override fun onActivityDestroyed(activity: Activity) {}
+        override fun onConfigurationChanged(newConfig: Configuration) {}
+        override fun onLowMemory() {}
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+        override fun onActivityStarted(activity: Activity) {}
     }
 }

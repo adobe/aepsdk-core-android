@@ -6,7 +6,8 @@ checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-chec
 
 checkformat: core-checkformat signal-checkformat lifecycle-checkformat identity-checkformat testutils-checkformat
 
-ci-lint: checkstyle checkformat
+# Used by build and test CI workflow
+lint: checkstyle checkformat
 
 format: core-format signal-format lifecycle-format identity-format testutils-format
 

@@ -23,7 +23,8 @@ jobs:
       android-api-levels: '[29]'
       command: make core-publish-maven-local-jitpack
       upload-artifacts-path: code/core/build/libs
-      upload-artifacts-name: core
+      upload-artifacts-name: core.aar
+      upload-artifacts-name-timstamp: true
     secrets: inherit
   build-signal-artifact:
     name: "Build Artifacts"
@@ -32,7 +33,8 @@ jobs:
       android-api-levels: '[29]'
       command: make signal-publish-maven-local-jitpack
       upload-artifacts-path: code/signal/build/libs
-      upload-artifacts-name: signal
+      upload-artifacts-name: signal.aar
+      upload-artifacts-name-timstamp: true
     secrets: inherit
   build-lifecycle-artifact:
     name: "Build Artifacts"
@@ -41,7 +43,8 @@ jobs:
       android-api-levels: '[29]'
       command: make lifecycle-publish-maven-local-jitpack
       upload-artifacts-path: code/lifecycle/build/libs
-      upload-artifacts-name: lifecycle
+      upload-artifacts-name: lifecycle.aar
+      upload-artifacts-name-timstamp: true
     secrets: inherit
   build-identity-artifact:
     name: "Build Artifacts"
@@ -50,7 +53,8 @@ jobs:
       android-api-levels: '[29]'
       command: make identity-publish-maven-local-jitpack
       upload-artifacts-path: code/identity/build/libs
-      upload-artifacts-name: identity
+      upload-artifacts-name: identity.aar
+      upload-artifacts-name-timstamp: true
     secrets: inherit
   build-and-test:
     name: "CI"
@@ -60,7 +64,6 @@ jobs:
       run-test-unit: true
       run-test-functional: true
       run-test-integration: true
-      run-build-app: true
       enable-codecov: true
-      javadoc-build-path: code/edge/build/dokka/javadoc
+      javadoc-build-path: code/core/build/dokka/javadoc
     secrets: inherit

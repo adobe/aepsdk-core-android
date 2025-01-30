@@ -34,7 +34,7 @@ integration-test:
 		(./code/gradlew -p code/integration-tests uninstallDebugAndroidTest)
 		(./code/gradlew -p code/integration-tests connectedDebugAndroidTest)
 
-# Alias for integration-test for CI
+# Alias for CI
 integration-test-coverage: integration-test
 
 build-third-party-extension:
@@ -72,6 +72,9 @@ core-functional-test-coverage:
 
 core-javadoc:
 		(./code/gradlew -p code/core dokkaJavadoc)
+
+# Alias for CI
+javadoc: core-javadoc
 
 core-publish-snapshot: clean core-assemble-phone-release
 		(./code/gradlew -p code/core publishReleasePublicationToSonatypeRepository --stacktrace)

@@ -1,74 +1,66 @@
+#
+# Copyright 2022 Adobe. All rights reserved.
+# This file is licensed to you under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License. You may obtain a copy
+# of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+# OF ANY KIND, either express or implied. See the License for the specific language
+# governing permissions and limitations under the License.
+#
+
 name: Publish Release
-on:
+
+on: 
   workflow_dispatch:
     inputs:
-      extension:
+      tag:
+        description: 'The tag (version) to be released (ex: 1.2.3).'
+        type: string
+        required: true
+
+      create-github-release:
+        description: 'Create GitHub release using tag. If the provided `tag` does not exist, it will be created.'
+        type: boolean
+        required: true
+        default: true
+
+      component:
         type: choice
-        description: Extension to release
+        description: Extension which will be released.
         options: 
         - core
         - identity
         - lifecycle
         - signal
       
-      tag:
-        description: 'tag/version'
-        required: true        
-  
-      action_tag:
-        description: 'Create tag? ("no" to skip)'
-        required: true
-        default: 'yes'
+      core-dependency:
+        description: 'The Core dependency version in gradle.properties to be validated (when non-Core extension is selected) (ex: 1.2.3).'
+        type: string
+        default: ''
 
 jobs:
+  publish-core:
+    permissions:
+        contents: write
+    uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.3.0
+    with:
+      tag: ${{ github.event.inputs.tag }}
+      create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
+      release-variant: ${{ github.event.inputs.component }}
+      version-validation-name: Core
+      version-validation-paths: code/gradle.properties:core_properties
+    secrets: inherit
   publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: 17
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
-
-      - name: Verify version        
-        run: |
-          set -eo pipefail
-          echo Release version: ${{ github.event.inputs.tag }}
-          (./scripts/version.sh -n ${{  github.event.inputs.extension }} -v ${{ github.event.inputs.tag }})
-      
-      - name: Create GH Release
-        id: create_release
-        uses: release-drafter/release-drafter@v5
-        if: ${{ github.event.inputs.action_tag == 'yes' }}
-        with:
-          name: v${{ github.event.inputs.tag }}-${{  github.event.inputs.extension }}
-          tag: v${{ github.event.inputs.tag }}-${{  github.event.inputs.extension }}
-          version: v${{ github.event.inputs.tag }}-${{  github.event.inputs.extension }}
-          publish: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
-
-      - name: Import GPG key
-        env:
-          GPG_SECRET_KEYS: ${{ secrets.GPG_SECRET_KEYS }}
-          GPG_OWNERTRUST: ${{ secrets.GPG_OWNERTRUST }}
-        run: |
-          echo $GPG_SECRET_KEYS | base64 --decode | gpg --import --no-tty --batch --yes
-          echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust --no-tty --batch --yes
-
-      - name: Publish to Maven Central Repository
-        run: make ${{  github.event.inputs.extension }}-publish-main
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+    permissions:
+        contents: write
+    uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.3.0
+    with:
+      tag: ${{ github.event.inputs.tag }}
+      create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
+      release-variant: ${{ github.event.inputs.component }}
+      version-validation-name: ${{ github.event.inputs.component }}
+      version-validation-paths: code/gradle.properties:core_properties
+      version-validation-dependencies: Core ${{ github.event.inputs.core-dependency }}
+    secrets: inherit

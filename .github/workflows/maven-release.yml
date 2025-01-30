@@ -42,6 +42,7 @@ on:
 
 jobs:
   publish-core:
+    if: ${{ github.event.inputs.component == 'core' }}
     permissions:
         contents: write
     uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.3.0
@@ -49,10 +50,11 @@ jobs:
       tag: ${{ github.event.inputs.tag }}
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
       release-variant: ${{ github.event.inputs.component }}
-      version-validation-name: Core
+      version-validation-name: ${{ github.event.inputs.component }}
       version-validation-paths: code/gradle.properties:core_properties
     secrets: inherit
   publish:
+    if: ${{ github.event.inputs.component != 'core' }}
     permissions:
         contents: write
     uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.3.0

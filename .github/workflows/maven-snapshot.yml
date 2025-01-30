@@ -40,7 +40,7 @@ jobs:
     if: ${{ github.event.inputs.release-core == 'true' }}
     permissions:
         contents: write
-    uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
     with:
       release-variant: core
     secrets: inherit
@@ -49,7 +49,7 @@ jobs:
     if: ${{ github.event.inputs.release-identity == 'true' }}
     permissions:
         contents: write
-    uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
     with:
       release-variant: identity
     secrets: inherit
@@ -58,7 +58,7 @@ jobs:
     if: ${{ github.event.inputs.release-lifecycle == 'true' }}
     permissions:
         contents: write
-    uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
     with:
       release-variant: lifecycle
     secrets: inherit
@@ -67,7 +67,7 @@ jobs:
     if: ${{ github.event.inputs.release-signal == 'true' }}
     permissions:
         contents: write
-    uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
     with:
       release-variant: signal
     secrets: inherit

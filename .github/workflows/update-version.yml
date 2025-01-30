@@ -70,7 +70,7 @@ jobs:
       contents: write
       pull-requests: write
     needs: compute-version
-    uses: timkimadobe/aepsdk-commons/.github/workflows/versions.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/versions.yml@gha-android-3.3.0
     with:
       name: ${{ github.event.inputs.extension }}
       version: ${{ github.event.inputs.version }}

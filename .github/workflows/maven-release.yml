@@ -26,7 +26,7 @@ on:
         required: true
         default: true
 
-      component:
+      extension:
         type: choice
         description: Extension which will be released.
         options: 
@@ -42,27 +42,27 @@ on:
 
 jobs:
   publish-core:
-    if: ${{ github.event.inputs.component == 'core' }}
+    if: ${{ github.event.inputs.extension == 'core' }}
     permissions:
         contents: write
     uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.3.0
     with:
       tag: ${{ github.event.inputs.tag }}
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
-      release-variant: ${{ github.event.inputs.component }}
-      version-validation-name: ${{ github.event.inputs.component }}
+      release-variant: ${{ github.event.inputs.extension }}
+      version-validation-name: ${{ github.event.inputs.extension }}
       version-validation-paths: code/gradle.properties:core_properties
     secrets: inherit
   publish:
-    if: ${{ github.event.inputs.component != 'core' }}
+    if: ${{ github.event.inputs.extension != 'core' }}
     permissions:
         contents: write
     uses: timkimadobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.3.0
     with:
       tag: ${{ github.event.inputs.tag }}
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
-      release-variant: ${{ github.event.inputs.component }}
-      version-validation-name: ${{ github.event.inputs.component }}
+      release-variant: ${{ github.event.inputs.extension }}
+      version-validation-name: ${{ github.event.inputs.extension }}
       version-validation-paths: code/gradle.properties:core_properties
       version-validation-dependencies: Core ${{ github.event.inputs.core-dependency }}
     secrets: inherit

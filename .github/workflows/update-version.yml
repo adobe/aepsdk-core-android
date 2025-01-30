@@ -15,7 +15,7 @@ name: Update Versions
 on:
   workflow_dispatch:
     inputs:
-      component:
+      extension:
         type: choice
         description: Select the extension for which the version should be updated.
         options: 
@@ -35,14 +35,45 @@ on:
         required: true
 
 jobs:
+  compute-version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version_path: ${{ steps.set-path.outputs.version_path }}
+    steps:
+      - name: Compute version file paths
+        id: set-path
+        run: |
+          case "${{ github.event.inputs.extension }}" in
+            core)
+              PATH_RESULT="code/core/src/main/java/com/adobe/marketing/mobile/internal/CoreConstants.kt"
+              ;;
+            lifecycle)
+              PATH_RESULT="code/lifecycle/src/phone/java/com/adobe/marketing/mobile/Lifecycle.java"
+              ;;
+            identity)
+              PATH_RESULT="code/identity/src/phone/java/com/adobe/marketing/mobile/Identity.java"
+              ;;
+            signal)
+              PATH_RESULT="code/signal/src/phone/java/com/adobe/marketing/mobile/Signal.java"
+              ;;
+            *)
+              echo "::error ::Invalid extension selected."
+              exit 1
+              ;;
+          esac
+
+          echo "version_path=$PATH_RESULT" >> "$GITHUB_ENV"
+          echo "version_path=$PATH_RESULT" >> "$GITHUB_OUTPUT"
+
   update-versions:
     permissions:
       contents: write
       pull-requests: write
+    needs: compute-version
     uses: timkimadobe/aepsdk-commons/.github/workflows/versions.yml@gha-android-3.3.0
     with:
-      name: ${{ github.event.inputs.component }}
+      name: ${{ github.event.inputs.extension }}
       version: ${{ github.event.inputs.version }}
       branch: ${{ github.event.inputs.branch }}
-      paths: code/gradle.properties:core_properties
+      paths: code/gradle.properties:core_properties, ${{ needs.compute-version.outputs.version_path }}
       update: true

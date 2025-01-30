@@ -18,7 +18,7 @@ on:
 jobs:
   build-core-artifact:
     name: "Build Artifacts"
-    uses: timkimadobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.2.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.2.0
     with:
       android-api-levels: '[29]'
       command: make core-publish-maven-local-jitpack
@@ -28,7 +28,7 @@ jobs:
     secrets: inherit
   build-signal-artifact:
     name: "Build Artifacts"
-    uses: timkimadobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.2.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.2.0
     with:
       android-api-levels: '[29]'
       command: make signal-publish-maven-local-jitpack
@@ -38,7 +38,7 @@ jobs:
     secrets: inherit
   build-lifecycle-artifact:
     name: "Build Artifacts"
-    uses: timkimadobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.2.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.2.0
     with:
       android-api-levels: '[29]'
       command: make lifecycle-publish-maven-local-jitpack
@@ -48,7 +48,7 @@ jobs:
     secrets: inherit
   build-identity-artifact:
     name: "Build Artifacts"
-    uses: timkimadobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.2.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.2.0
     with:
       android-api-levels: '[29]'
       command: make identity-publish-maven-local-jitpack
@@ -58,7 +58,7 @@ jobs:
     secrets: inherit
   build-and-test:
     name: "CI"
-    uses: timkimadobe/aepsdk-commons/.github/workflows/android-build-and-test.yml@gha-android-3.2.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-build-and-test.yml@gha-android-3.2.0
     with:
       android-api-levels: '[29]'
       run-test-unit: true

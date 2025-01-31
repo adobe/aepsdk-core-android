@@ -51,7 +51,7 @@ jobs:
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
       release-variant: ${{ github.event.inputs.extension }}
       version-validation-name: ${{ github.event.inputs.extension }}
-      version-validation-paths: code/gradle.properties:core_properties
+      version-validation-paths: code/gradle.properties:properties_multi_module
     secrets: inherit
   publish:
     if: ${{ github.event.inputs.extension != 'core' }}
@@ -63,6 +63,6 @@ jobs:
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
       release-variant: ${{ github.event.inputs.extension }}
       version-validation-name: ${{ github.event.inputs.extension }}
-      version-validation-paths: code/gradle.properties:core_properties
+      version-validation-paths: code/gradle.properties:properties_multi_module
       version-validation-dependencies: Core ${{ github.event.inputs.core-dependency }}
     secrets: inherit

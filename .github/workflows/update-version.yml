@@ -75,5 +75,5 @@ jobs:
       name: ${{ github.event.inputs.extension }}
       version: ${{ github.event.inputs.version }}
       branch: ${{ github.event.inputs.branch }}
-      paths: code/gradle.properties:core_properties, ${{ needs.compute-version.outputs.version_path }}
+      paths: code/gradle.properties:properties_multi_module, ${{ needs.compute-version.outputs.version_path }}
       update: true

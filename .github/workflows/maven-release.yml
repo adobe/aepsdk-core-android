@@ -51,18 +51,48 @@ jobs:
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
       release-variant: ${{ github.event.inputs.extension }}
       version-validation-name: ${{ github.event.inputs.extension }}
-      version-validation-paths: code/gradle.properties:properties_multi_module
+      version-validation-paths: code/gradle.properties:properties_multi_module, code/core/src/main/java/com/adobe/marketing/mobile/internal/CoreConstants.kt
     secrets: inherit
+
+  compute-version-path:
+    runs-on: ubuntu-24.04
+    if: ${{ github.event.inputs.extension != 'core' }}
+    outputs:
+      version_path: ${{ steps.set-path.outputs.version_path }}
+    steps:
+      - name: Compute version file paths
+        id: set-path
+        run: |
+          case "${{ github.event.inputs.extension }}" in
+            lifecycle)
+              PATH_RESULT="code/lifecycle/src/phone/java/com/adobe/marketing/mobile/Lifecycle.java"
+              ;;
+            identity)
+              PATH_RESULT="code/identity/src/phone/java/com/adobe/marketing/mobile/Identity.java"
+              ;;
+            signal)
+              PATH_RESULT="code/signal/src/phone/java/com/adobe/marketing/mobile/Signal.java"
+              ;;
+            *)
+              echo "::error ::Invalid extension selected."
+              exit 1
+              ;;
+          esac
+
+          echo "version_path=$PATH_RESULT" >> "$GITHUB_ENV"
+          echo "version_path=$PATH_RESULT" >> "$GITHUB_OUTPUT"
+
   publish:
     if: ${{ github.event.inputs.extension != 'core' }}
     permissions:
         contents: write
+    needs: compute-version-path
     uses: adobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.3.0
     with:
       tag: ${{ github.event.inputs.tag }}
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
       release-variant: ${{ github.event.inputs.extension }}
       version-validation-name: ${{ github.event.inputs.extension }}
-      version-validation-paths: code/gradle.properties:properties_multi_module
+      version-validation-paths: code/gradle.properties:properties_multi_module, ${{ needs.compute-version-path.outputs.version_path }}
       version-validation-dependencies: Core ${{ github.event.inputs.core-dependency }}
     secrets: inherit

@@ -35,7 +35,7 @@ on:
         required: true
 
 jobs:
-  compute-version:
+  compute-version-path:
     runs-on: ubuntu-24.04
     outputs:
       version_path: ${{ steps.set-path.outputs.version_path }}
@@ -69,11 +69,11 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    needs: compute-version
+    needs: compute-version-path
     uses: adobe/aepsdk-commons/.github/workflows/versions.yml@gha-android-3.3.0
     with:
       name: ${{ github.event.inputs.extension }}
       version: ${{ github.event.inputs.version }}
       branch: ${{ github.event.inputs.branch }}
-      paths: code/gradle.properties:properties_multi_module, ${{ needs.compute-version.outputs.version_path }}
+      paths: code/gradle.properties:properties_multi_module, ${{ needs.compute-version-path.outputs.version_path }}
       update: true

@@ -44,7 +44,7 @@ internal class AlertPresentable(
     mainScope
 ) {
     override fun getContent(activityContext: Context): ComposeView {
-        return ComposeView(getThemedContext(activityContext)).apply {
+        return ComposeView(activityContext).apply {
             setContent {
                 AlertScreen(
                     presentationStateManager = presentationStateManager,

@@ -77,7 +77,7 @@ internal class InAppMessagePresentable(
      * @param activityContext the context of the activity
      */
     override fun getContent(activityContext: Context): ComposeView {
-        return ComposeView(getThemedContext(activityContext)).apply {
+        return ComposeView(activityContext).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT

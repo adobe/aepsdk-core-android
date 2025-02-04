@@ -98,6 +98,7 @@ internal object App : AppContextService {
 
     /**
      * Registers activity lifecycle callbacks to receive notifications of activity state changes.
+     * The callback is invoked synchronously from the registered [Application.ActivityLifecycleCallbacks].
      * @param callback The [ActivityLifecycleCallbacks] to be registered.
      */
     fun registerActivityLifecycleCallbacks(callback: ActivityLifecycleCallbacks) {

@@ -1,5 +1,5 @@
 /*
-  Copyright 2024 Adobe. All rights reserved.
+  Copyright 2025 Adobe. All rights reserved.
   This file is licensed to you under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License. You may obtain a copy
   of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -22,8 +22,11 @@ import com.adobe.marketing.mobile.services.Log
  * that are bundled with the app.
  */
 internal class ExtensionDiscovery {
-    private val SERVICE_NAME = "com.adobe.marketing.mobile.ExtensionDiscoveryService"
-    private val LOG_TAG = "ExtensionDiscovery"
+
+    companion object {
+        private const val SERVICE_NAME = "com.adobe.marketing.mobile.ExtensionDiscoveryService"
+        private const val LOG_TAG = "ExtensionDiscovery"
+    }
 
     fun getExtensions(context: Context): List<Class<out Extension>> {
         val extensions = mutableSetOf<Class<out Extension>>()

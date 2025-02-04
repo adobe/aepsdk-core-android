@@ -1,5 +1,5 @@
 /*
-  Copyright 2024 Adobe. All rights reserved.
+  Copyright 2025 Adobe. All rights reserved.
   This file is licensed to you under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License. You may obtain a copy
   of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -186,8 +186,9 @@ internal class MobileCoreInitializer(
  * The lifecycle extension has internal logic to ignore lifecycle calls made during activity switching.
  * This class handles activity counting for multi-resume scenarios and relies on the lifecycle extension
  * to drop repeated calls as necessary.
+ * The callback is invoked synchronously from the registered [Application.ActivityLifecycleCallbacks].
  */
-internal class LifecycleTracker(val additionalContextData: Map<String, String>?) : App.ActivityLifecycleCallbacks {
+internal class LifecycleTracker(private val additionalContextData: Map<String, String>?) : App.ActivityLifecycleCallbacks {
     private var activityCount = 0
     override fun onActivityResumed(activity: Activity) {
         activityCount++
@@ -207,6 +208,7 @@ internal class LifecycleTracker(val additionalContextData: Map<String, String>?)
 /**
  * This class listens to the activity lifecycle and invokes the `MobileCore.collectLaunchInfo` method
  * when an activity enters the Resumed state.
+ * The callback is invoked synchronously from the registered [Application.ActivityLifecycleCallbacks].
  */
 internal class LaunchInfoCollector : App.ActivityLifecycleCallbacks {
     override fun onActivityResumed(activity: Activity) {

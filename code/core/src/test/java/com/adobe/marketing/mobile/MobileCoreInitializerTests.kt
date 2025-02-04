@@ -224,6 +224,32 @@ class MobileCoreInitializerTests {
     }
 
     @Test
+    fun `test init options copies context data`() {
+        val contextData = mutableMapOf("key" to "value")
+
+        val options = InitOptions.configureWithAppID("appID")
+        options.lifecycleAdditionalContextData = contextData
+
+        // Mutate the context data after creating init options.
+        contextData["key1"] = "value1"
+
+        mobileCoreInitializer.initialize(application, options, null)
+
+        var activityLifecycleCallback = argumentCaptor<Application.ActivityLifecycleCallbacks>()
+        verify(application).registerActivityLifecycleCallbacks(activityLifecycleCallback.capture())
+
+        Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
+            var mockActivity = mock(Activity::class.java)
+            val expectedContextData = mutableMapOf("key" to "value")
+            activityLifecycleCallback.firstValue.onActivityResumed(mockActivity)
+            mockedStatic.verify({ MobileCore.lifecycleStart(eq(expectedContextData)) }, Mockito.times(1))
+
+            activityLifecycleCallback.firstValue.onActivityPaused(mockActivity)
+            mockedStatic.verify({ MobileCore.lifecyclePause() }, Mockito.times(1))
+        }
+    }
+
+    @Test
     fun `test initialize disables automatic lifecycle tracking`() {
         val options = InitOptions.configureWithAppID("appID")
         val contextData = mapOf("key" to "value")

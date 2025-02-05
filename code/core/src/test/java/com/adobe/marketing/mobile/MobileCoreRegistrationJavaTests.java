@@ -16,13 +16,10 @@ import static org.mockito.Mockito.mock;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
-import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,13 +42,7 @@ public class MobileCoreRegistrationJavaTests {
 
     @Before
     public void setup() {
-        MobileCore.sdkInitializedWithContext = new AtomicBoolean(false);
-        EventHub.Companion.setShared(new EventHub());
-    }
-
-    @After
-    public void cleanup() {
-        EventHub.Companion.getShared().shutdown();
+        MobileCore.resetSDK();
     }
 
     @Test

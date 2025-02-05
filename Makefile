@@ -6,6 +6,9 @@ checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-chec
 
 checkformat: core-checkformat signal-checkformat lifecycle-checkformat identity-checkformat testutils-checkformat
 
+# Used by build and test CI workflow
+lint: checkstyle checkformat
+
 format: core-format signal-format lifecycle-format identity-format testutils-format
 
 api-dump: 
@@ -31,6 +34,9 @@ functional-test-coverage: core-functional-test-coverage signal-functional-test-c
 integration-test: 
 		(./code/gradlew -p code/integration-tests uninstallDebugAndroidTest)
 		(./code/gradlew -p code/integration-tests connectedDebugAndroidTest)
+
+# Alias for CI
+integration-test-coverage: integration-test
 
 build-third-party-extension:
 		(./code/gradlew test-third-party-extension:build)
@@ -67,6 +73,9 @@ core-functional-test-coverage:
 
 core-javadoc:
 		(./code/gradlew -p code/core dokkaJavadoc)
+
+# Alias for CI
+javadoc: core-javadoc
 
 core-publish-snapshot: clean core-assemble-phone-release
 		(./code/gradlew -p code/core publishReleasePublicationToSonatypeRepository --stacktrace)

@@ -1,84 +1,79 @@
-# This is a basic workflow that is manually triggered
-
-# IMPORTANT!
-# For this repo which contains AEPCore, AEPIdentity, AEPLifecycle, AEPServices, and AEPSignal, it is assumed
-# that when the version is updated for AEPCore, all other extensions (excluding AEPServices) will also
-# have their minimum dependencies updated to the same new version.
+#
+# Copyright 2023 Adobe. All rights reserved.
+# This file is licensed to you under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License. You may obtain a copy
+# of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+# OF ANY KIND, either express or implied. See the License for the specific language
+# governing permissions and limitations under the License.
+#
 
 name: Update Versions
 
-# Controls when the action will run. Workflow runs when manually triggered using the UI
-# or API.
 on:
   workflow_dispatch:
-    # Inputs the workflow accepts.
     inputs:
-      core-version:
-        description: 'New version to use for Core. Example: 3.0.2'
-        required: false
+      extension:
+        type: choice
+        description: Select the extension for which the version should be updated.
+        options: 
+        - core
+        - identity
+        - lifecycle
+        - signal
 
-      identity-version:
-        description: 'New version to use for Identity. Example: 3.0.2'
-        required: false
+      version:
+        description: 'New version to use for the extension (ex: 1.2.3).'
+        type: string
+        required: true
 
-      lifecycle-version:
-        description: 'New version to use for Lifecycle. Example: 3.0.2'
-        required: false
+      branch:
+        description: 'The target branch where the version update will be applied and the pull request will be merged into.'
+        type: string
+        required: true
 
-      signal-version:
-        description: 'New version to use for Signal. Example: 3.0.2'
-        required: false
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  update-versions:
-    runs-on: macos-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+  compute-version-path:
+    runs-on: ubuntu-24.04
+    outputs:
+      version_path: ${{ steps.set-path.outputs.version_path }}
     steps:
-    
-    - name: Checkout
-      uses: actions/checkout@v3
-    
-    - if: ${{ github.event.inputs.core-version != '' }}
-      name: Update Core Version
-      run: (sh ./scripts/version.sh -u -n Core -v ${{ github.event.inputs.core-version }})
-    
-    - if: ${{ github.event.inputs.identity-version != '' }}
-      name: Update Identity Version
-      run: (sh ./scripts/version.sh -u -n Identity -v ${{ github.event.inputs.identity-version }})
+      - name: Compute version file paths
+        id: set-path
+        run: |
+          case "${{ github.event.inputs.extension }}" in
+            core)
+              PATH_RESULT="code/core/src/main/java/com/adobe/marketing/mobile/internal/CoreConstants.kt"
+              ;;
+            lifecycle)
+              PATH_RESULT="code/lifecycle/src/phone/java/com/adobe/marketing/mobile/Lifecycle.java"
+              ;;
+            identity)
+              PATH_RESULT="code/identity/src/phone/java/com/adobe/marketing/mobile/Identity.java"
+              ;;
+            signal)
+              PATH_RESULT="code/signal/src/phone/java/com/adobe/marketing/mobile/Signal.java"
+              ;;
+            *)
+              echo "::error ::Invalid extension selected."
+              exit 1
+              ;;
+          esac
 
-    - if: ${{ github.event.inputs.lifecycle-version != '' }}
-      name: Update Lifecycle Version
-      run: (sh ./scripts/version.sh -u -n Lifecycle -v ${{ github.event.inputs.lifecycle-version }})
+          echo "version_path=$PATH_RESULT" >> "$GITHUB_ENV"
+          echo "version_path=$PATH_RESULT" >> "$GITHUB_OUTPUT"
 
-    - if: ${{ github.event.inputs.signal-version != '' }}
-      name: Update Signal Version
-      run: (sh ./scripts/version.sh -u -n Signal -v ${{ github.event.inputs.signal-version }})
-
-    - name: Generate Commit Message
-      shell: bash
-      run: |
-        COMMIT_MSG=""
-        if [ "${{ github.event.inputs.core-version }}" ]; then
-          COMMIT_MSG="[Core-${{ github.event.inputs.core-version }}]"
-        fi
-        if [ "${{ github.event.inputs.identity-version }}" ]; then
-          COMMIT_MSG="$COMMIT_MSG [Identity-${{ github.event.inputs.identity-version }}]"
-        fi 
-        if [ "${{ github.event.inputs.lifecycle-version }}" ]; then
-          COMMIT_MSG="$COMMIT_MSG [Lifecycle-${{ github.event.inputs.lifecycle-version }}]"
-        fi 
-        if [ "${{ github.event.inputs.signal-version }}" ]; then
-        COMMIT_MSG="$COMMIT_MSG [Signal-${{ github.event.inputs.signal-version }}]"
-        fi 
-        echo $COMMIT_MSG
-        echo COMMIT_MSG=$COMMIT_MSG >> $GITHUB_ENV
-
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5
-      with:
-        delete-branch: true
-        commit-message: Update versions ${{ env.COMMIT_MSG }}
-        title: Update versions ${{ env.COMMIT_MSG }}
-        body: Update versions ${{ env.COMMIT_MSG }}
+  update-versions:
+    permissions:
+      contents: write
+      pull-requests: write
+    needs: compute-version-path
+    uses: adobe/aepsdk-commons/.github/workflows/versions.yml@gha-android-3.3.0
+    with:
+      name: ${{ github.event.inputs.extension }}
+      version: ${{ github.event.inputs.version }}
+      branch: ${{ github.event.inputs.branch }}
+      paths: code/gradle.properties:properties_multi_module, ${{ needs.compute-version-path.outputs.version_path }}
+      update: true

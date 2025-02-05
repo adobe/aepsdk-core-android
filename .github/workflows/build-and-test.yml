@@ -56,6 +56,13 @@ jobs:
       upload-artifacts-name: identity.aar
       upload-artifacts-name-timstamp: true
     secrets: inherit
+  api-check:
+    name: "API Check"
+    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.3.0
+    with:
+      android-api-levels: '[29]'
+      command: make api-check
+    secrets: inherit
   build-and-test:
     name: "CI"
     uses: adobe/aepsdk-commons/.github/workflows/android-build-and-test.yml@gha-android-3.3.0

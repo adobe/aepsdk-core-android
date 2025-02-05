@@ -13,10 +13,11 @@ package com.adobe.marketing.mobile
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.os.Build
 import android.os.Build.VERSION_CODES
+import android.os.UserManager
 import androidx.annotation.VisibleForTesting
-import androidx.core.os.UserManagerCompat
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
@@ -47,7 +48,14 @@ internal class MobileCoreInitializer(
         }
 
         private val isUserUnlocked: (Application) -> Boolean = { application: Application ->
-            Build.VERSION.SDK_INT < VERSION_CODES.N || UserManagerCompat.isUserUnlocked(application)
+            // https://issuetracker.google.com/issues/146535388
+            if (Build.VERSION.SDK_INT >= 24) {
+                val userManager = application.getSystemService(Context.USER_SERVICE) as? UserManager
+                // User manager should never be null.
+                userManager?.isUserUnlocked ?: true
+            } else {
+                true
+            }
         }
 
         @JvmField

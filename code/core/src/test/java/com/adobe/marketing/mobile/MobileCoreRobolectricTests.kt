@@ -12,18 +12,18 @@
 package com.adobe.marketing.mobile
 
 import android.app.Application
-import androidx.core.os.UserManagerCompat
-import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import android.content.Context
+import android.os.UserManager
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.internal.context.App
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mockito
-import org.mockito.kotlin.never
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -40,47 +40,39 @@ class MobileCoreRobolectricTests {
     @Test
     @Config(sdk = [23])
     fun `test setApplication when the device doesn't support direct boot mode`() {
-        // Android supports direct boot mode on API level 24 and above
-        val app = RuntimeEnvironment.application as Application
-        val mockedEventHub = Mockito.mock(EventHub::class.java)
-        Mockito.mockStatic(UserManagerCompat::class.java).use { mockedStaticUserManagerCompat ->
-            mockedStaticUserManagerCompat.`when`<Any> { UserManagerCompat.isUserUnlocked(Mockito.any()) }
-                .thenReturn(false)
-            MobileCore.setApplication(app)
-            mockedStaticUserManagerCompat.verify(
-                { UserManagerCompat.isUserUnlocked(Mockito.any()) },
-                never()
-            )
-        }
+        var app = mock(Application::class.java)
+        var userManager = mock(UserManager::class.java)
+        `when`(app.getSystemService(Context.USER_SERVICE)).thenReturn(userManager)
+
+        MobileCore.setApplication(app)
         assertEquals(app, ServiceProvider.getInstance().appContextService.application)
     }
 
     @Test
     @Config(sdk = [24])
     fun `test setApplication when the app is not configured to run in direct boot mode`() {
-        val app = RuntimeEnvironment.application as Application
-        val mockedEventHub = Mockito.mock(EventHub::class.java)
-        EventHub.shared = mockedEventHub
-        Mockito.mockStatic(UserManagerCompat::class.java).use { mockedStaticUserManagerCompat ->
-            // when initializing SDK, the app is not in direct boot mode (device is unlocked)
-            mockedStaticUserManagerCompat.`when`<Any> { UserManagerCompat.isUserUnlocked(Mockito.any()) }.thenReturn(true)
-            MobileCore.setApplication(app)
-            mockedStaticUserManagerCompat.verify({ UserManagerCompat.isUserUnlocked(Mockito.any()) }, times(1))
-        }
+        var app = mock(Application::class.java)
+        var userManager = mock(UserManager::class.java)
+        `when`(userManager.isUserUnlocked).thenReturn(true)
+        `when`(app.getSystemService(Context.USER_SERVICE)).thenReturn(userManager)
+
+        MobileCore.setApplication(app)
+
+        verify(userManager, times(1)).isUserUnlocked
         assertEquals(app, ServiceProvider.getInstance().appContextService.application)
     }
 
     @Test
     @Config(sdk = [24])
     fun `test setApplication when the app is launched in direct boot mode`() {
-        val app = RuntimeEnvironment.application as Application
-        val mockedEventHub = Mockito.mock(EventHub::class.java)
-        Mockito.mockStatic(UserManagerCompat::class.java).use { mockedStaticUserManagerCompat ->
-            // when initializing SDK, the app is in direct boot mode (device is still locked)
-            mockedStaticUserManagerCompat.`when`<Any> { UserManagerCompat.isUserUnlocked(Mockito.any()) }.thenReturn(false)
-            MobileCore.setApplication(app)
-            mockedStaticUserManagerCompat.verify({ UserManagerCompat.isUserUnlocked(Mockito.any()) }, times(1))
-        }
+        var app = mock(Application::class.java)
+        var userManager = mock(UserManager::class.java)
+        `when`(userManager.isUserUnlocked).thenReturn(false)
+        `when`(app.getSystemService(Context.USER_SERVICE)).thenReturn(userManager)
+
+        MobileCore.setApplication(app)
+
+        verify(userManager, times(1)).isUserUnlocked
         assertNull(ServiceProvider.getInstance().appContextService.application)
     }
 }

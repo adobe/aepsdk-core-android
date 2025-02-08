@@ -213,10 +213,6 @@ internal class MobileCoreInitializer(
 
 /**
  * Responsible for tracking the application lifecycle and automatically invoking lifecycle APIs.
- * The lifecycle extension has internal logic to ignore lifecycle calls made during activity switching.
- * This class handles activity counting for multi-resume scenarios and relies on the lifecycle extension
- * to drop repeated calls as necessary.
- * The callback is invoked synchronously from the registered [Application.ActivityLifecycleCallbacks].
  */
 internal class LifecycleTracker(private val additionalContextData: Map<String, String>?) : DefaultLifecycleObserver {
     override fun onResume(owner: LifecycleOwner) {

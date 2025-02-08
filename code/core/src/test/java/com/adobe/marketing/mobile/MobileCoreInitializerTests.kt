@@ -13,6 +13,10 @@ package com.adobe.marketing.mobile
 
 import android.app.Activity
 import android.app.Application
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.services.ServiceProvider
@@ -32,6 +36,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.clearInvocations
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
@@ -40,6 +45,7 @@ import org.mockito.kotlin.verify
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class MobileCoreInitializerTests {
@@ -59,9 +65,19 @@ class MobileCoreInitializerTests {
     private lateinit var application: Application
 
     @Mock
+    private lateinit var lifecycle: Lifecycle
+
+    @Mock
     private lateinit var extensionDiscovery: ExtensionDiscovery
 
     private lateinit var mobileCoreInitializer: MobileCoreInitializer
+
+    var lastCapturedLifecycleObserver: DefaultLifecycleObserver? = null
+        get() {
+            var lifecycleCallback = argumentCaptor<LifecycleObserver>()
+            verify(lifecycle).addObserver(lifecycleCallback.capture())
+            return lifecycleCallback.lastValue as? DefaultLifecycleObserver
+        }
 
     @Before
     fun setup() {
@@ -69,9 +85,17 @@ class MobileCoreInitializerTests {
         App.reset()
         EventHub.shared = mockedEventHub
 
+        val lifecycleOwner = mock(LifecycleOwner::class.java)
+        `when`(lifecycleOwner.lifecycle).thenReturn(lifecycle)
+
+        val testDispatcher = UnconfinedTestDispatcher()
+        val testScope = TestScope(testDispatcher)
+
         mobileCoreInitializer = MobileCoreInitializer(
-            scope = TestScope(UnconfinedTestDispatcher()),
+            scope = testScope,
+            mainDispatcher = testDispatcher,
             isUserUnlocked = { true },
+            lifecycleOwner = lifecycleOwner,
             extensionDiscovery = extensionDiscovery
         )
     }
@@ -85,31 +109,12 @@ class MobileCoreInitializerTests {
     fun `test lifecycle tracker`() {
         val contextData = mapOf("key" to "value")
         val lifecycleTracker = LifecycleTracker(contextData)
-        val activity = mock(Activity::class.java)
+        val lifecycleOwner = mock(LifecycleOwner::class.java)
         Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
-            lifecycleTracker.onActivityResumed(activity)
+            lifecycleTracker.onResume(lifecycleOwner)
             mockedStatic.verify({ MobileCore.lifecycleStart(contextData) }, Mockito.times(1))
 
-            lifecycleTracker.onActivityPaused(activity)
-            mockedStatic.verify({ MobileCore.lifecyclePause() }, Mockito.times(1))
-        }
-    }
-
-    @Test
-    fun `test lifecycle tracker - multi resume`() {
-        val contextData = mapOf("key" to "value")
-        val lifecycleTracker = LifecycleTracker(contextData)
-        val activity1 = mock(Activity::class.java)
-        val activity2 = mock(Activity::class.java)
-
-        Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
-            lifecycleTracker.onActivityResumed(activity1)
-            lifecycleTracker.onActivityResumed(activity2)
-            mockedStatic.verify({ MobileCore.lifecycleStart(contextData) }, Mockito.times(1))
-
-            lifecycleTracker.onActivityPaused(activity2)
-            mockedStatic.verify({ MobileCore.lifecyclePause() }, never())
-            lifecycleTracker.onActivityPaused(activity1)
+            lifecycleTracker.onPause(lifecycleOwner)
             mockedStatic.verify({ MobileCore.lifecyclePause() }, Mockito.times(1))
         }
     }
@@ -127,23 +132,18 @@ class MobileCoreInitializerTests {
 
     @Test
     fun `test setApplication sets application context`() {
-        Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
-            mobileCoreInitializer.setApplication(application)
-
-            assertEquals(application, ServiceProvider.getInstance().appContextService.application)
-        }
+        mobileCoreInitializer.setApplication(application)
+        assertEquals(application, ServiceProvider.getInstance().appContextService.application)
     }
 
     @Test
     fun `test setApplication is ignored the second time`() {
-        Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
-            mobileCoreInitializer.setApplication(application)
-            assertEquals(application, ServiceProvider.getInstance().appContextService.application)
+        mobileCoreInitializer.setApplication(application)
+        assertEquals(application, ServiceProvider.getInstance().appContextService.application)
 
-            val application1 = mock(Application::class.java)
-            mobileCoreInitializer.setApplication(application1)
-            assertEquals(application, ServiceProvider.getInstance().appContextService.application)
-        }
+        val application1 = mock(Application::class.java)
+        mobileCoreInitializer.setApplication(application1)
+        assertEquals(application, ServiceProvider.getInstance().appContextService.application)
     }
 
     @Test
@@ -167,7 +167,10 @@ class MobileCoreInitializerTests {
         )
         mobileCoreInitializer.registerExtensions(extensions) {}
 
-        val expected = mutableSetOf<Class<out Extension>>(ConfigurationExtension::class.java).apply { addAll(extensions) }
+        val expected =
+            mutableSetOf<Class<out Extension>>(ConfigurationExtension::class.java).apply {
+                addAll(extensions)
+            }
 
         verify(mockedEventHub, times(1)).registerExtensions(eq(expected), any())
     }
@@ -177,11 +180,14 @@ class MobileCoreInitializerTests {
         mobileCoreInitializer.setApplication(application)
 
         mobileCoreInitializer.registerExtensions(listOf<Class<out Extension>>(TestExtension1::class.java)) {}
+
         val expected1 = mutableSetOf(ConfigurationExtension::class.java, TestExtension1::class.java)
         verify(mockedEventHub, times(1)).registerExtensions(eq(expected1), any())
+        clearInvocations(mockedEventHub)
 
         mobileCoreInitializer.registerExtensions(listOf<Class<out Extension>>(TestExtension2::class.java)) {}
-        val expected2 = mutableSetOf(ConfigurationExtension::class.java, TestExtension1::class.java)
+
+        val expected2 = mutableSetOf(ConfigurationExtension::class.java, TestExtension2::class.java)
         verify(mockedEventHub, times(1)).registerExtensions(eq(expected2), any())
     }
 
@@ -189,16 +195,13 @@ class MobileCoreInitializerTests {
     fun `test initialize enables automatic lifecycle tracking`() {
         val options = InitOptions.configureWithAppID("appID")
         mobileCoreInitializer.initialize(application, options, null)
-
-        var activityLifecycleCallback = argumentCaptor<Application.ActivityLifecycleCallbacks>()
-        verify(application).registerActivityLifecycleCallbacks(activityLifecycleCallback.capture())
+        assertNotNull(lastCapturedLifecycleObserver)
 
         Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
-            var mockActivity = mock(Activity::class.java)
-            activityLifecycleCallback.firstValue.onActivityResumed(mockActivity)
+            lastCapturedLifecycleObserver?.onResume(mock(LifecycleOwner::class.java))
             mockedStatic.verify({ MobileCore.lifecycleStart(null) }, Mockito.times(1))
 
-            activityLifecycleCallback.firstValue.onActivityPaused(mockActivity)
+            lastCapturedLifecycleObserver?.onPause(mock(LifecycleOwner::class.java))
             mockedStatic.verify({ MobileCore.lifecyclePause() }, Mockito.times(1))
         }
     }
@@ -210,15 +213,12 @@ class MobileCoreInitializerTests {
         options.lifecycleAdditionalContextData = contextData
         mobileCoreInitializer.initialize(application, options, null)
 
-        var activityLifecycleCallback = argumentCaptor<Application.ActivityLifecycleCallbacks>()
-        verify(application).registerActivityLifecycleCallbacks(activityLifecycleCallback.capture())
-
         Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
-            var mockActivity = mock(Activity::class.java)
-            activityLifecycleCallback.firstValue.onActivityResumed(mockActivity)
+            assertNotNull(lastCapturedLifecycleObserver)
+            lastCapturedLifecycleObserver?.onResume(mock(LifecycleOwner::class.java))
             mockedStatic.verify({ MobileCore.lifecycleStart(eq(contextData)) }, Mockito.times(1))
 
-            activityLifecycleCallback.firstValue.onActivityPaused(mockActivity)
+            lastCapturedLifecycleObserver?.onPause(mock(LifecycleOwner::class.java))
             mockedStatic.verify({ MobileCore.lifecyclePause() }, Mockito.times(1))
         }
     }
@@ -235,38 +235,29 @@ class MobileCoreInitializerTests {
 
         mobileCoreInitializer.initialize(application, options, null)
 
-        var activityLifecycleCallback = argumentCaptor<Application.ActivityLifecycleCallbacks>()
-        verify(application).registerActivityLifecycleCallbacks(activityLifecycleCallback.capture())
-
         Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
-            var mockActivity = mock(Activity::class.java)
-            val expectedContextData = mutableMapOf("key" to "value")
-            activityLifecycleCallback.firstValue.onActivityResumed(mockActivity)
-            mockedStatic.verify({ MobileCore.lifecycleStart(eq(expectedContextData)) }, Mockito.times(1))
+            assertNotNull(lastCapturedLifecycleObserver)
 
-            activityLifecycleCallback.firstValue.onActivityPaused(mockActivity)
+            val expectedContextData = mutableMapOf("key" to "value")
+            lastCapturedLifecycleObserver?.onResume(mock(LifecycleOwner::class.java))
+            mockedStatic.verify(
+                { MobileCore.lifecycleStart(eq(expectedContextData)) },
+                Mockito.times(1)
+            )
+
+            lastCapturedLifecycleObserver?.onPause(mock(LifecycleOwner::class.java))
             mockedStatic.verify({ MobileCore.lifecyclePause() }, Mockito.times(1))
         }
     }
 
     @Test
     fun `test initialize disables automatic lifecycle tracking`() {
-        val options = InitOptions.configureWithAppID("appID")
-        val contextData = mapOf("key" to "value")
-        options.lifecycleAutomaticTrackingEnabled = false
+        val options = InitOptions.configureWithAppID("appID").apply {
+            lifecycleAutomaticTrackingEnabled = false
+        }
         mobileCoreInitializer.initialize(application, options, null)
 
-        var activityLifecycleCallback = argumentCaptor<Application.ActivityLifecycleCallbacks>()
-        verify(application).registerActivityLifecycleCallbacks(activityLifecycleCallback.capture())
-
-        Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
-            var mockActivity = mock(Activity::class.java)
-            activityLifecycleCallback.firstValue.onActivityResumed(mockActivity)
-            mockedStatic.verify({ MobileCore.lifecycleStart(eq(contextData)) }, never())
-
-            activityLifecycleCallback.firstValue.onActivityPaused(mockActivity)
-            mockedStatic.verify({ MobileCore.lifecyclePause() }, never())
-        }
+        verify(lifecycle, never()).addObserver(any())
     }
 
     @Test
@@ -277,7 +268,10 @@ class MobileCoreInitializerTests {
         val options = InitOptions.configureWithAppID("appId")
         mobileCoreInitializer.initialize(application, options, null)
 
-        val expected = mutableSetOf<Class<out Extension>>(ConfigurationExtension::class.java).apply { addAll(extensions) }
+        val expected =
+            mutableSetOf<Class<out Extension>>(ConfigurationExtension::class.java).apply {
+                addAll(extensions)
+            }
         verify(mockedEventHub, times(1)).registerExtensions(eq(expected), any())
     }
 
@@ -297,7 +291,10 @@ class MobileCoreInitializerTests {
             val options = InitOptions.configureWithFileInPath("filePath")
             mobileCoreInitializer.initialize(application, options, null)
 
-            mockedStatic.verify({ MobileCore.configureWithFileInPath(eq("filePath")) }, Mockito.times(1))
+            mockedStatic.verify(
+                { MobileCore.configureWithFileInPath(eq("filePath")) },
+                Mockito.times(1)
+            )
         }
     }
 
@@ -307,7 +304,10 @@ class MobileCoreInitializerTests {
             val options = InitOptions.configureWithFileInAssets("fileInAssets")
             mobileCoreInitializer.initialize(application, options, null)
 
-            mockedStatic.verify({ MobileCore.configureWithFileInAssets(eq("fileInAssets")) }, Mockito.times(1))
+            mockedStatic.verify(
+                { MobileCore.configureWithFileInAssets(eq("fileInAssets")) },
+                Mockito.times(1)
+            )
         }
     }
 
@@ -335,16 +335,17 @@ class MobileCoreInitializerTests {
 
     @Test
     fun `test extension registration happens after event hub initialization and migration completes`() {
-
         mobileCoreInitializer = MobileCoreInitializer(
             scope = CoroutineScope(Dispatchers.IO),
+            mainDispatcher = UnconfinedTestDispatcher(),
             isUserUnlocked = { true },
+            lifecycleOwner = mock(LifecycleOwner::class.java),
             extensionDiscovery = extensionDiscovery
         )
 
+        var latch = CountDownLatch(1)
         var orderOfCalls = mutableListOf<String>()
 
-        var latch = CountDownLatch(1)
         `when`(mockedEventHub.initializeEventHistory()).doAnswer {
             Thread.sleep(500)
             orderOfCalls.add("initializeEventHistory")
@@ -359,8 +360,9 @@ class MobileCoreInitializerTests {
 
         mobileCoreInitializer.setApplication(application)
         mobileCoreInitializer.registerExtensions(listOf<Class<out Extension>>(TestExtension1::class.java)) {}
+        assertEquals(listOf(), orderOfCalls)
 
-        assertTrue(latch.await(1000, TimeUnit.MILLISECONDS))
+        assertTrue { latch.await(1000, TimeUnit.MILLISECONDS) }
         assertEquals(listOf("initializeEventHistory", "registerExtensions"), orderOfCalls)
     }
 }

@@ -18,6 +18,9 @@ import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.UserManager
 import androidx.annotation.VisibleForTesting
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
@@ -25,6 +28,7 @@ import com.adobe.marketing.mobile.internal.migration.V4Migrator
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.internal.context.App
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,8 +41,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 internal class MobileCoreInitializer(
     private val scope: CoroutineScope,
-    private val isUserUnlocked: (Application) -> Boolean,
-    private val extensionDiscovery: ExtensionDiscovery
+    private val mainDispatcher: CoroutineDispatcher,
+    private val lifecycleOwner: LifecycleOwner,
+    private val extensionDiscovery: ExtensionDiscovery,
+    private val isUserUnlocked: (Application) -> Boolean
 ) {
     companion object {
         const val LOG_TAG: String = "MobileCoreInitializer"
@@ -61,8 +67,10 @@ internal class MobileCoreInitializer(
         @JvmField
         var INSTANCE = MobileCoreInitializer(
             scope = CoroutineScope(Dispatchers.IO + SupervisorJob() + exceptionHandler),
-            isUserUnlocked = isUserUnlocked,
+            mainDispatcher = Dispatchers.Main.immediate,
+            lifecycleOwner = ProcessLifecycleOwner.get(),
             extensionDiscovery = ExtensionDiscovery(),
+            isUserUnlocked = isUserUnlocked
         )
     }
 
@@ -71,6 +79,9 @@ internal class MobileCoreInitializer(
     // Using this mutex to guard migration and EventHistory initialization, ensuring they complete
     // in a background thread before any extensions are registered.
     private val mutex = Mutex()
+
+    // Hold a reference to cleanup between tests.
+    private var lifecycleObserver: DefaultLifecycleObserver? = null
 
     fun initialize(
         application: Application,
@@ -93,7 +104,11 @@ internal class MobileCoreInitializer(
 
         // Enable automatic lifecycle tracking if specified
         if (initOptions.lifecycleAutomaticTrackingEnabled) {
-            App.registerActivityLifecycleCallbacks(LifecycleTracker(initOptions.lifecycleAdditionalContextData))
+            scope.launch(mainDispatcher) {
+                lifecycleObserver = LifecycleTracker(initOptions.lifecycleAdditionalContextData).also {
+                    lifecycleOwner.lifecycle.addObserver(it)
+                }
+            }
         }
 
         // Automatically discovers and registers extensions.
@@ -184,6 +199,13 @@ internal class MobileCoreInitializer(
 
     @VisibleForTesting
     fun reset() {
+        // Reset Lifecycle Observer if present
+        lifecycleObserver?.let {
+            scope.launch(mainDispatcher) {
+                lifecycleOwner.lifecycle.removeObserver(it)
+            }
+        }
+
         setApplicationCalled.set(false)
         initializeCalled.set(false)
     }
@@ -191,25 +213,17 @@ internal class MobileCoreInitializer(
 
 /**
  * Responsible for tracking the application lifecycle and automatically invoking lifecycle APIs.
- * The lifecycle extension has internal logic to ignore lifecycle calls made during activity switching.
- * This class handles activity counting for multi-resume scenarios and relies on the lifecycle extension
- * to drop repeated calls as necessary.
- * The callback is invoked synchronously from the registered [Application.ActivityLifecycleCallbacks].
+ * Note: ProcessLifecycleOwner does not invoke onPause when the application is force closed.
  */
-internal class LifecycleTracker(private val additionalContextData: Map<String, String>?) : App.ActivityLifecycleCallbacks {
-    private var activityCount = 0
-    override fun onActivityResumed(activity: Activity) {
-        activityCount++
-        if (activityCount == 1) {
-            MobileCore.lifecycleStart(additionalContextData)
-        }
+internal class LifecycleTracker(private val additionalContextData: Map<String, String>?) : DefaultLifecycleObserver {
+    override fun onResume(owner: LifecycleOwner) {
+        Log.debug(CoreConstants.LOG_TAG, MobileCoreInitializer.LOG_TAG, "Lifecycle tracking - onResume")
+        MobileCore.lifecycleStart(additionalContextData)
     }
 
-    override fun onActivityPaused(activity: Activity) {
-        activityCount--
-        if (activityCount == 0) {
-            MobileCore.lifecyclePause()
-        }
+    override fun onPause(owner: LifecycleOwner) {
+        Log.debug(CoreConstants.LOG_TAG, MobileCoreInitializer.LOG_TAG, "Lifecycle tracking - onPause")
+        MobileCore.lifecyclePause()
     }
 }
 

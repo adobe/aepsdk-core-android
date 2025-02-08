@@ -26,7 +26,7 @@ import java.util.Map;
 public class Identity {
 
     private static final String CLASS_NAME = "Identity";
-    private static final String EXTENSION_VERSION = "3.0.1";
+    private static final String EXTENSION_VERSION = "3.0.2";
     private static final String REQUEST_IDENTITY_EVENT_NAME = "IdentityRequestIdentity";
     private static final int PUBLIC_API_TIME_OUT_MILLISECOND = 500; // ms
     private static final String LOG_TAG = "Identity";

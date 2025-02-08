@@ -213,6 +213,7 @@ internal class MobileCoreInitializer(
 
 /**
  * Responsible for tracking the application lifecycle and automatically invoking lifecycle APIs.
+ * Note: ProcessLifecycleOwner does not invoke onPause when the application is force closed.
  */
 internal class LifecycleTracker(private val additionalContextData: Map<String, String>?) : DefaultLifecycleObserver {
     override fun onResume(owner: LifecycleOwner) {

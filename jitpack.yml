@@ -6,3 +6,4 @@ install:
    - make signal-publish-maven-local-jitpack
    - make lifecycle-publish-maven-local-jitpack
    - make identity-publish-maven-local-jitpack
+   - make testutils-publish-maven-local-jitpack

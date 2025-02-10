@@ -4,23 +4,28 @@ clean:
 
 checkstyle: core-checkstyle signal-checkstyle lifecycle-checkstyle identity-checkstyle
 
-checkformat: core-checkformat signal-checkformat lifecycle-checkformat identity-checkformat
+checkformat: core-checkformat signal-checkformat lifecycle-checkformat identity-checkformat testutils-checkformat
 
-format: core-format signal-format lifecycle-format identity-format
+# Used by build and test CI workflow
+lint: checkstyle checkformat
+
+format: core-format signal-format lifecycle-format identity-format testutils-format
 
 api-dump: 
 		(./code/gradlew -p code/core apiDump)
+		(./code/gradlew -p code/testutils apiDump)
 
 api-check: 
 		(./code/gradlew -p code/core apiCheck)
+		(./code/gradlew -p code/testutils apiCheck)
 
 assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-phone identity-assemble-phone
 
 assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release identity-assemble-phone-release
 
-unit-test: core-unit-test signal-unit-test lifecycle-unit-test
+unit-test: core-unit-test signal-unit-test lifecycle-unit-test testutils-unit-test
 
-unit-test-coverage: core-unit-test-coverage signal-unit-test-coverage lifecycle-unit-test-coverage
+unit-test-coverage: core-unit-test-coverage signal-unit-test-coverage lifecycle-unit-test-coverage testutils-unit-test-coverage
 
 functional-test: core-functional-test signal-functional-test lifecycle-functional-test identity-functional-test
 
@@ -29,6 +34,9 @@ functional-test-coverage: core-functional-test-coverage signal-functional-test-c
 integration-test: 
 		(./code/gradlew -p code/integration-tests uninstallDebugAndroidTest)
 		(./code/gradlew -p code/integration-tests connectedDebugAndroidTest)
+
+# Alias for CI
+integration-test-coverage: integration-test
 
 build-third-party-extension:
 		(./code/gradlew test-third-party-extension:build)
@@ -65,6 +73,9 @@ core-functional-test-coverage:
 
 core-javadoc:
 		(./code/gradlew -p code/core dokkaJavadoc)
+
+# Alias for CI
+javadoc: core-javadoc
 
 core-publish-snapshot: clean core-assemble-phone-release
 		(./code/gradlew -p code/core publishReleasePublicationToSonatypeRepository --stacktrace)
@@ -210,3 +221,21 @@ identity-publish-maven-local:
 identity-publish-maven-local-jitpack:
 		(./code/gradlew -p code/identity assemblePhone)
 		(./code/gradlew -p code/identity publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
+
+### TestUtils
+
+testutils-checkformat:
+		(./code/gradlew -p code/testutils spotlessCheck)
+
+testutils-format:
+		(./code/gradlew -p code/testutils spotlessApply)
+
+testutils-unit-test:
+		(./code/gradlew -p code/testutils testPhoneDebugUnitTest)
+
+testutils-unit-test-coverage:
+		(./code/gradlew -p code/testutils createPhoneDebugUnitTestCoverageReport)
+
+testutils-publish-maven-local-jitpack:
+		(./code/gradlew -p code/testutils assemblePhone)
+		(./code/gradlew -p code/testutils publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)

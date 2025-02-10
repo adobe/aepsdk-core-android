@@ -200,13 +200,6 @@ internal class EventHub {
         }
 
     /**
-     * Submits a task to be executed in the event hub executor.
-     */
-    fun executeInEventHubExecutor(task: () -> Unit) {
-        eventHubExecutor.submit(task)
-    }
-
-    /**
      * Initializes event history. This must be called after the SDK has application context.
      */
     fun initializeEventHistory() {
@@ -278,6 +271,31 @@ internal class EventHub {
                 LOG_TAG,
                 "Dispatching Event #$eventNumber - ($event)"
             )
+        }
+    }
+
+    /**
+     * This is a convenience method to register a set of [Extension]s with the `EventHub` and start processing events.
+     * This method attempts to register each extension using the [EventHub.registerExtension] method.
+     * The provided callback is invoked after the registration status for all extensions is received.
+     *
+     * @param extensions A set of extension classes to register with the EventHub.
+     * @param completion A callback that is invoked once the extensions have been registered
+     *                   (or failed to register).
+     */
+    @JvmOverloads
+    fun registerExtensions(
+        extensions: Set<Class<out Extension>>,
+        completion: (() -> Unit)? = null
+    ) {
+        val registeredExtensions = AtomicInteger(0)
+        extensions.forEach {
+            registerExtension(it) {
+                if (registeredExtensions.incrementAndGet() == extensions.size) {
+                    start()
+                    completion?.let { executeCompletionHandler { it() } }
+                }
+            }
         }
     }
 
@@ -798,14 +816,11 @@ internal class EventHub {
         // 2) If event is null, start with version 0 if shared state is empty.
         //    We start with '0' because extensions can call createSharedState() to export initial state
         //    before handling any event and other extensions should be able to read this state.
-        var version = 0
-        if (event != null) {
-            version = getEventNumber(event) ?: 0
-        } else if (!sharedStateManager.isEmpty()) {
-            version = lastEventNumber.incrementAndGet()
+        return when {
+            event != null -> getEventNumber(event) ?: 0
+            !sharedStateManager.isEmpty() -> lastEventNumber.incrementAndGet()
+            else -> 0
         }
-
-        return version
     }
 
     /**

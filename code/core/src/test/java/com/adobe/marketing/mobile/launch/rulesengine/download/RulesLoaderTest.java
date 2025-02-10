@@ -130,7 +130,7 @@ public class RulesLoaderTest {
                 .connectAsync(any(NetworkRequest.class), any(NetworkCallback.class));
 
         final NetworkRequest expectedNetworkRequest =
-                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10000, 10000);
+                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10, 10);
 
         // Test
         rulesLoader.loadFromUrl(VALID_URL, mockCallback);
@@ -180,7 +180,7 @@ public class RulesLoaderTest {
                 .connectAsync(any(NetworkRequest.class), any(NetworkCallback.class));
 
         final NetworkRequest expectedNetworkRequest =
-                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10000, 10000);
+                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10, 10);
 
         // Test
         rulesLoader.loadFromUrl(VALID_URL, mockCallback);
@@ -251,7 +251,7 @@ public class RulesLoaderTest {
                 RulesLoader.HTTP_HEADER_IF_MODIFIED_SINCE, SAMPLE_LAST_MODIFIED_RFC2822);
 
         final NetworkRequest expectedNetworkRequest =
-                new NetworkRequest(VALID_URL, HttpMethod.GET, null, expectedHeaders, 10000, 10000);
+                new NetworkRequest(VALID_URL, HttpMethod.GET, null, expectedHeaders, 10, 10);
 
         // Test
         rulesLoader.loadFromUrl(VALID_URL, mockCallback);
@@ -301,7 +301,7 @@ public class RulesLoaderTest {
                 .connectAsync(any(NetworkRequest.class), any(NetworkCallback.class));
 
         final NetworkRequest expectedNetworkRequest =
-                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10000, 10000);
+                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10, 10);
 
         rulesLoader.loadFromUrl(VALID_URL, mockCallback);
 
@@ -344,7 +344,7 @@ public class RulesLoaderTest {
                 .connectAsync(any(NetworkRequest.class), any(NetworkCallback.class));
 
         final NetworkRequest expectedNetworkRequest =
-                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10000, 10000);
+                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10, 10);
 
         rulesLoader.loadFromUrl(VALID_URL, mockCallback);
 
@@ -385,7 +385,7 @@ public class RulesLoaderTest {
                 .connectAsync(any(NetworkRequest.class), any(NetworkCallback.class));
 
         final NetworkRequest expectedNetworkRequest =
-                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10000, 10000);
+                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10, 10);
 
         rulesLoader.loadFromUrl(VALID_URL, mockCallback);
 
@@ -439,7 +439,7 @@ public class RulesLoaderTest {
                 RulesLoader.HTTP_HEADER_IF_MODIFIED_SINCE, SAMPLE_LAST_MODIFIED_RFC2822);
 
         final NetworkRequest expectedNetworkRequest =
-                new NetworkRequest(VALID_URL, HttpMethod.GET, null, expectedHeaders, 10000, 10000);
+                new NetworkRequest(VALID_URL, HttpMethod.GET, null, expectedHeaders, 10, 10);
 
         // Test
         final AdobeCallback<RulesLoadResult> mockCallback = mock(AdobeCallback.class);
@@ -480,7 +480,7 @@ public class RulesLoaderTest {
                 .connectAsync(any(NetworkRequest.class), any(NetworkCallback.class));
 
         final NetworkRequest expectedNetworkRequest =
-                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10000, 10000);
+                new NetworkRequest(VALID_URL, HttpMethod.GET, null, emptyMap(), 10, 10);
 
         rulesLoader.loadFromUrl(VALID_URL, mockCallback);
 

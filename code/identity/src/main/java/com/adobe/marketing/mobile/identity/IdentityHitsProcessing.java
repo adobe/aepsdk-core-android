@@ -155,7 +155,7 @@ class IdentityHitsProcessing implements HitProcessing {
     @Override
     public void processHit(
             @NonNull final DataEntity entity, @NonNull final HitProcessingResult processingResult) {
-        processHit(entity, IdentityConstants.Defaults.TIMEOUT_IN_SECONDS, processingResult);
+        processHit(entity, IdentityConstants.Defaults.TIMEOUT_SECONDS, processingResult);
     }
 
     IdentityResponseObject createIdentityObjectFromResponseJsonObject(final JSONObject jsonObject) {

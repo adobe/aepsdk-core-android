@@ -16,6 +16,7 @@ import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.DataMarshaller
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants
+import com.adobe.marketing.mobile.services.internal.context.App
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -33,7 +34,6 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -44,8 +44,9 @@ class MobileCoreTests {
 
     @Before
     fun setup() {
+        App.reset()
+        MobileCore.resetSDK()
         EventHub.shared = mockedEventHub
-        MobileCore.sdkInitializedWithContext = AtomicBoolean(false)
     }
 
     @After

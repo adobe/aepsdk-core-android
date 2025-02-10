@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
     Copyright 2019 Adobe. All rights reserved.
     This file is licensed to you under the Apache License, Version 2.0 (the "License");
@@ -11,7 +12,8 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
-        <service android:name="com.adobe.marketing.mobile.ExtensionDiscoveryService">
+        <service android:name="com.adobe.marketing.mobile.ExtensionDiscoveryService"
+            android:exported="false">
             <meta-data
                 android:name="com.adobe.marketing.mobile.lifecycle.LifecycleExtension"
                 android:value="Extension" />

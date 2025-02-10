@@ -46,8 +46,8 @@ internal class ExtensionDiscovery {
                         } else {
                             Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "Class $key is not a valid Extension.")
                         }
-                    } catch (e: ClassNotFoundException) {
-                        Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to load extension class $key - ${e.message}.")
+                    } catch (e: Exception) {
+                        Log.warning(CoreConstants.LOG_TAG, LOG_TAG, "Failed to load extension class $key - ${e.cause}")
                     }
                 }
             } ?: Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "No metadata found for service $SERVICE_NAME.")

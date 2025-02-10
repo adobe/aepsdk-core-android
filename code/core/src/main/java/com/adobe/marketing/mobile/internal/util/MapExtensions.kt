@@ -39,7 +39,7 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
             }
         }
     }
-    return StringEncoder.convertStringToDecimalHash(kvPairs.toString())
+    return kvPairs.toString().fnv1a32()
 }
 
 /**

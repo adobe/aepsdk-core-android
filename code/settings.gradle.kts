@@ -29,4 +29,5 @@ include (
         ":macrobenchmark",
         ":microbenchmark",
         ":testapp",
+        ":testutils"
         )

@@ -1,90 +1,73 @@
+#
+# Copyright 2023 Adobe. All rights reserved.
+# This file is licensed to you under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License. You may obtain a copy
+# of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+# OF ANY KIND, either express or implied. See the License for the specific language
+# governing permissions and limitations under the License.
+#
+
 name: Publish Snapshot
-on:
+
+on: 
   workflow_dispatch:
     inputs:
-      release_core:
-        required: false
+      release-core:
+        description: Release Core snapshot
         type: boolean
         default: false
-        description: Release Core
 
-      release_identity:
-        required: false
+      release-identity:
+        description: Release Identity snapshot
         type: boolean
         default: false
-        description: Release Identity
 
-      release_lifecycle:
-        required: false
+      release-lifecycle:
+        description: Release Lifecycle snapshot
         type: boolean
         default: false
-        description: Release Lifecycle
 
-      release_signal:
-        required: false
+      release-signal:
+        description: Release Signal snapshot
         type: boolean
         default: false
-        description: Release Signal
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  publish-core:
+    if: ${{ github.event.inputs.release-core == 'true' }}
+    permissions:
+        contents: write
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    with:
+      release-variant: core
+    secrets: inherit
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: 17
+  publish-identity:
+    if: ${{ github.event.inputs.release-identity == 'true' }}
+    permissions:
+        contents: write
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    with:
+      release-variant: identity
+    secrets: inherit
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
+  publish-lifecycle:
+    if: ${{ github.event.inputs.release-lifecycle == 'true' }}
+    permissions:
+        contents: write
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    with:
+      release-variant: lifecycle
+    secrets: inherit
 
-      - name: Import GPG key
-        env:
-          GPG_SECRET_KEYS: ${{ secrets.GPG_SECRET_KEYS }}
-          GPG_OWNERTRUST: ${{ secrets.GPG_OWNERTRUST }}
-        run: |
-          echo $GPG_SECRET_KEYS | base64 --decode | gpg --import --no-tty --batch --yes
-          echo $GPG_OWNERTRUST | base64 --decode | gpg --import-ownertrust --no-tty --batch --yes
-
-      - name: Publish Core to maven central snapshot repository
-        if: ${{ inputs.release_core }}
-        run: make core-publish-snapshot
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-
-      - name: Publish Identity to maven central snapshot repository
-        if: ${{ inputs.release_identity }}
-        run: make identity-publish-snapshot
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-
-      - name: Publish Lifecycle to maven central snapshot repository
-        if: ${{ inputs.release_lifecycle }}
-        run: make lifecycle-publish-snapshot
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-
-      - name: Publish Signal to maven central snapshot repository
-        if: ${{ inputs.release_signal }}
-        run: make signal-publish-snapshot
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+  publish-signal:
+    if: ${{ github.event.inputs.release-signal == 'true' }}
+    permissions:
+        contents: write
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    with:
+      release-variant: signal
+    secrets: inherit

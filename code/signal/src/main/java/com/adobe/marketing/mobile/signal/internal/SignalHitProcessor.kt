@@ -104,7 +104,7 @@ internal class SignalHitProcessor : HitProcessing {
             return null
         }
         val timeoutRaw = signalDataEntity.timeout(0)
-        val timeout = if (timeoutRaw > 0) timeoutRaw else SignalConstants.DEFAULT_NETWORK_TIMEOUT
+        val timeout = if (timeoutRaw > 0) timeoutRaw else SignalConstants.DEFAULT_NETWORK_TIMEOUT_SECONDS
         val postBody = signalDataEntity.body
         val httpMethod =
             if (postBody.isEmpty()) HttpMethod.GET else HttpMethod.POST

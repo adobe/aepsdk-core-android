@@ -90,6 +90,7 @@ internal fun FloatingButton(
         modifier = Modifier
             .height(heightDp.value)
             .width(widthDp.value)
+            .background(Color.Transparent)
             .testTag(FloatingButtonTestTags.FLOATING_BUTTON_AREA)
     ) {
         FloatingActionButton(

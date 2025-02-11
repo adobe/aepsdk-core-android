@@ -13,11 +13,13 @@ package com.adobe.marketing.mobile.services.ui.common
 
 import android.app.Activity
 import android.content.Context
+import android.view.ContextThemeWrapper
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.MainThread
 import androidx.annotation.VisibleForTesting
 import androidx.compose.ui.platform.ComposeView
+import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.internal.util.ActivityCompatOwnerUtils
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
@@ -289,6 +291,37 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
     protected open fun awaitExitAnimation(onAnimationComplete: () -> Unit) {
         // Default implementation is to not wait for any exit animation to complete.
         onAnimationComplete()
+    }
+
+    /**
+     * Returns a themed context that applies overrides to the base context theme
+     * to ensure that the presentable UI is consistent with the rest of the application while
+     * ensuring that specific attributes like view background are not inherited from the base theme.
+     */
+    protected fun getThemedContext(context: Context): Context {
+        // Theme overrides are supported only for API level 23 and above. For lower API levels,
+        // return the base context as is.
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M) {
+            return context
+        }
+
+        try {
+            val newTheme = context.resources.newTheme()
+            // Apply the base theme attributes to the new theme
+            newTheme.setTo(context.theme)
+            val themedContext = ContextThemeWrapper(context, newTheme)
+            // Apply the override theme to the themed context
+            themedContext.theme.applyStyle(R.style.AepSdkUiService_OverrideTheme, true)
+            return themedContext
+        } catch (e: Exception) {
+            Log.error(
+                ServiceConstants.LOG_TAG,
+                LOG_SOURCE,
+                "Error while creating themed context",
+                e
+            )
+        }
+        return context
     }
 
     /**

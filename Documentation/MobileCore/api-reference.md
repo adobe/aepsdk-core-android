@@ -82,7 +82,7 @@ MobileCore.setWrapperType(WrapperType.REACT_NATIVE)
 ```
 
 
-#### Initializing MobileCore with Android Application instance
+#### Setting Android Application instance
 
 Use the `setApplication` api to pass the Android Application instance to SDK. This allows the SDK to monitor the lifecycle of your Android application.
 
@@ -113,7 +113,7 @@ class YourApp : Application() {
 ```
 
 
-#### Retrieving the registered Application
+#### Retrieving the Android Application instance
 
 You can use the `getApplication()` api to get the Android Application instance that was previously set via `MobileCore.setApplication()`
 
@@ -130,8 +130,101 @@ final Application app = MobileCore.getApplication();
 val app = MobileCore.getApplication()
 ```
 
+#### Initializing the SDK by automatically registering all extensions and enabling Lifecycle data collection
 
-#### Registering extensions and starting the SDK
+> [!NOTE]
+> API `initialize(String appId)` added since Core 3.3.0
+
+> [!IMPORTANT]
+> All Adobe Mobile SDK extensions listed as a dependency in your application are automatically registered when calling `initialize(String appId)`.
+>
+> Automatic Lifecycle data collection requires **Lifecycle** extension included as an app dependency.
+
+##### Java
+
+```java
+public class YourApp extends Application {
+
+   @Override
+   public void onCreate() {
+      super.onCreate();
+
+      MobileCore.initialize(this, YOUR_APP_ID);
+      
+      // Optionally, if you need a callback:
+      // MobileCore.initialize(this, YOUR_APP_ID, new AdobeCallback<Object>() {
+      //     // SDK initialized.
+      // });
+   }
+}
+```
+
+##### Kotlin
+
+```kotlin
+class YourApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        MobileCore.initialize(this, YOUR_APP_ID)
+        
+        // Optionally, if you need a callback:
+        // MobileCore.initialize(this, YOUR_APP_ID) { 
+        //     // SDK initialized.
+        // }
+    }
+}
+```
+
+#### Initializing the SDK by automatically registering all extensions while disabling Lifecycle data collection
+
+> [!NOTE]
+> API `initialize(InitOptions options)` added since Core 3.3.0
+
+> [!IMPORTANT]
+> All Adobe Mobile SDK extensions listed as a dependency in your application are automatically registered when calling `initialize(InitOptions options)`.
+
+##### Java
+
+```java
+public class YourApp extends Application {
+
+   @Override
+   public void onCreate() {
+      super.onCreate();
+
+      InitOptions options = InitOptions.configureWithAppID("YOUR_APP_ID");
+      options.setLifecycleAutomaticTrackingEnabled(false);
+
+      MobileCore.initialize(this, options, new AdobeCallback<Void>() {
+         @Override
+         public void call(Void result) {
+            // SDK initialized.
+         }
+      });
+   }
+}
+```
+
+##### Kotlin
+
+```kotlin
+class YourApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+
+        val options = InitOptions.configureWithAppID("YOUR_APP_ID").apply {
+            lifecycleAutomaticTrackingEnabled = false
+         }
+
+        MobileCore.initialize(this, options) {
+            // SDK initialized.
+        }
+    }
+}
+```
+
+#### Manually registering extensions and starting the SDK
 
 ##### Java
 

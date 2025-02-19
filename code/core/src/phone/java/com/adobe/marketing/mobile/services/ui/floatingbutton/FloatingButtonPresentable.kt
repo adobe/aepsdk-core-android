@@ -62,7 +62,7 @@ internal class FloatingButtonPresentable(
     }
 
     override fun getContent(activityContext: Context): ComposeView {
-        return ComposeView(activityContext).apply {
+        return ComposeView(getThemedContext(activityContext)).apply {
             setContent {
                 FloatingButtonScreen(
                     presentationStateManager = presentationStateManager,

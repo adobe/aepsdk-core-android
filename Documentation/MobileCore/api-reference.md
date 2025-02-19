@@ -152,8 +152,11 @@ public class YourApp extends Application {
       MobileCore.initialize(this, YOUR_APP_ID);
       
       // Optionally, if you need a callback:
-      // MobileCore.initialize(this, YOUR_APP_ID, new AdobeCallback<Object>() {
-      //     // SDK initialized.
+      // MobileCore.initialize(this, YOUR_APP_ID, , new AdobeCallback<Void>() {
+      //   @Override
+      //   public void call(Void result) {
+      //      // SDK initialized.
+      //   }
       // });
    }
 }

@@ -12,7 +12,6 @@
 import android.content.Context
 import android.view.ContextThemeWrapper
 import androidx.test.core.app.ApplicationProvider
-import com.adobe.marketing.mobile.core.R
 import com.adobe.marketing.mobile.services.ui.FloatingButton
 import com.adobe.marketing.mobile.services.ui.PresentationDelegate
 import com.adobe.marketing.mobile.services.ui.PresentationUtilityProvider
@@ -75,9 +74,9 @@ class FloatingButtonPresentableTests {
         val theme = themedContext.theme
         // get android.background from the theme
         val background = theme.obtainStyledAttributes(intArrayOf(android.R.attr.background))
-        assertTrue(
-            background.hasValue(0) &&
-                background.peekValue(0).resourceId == android.R.color.transparent
-        )
+        // Verify that the background attribute is added
+        assertTrue(background.hasValue(0))
+        // Verify that the background attribute is transparent
+        assertTrue(background.peekValue(0).resourceId == android.R.color.transparent)
     }
 }

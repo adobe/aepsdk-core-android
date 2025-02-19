@@ -298,7 +298,8 @@ internal abstract class AEPPresentable<T : Presentation<T>> :
      * to ensure that the presentable UI is consistent with the rest of the application while
      * ensuring that specific attributes like view background are not inherited from the base theme.
      */
-    protected fun getThemedContext(context: Context): Context {
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    internal fun getThemedContext(context: Context): Context {
         // Theme overrides are supported only for API level 23 and above. For lower API levels,
         // return the base context as is.
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M) {

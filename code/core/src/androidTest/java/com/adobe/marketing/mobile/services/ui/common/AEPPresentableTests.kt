@@ -30,6 +30,9 @@ import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
+/**
+ * Tests for [AEPPresentable] that require mocking of Android framework classes.
+ */
 class AEPPresentableTests {
 
     @Test
@@ -138,6 +141,10 @@ class AEPPresentableTests {
         assertTrue(background.peekValue(0).resourceId == android.R.color.transparent)
     }
 
+    /**
+     * A sample implementation of [AEPPresentable]. Make an effort to keep this presentation type
+     * agnostic to avoid test pollution.
+     */
     internal class SampleAEPPresentable(
         private val presentation: InAppMessage,
         presentationUtilityProvider: PresentationUtilityProvider,

@@ -14,43 +14,103 @@ package com.adobe.marketing.mobile;
 import android.app.Activity;
 import android.app.Application;
 import android.app.Application.ActivityLifecycleCallbacks;
-import android.os.Build.VERSION;
-import android.os.Build.VERSION_CODES;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import androidx.core.os.UserManagerCompat;
 import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.DataMarshaller;
-import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
-import com.adobe.marketing.mobile.internal.migration.V4Migrator;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
-import com.adobe.marketing.mobile.services.internal.context.App;
 import com.adobe.marketing.mobile.util.DataReader;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public final class MobileCore {
 
     private static final String LOG_TAG = "MobileCore";
     private static final long API_TIMEOUT_MS = 5000;
 
-    static AtomicBoolean sdkInitializedWithContext = new AtomicBoolean(false);
-
     private MobileCore() {}
 
     // ========================================================
     // MobileCore methods
     // ========================================================
+
+    /**
+     * Initializes the AEP SDK with the specified {@link InitOptions}. This automatically registers
+     * all bundled extensions and sets up lifecycle tracking. You can disable automatic lifecycle
+     * tracking using {@link InitOptions}.
+     *
+     * @param application The Android {@link Application} instance. It should not be null.
+     * @param initOptions The {@link InitOptions} to configure the SDK. It should not be null.
+     * @param completionCallback An optional {@link AdobeCallback} triggered once initialization is
+     *     complete.
+     */
+    public static void initialize(
+            @NonNull final Application application,
+            @NonNull final InitOptions initOptions,
+            @Nullable final AdobeCallback<?> completionCallback) {
+        if (application == null) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "initialize failed - application is null.");
+            return;
+        }
+
+        if (initOptions == null) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "initialize failed - initOptions is null.");
+            return;
+        }
+
+        MobileCoreInitializer.INSTANCE.initialize(application, initOptions, completionCallback);
+    }
+
+    /**
+     * Convenience overload that initializes the AEP SDK with bundled extensions, automatic
+     * lifecycle tracking, and configures the SDK using the specified application ID via {@link
+     * MobileCore#configureWithAppID(String)}. An optional completion callback is invoked once
+     * initialization is complete.
+     *
+     * @param application The Android {@link Application} instance. It should not be null.
+     * @param appId A unique identifier assigned to the app instance by Adobe tags. It should not be
+     *     null.
+     * @param completionCallback An optional callback triggered once initialization is complete. Can
+     *     be {@code null}.
+     */
+    public static void initialize(
+            @NonNull final Application application,
+            @NonNull final String appId,
+            @Nullable final AdobeCallback<?> completionCallback) {
+        if (appId == null) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "initialize failed - appId is null.");
+            return;
+        }
+
+        InitOptions options = InitOptions.configureWithAppID(appId);
+        initialize(application, options, completionCallback);
+    }
+
+    /**
+     * Convenience overload that initializes the AEP SDK with bundled extensions, automatic
+     * lifecycle tracking, and configures the SDK using the specified application ID via {@link
+     * MobileCore#configureWithAppID(String)}.
+     *
+     * @param application The Android {@link Application} instance. It should not be null.
+     * @param appId A unique identifier assigned to the app instance by Adobe tags. It should not be
+     *     null.
+     */
+    public static void initialize(
+            @NonNull final Application application, @NonNull final String appId) {
+        if (appId == null) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "initialize failed - appId is null.");
+            return;
+        }
+
+        InitOptions options = InitOptions.configureWithAppID(appId);
+        initialize(application, options, null);
+    }
 
     /**
      * Returns the version for the {@code MobileCore} extension
@@ -102,71 +162,7 @@ public final class MobileCore {
             return;
         }
 
-        // Direct boot mode is supported on Android N and above
-        if (VERSION.SDK_INT >= VERSION_CODES.N) {
-            if (UserManagerCompat.isUserUnlocked(application)) {
-                Log.debug(
-                        CoreConstants.LOG_TAG,
-                        LOG_TAG,
-                        "setApplication - device is unlocked and not in direct boot mode,"
-                                + " initializing the SDK.");
-            } else {
-                Log.error(
-                        CoreConstants.LOG_TAG,
-                        LOG_TAG,
-                        "setApplication failed - device is in direct boot mode, SDK will not be"
-                                + " initialized.");
-                return;
-            }
-        }
-
-        if (sdkInitializedWithContext.getAndSet(true)) {
-            Log.debug(
-                    CoreConstants.LOG_TAG,
-                    LOG_TAG,
-                    "setApplication failed - ignoring as setApplication was already called.");
-            return;
-        }
-
-        if (VERSION.SDK_INT == VERSION_CODES.O || VERSION.SDK_INT == VERSION_CODES.O_MR1) {
-            // AMSDK-8502
-            // Workaround to prevent a crash happening on Android 8.0/8.1 related to
-            // TimeZoneNamesImpl
-            // https://issuetracker.google.com/issues/110848122
-            try {
-                new Date().toString();
-            } catch (AssertionError e) {
-                // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
-            } catch (Exception e) {
-                // Workaround for a bug in Android that can cause crashes on Android 8.0 and 8.1
-            }
-        }
-
-        ServiceProvider.getInstance().getAppContextService().setApplication(application);
-        App.INSTANCE.registerActivityResumedListener(MobileCore::collectLaunchInfo);
-
-        // Migration and EventHistory operations must complete in a background thread before any
-        // extensions are registered.
-        // To ensure these tasks are completed before any registerExtension calls are made,
-        // reuse the eventHubExecutor instead of using a separate executor instance.
-        EventHub.Companion.getShared()
-                .executeInEventHubExecutor(
-                        () -> {
-                            try {
-                                V4Migrator migrator = new V4Migrator();
-                                migrator.migrate();
-                            } catch (Exception e) {
-                                Log.error(
-                                        CoreConstants.LOG_TAG,
-                                        LOG_TAG,
-                                        "Migration from V4 SDK failed with error - "
-                                                + e.getLocalizedMessage());
-                            }
-
-                            // Initialize event history
-                            EventHub.Companion.getShared().initializeEventHistory();
-                            return null;
-                        });
+        MobileCoreInitializer.INSTANCE.setApplication(application);
     }
 
     /**
@@ -218,43 +214,8 @@ public final class MobileCore {
     public static void registerExtensions(
             @NonNull final List<Class<? extends Extension>> extensions,
             @Nullable final AdobeCallback<?> completionCallback) {
-        if (!sdkInitializedWithContext.get()) {
-            Log.error(
-                    CoreConstants.LOG_TAG,
-                    LOG_TAG,
-                    "Failed to registerExtensions - setApplication not called");
-            return;
-        }
 
-        final List<Class<? extends Extension>> extensionsToRegister = new ArrayList<>();
-        extensionsToRegister.add(ConfigurationExtension.class);
-        if (extensions != null) {
-            for (final Class<? extends Extension> extension : extensions) {
-                if (extension != null) {
-                    extensionsToRegister.add(extension);
-                }
-            }
-        }
-
-        final AtomicInteger registeredExtensions = new AtomicInteger(0);
-        for (final Class<? extends Extension> extension : extensionsToRegister) {
-            EventHub.Companion.getShared()
-                    .registerExtension(
-                            extension,
-                            eventHubError -> {
-                                if (registeredExtensions.incrementAndGet()
-                                        == extensionsToRegister.size()) {
-                                    EventHub.Companion.getShared().start();
-                                    try {
-                                        if (completionCallback != null) {
-                                            completionCallback.call(null);
-                                        }
-                                    } catch (Exception ex) {
-                                    }
-                                }
-                                return null;
-                            });
-        }
+        MobileCoreInitializer.INSTANCE.registerExtensions(extensions, completionCallback);
     }
 
     /**
@@ -539,8 +500,8 @@ public final class MobileCore {
      * If the remote file is updated after the first download, the updated file is downloaded and
      * replaces the cached file.
      *
-     * @param appId A unique identifier assigned to the app instance by Adobe Launch. It should not
-     *     be null.
+     * @param appId A unique identifier assigned to the app instance by Adobe Tags. It should not be
+     *     null.
      */
     public static void configureWithAppID(@NonNull final String appId) {
         if (appId == null) {
@@ -999,6 +960,6 @@ public final class MobileCore {
     static void resetSDK() {
         EventHub.Companion.getShared().shutdown();
         EventHub.Companion.setShared(new EventHub());
-        sdkInitializedWithContext.set(false);
+        MobileCoreInitializer.INSTANCE.reset();
     }
 }

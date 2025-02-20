@@ -1,5 +1,5 @@
 /*
-  Copyright 2022 Adobe. All rights reserved.
+  Copyright 2024 Adobe. All rights reserved.
   This file is licensed to you under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License. You may obtain a copy
   of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -11,22 +11,15 @@
 
 package com.adobe.marketing.mobile;
 
-import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
+import android.app.Service;
+import android.content.Intent;
+import android.os.IBinder;
+import androidx.annotation.Nullable;
 
-public class Lifecycle {
-
-    private static final String EXTENSION_VERSION = "3.0.2";
-
-    public static final Class<? extends Extension> EXTENSION = LifecycleExtension.class;
-
-    private Lifecycle() {}
-
-    /**
-     * Returns the version of the {@link Lifecycle} extension
-     *
-     * @return The version as {@code String}
-     */
-    public static String extensionVersion() {
-        return EXTENSION_VERSION;
+/** Container for extension definition in <meta-data/>. */
+public class ExtensionDiscoveryService extends Service {
+    @Override
+    @Nullable public IBinder onBind(final Intent intent) {
+        return null;
     }
 }

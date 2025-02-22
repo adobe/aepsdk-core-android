@@ -70,7 +70,8 @@ internal class EventHub {
     /**
      * Concurrent list which stores the event listeners for response events.
      */
-    private val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> =
+    @VisibleForTesting
+    internal val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> =
         ConcurrentLinkedQueue()
 
     /**
@@ -389,6 +390,18 @@ internal class EventHub {
     ) {
         eventHubExecutor.submit {
             val triggerEventId = triggerEvent.uniqueIdentifier
+
+            if (timeoutMS == Long.MAX_VALUE) {
+                responseEventListeners.add(
+                    ResponseListenerContainer(
+                        triggerEventId,
+                        null,
+                        listener
+                    )
+                )
+                return@submit
+            }
+
             val timeoutCallable: Callable<Unit> = Callable {
                 responseEventListeners.filterRemove { it.triggerEventId == triggerEventId }
                 try {

@@ -1848,6 +1848,28 @@ internal class EventHubTests {
     }
 
     @Test
+    fun testResponseListener_InfiniteTimeout() {
+        val testEvent = Event.Builder("Test event", eventType, eventSource).build()
+        val responseCallback = object : AdobeCallbackWithError<Event> {
+            override fun call(value: Event?) {
+                assertTrue { false }
+            }
+
+            override fun fail(error: AdobeError?) {
+                assertTrue { false }
+            }
+        }
+
+        eventHub.registerResponseListener(testEvent, Long.MAX_VALUE, responseCallback)
+
+        Thread.sleep(100)
+
+        val responseListener = eventHub.responseEventListeners.first { it.triggerEventId == testEvent.uniqueIdentifier }
+        assertNotNull(responseListener)
+        assertNull(responseListener.timeoutTask)
+    }
+
+    @Test
     fun testListener_LongRunningListenerShouldNotBlockOthers() {
         class Extension1(api: ExtensionApi) : Extension(api) {
             override fun getName(): String {

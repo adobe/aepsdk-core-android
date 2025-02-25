@@ -275,7 +275,8 @@ public final class MobileCore {
      * event} processing timeout occurs.
      *
      * @param event the {@link Event} to be dispatched, used as a trigger. It should not be null.
-     * @param timeoutMS the timeout specified in milliseconds.
+     * @param timeoutMS the timeout specified in milliseconds. Use Long.MAX_DURATION to wait
+     *     indefinitely without triggering a timeout.
      * @param responseCallback the callback whose {@link AdobeCallbackWithError#call(Object)} will
      *     be called when the response event is heard. It should not be null.
      */

@@ -23,9 +23,9 @@ assemble-phone: core-assemble-phone signal-assemble-phone lifecycle-assemble-pho
 
 assemble-phone-release: core-assemble-phone-release signal-assemble-phone-release lifecycle-assemble-phone-release identity-assemble-phone-release
 
-unit-test: core-unit-test signal-unit-test lifecycle-unit-test testutils-unit-test
+unit-test: core-unit-test signal-unit-test lifecycle-unit-test identity-unit-test testutils-unit-test
 
-unit-test-coverage: core-unit-test-coverage signal-unit-test-coverage lifecycle-unit-test-coverage testutils-unit-test-coverage
+unit-test-coverage: core-unit-test-coverage signal-unit-test-coverage lifecycle-unit-test-coverage identity-unit-test-coverage testutils-unit-test-coverage
 
 functional-test: core-functional-test signal-functional-test lifecycle-functional-test identity-functional-test
 

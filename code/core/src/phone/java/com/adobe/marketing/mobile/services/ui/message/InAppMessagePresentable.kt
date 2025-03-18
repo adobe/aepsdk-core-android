@@ -86,6 +86,7 @@ internal class InAppMessagePresentable(
             setContent {
                 MessageScreen(
                     presentationStateManager = presentationStateManager,
+                    inAppMessageEventHandler = inAppMessageEventHandler,
                     inAppMessageSettings = inAppMessage.settings,
                     onCreated = {
                         applyWebViewSettings(it)

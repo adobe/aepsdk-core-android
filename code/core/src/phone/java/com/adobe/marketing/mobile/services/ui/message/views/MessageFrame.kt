@@ -32,8 +32,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -42,15 +45,19 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
+import com.adobe.marketing.mobile.services.ui.message.InAppMessageEventHandler
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAlignmentMapper
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAnimationMapper
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageArrangementMapper
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageOffsetMapper
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**
  * Represents the frame of the InAppMessage that contains the content of the message.
@@ -63,6 +70,7 @@ import com.adobe.marketing.mobile.services.ui.message.mapping.MessageOffsetMappe
 @Composable
 internal fun MessageFrame(
     visibility: MutableTransitionState<Boolean>,
+    inAppMessageEventHandler: InAppMessageEventHandler,
     inAppMessageSettings: InAppMessageSettings,
     gestureTracker: GestureTracker,
     onCreated: (WebView) -> Unit,
@@ -84,9 +92,26 @@ internal fun MessageFrame(
     // multi-window modes.
     val density = LocalDensity.current
     val contentView = currentActivity.findViewById<View>(android.R.id.content)
+    var contentHeightFromJs by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        suspendCoroutine<Int> { continuation ->
+            inAppMessageEventHandler.evaluateJavascript("getContentHeight();") { result ->
+                continuation.resume(result.toIntOrNull() ?: 0)
+            }
+        }.let { newHeight ->
+            contentHeightFromJs = newHeight
+        }
+    }
     val contentHeightDp = with(density) { contentView.height.toDp() }
     val contentWidthDp = with(density) { contentView.width.toDp() }
-    val heightDp = remember { mutableStateOf(((contentHeightDp * inAppMessageSettings.height) / 100)) }
+    val heightDp = remember(contentHeightFromJs) {
+        mutableStateOf(
+            maxDp(
+                contentHeightFromJs.dp,
+                contentHeightDp.getScaledParam(inAppMessageSettings.height)
+            )
+        )
+    }
     val widthDp = remember { mutableStateOf(((contentWidthDp * inAppMessageSettings.width) / 100)) }
 
     val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
@@ -117,7 +142,7 @@ internal fun MessageFrame(
             modifier = Modifier
                 .fillMaxSize()
                 .onPlaced {
-                    heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
+                    //heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
                     widthDp.value = with(density) { ((contentView.width.toDp() * inAppMessageSettings.width) / 100) }
                 }
                 .offset(x = horizontalOffset, y = verticalOffset)
@@ -187,6 +212,10 @@ internal fun MessageFrame(
         }
     }
 }
+
+private fun Dp.getScaledParam(scale: Int) = times(scale).div(100)
+private fun maxDp(value1: Dp, value2: Dp): Dp = if (value1 > value2) value1 else value2
+
 
 /**
  * An extension for finding the activity from a context.

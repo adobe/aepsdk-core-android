@@ -24,6 +24,7 @@ import androidx.compose.ui.window.DialogWindowProvider
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
+import com.adobe.marketing.mobile.services.ui.message.InAppMessageEventHandler
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAnimationMapper
 
@@ -42,11 +43,12 @@ import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAnimationMa
 @Composable
 internal fun MessageScreen(
     presentationStateManager: PresentationStateManager,
+    inAppMessageEventHandler: InAppMessageEventHandler,
     inAppMessageSettings: InAppMessageSettings,
     onCreated: (WebView) -> Unit,
     onDisposed: () -> Unit,
     onBackPressed: () -> Unit,
-    onGestureDetected: (InAppMessageSettings.MessageGesture) -> Unit
+    onGestureDetected: (InAppMessageSettings.MessageGesture) -> Unit,
 ) {
     // A gesture tracker to be injected into all subcomponents for identifying and
     // propagating gestures
@@ -69,11 +71,12 @@ internal fun MessageScreen(
 
     Message(
         isVisible = presentationStateManager.visibilityState,
+        inAppMessageEventHandler = inAppMessageEventHandler,
         inAppMessageSettings = inAppMessageSettings,
         gestureTracker = gestureTracker,
         onCreated = { onCreated(it) },
         onDisposed = { onDisposed() },
-        onBackPressed = onBackPressed
+        onBackPressed = onBackPressed,
     )
 }
 
@@ -89,6 +92,7 @@ internal fun MessageScreen(
 internal fun Message(
     isVisible: MutableTransitionState<Boolean>,
     inAppMessageSettings: InAppMessageSettings,
+    inAppMessageEventHandler: InAppMessageEventHandler,
     gestureTracker: GestureTracker,
     onCreated: (WebView) -> Unit,
     onDisposed: () -> Unit,
@@ -132,6 +136,7 @@ internal fun Message(
             // Frame that holds the InAppMessage
             MessageFrame(
                 visibility = isVisible,
+                inAppMessageEventHandler = inAppMessageEventHandler,
                 inAppMessageSettings = inAppMessageSettings,
                 gestureTracker = gestureTracker,
                 onCreated = onCreated,
@@ -142,6 +147,7 @@ internal fun Message(
         // Frame that holds the InAppMessage
         MessageFrame(
             visibility = isVisible,
+            inAppMessageEventHandler = inAppMessageEventHandler,
             inAppMessageSettings = inAppMessageSettings,
             gestureTracker = gestureTracker,
             onCreated = onCreated,

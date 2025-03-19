@@ -142,7 +142,7 @@ internal fun MessageFrame(
             modifier = Modifier
                 .fillMaxSize()
                 .onPlaced {
-                    //heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
+                    // heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
                     widthDp.value = with(density) { ((contentView.width.toDp() * inAppMessageSettings.width) / 100) }
                 }
                 .offset(x = horizontalOffset, y = verticalOffset)
@@ -215,7 +215,6 @@ internal fun MessageFrame(
 
 private fun Dp.getScaledParam(scale: Int) = times(scale).div(100)
 private fun maxDp(value1: Dp, value2: Dp): Dp = if (value1 > value2) value1 else value2
-
 
 /**
  * An extension for finding the activity from a context.

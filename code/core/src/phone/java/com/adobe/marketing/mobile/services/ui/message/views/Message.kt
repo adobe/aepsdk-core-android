@@ -48,7 +48,7 @@ internal fun MessageScreen(
     onCreated: (WebView) -> Unit,
     onDisposed: () -> Unit,
     onBackPressed: () -> Unit,
-    onGestureDetected: (InAppMessageSettings.MessageGesture) -> Unit,
+    onGestureDetected: (InAppMessageSettings.MessageGesture) -> Unit
 ) {
     // A gesture tracker to be injected into all subcomponents for identifying and
     // propagating gestures
@@ -76,7 +76,7 @@ internal fun MessageScreen(
         gestureTracker = gestureTracker,
         onCreated = { onCreated(it) },
         onDisposed = { onDisposed() },
-        onBackPressed = onBackPressed,
+        onBackPressed = onBackPressed
     )
 }
 

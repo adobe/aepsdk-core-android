@@ -22,14 +22,15 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.height
-import androidx.compose.ui.unit.width
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import com.adobe.marketing.mobile.services.ui.RestrictedConfigActivity
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
+import com.adobe.marketing.mobile.services.ui.message.DefaultInAppMessageEventHandler
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -103,6 +104,10 @@ class MessageScreenOrientationTests {
 
             MessageScreen(
                 presentationStateManager = presentationStateManager,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 inAppMessageSettings = settings,
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },

@@ -31,10 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
+import com.adobe.marketing.mobile.services.ui.message.DefaultInAppMessageEventHandler
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
 import com.adobe.marketing.mobile.services.ui.message.views.MessageScreenTestHelper.validateBounds
 import com.adobe.marketing.mobile.services.ui.message.views.MessageScreenTestHelper.validateMessageAppeared
 import com.adobe.marketing.mobile.services.ui.message.views.MessageScreenTestHelper.validateViewSize
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -77,6 +80,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = getSettings(false),
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -94,6 +101,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = getSettings(false),
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -125,6 +136,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = getSettings(false),
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -167,6 +182,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = getSettings(true),
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -198,6 +217,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = getSettings(true),
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -236,6 +259,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = getSettings(true),
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -277,6 +304,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = getSettings(false),
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -319,6 +350,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = getSettings(true),
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -376,6 +411,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = getSettings(false),
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -437,6 +476,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -490,6 +533,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -560,6 +607,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -629,6 +680,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -700,6 +755,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -770,6 +829,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -841,6 +904,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -914,6 +981,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -986,6 +1057,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -1058,6 +1133,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -1130,6 +1209,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -1204,6 +1287,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -1278,6 +1365,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -1352,6 +1443,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -1426,6 +1521,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },
@@ -1502,6 +1601,10 @@ class MessageScreenTests {
             MessageScreen(
                 presentationStateManager = presentationStateManager,
                 inAppMessageSettings = settings,
+                inAppMessageEventHandler = DefaultInAppMessageEventHandler(
+                    scriptHandlers = mutableMapOf(),
+                    mainScope = CoroutineScope(Dispatchers.Default)
+                ),
                 onCreated = { onCreatedCalled = true },
                 onDisposed = { onDisposedCalled = true },
                 onGestureDetected = { gesture -> detectedGestures.add(gesture) },

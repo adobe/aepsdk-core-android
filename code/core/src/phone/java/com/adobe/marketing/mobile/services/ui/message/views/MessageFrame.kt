@@ -93,25 +93,27 @@ internal fun MessageFrame(
     val density = LocalDensity.current
     val contentView = currentActivity.findViewById<View>(android.R.id.content)
     var contentHeightFromJs by remember { mutableStateOf(0) }
-    LaunchedEffect(Unit) {
-        suspendCoroutine<Int> { continuation ->
-            inAppMessageEventHandler.evaluateJavascript("getContentHeight();") { result ->
-                continuation.resume(result.toIntOrNull() ?: 0)
+    if (inAppMessageSettings?.fitToContent == true) {
+        LaunchedEffect(Unit) {
+            suspendCoroutine<Int> { continuation ->
+                inAppMessageEventHandler.evaluateJavascript("getContentHeight();") { result ->
+                    continuation.resume(result.toIntOrNull() ?: 0)
+                }
+            }.let { newHeight ->
+                contentHeightFromJs = newHeight
             }
-        }.let { newHeight ->
-            contentHeightFromJs = newHeight
         }
     }
     val contentHeightDp = with(density) { contentView.height.toDp() }
     val contentWidthDp = with(density) { contentView.width.toDp() }
-    val heightDp = remember(contentHeightFromJs) {
+    val heightDp = if (inAppMessageSettings?.fitToContent == true) remember(contentHeightFromJs) {
         mutableStateOf(
             maxDp(
                 contentHeightFromJs.dp,
                 contentHeightDp.getScaledParam(inAppMessageSettings.height)
             )
         )
-    }
+    } else remember { mutableStateOf(((contentHeightDp * inAppMessageSettings.height) / 100)) }
     val widthDp = remember { mutableStateOf(((contentWidthDp * inAppMessageSettings.width) / 100)) }
 
     val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
@@ -142,7 +144,7 @@ internal fun MessageFrame(
             modifier = Modifier
                 .fillMaxSize()
                 .onPlaced {
-                    // heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
+                    if (inAppMessageSettings?.fitToContent == false) heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
                     widthDp.value = with(density) { ((contentView.width.toDp() * inAppMessageSettings.width) / 100) }
                 }
                 .offset(x = horizontalOffset, y = verticalOffset)
@@ -199,7 +201,12 @@ internal fun MessageFrame(
                         }
                     )
             ) {
-                MessageContent(Modifier.height(heightDp.value).width(widthDp.value), inAppMessageSettings, onCreated)
+                MessageContent(
+                    Modifier
+                        .height(heightDp.value)
+                        .width(widthDp.value),
+                    inAppMessageSettings, onCreated
+                )
             }
 
             // This is a one-time effect that will be called when this composable is completely removed from the composition

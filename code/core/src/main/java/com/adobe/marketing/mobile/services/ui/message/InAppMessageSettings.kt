@@ -48,7 +48,8 @@ class InAppMessageSettings private constructor(
     val cornerRadius: Float,
     val shouldTakeOverUi: Boolean,
     val assetMap: Map<String, String>,
-    val gestureMap: Map<MessageGesture, String>
+    val gestureMap: Map<MessageGesture, String>,
+    val fitToContent: Boolean? = null
 ) {
     /** Enum representing Message alignment.  */
     enum class MessageAlignment {
@@ -95,6 +96,7 @@ class InAppMessageSettings private constructor(
         private var shouldTakeOverUi: Boolean = false
         private var assetMap: MutableMap<String, String> = mutableMapOf()
         private var gestures: MutableMap<MessageGesture, String> = mutableMapOf()
+        private var fitToContent: Boolean? = true
 
         /**
          * Sets the HTML content for the message.
@@ -219,7 +221,8 @@ class InAppMessageSettings private constructor(
             cornerRadius,
             shouldTakeOverUi,
             assetMap,
-            gestures
+            gestures,
+            fitToContent
         )
 
         private companion object {

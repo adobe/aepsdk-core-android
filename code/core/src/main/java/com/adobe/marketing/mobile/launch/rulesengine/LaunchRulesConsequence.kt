@@ -17,13 +17,20 @@ import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import com.adobe.marketing.mobile.internal.eventhub.history.toEventHistoryRequest
 import com.adobe.marketing.mobile.internal.util.EventDataMerger
+import com.adobe.marketing.mobile.internal.util.fnv1a32
 import com.adobe.marketing.mobile.internal.util.prettify
 import com.adobe.marketing.mobile.rulesengine.DelimiterPair
 import com.adobe.marketing.mobile.rulesengine.Template
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.EventDataUtils
+import com.adobe.marketing.mobile.util.MapUtils
+import com.adobe.marketing.mobile.util.StringUtils
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 internal class LaunchRulesConsequence(
     private val extensionApi: ExtensionApi
@@ -31,6 +38,7 @@ internal class LaunchRulesConsequence(
 
     private val logTag = "LaunchRulesConsequence"
     private var dispatchChainedEventsCount = mutableMapOf<String, Int>()
+
     companion object {
         private const val LAUNCH_RULE_TOKEN_LEFT_DELIMITER = "{%"
         private const val LAUNCH_RULE_TOKEN_RIGHT_DELIMITER = "%}"
@@ -39,6 +47,7 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_TYPE_DISPATCH = "dispatch"
         private const val CONSEQUENCE_DETAIL_ACTION_COPY = "copy"
         private const val CONSEQUENCE_DETAIL_ACTION_NEW = "new"
+        private const val CONSEQUENCE_TYPE_SCHEMA = "schema"
 
         // Do not process Dispatch consequence if chained event count is greater than max
         private const val MAX_CHAINED_CONSEQUENCE_COUNT = 1
@@ -48,6 +57,18 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_EVENT_DATA_KEY_DETAIL = "detail"
         private const val CONSEQUENCE_EVENT_DATA_KEY_CONSEQUENCE = "triggeredconsequence"
         private const val CONSEQUENCE_EVENT_NAME = "Rules Consequence Event"
+
+        // Event history operation constants
+        private const val CONSEQUENCE_SCHEMA_EVENT_HISTORY =
+            "https://ns.adobe.com/personalization/eventHistoryOperation"
+        private const val EVENT_HISTORY_OPERATION_KEY = "operation"
+        private const val EVENT_HISTORY_KEYS_KEY = "keys"
+        private const val EVENT_HISTORY_CONTENT_KEY = "content"
+        private const val EVENT_HISTORY_TOKEN_PREFIX = "~"
+        private const val CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT = "insert"
+        private const val CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS =
+            "insertIfNotExists"
+        private const val ASYNC_TIMEOUT = 1000L
     }
 
     /**
@@ -74,6 +95,7 @@ internal class LaunchRulesConsequence(
                         ) ?: continue
                         processedEvent = processedEvent.cloneWithEventData(attachedEventData)
                     }
+
                     CONSEQUENCE_TYPE_MOD -> {
                         val modifiedEventData = processModifyDataConsequence(
                             consequenceWithConcreteValue,
@@ -81,6 +103,7 @@ internal class LaunchRulesConsequence(
                         ) ?: continue
                         processedEvent = processedEvent.cloneWithEventData(modifiedEventData)
                     }
+
                     CONSEQUENCE_TYPE_DISPATCH -> {
                         if (dispatchChainCount >= MAX_CHAINED_CONSEQUENCE_COUNT) {
                             Log.warning(
@@ -103,10 +126,18 @@ internal class LaunchRulesConsequence(
                             "processDispatchConsequence - Dispatching event - ${dispatchEvent.uniqueIdentifier}"
                         )
                         extensionApi.dispatch(dispatchEvent)
-                        dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] = dispatchChainCount + 1
+                        dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] =
+                            dispatchChainCount + 1
                     }
+
+                    CONSEQUENCE_TYPE_SCHEMA -> {
+                        processSchemaConsequence(consequenceWithConcreteValue, processedEvent)
+                        continue
+                    }
+
                     else -> {
-                        val consequenceEvent = generateConsequenceEvent(consequenceWithConcreteValue, processedEvent)
+                        val consequenceEvent =
+                            generateConsequenceEvent(consequenceWithConcreteValue, processedEvent)
                         Log.trace(
                             LaunchRulesEngineConstants.LOG_TAG,
                             logTag,
@@ -146,7 +177,10 @@ internal class LaunchRulesConsequence(
      * @param tokenFinder [TokenFinder] instance which replaces the tokens with values
      * @return the [RuleConsequence] with replaced tokens
      */
-    private fun replaceToken(consequence: RuleConsequence, tokenFinder: TokenFinder): RuleConsequence {
+    private fun replaceToken(
+        consequence: RuleConsequence,
+        tokenFinder: TokenFinder
+    ): RuleConsequence {
         val tokenReplacedMap = replaceToken(consequence.detail, tokenFinder)
         return RuleConsequence(consequence.id, consequence.type, tokenReplacedMap)
     }
@@ -160,7 +194,10 @@ internal class LaunchRulesConsequence(
         }
     }
 
-    private fun replaceToken(detail: Map<String, Any?>?, tokenFinder: TokenFinder): Map<String, Any?>? {
+    private fun replaceToken(
+        detail: Map<String, Any?>?,
+        tokenFinder: TokenFinder
+    ): Map<String, Any?>? {
         if (detail.isNullOrEmpty()) {
             return null
         }
@@ -174,8 +211,12 @@ internal class LaunchRulesConsequence(
     private fun replaceToken(value: List<Any?>, tokenFinder: TokenFinder): List<Any?> {
         return value.map { replaceToken(it, tokenFinder) }
     }
+
     private fun replaceToken(value: String, tokenFinder: TokenFinder): String {
-        val template = Template(value, DelimiterPair(LAUNCH_RULE_TOKEN_LEFT_DELIMITER, LAUNCH_RULE_TOKEN_RIGHT_DELIMITER))
+        val template = Template(
+            value,
+            DelimiterPair(LAUNCH_RULE_TOKEN_LEFT_DELIMITER, LAUNCH_RULE_TOKEN_RIGHT_DELIMITER)
+        )
         return template.render(tokenFinder, LaunchRuleTransformer.createTransforming())
     }
 
@@ -189,7 +230,10 @@ internal class LaunchRulesConsequence(
      * @return [Map] with the [RuleConsequence] data attached to the triggering event data, or
      * null if the processing fails
      */
-    private fun processAttachDataConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Map<String, Any?>? {
+    private fun processAttachDataConsequence(
+        consequence: RuleConsequence,
+        eventData: Map<String, Any?>?
+    ): Map<String, Any?>? {
         val from = EventDataUtils.castFromGenericType(consequence.eventData) ?: run {
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,
@@ -227,7 +271,10 @@ internal class LaunchRulesConsequence(
      * @return [Map] with the Event data modified with the [RuleConsequence] data, or
      * null if the processing fails
      */
-    private fun processModifyDataConsequence(consequence: RuleConsequence, eventData: Map<String, Any?>?): Map<String, Any?>? {
+    private fun processModifyDataConsequence(
+        consequence: RuleConsequence,
+        eventData: Map<String, Any?>?
+    ): Map<String, Any?>? {
         val from = EventDataUtils.castFromGenericType(consequence.eventData) ?: run {
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,
@@ -262,7 +309,10 @@ internal class LaunchRulesConsequence(
      * @param parentEvent the triggering Event for which a consequence is being generated
      * @return a new [Event] to be dispatched to the [EventHub], or null if the processing failed.
      */
-    private fun processDispatchConsequence(consequence: RuleConsequence, parentEvent: Event): Event? {
+    private fun processDispatchConsequence(
+        consequence: RuleConsequence,
+        parentEvent: Event
+    ): Event? {
         val type = consequence.eventType ?: run {
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,
@@ -292,10 +342,12 @@ internal class LaunchRulesConsequence(
             CONSEQUENCE_DETAIL_ACTION_COPY -> {
                 dispatchEventData = parentEvent.eventData
             }
+
             CONSEQUENCE_DETAIL_ACTION_NEW -> {
                 val data = EventDataUtils.castFromGenericType(consequence.eventData)
                 dispatchEventData = data?.filterValues { it != null }
             }
+
             else -> {
                 Log.error(
                     LaunchRulesEngineConstants.LOG_TAG,
@@ -331,6 +383,202 @@ internal class LaunchRulesConsequence(
             .chainToParentEvent(parentEvent)
             .build()
     }
+
+    /**
+     * Process a schema consequence event.  Handles different schema types including event history operations.
+     *
+     * @param consequence the [RuleConsequence] which contains the schema details
+     * @param parentEvent the event that triggered the rule
+     */
+    private fun processSchemaConsequence(consequence: RuleConsequence, parentEvent: Event) {
+        if (StringUtils.isNullOrEmpty(consequence.detailId) ||
+            StringUtils.isNullOrEmpty(consequence.schema) ||
+            MapUtils.isNullOrEmpty(consequence.detailData)
+        ) {
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Unable to process Schema Consequence with id ${consequence.id}, 'id', 'schema' or 'data' is missing from 'details'"
+            )
+        }
+        when (consequence.schema) {
+            CONSEQUENCE_SCHEMA_EVENT_HISTORY -> {
+                processEventHistoryOperation(consequence, parentEvent)
+            }
+
+            else -> {
+                Log.warning(
+                    LaunchRulesEngineConstants.LOG_TAG,
+                    logTag,
+                    "Unable to process Schema Consequence with id ${consequence.id}, unsupported schema type ${consequence.schema}"
+                )
+            }
+        }
+    }
+
+    /**
+     * Process an event history operation consequence. Records events in the Event History database.
+     *
+     * @param consequence the [RuleConsequence] which contains the event history operation details
+     * @param parentEvent the event that triggered the rule
+     */
+    private fun processEventHistoryOperation(consequence: RuleConsequence, parentEvent: Event) {
+        val schemaData = consequence.detailData ?: run {
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Unable to process Event History operation consequence with id ${consequence.id}, 'data' is missing from 'details'"
+            )
+            return
+        }
+        val operation = schemaData[EVENT_HISTORY_OPERATION_KEY] ?: run {
+            Log.warning(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Unable to process Event History operation consequence with id ${consequence.id}, 'operation' is missing from 'details.data'"
+            )
+            return
+        }
+
+        val eventDataKeys = mutableListOf<String>()
+        val tokenKeys = mutableListOf<String>()
+
+        // Separate keys provided in `keys` as event data keys or token keys, based on the reserved prefix
+        val keys = DataReader.optStringList(schemaData, EVENT_HISTORY_KEYS_KEY, emptyList())
+        for (key in keys) {
+            if (key.startsWith(EVENT_HISTORY_TOKEN_PREFIX)) {
+                tokenKeys.add(key)
+            } else {
+                eventDataKeys.add(key)
+            }
+        }
+
+        // Wrap each token key value in the Rules Engine delimiter so they are resolved correctly as tokens
+        val tokenList = mutableMapOf<String, Any?>()
+        tokenKeys.forEach { tokenKey ->
+            tokenList[tokenKey] =
+                LAUNCH_RULE_TOKEN_LEFT_DELIMITER + tokenKey + LAUNCH_RULE_TOKEN_RIGHT_DELIMITER
+        }
+
+        val resolvedTokenList = replaceToken(
+            tokenList,
+            LaunchTokenFinder(parentEvent, extensionApi)
+        )
+
+        // Create the event data payload to be recorded into the event history, using the triggering event as the base
+        var recordEventHistoryData = parentEvent.eventData ?: emptyMap()
+
+        // Merge the resolved token dictionary
+        if (!resolvedTokenList.isNullOrEmpty()) {
+            recordEventHistoryData = EventDataMerger.merge(
+                from = resolvedTokenList,
+                to = recordEventHistoryData,
+                overwrite = true
+            )
+        }
+
+        // Create the final mask by combining the values from consequence properties:
+        // `keys` - Event data keys, token keys
+        // `content` - keys from the key value pairs
+        val maskData = mutableListOf<String>()
+        maskData.addAll(eventDataKeys)
+        maskData.addAll(tokenKeys)
+
+        // Merge the content key value pairs if available
+        // Note `content` doesn't need to be resolved here because it was already resolved by evaluateRules
+        val content =
+            DataReader.getStringMap(schemaData, EVENT_HISTORY_CONTENT_KEY)?.let { content ->
+                recordEventHistoryData = EventDataMerger.merge(
+                    from = content,
+                    to = recordEventHistoryData,
+                    overwrite = true
+                )
+                // Also add the keys from `content` into the final event key mask
+                maskData.addAll(content.keys)
+            }
+
+        // Create a new event with the final mask data
+        val eventToRecord = Event.Builder(
+            CONSEQUENCE_DISPATCH_EVENT_NAME,
+            EventType.RULES_ENGINE,
+            EventSource.RESPONSE_CONTENT
+        )
+            .setEventData(recordEventHistoryData)
+            .chainToParentEvent(parentEvent)
+            .build()
+
+        when (operation) {
+            CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT,
+            CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS -> {
+                // For INSERT_IF_NOT_EXISTS, check if the event exists first
+                if (operation == CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS) {
+                    val eventHash = eventToRecord.eventData.fnv1a32(maskData.toTypedArray())
+                    if (eventHash == 0L) {
+                        Log.warning(
+                            LaunchRulesEngineConstants.LOG_TAG,
+                            logTag,
+                            "Event History operation for id ${consequence.id} - Unable to process 'insertIfNotExists' operation, event hash is 0}"
+                        )
+                    }
+
+                    // Check if the event exists before inserting
+                    var eventCounts = 0
+                    eventToRecord.toEventHistoryRequest()?.let {
+                        try {
+                            val latch = CountDownLatch(1)
+                            extensionApi.getHistoricalEvents(
+                                arrayOf(it),
+                                false
+                            ) { count ->
+                                eventCounts = count
+                                latch.countDown()
+                            }
+                            latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
+                        } catch (e: Exception) {
+                            Log.warning(
+                                LaunchRulesEngineConstants.LOG_TAG,
+                                logTag,
+                                "Event History operation for id ${consequence.id} - Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
+                            )
+                        }
+                    }
+                    if (eventCounts >= 1) {
+                        Log.trace(
+                            LaunchRulesEngineConstants.LOG_TAG,
+                            logTag,
+                            "Event History operation for id ${consequence.id} - Event already exists in history, skipping 'insertIfNotExists' operation"
+                        )
+                        return
+                    }
+                }
+                Log.trace(
+                    LaunchRulesEngineConstants.LOG_TAG,
+                    logTag,
+                    "Event History operation for id ${consequence.id} - Recording event in history with operation '$operation'"
+                )
+
+                extensionApi.recordHistoricalEvent(
+                    eventToRecord
+                ) { result ->
+                    if (!result) {
+                        Log.trace(
+                            LaunchRulesEngineConstants.LOG_TAG,
+                            logTag,
+                            "Event History operation for id ${consequence.id} - Failed to record event in history with operation '$operation'"
+                        )
+                    }
+                }
+            }
+
+            else -> {
+                Log.warning(
+                    LaunchRulesEngineConstants.LOG_TAG,
+                    logTag,
+                    "Event History operation for id ${consequence.id} - Unsupported history operation '$operation'"
+                )
+            }
+        }
+    }
 }
 
 // Extend RuleConsequence with helper methods for processing consequence events.
@@ -345,3 +593,12 @@ private val RuleConsequence.eventType: String?
 
 private val RuleConsequence.eventDataAction: String?
     get() = detail?.get("eventdataaction") as? String
+
+private val RuleConsequence.detailId: String?
+    get() = detail?.get("id") as? String
+
+private val RuleConsequence.schema: String?
+    get() = detail?.get("schema") as? String
+
+private val RuleConsequence.detailData: Map<String, Any>?
+    get() = DataReader.getStringMap(detail, "data")

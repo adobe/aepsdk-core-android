@@ -285,4 +285,8 @@ internal class ExtensionContainer constructor(
     ) {
         EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler)
     }
+
+    override fun recordHistoricalEvent(event: Event, handler: EventHistoryResultHandler<Boolean>) {
+        EventHub.shared.eventHistory?.recordEvent(event, handler)
+    }
 }

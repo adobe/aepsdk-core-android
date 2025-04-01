@@ -185,4 +185,19 @@ public abstract class ExtensionApi {
             @NonNull EventHistoryRequest[] eventHistoryRequests,
             boolean enforceOrder,
             @NonNull EventHistoryResultHandler<Integer> handler);
+
+    /**
+     * Records an `Event` in the Event History database.
+     *
+     * <p>The event will be recorded based on its calculated hash. The hash is generated based on
+     * the provided event's data. The event's `mask` value, if provided, will filter what values in
+     * the event data are used for hash generation. If the hash value for the provided `event` is
+     * `0`, no record will be created in the database.
+     *
+     * @param event the {@link Event} to be recorded in the Event History database
+     * @param handler the {@link EventHistoryResultHandler} which returns a boolean indicating a
+     *     successful database insert
+     */
+    public abstract void recordHistoricalEvent(
+            @NonNull final Event event, @NonNull final EventHistoryResultHandler<Boolean> handler);
 }

@@ -398,7 +398,7 @@ internal class LaunchRulesConsequence(
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
-                "Unable to process Schema Consequence with id ${consequence.id}, 'id', 'schema' or 'data' is missing from 'details'"
+                "Unable to process Schema Consequence for consequence ${consequence.id}, 'id', 'schema' or 'data' is missing from 'details'"
             )
         }
         when (consequence.schema) {
@@ -410,7 +410,7 @@ internal class LaunchRulesConsequence(
                 Log.warning(
                     LaunchRulesEngineConstants.LOG_TAG,
                     logTag,
-                    "Unable to process Schema Consequence with id ${consequence.id}, unsupported schema type ${consequence.schema}"
+                    "Unable to process Schema Consequence for consequence ${consequence.id}, unsupported schema type ${consequence.schema}"
                 )
             }
         }
@@ -427,7 +427,7 @@ internal class LaunchRulesConsequence(
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
-                "Unable to process Event History operation consequence with id ${consequence.id}, 'data' is missing from 'details'"
+                "Unable to process eventHistoryOperation operation for consequence ${consequence.id}, 'data' is missing from 'details'"
             )
             return
         }
@@ -435,75 +435,30 @@ internal class LaunchRulesConsequence(
             Log.warning(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
-                "Unable to process Event History operation consequence with id ${consequence.id}, 'operation' is missing from 'details.data'"
+                "Unable to process eventHistoryOperation operation for consequence ${consequence.id}, 'operation' is missing from 'details.data'"
             )
             return
         }
 
-        val eventDataKeys = mutableListOf<String>()
-        val tokenKeys = mutableListOf<String>()
+        // Note `content` doesn't need to be resolved here because it was already resolved by LaunchRulesConsequence.process(event: Event, matchedRules: List<LaunchRule>)
+        val content = DataReader.optTypedMap(Any::class.java, schemaData, EVENT_HISTORY_CONTENT_KEY, emptyMap())
 
-        // Separate keys provided in `keys` as event data keys or token keys, based on the reserved prefix
-        val keys = DataReader.optStringList(schemaData, EVENT_HISTORY_KEYS_KEY, emptyList())
-        for (key in keys) {
-            if (key.startsWith(EVENT_HISTORY_TOKEN_PREFIX)) {
-                tokenKeys.add(key)
-            } else {
-                eventDataKeys.add(key)
-            }
-        }
-
-        // Wrap each token key value in the Rules Engine delimiter so they are resolved correctly as tokens
-        val tokenList = mutableMapOf<String, Any?>()
-        tokenKeys.forEach { tokenKey ->
-            tokenList[tokenKey] =
-                LAUNCH_RULE_TOKEN_LEFT_DELIMITER + tokenKey + LAUNCH_RULE_TOKEN_RIGHT_DELIMITER
-        }
-
-        val resolvedTokenList = replaceToken(
-            tokenList,
-            LaunchTokenFinder(parentEvent, extensionApi)
-        )
-
-        // Create the event data payload to be recorded into the event history, using the triggering event as the base
-        var recordEventHistoryData = parentEvent.eventData ?: emptyMap()
-
-        // Merge the resolved token dictionary
-        if (!resolvedTokenList.isNullOrEmpty()) {
-            recordEventHistoryData = EventDataMerger.merge(
-                from = resolvedTokenList,
-                to = recordEventHistoryData,
-                overwrite = true
+        if (content.isNullOrEmpty()) {
+            Log.warning(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Unable to process eventHistoryOperation operation for consequence ${consequence.id}, 'content' is either missing or improperly formatted in 'details.data'"
             )
+            return
         }
 
-        // Create the final mask by combining the values from consequence properties:
-        // `keys` - Event data keys, token keys
-        // `content` - keys from the key value pairs
-        val maskData = mutableListOf<String>()
-        maskData.addAll(eventDataKeys)
-        maskData.addAll(tokenKeys)
-
-        // Merge the content key value pairs if available
-        // Note `content` doesn't need to be resolved here because it was already resolved by evaluateRules
-        val content =
-            DataReader.getStringMap(schemaData, EVENT_HISTORY_CONTENT_KEY)?.let { content ->
-                recordEventHistoryData = EventDataMerger.merge(
-                    from = content,
-                    to = recordEventHistoryData,
-                    overwrite = true
-                )
-                // Also add the keys from `content` into the final event key mask
-                maskData.addAll(content.keys)
-            }
-
-        // Create a new event with the final mask data
+        // Create the event to record into history using the provided `content` data, and also dispatch as a rules consequence event
         val eventToRecord = Event.Builder(
             CONSEQUENCE_DISPATCH_EVENT_NAME,
             EventType.RULES_ENGINE,
             EventSource.RESPONSE_CONTENT
         )
-            .setEventData(recordEventHistoryData)
+            .setEventData(content)
             .chainToParentEvent(parentEvent)
             .build()
 

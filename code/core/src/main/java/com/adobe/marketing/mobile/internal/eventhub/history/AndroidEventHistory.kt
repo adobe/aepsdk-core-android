@@ -80,10 +80,10 @@ internal class AndroidEventHistory : EventHistory {
         executor.submit {
             var dbError = false
             var count = 0
-            var latestEventOccurrence: Long? = null
+            var previousEventOldestOccurrence: Long? = null
             eventHistoryRequests.forEachIndexed { index, request ->
                 val eventHash = request.maskAsDecimalHash
-                val adjustedFromDate = if (enforceOrder) request.adjustedFromDate(latestEventOccurrence) else request.fromDate
+                val adjustedFromDate = if (enforceOrder) request.adjustedFromDate(previousEventOldestOccurrence) else request.fromDate
                 val res = androidEventHistoryDatabase.query(eventHash, adjustedFromDate, request.adjustedToDate)
 
                 Log.debug(
@@ -108,8 +108,12 @@ internal class AndroidEventHistory : EventHistory {
                     return@forEachIndexed
                 }
 
-                latestEventOccurrence = res.newestTimeStamp
-                count += res.count
+                previousEventOldestOccurrence = res.oldestTimestamp
+                if (enforceOrder) {
+                    count++
+                } else {
+                    count += res.count
+                }
             }
 
             val result = when {

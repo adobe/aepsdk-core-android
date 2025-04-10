@@ -71,8 +71,8 @@ internal fun MessageScreen(
 
     Message(
         isVisible = presentationStateManager.visibilityState,
-        inAppMessageEventHandler = inAppMessageEventHandler,
         inAppMessageSettings = inAppMessageSettings,
+        inAppMessageEventHandler = inAppMessageEventHandler,
         gestureTracker = gestureTracker,
         onCreated = { onCreated(it) },
         onDisposed = { onDisposed() },

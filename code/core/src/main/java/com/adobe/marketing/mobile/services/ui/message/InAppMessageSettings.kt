@@ -96,7 +96,7 @@ class InAppMessageSettings private constructor(
         private var shouldTakeOverUi: Boolean = false
         private var assetMap: MutableMap<String, String> = mutableMapOf()
         private var gestures: MutableMap<MessageGesture, String> = mutableMapOf()
-        private var fitToContent: Boolean? = true
+        private var fitToContent: Boolean? = null
 
         /**
          * Sets the HTML content for the message.

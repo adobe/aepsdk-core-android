@@ -88,6 +88,55 @@ class AndroidEventHistoryTests {
     }
 
     @Test
+    fun testGetEventsWithEnforceOrderSuccessWithMultipleIdenticalEvents() {
+        val data = mapOf("key" to "value")
+        assertTrue(record(data, 5000))
+
+        val data1 = mapOf("key1" to "value1")
+        assertTrue(record(data1, 10000))
+
+        val data2 = mapOf("key2" to "value2")
+        assertTrue(record(data2, 15000))
+
+        assertTrue(record(data, 20000))
+
+        assertTrue(record(data, 30000))
+
+        val requests = arrayOf(
+            EventHistoryRequest(data, 0, 0),
+            EventHistoryRequest(data1, 0, 0),
+            EventHistoryRequest(data2, 0, 0)
+        )
+
+        // if enforceOrder == true, 1 denotes success satisfying all event history requests
+        assertEquals(1, query(requests, true))
+    }
+
+    @Test
+    fun testGetEventsWithEnforceOrderFailureWithMultipleIdenticalEvents() {
+        val data = mapOf("key" to "value")
+        assertTrue(record(data, 5000))
+
+        val data1 = mapOf("key1" to "value1")
+        assertTrue(record(data1, 10000))
+
+        val data2 = mapOf("key2" to "value2")
+
+        assertTrue(record(data, 20000))
+
+        assertTrue(record(data, 30000))
+
+        val requests = arrayOf(
+            EventHistoryRequest(data, 0, 0),
+            EventHistoryRequest(data1, 0, 0),
+            EventHistoryRequest(data2, 0, 0)
+        )
+
+        // if enforceOrder == true, 0 denotes failure looking all event history requests
+        assertEquals(0, query(requests, true))
+    }
+
+    @Test
     fun testGetEventsWithEnforceOrderOverlappingTimestamp() {
         val data = mapOf("key" to "value")
         assertTrue(record(data, 10000))

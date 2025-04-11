@@ -25,7 +25,7 @@ import com.adobe.marketing.mobile.internal.util.flattening
 internal fun Event.toEventHistoryRequest(
     from: Long = 0,
     to: Long = 0
-): EventHistoryRequest? {
+): EventHistoryRequest {
     val flattenedData = eventData.flattening()
 
     // Filter the flattened data based on mask if provided
@@ -35,7 +35,7 @@ internal fun Event.toEventHistoryRequest(
         flattenedData.filter { maskSet.contains(it.key) }
     } else {
         // If no mask is provided, no operation should occur
-        return null
+        flattenedData
     }
 
     return EventHistoryRequest(filteredData, from, to)

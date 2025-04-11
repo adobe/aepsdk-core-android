@@ -467,7 +467,7 @@ internal class LaunchRulesConsequence(
             CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS -> {
                 // For INSERT_IF_NOT_EXISTS, check if the event exists first
                 if (operation == CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS) {
-                    val eventHash = eventToRecord.eventData.fnv1a32(maskData.toTypedArray())
+                    val eventHash = eventToRecord.eventData.fnv1a32()
                     if (eventHash == 0L) {
                         Log.warning(
                             LaunchRulesEngineConstants.LOG_TAG,
@@ -478,24 +478,22 @@ internal class LaunchRulesConsequence(
 
                     // Check if the event exists before inserting
                     var eventCounts = 0
-                    eventToRecord.toEventHistoryRequest()?.let {
-                        try {
-                            val latch = CountDownLatch(1)
-                            extensionApi.getHistoricalEvents(
-                                arrayOf(it),
-                                false
-                            ) { count ->
-                                eventCounts = count
-                                latch.countDown()
-                            }
-                            latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
-                        } catch (e: Exception) {
-                            Log.warning(
-                                LaunchRulesEngineConstants.LOG_TAG,
-                                logTag,
-                                "Event History operation for id ${consequence.id} - Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
-                            )
+                    try {
+                        val latch = CountDownLatch(1)
+                        extensionApi.getHistoricalEvents(
+                            arrayOf(eventToRecord.toEventHistoryRequest()),
+                            false
+                        ) { count ->
+                            eventCounts = count
+                            latch.countDown()
                         }
+                        latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
+                    } catch (e: Exception) {
+                        Log.warning(
+                            LaunchRulesEngineConstants.LOG_TAG,
+                            logTag,
+                            "Event History operation for id ${consequence.id} - Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
+                        )
                     }
                     if (eventCounts >= 1) {
                         Log.trace(
@@ -515,11 +513,13 @@ internal class LaunchRulesConsequence(
                 extensionApi.recordHistoricalEvent(
                     eventToRecord
                 ) { result ->
-                    if (!result) {
+                    if (result) {
+                        extensionApi.dispatch(eventToRecord)
+                    } else {
                         Log.trace(
                             LaunchRulesEngineConstants.LOG_TAG,
                             logTag,
-                            "Event History operation for id ${consequence.id} - Failed to record event in history with operation '$operation'"
+                            "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation'"
                         )
                     }
                 }

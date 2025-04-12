@@ -400,6 +400,7 @@ internal class LaunchRulesConsequence(
                 logTag,
                 "Unable to process Schema Consequence for consequence ${consequence.id}, 'id', 'schema' or 'data' is missing from 'details'"
             )
+            return
         }
         when (consequence.schema) {
             CONSEQUENCE_SCHEMA_EVENT_HISTORY -> {
@@ -441,7 +442,7 @@ internal class LaunchRulesConsequence(
         }
 
         // Note `content` doesn't need to be resolved here because it was already resolved by LaunchRulesConsequence.process(event: Event, matchedRules: List<LaunchRule>)
-        val content = DataReader.optTypedMap(Any::class.java, schemaData, EVENT_HISTORY_CONTENT_KEY, emptyMap())
+        val content = DataReader.getTypedMap(Any::class.java, schemaData, EVENT_HISTORY_CONTENT_KEY)
 
         if (content.isNullOrEmpty()) {
             Log.warning(
@@ -494,6 +495,7 @@ internal class LaunchRulesConsequence(
                             logTag,
                             "Event History operation for id ${consequence.id} - Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
                         )
+                        return
                     }
                     if (eventCounts >= 1) {
                         Log.trace(
@@ -556,4 +558,4 @@ private val RuleConsequence.schema: String?
     get() = detail?.get("schema") as? String
 
 private val RuleConsequence.detailData: Map<String, Any>?
-    get() = DataReader.getStringMap(detail, "data")
+    get() = DataReader.getTypedMap(Any::class.java, detail, "data")

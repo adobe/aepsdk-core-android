@@ -26,7 +26,7 @@ internal fun Event.toEventHistoryRequest(
     from: Long = 0,
     to: Long = 0
 ): EventHistoryRequest {
-    val flattenedData = eventData.flattening()
+    val flattenedData = eventData?.flattening() ?: emptyMap()
 
     // Filter the flattened data based on mask if provided
     val filteredData: Map<String, Any?> = if (!mask.isNullOrEmpty()) {

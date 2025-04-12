@@ -152,5 +152,17 @@ public class ExtensionContainerJavaTests {
                         testExtensionInstance
                                 .getExtensionApi()
                                 .getHistoricalEvents(new EventHistoryRequest[0], true, null));
+
+        // Record Historical events
+        assertThrows(
+                NullPointerException.class,
+                () -> testExtensionInstance.getExtensionApi().recordHistoricalEvent(null, e -> {}));
+
+        assertThrows(
+                NullPointerException.class,
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .recordHistoricalEvent(testEvent, null));
     }
 }

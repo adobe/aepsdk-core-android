@@ -121,6 +121,9 @@ public class TestableExtensionApi extends ExtensionApi {
             boolean enforceOrder,
             @NonNull EventHistoryResultHandler<Integer> handler) {}
 
+    @Override
+    public void recordHistoricalEvent(@NonNull Event event, @NonNull EventHistoryResultHandler<Boolean> handler) {}
+
     /**
      * Ignores the events from being dispatched by event hub.
      *

@@ -28,7 +28,7 @@ internal object MessageScreenTestHelper {
      * Validates the size of the view bounds with the given height and width
      */
     internal fun validateViewSize(viewBounds: DpRect, height: Dp, width: Dp) {
-        viewBounds.height.assertIsEqualTo(height, "failed", Dp(16f))
+        viewBounds.height.assertIsEqualTo(height, "failed", Dp(2f))
         viewBounds.width.assertIsEqualTo(width, "failed", Dp(2f))
     }
 

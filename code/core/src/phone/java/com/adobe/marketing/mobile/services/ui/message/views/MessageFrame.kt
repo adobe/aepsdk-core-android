@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
-import com.adobe.marketing.mobile.services.ui.message.InAppMessageEventHandler
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAlignmentMapper
 import com.adobe.marketing.mobile.services.ui.message.mapping.MessageAnimationMapper
@@ -65,7 +64,6 @@ import com.adobe.marketing.mobile.services.ui.message.mapping.MessageOffsetMappe
 internal fun MessageFrame(
     visibility: MutableTransitionState<Boolean>,
     inAppMessageSettings: InAppMessageSettings,
-    inAppMessageEventHandler: InAppMessageEventHandler,
     gestureTracker: GestureTracker,
     onCreated: (WebView) -> Unit,
     onDisposed: () -> Unit
@@ -119,8 +117,9 @@ internal fun MessageFrame(
             modifier = Modifier
                 .fillMaxSize()
                 .onPlaced {
-                    if (inAppMessageSettings.fitToContent == false) {
-                        heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
+                    if (!inAppMessageSettings.fitToContent) {
+                        heightDp.value =
+                            with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
                     }
                     widthDp.value =
                         with(density) { ((contentView.width.toDp() * inAppMessageSettings.width) / 100) }
@@ -184,9 +183,18 @@ internal fun MessageFrame(
                         .height(heightDp.value)
                         .width(widthDp.value),
                     inAppMessageSettings,
-                    inAppMessageEventHandler,
-                    onHeightReceived = { height ->
-                        if (inAppMessageSettings.fitToContent == true) heightDp.value = height.dp
+                    onHeightReceived = { heightFromJs ->
+                        if (inAppMessageSettings.fitToContent) {
+                            val newHeight = heightFromJs?.toIntOrNull()?.dp
+                            heightDp.value = newHeight ?: run {
+                                Log.warning(
+                                    ServiceConstants.LOG_TAG,
+                                    "MessageFrame",
+                                    "Invalid height value received: $heightFromJs. Falling back to ${heightDp.value}"
+                                )
+                                heightDp.value
+                            }
+                        }
                     },
                     onCreated
                 )

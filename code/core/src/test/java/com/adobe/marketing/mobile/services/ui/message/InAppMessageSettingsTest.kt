@@ -198,6 +198,7 @@ class InAppMessageSettingsTest {
             .backdropOpacity(0.5f)
             .cornerRadius(10.0f)
             .shouldTakeOverUi(true)
+            .setFitToContent(true)
             .assetMap(mapOf("key1" to "value1"))
             .gestureMap(mapOf("swipeUp" to "adbinapp//dismiss"))
             .build()
@@ -215,6 +216,7 @@ class InAppMessageSettingsTest {
         assertEquals(0.5f, iamSettings.backdropOpacity)
         assertEquals(10.0f, iamSettings.cornerRadius)
         assertTrue(iamSettings.shouldTakeOverUi)
+        assertTrue(iamSettings.fitToContent)
         assertEquals("value1", iamSettings.assetMap["key1"])
         assertEquals(
             mapOf(InAppMessageSettings.MessageGesture.SWIPE_UP to "adbinapp//dismiss"),

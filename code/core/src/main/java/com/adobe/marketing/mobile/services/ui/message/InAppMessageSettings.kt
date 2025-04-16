@@ -49,7 +49,7 @@ class InAppMessageSettings private constructor(
     val shouldTakeOverUi: Boolean,
     val assetMap: Map<String, String>,
     val gestureMap: Map<MessageGesture, String>,
-    val fitToContent: Boolean? = null
+    val fitToContent: Boolean
 ) {
     /** Enum representing Message alignment.  */
     enum class MessageAlignment {
@@ -96,7 +96,7 @@ class InAppMessageSettings private constructor(
         private var shouldTakeOverUi: Boolean = false
         private var assetMap: MutableMap<String, String> = mutableMapOf()
         private var gestures: MutableMap<MessageGesture, String> = mutableMapOf()
-        private var fitToContent: Boolean? = null
+        private var fitToContent: Boolean = false
 
         /**
          * Sets the HTML content for the message.
@@ -183,6 +183,13 @@ class InAppMessageSettings private constructor(
          */
         fun shouldTakeOverUi(shouldTakeOverUi: Boolean) =
             apply { this.shouldTakeOverUi = shouldTakeOverUi }
+
+        /**
+         * Configures whether the message set to fit to content.
+         * @param fitToContent whether the message should fit to the content. Should be set to true if the message should fit to content, false otherwise.
+         */
+        fun setFitToContent(fitToContent: Boolean) =
+            apply { this.fitToContent = fitToContent }
 
         /**
          * Sets the asset map for the message. This is a map of asset names to asset URLs.

@@ -9,9 +9,10 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.internal.eventhub.history
+package com.adobe.marketing.mobile.util
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.internal.util.toEventHistoryRequest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith

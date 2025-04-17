@@ -187,4 +187,27 @@ class EventHistoryIntegrationTests {
         assertTrue(latch.await(WAIT_TIME_MILLIS, java.util.concurrent.TimeUnit.MILLISECONDS))
         assertEquals(1, getEventHistoryResult(arrayOf(validReq), false))
     }
+
+    @Test
+    fun testRecordHistoricalEventNoMask() {
+        // hashed string will be "key:value,key2:value2,numeric:552"
+        val eventData = mapOf<String, Any>("key" to "value", "key2" to "value2", "numeric" to 552)
+        val event = Event.Builder("name", "type", "source")
+            .setEventData(eventData)
+            .build()
+
+        val validReq = EventHistoryRequest(
+            eventData,
+            0,
+            System.currentTimeMillis()
+        )
+
+        val latch = CountDownLatch(1)
+        MockExtension.extensionApi?.recordHistoricalEvent(event) { result ->
+            assertEquals(result, true)
+            latch.countDown()
+        }
+        assertTrue(latch.await(WAIT_TIME_MILLIS, java.util.concurrent.TimeUnit.MILLISECONDS))
+        assertEquals(1, getEventHistoryResult(arrayOf(validReq), false))
+    }
 }

@@ -17,18 +17,16 @@ import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
-import com.adobe.marketing.mobile.internal.eventhub.history.toEventHistoryRequest
 import com.adobe.marketing.mobile.internal.util.EventDataMerger
 import com.adobe.marketing.mobile.internal.util.fnv1a32
 import com.adobe.marketing.mobile.internal.util.prettify
+import com.adobe.marketing.mobile.internal.util.toEventHistoryRequest
 import com.adobe.marketing.mobile.rulesengine.DelimiterPair
 import com.adobe.marketing.mobile.rulesengine.Template
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.DataReader
 import com.adobe.marketing.mobile.util.EventDataUtils
-import com.adobe.marketing.mobile.util.MapUtils
-import com.adobe.marketing.mobile.util.StringUtils
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -62,9 +60,7 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_SCHEMA_EVENT_HISTORY =
             "https://ns.adobe.com/personalization/eventHistoryOperation"
         private const val EVENT_HISTORY_OPERATION_KEY = "operation"
-        private const val EVENT_HISTORY_KEYS_KEY = "keys"
         private const val EVENT_HISTORY_CONTENT_KEY = "content"
-        private const val EVENT_HISTORY_TOKEN_PREFIX = "~"
         private const val CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT = "insert"
         private const val CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS =
             "insertIfNotExists"
@@ -391,9 +387,9 @@ internal class LaunchRulesConsequence(
      * @param parentEvent the event that triggered the rule
      */
     private fun processSchemaConsequence(consequence: RuleConsequence, parentEvent: Event) {
-        if (StringUtils.isNullOrEmpty(consequence.detailId) ||
-            StringUtils.isNullOrEmpty(consequence.schema) ||
-            MapUtils.isNullOrEmpty(consequence.detailData)
+        if (consequence.detailId.isNullOrBlank() ||
+            consequence.schema.isNullOrBlank() ||
+            consequence.detailData.isNullOrEmpty()
         ) {
             Log.error(
                 LaunchRulesEngineConstants.LOG_TAG,
@@ -402,18 +398,14 @@ internal class LaunchRulesConsequence(
             )
             return
         }
-        when (consequence.schema) {
-            CONSEQUENCE_SCHEMA_EVENT_HISTORY -> {
-                processEventHistoryOperation(consequence, parentEvent)
-            }
-
-            else -> {
-                Log.warning(
-                    LaunchRulesEngineConstants.LOG_TAG,
-                    logTag,
-                    "Unable to process Schema Consequence for consequence ${consequence.id}, unsupported schema type ${consequence.schema}"
-                )
-            }
+        if (consequence.schema == CONSEQUENCE_SCHEMA_EVENT_HISTORY) {
+            processEventHistoryOperation(consequence, parentEvent)
+        } else {
+            Log.warning(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Unable to process Schema Consequence for consequence ${consequence.id}, unsupported schema type ${consequence.schema}"
+            )
         }
     }
 
@@ -432,7 +424,7 @@ internal class LaunchRulesConsequence(
             )
             return
         }
-        val operation = schemaData[EVENT_HISTORY_OPERATION_KEY] ?: run {
+        val operation = DataReader.optString(schemaData, EVENT_HISTORY_OPERATION_KEY, "") ?: run {
             Log.warning(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
@@ -442,7 +434,8 @@ internal class LaunchRulesConsequence(
         }
 
         // Note `content` doesn't need to be resolved here because it was already resolved by LaunchRulesConsequence.process(event: Event, matchedRules: List<LaunchRule>)
-        val content = DataReader.getTypedMap(Any::class.java, schemaData, EVENT_HISTORY_CONTENT_KEY)
+        val content =
+            DataReader.optTypedMap(Any::class.java, schemaData, EVENT_HISTORY_CONTENT_KEY, null)
 
         if (content.isNullOrEmpty()) {
             Log.warning(
@@ -463,75 +456,74 @@ internal class LaunchRulesConsequence(
             .chainToParentEvent(parentEvent)
             .build()
 
-        when (operation) {
-            CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT,
-            CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS -> {
-                // For INSERT_IF_NOT_EXISTS, check if the event exists first
-                if (operation == CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS) {
-                    val eventHash = eventToRecord.eventData.fnv1a32()
-                    if (eventHash == 0L) {
-                        Log.warning(
-                            LaunchRulesEngineConstants.LOG_TAG,
-                            logTag,
-                            "Event History operation for id ${consequence.id} - Unable to process 'insertIfNotExists' operation, event hash is 0}"
-                        )
-                    }
-
-                    // Check if the event exists before inserting
-                    var eventCounts = 0
-                    try {
-                        val latch = CountDownLatch(1)
-                        extensionApi.getHistoricalEvents(
-                            arrayOf(eventToRecord.toEventHistoryRequest()),
-                            false
-                        ) { count ->
-                            eventCounts = count
-                            latch.countDown()
-                        }
-                        latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
-                    } catch (e: Exception) {
-                        Log.warning(
-                            LaunchRulesEngineConstants.LOG_TAG,
-                            logTag,
-                            "Event History operation for id ${consequence.id} - Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
-                        )
-                        return
-                    }
-                    if (eventCounts >= 1) {
-                        Log.trace(
-                            LaunchRulesEngineConstants.LOG_TAG,
-                            logTag,
-                            "Event History operation for id ${consequence.id} - Event already exists in history, skipping 'insertIfNotExists' operation"
-                        )
-                        return
-                    }
-                }
-                Log.trace(
-                    LaunchRulesEngineConstants.LOG_TAG,
-                    logTag,
-                    "Event History operation for id ${consequence.id} - Recording event in history with operation '$operation'"
-                )
-
-                extensionApi.recordHistoricalEvent(
-                    eventToRecord
-                ) { result ->
-                    if (result) {
-                        extensionApi.dispatch(eventToRecord)
-                    } else {
-                        Log.trace(
-                            LaunchRulesEngineConstants.LOG_TAG,
-                            logTag,
-                            "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation'"
-                        )
-                    }
-                }
-            }
-
-            else -> {
+        if (!(
+            operation == CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT ||
+                operation == CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS
+            )
+        ) {
+            Log.warning(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Event History operation for id ${consequence.id} - Unsupported history operation '$operation'"
+            )
+            return
+        }
+        // For INSERT_IF_NOT_EXISTS, check if the event exists first
+        if (operation == CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS) {
+            val eventHash = eventToRecord.eventData.fnv1a32()
+            if (eventHash == 0L) {
                 Log.warning(
                     LaunchRulesEngineConstants.LOG_TAG,
                     logTag,
-                    "Event History operation for id ${consequence.id} - Unsupported history operation '$operation'"
+                    "Event History operation for id ${consequence.id} - Unable to process 'insertIfNotExists' operation, event hash is 0}"
+                )
+            }
+
+            // Check if the event exists before inserting
+            var eventCounts = 0
+            try {
+                val latch = CountDownLatch(1)
+                extensionApi.getHistoricalEvents(
+                    arrayOf(eventToRecord.toEventHistoryRequest()),
+                    false
+                ) { count ->
+                    eventCounts = count
+                    latch.countDown()
+                }
+                latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
+            } catch (e: Exception) {
+                Log.warning(
+                    LaunchRulesEngineConstants.LOG_TAG,
+                    logTag,
+                    "Event History operation for id ${consequence.id} - Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
+                )
+                return
+            }
+            if (eventCounts >= 1) {
+                Log.trace(
+                    LaunchRulesEngineConstants.LOG_TAG,
+                    logTag,
+                    "Event History operation for id ${consequence.id} - Event already exists in history, skipping 'insertIfNotExists' operation"
+                )
+                return
+            }
+        }
+        Log.trace(
+            LaunchRulesEngineConstants.LOG_TAG,
+            logTag,
+            "Event History operation for id ${consequence.id} - Recording event in history with operation '$operation'"
+        )
+
+        extensionApi.recordHistoricalEvent(
+            eventToRecord
+        ) { result ->
+            if (result) {
+                extensionApi.dispatch(eventToRecord)
+            } else {
+                Log.trace(
+                    LaunchRulesEngineConstants.LOG_TAG,
+                    logTag,
+                    "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation'"
                 )
             }
         }
@@ -558,4 +550,4 @@ private val RuleConsequence.schema: String?
     get() = detail?.get("schema") as? String
 
 private val RuleConsequence.detailData: Map<String, Any>?
-    get() = DataReader.getTypedMap(Any::class.java, detail, "data")
+    get() = DataReader.optTypedMap(Any::class.java, detail, "data", null)

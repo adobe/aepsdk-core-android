@@ -9,11 +9,10 @@
   governing permissions and limitations under the License.
 */
 
-package com.adobe.marketing.mobile.internal.eventhub.history
+package com.adobe.marketing.mobile.internal.util
 
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
-import com.adobe.marketing.mobile.internal.util.flattening
 
 /**
  * Creates an [EventHistoryRequest] from this event.
@@ -29,12 +28,12 @@ internal fun Event.toEventHistoryRequest(
     val flattenedData = eventData?.flattening() ?: emptyMap()
 
     // Filter the flattened data based on mask if provided
-    val filteredData: Map<String, Any?> = if (!mask.isNullOrEmpty()) {
+    val filteredData: Map<String, Any?> = if (mask != null) {
         // Convert mask array to a set for O(1) lookups
         val maskSet = mask.toSet()
         flattenedData.filter { maskSet.contains(it.key) }
     } else {
-        // If no mask is provided, no operation should occur
+        // If no mask is provided, use all the data
         flattenedData
     }
 

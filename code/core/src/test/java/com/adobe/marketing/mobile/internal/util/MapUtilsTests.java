@@ -266,7 +266,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, new String[] {});
         // verify flattened map string "a:1b:2"
-        final long expectedHash = 3371500665L;
+        final long expectedHash = 0L;
         assertEquals(expectedHash, hash);
     }
 

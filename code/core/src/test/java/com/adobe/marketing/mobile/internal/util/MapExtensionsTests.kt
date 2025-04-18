@@ -309,6 +309,49 @@ class MapExtensionsTests {
     }
 
     @Test
+    fun `test fnv1a32 - mask is null`() {
+        val eventData = mapOf(
+            "key" to "value"
+        )
+        val hashCode = eventData.fnv1a32(null)
+        assertEquals(4007910315, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - mask is empty`() {
+        val eventData = mapOf(
+            "key" to "value"
+        )
+        val hashCode = eventData.fnv1a32(emptyArray())
+        assertEquals(0, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - event data is empty`() {
+        val eventData = emptyMap<String, Any>()
+        val hashCode = eventData.fnv1a32(emptyArray())
+        assertEquals(0, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - event data has null value`() {
+        val eventData = mapOf(
+            "key" to null
+        )
+        val hashCode = eventData.fnv1a32(emptyArray())
+        assertEquals(0, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - event data has empty value`() {
+        val eventData = mapOf(
+            "key" to ""
+        )
+        val hashCode = eventData.fnv1a32(emptyArray())
+        assertEquals(0, hashCode)
+    }
+
+    @Test
     fun `test fnv1a32 - get keys Ascii sorted`() {
         val hashCode1 = mapOf(
             "key" to "value",

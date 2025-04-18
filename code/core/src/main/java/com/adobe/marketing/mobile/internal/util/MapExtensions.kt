@@ -24,10 +24,7 @@ import org.json.JSONObject
 internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
     val flattenedMap = this.flattening()
     val kvPairs = StringBuilder()
-    var innerMasks = masks
-    // TODO: This differs from iOS implementation where all keys are added only if map is null, not when its empty
-    if (innerMasks?.isEmpty() == true) innerMasks = null
-    innerMasks?.let {
+    masks?.let {
         it.sortedArray().forEach { mask ->
             if (mask.isNotEmpty() && !flattenedMap[mask].isNullOrEmptyString()) {
                 kvPairs.append(mask).append(":").append(flattenedMap[mask].toString())

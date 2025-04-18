@@ -391,7 +391,7 @@ internal class LaunchRulesConsequence(
             consequence.schema.isNullOrBlank() ||
             consequence.detailData.isNullOrEmpty()
         ) {
-            Log.error(
+            Log.warning(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
                 "Unable to process Schema Consequence for consequence ${consequence.id}, 'id', 'schema' or 'data' is missing from 'details'"
@@ -417,7 +417,7 @@ internal class LaunchRulesConsequence(
      */
     private fun processEventHistoryOperation(consequence: RuleConsequence, parentEvent: Event) {
         val schemaData = consequence.detailData ?: run {
-            Log.error(
+            Log.warning(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
                 "Unable to process eventHistoryOperation operation for consequence ${consequence.id}, 'data' is missing from 'details'"
@@ -520,7 +520,7 @@ internal class LaunchRulesConsequence(
             if (result) {
                 extensionApi.dispatch(eventToRecord)
             } else {
-                Log.trace(
+                Log.warning(
                     LaunchRulesEngineConstants.LOG_TAG,
                     logTag,
                     "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation'"

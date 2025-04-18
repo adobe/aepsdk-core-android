@@ -475,7 +475,7 @@ internal class LaunchRulesConsequence(
                 Log.warning(
                     LaunchRulesEngineConstants.LOG_TAG,
                     logTag,
-                    "Event History operation for id ${consequence.id} - Unable to process 'insertIfNotExists' operation, event hash is 0}"
+                    "Event History operation for id ${consequence.id} - Unable to process 'insertIfNotExists' operation, event hash is 0"
                 )
             }
 

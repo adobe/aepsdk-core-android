@@ -110,7 +110,7 @@ public class LaunchRulesEngine {
             return event;
         }
 
-        if (!cachedEvents.isEmpty() && isProcessCachedRulesEvent(event)) {
+        if (!cachedEvents.isEmpty() && shouldProcessCachedEvents(event)) {
             reprocessCachedEvents();
         }
 
@@ -119,7 +119,7 @@ public class LaunchRulesEngine {
         return launchRulesConsequence.process(event, matchedRules);
     }
 
-    private boolean isProcessCachedRulesEvent(final Event event) {
+    private boolean shouldProcessCachedEvents(final Event event) {
         return EventType.RULES_ENGINE.equals(event.getType())
                 && EventSource.REQUEST_RESET.equals(event.getSource())
                 && name.equals(DataReader.optString(event.getEventData(), RULES_ENGINE_NAME, ""));

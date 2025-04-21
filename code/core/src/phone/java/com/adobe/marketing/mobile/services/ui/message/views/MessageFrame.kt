@@ -184,16 +184,15 @@ internal fun MessageFrame(
                         .width(widthDp.value),
                     inAppMessageSettings,
                     onHeightReceived = { heightFromJs ->
-                        if (!inAppMessageSettings.fitToContent) {
-                            return@MessageContent
+                        if (inAppMessageSettings.fitToContent) {
+                            heightFromJs?.toIntOrNull()?.dp?.let { heightFromJsInDp ->
+                                heightDp.value = heightFromJsInDp
+                            } ?: Log.warning(
+                                ServiceConstants.LOG_TAG,
+                                "MessageFrame",
+                                "Invalid height value received: $heightFromJs"
+                            )
                         }
-                        heightFromJs?.toIntOrNull()?.dp?.let { heightFromJsInDp ->
-                            heightDp.value = heightFromJsInDp
-                        } ?: Log.warning(
-                            ServiceConstants.LOG_TAG,
-                            "MessageFrame",
-                            "Invalid height value received: $heightFromJs"
-                        )
                     },
                     onCreated
                 )

@@ -24,6 +24,7 @@ import com.adobe.marketing.mobile.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LaunchRulesEngine {
 
@@ -33,7 +34,7 @@ public class LaunchRulesEngine {
     private final ExtensionApi extensionApi;
     private final LaunchRulesConsequence launchRulesConsequence;
     private final List<Event> cachedEvents = new ArrayList<>();
-    private boolean initialRulesReceived = false;
+    private final AtomicBoolean initialRulesReceived = new AtomicBoolean(false);
 
     public LaunchRulesEngine(@NonNull final String name, @NonNull final ExtensionApi extensionApi) {
         this(
@@ -70,7 +71,7 @@ public class LaunchRulesEngine {
         if (rules == null) return;
 
         ruleRulesEngine.replaceRules(rules);
-
+        initialRulesReceived.compareAndSet(false, true);
         // send a reset request event for the current LaunchRulesEngine
         final Event dispatchEvent =
                 new Event.Builder(name, EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
@@ -102,15 +103,26 @@ public class LaunchRulesEngine {
             throw new IllegalArgumentException("Cannot evaluate null event.");
         }
 
-        final List<LaunchRule> matchedRules =
-                ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
-
         // if initial rule set has not been received, cache the event to be processed
         // when rules are set
-        if (!initialRulesReceived) {
-            handleCaching(event);
+        if (!initialRulesReceived.get()) {
+            cachedEvents.add(event);
+            return event;
         }
+
+        if (!cachedEvents.isEmpty() && isReevaluateRulesEvent(event)) {
+            reprocessCachedEvents();
+        }
+
+        final List<LaunchRule> matchedRules =
+                ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
         return launchRulesConsequence.process(event, matchedRules);
+    }
+
+    private boolean isReevaluateRulesEvent(final Event event) {
+        return EventType.RULES_ENGINE.equals(event.getType())
+                && EventSource.REQUEST_RESET.equals(event.getSource())
+                && name.equals(DataReader.optString(event.getEventData(), RULES_ENGINE_NAME, ""));
     }
 
     /**
@@ -149,18 +161,5 @@ public class LaunchRulesEngine {
         }
         // clear cached events and set the flag to indicate that rules were set at least once
         cachedEvents.clear();
-        initialRulesReceived = true;
-    }
-
-    private void handleCaching(final Event event) {
-        // If this is an event to start processing of cachedEvents reprocess cached events
-        // otherwise, add the event to cachedEvents till rules are set
-        if (EventType.RULES_ENGINE.equals(event.getType())
-                && EventSource.REQUEST_RESET.equals(event.getSource())
-                && name.equals(DataReader.optString(event.getEventData(), RULES_ENGINE_NAME, ""))) {
-            reprocessCachedEvents();
-        } else {
-            cachedEvents.add(event);
-        }
     }
 }

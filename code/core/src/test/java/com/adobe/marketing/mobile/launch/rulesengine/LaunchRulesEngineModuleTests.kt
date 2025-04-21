@@ -34,8 +34,10 @@ import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.verify
+import java.util.concurrent.CountDownLatch
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchRulesEngineModuleTests {
@@ -588,15 +590,15 @@ class LaunchRulesEngineModuleTests {
             )
         }
         assertEquals(10, launchRulesEngine.cachedEventCount)
-
+        launchRulesEngine.replaceRules(listOf<LaunchRule>())
         // simulate incidence of reset event with a different name
         val differentEngineResetEvent = Event.Builder("SomeOtherEngineName", EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
             .setEventData(mapOf(LaunchRulesEngine.RULES_ENGINE_NAME to "SomeOtherEngineName"))
             .build()
-        launchRulesEngine.processEvent(differentEngineResetEvent)
 
+        launchRulesEngine.processEvent(differentEngineResetEvent)
         // 10 cached events and this unmatched event is treated as any other event
-        assertEquals(11, launchRulesEngine.cachedEventCount)
+        assertEquals(10, launchRulesEngine.cachedEventCount)
 
         // incidence of reset event with correct name
         val thisEngineResetEvent = Event.Builder("TestLaunchRulesEngine", EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
@@ -720,5 +722,85 @@ class LaunchRulesEngineModuleTests {
         launchRulesEngine.replaceRules(null)
         Mockito.verifyNoInteractions(extensionApi)
         assertEquals(10, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Test thread safety between replaceRules and processEvent`() {
+        // add this test for the bug fix: https://github.com/adobe/aepsdk-core-android/issues/678
+        // Set up CountDownLatch to coordinate between threads
+        val rulesReplacedLatch = CountDownLatch(1)
+        val eventsProcessedLatch = CountDownLatch(1)
+
+        // Mock components needed to track interactions
+        val mockRulesEngine: RulesEngine<LaunchRule> = mock(RulesEngine::class.java) as RulesEngine<LaunchRule>
+        val mockLaunchRulesConsequence = mock(LaunchRulesConsequence::class.java)
+        val testEngine = LaunchRulesEngine(
+            "TestThreadSafetyEngine",
+            extensionApi,
+            mockRulesEngine,
+            mockLaunchRulesConsequence
+        )
+
+        // Create events to process
+        val events = (1..30).map {
+            Event.Builder("event-$it", "type", "source").build()
+        }
+
+        // The events should be cached when rules are not set
+        events.take(5).forEach { event ->
+            testEngine.processEvent(event)
+        }
+        // Verify events are cached before rules are set
+        assertEquals(5, testEngine.cachedEventCount)
+
+        verify(mockRulesEngine, Mockito.times(0))
+            .evaluate(any())
+
+        // Capture the reset event that will be dispatched
+        val resetEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+
+        // Thread 1: Process events (some before rules are set, some after)
+        val eventProcessingThread = Thread {
+            // Process remaining events - these should not be cached
+            events.drop(5).forEach { event ->
+                testEngine.processEvent(event)
+                Thread.sleep(1)
+            }
+            eventsProcessedLatch.countDown()
+        }
+
+        // Thread 2: Replace rules
+        val rulesReplacementThread = Thread {
+            // Replace rules - this should dispatch a reset event
+            val rules = listOf<LaunchRule>()
+            testEngine.replaceRules(rules)
+            // Signal that rules have been replaced
+            rulesReplacedLatch.countDown()
+        }
+
+        // Start both threads
+        eventProcessingThread.start()
+        rulesReplacementThread.start()
+
+        rulesReplacedLatch.await()
+        eventsProcessedLatch.await()
+
+        val cachedEvents = testEngine.cachedEventCount
+        assertTrue(cachedEvents >= 5)
+        // Verify the reset event was dispatched
+        verify(extensionApi, Mockito.times(1)).dispatch(resetEventCaptor.capture())
+        val resetEvent = resetEventCaptor.firstValue
+        assertNotNull(resetEvent)
+        assertEquals(EventType.RULES_ENGINE, resetEvent.type)
+        assertEquals(EventSource.REQUEST_RESET, resetEvent.source)
+
+        // Process the reset event to trigger cached events reevaluation
+        testEngine.processEvent(resetEvent)
+
+        // Verify that there are no more cached events
+        assertEquals(0, testEngine.cachedEventCount)
+        // Verify the cached events were processed
+        verify(mockRulesEngine, Mockito.times(events.size + 1))
+            .evaluate(any())
     }
 }

@@ -803,4 +803,138 @@ class LaunchRulesEngineModuleTests {
         verify(mockRulesEngine, Mockito.times(events.size + 1))
             .evaluate(any())
     }
+
+    @Test
+    fun `Do not reprocess cached events on a reset event when cache is empty`() {
+        // Set up mock components to track interactions
+        val mockRulesEngine: RulesEngine<LaunchRule> = mock(RulesEngine::class.java) as RulesEngine<LaunchRule>
+        val mockLaunchRulesConsequence = mock(LaunchRulesConsequence::class.java)
+        val testEngine = LaunchRulesEngine(
+            "TestLaunchRulesEngine",
+            extensionApi,
+            mockRulesEngine,
+            mockLaunchRulesConsequence
+        )
+
+        // Initialize rules (setting initialRulesReceived to true)
+        testEngine.replaceRules(listOf())
+
+        // Verify no cached events
+        assertEquals(0, testEngine.cachedEventCount)
+
+        // Create and process a reset event for this engine
+        val resetEvent = Event.Builder("TestLaunchRulesEngine", EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
+            .setEventData(mapOf(LaunchRulesEngine.RULES_ENGINE_NAME to "TestLaunchRulesEngine"))
+            .build()
+
+        // Process the reset event
+        testEngine.processEvent(resetEvent)
+
+        // Verify that the evaluate method was called only once (for the reset event itself)
+        // and not for any cached events (since there are none)
+        verify(mockRulesEngine, Mockito.times(1)).evaluate(any())
+
+        // Verify cached events count remains at 0
+        assertEquals(0, testEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Do not reprocess cached events on an event with incorrect type`() {
+        // Setup cached events
+        repeat(5) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$it", "type", "source").build()
+            )
+        }
+        assertEquals(5, launchRulesEngine.cachedEventCount)
+
+        // Initialize rules
+        launchRulesEngine.replaceRules(listOf())
+
+        // Create an event with correct name and source but INCORRECT TYPE
+        val incorrectTypeEvent = Event.Builder("TestLaunchRulesEngine", "INCORRECT_TYPE", EventSource.REQUEST_RESET)
+            .setEventData(mapOf(LaunchRulesEngine.RULES_ENGINE_NAME to "TestLaunchRulesEngine"))
+            .build()
+
+        // Process the event
+        launchRulesEngine.processEvent(incorrectTypeEvent)
+
+        // Cached events should not be processed
+        assertEquals(5, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Do not reprocess cached events on an event with incorrect source`() {
+        // Setup cached events
+        repeat(5) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$it", "type", "source").build()
+            )
+        }
+        assertEquals(5, launchRulesEngine.cachedEventCount)
+
+        // Initialize rules
+        launchRulesEngine.replaceRules(listOf())
+
+        // Create an event with correct name and type but INCORRECT SOURCE
+        val incorrectSourceEvent = Event.Builder("TestLaunchRulesEngine", EventType.RULES_ENGINE, "INCORRECT_SOURCE")
+            .setEventData(mapOf(LaunchRulesEngine.RULES_ENGINE_NAME to "TestLaunchRulesEngine"))
+            .build()
+
+        // Process the event
+        launchRulesEngine.processEvent(incorrectSourceEvent)
+
+        // Cached events should not be processed
+        assertEquals(5, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Do not reprocess cached events on an event with missing name in event data`() {
+        // Setup cached events
+        repeat(5) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$it", "type", "source").build()
+            )
+        }
+        assertEquals(5, launchRulesEngine.cachedEventCount)
+
+        // Initialize rules
+        launchRulesEngine.replaceRules(listOf())
+
+        // Create an event with correct type and source but MISSING NAME in event data
+        val missingNameEvent = Event.Builder("TestLaunchRulesEngine", EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
+            .setEventData(mapOf("some_other_key" to "some_value"))
+            .build()
+
+        // Process the event
+        launchRulesEngine.processEvent(missingNameEvent)
+
+        // Cached events should not be processed
+        assertEquals(5, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Do not reprocess cached events on an event with incorrect name in event data`() {
+        // Setup cached events
+        repeat(5) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$it", "type", "source").build()
+            )
+        }
+        assertEquals(5, launchRulesEngine.cachedEventCount)
+
+        // Initialize rules
+        launchRulesEngine.replaceRules(listOf())
+
+        // Create an event with correct type and source but INCORRECT NAME in event data
+        val incorrectNameEvent = Event.Builder("TestLaunchRulesEngine", EventType.RULES_ENGINE, EventSource.REQUEST_RESET)
+            .setEventData(mapOf(LaunchRulesEngine.RULES_ENGINE_NAME to "IncorrectEngineName"))
+            .build()
+
+        // Process the event
+        launchRulesEngine.processEvent(incorrectNameEvent)
+
+        // Cached events should not be processed
+        assertEquals(5, launchRulesEngine.cachedEventCount)
+    }
 }

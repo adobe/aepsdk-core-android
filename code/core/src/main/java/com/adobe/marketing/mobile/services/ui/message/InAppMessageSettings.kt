@@ -86,6 +86,7 @@ class InAppMessageSettings private constructor(
         private var content: String = ""
         private var width: Int = 100
         // If no maxWidth is provided, use Int.MAX_VALUE to ensure its value will not be used
+        // because messageWidth = min(contentViewWidth * width / 100, maxWidth)
         private var maxWidth: Int = Int.MAX_VALUE
         private var height: Int = 100
         private var verticalInset: Int = 0

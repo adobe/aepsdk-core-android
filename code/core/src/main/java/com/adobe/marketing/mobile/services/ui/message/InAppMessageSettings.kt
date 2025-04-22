@@ -16,6 +16,7 @@ package com.adobe.marketing.mobile.services.ui.message
  *
  * @param content the HTML content for the message
  * @param width the width of the message as a percentage of the screen width
+ * @param maxWidth the maximum width of the message displayed in pixels
  * @param height the height of the message as a percentage of the screen height
  * @param verticalInset the vertical inset of the message. This is the padding from the top and bottom of the screen
  * expressed as a percentage of the screen height
@@ -36,6 +37,7 @@ package com.adobe.marketing.mobile.services.ui.message
 class InAppMessageSettings private constructor(
     val content: String,
     val width: Int,
+    val maxWidth: Int,
     val height: Int,
     val verticalInset: Int,
     val horizontalInset: Int,
@@ -83,6 +85,9 @@ class InAppMessageSettings private constructor(
     class Builder {
         private var content: String = ""
         private var width: Int = 100
+        // If no maxWidth is provided, use Int.MAX_VALUE to ensure its value will not be used
+        // because messageWidth = min(contentViewWidth * width / 100, maxWidth)
+        private var maxWidth: Int = Int.MAX_VALUE
         private var height: Int = 100
         private var verticalInset: Int = 0
         private var horizontalInset: Int = 0
@@ -109,6 +114,12 @@ class InAppMessageSettings private constructor(
          * @param width the width of the message as a percentage of the screen width
          */
         fun width(width: Int) = apply { this.width = clipToPercent(width) }
+
+        /**
+         * Sets the maximum width of the message displayed in pixels.
+         * @param maxWidth the maximum width of the message in pixels
+         */
+        fun maxWidth(maxWidth: Int) = apply { this.maxWidth = maxWidth }
 
         /**
          * Sets the height of the message as a percentage of the screen height.
@@ -188,7 +199,7 @@ class InAppMessageSettings private constructor(
          * Configures whether the message set to fit to content.
          * @param fitToContent whether the message should fit to the content. Should be set to true if the message should fit to content, false otherwise.
          */
-        fun setFitToContent(fitToContent: Boolean) =
+        fun shouldFitToContent(fitToContent: Boolean) =
             apply { this.fitToContent = fitToContent }
 
         /**
@@ -216,6 +227,7 @@ class InAppMessageSettings private constructor(
         fun build() = InAppMessageSettings(
             content,
             width,
+            maxWidth,
             height,
             verticalInset,
             horizontalInset,

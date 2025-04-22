@@ -582,7 +582,7 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
 
-        // Message Content(WebView) is 100% of height and 50px in width
+        // Message Content(WebView) is 100% of height and 50px wide which is specified max width
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         validateViewSize(contentBounds, messageContentHeightDp, messageContentWidthDp)
@@ -639,7 +639,7 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
 
-        // Message Content(WebView) is 95% of the screen height and 50px in width
+        // Message Content(WebView) is 95% of the screen height and 50px wide which is specified max width
         // If the height exceeds what is allowed by the activity (due to actionbar), it takes up the full height of the activity
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
@@ -707,7 +707,7 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
 
-        // Message Content(WebView) is 95% of the screen height and 50px in width
+        // Message Content(WebView) is 95% of the screen height and widthPercentage% of the screen width
         // If the height exceeds what is allowed by the activity (due to actionbar), it takes up the full height of the activity
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
@@ -1810,7 +1810,7 @@ class MessageScreenTests {
             rootBounds.right + widthOffsetDp
         )
 
-        // Content is bottom aligned vertically and offset upwards and centered horizontally and is 50px in width
+        // Content is bottom aligned vertically and offset upwards and centered horizontally and takes up 50px specified max width
         validateBounds(
             contentBounds,
             rootBounds.bottom - messageContentHeightDp - heightOffsetDp, // top bound is the bottom bound of the root minus content height offset upwards by the inset value

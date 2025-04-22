@@ -514,7 +514,7 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
 
-        // Message Content(WebView) is 95% of the screen height and heightPercent% of the screen width.
+        // Message Content(WebView) is 95% of the screen height and widthPercentage% of the screen width.
         // If the height exceeds what is allowed by the activity (due to actionbar), it takes up the full height of the activity
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
@@ -582,7 +582,7 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
 
-        // Message Content(WebView) is 100% of height and width, as allowed by the activity
+        // Message Content(WebView) is 100% of height and 50px in width
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         validateViewSize(contentBounds, messageContentHeightDp, messageContentWidthDp)
@@ -639,7 +639,7 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
 
-        // Message Content(WebView) is 95% of the screen height and heightPercent% of the screen width.
+        // Message Content(WebView) is 95% of the screen height and 50px in width
         // If the height exceeds what is allowed by the activity (due to actionbar), it takes up the full height of the activity
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
@@ -657,6 +657,75 @@ class MessageScreenTests {
             )
         }
     }
+
+    @Test
+    fun testMessageScreenSizeWhenMaxWidthIsLargerThanPercentageWidth() {
+        val heightPercentage = 95
+        val widthPercentage = 60
+        val maxWidth = 5000
+        val settings = InAppMessageSettings.Builder()
+            .height(heightPercentage)
+            .width(widthPercentage)
+            .maxWidth(maxWidth)
+            .content(HTML_TEXT_SAMPLE)
+            .build()
+
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        composeTestRule.setContent { // setting our composable as content for test
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
+
+        // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
+
+        // Message Content(WebView) is 95% of the screen height and 50px in width
+        // If the height exceeds what is allowed by the activity (due to actionbar), it takes up the full height of the activity
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
+        if ((contentViewHeightDp * (heightPercentage / 100f)) > messageContentHeightDp) {
+            validateViewSize(
+                contentBounds,
+                messageContentHeightDp,
+                contentViewWidthDp * (widthPercentage / 100f)
+            )
+        } else {
+            validateViewSize(
+                contentBounds,
+                contentViewHeightDp * (heightPercentage / 100f),
+                contentViewWidthDp * (widthPercentage / 100f)
+            )
+        }
+    }
+
 
     // ----------------------------------------------------------------------------------------------
     // Test cases for alignment
@@ -1741,7 +1810,7 @@ class MessageScreenTests {
             rootBounds.right + widthOffsetDp
         )
 
-        // Content is bottom aligned vertically and offset upwards and centered horizontally and takes 80% of screen width
+        // Content is bottom aligned vertically and offset upwards and centered horizontally and is 50px in width
         validateBounds(
             contentBounds,
             rootBounds.bottom - messageContentHeightDp - heightOffsetDp, // top bound is the bottom bound of the root minus content height offset upwards by the inset value

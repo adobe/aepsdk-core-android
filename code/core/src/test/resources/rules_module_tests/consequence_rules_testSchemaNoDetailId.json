@@ -22,6 +22,7 @@
       },
       "consequences": [
         {
+          "id": "test-id",
           "type": "schema",
           "detail": {
             "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",

@@ -387,9 +387,9 @@ internal class LaunchRulesConsequence(
      * @param parentEvent the event that triggered the rule
      */
     private fun processSchemaConsequence(consequence: RuleConsequence, parentEvent: Event) {
-        if (consequence.detailId.isNullOrBlank() ||
-            consequence.schema.isNullOrBlank() ||
-            consequence.detailData.isNullOrEmpty()
+        if (consequence.detailId == null ||
+            consequence.schema == null ||
+            consequence.detailData == null
         ) {
             Log.warning(
                 LaunchRulesEngineConstants.LOG_TAG,
@@ -416,7 +416,8 @@ internal class LaunchRulesConsequence(
      * @param parentEvent the event that triggered the rule
      */
     private fun processEventHistoryOperation(consequence: RuleConsequence, parentEvent: Event) {
-        val schemaData = consequence.detailData ?: run {
+        val schemaData = consequence.detailData
+        if (schemaData.isNullOrEmpty()) {
             Log.warning(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
@@ -424,7 +425,8 @@ internal class LaunchRulesConsequence(
             )
             return
         }
-        val operation = DataReader.optString(schemaData, EVENT_HISTORY_OPERATION_KEY, "") ?: run {
+        val operation = DataReader.optString(schemaData, EVENT_HISTORY_OPERATION_KEY, "")
+        if (operation.isNullOrBlank()) {
             Log.warning(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
@@ -468,17 +470,18 @@ internal class LaunchRulesConsequence(
             )
             return
         }
+
+        val eventHash = eventToRecord.eventData.fnv1a32()
+        if (eventHash == 0L) {
+            Log.warning(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Event History operation for id ${consequence.id} - event hash is 0"
+            )
+        }
+
         // For INSERT_IF_NOT_EXISTS, check if the event exists first
         if (operation == CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS) {
-            val eventHash = eventToRecord.eventData.fnv1a32()
-            if (eventHash == 0L) {
-                Log.warning(
-                    LaunchRulesEngineConstants.LOG_TAG,
-                    logTag,
-                    "Event History operation for id ${consequence.id} - Unable to process 'insertIfNotExists' operation, event hash is 0"
-                )
-            }
-
             // Check if the event exists before inserting
             var eventCounts = 0
             try {
@@ -496,6 +499,14 @@ internal class LaunchRulesConsequence(
                     LaunchRulesEngineConstants.LOG_TAG,
                     logTag,
                     "Event History operation for id ${consequence.id} - Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
+                )
+                return
+            }
+            if (eventCounts == -1) {
+                Log.trace(
+                    LaunchRulesEngineConstants.LOG_TAG,
+                    logTag,
+                    "Event History operation for id ${consequence.id} - Unable to retrieve historical events due to database error, skipping 'insertIfNotExists' operation"
                 )
                 return
             }

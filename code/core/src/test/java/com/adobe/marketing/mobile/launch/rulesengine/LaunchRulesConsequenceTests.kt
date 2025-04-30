@@ -1167,7 +1167,7 @@ class LaunchRulesConsequenceTests {
         // Given: a launch rule with an invalid event history operation
         //    ---------- schema event rule ----------
         //        "detail": {
-        //          "id": "",
+        //          "id": null,
         //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
         //          "data": {
         //              "operation": "insert",
@@ -1291,6 +1291,7 @@ class LaunchRulesConsequenceTests {
         //    ---------- schema event rule ----------
         //        "detail": {
         //          "id": "test-id",
+        //          "schema": null,
         //          "data": {
         //              "operation": "insert",
         //              "content": {
@@ -1413,6 +1414,7 @@ class LaunchRulesConsequenceTests {
         //        "detail": {
         //          "id": "test-id",
         //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": null
         //        }
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryNullSchemaDetailData.json")
@@ -1499,6 +1501,7 @@ class LaunchRulesConsequenceTests {
         //          "id": "test-id",
         //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
         //          "data": {
+        //              "operation": null,
         //              "content": {
         //                  "key1": "value1"
         //              }
@@ -1623,7 +1626,8 @@ class LaunchRulesConsequenceTests {
         //          "id": "test-id",
         //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
         //          "data": {
-        //              "operation": "insert"
+        //              "operation": "insert",
+        //              "content": null
         //          }
         //        }
         //    --------------------------------------

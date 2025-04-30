@@ -136,15 +136,6 @@ internal object MigrationConstants {
 
         object MobileServices {
             const val DATASTORE_NAME = "ADBMobileServices"
-            const val DEFAULTS_KEY_INSTALLDATE = "ADMS_Legacy_InstallDate"
-            const val REFERRER_DATA_JSON_STRING = "ADMS_Referrer_ContextData_Json_String"
-            const val SHARED_PREFERENCES_BLACK_LIST = "messagesBlackList"
-            const val DEFAULTS_KEY_REFERRER_UTM_SOURCE = "utm_source"
-            const val DEFAULTS_KEY_REFERRER_UTM_MEDIUM = "utm_medium"
-            const val DEFAULTS_KEY_REFERRER_UTM_TERM = "utm_term"
-            const val DEFAULTS_KEY_REFERRER_UTM_CONTENT = "utm_content"
-            const val DEFAULTS_KEY_REFERRER_UTM_CAMPAIGN = "utm_campaign"
-            const val DEFAULTS_KEY_REFERRER_TRACKINGCODE = "trackingcode"
         }
 
         object Identity {

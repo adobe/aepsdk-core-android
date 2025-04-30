@@ -56,7 +56,6 @@ class V4MigratorTests {
             V5.Target.DATASTORE_NAME,
             V5.Identity.DATASTORE_NAME,
             V5.Configuration.DATASTORE_NAME,
-            V5.MobileServices.DATASTORE_NAME,
             V5.Lifecycle.DATASTORE_NAME
         )
         stores.forEach {
@@ -227,52 +226,7 @@ class V4MigratorTests {
             .getNamedCollection(V5.Target.DATASTORE_NAME)
         Assert.assertEquals("tntid", v5Target.getString(V5.Target.TNT_ID, null))
         Assert.assertEquals("3rdpartyid", v5Target.getString(V5.Target.THIRD_PARTY_ID, null))
-        val v5MobileServices = ServiceProvider.getInstance()
-            .dataStoreService
-            .getNamedCollection(V5.MobileServices.DATASTORE_NAME)
-        Assert.assertEquals(
-            "utm_source",
-            v5MobileServices.getString(
-                V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_SOURCE,
-                null
-            )
-        )
-        Assert.assertEquals(
-            "utm_medium",
-            v5MobileServices.getString(
-                V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_MEDIUM,
-                null
-            )
-        )
-        Assert.assertEquals(
-            "utm_term",
-            v5MobileServices.getString(V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_TERM, null)
-        )
-        Assert.assertEquals(
-            "utm_content",
-            v5MobileServices.getString(
-                V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_CONTENT,
-                null
-            )
-        )
-        Assert.assertEquals(
-            "utm_campaign",
-            v5MobileServices.getString(
-                V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_CAMPAIGN,
-                null
-            )
-        )
-        Assert.assertEquals(
-            "trackingcode",
-            v5MobileServices.getString(
-                V5.MobileServices.DEFAULTS_KEY_REFERRER_TRACKINGCODE,
-                null
-            )
-        )
-        Assert.assertEquals(
-            "blacklist",
-            v5MobileServices.getString(V5.MobileServices.SHARED_PREFERENCES_BLACK_LIST, null)
-        )
+
         val v5Configuration = ServiceProvider.getInstance()
             .dataStoreService
             .getNamedCollection(V5.Configuration.DATASTORE_NAME)

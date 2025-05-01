@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventHistoryResultHandler
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
@@ -628,7 +629,8 @@ class LaunchRulesConsequenceTests {
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to not be called max allowed chained events is 1
-        val matchedRulesDDispatchedEvent = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        val matchedRulesDDispatchedEvent =
+            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
         launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDDispatchedEvent
@@ -693,7 +695,8 @@ class LaunchRulesConsequenceTests {
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchedEvent = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        val matchedRulesDispatchedEvent =
+            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
         launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
@@ -714,7 +717,8 @@ class LaunchRulesConsequenceTests {
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchedEvent2 = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        val matchedRulesDispatchedEvent2 =
+            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
         launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent2
@@ -779,7 +783,8 @@ class LaunchRulesConsequenceTests {
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchedEvent = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        val matchedRulesDispatchedEvent =
+            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
         launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent
@@ -802,7 +807,8 @@ class LaunchRulesConsequenceTests {
 
         // Process dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchedEvent2 = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
+        val matchedRulesDispatchedEvent2 =
+            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.value, extensionApi))
         launchRulesConsequence.process(
             dispatchedEventCaptor.value,
             matchedRulesDispatchedEvent2
@@ -896,7 +902,8 @@ class LaunchRulesConsequenceTests {
             .build()
 
         // Process original event; dispatch chain count = 0
-        val matchedRulesEdgeRequestEvent = rulesEngine.evaluate(LaunchTokenFinder(eventEdgeRequest, extensionApi))
+        val matchedRulesEdgeRequestEvent =
+            rulesEngine.evaluate(LaunchTokenFinder(eventEdgeRequest, extensionApi))
         launchRulesConsequence.process(
             eventEdgeRequest,
             matchedRulesEdgeRequestEvent
@@ -907,7 +914,8 @@ class LaunchRulesConsequenceTests {
         assertEquals(eventEdgeRequest.uniqueIdentifier, dispatchedEventCaptor1.value.parentID)
 
         // Process launch event
-        val matchedRulesLaunchEvent = rulesEngine.evaluate(LaunchTokenFinder(eventLaunch, extensionApi))
+        val matchedRulesLaunchEvent =
+            rulesEngine.evaluate(LaunchTokenFinder(eventLaunch, extensionApi))
         launchRulesConsequence.process(eventLaunch, matchedRulesLaunchEvent)
         val dispatchedEventCaptor2: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
@@ -919,7 +927,8 @@ class LaunchRulesConsequenceTests {
 
         // Process first dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchEvent1 = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor1.value, extensionApi))
+        val matchedRulesDispatchEvent1 =
+            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor1.value, extensionApi))
         launchRulesConsequence.process(
             dispatchedEventCaptor1.value,
             matchedRulesDispatchEvent1
@@ -927,7 +936,8 @@ class LaunchRulesConsequenceTests {
 
         // Process second dispatched event; dispatch chain count = 1
         // Expect dispatch to fail as max allowed chained events is 1
-        val matchedRulesDispatchEvent2 = rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor2.value, extensionApi))
+        val matchedRulesDispatchEvent2 =
+            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor2.value, extensionApi))
         launchRulesConsequence.process(
             dispatchedEventCaptor2.value,
             matchedRulesDispatchEvent2
@@ -1016,7 +1026,12 @@ class LaunchRulesConsequenceTests {
         // Process dispatched event 1, expect 0 dispatch events
         // chain count = 1, which is max chained events
         val matchedRulesDispatchEvent1 =
-            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.allValues[0], extensionApi))
+            rulesEngine.evaluate(
+                LaunchTokenFinder(
+                    dispatchedEventCaptor.allValues[0],
+                    extensionApi
+                )
+            )
         launchRulesConsequence.process(
             dispatchedEventCaptor.allValues[0],
             matchedRulesDispatchEvent1
@@ -1026,7 +1041,12 @@ class LaunchRulesConsequenceTests {
         // Process dispatched event 2, expect 0 dispatch events
         // chain count = 1, which is max chained events
         val matchedRulesDispatchEvent2 =
-            rulesEngine.evaluate(LaunchTokenFinder(dispatchedEventCaptor.allValues[1], extensionApi))
+            rulesEngine.evaluate(
+                LaunchTokenFinder(
+                    dispatchedEventCaptor.allValues[1],
+                    extensionApi
+                )
+            )
         launchRulesConsequence.process(
             dispatchedEventCaptor.allValues[1],
             matchedRulesDispatchEvent2
@@ -1108,6 +1128,900 @@ class LaunchRulesConsequenceTests {
         val detail = data?.get("detail") as Map<*, *>?
         assertEquals("url", data?.get("type"))
         assertEquals("http://www.adobe.com/a=x y", detail?.get("url"))
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail id doesn't exist`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {
+        //                  "key1": "value1",
+        //                  "key2": "value2"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaNoDetailId.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail id Is Null`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": null,
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {
+        //                  "key1": "value1",
+        //                  "key2": "value2"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaNullDetailId.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched due to lookup failure
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail id Is Empty`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {
+        //                  "key1": "value1",
+        //                  "key2": "value2"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEmptyDetailId.json")
+
+        `when`(extensionApi.recordHistoricalEvent(any(), any<EventHistoryResultHandler<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as EventHistoryResultHandler<Boolean>
+            callback.call(true)
+        }
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should be recorded and dispatched
+        val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        val recordResultCaptor: ArgumentCaptor<EventHistoryResultHandler<Boolean>> =
+            ArgumentCaptor.forClass(EventHistoryResultHandler::class.java) as ArgumentCaptor<EventHistoryResultHandler<Boolean>>
+
+        verify(extensionApi).recordHistoricalEvent(
+            recordedEventCaptor.capture(),
+            recordResultCaptor.capture()
+        )
+
+        // Verify recorded event properties
+        assertEquals("Dispatch Consequence Result", recordedEventCaptor.value.name)
+        assertEquals("com.adobe.eventType.rulesEngine", recordedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.responseContent", recordedEventCaptor.value.source)
+        assertEquals(
+            mapOf("key1" to "value1", "key2" to "value2"),
+            recordedEventCaptor.value.eventData
+        )
+
+        // Verify event dispatch after successful recording
+        val dispatchedEventCaptor: ArgumentCaptor<Event> =
+            ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(recordedEventCaptor.value, dispatchedEventCaptor.value)
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail schema doesn't exist`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {
+        //                  "key1": "value1"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaNoDetailSchema.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail schema Is Null`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": null,
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {
+        //                  "key1": "value1"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaNullDetailSchema.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail schema Is Empty`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {
+        //                  "key1": "value1"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEmptyDetailSchema.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail schema Is Invalid`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/invalidSchema",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {
+        //                  "key1": "value1"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaInvalidDetailSchema.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail data doesn't exist`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryNoSchemaDetailData.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail data Is Null`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": null
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryNullSchemaDetailData.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When detail data Is Empty`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {}
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryEmptySchemaDetailData.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When Operation doesn't exist`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "content": {
+        //                  "key1": "value1"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryNoOperation.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When Operation Is Null`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": null,
+        //              "content": {
+        //                  "key1": "value1"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryNullOperation.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When Operation Is Empty`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "",
+        //              "content": {
+        //                  "key1": "value1"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryEmptyOperation.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When Operation Is Invalid`() {
+        // Given: a launch rule with an invalid event history operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "invalid_operation",
+        //              "content": {
+        //                  "key1": "value1"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInvalidOperation.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When Content doesn't exist`() {
+        // Given: a launch rule with an event history insert operation but missing content
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insert"
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertNoContent.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When Content Is Null`() {
+        // Given: a launch rule with an event history insert operation but missing content
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": null
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertNullContent.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When Content Is Empty`() {
+        // Given: a launch rule with an event history insert operation but missing content
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {}
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertEmptyContent.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation`() {
+        // Given: a launch rule with an event history insert operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {
+        //                  "key1": "value1",
+        //                  "key2": "value2"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsert.json")
+
+        `when`(extensionApi.recordHistoricalEvent(any(), any<EventHistoryResultHandler<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as EventHistoryResultHandler<Boolean>
+            callback.call(true)
+        }
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should be recorded and dispatched
+        val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        val recordResultCaptor: ArgumentCaptor<EventHistoryResultHandler<Boolean>> =
+            ArgumentCaptor.forClass(EventHistoryResultHandler::class.java) as ArgumentCaptor<EventHistoryResultHandler<Boolean>>
+
+        verify(extensionApi).recordHistoricalEvent(
+            recordedEventCaptor.capture(),
+            recordResultCaptor.capture()
+        )
+
+        // Verify recorded event properties
+        assertEquals("Dispatch Consequence Result", recordedEventCaptor.value.name)
+        assertEquals("com.adobe.eventType.rulesEngine", recordedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.responseContent", recordedEventCaptor.value.source)
+        assertEquals(mapOf("key1" to "value1", "key2" to "value2"), recordedEventCaptor.value.eventData)
+
+        // Verify event dispatch after successful recording
+        val dispatchedEventCaptor: ArgumentCaptor<Event> =
+            ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(recordedEventCaptor.value, dispatchedEventCaptor.value)
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation with token replacement`() {
+        // Given: a launch rule with an event history insert operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insert",
+        //              "content": {
+        //                  "key1": "value1",
+        //                  "key2": "{%~type%}",
+        //                  "key3": "{%~state.com.adobe.module.testModule/testKey%}"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertWithTokens.json")
+
+        `when`(extensionApi.getSharedState(anyString(), any(), anyBoolean(), any())).thenReturn(
+            SharedStateResult(
+                SharedStateStatus.SET,
+                mapOf(
+                    "testKey" to "testValue"
+                )
+            )
+        )
+
+        `when`(extensionApi.recordHistoricalEvent(any(), any<EventHistoryResultHandler<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as EventHistoryResultHandler<Boolean>
+            callback.call(true)
+        }
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should be recorded and dispatched
+        val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        val recordResultCaptor: ArgumentCaptor<EventHistoryResultHandler<Boolean>> =
+            ArgumentCaptor.forClass(EventHistoryResultHandler::class.java) as ArgumentCaptor<EventHistoryResultHandler<Boolean>>
+
+        verify(extensionApi).recordHistoricalEvent(
+            recordedEventCaptor.capture(),
+            recordResultCaptor.capture()
+        )
+
+        // Verify recorded event properties
+        assertEquals("Dispatch Consequence Result", recordedEventCaptor.value.name)
+        assertEquals("com.adobe.eventType.rulesEngine", recordedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.responseContent", recordedEventCaptor.value.source)
+        assertEquals(
+            mapOf("key1" to "value1", "key2" to "com.adobe.eventType.generic", "key3" to "testValue"),
+            recordedEventCaptor.value.eventData
+        )
+
+        // Verify event dispatch after successful recording
+        val dispatchedEventCaptor: ArgumentCaptor<Event> =
+            ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(recordedEventCaptor.value, dispatchedEventCaptor.value)
+    }
+
+    @Test
+    fun `Test Schema Event History InsertIfNotExists Operation When Event Does Not Exist`() {
+        // Given: a launch rule with an event history insertIfNotExists operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insertIfNotExists",
+        //              "content": {
+        //                  "key1": "value1",
+        //                  "key2": "value2"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertIfNotExists.json")
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // Mock getHistoricalEvents to return 0 (event doesn't exist)
+        `when`(
+            extensionApi.getHistoricalEvents(
+                any(),
+                anyBoolean(),
+                any()
+            )
+        ).thenAnswer {
+            val callback = it.arguments[2] as EventHistoryResultHandler<Int>
+            callback.call(0)
+        }
+
+        `when`(extensionApi.recordHistoricalEvent(any(), any<EventHistoryResultHandler<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as EventHistoryResultHandler<Boolean>
+            callback.call(true)
+        }
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should be recorded and dispatched
+        val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        val recordResultCaptor: ArgumentCaptor<EventHistoryResultHandler<Boolean>> =
+            ArgumentCaptor.forClass(EventHistoryResultHandler::class.java) as ArgumentCaptor<EventHistoryResultHandler<Boolean>>
+
+        verify(extensionApi, times(1)).recordHistoricalEvent(
+            recordedEventCaptor.capture(),
+            recordResultCaptor.capture()
+        )
+
+        // Verify recorded event properties
+        assertEquals("Dispatch Consequence Result", recordedEventCaptor.value.name)
+        assertEquals("com.adobe.eventType.rulesEngine", recordedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.responseContent", recordedEventCaptor.value.source)
+        assertEquals(mapOf("key1" to "value1", "key2" to "value2"), recordedEventCaptor.value.eventData)
+
+        // Verify event dispatch after successful recording
+        val dispatchedEventCaptor: ArgumentCaptor<Event> =
+            ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(recordedEventCaptor.value, dispatchedEventCaptor.value)
+    }
+
+    @Test
+    fun `Test Schema Event History InsertIfNotExists Operation When Event Exists`() {
+        // Given: a launch rule with an event history insertIfNotExists operation
+        //    ---------- schema event rule ----------
+        //        "detail": {
+        //          "id": "test-id",
+        //          "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+        //          "data": {
+        //              "operation": "insertIfNotExists",
+        //              "content": {
+        //                  "key1": "value1",
+        //                  "key2": "value2"
+        //              }
+        //          }
+        //        }
+        //    --------------------------------------
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertIfNotExists.json")
+
+        // Mock getHistoricalEvents to return 1 (event exists)
+        `when`(
+            extensionApi.getHistoricalEvents(
+                any(),
+                anyBoolean(),
+                any()
+            )
+        ).thenAnswer {
+            val callback = it.arguments[2] as EventHistoryResultHandler<Int>
+            callback.call(1)
+        }
+
+        `when`(extensionApi.recordHistoricalEvent(any(), any<EventHistoryResultHandler<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as EventHistoryResultHandler<Boolean>
+            callback.call(true)
+        }
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched since it already exists
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History InsertIfNotExists Operation When EventHistory lookup times out`() {
+        // Given: a launch rule with an event history insert operation
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertIfNotExists.json")
+
+        // Mock recordHistoricalEvent to simulate failed recording
+        `when`(extensionApi.getHistoricalEvents(any(), anyBoolean(), any()))
+            .thenThrow(RuntimeException("Failed to lookup event history"))
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched due to lookup failure
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History InsertIfNotExists Operation When EventHistory lookup fails`() {
+        // Given: a launch rule with an event history insert operation
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertIfNotExists.json")
+
+        // Mock recordHistoricalEvent to simulate failed recording
+        `when`(extensionApi.getHistoricalEvents(any(), anyBoolean(), any())).thenAnswer {
+            val callback = it.arguments[2] as EventHistoryResultHandler<Int>
+            callback.call(-1)
+        }
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched due to lookup failure
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When recordHistoricalEvent Fails`() {
+        // Given: a launch rule with an event history insert operation
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsert.json")
+
+        // Mock getHistoricalEvents to return 0 (event doesn't exist)
+        `when`(
+            extensionApi.getHistoricalEvents(
+                any(),
+                anyBoolean(),
+                any()
+            )
+        ).thenAnswer {
+            val callback = it.arguments[2] as EventHistoryResultHandler<Int>
+            callback.call(0)
+        }
+
+        // Mock recordHistoricalEvent to simulate failed recording
+        `when`(extensionApi.recordHistoricalEvent(any(), any())).thenAnswer {
+            val callback = it.arguments[1] as EventHistoryResultHandler<Boolean>
+            callback.call(false)
+        }
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should be recorded and dispatched
+        val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        val recordResultCaptor: ArgumentCaptor<EventHistoryResultHandler<Boolean>> =
+            ArgumentCaptor.forClass(EventHistoryResultHandler::class.java) as ArgumentCaptor<EventHistoryResultHandler<Boolean>>
+
+        // Then: Event recordHistoricalEvent is called
+        verify(extensionApi, times(1)).recordHistoricalEvent(
+            recordedEventCaptor.capture(),
+            recordResultCaptor.capture()
+        )
+
+        // Verify properties passed to recordHistoricalEvent
+        assertEquals("Dispatch Consequence Result", recordedEventCaptor.value.name)
+        assertEquals("com.adobe.eventType.rulesEngine", recordedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.responseContent", recordedEventCaptor.value.source)
+
+        // Event not dispatched due to recordHistoricalEvent failure
+        verify(extensionApi, never()).dispatch(any())
     }
 
     private fun resetRulesEngine(rulesFileName: String) {

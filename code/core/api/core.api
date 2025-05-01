@@ -141,6 +141,7 @@ public abstract class com/adobe/marketing/mobile/ExtensionApi {
 	public abstract fun getHistoricalEvents ([Lcom/adobe/marketing/mobile/EventHistoryRequest;ZLcom/adobe/marketing/mobile/EventHistoryResultHandler;)V
 	public abstract fun getSharedState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;ZLcom/adobe/marketing/mobile/SharedStateResolution;)Lcom/adobe/marketing/mobile/SharedStateResult;
 	public abstract fun getXDMSharedState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;ZLcom/adobe/marketing/mobile/SharedStateResolution;)Lcom/adobe/marketing/mobile/SharedStateResult;
+	public abstract fun recordHistoricalEvent (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/EventHistoryResultHandler;)V
 	public abstract fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionEventListener;)V
 	public abstract fun startEvents ()V
 	public abstract fun stopEvents ()V

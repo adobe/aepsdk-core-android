@@ -19,5 +19,5 @@ package com.adobe.marketing.mobile.internal.util
  * @return the decimal FNV1a 32-bit hash.
  */
 internal fun convertMapToFnv1aHash(map: Map<String, Any?>?, masks: Array<String>?): Long {
-    return map?.fnv1a32(masks) ?: -1
+    return map?.fnv1a32(masks) ?: 0L
 }

@@ -76,11 +76,8 @@ internal class ConfigurationStateManager {
     internal var environmentAwareConfiguration: Map<String, Any?> = mapOf()
         private set
 
-    /**
-     * Maintains a mapping between appId and the most recent download time when the config for that
-     * appId has been downloaded
-     */
-    private val configDownloadMap: MutableMap<String, Date> = mutableMapOf()
+    @VisibleForTesting
+    internal var lastDownloadedConfig: Pair<String, Date>? = null
 
     constructor(
         appIdManager: AppIdManager
@@ -367,8 +364,8 @@ internal class ConfigurationStateManager {
                 replaceConfiguration(config)
 
                 // Update the last time of config download via appID
-                configDownloadMap[appId] = Date()
 
+                lastDownloadedConfig = Pair(appId, Date())
                 // return the environment  configuration
                 completion.invoke(environmentAwareConfiguration)
             } else {
@@ -459,8 +456,9 @@ internal class ConfigurationStateManager {
      *         false otherwise
      */
     internal fun hasConfigExpired(appId: String): Boolean {
-        val latestDownloadDate: Date? = configDownloadMap[appId]
-        return latestDownloadDate == null || Date(latestDownloadDate.time + CONFIGURATION_TTL_MS) < Date()
+        val config = lastDownloadedConfig ?: return true
+        if (appId != config.first) return true
+        return Date(config.second.time + CONFIGURATION_TTL_MS) < Date()
     }
 
     /**
@@ -505,7 +503,8 @@ internal class ConfigurationStateManager {
      */
     @VisibleForTesting
     internal fun mapToEnvironmentAwareKeys(config: Map<String, Any?>): Map<String, Any?> {
-        val buildEnvironment: String = currentConfiguration[BUILD_ENVIRONMENT] as? String ?: return config
+        val buildEnvironment: String =
+            currentConfiguration[BUILD_ENVIRONMENT] as? String ?: return config
 
         val environmentAwareConfigMap = mutableMapOf<String, Any?>()
         config.entries.forEach { entry ->

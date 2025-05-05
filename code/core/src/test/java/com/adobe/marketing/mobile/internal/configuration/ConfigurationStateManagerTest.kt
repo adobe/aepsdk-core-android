@@ -39,6 +39,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import java.io.File
+import java.util.Date
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -1004,6 +1005,46 @@ class ConfigurationStateManagerTest {
         // Verify
         val mappedConfig = configurationStateManager.mapToEnvironmentAwareKeys(testConfigToMap)
         assertEquals(expectedMappedConfig, mappedConfig)
+    }
+
+    @Test
+    fun `hasConfigExpired - returns true when lastDownloadedConfig is null`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        // lastDownloadedConfig is null by default on initialization
+        assertTrue(configurationStateManager.hasConfigExpired("appId"))
+    }
+
+    @Test
+    fun `hasConfigExpired - returns true when appId doesn't match`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        configurationStateManager.lastDownloadedConfig = Pair("testAppId", Date())
+        // Test with a different appId
+        assertTrue(configurationStateManager.hasConfigExpired("differentAppId"))
+    }
+
+    @Test
+    fun `hasConfigExpired - returns false when config has not expired`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        // Current time minus 5 seconds (not expired since TTL is 15 seconds)
+        val recentTime = Date(System.currentTimeMillis() - 5000)
+
+        configurationStateManager.lastDownloadedConfig = Pair("testAppId", recentTime)
+
+        assertFalse(configurationStateManager.hasConfigExpired("testAppId"))
+    }
+
+    @Test
+    fun `hasConfigExpired - returns true when config has expired`() {
+        prepareWith(persistedProgrammaticConfig = false, bundledConfig = false)
+
+        // Current time minus 20 seconds (expired since TTL is 15 seconds)
+        val oldTime = Date(System.currentTimeMillis() - 20000)
+        configurationStateManager.lastDownloadedConfig = Pair("testAppId", oldTime)
+
+        assertTrue(configurationStateManager.hasConfigExpired("testAppId"))
     }
 
     @After

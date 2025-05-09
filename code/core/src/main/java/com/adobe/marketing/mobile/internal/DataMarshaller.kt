@@ -15,6 +15,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.services.Log
 
 /** The util class to marshal data from [Activity].  */
@@ -62,26 +63,31 @@ internal object DataMarshaller {
      * @param intent [Intent]
      * @param marshalledData [Map] to add the marshalled data
      */
-    private fun marshalIntentExtras(intent: Intent, marshalledData: MutableMap<String, Any>) {
+    @VisibleForTesting
+    internal fun marshalIntentExtras(intent: Intent, marshalledData: MutableMap<String, Any>) {
         val extraBundle = intent.extras ?: return
-        extraBundle.keySet()?.forEach { key ->
-            val newKey = when (key) {
-                LEGACY_PUSH_MESSAGE_ID -> PUSH_MESSAGE_ID_KEY
-                NOTIFICATION_IDENTIFIER_KEY -> LOCAL_NOTIFICATION_ID_KEY
-                else -> key
-            }
-            try {
-                val value = extraBundle[key]
-                if (value?.toString()?.isNotEmpty() == true) {
-                    marshalledData[newKey] = value
+        try {
+            extraBundle.keySet()?.forEach { key ->
+                val newKey = when (key) {
+                    LEGACY_PUSH_MESSAGE_ID -> PUSH_MESSAGE_ID_KEY
+                    NOTIFICATION_IDENTIFIER_KEY -> LOCAL_NOTIFICATION_ID_KEY
+                    else -> key
                 }
-            } catch (e: Exception) {
-                Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data (key = $key) from Activity, error is: ${e.message}")
+                try {
+                    val value = extraBundle[key]
+                    if (value?.toString()?.isNotEmpty() == true) {
+                        marshalledData[newKey] = value
+                    }
+                } catch (e: Exception) {
+                    Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data (key = $key) from Activity, error is: ${e.message}")
+                }
             }
-        }
 
-        extraBundle.remove(LEGACY_PUSH_MESSAGE_ID)
-        extraBundle.remove(NOTIFICATION_IDENTIFIER_KEY)
+            extraBundle.remove(LEGACY_PUSH_MESSAGE_ID)
+            extraBundle.remove(NOTIFICATION_IDENTIFIER_KEY)
+        } catch (e: Exception) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data from Activity, error is: ${e.message}")
+        }
     }
 
     /**

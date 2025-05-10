@@ -11,9 +11,10 @@
 
 package com.adobe.marketing.mobile.internal.eventhub.history
 
+import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
-import com.adobe.marketing.mobile.EventHistoryResultHandler
+import com.adobe.marketing.mobile.EventHistoryResult
 
 /** Defines an interface for performing database operations on an [EventHistoryDatabase].  */
 internal interface EventHistory {
@@ -21,9 +22,9 @@ internal interface EventHistory {
      * Record an event in the [EventHistoryDatabase].
      *
      * @param event the [Event] to be recorded
-     * @param handler [EventHistoryResultHandler] a callback which will contain a `boolean` indicating if the database operation was successful
+     * @param handler [AdobeCallback] a callback which will contain a `boolean` indicating if the database operation was successful
      */
-    fun recordEvent(event: Event, handler: EventHistoryResultHandler<Boolean>?)
+    fun recordEvent(event: Event, handler: AdobeCallback<Boolean>?)
 
     /**
      * Query the [EventHistoryDatabase] for [Event]s which match the contents of the
@@ -32,16 +33,14 @@ internal interface EventHistory {
      * @param eventHistoryRequests an array of `EventHistoryRequest`s to be matched
      * @param enforceOrder `boolean` if true, consecutive lookups will use the oldest
      * timestamp from the previous event as their from date
-     * @param handler `EventHistoryResultHandler<Integer>` containing the the total number of
-     * matching events in the `EventHistoryDatabase` if an "any" search was done. If an
-     * "ordered" search was done, the handler will contain a "1" if the event history requests
-     * were found in the order specified in the eventHistoryRequests array and a "0" if the
-     * events were not found in the order specified.
-     */
+     * @param handler a callback which will be called with an array of [EventHistoryResult], one for each provided request,
+     * containing the the total number of matching events in the `EventHistoryDatabase` along with the timestamp of the oldest and newest of the event
+     * or "-1" if the database failure occurred
+     * */
     fun getEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
         enforceOrder: Boolean,
-        handler: EventHistoryResultHandler<Int>
+        handler: AdobeCallback<Array<EventHistoryResult>>
     )
 
     /**
@@ -54,6 +53,6 @@ internal interface EventHistory {
      */
     fun deleteEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
-        handler: EventHistoryResultHandler<Int>?
+        handler: AdobeCallback<Int>?
     )
 }

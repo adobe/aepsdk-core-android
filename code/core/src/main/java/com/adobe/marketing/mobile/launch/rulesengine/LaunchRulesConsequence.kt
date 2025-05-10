@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
+import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
@@ -488,11 +489,12 @@ internal class LaunchRulesConsequence(
                 val latch = CountDownLatch(1)
                 extensionApi.getHistoricalEvents(
                     arrayOf(eventToRecord.toEventHistoryRequest()),
-                    false
-                ) { count ->
-                    eventCounts = count
-                    latch.countDown()
-                }
+                    false,
+                    AdobeCallback { results ->
+                        eventCounts = if (results.isNotEmpty()) results[0].count else -1
+                        latch.countDown()
+                    }
+                )
                 latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
             } catch (e: Exception) {
                 Log.warning(

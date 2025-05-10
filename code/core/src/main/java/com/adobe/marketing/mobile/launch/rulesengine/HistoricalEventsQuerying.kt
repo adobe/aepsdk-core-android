@@ -11,15 +11,18 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
+import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.EventHistoryRequest
+import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.services.Log
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 private const val LOG_TAG = "historicalEventsQuerying"
-private const val SEARCH_TYPE_ORDERED = "ordered"
 private const val ASYNC_TIMEOUT = 1000L
+internal const val SEARCH_TYPE_ORDERED = "ordered"
+internal const val SEARCH_TYPE_MOST_RECENT = "mostRecent"
 
 @JvmSynthetic
 internal fun historicalEventsQuerying(
@@ -27,16 +30,24 @@ internal fun historicalEventsQuerying(
     searchType: String,
     extensionApi: ExtensionApi
 ): Int {
+    // Early exit with error value for unsupported search types
+    if (searchType == SEARCH_TYPE_MOST_RECENT) {
+        return -1
+    }
     return try {
         val latch = CountDownLatch(1)
         var eventCounts = 0
         extensionApi.getHistoricalEvents(
             requests.toTypedArray(),
-            searchType == SEARCH_TYPE_ORDERED
-        ) {
-            eventCounts = it
-            latch.countDown()
-        }
+            searchType == SEARCH_TYPE_ORDERED,
+            AdobeCallback { results ->
+                eventCounts = convertEventHistoryResultToInt(
+                    searchType == SEARCH_TYPE_ORDERED,
+                    results
+                )
+                latch.countDown()
+            }
+        )
         latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
         eventCounts
     } catch (e: Exception) {
@@ -46,5 +57,45 @@ internal fun historicalEventsQuerying(
             "Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
         )
         0
+    }
+}
+
+/**
+ * Converts the result of an event history lookup query to an integer.
+ * For an "any" search (event order does not matter), the value returned will be the count of all matching events in EventHistory
+ * For an `.ordered` search (events must occur in the provided order), the value returned will be 1 if the events were found in the provided order, or 0 otherwise.
+ * If a database error occurred, this method will always return -1
+ *
+ * @param enforceOrder `boolean` if true, the events must have been recorded in the same order as the request
+ * @param eventHistoryResult `Array<EventHistoryResult>` the result of the event history lookup query
+ */
+@JvmSynthetic
+internal fun convertEventHistoryResultToInt(
+    enforceOrder: Boolean,
+    eventHistoryResult: Array<EventHistoryResult>
+): Int {
+    if (enforceOrder) {
+        for (result in eventHistoryResult) {
+            // Early exit on database error
+            if (result.count == -1) {
+                return -1
+            }
+            // Early exit on ordered searches if any event result returned no records
+            if (result.count == 0) {
+                return 0
+            }
+        }
+        // if all events are found, return 1
+        return 1
+    } else {
+        var totalCount = 0
+        for (result in eventHistoryResult) {
+            // Early exit on database error
+            if (result.count == -1) {
+                return -1
+            }
+            totalCount += result.count
+        }
+        return totalCount
     }
 }

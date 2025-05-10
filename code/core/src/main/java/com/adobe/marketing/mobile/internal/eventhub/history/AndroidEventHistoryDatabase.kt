@@ -13,6 +13,7 @@ package com.adobe.marketing.mobile.internal.eventhub.history
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.util.FileUtils.moveFile
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper
@@ -123,20 +124,20 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
      * @param to `long` a timestamp representing the upper bounds of the date range to use when searching for the hash
      * @return a `QueryResult` object containing details of the matching records. If no database connection is available, returns null
      */
-    override fun query(hash: Long, from: Long, to: Long): EventHistoryDatabase.QueryResult? {
+    override fun query(hash: Long, from: Long, to: Long): EventHistoryResult {
         synchronized(dbMutex) {
             try {
                 openDatabase()
                 val rawQuery =
                     "SELECT COUNT(*) as $QUERY_COUNT, min($COLUMN_TIMESTAMP) as $QUERY_OLDEST, max($COLUMN_TIMESTAMP) as $QUERY_NEWEST FROM $TABLE_NAME WHERE $COLUMN_HASH = ? AND $COLUMN_TIMESTAMP >= ? AND $COLUMN_TIMESTAMP <= ?"
                 val whereArgs = arrayOf(hash.toString(), from.toString(), to.toString())
-                val cursor = database?.rawQuery(rawQuery, whereArgs) ?: return null
+                val cursor = database?.rawQuery(rawQuery, whereArgs) ?: return EventHistoryResult(-1)
                 cursor.use {
                     cursor.moveToFirst()
                     val count = cursor.getInt(QUERY_COUNT_INDEX)
                     val oldest = cursor.getLong(QUERY_OLDEST_INDEX)
                     val newest = cursor.getLong(QUERY_NEWEST_INDEX)
-                    return EventHistoryDatabase.QueryResult(count, oldest, newest)
+                    return EventHistoryResult(count, oldest, newest)
                 }
             } catch (e: Exception) {
                 Log.warning(
@@ -145,7 +146,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                     "Failed to execute query (%s)",
                     if (e.localizedMessage != null) e.localizedMessage else e.message
                 )
-                return null
+                return EventHistoryResult(-1)
             } finally {
                 closeDatabase()
             }

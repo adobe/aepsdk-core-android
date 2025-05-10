@@ -122,8 +122,14 @@ public class TestableExtensionApi extends ExtensionApi {
             @NonNull EventHistoryResultHandler<Integer> handler) {}
 
     @Override
+    public void getHistoricalEvents(
+            @NonNull EventHistoryRequest[] eventHistoryRequests,
+            boolean enforceOrder,
+            @NonNull AdobeCallback<EventHistoryResult[]> handler) {}
+
+    @Override
     public void recordHistoricalEvent(
-            @NonNull Event event, @NonNull EventHistoryResultHandler<Boolean> handler) {}
+            @NonNull Event event, @NonNull AdobeCallback<Boolean> handler) {}
 
     /**
      * Ignores the events from being dispatched by event hub.

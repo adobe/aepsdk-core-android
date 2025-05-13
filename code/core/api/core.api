@@ -996,7 +996,7 @@ public abstract interface class com/adobe/marketing/mobile/services/ui/message/I
 
 public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSettings {
 	public static final field $stable I
-	public synthetic fun <init> (Ljava/lang/String;IIIILcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Ljava/lang/String;FFZLjava/util/Map;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;IIIIILcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Ljava/lang/String;FFZLjava/util/Map;Ljava/util/Map;ZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAssetMap ()Ljava/util/Map;
 	public final fun getBackdropColor ()Ljava/lang/String;
 	public final fun getBackdropOpacity ()F
@@ -1004,10 +1004,12 @@ public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSe
 	public final fun getCornerRadius ()F
 	public final fun getDismissAnimation ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
 	public final fun getDisplayAnimation ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public final fun getFitToContent ()Z
 	public final fun getGestureMap ()Ljava/util/Map;
 	public final fun getHeight ()I
 	public final fun getHorizontalAlignment ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
 	public final fun getHorizontalInset ()I
+	public final fun getMaxWidth ()I
 	public final fun getShouldTakeOverUi ()Z
 	public final fun getVerticalAlignment ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
 	public final fun getVerticalInset ()I
@@ -1029,6 +1031,8 @@ public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSe
 	public final fun height (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun horizontalAlignment (Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun horizontalInset (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun maxWidth (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun shouldFitToContent (Z)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun shouldTakeOverUi (Z)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun verticalAlignment (Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun verticalInset (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;

@@ -22,8 +22,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.height
-import androidx.compose.ui.unit.width
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
@@ -210,6 +208,149 @@ class MessageScreenOrientationTests {
             naturalContentBounds,
             expectedNaturalHeight,
             expectedNaturalWidth
+        )
+    }
+
+    @Test
+    fun testMessageScreenIsRestoredOnOrientationChangeWithMaxWidth() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val uiDevice = UiDevice.getInstance(instrumentation)
+
+        val heightPercentage = 95
+        val widthPercentage = 60
+        val maxWidthPx = 50
+        val settings = InAppMessageSettings.Builder()
+            .height(heightPercentage)
+            .width(widthPercentage)
+            .maxWidth(maxWidthPx)
+            .content(HTML_TEXT_SAMPLE)
+            .build()
+
+        val contentViewHeightDp = mutableStateOf(0.dp)
+        val contentViewWidthDp = mutableStateOf(0.dp)
+        val contentHeightDp = mutableStateOf(0.dp)
+        val contentWidthDp = mutableStateOf(0.dp)
+        val maxWidthDp = mutableStateOf(0.dp)
+        composeTestRule.setContent { // setting our composable as content for test
+            // Get the screen dimensions
+            LocalConfiguration.current.run {
+                val activity = LocalContext.current as Activity
+                val contentView = activity.findViewById<View>(android.R.id.content)
+                contentViewHeightDp.value = with(LocalDensity.current) { contentView.height.toDp() }
+                contentHeightDp.value = ((contentViewHeightDp.value * settings.height) / 100)
+                contentWidthDp.value = ((contentViewWidthDp.value * settings.width) / 100)
+                maxWidthDp.value = with(LocalDensity.current) { settings.maxWidth.toDp() }
+            }
+
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        MessageScreenTestHelper.validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
+
+        // Verify that the message content height is resized to fit the screen but max width is retained
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
+        val (expectedInitialHeight, _) = calculateDimensions(
+            contentViewHeightDp.value,
+            contentViewWidthDp.value,
+            contentHeightDp.value,
+            heightPercentage,
+            widthPercentage
+        )
+
+        MessageScreenTestHelper.validateViewSize(
+            contentBounds,
+            expectedInitialHeight,
+            maxWidthDp.value
+        )
+
+        assertTrue(onCreatedCalled)
+        assertFalse(onDisposedCalled)
+        assertFalse(onBackPressed)
+        assertTrue(detectedGestures.isEmpty())
+        resetState()
+
+        // Rotate the device to landscape
+        uiDevice.setOrientationLandscape()
+
+        // Wait for the device to stabilize
+        uiDevice.waitForIdle()
+        composeTestRule.waitForIdle()
+
+        // Verify that the message content height is resized to fit the new orientation but max width is retained
+        MessageScreenTestHelper.validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
+        val landscapeContentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
+        val (expectedLandscapeHeight, _) = calculateDimensions(
+            contentViewHeightDp.value,
+            contentViewWidthDp.value,
+            contentHeightDp.value,
+            heightPercentage,
+            widthPercentage
+        )
+
+        MessageScreenTestHelper.validateViewSize(
+            landscapeContentBounds,
+            expectedLandscapeHeight,
+            maxWidthDp.value
+        )
+
+        // onCreated should not be called again due to orientation change restrictions
+        assertFalse(onCreatedCalled)
+        assertFalse(onDisposedCalled)
+        assertFalse(onBackPressed)
+        assertTrue(detectedGestures.isEmpty())
+        resetState()
+
+        // Rotate the device back to its original orientation
+        uiDevice.setOrientationNatural()
+
+        // Wait for the device to stabilize
+        uiDevice.waitForIdle()
+        composeTestRule.waitForIdle()
+        MessageScreenTestHelper.validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
+
+        val naturalContentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
+
+        // Verify that the message content height is restored to its original size and max width is retained
+        val (expectedNaturalHeight, _) = calculateDimensions(
+            contentViewHeightDp.value,
+            contentViewWidthDp.value,
+            contentHeightDp.value,
+            heightPercentage,
+            widthPercentage
+        )
+
+        MessageScreenTestHelper.validateViewSize(
+            naturalContentBounds,
+            expectedNaturalHeight,
+            maxWidthDp.value
         )
     }
 

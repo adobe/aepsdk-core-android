@@ -42,6 +42,8 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
@@ -85,9 +87,8 @@ internal fun MessageFrame(
     val density = LocalDensity.current
     val contentView = currentActivity.findViewById<View>(android.R.id.content)
     val contentHeightDp = with(density) { contentView.height.toDp() }
-    val contentWidthDp = with(density) { contentView.width.toDp() }
     val heightDp = remember { mutableStateOf(((contentHeightDp * inAppMessageSettings.height) / 100)) }
-    val widthDp = remember { mutableStateOf(((contentWidthDp * inAppMessageSettings.width) / 100)) }
+    val widthDp = remember { mutableStateOf(getMessageFrameWidthInDp(density, contentView.width, inAppMessageSettings)) }
 
     val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
         inAppMessageSettings.horizontalAlignment,
@@ -117,8 +118,11 @@ internal fun MessageFrame(
             modifier = Modifier
                 .fillMaxSize()
                 .onPlaced {
-                    heightDp.value = with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
-                    widthDp.value = with(density) { ((contentView.width.toDp() * inAppMessageSettings.width) / 100) }
+                    if (!inAppMessageSettings.fitToContent) {
+                        heightDp.value =
+                            with(density) { ((contentView.height.toDp() * inAppMessageSettings.height) / 100) }
+                    }
+                    widthDp.value = getMessageFrameWidthInDp(density, contentView.width, inAppMessageSettings)
                 }
                 .offset(x = horizontalOffset, y = verticalOffset)
                 .background(Color.Transparent)
@@ -174,7 +178,24 @@ internal fun MessageFrame(
                         }
                     )
             ) {
-                MessageContent(Modifier.height(heightDp.value).width(widthDp.value), inAppMessageSettings, onCreated)
+                MessageContent(
+                    Modifier
+                        .height(heightDp.value)
+                        .width(widthDp.value),
+                    inAppMessageSettings,
+                    onHeightReceived = { heightFromJs ->
+                        if (inAppMessageSettings.fitToContent) {
+                            heightFromJs?.toIntOrNull()?.dp?.let { heightFromJsInDp ->
+                                heightDp.value = heightFromJsInDp
+                            } ?: Log.warning(
+                                ServiceConstants.LOG_TAG,
+                                "MessageFrame",
+                                "Invalid height value received: $heightFromJs"
+                            )
+                        }
+                    },
+                    onCreated
+                )
             }
 
             // This is a one-time effect that will be called when this composable is completely removed from the composition
@@ -198,4 +219,26 @@ private fun Context.findActivity(): Activity? {
         context = context.baseContext
     }
     return null
+}
+
+/**
+ * Calculates the width of the message which is the minimum of the percentage of content view width
+ * and the max width in pixels. Both are defined in the [InAppMessageSettings].
+ *
+ * @param density the density of the current context
+ * @param contentViewWidthPx the width of the content view in pixels
+ * @param inAppMessageSettings [InAppMessageSettings] for the current message
+ * @return the width of the message in dp
+ */
+private fun getMessageFrameWidthInDp(
+    density: Density,
+    contentViewWidthPx: Int,
+    inAppMessageSettings: InAppMessageSettings,
+): Dp {
+    return with(density) {
+        minOf(
+            contentViewWidthPx * inAppMessageSettings.width / 100,
+            inAppMessageSettings.maxWidth
+        ).toDp()
+    }
 }

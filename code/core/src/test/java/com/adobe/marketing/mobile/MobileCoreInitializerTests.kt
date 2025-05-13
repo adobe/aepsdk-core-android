@@ -19,6 +19,9 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import com.adobe.marketing.mobile.services.AppContextService
+import com.adobe.marketing.mobile.services.DataStoring
+import com.adobe.marketing.mobile.services.NamedCollection
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.internal.context.App
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +50,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class MobileCoreInitializerTests {
 
@@ -364,5 +368,40 @@ class MobileCoreInitializerTests {
 
         assertTrue { latch.await(1000, TimeUnit.MILLISECONDS) }
         assertEquals(listOf("initializeEventHistory", "registerExtensions"), orderOfCalls)
+    }
+    @Test
+    fun `test V5LegacyCleaner handles exception from dataStoreService`() {
+        // Setup
+        // 1. Create mocks
+        val mockServiceProvider = mock(ServiceProvider::class.java)
+        val mockDataStoreService = mock(DataStoring::class.java)
+        val mockNamedCollection = mock(NamedCollection::class.java)
+        val mockAppContextService = mock(AppContextService::class.java)
+
+        // 2. Mock static ServiceProvider.getInstance()
+        val mockedStaticServiceProvider = Mockito.mockStatic(ServiceProvider::class.java)
+        mockedStaticServiceProvider.`when`<Any> { ServiceProvider.getInstance() }.thenReturn(mockServiceProvider)
+
+        // 3. Setup the dataStoreService to return our mock
+        `when`(mockServiceProvider.dataStoreService).thenReturn(mockDataStoreService)
+        `when`(mockServiceProvider.appContextService).thenReturn(mockAppContextService)
+
+        // 4. Make getNamedCollection return our mock named collection
+        `when`(mockDataStoreService.getNamedCollection("ADBMobileServices")).thenReturn(mockNamedCollection)
+
+        // 5. Make removeAll() throw an exception
+        `when`(mockNamedCollection.removeAll()).thenThrow(RuntimeException("Test exception"))
+
+        // Test - invoke the cleanup method
+
+        try {
+            mobileCoreInitializer.setApplication(application)
+            // If we reach here, the exception was handled properly
+        } catch (e: Exception) {
+            fail("V5LegacyCleaner.cleanup() throws exceptions, it should be caught.")
+        } finally {
+            // Clean up static mock
+            mockedStaticServiceProvider.close()
+        }
     }
 }

@@ -25,6 +25,7 @@ import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.configuration.ConfigurationExtension
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.migration.V4Migrator
+import com.adobe.marketing.mobile.internal.migration.V5LegacyCleaner
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import com.adobe.marketing.mobile.services.internal.context.App
@@ -166,6 +167,11 @@ internal class MobileCoreInitializer(
                     v4Migrator.migrate()
                 } catch (e: Exception) {
                     Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Migration from V4 SDK failed with error - ${e.localizedMessage}")
+                }
+                try {
+                    V5LegacyCleaner.cleanup()
+                } catch (e: Exception) {
+                    Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Unable to clean the V5 legacy data due to an error - ${e.localizedMessage}")
                 }
 
                 EventHub.shared.initializeEventHistory()

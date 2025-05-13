@@ -11,8 +11,10 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
-import com.adobe.marketing.mobile.AdobeCallback
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
@@ -490,9 +492,16 @@ internal class LaunchRulesConsequence(
                 extensionApi.getHistoricalEvents(
                     arrayOf(eventToRecord.toEventHistoryRequest()),
                     false,
-                    AdobeCallback { results ->
-                        eventCounts = if (results.isNotEmpty()) results[0].count else -1
-                        latch.countDown()
+                    object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+                        override fun call(results: Array<EventHistoryResult>) {
+                            eventCounts = if (results.isNotEmpty()) results[0].count else -1
+                            latch.countDown()
+                        }
+
+                        override fun fail(error: AdobeError) {
+                            eventCounts = -1
+                            latch.countDown()
+                        }
                     }
                 )
                 latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
@@ -528,18 +537,29 @@ internal class LaunchRulesConsequence(
         )
 
         extensionApi.recordHistoricalEvent(
-            eventToRecord
-        ) { result ->
-            if (result) {
-                extensionApi.dispatch(eventToRecord)
-            } else {
-                Log.warning(
-                    LaunchRulesEngineConstants.LOG_TAG,
-                    logTag,
-                    "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation'"
-                )
+            eventToRecord,
+            object : AdobeCallbackWithError<Boolean> {
+                override fun call(result: Boolean) {
+                    if (result) {
+                        extensionApi.dispatch(eventToRecord)
+                    } else {
+                        Log.warning(
+                            LaunchRulesEngineConstants.LOG_TAG,
+                            logTag,
+                            "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation'"
+                        )
+                    }
+                }
+
+                override fun fail(error: AdobeError) {
+                    Log.warning(
+                        LaunchRulesEngineConstants.LOG_TAG,
+                        logTag,
+                        "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation', caused by the error: ${error.errorName}"
+                    )
+                }
             }
-        }
+        )
     }
 }
 

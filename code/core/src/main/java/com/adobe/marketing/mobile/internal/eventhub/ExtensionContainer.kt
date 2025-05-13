@@ -11,7 +11,8 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
-import com.adobe.marketing.mobile.AdobeCallback
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResult
@@ -287,21 +288,29 @@ internal class ExtensionContainer constructor(
         enforceOrder: Boolean,
         handler: EventHistoryResultHandler<Int>
     ) {
-        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder) { results ->
-            handler.call(convertEventHistoryResultToInt(enforceOrder, results))
-        } ?: handler.call(-1)
+        EventHub.shared.eventHistory?.getEvents(
+            eventHistoryRequests, enforceOrder,
+            object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+                override fun call(results: Array<EventHistoryResult>) {
+                    handler.call(convertEventHistoryResultToInt(enforceOrder, results))
+                }
+
+                override fun fail(error: AdobeError) {
+                    handler.call(-1)
+                }
+            }
+        ) ?: handler.call(-1)
     }
 
     override fun getHistoricalEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
         enforceOrder: Boolean,
-        handler: AdobeCallback<Array<EventHistoryResult>>
+        handler: AdobeCallbackWithError<Array<EventHistoryResult>>
     ) {
-        // TODO: What should be returned here if eventHistory is null - null or empty array?
-        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler) ?: handler.call(null)
+        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler) ?: handler.call(emptyArray())
     }
 
-    override fun recordHistoricalEvent(event: Event, handler: AdobeCallback<Boolean>) {
+    override fun recordHistoricalEvent(event: Event, handler: AdobeCallbackWithError<Boolean>) {
         EventHub.shared.eventHistory?.recordEvent(event, handler) ?: handler.call(false)
     }
 }

@@ -14,6 +14,8 @@ package com.adobe.marketing.mobile.internal.eventhub.history
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResult
@@ -246,10 +248,20 @@ class AndroidEventHistoryTests {
         val latch = CountDownLatch(1)
         var ret = false
         val event = Event.Builder("name", "type", "source").setEventData(data).build()
-        androidEventHistory.recordEvent(event.copyWithNewTimeStamp(timestamp)) {
-            ret = it
-            latch.countDown()
-        }
+        androidEventHistory.recordEvent(
+            event.copyWithNewTimeStamp(timestamp),
+            object :
+                AdobeCallbackWithError<Boolean> {
+                override fun call(result: Boolean) {
+                    ret = result
+                    latch.countDown()
+                }
+
+                override fun fail(error: AdobeError) {
+                    latch.countDown()
+                }
+            }
+        )
         latch.await()
         return ret
     }
@@ -257,10 +269,19 @@ class AndroidEventHistoryTests {
     private fun delete(requests: Array<out EventHistoryRequest>): Int {
         val latch = CountDownLatch(1)
         var ret = 0
-        androidEventHistory.deleteEvents(requests) {
-            ret = it
-            latch.countDown()
-        }
+        androidEventHistory.deleteEvents(
+            requests,
+            object : AdobeCallbackWithError<Int> {
+                override fun call(result: Int) {
+                    ret = result
+                    latch.countDown()
+                }
+
+                override fun fail(error: AdobeError) {
+                    latch.countDown()
+                }
+            }
+        )
         latch.await()
         return ret
     }
@@ -268,10 +289,19 @@ class AndroidEventHistoryTests {
     private fun query(requests: Array<out EventHistoryRequest>, enforceOrder: Boolean): Array<EventHistoryResult> {
         val latch = CountDownLatch(1)
         var ret = emptyArray<EventHistoryResult>()
-        androidEventHistory.getEvents(requests, enforceOrder) {
-            ret = it
-            latch.countDown()
-        }
+        androidEventHistory.getEvents(
+            requests, enforceOrder,
+            object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+                override fun call(result: Array<EventHistoryResult>) {
+                    ret = result
+                    latch.countDown()
+                }
+
+                override fun fail(error: AdobeError) {
+                    latch.countDown()
+                }
+            }
+        )
         latch.await()
         return ret
     }

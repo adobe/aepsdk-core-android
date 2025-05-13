@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
-import com.adobe.marketing.mobile.AdobeCallback
+import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.EventSource
@@ -89,7 +89,7 @@ class LaunchRulesEngineModuleTests {
 
     @Test
     fun `Test historical condition`() {
-        val captor = argumentCaptor<AdobeCallback<Array<EventHistoryResult>>>()
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
         Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
             .doAnswer {
                 captor.firstValue.call(arrayOf(EventHistoryResult(1)))

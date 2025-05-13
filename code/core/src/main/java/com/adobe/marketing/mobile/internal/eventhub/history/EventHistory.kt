@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.internal.eventhub.history
 
-import com.adobe.marketing.mobile.AdobeCallback
+import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResult
@@ -22,9 +22,9 @@ internal interface EventHistory {
      * Record an event in the [EventHistoryDatabase].
      *
      * @param event the [Event] to be recorded
-     * @param handler [AdobeCallback] a callback which will contain a `boolean` indicating if the database operation was successful
+     * @param callback which will contain a `boolean` indicating if the database operation was successful
      */
-    fun recordEvent(event: Event, handler: AdobeCallback<Boolean>?)
+    fun recordEvent(event: Event, callback: AdobeCallbackWithError<Boolean>?)
 
     /**
      * Query the [EventHistoryDatabase] for [Event]s which match the contents of the
@@ -33,14 +33,14 @@ internal interface EventHistory {
      * @param eventHistoryRequests an array of `EventHistoryRequest`s to be matched
      * @param enforceOrder `boolean` if true, consecutive lookups will use the oldest
      * timestamp from the previous event as their from date
-     * @param handler a callback which will be called with an array of [EventHistoryResult], one for each provided request,
+     * @param callback which will be called with an array of [EventHistoryResult], one for each provided request,
      * containing the the total number of matching events in the `EventHistoryDatabase` along with the timestamp of the oldest and newest of the event
      * or "-1" if the database failure occurred
      * */
     fun getEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
         enforceOrder: Boolean,
-        handler: AdobeCallback<Array<EventHistoryResult>>
+        callback: AdobeCallbackWithError<Array<EventHistoryResult>>
     )
 
     /**
@@ -48,11 +48,11 @@ internal interface EventHistory {
      * contents of the [EventHistoryRequest] array.
      *
      * @param eventHistoryRequests an array of `EventHistoryRequest`s to be deleted
-     * @param handler a callback which will be called with a `int` containing the total number
+     * @param callback which will be called with a `int` containing the total number
      * of rows deleted from the `EventHistoryDatabase`
      */
     fun deleteEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
-        handler: AdobeCallback<Int>?
+        callback: AdobeCallbackWithError<Int>?
     )
 }

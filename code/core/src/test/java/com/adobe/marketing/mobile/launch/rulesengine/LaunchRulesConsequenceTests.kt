@@ -11,7 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
-import com.adobe.marketing.mobile.AdobeCallback
+import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.ExtensionApi
@@ -1214,8 +1214,8 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEmptyDetailId.json")
 
-        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallback<Boolean>>())).thenAnswer {
-            val callback = it.arguments[1] as AdobeCallback<Boolean>
+        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallbackWithError<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as AdobeCallbackWithError<Boolean>
             callback.call(true)
         }
 
@@ -1231,8 +1231,8 @@ class LaunchRulesConsequenceTests {
 
         // Then: Event should be recorded and dispatched
         val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        val recordResultCaptor: ArgumentCaptor<AdobeCallback<Boolean>> =
-            ArgumentCaptor.forClass(AdobeCallback::class.java) as ArgumentCaptor<AdobeCallback<Boolean>>
+        val recordResultCaptor: ArgumentCaptor<AdobeCallbackWithError<Boolean>> =
+            ArgumentCaptor.forClass(AdobeCallbackWithError::class.java) as ArgumentCaptor<AdobeCallbackWithError<Boolean>>
 
         verify(extensionApi).recordHistoricalEvent(
             recordedEventCaptor.capture(),
@@ -1697,8 +1697,8 @@ class LaunchRulesConsequenceTests {
         //    --------------------------------------
         resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsert.json")
 
-        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallback<Boolean>>())).thenAnswer {
-            val callback = it.arguments[1] as AdobeCallback<Boolean>
+        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallbackWithError<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as AdobeCallbackWithError<Boolean>
             callback.call(true)
         }
 
@@ -1714,8 +1714,8 @@ class LaunchRulesConsequenceTests {
 
         // Then: Event should be recorded and dispatched
         val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        val recordResultCaptor: ArgumentCaptor<AdobeCallback<Boolean>> =
-            ArgumentCaptor.forClass(AdobeCallback::class.java) as ArgumentCaptor<AdobeCallback<Boolean>>
+        val recordResultCaptor: ArgumentCaptor<AdobeCallbackWithError<Boolean>> =
+            ArgumentCaptor.forClass(AdobeCallbackWithError::class.java) as ArgumentCaptor<AdobeCallbackWithError<Boolean>>
 
         verify(extensionApi).recordHistoricalEvent(
             recordedEventCaptor.capture(),
@@ -1763,8 +1763,8 @@ class LaunchRulesConsequenceTests {
             )
         )
 
-        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallback<Boolean>>())).thenAnswer {
-            val callback = it.arguments[1] as AdobeCallback<Boolean>
+        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallbackWithError<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as AdobeCallbackWithError<Boolean>
             callback.call(true)
         }
 
@@ -1780,8 +1780,8 @@ class LaunchRulesConsequenceTests {
 
         // Then: Event should be recorded and dispatched
         val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        val recordResultCaptor: ArgumentCaptor<AdobeCallback<Boolean>> =
-            ArgumentCaptor.forClass(AdobeCallback::class.java) as ArgumentCaptor<AdobeCallback<Boolean>>
+        val recordResultCaptor: ArgumentCaptor<AdobeCallbackWithError<Boolean>> =
+            ArgumentCaptor.forClass(AdobeCallbackWithError::class.java) as ArgumentCaptor<AdobeCallbackWithError<Boolean>>
 
         verify(extensionApi).recordHistoricalEvent(
             recordedEventCaptor.capture(),
@@ -1833,15 +1833,15 @@ class LaunchRulesConsequenceTests {
             extensionApi.getHistoricalEvents(
                 any(),
                 anyBoolean(),
-                any<AdobeCallback<Array<EventHistoryResult>>>()
+                any<AdobeCallbackWithError<Array<EventHistoryResult>>>()
             )
         ).thenAnswer {
-            val callback = it.arguments[2] as AdobeCallback<Array<EventHistoryResult>>
+            val callback = it.arguments[2] as AdobeCallbackWithError<Array<EventHistoryResult>>
             callback.call(arrayOf(EventHistoryResult(0)))
         }
 
-        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallback<Boolean>>())).thenAnswer {
-            val callback = it.arguments[1] as AdobeCallback<Boolean>
+        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallbackWithError<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as AdobeCallbackWithError<Boolean>
             callback.call(true)
         }
 
@@ -1851,8 +1851,8 @@ class LaunchRulesConsequenceTests {
 
         // Then: Event should be recorded and dispatched
         val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        val recordResultCaptor: ArgumentCaptor<AdobeCallback<Boolean>> =
-            ArgumentCaptor.forClass(AdobeCallback::class.java) as ArgumentCaptor<AdobeCallback<Boolean>>
+        val recordResultCaptor: ArgumentCaptor<AdobeCallbackWithError<Boolean>> =
+            ArgumentCaptor.forClass(AdobeCallbackWithError::class.java) as ArgumentCaptor<AdobeCallbackWithError<Boolean>>
 
         verify(extensionApi, times(1)).recordHistoricalEvent(
             recordedEventCaptor.capture(),
@@ -1895,15 +1895,15 @@ class LaunchRulesConsequenceTests {
             extensionApi.getHistoricalEvents(
                 any(),
                 anyBoolean(),
-                any<AdobeCallback<Array<EventHistoryResult>>>()
+                any<AdobeCallbackWithError<Array<EventHistoryResult>>>()
             )
         ).thenAnswer {
-            val callback = it.arguments[2] as AdobeCallback<Array<EventHistoryResult>>
+            val callback = it.arguments[2] as AdobeCallbackWithError<Array<EventHistoryResult>>
             callback.call(arrayOf(EventHistoryResult(1)))
         }
 
-        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallback<Boolean>>())).thenAnswer {
-            val callback = it.arguments[1] as AdobeCallback<Boolean>
+        `when`(extensionApi.recordHistoricalEvent(any(), any<AdobeCallbackWithError<Boolean>>())).thenAnswer {
+            val callback = it.arguments[1] as AdobeCallbackWithError<Boolean>
             callback.call(true)
         }
 
@@ -1928,7 +1928,7 @@ class LaunchRulesConsequenceTests {
         resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertIfNotExists.json")
 
         // Mock recordHistoricalEvent to simulate failed recording
-        `when`(extensionApi.getHistoricalEvents(any(), anyBoolean(), any<AdobeCallback<Array<EventHistoryResult>>>()))
+        `when`(extensionApi.getHistoricalEvents(any(), anyBoolean(), any<AdobeCallbackWithError<Array<EventHistoryResult>>>()))
             .thenThrow(RuntimeException("Failed to lookup event history"))
 
         val event = Event.Builder(
@@ -1956,10 +1956,10 @@ class LaunchRulesConsequenceTests {
             extensionApi.getHistoricalEvents(
                 any(),
                 anyBoolean(),
-                any<AdobeCallback<Array<EventHistoryResult>>>()
+                any<AdobeCallbackWithError<Array<EventHistoryResult>>>()
             )
         ).thenAnswer {
-            val callback = it.arguments[2] as AdobeCallback<Array<EventHistoryResult>>
+            val callback = it.arguments[2] as AdobeCallbackWithError<Array<EventHistoryResult>>
             callback.call(arrayOf(EventHistoryResult(-1)))
         }
 
@@ -1985,7 +1985,7 @@ class LaunchRulesConsequenceTests {
 
         // Mock recordHistoricalEvent to simulate failed recording
         `when`(extensionApi.recordHistoricalEvent(any(), any())).thenAnswer {
-            val callback = it.arguments[1] as AdobeCallback<Boolean>
+            val callback = it.arguments[1] as AdobeCallbackWithError<Boolean>
             callback.call(false)
         }
 
@@ -2001,8 +2001,8 @@ class LaunchRulesConsequenceTests {
 
         // Then: Event should be recorded and dispatched
         val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
-        val recordResultCaptor: ArgumentCaptor<AdobeCallback<Boolean>> =
-            ArgumentCaptor.forClass(AdobeCallback::class.java) as ArgumentCaptor<AdobeCallback<Boolean>>
+        val recordResultCaptor: ArgumentCaptor<AdobeCallbackWithError<Boolean>> =
+            ArgumentCaptor.forClass(AdobeCallbackWithError::class.java) as ArgumentCaptor<AdobeCallbackWithError<Boolean>>
 
         // Then: Event recordHistoricalEvent is called
         verify(extensionApi, times(1)).recordHistoricalEvent(

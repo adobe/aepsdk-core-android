@@ -11,7 +11,8 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
-import com.adobe.marketing.mobile.AdobeCallback
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.ExtensionApi
@@ -23,6 +24,8 @@ private const val LOG_TAG = "historicalEventsQuerying"
 private const val ASYNC_TIMEOUT = 1000L
 internal const val SEARCH_TYPE_ORDERED = "ordered"
 internal const val SEARCH_TYPE_MOST_RECENT = "mostRecent"
+internal const val EVENT_HISTORY_RESULT_DATABASE_ERROR = -1
+private const val EVENT_HISTORY_RESULT_NOT_FOUND = 0
 
 @JvmSynthetic
 internal fun historicalEventsQuerying(
@@ -40,12 +43,23 @@ internal fun historicalEventsQuerying(
         extensionApi.getHistoricalEvents(
             requests.toTypedArray(),
             searchType == SEARCH_TYPE_ORDERED,
-            AdobeCallback { results ->
-                eventCounts = convertEventHistoryResultToInt(
-                    searchType == SEARCH_TYPE_ORDERED,
-                    results
-                )
-                latch.countDown()
+            object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+                override fun call(results: Array<EventHistoryResult>) {
+                    eventCounts = convertEventHistoryResultToInt(
+                        searchType == SEARCH_TYPE_ORDERED,
+                        results
+                    )
+                    latch.countDown()
+                }
+
+                override fun fail(error: AdobeError) {
+                    Log.warning(
+                        LaunchRulesEngineConstants.LOG_TAG,
+                        LOG_TAG,
+                        "Unable to retrieve historical events, caused by the error: ${error.errorName}"
+                    )
+                    latch.countDown()
+                }
             }
         )
         latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
@@ -76,13 +90,13 @@ internal fun convertEventHistoryResultToInt(
 ): Int {
     if (enforceOrder) {
         for (result in eventHistoryResult) {
-            // Early exit on database error
-            if (result.count == -1) {
-                return -1
+            // Early exit on default value or database error
+            if (result.count == EVENT_HISTORY_RESULT_DATABASE_ERROR) {
+                return EVENT_HISTORY_RESULT_DATABASE_ERROR
             }
             // Early exit on ordered searches if any event result returned no records
             if (result.count == 0) {
-                return 0
+                return EVENT_HISTORY_RESULT_NOT_FOUND
             }
         }
         // if all events are found, return 1
@@ -91,8 +105,8 @@ internal fun convertEventHistoryResultToInt(
         var totalCount = 0
         for (result in eventHistoryResult) {
             // Early exit on database error
-            if (result.count == -1) {
-                return -1
+            if (result.count == EVENT_HISTORY_RESULT_DATABASE_ERROR) {
+                return EVENT_HISTORY_RESULT_DATABASE_ERROR
             }
             totalCount += result.count
         }

@@ -14,11 +14,11 @@ package com.adobe.marketing.mobile
 /**
  * Passed to handler of [ExtensionApi.getHistoricalEvents] API to represent the result of event look up in EventHistoryDatabase
  * @param count The number of occurrences of the event in the event history database
- * @param oldestOccurrence The time of the oldest occurrence of the event in the event history database. If count is 0, this value will be null
- * @param newestOccurrence The time of the newest occurrence of the event in the event history database. If count is 0, this value will be null
+ * @param oldestOccurrence The timestamp in milliseconds of the oldest occurrence of the event in the event history database. If count is 0, this value will be null
+ * @param newestOccurrence The timestamp in milliseconds of the newest occurrence of the event in the event history database. If count is 0, this value will be null
  */
 data class EventHistoryResult(
-    val count: Int,
-    val oldestOccurrence: Long? = null,
-    val newestOccurrence: Long? = null
+    @JvmField val count: Int,
+    @JvmField val oldestOccurrence: Long? = null,
+    @JvmField val newestOccurrence: Long? = null
 )

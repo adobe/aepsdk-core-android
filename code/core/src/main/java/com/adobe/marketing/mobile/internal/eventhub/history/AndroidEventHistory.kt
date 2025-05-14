@@ -11,9 +11,10 @@
 
 package com.adobe.marketing.mobile.internal.eventhub.history
 
+import com.adobe.marketing.mobile.AdobeCallbackWithError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
-import com.adobe.marketing.mobile.EventHistoryResultHandler
+import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.util.convertMapToFnv1aHash
 import com.adobe.marketing.mobile.services.Log
@@ -40,9 +41,9 @@ internal class AndroidEventHistory : EventHistory {
      * Record an event in the [AndroidEventHistoryDatabase].
      *
      * @param event the [Event] to be recorded
-     * @param handler [EventHistoryResultHandler] a callback which will contain a `boolean` indicating if the database operation was successful
+     * @param callback which will contain a `boolean` indicating if the database operation was successful
      */
-    override fun recordEvent(event: Event, handler: EventHistoryResultHandler<Boolean>?) {
+    override fun recordEvent(event: Event, callback: AdobeCallbackWithError<Boolean>?) {
         executor.submit {
             val fnv1aHash = convertMapToFnv1aHash(event.eventData, event.mask)
             Log.debug(
@@ -56,7 +57,7 @@ internal class AndroidEventHistory : EventHistory {
             } else {
                 false
             }
-            notifyHandler(handler, res)
+            notifyHandler(callback, res)
         }
     }
 
@@ -67,19 +68,17 @@ internal class AndroidEventHistory : EventHistory {
      * @param eventHistoryRequests an array of `EventHistoryRequest`s to be matched
      * @param enforceOrder `boolean` if true, consecutive lookups will use the oldest
      * timestamp from the previous event as their from date
-     * @param handler If `enforceOrder` is false, `EventHistoryResultHandler<Integer>` containing the the total number of
-     * matching events in the `EventHistoryDatabase`. If `enforceOrder` is true, the handler will contain a "1" if the event history requests
-     * were found in the order specified in the eventHistoryRequests array and a "0" if the events were not found in the order specified.
-     * The handler will contain a "-1" if the database failure occurred.
+     * @param callback which will be called with an array of [EventHistoryResult], one for each provided request,
+     * containing the the total number of matching events in the `AndroidEventHistoryDatabase` along with the timestamp of the oldest and newest of the event
+     * or "-1" if the database failure occurred
      */
     override fun getEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
         enforceOrder: Boolean,
-        handler: EventHistoryResultHandler<Int>
+        callback: AdobeCallbackWithError<Array<EventHistoryResult>>
     ) {
         executor.submit {
-            var dbError = false
-            var count = 0
+            val results = mutableListOf<EventHistoryResult>()
             var previousEventOldestOccurrence: Long? = null
             eventHistoryRequests.forEachIndexed { index, request ->
                 val eventHash = request.maskAsDecimalHash
@@ -89,40 +88,24 @@ internal class AndroidEventHistory : EventHistory {
                 Log.debug(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
-                    "EventHistoryRequest[%d] - (%d of %d) for hash(%d)" +
-                        " with enforceOrder(%s) returned %d events",
+                    "EventHistoryRequest[%d] - (%d of %d) for hash(%d) from %d to %d" +
+                        " with enforceOrder (%s) returned %d records",
                     eventHistoryRequests.hashCode(),
                     index + 1,
                     eventHistoryRequests.size,
                     eventHash,
+                    adjustedFromDate,
+                    request.adjustedToDate,
                     if (enforceOrder) "true" else "false",
-                    res?.count ?: -1
+                    res.count
                 )
 
-                if (res == null) {
-                    dbError = true
-                    return@forEachIndexed
-                }
-
-                if (enforceOrder && res.count == 0) {
-                    return@forEachIndexed
-                }
-
-                previousEventOldestOccurrence = res.oldestTimestamp
                 if (enforceOrder) {
-                    count++
-                } else {
-                    count += res.count
+                    previousEventOldestOccurrence = res.oldestOccurrence
                 }
+                results.add(res)
             }
-
-            val result = when {
-                dbError -> -1
-                enforceOrder && count == eventHistoryRequests.size -> 1
-                enforceOrder && count != eventHistoryRequests.size -> 0
-                else -> count
-            }
-            notifyHandler(handler, result)
+            notifyHandler(callback, results.toTypedArray())
         }
     }
 
@@ -131,29 +114,29 @@ internal class AndroidEventHistory : EventHistory {
      * match the contents of the [EventHistoryRequest] array.
      *
      * @param eventHistoryRequests an array of `EventHistoryRequest`s to be deleted
-     * @param handler a callback which will be called with a `int` containing the total number
+     * @param callback which will be called with a `int` containing the total number
      * of rows deleted from the `AndroidEventHistoryDatabase`
      */
     override fun deleteEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
-        handler: EventHistoryResultHandler<Int>?
+        callback: AdobeCallbackWithError<Int>?
     ) {
         executor.submit {
             val deletedRows = eventHistoryRequests.fold(0) { acc, request ->
                 acc + androidEventHistoryDatabase.delete(request.maskAsDecimalHash, request.fromDate, request.adjustedToDate)
             }
-            notifyHandler(handler, deletedRows)
+            notifyHandler(callback, deletedRows)
         }
     }
 
-    private fun <T> notifyHandler(handler: EventHistoryResultHandler<T>?, value: T) {
+    private fun <T> notifyHandler(handler: AdobeCallbackWithError<T>?, value: T) {
         try {
             handler?.call(value)
         } catch (ex: Exception) {
             Log.debug(
                 CoreConstants.LOG_TAG,
                 LOG_TAG,
-                "Exception executing event history result handler $ex"
+                "Exception executing event history AdobeCallbackWithError $ex"
             )
         }
     }

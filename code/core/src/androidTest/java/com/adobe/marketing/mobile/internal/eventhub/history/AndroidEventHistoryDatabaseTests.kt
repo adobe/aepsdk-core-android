@@ -81,8 +81,8 @@ class AndroidEventHistoryDatabaseTests {
         // verify
         assertNotNull(result)
         assertEquals(1, result?.count)
-        assertEquals(timestamp, result?.oldestTimestamp)
-        assertEquals(timestamp, result?.newestTimeStamp)
+        assertEquals(timestamp, result?.oldestOccurrence)
+        assertEquals(timestamp, result?.newestOccurrence)
     }
 
     @Test
@@ -109,8 +109,8 @@ class AndroidEventHistoryDatabaseTests {
 
         // verify
         assertEquals(11, result?.count)
-        assertEquals(startTimestamp, result?.oldestTimestamp)
-        assertEquals(endTimestamp, result?.newestTimeStamp)
+        assertEquals(startTimestamp, result?.oldestOccurrence)
+        assertEquals(endTimestamp, result?.newestOccurrence)
     }
 
     @Test

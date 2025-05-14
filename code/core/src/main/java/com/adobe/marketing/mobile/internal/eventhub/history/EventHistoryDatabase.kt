@@ -11,10 +11,10 @@
 
 package com.adobe.marketing.mobile.internal.eventhub.history
 
+import com.adobe.marketing.mobile.EventHistoryResult
+
 /** Interface defining a database to be used by the SDK for storing event history.  */
 internal interface EventHistoryDatabase {
-
-    data class QueryResult(val count: Int, val oldestTimestamp: Long?, val newestTimeStamp: Long?)
 
     /**
      * Insert a row into a table in the database.
@@ -35,7 +35,7 @@ internal interface EventHistoryDatabase {
      * @param to `long` a timestamp representing the upper bounds of the date range to use when searching for the hash
      * @return a `QueryResult` object containing details of the matching records. If no database connection is available, returns null
      */
-    fun query(hash: Long, from: Long, to: Long): QueryResult?
+    fun query(hash: Long, from: Long, to: Long): EventHistoryResult?
 
     /**
      * Delete entries from the event history database.

@@ -180,11 +180,30 @@ public abstract class ExtensionApi {
      * @param enforceOrder if `true`, consecutive lookups will use the oldest timestamp from the
      *     previous event as their from date
      * @param handler the {@link EventHistoryResultHandler} for each provided request
+     * @deprecated Use {@link #getHistoricalEvents(EventHistoryRequest[], boolean,
+     *     AdobeCallbackWithError)}
+     * @see #getHistoricalEvents(EventHistoryRequest[], boolean, AdobeCallbackWithError)
      */
+    @Deprecated
     public abstract void getHistoricalEvents(
             @NonNull EventHistoryRequest[] eventHistoryRequests,
             boolean enforceOrder,
             @NonNull EventHistoryResultHandler<Integer> handler);
+
+    /**
+     * Retrieves a count of historical events matching the provided requests.
+     *
+     * @param eventHistoryRequests an array of {@link EventHistoryRequest}s used to generate the
+     *     hash and timeframe for the event lookup
+     * @param enforceOrder if `true`, consecutive lookups will use the oldest timestamp from the
+     *     previous event as their from date
+     * @param handler the {@link AdobeCallbackWithError} which returns an array of {@link
+     *     EventHistoryResult} for each provided request
+     */
+    public abstract void getHistoricalEvents(
+            @NonNull EventHistoryRequest[] eventHistoryRequests,
+            boolean enforceOrder,
+            @NonNull AdobeCallbackWithError<EventHistoryResult[]> handler);
 
     /**
      * Records an `Event` in the Event History database.
@@ -195,9 +214,9 @@ public abstract class ExtensionApi {
      * `0`, no record will be created in the database.
      *
      * @param event the {@link Event} to be recorded in the Event History database
-     * @param handler the {@link EventHistoryResultHandler} which returns a boolean indicating a
+     * @param handler the {@link AdobeCallbackWithError} which returns a boolean indicating a
      *     successful database insert
      */
     public abstract void recordHistoricalEvent(
-            @NonNull final Event event, @NonNull final EventHistoryResultHandler<Boolean> handler);
+            @NonNull final Event event, @NonNull final AdobeCallbackWithError<Boolean> handler);
 }

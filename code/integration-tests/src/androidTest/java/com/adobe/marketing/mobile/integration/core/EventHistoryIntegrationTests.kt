@@ -12,7 +12,8 @@
 package com.adobe.marketing.mobile.integration.core
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.adobe.marketing.mobile.AdobeCallback
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResult
@@ -24,6 +25,7 @@ import com.adobe.marketing.mobile.copyWithNewTimeStamp
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -70,9 +72,15 @@ class EventHistoryIntegrationTests {
         }
         val countDownLatch = CountDownLatch(1)
         var ret = emptyArray<EventHistoryResult>()
-        MockExtension.extensionApi?.getHistoricalEvents(requests, enforceOrder, AdobeCallback {
-            ret = it
-            countDownLatch.countDown()
+        MockExtension.extensionApi?.getHistoricalEvents(requests, enforceOrder, object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+            override fun call(result: Array<EventHistoryResult>) {
+                ret = result
+                countDownLatch.countDown()
+            }
+
+            override fun fail(error: AdobeError?) {
+                countDownLatch.countDown()
+            }
         })
         countDownLatch.await()
         return ret
@@ -200,10 +208,17 @@ class EventHistoryIntegrationTests {
         )
 
         val latch = CountDownLatch(1)
-        MockExtension.extensionApi?.recordHistoricalEvent(event) { result ->
-            assertEquals(result, true)
-            latch.countDown()
-        }
+        MockExtension.extensionApi?.recordHistoricalEvent(event, object : AdobeCallbackWithError<Boolean> {
+            override fun call(result: Boolean) {
+                assertEquals(result, true)
+                latch.countDown()
+            }
+
+            override fun fail(error: AdobeError?) {
+                fail()
+                latch.countDown()
+            }
+        })
         assertTrue(latch.await(WAIT_TIME_MILLIS, java.util.concurrent.TimeUnit.MILLISECONDS))
         val results = getEventHistoryResult(arrayOf(validReq), false)
         assertEquals(1, results.size)
@@ -225,10 +240,17 @@ class EventHistoryIntegrationTests {
         )
 
         val latch = CountDownLatch(1)
-        MockExtension.extensionApi?.recordHistoricalEvent(event) { result ->
-            assertEquals(result, true)
-            latch.countDown()
-        }
+        MockExtension.extensionApi?.recordHistoricalEvent(event, object : AdobeCallbackWithError<Boolean> {
+            override fun call(result: Boolean) {
+                assertEquals(result, true)
+                latch.countDown()
+            }
+
+            override fun fail(error: AdobeError?) {
+                fail()
+                latch.countDown()
+            }
+        })
         assertTrue(latch.await(WAIT_TIME_MILLIS, java.util.concurrent.TimeUnit.MILLISECONDS))
         val results = getEventHistoryResult(arrayOf(validReq), false)
         assertEquals(1, results.size)

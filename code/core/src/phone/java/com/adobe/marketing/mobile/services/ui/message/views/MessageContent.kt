@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceConstants
+import com.adobe.marketing.mobile.services.ui.message.DefaultInAppMessageEventHandler
 import com.adobe.marketing.mobile.services.ui.message.InAppMessagePresentable
 import com.adobe.marketing.mobile.services.ui.message.InAppMessageSettings
 import java.nio.charset.StandardCharsets
@@ -36,6 +37,7 @@ import java.nio.charset.StandardCharsets
 internal fun MessageContent(
     modifier: Modifier,
     inAppMessageSettings: InAppMessageSettings,
+    onHeightReceived: (String?) -> Unit,
     onCreated: (WebView) -> Unit
 ) {
 
@@ -55,6 +57,10 @@ internal fun MessageContent(
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
 
+                addJavascriptInterface(
+                    DefaultInAppMessageEventHandler.WebViewJavascriptInterface(onHeightReceived),
+                    "inAppContentHeightHandler"
+                )
                 // call on created before loading the content. This is to ensure that the webview script
                 // handlers and interfaces are ready to be used
                 onCreated(this)

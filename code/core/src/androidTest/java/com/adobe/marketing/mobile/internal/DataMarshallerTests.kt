@@ -256,6 +256,23 @@ class DataMarshallerTests {
         assertEquals(mapOf(PUSH_MESSAGE_ID_KEY to "pushMessage", LOCAL_NOTIFICATION_ID_KEY to "notificationId", "otherKey" to "value"), result)
     }
 
+    @Test
+    fun marshalIntentExtras_whenBundleGetStringThrowsException_AllKeysShouldBeProcessed() {
+
+        val mockIntent = Mockito.mock(Intent::class.java)
+        val mockBundle = Mockito.mock(Bundle::class.java)
+
+        `when`(mockIntent.extras).thenReturn(mockBundle)
+        `when`(mockBundle.getString(LEGACY_PUSH_MESSAGE_ID)).thenThrow(RuntimeException::class.java)
+        `when`(mockBundle.getString(ANDROID_UI_SERVICE_NOTIFICATION_IDENTIFIER_KEY)).thenReturn("notificationId")
+        `when`(mockBundle.get("otherKey")).thenReturn("value")
+        `when`(mockBundle.keySet()).thenReturn(mutableSetOf(LEGACY_PUSH_MESSAGE_ID, ANDROID_UI_SERVICE_NOTIFICATION_IDENTIFIER_KEY, "otherKey"))
+        val result = mutableMapOf<String, Any>()
+        DataMarshaller.marshalIntentExtras(mockIntent, result)
+
+        assertEquals(mapOf(LOCAL_NOTIFICATION_ID_KEY to "notificationId", "otherKey" to "value"), result)
+    }
+
     private class ObjectThrowsOnToString : Serializable {
         override fun toString(): String {
             throw IllegalStateException("This is a test exception")

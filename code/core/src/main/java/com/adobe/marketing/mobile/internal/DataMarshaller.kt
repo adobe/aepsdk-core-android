@@ -66,27 +66,53 @@ internal object DataMarshaller {
     @VisibleForTesting
     internal fun marshalIntentExtras(intent: Intent, marshalledData: MutableMap<String, Any>) {
         val extraBundle = intent.extras ?: return
+
+        // First, handle known keys directly to avoid potential exceptions from keySet()
+        handleKnownKey(extraBundle, LEGACY_PUSH_MESSAGE_ID, PUSH_MESSAGE_ID_KEY, marshalledData)
+        handleKnownKey(extraBundle, NOTIFICATION_IDENTIFIER_KEY, LOCAL_NOTIFICATION_ID_KEY, marshalledData)
+
+        // Remove known keys from bundle after processing
+        try {
+            extraBundle.remove(LEGACY_PUSH_MESSAGE_ID)
+            extraBundle.remove(NOTIFICATION_IDENTIFIER_KEY)
+        } catch (e: Exception) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to remove known keys from bundle, error is: ${e.message}")
+        }
+
+        // Then extract other keys
         try {
             extraBundle.keySet()?.forEach { key ->
-                val newKey = when (key) {
-                    LEGACY_PUSH_MESSAGE_ID -> PUSH_MESSAGE_ID_KEY
-                    NOTIFICATION_IDENTIFIER_KEY -> LOCAL_NOTIFICATION_ID_KEY
-                    else -> key
-                }
                 try {
+                    if (key == LEGACY_PUSH_MESSAGE_ID || key == NOTIFICATION_IDENTIFIER_KEY) {
+                        // returning from a lambda expression, the loop will continue.
+                        return@forEach
+                    }
                     val value = extraBundle[key]
                     if (value?.toString()?.isNotEmpty() == true) {
-                        marshalledData[newKey] = value
+                        marshalledData[key] = value
                     }
                 } catch (e: Exception) {
                     Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data (key = $key) from Activity, error is: ${e.message}")
                 }
             }
-
-            extraBundle.remove(LEGACY_PUSH_MESSAGE_ID)
-            extraBundle.remove(NOTIFICATION_IDENTIFIER_KEY)
         } catch (e: Exception) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data from Activity, error is: ${e.message}")
+        }
+    }
+
+    /**
+     * Helper function to handle known keys in the bundle
+     *
+     * @param bundle [Bundle] containing the extras
+     * @param originalKey original key in the bundle
+     * @param newKey key to use in the marshalled data
+     * @param marshalledData [Map] to add the marshalled data
+     */
+    private fun handleKnownKey(bundle: Bundle, originalKey: String, newKey: String, marshalledData: MutableMap<String, Any>) {
+        try {
+            bundle.getString(originalKey)?.let { marshalledData[newKey] = it }
+        } catch (e: Exception) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data (key = $originalKey) from Activity, error is: ${e.message}")
         }
     }
 

@@ -162,12 +162,30 @@ class DataMarshallerTests {
     }
 
     @Test
-    fun marshalEmptyKeys() {
+    fun marshalEmptyValues() {
         val intent =
             Intent(ApplicationProvider.getApplicationContext(), TestActivity::class.java).apply {
                 data = Uri.parse("")
                 putExtra(ANDROID_UI_SERVICE_NOTIFICATION_IDENTIFIER_KEY, "")
                 putExtra(LEGACY_PUSH_MESSAGE_ID, "")
+            }
+
+        val activity = activityTestRule.launchActivity(intent)
+        val result = DataMarshaller.marshal(activity)
+        assertEquals(
+            emptyMap<String, Any>(),
+            result
+        )
+    }
+
+    @Test
+    fun marshalNullValues() {
+        val nullString:String? = null
+        val intent =
+            Intent(ApplicationProvider.getApplicationContext(), TestActivity::class.java).apply {
+                data = Uri.parse("")
+                putExtra(ANDROID_UI_SERVICE_NOTIFICATION_IDENTIFIER_KEY, nullString)
+                putExtra(LEGACY_PUSH_MESSAGE_ID, nullString)
             }
 
         val activity = activityTestRule.launchActivity(intent)
@@ -265,12 +283,13 @@ class DataMarshallerTests {
         `when`(mockIntent.extras).thenReturn(mockBundle)
         `when`(mockBundle.getString(LEGACY_PUSH_MESSAGE_ID)).thenThrow(RuntimeException::class.java)
         `when`(mockBundle.getString(ANDROID_UI_SERVICE_NOTIFICATION_IDENTIFIER_KEY)).thenReturn("notificationId")
-        `when`(mockBundle.get("otherKey")).thenReturn("value")
-        `when`(mockBundle.keySet()).thenReturn(mutableSetOf(LEGACY_PUSH_MESSAGE_ID, ANDROID_UI_SERVICE_NOTIFICATION_IDENTIFIER_KEY, "otherKey"))
+        `when`(mockBundle.get("otherKey1")).thenReturn("value1")
+        `when`(mockBundle.get("otherKey2")).thenReturn("value2")
+        `when`(mockBundle.keySet()).thenReturn(mutableSetOf(LEGACY_PUSH_MESSAGE_ID, ANDROID_UI_SERVICE_NOTIFICATION_IDENTIFIER_KEY, "otherKey1", "otherKey2"))
         val result = mutableMapOf<String, Any>()
         DataMarshaller.marshalIntentExtras(mockIntent, result)
 
-        assertEquals(mapOf(LOCAL_NOTIFICATION_ID_KEY to "notificationId", "otherKey" to "value"), result)
+        assertEquals(mapOf(LOCAL_NOTIFICATION_ID_KEY to "notificationId", "otherKey1" to "value1", "otherKey2" to "value2"), result)
     }
 
     private class ObjectThrowsOnToString : Serializable {

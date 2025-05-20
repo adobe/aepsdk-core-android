@@ -180,7 +180,7 @@ class DataMarshallerTests {
 
     @Test
     fun marshalNullValues() {
-        val nullString:String? = null
+        val nullString: String? = null
         val intent =
             Intent(ApplicationProvider.getApplicationContext(), TestActivity::class.java).apply {
                 data = Uri.parse("")

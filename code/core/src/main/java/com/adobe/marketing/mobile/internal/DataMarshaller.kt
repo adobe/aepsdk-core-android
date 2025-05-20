@@ -110,7 +110,7 @@ internal object DataMarshaller {
      */
     private fun handleKnownKey(bundle: Bundle, originalKey: String, newKey: String, marshalledData: MutableMap<String, Any>) {
         try {
-            bundle.getString(originalKey)?.let { marshalledData[newKey] = it }
+            bundle.getString(originalKey)?.takeIf { it.isNotEmpty() }?.let { marshalledData[newKey] = it }
         } catch (e: Exception) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data (key = $originalKey) from Activity, error is: ${e.message}")
         }

@@ -9,6 +9,7 @@ public abstract interface class com/adobe/marketing/mobile/AdobeCallbackWithErro
 public class com/adobe/marketing/mobile/AdobeError : java/io/Serializable {
 	public static final field CALLBACK_NULL Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field CALLBACK_TIMEOUT Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field DATABASE_ERROR Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field EXTENSION_NOT_INITIALIZED Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field INVALID_REQUEST Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field INVALID_RESPONSE Lcom/adobe/marketing/mobile/AdobeError;

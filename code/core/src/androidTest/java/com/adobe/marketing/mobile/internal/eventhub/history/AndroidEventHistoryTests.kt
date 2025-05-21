@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.internal.eventhub.history
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.adobe.marketing.mobile.AdobeCallbackWithError
@@ -34,9 +35,10 @@ import java.util.concurrent.CountDownLatch
 class AndroidEventHistoryTests {
 
     private lateinit var androidEventHistory: AndroidEventHistory
+    private lateinit var context: Context
 
     init {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+        context = ApplicationProvider.getApplicationContext()
         val mockAppContextService = MockAppContextService().apply {
             appContext = context
         }
@@ -54,6 +56,28 @@ class AndroidEventHistoryTests {
     fun testRecordEvent() {
         val data = mapOf("key" to "value")
         assertTrue(record(data))
+    }
+
+    @Test
+    fun testRecordEventDatabaseError() {
+        val data = mapOf("key" to "value")
+        if (deleteEventHistoryDatabase()) {
+            val latch = CountDownLatch(1)
+            androidEventHistory.recordEvent(
+                Event.Builder("name", "type", "source").setEventData(data).build(),
+                object : AdobeCallbackWithError<Boolean> {
+                    override fun call(result: Boolean) {
+                        fail()
+                    }
+
+                    override fun fail(error: AdobeError) {
+                        assertEquals(AdobeError.DATABASE_ERROR.errorCode, error.errorCode)
+                        latch.countDown()
+                    }
+                }
+            )
+            assertTrue(latch.await(5, java.util.concurrent.TimeUnit.SECONDS))
+        }
     }
 
     @Test
@@ -212,6 +236,39 @@ class AndroidEventHistoryTests {
     }
 
     @Test
+    fun testGetEventsDatabaseError() {
+        val data = mapOf("key" to "value")
+        assertTrue(record(data))
+
+        val data1 = mapOf("key1" to "value1")
+        assertTrue(record(data1))
+
+        if (deleteEventHistoryDatabase()) {
+            val latch = CountDownLatch(1)
+
+            val requests = arrayOf(
+                EventHistoryRequest(data, 0, 0), // toDate is assumed to be current timestamp.
+                EventHistoryRequest(data1, 0, System.currentTimeMillis())
+            )
+
+            androidEventHistory.getEvents(
+                requests, true,
+                object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+                    override fun call(result: Array<EventHistoryResult>) {
+                        fail()
+                    }
+
+                    override fun fail(error: AdobeError) {
+                        assertEquals(AdobeError.DATABASE_ERROR.errorCode, error.errorCode)
+                        latch.countDown()
+                    }
+                }
+            )
+            assertTrue(latch.await(5, java.util.concurrent.TimeUnit.SECONDS))
+        }
+    }
+
+    @Test
     fun testDeleteEvents() {
         val data = mapOf("key" to "value")
         for (i in 1..5) {
@@ -242,6 +299,33 @@ class AndroidEventHistoryTests {
             EventHistoryRequest(mapOf("key" to "value"), 10001, System.currentTimeMillis())
         )
         assertEquals(0, delete(deleteRequests))
+    }
+
+    @Test
+    fun testDeleteEventsDatabaseError() {
+        val data = mapOf("key" to "value")
+        for (i in 1..5) {
+            assertTrue(record(data))
+        }
+
+        if (deleteEventHistoryDatabase()) {
+            val latch = CountDownLatch(1)
+            val deleteRequests = arrayOf(EventHistoryRequest(mapOf("key" to "value"), 0, System.currentTimeMillis()))
+            androidEventHistory.deleteEvents(
+                deleteRequests,
+                object : AdobeCallbackWithError<Int> {
+                    override fun call(result: Int) {
+                        fail()
+                    }
+
+                    override fun fail(error: AdobeError) {
+                        assertEquals(AdobeError.DATABASE_ERROR.errorCode, error.errorCode)
+                        latch.countDown()
+                    }
+                }
+            )
+            assertTrue(latch.await(5, java.util.concurrent.TimeUnit.SECONDS))
+        }
     }
 
     private fun record(data: Map<String, String>, timestamp: Long = System.currentTimeMillis()): Boolean {
@@ -304,6 +388,10 @@ class AndroidEventHistoryTests {
         )
         latch.await()
         return ret
+    }
+
+    private fun deleteEventHistoryDatabase(): Boolean {
+        return SQLiteDatabase.deleteDatabase(context.getDatabasePath("com.adobe.module.core.eventhistory"))
     }
 
     companion object {

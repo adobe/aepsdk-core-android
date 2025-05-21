@@ -58,6 +58,7 @@ internal fun historicalEventsQuerying(
                         LOG_TAG,
                         "Unable to retrieve historical events, caused by the error: ${error.errorName}"
                     )
+                    eventCounts = -1
                     latch.countDown()
                 }
             }

@@ -122,7 +122,8 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
      * @param hash `long` containing the 32-bit FNV-1a hashed representation of an Event's data
      * @param from `long` a timestamp representing the lower bounds of the date range to use when searching for the hash
      * @param to `long` a timestamp representing the upper bounds of the date range to use when searching for the hash
-     * @return a `QueryResult` object containing details of the matching records. If no database connection is available, returns null
+     * @return an [EventHistoryResult] object containing details of the matching records.
+     * If no database connection is available or error occurs, returns `EventHistoryResult` with count of -1.
      */
     override fun query(hash: Long, from: Long, to: Long): EventHistoryResult {
         synchronized(dbMutex) {
@@ -159,7 +160,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
      * @param hash `long` containing the 32-bit FNV-1a hashed representation of an Event's data
      * @param from `long` representing the lower bounds of the date range to use when searching for the hash
      * @param to `long` representing the upper bounds of the date range to use when searching for the hash
-     * @return `int` which will contain the number of rows deleted.
+     * @return `int` which will contain the number of rows deleted. Returns -1 if no database connection is available or error occurs.
      */
     override fun delete(hash: Long, from: Long, to: Long): Int {
         synchronized(dbMutex) {
@@ -168,7 +169,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                 val whereClause =
                     "$COLUMN_HASH = ? AND $COLUMN_TIMESTAMP >= ? AND $COLUMN_TIMESTAMP <= ?"
                 val whereArgs = arrayOf(hash.toString(), from.toString(), to.toString())
-                val affectedRowsCount = database?.delete(TABLE_NAME, whereClause, whereArgs) ?: 0
+                val affectedRowsCount = database?.delete(TABLE_NAME, whereClause, whereArgs) ?: -1
                 Log.trace(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
@@ -182,10 +183,10 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                     "Failed to delete table rows (%s)",
                     if (e.localizedMessage != null) e.localizedMessage else e.message
                 )
+                return -1
             } finally {
                 closeDatabase()
             }
-            return 0
         }
     }
 

@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.ExtensionApi
@@ -1947,7 +1948,7 @@ class LaunchRulesConsequenceTests {
     }
 
     @Test
-    fun `Test Schema Event History InsertIfNotExists Operation When EventHistory lookup fails`() {
+    fun `Test Schema Event History InsertIfNotExists Operation When EventHistory lookup has negative count`() {
         // Given: a launch rule with an event history insert operation
         resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertIfNotExists.json")
 
@@ -1979,7 +1980,39 @@ class LaunchRulesConsequenceTests {
     }
 
     @Test
-    fun `Test Schema Event History Insert Operation When recordHistoricalEvent Fails`() {
+    fun `Test Schema Event History InsertIfNotExists Operation When EventHistory lookup fails`() {
+        // Given: a launch rule with an event history insert operation
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsertIfNotExists.json")
+
+        // Mock recordHistoricalEvent to simulate failed recording
+        `when`(
+            extensionApi.getHistoricalEvents(
+                any(),
+                anyBoolean(),
+                any<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+            )
+        ).thenAnswer {
+            val callback = it.arguments[2] as AdobeCallbackWithError<Array<EventHistoryResult>>
+            callback.fail(AdobeError.DATABASE_ERROR)
+        }
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should not be recorded or dispatched due to lookup failure
+        verify(extensionApi, never()).recordHistoricalEvent(any(), any())
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When recordHistoricalEvent returns false`() {
         // Given: a launch rule with an event history insert operation
         resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsert.json")
 
@@ -1987,6 +2020,47 @@ class LaunchRulesConsequenceTests {
         `when`(extensionApi.recordHistoricalEvent(any(), any())).thenAnswer {
             val callback = it.arguments[1] as AdobeCallbackWithError<Boolean>
             callback.call(false)
+        }
+
+        val event = Event.Builder(
+            "Test Event",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+
+        // When: evaluating the event
+        val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
+        launchRulesConsequence.process(event, matchedRules)
+
+        // Then: Event should be recorded and dispatched
+        val recordedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        val recordResultCaptor: ArgumentCaptor<AdobeCallbackWithError<Boolean>> =
+            ArgumentCaptor.forClass(AdobeCallbackWithError::class.java) as ArgumentCaptor<AdobeCallbackWithError<Boolean>>
+
+        // Then: Event recordHistoricalEvent is called
+        verify(extensionApi, times(1)).recordHistoricalEvent(
+            recordedEventCaptor.capture(),
+            recordResultCaptor.capture()
+        )
+
+        // Verify properties passed to recordHistoricalEvent
+        assertEquals("Dispatch Consequence Result", recordedEventCaptor.value.name)
+        assertEquals("com.adobe.eventType.rulesEngine", recordedEventCaptor.value.type)
+        assertEquals("com.adobe.eventSource.responseContent", recordedEventCaptor.value.source)
+
+        // Event not dispatched due to recordHistoricalEvent failure
+        verify(extensionApi, never()).dispatch(any())
+    }
+
+    @Test
+    fun `Test Schema Event History Insert Operation When recordHistoricalEvent fails`() {
+        // Given: a launch rule with an event history insert operation
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaEventHistoryInsert.json")
+
+        // Mock recordHistoricalEvent to simulate failed recording
+        `when`(extensionApi.recordHistoricalEvent(any(), any())).thenAnswer {
+            val callback = it.arguments[1] as AdobeCallbackWithError<Boolean>
+            callback.fail(AdobeError.DATABASE_ERROR)
         }
 
         val event = Event.Builder(

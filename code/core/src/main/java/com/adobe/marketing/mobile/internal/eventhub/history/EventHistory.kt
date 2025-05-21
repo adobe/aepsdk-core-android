@@ -22,7 +22,8 @@ internal interface EventHistory {
      * Record an event in the [EventHistoryDatabase].
      *
      * @param event the [Event] to be recorded
-     * @param callback which will contain a `boolean` indicating if the database operation was successful
+     * @param callback whose call method will contain a `boolean` indicating if the database operation was successful
+     * or `fail` if the database failure occurred
      */
     fun recordEvent(event: Event, callback: AdobeCallbackWithError<Boolean>?)
 
@@ -33,9 +34,9 @@ internal interface EventHistory {
      * @param eventHistoryRequests an array of `EventHistoryRequest`s to be matched
      * @param enforceOrder `boolean` if true, consecutive lookups will use the oldest
      * timestamp from the previous event as their from date
-     * @param callback which will be called with an array of [EventHistoryResult], one for each provided request,
+     * @param callback whose `call` method will be called with an array of [EventHistoryResult], one for each provided request,
      * containing the the total number of matching events in the `EventHistoryDatabase` along with the timestamp of the oldest and newest of the event
-     * or "-1" if the database failure occurred
+     * or `fail` if the database failure occurred
      * */
     fun getEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
@@ -48,8 +49,8 @@ internal interface EventHistory {
      * contents of the [EventHistoryRequest] array.
      *
      * @param eventHistoryRequests an array of `EventHistoryRequest`s to be deleted
-     * @param callback which will be called with a `int` containing the total number
-     * of rows deleted from the `EventHistoryDatabase`
+     * @param callback whose `call` method will be called with a `int` containing the total number
+     * of rows deleted from the `EventHistoryDatabase` or `fail` if the database failure occurred
      */
     fun deleteEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,

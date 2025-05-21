@@ -60,4 +60,5 @@ dependencies {
     androidTestImplementation(project(":testutils"))
     testImplementation("org.robolectric:robolectric:4.7")
     testImplementation(project(":testutils"))
+    testImplementation(BuildConstants.Dependencies.MOCKK)
 }

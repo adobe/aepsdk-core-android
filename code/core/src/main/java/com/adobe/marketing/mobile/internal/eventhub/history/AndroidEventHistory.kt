@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.internal.eventhub.history
 
 import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResult
@@ -41,7 +42,8 @@ internal class AndroidEventHistory : EventHistory {
      * Record an event in the [AndroidEventHistoryDatabase].
      *
      * @param event the [Event] to be recorded
-     * @param callback which will contain a `boolean` indicating if the database operation was successful
+     * @param callback whose call method will be called with a `boolean` indicating if the database operation was successful
+     * or `fail` if the database failure occurred
      */
     override fun recordEvent(event: Event, callback: AdobeCallbackWithError<Boolean>?) {
         executor.submit {
@@ -57,7 +59,7 @@ internal class AndroidEventHistory : EventHistory {
             } else {
                 false
             }
-            notifyHandler(callback, res)
+            notifyHandler(callback, res, !res)
         }
     }
 
@@ -68,9 +70,9 @@ internal class AndroidEventHistory : EventHistory {
      * @param eventHistoryRequests an array of `EventHistoryRequest`s to be matched
      * @param enforceOrder `boolean` if true, consecutive lookups will use the oldest
      * timestamp from the previous event as their from date
-     * @param callback which will be called with an array of [EventHistoryResult], one for each provided request,
-     * containing the the total number of matching events in the `AndroidEventHistoryDatabase` along with the timestamp of the oldest and newest of the event
-     * or "-1" if the database failure occurred
+     * @param callback whose `call` method will be called with an array of [EventHistoryResult], one for each provided request,
+     * containing the the total number of matching events in the [AndroidEventHistoryDatabase] along with the timestamp of the oldest and newest of the event
+     * or `fail` if the database failure occurred
      */
     override fun getEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
@@ -78,6 +80,7 @@ internal class AndroidEventHistory : EventHistory {
         callback: AdobeCallbackWithError<Array<EventHistoryResult>>
     ) {
         executor.submit {
+            var dbError = false
             val results = mutableListOf<EventHistoryResult>()
             var previousEventOldestOccurrence: Long? = null
             eventHistoryRequests.forEachIndexed { index, request ->
@@ -101,11 +104,14 @@ internal class AndroidEventHistory : EventHistory {
                 )
 
                 if (enforceOrder) {
+                    if (res.count == -1) {
+                        dbError = true
+                    }
                     previousEventOldestOccurrence = res.oldestOccurrence
                 }
                 results.add(res)
             }
-            notifyHandler(callback, results.toTypedArray())
+            notifyHandler(callback, results.toTypedArray(), dbError)
         }
     }
 
@@ -114,24 +120,35 @@ internal class AndroidEventHistory : EventHistory {
      * match the contents of the [EventHistoryRequest] array.
      *
      * @param eventHistoryRequests an array of `EventHistoryRequest`s to be deleted
-     * @param callback which will be called with a `int` containing the total number
-     * of rows deleted from the `AndroidEventHistoryDatabase`
+     * @param callback whose `call` method will be called with a `int` containing the total number
+     * of rows deleted from the [AndroidEventHistoryDatabase] or `fail` if the database failure occurred
      */
     override fun deleteEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
         callback: AdobeCallbackWithError<Int>?
     ) {
+        var dbError = false
         executor.submit {
             val deletedRows = eventHistoryRequests.fold(0) { acc, request ->
-                acc + androidEventHistoryDatabase.delete(request.maskAsDecimalHash, request.fromDate, request.adjustedToDate)
+                val noOfDeletedRows = androidEventHistoryDatabase.delete(request.maskAsDecimalHash, request.fromDate, request.adjustedToDate)
+                if (noOfDeletedRows == -1) {
+                    dbError = true
+                    acc
+                } else {
+                    acc + noOfDeletedRows
+                }
             }
-            notifyHandler(callback, deletedRows)
+            notifyHandler(callback, deletedRows, dbError)
         }
     }
 
-    private fun <T> notifyHandler(handler: AdobeCallbackWithError<T>?, value: T) {
+    private fun <T> notifyHandler(handler: AdobeCallbackWithError<T>?, value: T, dbError: Boolean) {
         try {
-            handler?.call(value)
+            if (dbError) {
+                handler?.fail(AdobeError.DATABASE_ERROR)
+            } else {
+                handler?.call(value)
+            }
         } catch (ex: Exception) {
             Log.debug(
                 CoreConstants.LOG_TAG,

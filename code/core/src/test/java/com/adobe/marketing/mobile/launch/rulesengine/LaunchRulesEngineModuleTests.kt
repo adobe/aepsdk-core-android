@@ -12,6 +12,7 @@
 package com.adobe.marketing.mobile.launch.rulesengine
 
 import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.EventSource
@@ -104,6 +105,25 @@ class LaunchRulesEngineModuleTests {
         launchRulesEngine.replaceRules(rules)
 
         assertEquals(1, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test historical condition failure`() {
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                captor.firstValue.fail(AdobeError.DATABASE_ERROR)
+            }
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+
+        val json = readTestResources("rules_module_tests/rules_testHistory.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test

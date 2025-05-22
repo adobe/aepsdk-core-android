@@ -20,6 +20,7 @@ import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryConstants.EVENT_HISTORY_ERROR
 import com.adobe.marketing.mobile.internal.util.EventDataMerger
 import com.adobe.marketing.mobile.internal.util.fnv1a32
 import com.adobe.marketing.mobile.internal.util.prettify
@@ -494,12 +495,12 @@ internal class LaunchRulesConsequence(
                     false,
                     object : AdobeCallbackWithError<Array<EventHistoryResult>> {
                         override fun call(results: Array<EventHistoryResult>) {
-                            eventCounts = if (results.isNotEmpty()) results[0].count else -1
+                            eventCounts = if (results.isNotEmpty()) results[0].count else EVENT_HISTORY_ERROR
                             latch.countDown()
                         }
 
                         override fun fail(error: AdobeError) {
-                            eventCounts = -1
+                            eventCounts = EVENT_HISTORY_ERROR
                             latch.countDown()
                         }
                     }
@@ -513,7 +514,7 @@ internal class LaunchRulesConsequence(
                 )
                 return
             }
-            if (eventCounts == -1) {
+            if (eventCounts == EVENT_HISTORY_ERROR) {
                 Log.trace(
                     LaunchRulesEngineConstants.LOG_TAG,
                     logTag,

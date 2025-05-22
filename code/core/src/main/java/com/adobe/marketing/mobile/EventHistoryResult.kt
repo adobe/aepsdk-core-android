@@ -12,8 +12,8 @@
 package com.adobe.marketing.mobile
 
 /**
- * Passed to handler of [ExtensionApi.getHistoricalEvents] API to represent the result of event look up in EventHistoryDatabase
- * @param count The number of occurrences of the event in the event history database
+ * Passed to callback of [ExtensionApi.getHistoricalEvents] API to represent the result of event look up in EventHistoryDatabase
+ * @param count The number of occurrences of the event in the event history database or `-1` if an error occurred
  * @param oldestOccurrence The timestamp in milliseconds of the oldest occurrence of the event in the event history database. If count is 0, this value will be null
  * @param newestOccurrence The timestamp in milliseconds of the newest occurrence of the event in the event history database. If count is 0, this value will be null
  */

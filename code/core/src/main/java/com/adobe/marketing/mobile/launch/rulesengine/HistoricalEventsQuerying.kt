@@ -27,6 +27,16 @@ private const val ASYNC_TIMEOUT = 1000L
 internal const val SEARCH_TYPE_ORDERED = "ordered"
 internal const val SEARCH_TYPE_MOST_RECENT = "mostRecent"
 
+/**
+ * Queries the historical events database for the specified events in the requests
+ * For an "any" search (event order does not matter), the value returned will be the count of all matching events in EventHistory
+ * For an `.ordered` search (events must occur in the provided order), the value returned will be 1 if the events were found in the provided order, or 0 otherwise.
+ * If an error occurred, this method will always return -1
+ *
+ * @param requests `List<EventHistoryRequest>` the list of events to query
+ * @param searchType `String` the type of search to perform, either "any" or "ordered"
+ * @param extensionApi `ExtensionApi` the extension API to use for querying
+ */
 @JvmSynthetic
 internal fun historicalEventsQuerying(
     requests: List<EventHistoryRequest>,
@@ -71,7 +81,7 @@ internal fun historicalEventsQuerying(
             LOG_TAG,
             "Unable to retrieve historical events, caused by the exception: ${e.localizedMessage}"
         )
-        0
+        EVENT_HISTORY_ERROR
     }
 }
 

@@ -265,6 +265,20 @@ class AndroidEventHistoryDatabaseTests {
         assertEquals(-1, res)
     }
 
+    @Test
+    fun testDelete_AlreadyDeletedRecord() {
+        // create new event history database
+        val eventHistoryDatabase = AndroidEventHistoryDatabase()
+        val currentTimestamp = System.currentTimeMillis()
+        assertTrue(eventHistoryDatabase.insert(222222222, currentTimestamp))
+
+        val res1 = eventHistoryDatabase.delete(222222222, 0, currentTimestamp)
+        assertEquals(1, res1)
+
+        val res2 = eventHistoryDatabase.delete(222222222, 0, currentTimestamp)
+        assertEquals(0, res2)
+    }
+
     @Throws(Exception::class)
     private fun createEventHistoryDatabaseInCacheDirectory() {
         val cacheDatabaseFile = File(context.cacheDir, DATABASE_NAME_1X)

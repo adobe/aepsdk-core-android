@@ -27,9 +27,9 @@ import kotlin.math.max
  * The Android implementation of [EventHistory] which provides functionality for performing
  * database operations on an [AndroidEventHistoryDatabase].
  */
-internal class AndroidEventHistory(
-    private val androidEventHistoryDatabase: AndroidEventHistoryDatabase = AndroidEventHistoryDatabase()
-) : EventHistory {
+internal class AndroidEventHistory : EventHistory {
+    private val androidEventHistoryDatabase = AndroidEventHistoryDatabase()
+
     companion object {
         private const val LOG_TAG = "AndroidEventHistory"
     }
@@ -45,7 +45,7 @@ internal class AndroidEventHistory(
      *
      * @param event the [Event] to be recorded
      * @param callback whose call method will be called with a `boolean` indicating if the database operation was successful
-     * or `fail` if the database failure occurred
+     * or `fail` if a database failure occurred
      */
     override fun recordEvent(event: Event, callback: AdobeCallbackWithError<Boolean>?) {
         executor.submit {
@@ -74,7 +74,7 @@ internal class AndroidEventHistory(
      * timestamp from the previous event as their from date
      * @param callback whose `call` method will be called with an array of [EventHistoryResult], one for each provided request,
      * containing the the total number of matching events in the [AndroidEventHistoryDatabase] along with the timestamp of the oldest and newest of the event
-     * or `fail` if the database failure occurred
+     * or `fail` if a database failure occurred
      */
     override fun getEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
@@ -94,7 +94,7 @@ internal class AndroidEventHistory(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
                     "EventHistoryRequest[%d] - (%d of %d) for hash(%d) from %d to %d" +
-                        " with enforceOrder (%s) returned %d records",
+                        " with enforceOrder (%s) returned %d events",
                     eventHistoryRequests.hashCode(),
                     index + 1,
                     eventHistoryRequests.size,

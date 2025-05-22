@@ -198,7 +198,8 @@ public abstract class ExtensionApi {
      * @param enforceOrder if `true`, consecutive lookups will use the oldest timestamp from the
      *     previous event as their from date
      * @param callback the {@link AdobeCallbackWithError} which returns an array of {@link
-     *     EventHistoryResult} for each provided request
+     *     EventHistoryResult} for each provided request in `call` method if request succeeds, or an
+     *     error in `fail` method if request fails
      */
     public abstract void getHistoricalEvents(
             @NonNull EventHistoryRequest[] eventHistoryRequests,

@@ -35,7 +35,7 @@ internal interface EventHistoryDatabase {
      * @param to `long` a timestamp representing the upper bounds of the date range to use when searching for the hash
      * @return a `QueryResult` object containing details of the matching records. If no database connection is available, returns null
      */
-    fun query(hash: Long, from: Long, to: Long): EventHistoryResult?
+    fun query(hash: Long, from: Long, to: Long): EventHistoryResult
 
     /**
      * Delete entries from the event history database.

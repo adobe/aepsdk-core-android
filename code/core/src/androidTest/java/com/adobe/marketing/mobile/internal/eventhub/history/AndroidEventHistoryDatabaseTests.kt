@@ -21,6 +21,7 @@ import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper
 import com.adobe.marketing.mobile.services.MockAppContextService
 import com.adobe.marketing.mobile.services.ServiceProviderModifier
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -33,6 +34,7 @@ import java.io.File
 class AndroidEventHistoryDatabaseTests {
     private lateinit var androidEventHistoryDatabase: EventHistoryDatabase
     private lateinit var context: Context
+    private lateinit var databaseFile: File
 
     @Before
     fun beforeEach() {
@@ -43,9 +45,10 @@ class AndroidEventHistoryDatabaseTests {
         ServiceProviderModifier.setAppContextService(mockAppContextService)
 
         // Make sure databases directory exist
-        context.applicationContext.getDatabasePath(DATABASE_NAME).parentFile?.mkdirs()
+        databaseFile = context.applicationContext.getDatabasePath(DATABASE_NAME)
+        databaseFile.parentFile?.mkdirs()
         TestUtils.deleteAllFilesInCacheDir(context)
-        context.applicationContext.getDatabasePath(DATABASE_NAME).delete()
+        databaseFile.delete()
 
         try {
             androidEventHistoryDatabase = AndroidEventHistoryDatabase()
@@ -146,7 +149,7 @@ class AndroidEventHistoryDatabaseTests {
     @Test
     fun testInsert_DatabasesDirectoryAbsent() {
         // delete databases dir
-        deleteFile(context.getDatabasePath(DATABASE_NAME).parentFile, true)
+        deleteFile(databaseFile.parentFile, true)
 
         // create new event history database
         val eventHistoryDatabase = AndroidEventHistoryDatabase()
@@ -157,12 +160,23 @@ class AndroidEventHistoryDatabaseTests {
     }
 
     @Test
+    fun testInsert_DatabasesDeleted() {
+        // create new event history database
+        val eventHistoryDatabase = AndroidEventHistoryDatabase()
+
+        // delete databases dir
+        databaseFile.delete()
+
+        assertFalse(eventHistoryDatabase.insert(222222222, System.currentTimeMillis()))
+    }
+
+    @Test
     fun testInsert_MigrationFromCacheDirectory() {
         // create event history database in cache directory
         createEventHistoryDatabaseInCacheDirectory()
 
         // delete any existing event history database
-        context.getDatabasePath(DATABASE_NAME).delete()
+        databaseFile.delete()
 
         // create new event history database
         val eventHistoryDatabase = AndroidEventHistoryDatabase()
@@ -182,7 +196,7 @@ class AndroidEventHistoryDatabaseTests {
         createEventHistoryDatabaseInCacheDirectory()
 
         // delete databases dir
-        deleteFile(context.getDatabasePath(DATABASE_NAME).parentFile, true)
+        deleteFile(databaseFile.parentFile, true)
 
         // create new event history database
         val eventHistoryDatabase = AndroidEventHistoryDatabase()
@@ -194,6 +208,61 @@ class AndroidEventHistoryDatabaseTests {
 
         val query2 = eventHistoryDatabase.query(222222222, 0, System.currentTimeMillis())
         assertEquals(1, query2?.count)
+    }
+
+    @Test
+    fun testQuery_DatabasesDeleted() {
+        // create new event history database
+        val eventHistoryDatabase = AndroidEventHistoryDatabase()
+        assertTrue(eventHistoryDatabase.insert(222222222, System.currentTimeMillis()))
+
+        // corrupt the databases dir
+        databaseFile.delete()
+
+        val res = eventHistoryDatabase.query(222222222, 0, System.currentTimeMillis())
+        assertNotNull(res)
+        assertEquals(-1, res?.count)
+    }
+
+    @Test
+    fun testQuery_CorruptDatabases() {
+        // create new event history database
+        val eventHistoryDatabase = AndroidEventHistoryDatabase()
+        assertTrue(eventHistoryDatabase.insert(222222222, System.currentTimeMillis()))
+
+        // corrupt the databases dir
+        corruptDatabase()
+
+        val res = eventHistoryDatabase.query(222222222, 0, System.currentTimeMillis())
+        assertNotNull(res)
+        assertEquals(-1, res?.count)
+    }
+
+    @Test
+    fun testDelete_DatabasesDeleted() {
+        // create new event history database
+        val eventHistoryDatabase = AndroidEventHistoryDatabase()
+        assertTrue(eventHistoryDatabase.insert(222222222, System.currentTimeMillis()))
+
+        // corrupt the databases dir
+        databaseFile.delete()
+
+        val res = eventHistoryDatabase.delete(222222222, 0, System.currentTimeMillis())
+        assertEquals(-1, res)
+    }
+
+    @Test
+    fun testDelete_CorruptDatabases() {
+        // create new event history database
+        val eventHistoryDatabase = AndroidEventHistoryDatabase()
+        assertTrue(eventHistoryDatabase.insert(222222222, System.currentTimeMillis()))
+
+        // corrupt the databases dir
+        corruptDatabase()
+
+        val res = eventHistoryDatabase.delete(222222222, 0, System.currentTimeMillis())
+        assertNotNull(res)
+        assertEquals(-1, res)
     }
 
     @Throws(Exception::class)
@@ -216,6 +285,11 @@ class AndroidEventHistoryDatabaseTests {
         contentValues.put(COLUMN_HASH, 1111111111)
         contentValues.put(COLUMN_TIMESTAMP, System.currentTimeMillis())
         cacheDatabase.insert(TABLE_NAME, null, contentValues)
+    }
+
+    private fun corruptDatabase() {
+        // Write invalid data to corrupt the database
+        databaseFile.writeBytes(ByteArray(10) { 0 })
     }
 
     companion object {

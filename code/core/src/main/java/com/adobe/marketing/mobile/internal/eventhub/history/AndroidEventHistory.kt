@@ -17,6 +17,7 @@ import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryConstants.EVENT_HISTORY_ERROR
 import com.adobe.marketing.mobile.internal.util.convertMapToFnv1aHash
 import com.adobe.marketing.mobile.services.Log
 import java.util.concurrent.Executors
@@ -105,7 +106,7 @@ internal class AndroidEventHistory(
                 )
 
                 if (enforceOrder) {
-                    if (res.count == -1) {
+                    if (res.count == EVENT_HISTORY_ERROR) {
                         dbError = true
                     }
                     previousEventOldestOccurrence = res.oldestOccurrence
@@ -132,7 +133,7 @@ internal class AndroidEventHistory(
         executor.submit {
             val deletedRows = eventHistoryRequests.fold(0) { acc, request ->
                 val noOfDeletedRows = androidEventHistoryDatabase.delete(request.maskAsDecimalHash, request.fromDate, request.adjustedToDate)
-                if (noOfDeletedRows == -1) {
+                if (noOfDeletedRows == EVENT_HISTORY_ERROR) {
                     dbError = true
                     acc
                 } else {

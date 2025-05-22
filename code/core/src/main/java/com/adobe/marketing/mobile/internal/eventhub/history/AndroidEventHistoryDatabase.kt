@@ -15,9 +15,9 @@ import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryConstants.EVENT_HISTORY_ERROR
 import com.adobe.marketing.mobile.internal.util.FileUtils.moveFile
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper
-import com.adobe.marketing.mobile.launch.rulesengine.EVENT_HISTORY_RESULT_DATABASE_ERROR
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.services.ServiceProvider
 import java.io.File
@@ -99,7 +99,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                     put(COLUMN_HASH, hash)
                     put(COLUMN_TIMESTAMP, timestampMS)
                 }
-                val res = database?.insert(TABLE_NAME, null, contentValues) ?: EVENT_HISTORY_RESULT_DATABASE_ERROR.toLong()
+                val res = database?.insert(TABLE_NAME, null, contentValues) ?: EVENT_HISTORY_ERROR.toLong()
                 return res > 0
             } catch (e: Exception) {
                 Log.warning(
@@ -133,7 +133,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                 val rawQuery =
                     "SELECT COUNT(*) as $QUERY_COUNT, min($COLUMN_TIMESTAMP) as $QUERY_OLDEST, max($COLUMN_TIMESTAMP) as $QUERY_NEWEST FROM $TABLE_NAME WHERE $COLUMN_HASH = ? AND $COLUMN_TIMESTAMP >= ? AND $COLUMN_TIMESTAMP <= ?"
                 val whereArgs = arrayOf(hash.toString(), from.toString(), to.toString())
-                val cursor = database?.rawQuery(rawQuery, whereArgs) ?: return EventHistoryResult(EVENT_HISTORY_RESULT_DATABASE_ERROR)
+                val cursor = database?.rawQuery(rawQuery, whereArgs) ?: return EventHistoryResult(EVENT_HISTORY_ERROR)
                 cursor.use {
                     cursor.moveToFirst()
                     val count = cursor.getInt(QUERY_COUNT_INDEX)
@@ -148,7 +148,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                     "Failed to execute query (%s)",
                     if (e.localizedMessage != null) e.localizedMessage else e.message
                 )
-                return EventHistoryResult(EVENT_HISTORY_RESULT_DATABASE_ERROR)
+                return EventHistoryResult(EVENT_HISTORY_ERROR)
             } finally {
                 closeDatabase()
             }
@@ -170,7 +170,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                 val whereClause =
                     "$COLUMN_HASH = ? AND $COLUMN_TIMESTAMP >= ? AND $COLUMN_TIMESTAMP <= ?"
                 val whereArgs = arrayOf(hash.toString(), from.toString(), to.toString())
-                val affectedRowsCount = database?.delete(TABLE_NAME, whereClause, whereArgs) ?: EVENT_HISTORY_RESULT_DATABASE_ERROR
+                val affectedRowsCount = database?.delete(TABLE_NAME, whereClause, whereArgs) ?: EVENT_HISTORY_ERROR
                 Log.trace(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
@@ -184,7 +184,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                     "Failed to delete table rows (%s)",
                     if (e.localizedMessage != null) e.localizedMessage else e.message
                 )
-                return EVENT_HISTORY_RESULT_DATABASE_ERROR
+                return EVENT_HISTORY_ERROR
             } finally {
                 closeDatabase()
             }

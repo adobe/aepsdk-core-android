@@ -197,13 +197,13 @@ public abstract class ExtensionApi {
      *     hash and timeframe for the event lookup
      * @param enforceOrder if `true`, consecutive lookups will use the oldest timestamp from the
      *     previous event as their from date
-     * @param handler the {@link AdobeCallbackWithError} which returns an array of {@link
+     * @param callback the {@link AdobeCallbackWithError} which returns an array of {@link
      *     EventHistoryResult} for each provided request
      */
     public abstract void getHistoricalEvents(
             @NonNull EventHistoryRequest[] eventHistoryRequests,
             boolean enforceOrder,
-            @NonNull AdobeCallbackWithError<EventHistoryResult[]> handler);
+            @NonNull AdobeCallbackWithError<EventHistoryResult[]> callback);
 
     /**
      * Records an `Event` in the Event History database.
@@ -214,9 +214,9 @@ public abstract class ExtensionApi {
      * `0`, no record will be created in the database.
      *
      * @param event the {@link Event} to be recorded in the Event History database
-     * @param handler the {@link AdobeCallbackWithError} which returns a boolean indicating a
+     * @param callback the {@link AdobeCallbackWithError} which returns a boolean indicating a
      *     successful database insert
      */
     public abstract void recordHistoricalEvent(
-            @NonNull final Event event, @NonNull final AdobeCallbackWithError<Boolean> handler);
+            @NonNull final Event event, @NonNull final AdobeCallbackWithError<Boolean> callback);
 }

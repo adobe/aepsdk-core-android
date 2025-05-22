@@ -305,12 +305,12 @@ internal class ExtensionContainer constructor(
     override fun getHistoricalEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
         enforceOrder: Boolean,
-        handler: AdobeCallbackWithError<Array<EventHistoryResult>>
+        callback: AdobeCallbackWithError<Array<EventHistoryResult>>
     ) {
-        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler) ?: handler.fail(AdobeError.UNEXPECTED_ERROR)
+        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, callback) ?: callback.fail(AdobeError.UNEXPECTED_ERROR)
     }
 
-    override fun recordHistoricalEvent(event: Event, handler: AdobeCallbackWithError<Boolean>) {
-        EventHub.shared.eventHistory?.recordEvent(event, handler) ?: handler.fail(AdobeError.UNEXPECTED_ERROR)
+    override fun recordHistoricalEvent(event: Event, callback: AdobeCallbackWithError<Boolean>) {
+        EventHub.shared.eventHistory?.recordEvent(event, callback) ?: callback.fail(AdobeError.UNEXPECTED_ERROR)
     }
 }

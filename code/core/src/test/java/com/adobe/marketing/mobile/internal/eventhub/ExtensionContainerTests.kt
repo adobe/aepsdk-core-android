@@ -10,16 +10,25 @@
 */
 
 package com.adobe.marketing.mobile.internal.eventhub
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventHistoryRequest
+import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -81,9 +90,13 @@ internal class ExtensionContainerTests {
     @Mock
     private lateinit var eventHub: EventHub
 
+    @Mock
+    private lateinit var eventHistory: EventHistory
+
     @Before
     fun setup() {
         EventHub.shared = eventHub
+        `when`(eventHub.eventHistory).thenReturn(eventHistory)
 
         container = ExtensionContainer(TestExtension::class.java) {}
         Thread.sleep(100)
@@ -180,5 +193,186 @@ internal class ExtensionContainerTests {
         container?.startEvents()
         Thread.sleep(100)
         assertEquals(mutableListOf(event1, event2), capturedEvents)
+    }
+
+    @Test
+    fun testGetHistoricalEvents_whenEventHistoryAvailable() {
+        val requests = arrayOf(EventHistoryRequest(mapOf("key" to "value"), 0, System.currentTimeMillis()))
+        val enforceOrder = true
+        val result = arrayOf(EventHistoryResult(10))
+
+        val latch = CountDownLatch(1)
+        var callbackResult: Array<EventHistoryResult>? = null
+        val callback = object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+            override fun call(value: Array<EventHistoryResult>) {
+                callbackResult = value
+                latch.countDown()
+            }
+
+            override fun fail(error: AdobeError) {
+                // Should not be called in this test
+                kotlin.test.fail()
+            }
+        }
+
+        // Configure the mock to call the success callback
+        `when`(eventHistory.getEvents(requests, enforceOrder, callback)).thenAnswer { invocation ->
+            val callback = invocation.getArgument<AdobeCallbackWithError<Array<EventHistoryResult>>>(2)
+            callback.call(result)
+            null
+        }
+
+        container?.getHistoricalEvents(requests, enforceOrder, callback)
+
+        assertTrue(latch.await(1, TimeUnit.SECONDS))
+        assertEquals(result, callbackResult)
+        verify(eventHistory).getEvents(requests, enforceOrder, callback)
+    }
+
+    @Test
+    fun testGetHistoricalEvents_whenEventHistoryNull() {
+        // Set eventHistory to null
+        `when`(eventHub.eventHistory).thenReturn(null)
+
+        val requests = arrayOf(EventHistoryRequest(mapOf("key" to "value"), 0, System.currentTimeMillis()))
+        val enforceOrder = true
+
+        val latch = CountDownLatch(1)
+        var callbackResult: Array<EventHistoryResult>? = null
+
+        container?.getHistoricalEvents(
+            requests, enforceOrder,
+            object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+                override fun call(value: Array<EventHistoryResult>) {
+                    // Should not be called in this test
+                    kotlin.test.fail()
+                }
+
+                override fun fail(error: AdobeError) {
+                    assertEquals(AdobeError.UNEXPECTED_ERROR.errorCode, error.errorCode)
+                    latch.countDown()
+                }
+            }
+        )
+
+        assertTrue(latch.await(1, TimeUnit.SECONDS))
+    }
+
+    @Test
+    fun testGetHistoricalEvents_whenEventHistoryError() {
+        val requests = arrayOf(EventHistoryRequest(mapOf("key" to "value"), 0, System.currentTimeMillis()))
+        val enforceOrder = true
+        val result = arrayOf(EventHistoryResult(10))
+
+        val latch = CountDownLatch(1)
+        val callback = object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+            override fun call(value: Array<EventHistoryResult>) {
+                // Should not be called in this test
+                kotlin.test.fail()
+            }
+
+            override fun fail(error: AdobeError) {
+                assertEquals(AdobeError.DATABASE_ERROR.errorCode, error.errorCode)
+                latch.countDown()
+            }
+        }
+
+        // Configure the mock to call the fail callback
+        `when`(eventHistory.getEvents(requests, enforceOrder, callback)).thenAnswer { invocation ->
+            val callback = invocation.getArgument<AdobeCallbackWithError<Array<EventHistoryResult>>>(2)
+            callback.fail(AdobeError.DATABASE_ERROR)
+            null
+        }
+
+        container?.getHistoricalEvents(requests, enforceOrder, callback)
+
+        assertTrue(latch.await(1, TimeUnit.SECONDS))
+    }
+
+    @Test
+    fun testRecordHistoricalEvent_whenEventHistoryAvailable() {
+        val event = Event.Builder("TestEvent", "eventtype", "eventsource").build()
+        val latch = CountDownLatch(1)
+        var callbackResult = false
+        val adobeCallback = object : AdobeCallbackWithError<Boolean> {
+            override fun call(value: Boolean) {
+                callbackResult = value
+                latch.countDown()
+            }
+
+            override fun fail(error: AdobeError) {
+                // Should not be called in this test
+                kotlin.test.fail()
+            }
+        }
+
+        // Configure the mock to call the success callback
+        `when`(eventHistory.recordEvent(event, adobeCallback)).thenAnswer { invocation ->
+            val callback = invocation.getArgument<AdobeCallbackWithError<Boolean>>(1)
+            callback.call(true)
+            null
+        }
+
+        container?.recordHistoricalEvent(event, adobeCallback)
+
+        assertTrue(latch.await(1, TimeUnit.SECONDS))
+        assertTrue(callbackResult)
+        verify(eventHistory).recordEvent(event, adobeCallback)
+    }
+
+    @Test
+    fun testRecordHistoricalEvent_whenEventHistoryNull() {
+        // Set eventHistory to null
+        `when`(eventHub.eventHistory).thenReturn(null)
+
+        val event = Event.Builder("TestEvent", "eventtype", "eventsource").build()
+
+        val latch = CountDownLatch(1)
+        var callbackResult = true
+
+        container?.recordHistoricalEvent(
+            event,
+            object : AdobeCallbackWithError<Boolean> {
+                override fun call(value: Boolean) {
+                    // Should not be called in this test
+                    kotlin.test.fail()
+                }
+
+                override fun fail(error: AdobeError) {
+                    assertEquals(AdobeError.UNEXPECTED_ERROR.errorCode, error.errorCode)
+                    latch.countDown()
+                }
+            }
+        )
+
+        assertTrue(latch.await(1, TimeUnit.SECONDS))
+    }
+
+    @Test
+    fun testRecordHistoricalEvent_whenEventHistoryError() {
+        val event = Event.Builder("TestEvent", "eventtype", "eventsource").build()
+        val latch = CountDownLatch(1)
+        val adobeCallback = object : AdobeCallbackWithError<Boolean> {
+            override fun call(value: Boolean) {
+                // Should not be called in this test
+                kotlin.test.fail()
+            }
+
+            override fun fail(error: AdobeError) {
+                assertEquals(AdobeError.DATABASE_ERROR.errorCode, error.errorCode)
+                latch.countDown()
+            }
+        }
+
+        // Configure the mock to call the fail callback
+        `when`(eventHistory.recordEvent(event, adobeCallback)).thenAnswer { invocation ->
+            val callback = invocation.getArgument<AdobeCallbackWithError<Boolean>>(1)
+            callback.fail(AdobeError.DATABASE_ERROR)
+            null
+        }
+
+        container?.recordHistoricalEvent(event, adobeCallback)
+
+        assertTrue(latch.await(1, TimeUnit.SECONDS))
     }
 }

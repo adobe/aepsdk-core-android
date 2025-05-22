@@ -14,6 +14,7 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
+import com.adobe.marketing.mobile.launch.rulesengine.SEARCH_TYPE_MOST_RECENT
 import com.adobe.marketing.mobile.launch.rulesengine.historicalEventsQuerying
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
@@ -50,25 +51,30 @@ internal class HistoricalCondition(
         val requestEvents = definition.events.map {
             EventHistoryRequest(it, fromDate, toDate)
         }
-        return ComparisonExpression(
-            OperandFunction(
-                {
-                    try {
-                        @Suppress("UNCHECKED_CAST")
-                        historicalEventsQuerying(
-                            it[0] as List<EventHistoryRequest>,
-                            it[1] as String,
-                            extensionApi
-                        )
-                    } catch (e: Exception) {
-                        0
-                    }
-                },
-                requestEvents,
-                searchType
-            ),
-            operationName,
-            OperandLiteral(valueAsInt)
-        )
+        if (searchType == SEARCH_TYPE_MOST_RECENT) {
+            // TODO: Will implement the logic for mostRecent search type in a separate PR
+            return null
+        } else {
+            return ComparisonExpression(
+                OperandFunction(
+                    {
+                        try {
+                            @Suppress("UNCHECKED_CAST")
+                            historicalEventsQuerying(
+                                it[0] as List<EventHistoryRequest>,
+                                it[1] as String,
+                                extensionApi
+                            )
+                        } catch (e: Exception) {
+                            0
+                        }
+                    },
+                    requestEvents,
+                    searchType
+                ),
+                operationName,
+                OperandLiteral(valueAsInt)
+            )
+        }
     }
 }

@@ -12,8 +12,11 @@
 package com.adobe.marketing.mobile.integration.core
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
+import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.MobileCore
@@ -22,6 +25,7 @@ import com.adobe.marketing.mobile.copyWithNewTimeStamp
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,16 +66,22 @@ class EventHistoryIntegrationTests {
     private fun getEventHistoryResult(
         requests: Array<EventHistoryRequest>,
         enforceOrder: Boolean
-    ): Int {
+    ): Array<EventHistoryResult> {
         if (MockExtension.extensionApi == null) {
             throw RuntimeException("ExtensionApi is null")
         }
         val countDownLatch = CountDownLatch(1)
-        var ret = 0
-        MockExtension.extensionApi?.getHistoricalEvents(requests, enforceOrder) {
-            ret = it
-            countDownLatch.countDown()
-        }
+        var ret = emptyArray<EventHistoryResult>()
+        MockExtension.extensionApi?.getHistoricalEvents(requests, enforceOrder, object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+            override fun call(result: Array<EventHistoryResult>) {
+                ret = result
+                countDownLatch.countDown()
+            }
+
+            override fun fail(error: AdobeError?) {
+                countDownLatch.countDown()
+            }
+        })
         countDownLatch.await()
         return ret
     }
@@ -96,19 +106,29 @@ class EventHistoryIntegrationTests {
             0,
             System.currentTimeMillis()
         )
-        assertEquals(2, getEventHistoryResult(arrayOf(validReq), false))
+        val results1 = getEventHistoryResult(arrayOf(validReq), false)
+        assertEquals(1, results1.size)
+        assertEquals(2, results1[0].count)
 
         val invalidReq = EventHistoryRequest(mapOf("key" to "value"), 0, System.currentTimeMillis())
-        assertEquals(0, getEventHistoryResult(arrayOf(invalidReq), false))
+        val results2 = getEventHistoryResult(arrayOf(invalidReq), false)
+        assertEquals(1, results2.size)
+        assertEquals(0, results2[0].count)
 
         val reqInvalidTime = EventHistoryRequest(
             mapOf("key" to "value", "numeric" to 552),
             event1.timestamp - 5,
             event1.timestamp + 5
         )
-        assertEquals(1, getEventHistoryResult(arrayOf(reqInvalidTime), false))
+        val results3 = getEventHistoryResult(arrayOf(reqInvalidTime), false)
+        assertEquals(1, results3.size)
+        assertEquals(1, results3[0].count)
 
-        assertEquals(3, getEventHistoryResult(arrayOf(validReq, invalidReq, reqInvalidTime), false))
+        val results4 = getEventHistoryResult(arrayOf(validReq, invalidReq, reqInvalidTime), false)
+        assertEquals(3, results4.size)
+        assertEquals(2, results4[0].count)
+        assertEquals(0, results4[1].count)
+        assertEquals(1, results4[2].count)
     }
 
     @Test
@@ -137,9 +157,15 @@ class EventHistoryIntegrationTests {
             System.currentTimeMillis()
         )
 
-        assertEquals(1, getEventHistoryResult(arrayOf(reqEvent1, reqEvent2), true))
+        val results1 = getEventHistoryResult(arrayOf(reqEvent1, reqEvent2), true)
+        assertEquals(2, results1.size)
+        assertEquals(1, results1[0].count)
+        assertEquals(1, results1[1].count)
 
-        assertEquals(0, getEventHistoryResult(arrayOf(reqEvent2, reqEvent1), true))
+        val results2 = getEventHistoryResult(arrayOf(reqEvent2, reqEvent1), true)
+        assertEquals(2, results2.size)
+        assertEquals(1, results2[0].count)
+        assertEquals(0, results2[1].count)
     }
 
     @Test
@@ -162,7 +188,9 @@ class EventHistoryIntegrationTests {
             0,
             System.currentTimeMillis()
         )
-        assertEquals(1, getEventHistoryResult(arrayOf(reqEvent1), false))
+        val result = getEventHistoryResult(arrayOf(reqEvent1), false)
+        assertEquals(1, result.size)
+        assertEquals(1, result[0].count)
     }
 
     @Test
@@ -180,12 +208,21 @@ class EventHistoryIntegrationTests {
         )
 
         val latch = CountDownLatch(1)
-        MockExtension.extensionApi?.recordHistoricalEvent(event) { result ->
-            assertEquals(result, true)
-            latch.countDown()
-        }
+        MockExtension.extensionApi?.recordHistoricalEvent(event, object : AdobeCallbackWithError<Boolean> {
+            override fun call(result: Boolean) {
+                assertEquals(result, true)
+                latch.countDown()
+            }
+
+            override fun fail(error: AdobeError?) {
+                fail()
+                latch.countDown()
+            }
+        })
         assertTrue(latch.await(WAIT_TIME_MILLIS, java.util.concurrent.TimeUnit.MILLISECONDS))
-        assertEquals(1, getEventHistoryResult(arrayOf(validReq), false))
+        val results = getEventHistoryResult(arrayOf(validReq), false)
+        assertEquals(1, results.size)
+        assertEquals(1, results[0].count)
     }
 
     @Test
@@ -203,11 +240,20 @@ class EventHistoryIntegrationTests {
         )
 
         val latch = CountDownLatch(1)
-        MockExtension.extensionApi?.recordHistoricalEvent(event) { result ->
-            assertEquals(result, true)
-            latch.countDown()
-        }
+        MockExtension.extensionApi?.recordHistoricalEvent(event, object : AdobeCallbackWithError<Boolean> {
+            override fun call(result: Boolean) {
+                assertEquals(result, true)
+                latch.countDown()
+            }
+
+            override fun fail(error: AdobeError?) {
+                fail()
+                latch.countDown()
+            }
+        })
         assertTrue(latch.await(WAIT_TIME_MILLIS, java.util.concurrent.TimeUnit.MILLISECONDS))
-        assertEquals(1, getEventHistoryResult(arrayOf(validReq), false))
+        val results = getEventHistoryResult(arrayOf(validReq), false)
+        assertEquals(1, results.size)
+        assertEquals(1, results[0].count)
     }
 }

@@ -11,12 +11,16 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
+import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.LoggingMode
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryConstants.EVENT_HISTORY_ERROR
 import com.adobe.marketing.mobile.internal.util.EventDataMerger
 import com.adobe.marketing.mobile.internal.util.fnv1a32
 import com.adobe.marketing.mobile.internal.util.prettify
@@ -488,11 +492,19 @@ internal class LaunchRulesConsequence(
                 val latch = CountDownLatch(1)
                 extensionApi.getHistoricalEvents(
                     arrayOf(eventToRecord.toEventHistoryRequest()),
-                    false
-                ) { count ->
-                    eventCounts = count
-                    latch.countDown()
-                }
+                    false,
+                    object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+                        override fun call(results: Array<EventHistoryResult>) {
+                            eventCounts = if (results.isNotEmpty()) results[0].count else EVENT_HISTORY_ERROR
+                            latch.countDown()
+                        }
+
+                        override fun fail(error: AdobeError) {
+                            eventCounts = EVENT_HISTORY_ERROR
+                            latch.countDown()
+                        }
+                    }
+                )
                 latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
             } catch (e: Exception) {
                 Log.warning(
@@ -502,7 +514,7 @@ internal class LaunchRulesConsequence(
                 )
                 return
             }
-            if (eventCounts == -1) {
+            if (eventCounts == EVENT_HISTORY_ERROR) {
                 Log.trace(
                     LaunchRulesEngineConstants.LOG_TAG,
                     logTag,
@@ -526,18 +538,29 @@ internal class LaunchRulesConsequence(
         )
 
         extensionApi.recordHistoricalEvent(
-            eventToRecord
-        ) { result ->
-            if (result) {
-                extensionApi.dispatch(eventToRecord)
-            } else {
-                Log.warning(
-                    LaunchRulesEngineConstants.LOG_TAG,
-                    logTag,
-                    "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation'"
-                )
+            eventToRecord,
+            object : AdobeCallbackWithError<Boolean> {
+                override fun call(result: Boolean) {
+                    if (result) {
+                        extensionApi.dispatch(eventToRecord)
+                    } else {
+                        Log.warning(
+                            LaunchRulesEngineConstants.LOG_TAG,
+                            logTag,
+                            "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation'"
+                        )
+                    }
+                }
+
+                override fun fail(error: AdobeError) {
+                    Log.warning(
+                        LaunchRulesEngineConstants.LOG_TAG,
+                        logTag,
+                        "Event History operation for id ${consequence.id} - Failed to record event in history for '$operation', caused by the error: ${error.errorName}"
+                    )
+                }
             }
-        }
+        )
     }
 }
 

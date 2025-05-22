@@ -11,8 +11,11 @@
 
 package com.adobe.marketing.mobile.internal.eventhub
 
+import com.adobe.marketing.mobile.AdobeCallbackWithError
+import com.adobe.marketing.mobile.AdobeError
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventHistoryRequest
+import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.EventHistoryResultHandler
 import com.adobe.marketing.mobile.Extension
 import com.adobe.marketing.mobile.ExtensionApi
@@ -21,6 +24,7 @@ import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResolver
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.launch.rulesengine.convertEventHistoryResultToInt
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.SerialWorkDispatcher
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -278,15 +282,35 @@ internal class ExtensionContainer constructor(
         EventHub.shared.unregisterExtension(extensionClass) {}
     }
 
+    @Deprecated("Use getHistoricalEvents with AdobeCallback instead", ReplaceWith("getHistoricalEvents(eventHistoryRequests, enforceOrder, adobeCallback)"))
     override fun getHistoricalEvents(
         eventHistoryRequests: Array<out EventHistoryRequest>,
         enforceOrder: Boolean,
         handler: EventHistoryResultHandler<Int>
     ) {
-        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, handler) ?: handler.call(-1)
+        EventHub.shared.eventHistory?.getEvents(
+            eventHistoryRequests, enforceOrder,
+            object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+                override fun call(results: Array<EventHistoryResult>) {
+                    handler.call(convertEventHistoryResultToInt(enforceOrder, results))
+                }
+
+                override fun fail(error: AdobeError) {
+                    handler.call(-1)
+                }
+            }
+        ) ?: handler.call(-1)
     }
 
-    override fun recordHistoricalEvent(event: Event, handler: EventHistoryResultHandler<Boolean>) {
-        EventHub.shared.eventHistory?.recordEvent(event, handler) ?: handler.call(false)
+    override fun getHistoricalEvents(
+        eventHistoryRequests: Array<out EventHistoryRequest>,
+        enforceOrder: Boolean,
+        callback: AdobeCallbackWithError<Array<EventHistoryResult>>
+    ) {
+        EventHub.shared.eventHistory?.getEvents(eventHistoryRequests, enforceOrder, callback) ?: callback.fail(AdobeError.UNEXPECTED_ERROR)
+    }
+
+    override fun recordHistoricalEvent(event: Event, callback: AdobeCallbackWithError<Boolean>) {
+        EventHub.shared.eventHistory?.recordEvent(event, callback) ?: callback.fail(AdobeError.UNEXPECTED_ERROR)
     }
 }

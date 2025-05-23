@@ -25,13 +25,17 @@ internal object DataMarshaller {
 
     private const val DEEPLINK_KEY = "deeplink"
 
+    private const val LEGACY_PUSH_MESSAGE_ID = "adb_m_id"
+    private const val PUSH_MESSAGE_ID_KEY = "pushmessageid"
+    private const val NOTIFICATION_IDENTIFIER_KEY = "NOTIFICATION_IDENTIFIER"
+    private const val LOCAL_NOTIFICATION_ID_KEY = "notificationid"
     /**
      * Map of known keys that need to be transformed during marshalling.
      * Key: original key in the bundle, Value: transformed key for marshalled data
      */
     private val KNOWN_KEYS_MAP = mapOf(
-        "adb_m_id" to "pushmessageid", // Legacy push message ID
-        "NOTIFICATION_IDENTIFIER" to "notificationid" // Local notification ID
+        LEGACY_PUSH_MESSAGE_ID to PUSH_MESSAGE_ID_KEY,
+        NOTIFICATION_IDENTIFIER_KEY to LOCAL_NOTIFICATION_ID_KEY
     )
 
     private const val ADOBE_QUERY_KEYS_PREVIEW_TOKEN = "at_preview_token"

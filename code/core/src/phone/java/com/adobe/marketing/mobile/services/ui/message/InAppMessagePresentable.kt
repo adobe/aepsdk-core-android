@@ -141,7 +141,8 @@ internal class InAppMessagePresentable(
      * @param webView the webview to apply the settings to
      * @return the webview with the settings applied
      */
-    private fun applyWebViewSettings(webView: WebView): WebView {
+    @VisibleForTesting
+    internal fun applyWebViewSettings(webView: WebView): WebView {
         webView.settings.apply {
             // base settings
             javaScriptEnabled = true
@@ -150,7 +151,6 @@ internal class InAppMessagePresentable(
             layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
             defaultTextEncodingName = StandardCharsets.UTF_8.name()
             mediaPlaybackRequiresUserGesture = false
-            databaseEnabled = true
         }
 
         webView.apply {

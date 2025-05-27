@@ -514,7 +514,200 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
 
-        // Message Content(WebView) is 95% of the screen height and heightPercent% of the screen width.
+        // Message Content(WebView) is 95% of the screen height and widthPercentage% of the screen width.
+        // If the height exceeds what is allowed by the activity (due to actionbar), it takes up the full height of the activity
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
+        if ((contentViewHeightDp * (heightPercentage / 100f)) > messageContentHeightDp) {
+            validateViewSize(
+                contentBounds,
+                messageContentHeightDp,
+                contentViewWidthDp * (widthPercentage / 100f)
+            )
+        } else {
+            validateViewSize(
+                contentBounds,
+                contentViewHeightDp * (heightPercentage / 100f),
+                contentViewWidthDp * (widthPercentage / 100f)
+            )
+        }
+    }
+
+    @Test
+    fun testMessageScreenSizeWhenMaxWidthIsSetWithMaxHeightAndWidth() {
+        val maxWidthPx = 50
+        val settings = InAppMessageSettings.Builder()
+            .height(100)
+            .width(100)
+            .maxWidth(maxWidthPx)
+            .content(HTML_TEXT_SAMPLE)
+            .build()
+
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
+        composeTestRule.setContent { // setting our composable as content for test
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = with(LocalDensity.current) { maxWidthPx.toDp() }
+
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
+
+        // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
+
+        // Message Content(WebView) is 100% of height and 50px wide which is specified max width
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
+        validateViewSize(contentBounds, messageContentHeightDp, messageContentWidthDp)
+    }
+
+    @Test
+    fun testMessageScreenSizeWhenMaxWidthIsSetWithSpecificHeightAndWidth() {
+        val heightPercentage = 95
+        val widthPercentage = 60
+        val maxWidthPx = 50
+        val settings = InAppMessageSettings.Builder()
+            .height(heightPercentage)
+            .width(widthPercentage)
+            .maxWidth(maxWidthPx)
+            .content(HTML_TEXT_SAMPLE)
+            .build()
+
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
+        composeTestRule.setContent { // setting our composable as content for test
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = with(LocalDensity.current) { maxWidthPx.toDp() }
+
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
+
+        // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
+
+        // Message Content(WebView) is 95% of the screen height and 50px wide which is specified max width
+        // If the height exceeds what is allowed by the activity (due to actionbar), it takes up the full height of the activity
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
+        if ((contentViewHeightDp * (heightPercentage / 100f)) > messageContentHeightDp) {
+            validateViewSize(
+                contentBounds,
+                messageContentHeightDp,
+                contentViewWidthDp * (widthPercentage / 100f)
+            )
+        } else {
+            validateViewSize(
+                contentBounds,
+                contentViewHeightDp * (heightPercentage / 100f),
+                messageContentWidthDp
+            )
+        }
+    }
+
+    @Test
+    fun testMessageScreenSizeWhenMaxWidthIsLargerThanPercentageWidth() {
+        val heightPercentage = 95
+        val widthPercentage = 60
+        val maxWidth = 5000
+        val settings = InAppMessageSettings.Builder()
+            .height(heightPercentage)
+            .width(widthPercentage)
+            .maxWidth(maxWidth)
+            .content(HTML_TEXT_SAMPLE)
+            .build()
+
+        var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        composeTestRule.setContent { // setting our composable as content for test
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = false
+        )
+
+        // Message Frame all the available height and width allowed by the parent (in this case ComponentActivity)
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        validateViewSize(frameBounds, contentViewHeightDp, contentViewWidthDp)
+
+        // Message Content(WebView) is 95% of the screen height and widthPercentage% of the screen width
         // If the height exceeds what is allowed by the activity (due to actionbar), it takes up the full height of the activity
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
@@ -1540,6 +1733,83 @@ class MessageScreenTests {
         )
 
         // Content is bottom aligned vertically and offset upwards and centered horizontally and takes 80% of screen width
+        validateBounds(
+            contentBounds,
+            rootBounds.bottom - messageContentHeightDp - heightOffsetDp, // top bound is the bottom bound of the root minus content height offset upwards by the inset value
+            rootBounds.bottom - heightOffsetDp, // bottom bound is the bottom bound of the root offset upwards by the inset value
+            rootBounds.right - messageContentWidthDp + widthOffsetDp, // left bound is the right bound of the root minus content width offset rightwards by the inset value
+            rootBounds.right + widthOffsetDp // right bound is right bound of root offset rightwards by the inset value
+        )
+    }
+
+    @Test
+    fun testMessageScreenAlignmentWithMaxWidthWhenBottomAlignedWithPositiveInsetAndRightAlignedWithNegativeInset() {
+        val heightPercent = 60
+        val widthPercent = 80
+        val offsetPercent = 20
+        val maxWidthPx = 50
+        val settings = InAppMessageSettings.Builder()
+            .content(HTML_TEXT_SAMPLE)
+            .height(heightPercent)
+            .width(widthPercent)
+            .maxWidth(maxWidthPx)
+            .verticalAlignment(InAppMessageSettings.MessageAlignment.BOTTOM)
+            .verticalInset(offsetPercent)
+            .horizontalAlignment(InAppMessageSettings.MessageAlignment.RIGHT)
+            .horizontalInset(-offsetPercent)
+            .build()
+
+        var contentViewHeightDp = 0.dp
+        var messageContentHeightDp = 0.dp
+        var messageContentWidthDp = 0.dp
+        composeTestRule.setContent { // setting our composable as content for test
+            val activity = LocalContext.current as Activity
+            val contentView = activity.findViewById<View>(android.R.id.content)
+            contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
+            messageContentWidthDp = with(LocalDensity.current) { maxWidthPx.toDp() }
+
+            MessageScreen(
+                presentationStateManager = presentationStateManager,
+                inAppMessageSettings = settings,
+                onCreated = { onCreatedCalled = true },
+                onDisposed = { onDisposedCalled = true },
+                onGestureDetected = { gesture -> detectedGestures.add(gesture) },
+                onBackPressed = { onBackPressed = true }
+            )
+        }
+
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).assertDoesNotExist()
+
+        // Change the state of the presentation state manager to shown to display the message
+        presentationStateManager.onShown()
+        composeTestRule.waitForIdle()
+        validateMessageAppeared(
+            composeTestRule = composeTestRule,
+            withBackdrop = false,
+            clipped = true
+        )
+
+        val rootBounds = composeTestRule.onRoot().getBoundsInRoot()
+        val frameBounds =
+            composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
+        val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
+            .getUnclippedBoundsInRoot()
+        val heightOffsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
+        val widthOffsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
+
+        // Frame top and bottom  bounds are offset upwards by the inset from the bottom
+        // left and right bounds are offset rightwards by the inset value from the right
+        validateBounds(
+            frameBounds,
+            rootBounds.top - heightOffsetDp,
+            rootBounds.bottom - heightOffsetDp,
+            rootBounds.left + widthOffsetDp,
+            rootBounds.right + widthOffsetDp
+        )
+
+        // Content is bottom aligned vertically and offset upwards and centered horizontally and takes up 50px specified max width
         validateBounds(
             contentBounds,
             rootBounds.bottom - messageContentHeightDp - heightOffsetDp, // top bound is the bottom bound of the root minus content height offset upwards by the inset value

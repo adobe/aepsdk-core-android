@@ -188,6 +188,7 @@ class InAppMessageSettingsTest {
             .content("<html><head><body>Hi</body></head></html>")
             .height(80)
             .width(80)
+            .maxWidth(50)
             .verticalInset(10)
             .horizontalInset(10)
             .verticalAlignment(InAppMessageSettings.MessageAlignment.TOP)
@@ -198,6 +199,7 @@ class InAppMessageSettingsTest {
             .backdropOpacity(0.5f)
             .cornerRadius(10.0f)
             .shouldTakeOverUi(true)
+            .shouldFitToContent(true)
             .assetMap(mapOf("key1" to "value1"))
             .gestureMap(mapOf("swipeUp" to "adbinapp//dismiss"))
             .build()
@@ -205,6 +207,7 @@ class InAppMessageSettingsTest {
         assertEquals("<html><head><body>Hi</body></head></html>", iamSettings.content)
         assertEquals(80, iamSettings.width)
         assertEquals(80, iamSettings.height)
+        assertEquals(50, iamSettings.maxWidth)
         assertEquals(10, iamSettings.verticalInset)
         assertEquals(10, iamSettings.horizontalInset)
         assertEquals(InAppMessageSettings.MessageAlignment.TOP, iamSettings.verticalAlignment)
@@ -215,6 +218,7 @@ class InAppMessageSettingsTest {
         assertEquals(0.5f, iamSettings.backdropOpacity)
         assertEquals(10.0f, iamSettings.cornerRadius)
         assertTrue(iamSettings.shouldTakeOverUi)
+        assertTrue(iamSettings.fitToContent)
         assertEquals("value1", iamSettings.assetMap["key1"])
         assertEquals(
             mapOf(InAppMessageSettings.MessageGesture.SWIPE_UP to "adbinapp//dismiss"),

@@ -15,7 +15,8 @@ import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
 import com.adobe.marketing.mobile.launch.rulesengine.SEARCH_TYPE_MOST_RECENT
-import com.adobe.marketing.mobile.launch.rulesengine.historicalEventsQuerying
+import com.adobe.marketing.mobile.launch.rulesengine.getHistoricalEventCount
+import com.adobe.marketing.mobile.launch.rulesengine.getMostRecentHistoricalEvent
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.OperandFunction
@@ -52,15 +53,31 @@ internal class HistoricalCondition(
             EventHistoryRequest(it, fromDate, toDate)
         }
         if (searchType == SEARCH_TYPE_MOST_RECENT) {
-            // TODO: Will implement the logic for mostRecent search type in a separate PR
-            return null
+            return ComparisonExpression(
+                OperandFunction(
+                    {
+                        try {
+                            @Suppress("UNCHECKED_CAST")
+                            getMostRecentHistoricalEvent(
+                                it[0] as List<EventHistoryRequest>,
+                                extensionApi
+                            )
+                        } catch (e: Exception) {
+                            0
+                        }
+                    },
+                    requestEvents
+                ),
+                operationName,
+                OperandLiteral(valueAsInt)
+            )
         } else {
             return ComparisonExpression(
                 OperandFunction(
                     {
                         try {
                             @Suppress("UNCHECKED_CAST")
-                            historicalEventsQuerying(
+                            getHistoricalEventCount(
                                 it[0] as List<EventHistoryRequest>,
                                 it[1] as String,
                                 extensionApi

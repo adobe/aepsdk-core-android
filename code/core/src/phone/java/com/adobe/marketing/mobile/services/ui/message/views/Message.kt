@@ -11,6 +11,9 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.os.Build
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.MutableTransitionState
@@ -101,7 +104,8 @@ internal fun Message(
          */
         Dialog(
             properties = DialogProperties(
-                usePlatformDefaultWidth = false,
+                usePlatformDefaultWidth = Build.VERSION.SDK_INT >= 35,
+                decorFitsSystemWindows = Build.VERSION.SDK_INT < 35,
                 dismissOnBackPress = true,
                 dismissOnClickOutside = false
             ),
@@ -114,6 +118,17 @@ internal fun Message(
              */
 
             val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+            dialogWindow?.let {
+                it.setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                if (Build.VERSION.SDK_INT >= 35) {
+                    it.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+                    it.attributes.fitInsetsTypes = 0
+                    it.attributes.fitInsetsSides = 0
+                }
+            }
 
             SideEffect {
                 dialogWindow?.let {

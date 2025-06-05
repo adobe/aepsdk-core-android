@@ -391,7 +391,6 @@ class LaunchTokenFinderTest {
         assertEquals("value1", result)
     }
 
-    // TODO change if we decide to keep event data as null instead of empty map by default
     @Test
     fun `get should return empty string when event data is null on valid event`() {
         // setup

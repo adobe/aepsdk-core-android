@@ -28,7 +28,7 @@ internal const val SEARCH_TYPE_ORDERED = "ordered"
 internal const val SEARCH_TYPE_MOST_RECENT = "mostRecent"
 
 /**
- * Queries the historical events database for the specified events in the requests
+ * Queries the historical events database for matching entries specified in the requests
  * For an "any" search (event order does not matter), the value returned will be the count of all matching events in EventHistory
  * For an `.ordered` search (events must occur in the provided order), the value returned will be 1 if the events were found in the provided order, or 0 otherwise.
  * If an error occurred, this method will always return -1
@@ -38,13 +38,18 @@ internal const val SEARCH_TYPE_MOST_RECENT = "mostRecent"
  * @param extensionApi `ExtensionApi` the extension API to use for querying
  */
 @JvmSynthetic
-internal fun historicalEventsQuerying(
+internal fun getHistoricalEventCount(
     requests: List<EventHistoryRequest>,
     searchType: String,
     extensionApi: ExtensionApi
 ): Int {
     // Early exit with error value for unsupported search types
     if (searchType == SEARCH_TYPE_MOST_RECENT) {
+        Log.warning(
+            LaunchRulesEngineConstants.LOG_TAG,
+            LOG_TAG,
+            "Unable to retrieve historical events, unsupported EventHistorySearchType 'mostRecent'"
+        )
         return EVENT_HISTORY_ERROR
     }
     return try {
@@ -122,5 +127,68 @@ internal fun convertEventHistoryResultToInt(
             totalCount += result.count
         }
         return totalCount
+    }
+}
+
+/**
+ * Returns the index of the most recent historical event based on occurrence timestamp.
+ * If no events are found or an error occurs during lookup, the method returns `-1`.
+ * If duplicate [EventHistoryRequest]s are provided, the index of the first instance will be returned.
+ *
+ * @param requests `List<EventHistoryRequest>` the list of events to query
+ * @param extensionApi `ExtensionApi` the extension API to use for querying
+ */
+@JvmSynthetic
+internal fun getMostRecentHistoricalEvent(
+    requests: List<EventHistoryRequest>,
+    extensionApi: ExtensionApi
+): Int {
+    try {
+        val latch = CountDownLatch(1)
+        var mostRecentIndex = EVENT_HISTORY_ERROR
+        var mostRecentDate = Long.MIN_VALUE
+        extensionApi.getHistoricalEvents(
+            requests.toTypedArray(),
+            false,
+            object : AdobeCallbackWithError<Array<EventHistoryResult>> {
+                override fun call(results: Array<EventHistoryResult>) {
+                    for ((index, result) in results.withIndex()) {
+                        // If a database error is returned for any result, early exit and return the error value
+                        if (result.count == EVENT_HISTORY_ERROR) {
+                            mostRecentIndex = EVENT_HISTORY_ERROR
+                            break
+                        }
+                        // Check that there is a newest occurrence date for this result
+                        if (result.newestOccurrence == null) {
+                            continue
+                        }
+                        // Check if the current result is newer than the current most recent date
+                        if (result.newestOccurrence > mostRecentDate) {
+                            mostRecentDate = result.newestOccurrence
+                            mostRecentIndex = index
+                        }
+                    }
+                    latch.countDown()
+                }
+
+                override fun fail(error: AdobeError) {
+                    Log.warning(
+                        LaunchRulesEngineConstants.LOG_TAG,
+                        LOG_TAG,
+                        "Unable to retrieve most recent historical event, caused by the error: ${error.errorName}"
+                    )
+                    latch.countDown()
+                }
+            }
+        )
+        latch.await(ASYNC_TIMEOUT, TimeUnit.MILLISECONDS)
+        return mostRecentIndex
+    } catch (e: Exception) {
+        Log.warning(
+            LaunchRulesEngineConstants.LOG_TAG,
+            LOG_TAG,
+            "Unable to retrieve most recent historical event, caused by the exception: ${e.localizedMessage}"
+        )
+        return EVENT_HISTORY_ERROR
     }
 }

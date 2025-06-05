@@ -89,7 +89,7 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
-    fun `Test historical condition`() {
+    fun `Test historical condition any search type success`() {
         val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
         Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
             .doAnswer {
@@ -98,7 +98,7 @@ class LaunchRulesEngineModuleTests {
 
         assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
 
-        val json = readTestResources("rules_module_tests/rules_testHistory.json")
+        val json = readTestResources("rules_module_tests/rules_testHistoryAny.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
@@ -108,7 +108,64 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
-    fun `Test historical condition failure`() {
+    fun `Test historical condition any search type database failure `() {
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                captor.firstValue.call(arrayOf(EventHistoryResult(-1)))
+            }
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+
+        val json = readTestResources("rules_module_tests/rules_testHistoryAny.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test historical condition any search type event not found `() {
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                captor.firstValue.call(arrayOf(EventHistoryResult(0)))
+            }
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+
+        val json = readTestResources("rules_module_tests/rules_testHistoryAny.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test historical condition ordered search type success`() {
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                captor.firstValue.call(arrayOf(EventHistoryResult(1), EventHistoryResult(1)))
+            }
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+
+        val json = readTestResources("rules_module_tests/rules_testHistoryOrdered.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        assertEquals(1, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test historical condition ordered search type database failure`() {
         val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
         Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
             .doAnswer {
@@ -117,13 +174,126 @@ class LaunchRulesEngineModuleTests {
 
         assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
 
-        val json = readTestResources("rules_module_tests/rules_testHistory.json")
+        val json = readTestResources("rules_module_tests/rules_testHistoryOrdered.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json, extensionApi)
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
         assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test historical condition ordered search type event not found`() {
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                captor.firstValue.call(arrayOf(EventHistoryResult(0), EventHistoryResult(1)))
+            }
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+
+        val json = readTestResources("rules_module_tests/rules_testHistoryOrdered.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test historical condition mostRecent search type success`() {
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                // Simulate two historical results:
+                // - First has an older newestOccurrence
+                // - Second is the most recent (index 1 should match the rule's "value": 1)
+                captor.firstValue.call(
+                    arrayOf(
+                        EventHistoryResult(1, oldestOccurrence = null, newestOccurrence = 1000L),
+                        EventHistoryResult(1, oldestOccurrence = null, newestOccurrence = 2000L)
+                    )
+                )
+            }
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+
+        val json = readTestResources("rules_module_tests/rules_testHistoryOrdered.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        assertEquals(1, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test historical condition mostRecent search type database failure`() {
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                captor.firstValue.call(
+                    arrayOf(
+                        EventHistoryResult(-1, oldestOccurrence = null, newestOccurrence = null),
+                        EventHistoryResult(0, oldestOccurrence = null, newestOccurrence = null)
+                    )
+                )
+            }
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+
+        val json = readTestResources("rules_module_tests/rules_testHistoryMostRecent.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test historical condition mostRecent search type failure callback`() {
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                captor.firstValue.fail(AdobeError.DATABASE_ERROR)
+            }
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+
+        val json = readTestResources("rules_module_tests/rules_testHistoryMostRecent.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test historical condition mostRecent search type event not found`() {
+        val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
+        Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))
+            .doAnswer {
+                captor.firstValue.call(
+                    arrayOf(
+                        EventHistoryResult(0, oldestOccurrence = null, newestOccurrence = null),
+                        EventHistoryResult(1, oldestOccurrence = null, newestOccurrence = 100L)
+                    )
+                )
+            }
+
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+
+        val json = readTestResources("rules_module_tests/rules_testHistoryMostRecent.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        assertEquals(1, launchRulesEngine.evaluateEvent(defaultEvent).size)
     }
 
     @Test

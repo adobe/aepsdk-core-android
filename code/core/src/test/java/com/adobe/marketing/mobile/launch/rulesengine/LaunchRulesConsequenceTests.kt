@@ -1320,7 +1320,7 @@ class LaunchRulesConsequenceTests {
     }
 
     @Test
-    fun `Test Schema Event History Insert Operation When detail schema Is Empty`() {
+    fun `Test Schema When detail schema Is Empty`() {
         // Given: a launch rule with an invalid event history operation
         //    ---------- schema event rule ----------
         //        "detail": {
@@ -1346,13 +1346,16 @@ class LaunchRulesConsequenceTests {
         val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
         launchRulesConsequence.process(event, matchedRules)
 
-        // Then: Event should not be recorded or dispatched
+        // Then: Event should not be recorded but consequence should be dispatched
         verify(extensionApi, never()).recordHistoricalEvent(any(), any())
-        verify(extensionApi, never()).dispatch(any())
+        val dispatchedConsequenceEventCaptor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi, times(1)).dispatch(dispatchedConsequenceEventCaptor.capture())
+        val dispatchedEventConsequence = dispatchedConsequenceEventCaptor.value.eventData["triggeredconsequence"] as Map<String, Any?>?
+        assertEquals(dispatchedEventConsequence?.get("detail"), matchedRules[0].consequenceList[0].detail)
     }
 
     @Test
-    fun `Test Schema Event History Insert Operation When detail schema Is Invalid`() {
+    fun `Test Schema Event History Insert Operation When detail schema Is not eventHistoryOperation`() {
         // Given: a launch rule with an invalid event history operation
         //    ---------- schema event rule ----------
         //        "detail": {
@@ -1366,7 +1369,7 @@ class LaunchRulesConsequenceTests {
         //          }
         //        }
         //    --------------------------------------
-        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaInvalidDetailSchema.json")
+        resetRulesEngine("rules_module_tests/consequence_rules_testSchemaInAppDetailSchema.json")
 
         val event = Event.Builder(
             "Test Event",
@@ -1378,9 +1381,12 @@ class LaunchRulesConsequenceTests {
         val matchedRules = rulesEngine.evaluate(LaunchTokenFinder(event, extensionApi))
         launchRulesConsequence.process(event, matchedRules)
 
-        // Then: Event should not be recorded or dispatched
+        // Then: Event should not be recorded or dispatched but consequence should be dispatched
         verify(extensionApi, never()).recordHistoricalEvent(any(), any())
-        verify(extensionApi, never()).dispatch(any())
+        val dispatchedConsequenceEventCaptor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi, times(1)).dispatch(dispatchedConsequenceEventCaptor.capture())
+        val dispatchedEventConsequence = dispatchedConsequenceEventCaptor.value.eventData["triggeredconsequence"] as Map<String, Any?>?
+        assertEquals(dispatchedEventConsequence?.get("detail"), matchedRules[0].consequenceList[0].detail)
     }
 
     @Test

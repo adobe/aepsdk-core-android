@@ -405,11 +405,14 @@ internal class LaunchRulesConsequence(
         if (consequence.schema == CONSEQUENCE_SCHEMA_EVENT_HISTORY) {
             processEventHistoryOperation(consequence, parentEvent)
         } else {
-            Log.warning(
+            val consequenceEvent =
+                generateConsequenceEvent(consequence, parentEvent)
+            Log.trace(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
-                "Unable to process Schema Consequence for consequence ${consequence.id}, unsupported schema type ${consequence.schema}"
+                "evaluateRulesConsequence - Dispatching consequence event ${consequenceEvent.uniqueIdentifier}"
             )
+            extensionApi.dispatch(consequenceEvent)
         }
     }
 

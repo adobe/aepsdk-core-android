@@ -437,7 +437,7 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
-    fun `Test matcher condition multiple Values (ne) - negative ` () {
+    fun `Test matcher condition multiple Values (ne) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNe_multipleValues.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json, extensionApi)
@@ -458,7 +458,7 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
-    fun `Test matcher condition multiple Values (ne) - positive ` () {
+    fun `Test matcher condition multiple Values (ne) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNe_multipleValues.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json, extensionApi)
@@ -767,7 +767,7 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
-    fun `Test matcher condition multiple Values (nc) - negative ` () {
+    fun `Test matcher condition multiple Values (nc) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNc_multipleValues.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json, extensionApi)
@@ -788,7 +788,7 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
-    fun `Test matcher condition multiple Values (nc) - positive ` () {
+    fun `Test matcher condition multiple Values (nc) - positive `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNc_multipleValues.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json, extensionApi)

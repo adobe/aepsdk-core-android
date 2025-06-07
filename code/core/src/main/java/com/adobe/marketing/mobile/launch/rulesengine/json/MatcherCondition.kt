@@ -43,7 +43,7 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
             "ex" to "exists",
             "nx" to "notExist"
         )
-        
+
         // Negative matchers that should use AND logic for multiple values
         private val NEGATIVE_MATCHERS = setOf("ne", "nc")
     }

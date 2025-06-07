@@ -28,6 +28,7 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
     companion object {
         private const val LOG_TAG = "MatcherCondition"
         private const val OPERATION_NAME_OR = "or"
+        private const val OPERATION_NAME_AND = "and"
         internal val MATCHER_MAPPING = mapOf(
             "eq" to "equals",
             "ne" to "notEquals",
@@ -42,6 +43,9 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
             "ex" to "exists",
             "nx" to "notExist"
         )
+        
+        // Negative matchers that should use AND logic for multiple values
+        private val NEGATIVE_MATCHERS = setOf("ne", "nc")
     }
 
     @JvmSynthetic
@@ -60,7 +64,17 @@ internal class MatcherCondition(private val definition: JSONDefinition) : JSONCo
             1 -> convert(definition.key, definition.matcher, values[0])
             in 2..Int.MAX_VALUE -> {
                 val operands = values.map { convert(definition.key, definition.matcher, it) }
-                if (operands.isEmpty()) null else LogicalExpression(operands, OPERATION_NAME_OR)
+                if (operands.isEmpty()) {
+                    null
+                } else {
+                    // Use AND logic for negative matchers (ne, nc) and OR logic for positive matchers
+                    val logicalOperator = if (NEGATIVE_MATCHERS.contains(definition.matcher)) {
+                        OPERATION_NAME_AND
+                    } else {
+                        OPERATION_NAME_OR
+                    }
+                    LogicalExpression(operands, logicalOperator)
+                }
             }
             else -> null
         }

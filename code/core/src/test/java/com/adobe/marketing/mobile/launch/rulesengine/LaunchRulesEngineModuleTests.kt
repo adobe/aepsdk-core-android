@@ -437,6 +437,50 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
+    fun `Test matcher condition multiple Values (ne) - negative `() {
+        val json = readTestResources("rules_module_tests/rules_testMatcherNe_multipleValues.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "AT&T"
+                        )
+                    )
+                )
+            )
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test matcher condition multiple Values (ne) - positive `() {
+        val json = readTestResources("rules_module_tests/rules_testMatcherNe_multipleValues.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "T-Mobile"
+                        )
+                    )
+                )
+            )
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
+    }
+
+    @Test
     fun `Test matcher condition (nx) - negative `() {
         val json = readTestResources("rules_module_tests/rules_testMatcherNx.json")
         assertNotNull(json)
@@ -720,5 +764,49 @@ class LaunchRulesEngineModuleTests {
         launchRulesEngine.replaceRules(null)
         Mockito.verifyNoInteractions(extensionApi)
         assertEquals(10, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
+    fun `Test matcher condition multiple Values (nc) - negative `() {
+        val json = readTestResources("rules_module_tests/rules_testMatcherNc_multipleValues.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "AT&T"
+                        )
+                    )
+                )
+            )
+        assertEquals(0, launchRulesEngine.evaluateEvent(defaultEvent).size)
+    }
+
+    @Test
+    fun `Test matcher condition multiple Values (nc) - positive `() {
+        val json = readTestResources("rules_module_tests/rules_testMatcherNc_multipleValues.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+        Mockito.`when`(extensionApi.getSharedState(anyString(), any(), Mockito.anyBoolean(), any()))
+            .thenReturn(
+                SharedStateResult(
+                    SharedStateStatus.SET,
+                    mapOf(
+                        "lifecyclecontextdata" to mapOf(
+                            "carriername" to "T-Mobile"
+                        )
+                    )
+                )
+            )
+        val matchedConsequences = launchRulesEngine.evaluateEvent(defaultEvent)
+        assertEquals(1, matchedConsequences.size)
+        assertEquals("pb", matchedConsequences[0].type)
     }
 }

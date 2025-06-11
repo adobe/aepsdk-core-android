@@ -11,7 +11,6 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
-import android.content.pm.PackageInfo
 import android.os.Build
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -105,8 +104,7 @@ internal fun Message(
          */
 
         val context = LocalContext.current
-        val packageInfo: PackageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-        val targetSdkVersion = packageInfo.applicationInfo?.targetSdkVersion
+        val targetSdkVersion = remember { context.packageManager.getPackageInfo(context.packageName, 0).applicationInfo?.targetSdkVersion }
 
         Dialog(
             properties = DialogProperties(

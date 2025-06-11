@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Build
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -104,7 +105,13 @@ internal fun Message(
          */
 
         val context = LocalContext.current
-        val targetSdkVersion = remember { context.packageManager.getPackageInfo(context.packageName, 0).applicationInfo?.targetSdkVersion }
+        val targetSdkVersion = remember {
+            try {
+                context.packageManager.getPackageInfo(context.packageName, 0).applicationInfo?.targetSdkVersion
+            } catch (e: NameNotFoundException) {
+                null
+            }
+        }
 
         Dialog(
             properties = DialogProperties(

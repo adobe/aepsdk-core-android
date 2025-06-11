@@ -15,6 +15,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.services.Log
 
 /** The util class to marshal data from [Activity].  */
@@ -23,10 +24,19 @@ internal object DataMarshaller {
     private const val LOG_TAG = "DataMarshaller"
 
     private const val DEEPLINK_KEY = "deeplink"
+
     private const val LEGACY_PUSH_MESSAGE_ID = "adb_m_id"
     private const val PUSH_MESSAGE_ID_KEY = "pushmessageid"
     private const val NOTIFICATION_IDENTIFIER_KEY = "NOTIFICATION_IDENTIFIER"
     private const val LOCAL_NOTIFICATION_ID_KEY = "notificationid"
+    /**
+     * Map of known keys that need to be transformed during marshalling.
+     * Key: original key in the bundle, Value: transformed key for marshalled data
+     */
+    private val KNOWN_KEYS_MAP = mapOf(
+        LEGACY_PUSH_MESSAGE_ID to PUSH_MESSAGE_ID_KEY,
+        NOTIFICATION_IDENTIFIER_KEY to LOCAL_NOTIFICATION_ID_KEY
+    )
 
     private const val ADOBE_QUERY_KEYS_PREVIEW_TOKEN = "at_preview_token"
     private const val ADOBE_QUERY_KEYS_PREVIEW_URL = "at_preview_endpoint"
@@ -62,26 +72,64 @@ internal object DataMarshaller {
      * @param intent [Intent]
      * @param marshalledData [Map] to add the marshalled data
      */
-    private fun marshalIntentExtras(intent: Intent, marshalledData: MutableMap<String, Any>) {
+    @VisibleForTesting
+    internal fun marshalIntentExtras(intent: Intent, marshalledData: MutableMap<String, Any>) {
         val extraBundle = intent.extras ?: return
-        extraBundle.keySet()?.forEach { key ->
-            val newKey = when (key) {
-                LEGACY_PUSH_MESSAGE_ID -> PUSH_MESSAGE_ID_KEY
-                NOTIFICATION_IDENTIFIER_KEY -> LOCAL_NOTIFICATION_ID_KEY
-                else -> key
-            }
-            try {
-                val value = extraBundle[key]
-                if (value?.toString()?.isNotEmpty() == true) {
-                    marshalledData[newKey] = value
-                }
-            } catch (e: Exception) {
-                Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data (key = $key) from Activity, error is: ${e.message}")
-            }
+
+        // First, handle known keys directly to avoid potential exceptions from keySet()
+        KNOWN_KEYS_MAP.forEach { (originalKey, transformedKey) ->
+            processAndRemoveKnownKey(extraBundle, originalKey, transformedKey, marshalledData)
         }
 
-        extraBundle.remove(LEGACY_PUSH_MESSAGE_ID)
-        extraBundle.remove(NOTIFICATION_IDENTIFIER_KEY)
+        // Then extract other keys
+        try {
+            extraBundle.keySet()?.forEach { key ->
+                try {
+                    if (KNOWN_KEYS_MAP.containsKey(key)) {
+                        // returning from a lambda expression, the loop will continue.
+                        return@forEach
+                    }
+                    val value = extraBundle[key]
+                    if (value?.toString()?.isNotEmpty() == true) {
+                        marshalledData[key] = value
+                    }
+                } catch (e: Exception) {
+                    Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data (key = $key) from Activity, error is: ${e.message}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data from Activity, error is: ${e.message}")
+        }
+    }
+
+    /**
+     * Processes a known key from the bundle by reading its value and adding it to the marshalled data,
+     * then removes the original key from the bundle to prevent duplicate processing.
+     *
+     * @param bundle [Bundle] containing the extras
+     * @param originalKey original key in the bundle to read and remove
+     * @param transformedKey key to use in the marshalled data
+     * @param marshalledData [MutableMap] to add the marshalled data
+     */
+    private fun processAndRemoveKnownKey(
+        bundle: Bundle,
+        originalKey: String,
+        transformedKey: String,
+        marshalledData: MutableMap<String, Any>
+    ) {
+        try {
+            bundle.getString(originalKey)?.takeIf { it.isNotEmpty() }?.let {
+                marshalledData[transformedKey] = it
+            }
+        } catch (e: Exception) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data (key = $originalKey) from Activity, error is: ${e.message}")
+        }
+
+        try {
+            bundle.remove(originalKey)
+        } catch (e: Exception) {
+            Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to remove known key ($originalKey) from bundle, error is: ${e.message}")
+        }
     }
 
     /**

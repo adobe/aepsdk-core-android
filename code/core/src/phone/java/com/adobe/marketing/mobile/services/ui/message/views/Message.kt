@@ -11,12 +11,15 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.os.Build
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -99,9 +102,12 @@ internal fun Message(
          This is necessary to ensure that the InAppMessage is displayed on top of the UI.
          Which will ensure that ScreenReader can read the content of the InAppMessage only and not the underlying UI.
          */
+
+        val context = LocalContext.current
+        val targetSdkVersion = remember { context.packageManager.getPackageInfo(context.packageName, 0).applicationInfo?.targetSdkVersion }
+
         Dialog(
             properties = DialogProperties(
-                usePlatformDefaultWidth = false,
                 dismissOnBackPress = true,
                 dismissOnClickOutside = false
             ),
@@ -109,16 +115,32 @@ internal fun Message(
                 onBackPressed()
             }
         ) {
-            /* Remove the default dim and animations for the dialog window
-               Customer can set their own dim and animations if needed and those will be honoured in MessageBackdrop inside Message
-             */
-
             val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+            dialogWindow?.let {
+                // Remove the default dim and animations for the dialog window
+                // Customer can set their own dim and animations if needed and those will be honoured in MessageBackdrop inside Message
+                it.setDimAmount(0f)
+                it.setWindowAnimations(-1)
 
-            SideEffect {
-                dialogWindow?.let {
-                    it.setDimAmount(0f)
-                    it.setWindowAnimations(-1)
+                // These settings are used to ensure that the dialog displays correctly on Compose <= v 1.8
+                // when edge-to-edge is enforced on apps targeting Android 35 and above.
+
+                // This setting makes sure that the system bars have transparent backgrounds
+                // If edge-to-edge is enabled, the system bars will not have any background color
+                // If not, it will use the default or theme provided system bar colors
+                it.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+
+                it.setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+
+                // For apps targeting Android 35 and above and running on device with Android 35 or above,
+                // the system will automatically enable edge-to-edge display for the app.
+                // This ensures the dialog window does not have any additional insets and is also displayed edge-to-edge.
+                if (Build.VERSION.SDK_INT >= 35 && targetSdkVersion != null && targetSdkVersion >= 35) {
+                    it.attributes.fitInsetsTypes = 0
+                    it.attributes.fitInsetsSides = 0
                 }
             }
 

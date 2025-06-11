@@ -11,8 +11,10 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.util.toMap
 import com.adobe.marketing.mobile.launch.rulesengine.RuleConsequence
+import com.adobe.marketing.mobile.services.Log
 import org.json.JSONObject
 
 /**
@@ -38,12 +40,28 @@ internal class JSONConsequence private constructor(
     }
 
     /**
-     * Converts itself to a [RuleConsequence] object
+     * Converts this object into a validated [RuleConsequence].
      *
-     * @return an object of [RuleConsequence]
+     * @return a valid [RuleConsequence] or `null` if any validation check fails
      */
     @JvmSynthetic
-    internal fun toRuleConsequence(): RuleConsequence {
-        return RuleConsequence(this.id, this.type, this.detail)
+    internal fun toRuleConsequence(): RuleConsequence? {
+        val LOG_SOURCE = "JSONConsequence"
+        if (id.isEmpty()) {
+            Log.warning(CoreConstants.LOG_TAG, LOG_SOURCE, "Unable to find required field \"id\" in rules consequence.")
+            return null
+        }
+
+        if (type.isEmpty()) {
+            Log.warning(CoreConstants.LOG_TAG, LOG_SOURCE, "Unable to find required field \"type\" in rules consequence.")
+            return null
+        }
+
+        if (detail.isNullOrEmpty()) {
+            Log.warning(CoreConstants.LOG_TAG, LOG_SOURCE, "Unable to find required field \"detail\" in rules consequence.")
+            return null
+        }
+
+        return RuleConsequence(id, type, detail)
     }
 }

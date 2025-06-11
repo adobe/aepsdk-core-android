@@ -195,12 +195,9 @@ internal class LaunchRulesConsequence(
     }
 
     private fun replaceToken(
-        detail: Map<String, Any?>?,
+        detail: Map<String, Any?>,
         tokenFinder: TokenFinder
-    ): Map<String, Any?>? {
-        if (detail.isNullOrEmpty()) {
-            return null
-        }
+    ): Map<String, Any?> {
         val mutableDetail = detail.toMutableMap()
         for ((key, value) in detail) {
             mutableDetail[key] = replaceToken(value, tokenFinder)
@@ -566,22 +563,22 @@ internal class LaunchRulesConsequence(
 
 // Extend RuleConsequence with helper methods for processing consequence events.
 private val RuleConsequence.eventData: Map<*, *>?
-    get() = detail?.get("eventdata") as? Map<*, *>
+    get() = detail["eventdata"] as? Map<*, *>
 
 private val RuleConsequence.eventSource: String?
-    get() = detail?.get("source") as? String
+    get() = detail["source"] as? String
 
 private val RuleConsequence.eventType: String?
-    get() = detail?.get("type") as? String
+    get() = detail["type"] as? String
 
 private val RuleConsequence.eventDataAction: String?
-    get() = detail?.get("eventdataaction") as? String
+    get() = detail["eventdataaction"] as? String
 
 private val RuleConsequence.detailId: String?
-    get() = detail?.get("id") as? String
+    get() = detail["id"] as? String
 
 private val RuleConsequence.schema: String?
-    get() = detail?.get("schema") as? String
+    get() = detail["schema"] as? String
 
 private val RuleConsequence.detailData: Map<String, Any>?
     get() = DataReader.optTypedMap(Any::class.java, detail, "data", null)

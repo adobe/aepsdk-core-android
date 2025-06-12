@@ -873,7 +873,7 @@ class LaunchRulesEngineModuleTests {
         assertEquals(3, matchedConsequences.size)
         for (consequence in matchedConsequences) {
             assertEquals("ajoInbound", consequence.type)
-            assertEquals("ajoFeedItem", consequence.detail?.get("type"))
+            assertEquals("ajoFeedItem", consequence.detail["type"])
         }
     }
 

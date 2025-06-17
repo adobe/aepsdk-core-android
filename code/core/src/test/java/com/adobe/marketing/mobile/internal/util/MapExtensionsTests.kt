@@ -38,6 +38,143 @@ class MapExtensionsTests {
     }
 
     @Test
+    fun testMapWithListFlattening() {
+        val map = mapOf(
+            "a" to mapOf(
+                "b" to mapOf(
+                    "c" to "a_b_c_value"
+                )
+            ),
+            "d" to mapOf(
+                "e" to listOf(
+                    mapOf(
+                        "value1" to "d_e_value1"
+                    ),
+                    mapOf(
+                        "value2" to "d_e_value2"
+                    )
+                ),
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.b.c" to "a_b_c_value",
+            "d.e.0.value1" to "d_e_value1",
+            "d.e.1.value2" to "d_e_value2"
+        )
+        assertEquals(3, flattenedMap.size)
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun `test flattening with nested lists`() {
+        val map = mapOf(
+            "a" to listOf(
+                listOf("nested1", "nested2"),
+                listOf("nested3", "nested4")
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0.0" to "nested1",
+            "a.0.1" to "nested2",
+            "a.1.0" to "nested3",
+            "a.1.1" to "nested4"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun `test flattening with maps inside lists`() {
+        val map = mapOf(
+            "a" to listOf(
+                mapOf("key1" to "value1", "key2" to "value2"),
+                mapOf("key3" to "value3", "key4" to "value4")
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0.key1" to "value1",
+            "a.0.key2" to "value2",
+            "a.1.key3" to "value3",
+            "a.1.key4" to "value4"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun `test flattening with complex nested structures`() {
+        val map = mapOf(
+            "root" to mapOf(
+                "list1" to listOf(
+                    mapOf(
+                        "nestedList" to listOf("a", "b"),
+                        "nestedMap" to mapOf("x" to "y")
+                    ),
+                    mapOf(
+                        "nestedList" to listOf("c", "d"),
+                        "nestedMap" to mapOf("z" to "w")
+                    )
+                ),
+                "map1" to mapOf(
+                    "list2" to listOf(
+                        mapOf("p" to "q"),
+                        mapOf("r" to "s")
+                    )
+                )
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "root.list1.0.nestedList.0" to "a",
+            "root.list1.0.nestedList.1" to "b",
+            "root.list1.0.nestedMap.x" to "y",
+            "root.list1.1.nestedList.0" to "c",
+            "root.list1.1.nestedList.1" to "d",
+            "root.list1.1.nestedMap.z" to "w",
+            "root.map1.list2.0.p" to "q",
+            "root.map1.list2.1.r" to "s"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun `test flattening with arrays`() {
+        val map = mapOf(
+            "a" to arrayOf(
+                arrayOf("nested1", "nested2"),
+                arrayOf("nested3", "nested4")
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0.0" to "nested1",
+            "a.0.1" to "nested2",
+            "a.1.0" to "nested3",
+            "a.1.1" to "nested4"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun `test flattening with mixed arrays and lists`() {
+        val map = mapOf(
+            "a" to listOf(
+                arrayOf("nested1", "nested2"),
+                listOf("nested3", "nested4")
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0.0" to "nested1",
+            "a.0.1" to "nested2",
+            "a.1.0" to "nested3",
+            "a.1.1" to "nested4"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
     fun testNullValueMapFlattening() {
         val map = mapOf(
             "a" to mapOf(

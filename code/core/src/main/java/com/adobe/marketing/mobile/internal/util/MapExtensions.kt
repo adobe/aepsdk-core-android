@@ -41,12 +41,15 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
 }
 
 /**
- * Flatten nested [Map]s and concatenate [String] keys
+ * Flatten nested [Map]s, [List]s and [Array]s and concatenate [String] keys
  * For example, an input [Map] of:
- *  `[rootKey: [key1: value1, key2: value2]]`
+ *  `{rootKey: {key1: value1, key2: value2}}`
  * will return a [Map] represented as:
- *  `[rootKey.key1: value1, rootKey.key2: value2]`
- *
+ *  `{rootKey.key1: value1, rootKey.key2: value2}`
+ * An input [Map] with nested [List]:
+ * `{rootKey: {key1 : [value0, value1]}}`
+ * will return a [Map] represented as:
+ *  `{rootKey.key1.0.value0, rootKey.key1.1.value1}`
  *
  * @param prefix a prefix to append to the front of the key
  * @return flattened [Map]
@@ -58,11 +61,25 @@ internal fun Map<String, Any?>.flattening(prefix: String = ""): Map<String, Any?
     this.forEach { entry ->
         val expandedKey = keyPrefix + entry.key
         val value = entry.value
-        if (value is Map<*, *> && value.keys.isAllString()) {
-            @Suppress("UNCHECKED_CAST")
-            flattenedMap.putAll((value as Map<String, Any?>).flattening(expandedKey))
-        } else {
-            flattenedMap[expandedKey] = value
+        when (value) {
+            is Map<*, *> -> {
+                if (value.keys.isAllString()) {
+                    @Suppress("UNCHECKED_CAST")
+                    flattenedMap.putAll((value as Map<String, Any?>).flattening(expandedKey))
+                } else {
+                    flattenedMap[expandedKey] = value
+                }
+            }
+            is List<*>, is Array<*> -> {
+                val items = if (value is List<*>) value else (value as Array<*>).toList()
+                items.forEachIndexed { index, item ->
+                    val itemMap = mapOf("$index" to item)
+                    flattenedMap.putAll(itemMap.flattening(expandedKey))
+                }
+            }
+            else -> {
+                flattenedMap[expandedKey] = value
+            }
         }
     }
     return flattenedMap

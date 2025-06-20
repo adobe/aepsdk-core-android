@@ -309,7 +309,7 @@ class LaunchTokenFinderTest {
     }
 
     @Test
-    fun `get should return shared state list of the module on valid event`() {
+    fun `get should return shared state string of the module on valid event`() {
         // setup
         val testEvent = getDefaultEvent(null)
         val lcData = mapOf("visitoridslist" to listOf("vid1", "vid2"))
@@ -328,10 +328,13 @@ class LaunchTokenFinderTest {
         )
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
-        val result =
-            launchTokenFinder.get("~state.com.adobe.marketing.mobile.identity/visitoridslist")
+        val result0 =
+            launchTokenFinder.get("~state.com.adobe.marketing.mobile.identity/visitoridslist.0")
+        val result1 =
+            launchTokenFinder.get("~state.com.adobe.marketing.mobile.identity/visitoridslist.1")
         // verify
-        assertEquals(listOf("vid1", "vid2"), result)
+        assertEquals("vid1", result0)
+        assertEquals("vid2", result1)
     }
 
     @Test
@@ -425,15 +428,17 @@ class LaunchTokenFinderTest {
     }
 
     @Test
-    fun `get should return list on list value`() {
+    fun `get should return string on list value`() {
         // setup
         val testEventData = mapOf("key6" to listOf("String1", "String2"))
         val testEvent = getDefaultEvent(testEventData)
         val launchTokenFinder = LaunchTokenFinder(testEvent, extensionApi)
         // test
-        val result = launchTokenFinder.get("key6")
+        val result0 = launchTokenFinder.get("key6.0")
+        val result1 = launchTokenFinder.get("key6.1")
         // verify
-        assertEquals(listOf("String1", "String2"), result)
+        assertEquals("String1", result0)
+        assertEquals("String2", result1)
     }
 
     @Test

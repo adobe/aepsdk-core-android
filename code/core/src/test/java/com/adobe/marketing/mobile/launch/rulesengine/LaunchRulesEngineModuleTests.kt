@@ -89,6 +89,43 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
+    fun `Test group condition with key embedded inside list`() {
+        val json = readTestResources("rules_module_tests/rules_testGroupLogicalOperatorsWithKeysEmbeddedInList.json")
+        assertNotNull(json)
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+
+        val contentCardDismissEvent = Event.Builder(
+            "contentCardDismiss",
+            EventType.EDGE,
+            EventSource.REQUEST_CONTENT
+        ).setEventData(
+            mapOf(
+                "xdm" to mapOf(
+                    "eventType" to "decisioning.propositionDismiss",
+                    "_experience" to mapOf(
+                        "decisioning" to mapOf(
+                            "propositions" to listOf(
+                                mapOf(
+                                    "scopeDetails" to mapOf(
+                                        "activity" to mapOf(
+                                            "id" to "a43122c4-bf19-499f-b507-087a028d1769#fa035681-15ce-488e-859e-200bb2ca90ac"
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        ).build()
+        val matchedConsequence = launchRulesEngine.evaluateEvent(contentCardDismissEvent)
+        assertEquals(1, matchedConsequence.size)
+        assertEquals("schema", matchedConsequence[0].type)
+    }
+
+    @Test
     fun `Test historical condition any search type success`() {
         val captor = argumentCaptor<AdobeCallbackWithError<Array<EventHistoryResult>>>()
         Mockito.`when`(extensionApi.getHistoricalEvents(any(), Mockito.anyBoolean(), captor.capture()))

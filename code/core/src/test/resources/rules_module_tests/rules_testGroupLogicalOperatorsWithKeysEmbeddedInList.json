@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "condition": {
+        "type": "group",
+        "definition": {
+          "logic": "and",
+          "conditions": [
+            {
+              "type": "group",
+              "definition": {
+                "logic": "and",
+                "conditions": [
+                  {
+                    "definition": {
+                      "key": "~type",
+                      "matcher": "eq",
+                      "values": [
+                        "com.adobe.eventType.edge"
+                      ]
+                    },
+                    "type": "matcher"
+                  },
+                  {
+                    "definition": {
+                      "key": "~source",
+                      "matcher": "eq",
+                      "values": [
+                        "com.adobe.eventSource.requestContent"
+                      ]
+                    },
+                    "type": "matcher"
+                  },
+                  {
+                    "definition": {
+                      "key": "xdm.eventType",
+                      "matcher": "eq",
+                      "values": [
+                        "decisioning.propositionDismiss"
+                      ]
+                    },
+                    "type": "matcher"
+                  },
+                  {
+                    "definition": {
+                      "key": "xdm._experience.decisioning.propositions.0.scopeDetails.activity.id",
+                      "matcher": "eq",
+                      "values": [
+                        "a43122c4-bf19-499f-b507-087a028d1769#fa035681-15ce-488e-859e-200bb2ca90ac"
+                      ]
+                    },
+                    "type": "matcher"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~timestampu",
+                "matcher": "lt",
+                "values": [
+                  2019715200
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "consequences": [
+        {
+          "id": "48181acd-22b3-edae-bc8a-447868a7df7c",
+          "type": "schema",
+          "detail": {
+            "id": "48181acd-22b3-edae-bc8a-447868a7df7c",
+            "schema": "https://ns.adobe.com/personalization/eventHistoryOperation",
+            "data": {
+              "operation": "insertIfNotExists",
+              "content": {
+                "iam.eventType": "disqualify",
+                "iam.id": "a43122c4-bf19-499f-b507-087a028d1769#fa035681-15ce-488e-859e-200bb2ca90ac"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -46,18 +46,21 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
  *  `{rootKey: {key1: value1, key2: value2}}`
  * will return a [Map] represented as:
  *  `{rootKey.key1: value1, rootKey.key2: value2}`
- * For an input [Map] with nested [List], by default shouldFlattenList is true:
+ * For an input [Map] with nested [List], by default when shouldFlattenList is true:
  * `{rootKey: {key1 : [value0, value1]}}`
  * will return a [Map] represented as:
  *  `{rootKey.key1.0.value0, rootKey.key1.1.value1}`
  *  Else, it will return:
  *  `{rootKey.key1: [value0, value1]}`
  *
+ *  Key names are not escaped; if flattened keys collide, the last value written wins.
+ *  The resolution order in this case is undefined and may change.
+ *
  * @param prefix a prefix to append to the front of the key
  * @return flattened [Map]
  */
 @JvmSynthetic
-internal fun Map<String, Any?>.flattening(prefix: String = "", shouldFlattenList: Boolean = true): Map<String, Any?> {
+internal fun Map<String, Any?>.flattening(prefix: String = "", shouldFlattenListAndArray: Boolean = true): Map<String, Any?> {
     val keyPrefix = if (prefix.isNotEmpty()) "$prefix." else prefix
     val flattenedMap = mutableMapOf<String, Any?>()
     this.forEach { entry ->
@@ -66,13 +69,13 @@ internal fun Map<String, Any?>.flattening(prefix: String = "", shouldFlattenList
             is Map<*, *> -> {
                 if (value.keys.isAllString()) {
                     @Suppress("UNCHECKED_CAST")
-                    flattenedMap.putAll((value as Map<String, Any?>).flattening(expandedKey, shouldFlattenList))
+                    flattenedMap.putAll((value as Map<String, Any?>).flattening(expandedKey, shouldFlattenListAndArray))
                 } else {
                     flattenedMap[expandedKey] = value
                 }
             }
             is List<*>, is Array<*> -> {
-                if (shouldFlattenList) {
+                if (shouldFlattenListAndArray) {
                     val items = if (value is List<*>) value else (value as Array<*>).toList()
                     items.forEachIndexed { index, item ->
                         val itemMap = mapOf("$index" to item)

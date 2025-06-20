@@ -67,6 +67,35 @@ class MapExtensionsTests {
     }
 
     @Test
+    fun testMapWithListFlatteningDisabled() {
+        val map = mapOf(
+            "a" to mapOf(
+                "b" to mapOf(
+                    "c" to "a_b_c_value"
+                )
+            ),
+            "d" to mapOf(
+                "e" to listOf(
+                    mapOf(
+                        "value1" to "d_e_value1"
+                    ),
+                    mapOf(
+                        "value2" to "d_e_value2"
+                    )
+                ),
+            )
+        )
+        val flattenedMap = map.flattening(shouldFlattenList = false)
+        val expectedMap = mapOf(
+            "a.b.c" to "a_b_c_value",
+            "d.e" to "[{value1=d_e_value1}, {value2=d_e_value2}]"
+        )
+        assertEquals(2, flattenedMap.size)
+        assertEquals("a_b_c_value", flattenedMap["a.b.c"])
+        assertTrue(flattenedMap["d.e"] is List<*>)
+    }
+
+    @Test
     fun `test flattening with nested lists`() {
         val map = mapOf(
             "a" to listOf(

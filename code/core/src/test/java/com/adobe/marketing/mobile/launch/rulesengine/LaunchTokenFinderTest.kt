@@ -186,7 +186,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("~all_url")
         // verify
-        assertEquals("key6.0=String1&key6.1=String2", result)
+        assertEquals("key6=String1%2CString2", result)
     }
 
     @Test

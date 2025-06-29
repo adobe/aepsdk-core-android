@@ -87,18 +87,19 @@ internal fun MessageFrame(
     val density = LocalDensity.current
     val contentView = currentActivity.findViewById<View>(android.R.id.content)
     val contentHeightDp = with(density) { contentView.height.toDp() }
+    val contentWidthDp = with(density) { contentView.width.toDp() }
     val heightDp = remember { mutableStateOf(((contentHeightDp * inAppMessageSettings.height) / 100)) }
     val widthDp = remember { mutableStateOf(getMessageFrameWidthInDp(density, contentView.width, inAppMessageSettings)) }
 
     val horizontalOffset = MessageOffsetMapper.getHorizontalOffset(
         inAppMessageSettings.horizontalAlignment,
         inAppMessageSettings.horizontalInset,
-        widthDp.value
+        contentWidthDp
     )
     val verticalOffset = MessageOffsetMapper.getVerticalOffset(
         inAppMessageSettings.verticalAlignment,
         inAppMessageSettings.verticalInset,
-        heightDp.value
+        contentHeightDp
     )
 
     val allowGestures = remember { inAppMessageSettings.gestureMap.isNotEmpty() }

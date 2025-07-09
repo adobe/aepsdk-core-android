@@ -41,7 +41,9 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
 }
 
 /**
- * Flatten nested [Map]s, [List]s and [Array]s and concatenate [String] keys
+ * Recursively flattens nested [Map]s, [List]s and [Array]s values inside a Map<String, Any?> into a
+ * single-level Map<String, Any> with dot-separated keys.
+ * Other nested values are added as objects without any flattening.
  * For example, an input [Map] of:
  *  `{rootKey: {key1: value1, key2: value2}}`
  * will return a [Map] represented as:
@@ -60,34 +62,26 @@ internal fun Map<String, Any?>.fnv1a32(masks: Array<String>? = null): Long {
  * @return flattened [Map]
  */
 @JvmSynthetic
-internal fun Map<String, Any?>.flattening(prefix: String = "", shouldFlattenListAndArray: Boolean = true): Map<String, Any?> {
+internal fun Map<String, Any?>.flattening(prefix: String = "", flattenListAndArray: Boolean = true): Map<String, Any?> {
     val keyPrefix = if (prefix.isNotEmpty()) "$prefix." else prefix
     val flattenedMap = mutableMapOf<String, Any?>()
     this.forEach { entry ->
         val expandedKey = keyPrefix + entry.key
-        when (val value = entry.value) {
-            is Map<*, *> -> {
-                if (value.keys.isAllString()) {
-                    @Suppress("UNCHECKED_CAST")
-                    flattenedMap.putAll((value as Map<String, Any?>).flattening(expandedKey, shouldFlattenListAndArray))
-                } else {
-                    flattenedMap[expandedKey] = value
-                }
-            }
-            is List<*>, is Array<*> -> {
-                if (shouldFlattenListAndArray) {
-                    val items = if (value is List<*>) value else (value as Array<*>).toList()
-                    items.forEachIndexed { index, item ->
-                        val itemMap = mapOf("$index" to item)
-                        flattenedMap.putAll(itemMap.flattening(expandedKey))
-                    }
-                } else {
-                    flattenedMap[expandedKey] = value
-                }
-            }
-            else -> {
-                flattenedMap[expandedKey] = value
-            }
+        val value = entry.value
+        if (value is Map<*, *> && value.keys.isAllString()) {
+            @Suppress("UNCHECKED_CAST")
+            flattenedMap.putAll(
+                (value as Map<String, Any?>).flattening(
+                    expandedKey,
+                    flattenListAndArray
+                )
+            )
+        } else if (value is List<*> && flattenListAndArray) {
+            flattenedMap.putAll((value as List<Any?>).flattening(prefix = expandedKey))
+        } else if (value is Array<*> && flattenListAndArray) {
+            flattenedMap.putAll((value as Array<out Any?>).flattening(prefix = expandedKey))
+        } else {
+            flattenedMap[expandedKey] = value
         }
     }
     return flattenedMap

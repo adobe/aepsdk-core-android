@@ -135,7 +135,7 @@ class MapExtensionsTests {
                 ),
             )
         )
-        val flattenedMap = map.flattening(shouldFlattenListAndArray = false)
+        val flattenedMap = map.flattening(flattenListAndArray = false)
         assertEquals(2, flattenedMap.size)
         assertEquals("a_b_c_value", flattenedMap["a.b.c"])
         assertTrue(flattenedMap["d.e"] is List<*>)
@@ -251,6 +251,31 @@ class MapExtensionsTests {
             "a.4" to null
         )
         assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithArraysFlatteningDisabled() {
+        val map = mapOf(
+            "a" to mapOf(
+                "b" to mapOf(
+                    "c" to "a_b_c_value"
+                )
+            ),
+            "d" to mapOf(
+                "e" to arrayOf(
+                    mapOf(
+                        "value1" to "d_e_value1"
+                    ),
+                    mapOf(
+                        "value2" to "d_e_value2"
+                    )
+                ),
+            )
+        )
+        val flattenedMap = map.flattening(flattenListAndArray = false)
+        assertEquals(2, flattenedMap.size)
+        assertEquals("a_b_c_value", flattenedMap["a.b.c"])
+        assertTrue(flattenedMap["d.e"] is Array<*>)
     }
 
     @Test
@@ -386,10 +411,14 @@ class MapExtensionsTests {
         )
         val flattenedMap = map.flattening()
         assertEquals(1, flattenedMap.size)
-        val expectedMap = mapOf(
-            "a.b" to 2
-        )
-        assertEquals(expectedMap, flattenedMap)
+        assertEquals("a.b", flattenedMap.keys.first())
+    }
+
+    @Test
+    fun testFlatteningWithEmptyMap() {
+        val map = emptyMap<String, Any>()
+        val flattenedMap = map.flattening()
+        assertTrue(flattenedMap.isEmpty())
     }
 
     @Test

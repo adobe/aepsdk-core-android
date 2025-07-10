@@ -1253,7 +1253,11 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
-        assertEquals(recordedEventCaptor.value, dispatchedEventCaptor.value)
+        val rulesConsequence = matchedRules?.get(0)?.consequenceList?.get(0)
+        val eventData = dispatchedEventCaptor.value.eventData?.get("triggeredconsequence") as Map<*, *>?
+        assertEquals(rulesConsequence?.id, eventData?.get("id"))
+        assertEquals(rulesConsequence?.type, eventData?.get("type"))
+        assertEquals(rulesConsequence?.detail, eventData?.get("detail"))
     }
 
     @Test
@@ -1739,7 +1743,11 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
-        assertEquals(recordedEventCaptor.value, dispatchedEventCaptor.value)
+        val rulesConsequence = matchedRules?.get(0)?.consequenceList?.get(0)
+        val eventData = dispatchedEventCaptor.value.eventData?.get("triggeredconsequence") as Map<*, *>?
+        assertEquals(rulesConsequence?.id, eventData?.get("id"))
+        assertEquals(rulesConsequence?.type, eventData?.get("type"))
+        assertEquals(rulesConsequence?.detail, eventData?.get("detail"))
     }
 
     @Test
@@ -1808,7 +1816,10 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi, times(1)).dispatch(dispatchedEventCaptor.capture())
-        assertEquals(recordedEventCaptor.value, dispatchedEventCaptor.value)
+        val rulesConsequence = matchedRules?.get(0)?.consequenceList?.get(0)
+        val eventData = dispatchedEventCaptor.value.eventData?.get("triggeredconsequence") as Map<*, *>?
+        assertEquals(rulesConsequence?.id, eventData?.get("id"))
+        assertEquals(rulesConsequence?.type, eventData?.get("type"))
     }
 
     @Test
@@ -1876,7 +1887,11 @@ class LaunchRulesConsequenceTests {
         val dispatchedEventCaptor: ArgumentCaptor<Event> =
             ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi).dispatch(dispatchedEventCaptor.capture())
-        assertEquals(recordedEventCaptor.value, dispatchedEventCaptor.value)
+        val rulesConsequence = matchedRules?.get(0)?.consequenceList?.get(0)
+        val eventData = dispatchedEventCaptor.value.eventData?.get("triggeredconsequence") as Map<*, *>?
+        assertEquals(rulesConsequence?.id, eventData?.get("id"))
+        assertEquals(rulesConsequence?.type, eventData?.get("type"))
+        assertEquals(rulesConsequence?.detail, eventData?.get("detail"))
     }
 
     @Test

@@ -77,7 +77,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
                     )
                     return EMPTY_STRING
                 }
-                val eventDataAsObjectMap = event.eventData.flattening()
+                val eventDataAsObjectMap = event.eventData.flattening(flattenListAndArray = false)
                 eventDataAsObjectMap.serializeToQueryString()
             }
             KEY_ALL_JSON -> {
@@ -147,6 +147,7 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             return EMPTY_STRING
         }
         val eventDataMap = event.eventData.flattening()
-        return eventDataMap[key]
+        val value = eventDataMap[key]
+        return value
     }
 }

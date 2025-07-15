@@ -156,8 +156,8 @@ public class MapUtilsTests {
                 };
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
-        // verify flattened map string "key:[{aaa=1, zzz=true}, {number=123, double=1.5}]"
-        final long expectedHash = 2052811266L;
+        // verify flattened map string "key.0.aaa:1key.0.zzz:truekey.1.double:1.5key.1.number:123"
+        final long expectedHash = 2410759527L;
         assertEquals(expectedHash, hash);
     }
 
@@ -189,8 +189,8 @@ public class MapUtilsTests {
                 };
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
-        // verify flattened map string "key:[[aaa, zzz, 111], [2]]"
-        final long expectedHash = 390515610L;
+        // verify flattened map string "key.0.0:aaakey.0.1:zzzkey.0.2:111key.1.0:2"
+        final long expectedHash = 2441202563L;
         assertEquals(expectedHash, hash);
     }
 

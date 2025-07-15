@@ -542,7 +542,8 @@ internal class LaunchRulesConsequence(
             object : AdobeCallbackWithError<Boolean> {
                 override fun call(result: Boolean) {
                     if (result) {
-                        extensionApi.dispatch(eventToRecord)
+                        val consequenceEvent = generateConsequenceEvent(consequence, parentEvent)
+                        extensionApi.dispatch(consequenceEvent)
                     } else {
                         Log.warning(
                             LaunchRulesEngineConstants.LOG_TAG,

@@ -137,9 +137,13 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                 cursor.use {
                     cursor.moveToFirst()
                     val count = cursor.getInt(QUERY_COUNT_INDEX)
-                    val oldest = cursor.getLong(QUERY_OLDEST_INDEX)
-                    val newest = cursor.getLong(QUERY_NEWEST_INDEX)
-                    return EventHistoryResult(count, oldest, newest)
+                    if (count == 0) {
+                        return EventHistoryResult(0)
+                    } else {
+                        val oldest = cursor.getLong(QUERY_OLDEST_INDEX)
+                        val newest = cursor.getLong(QUERY_NEWEST_INDEX)
+                        return EventHistoryResult(count, oldest, newest)
+                    }
                 }
             } catch (e: Exception) {
                 Log.warning(

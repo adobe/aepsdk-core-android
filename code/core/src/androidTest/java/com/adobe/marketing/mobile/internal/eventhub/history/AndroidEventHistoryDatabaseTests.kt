@@ -211,6 +211,19 @@ class AndroidEventHistoryDatabaseTests {
     }
 
     @Test
+    fun testQuery_noRecordExists() {
+        // create new event history database
+        val eventHistoryDatabase = AndroidEventHistoryDatabase()
+
+        // query for a record that does not exist
+        val res = eventHistoryDatabase.query(222222222, 0, System.currentTimeMillis())
+
+        assertNotNull(res)
+        assertEquals(0, res?.count)
+        assertEquals(null, res?.oldestOccurrence)
+        assertEquals(null, res?.newestOccurrence)
+    }
+    @Test
     fun testQuery_DatabasesDeleted() {
         // create new event history database
         val eventHistoryDatabase = AndroidEventHistoryDatabase()
@@ -222,6 +235,8 @@ class AndroidEventHistoryDatabaseTests {
         val res = eventHistoryDatabase.query(222222222, 0, System.currentTimeMillis())
         assertNotNull(res)
         assertEquals(-1, res?.count)
+        assertEquals(null, res?.oldestOccurrence)
+        assertEquals(null, res?.newestOccurrence)
     }
 
     @Test
@@ -236,6 +251,8 @@ class AndroidEventHistoryDatabaseTests {
         val res = eventHistoryDatabase.query(222222222, 0, System.currentTimeMillis())
         assertNotNull(res)
         assertEquals(-1, res?.count)
+        assertEquals(null, res?.oldestOccurrence)
+        assertEquals(null, res?.newestOccurrence)
     }
 
     @Test

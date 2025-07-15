@@ -198,6 +198,8 @@ class AndroidEventHistoryTests {
         assertEquals(3, results[0].count)
         assertEquals(1, results[1].count)
         assertEquals(0, results[2].count)
+        assertEquals(null, results[2].oldestOccurrence)
+        assertEquals(null, results[2].newestOccurrence)
     }
 
     @Test
@@ -218,6 +220,8 @@ class AndroidEventHistoryTests {
         assertEquals(requests.size, results.size)
         assertEquals(1, results[0].count)
         assertEquals(0, results[1].count)
+        assertEquals(null, results[1].oldestOccurrence)
+        assertEquals(null, results[1].newestOccurrence)
     }
 
     @Test
@@ -321,6 +325,8 @@ class AndroidEventHistoryTests {
         assertEquals(requests.size, results.size)
         for (result in results) {
             assertEquals(0, result.count)
+            assertEquals(null, result.oldestOccurrence)
+            assertEquals(null, result.newestOccurrence)
         }
     }
 

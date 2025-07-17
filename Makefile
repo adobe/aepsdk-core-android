@@ -84,10 +84,10 @@ core-publish-main: clean
 		(./code/gradlew -p code/core publish -Prelease)
 
 core-publish-maven-local:
-		(./code/gradlew -p code/core publishReleasePublicationToMavenLocal -x signReleasePublication)		
+		(./code/gradlew -p code/core publishReleasePublicationToMavenLocal)		
 
 core-publish-maven-local-jitpack:
-		(./code/gradlew -p code/core publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)		
+		(./code/gradlew -p code/core publishReleasePublicationToMavenLocal -Pjitpack)		
 
 ### Signal 
 
@@ -131,7 +131,7 @@ signal-publish-maven-local:
 
 signal-publish-maven-local-jitpack:
 		(./code/gradlew -p code/signal assemblePhone)
-		(./code/gradlew -p code/signal publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)		
+		(./code/gradlew -p code/signal publishReleasePublicationToMavenLocal -Pjitpack)		
 
 ### Lifecycle 
 
@@ -176,7 +176,7 @@ lifecycle-publish-maven-local:
 
 lifecycle-publish-maven-local-jitpack:
 		(./code/gradlew -p code/lifecycle assemblePhone)
-		(./code/gradlew -p code/lifecycle publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
+		(./code/gradlew -p code/lifecycle publishReleasePublicationToMavenLocal -Pjitpack)
 
 ### Identity 
 
@@ -220,7 +220,7 @@ identity-publish-maven-local:
 
 identity-publish-maven-local-jitpack:
 		(./code/gradlew -p code/identity assemblePhone)
-		(./code/gradlew -p code/identity publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
+		(./code/gradlew -p code/identity publishReleasePublicationToMavenLocal -Pjitpack)
 
 ### TestUtils
 
@@ -238,4 +238,4 @@ testutils-unit-test-coverage:
 
 testutils-publish-maven-local-jitpack:
 		(./code/gradlew -p code/testutils assemblePhone)
-		(./code/gradlew -p code/testutils publishReleasePublicationToMavenLocal -Pjitpack -x signReleasePublication)
+		(./code/gradlew -p code/testutils publishReleasePublicationToMavenLocal -Pjitpack)

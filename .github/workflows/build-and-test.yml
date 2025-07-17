@@ -38,7 +38,7 @@ jobs:
     secrets: inherit
   build-lifecycle-artifact:
     name: "Build Artifacts"
-    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.4.1
     with:
       android-api-levels: '[29]'
       command: make lifecycle-publish-maven-local-jitpack
@@ -48,7 +48,7 @@ jobs:
     secrets: inherit
   build-identity-artifact:
     name: "Build Artifacts"
-    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.4.1
     with:
       android-api-levels: '[29]'
       command: make identity-publish-maven-local-jitpack
@@ -58,14 +58,14 @@ jobs:
     secrets: inherit
   api-check:
     name: "API Check"
-    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-custom-command-build-and-test.yml@gha-android-3.4.1
     with:
       android-api-levels: '[29]'
       command: make api-check
     secrets: inherit
   build-and-test:
     name: "CI"
-    uses: adobe/aepsdk-commons/.github/workflows/android-build-and-test.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-build-and-test.yml@gha-android-3.4.1
     with:
       android-api-levels: '[29]'
       run-test-unit: true

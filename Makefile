@@ -77,11 +77,11 @@ core-javadoc:
 # Alias for CI
 javadoc: core-javadoc
 
-core-publish-snapshot: clean core-assemble-phone-release
-		(./code/gradlew -p code/core publishReleasePublicationToSonatypeRepository --stacktrace)
+core-publish-snapshot: clean
+		(./code/gradlew -p code/core publish --stacktrace)
 
-core-publish-main: clean core-assemble-phone-release
-		(./code/gradlew -p code/core publishReleasePublicationToSonatypeRepository -Prelease)
+core-publish-main: clean
+		(./code/gradlew -p code/core publish -Prelease)
 
 core-publish-maven-local:
 		(./code/gradlew -p code/core publishReleasePublicationToMavenLocal -x signReleasePublication)		
@@ -119,11 +119,11 @@ signal-functional-test:
 signal-functional-test-coverage:		
 		(./code/gradlew -p code/signal createPhoneDebugAndroidTestCoverageReport)
 
-signal-publish-snapshot: clean signal-assemble-phone
-		(./code/gradlew -p code/signal publishReleasePublicationToSonatypeRepository --stacktrace)
+signal-publish-snapshot: clean
+		(./code/gradlew -p code/signal publish --stacktrace)
 
-signal-publish-main: clean signal-assemble-phone
-		(./code/gradlew -p code/signal publishReleasePublicationToSonatypeRepository -Prelease)
+signal-publish-main: clean
+		(./code/gradlew -p code/signal publish -Prelease)
 
 signal-publish-maven-local:
 		(./code/gradlew -p code/signal assemblePhone)
@@ -163,12 +163,12 @@ lifecycle-functional-test:
 lifecycle-functional-test-coverage:		
 		(./code/gradlew -p code/lifecycle createPhoneDebugAndroidTestCoverageReport)
 
-lifecycle-publish-snapshot: clean lifecycle-assemble-phone
+lifecycle-publish-snapshot: clean
 		# (./code/gradlew -p code/lifecycle compilePhoneDebugJavaWithJavac)
-		(./code/gradlew -p code/lifecycle publishReleasePublicationToSonatypeRepository --stacktrace)
+		(./code/gradlew -p code/lifecycle publish --stacktrace)
 
-lifecycle-publish-main: clean lifecycle-assemble-phone
-		(./code/gradlew -p code/lifecycle publishReleasePublicationToSonatypeRepository -Prelease)
+lifecycle-publish-main: clean
+		(./code/gradlew -p code/lifecycle publish -Prelease)
 
 lifecycle-publish-maven-local:
 		(./code/gradlew -p code/lifecycle assemblePhone)
@@ -208,11 +208,11 @@ identity-functional-test:
 identity-functional-test-coverage:
 		(./code/gradlew -p code/identity createPhoneDebugAndroidTestCoverageReport)
 
-identity-publish-snapshot: clean identity-assemble-phone
-		(./code/gradlew -p code/identity publishReleasePublicationToSonatypeRepository --stacktrace)
+identity-publish-snapshot: clean
+		(./code/gradlew -p code/identity publish --stacktrace)
 
-identity-publish-main: clean identity-assemble-phone
-		(./code/gradlew -p code/identity publishReleasePublicationToSonatypeRepository -Prelease)
+identity-publish-main: clean
+		(./code/gradlew -p code/identity publish -Prelease)
 
 identity-publish-maven-local:
 		(./code/gradlew -p code/identity assemblePhone)

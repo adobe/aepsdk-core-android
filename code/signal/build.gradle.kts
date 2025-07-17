@@ -1,5 +1,6 @@
 plugins {
     id("aep-library")
+    `maven-publish`
 }
 
 val signalExtensionName: String by project

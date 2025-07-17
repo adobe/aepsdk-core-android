@@ -1,6 +1,5 @@
 plugins {
     id("aep-library")
-    `maven-publish`
 }
 
 val lifecycleExtensionName: String by project

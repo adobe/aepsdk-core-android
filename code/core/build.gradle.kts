@@ -3,7 +3,6 @@ import com.adobe.marketing.mobile.gradle.BuildConstants
 plugins {
     id("aep-library")
     id("binary-compatibility-validator")
-    `maven-publish`
 }
 
 val coreExtensionName: String by project

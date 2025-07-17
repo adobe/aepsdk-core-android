@@ -45,7 +45,7 @@ jobs:
     if: ${{ github.event.inputs.release-core == 'true' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.1
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.2
     with:
       release-variant: core
       ref: ${{ github.event.inputs.ref }}
@@ -56,7 +56,7 @@ jobs:
     if: ${{ github.event.inputs.release-identity == 'true' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.1
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.2
     with:
       release-variant: identity
       ref: ${{ github.event.inputs.ref }}
@@ -67,7 +67,7 @@ jobs:
     if: ${{ github.event.inputs.release-lifecycle == 'true' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.1
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.2
     with:
       release-variant: lifecycle
       ref: ${{ github.event.inputs.ref }}
@@ -78,7 +78,7 @@ jobs:
     if: ${{ github.event.inputs.release-signal == 'true' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.1
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.2
     with:
       release-variant: signal
       ref: ${{ github.event.inputs.ref }}

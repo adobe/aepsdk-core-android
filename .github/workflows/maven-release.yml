@@ -45,7 +45,7 @@ jobs:
     if: ${{ github.event.inputs.extension == 'core' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.4.1
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.4.2
     with:
       tag: ${{ github.event.inputs.tag }}
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
@@ -88,7 +88,7 @@ jobs:
     permissions:
         contents: write
     needs: compute-version-path
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.4.1
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.4.2
     with:
       tag: ${{ github.event.inputs.tag }}
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}

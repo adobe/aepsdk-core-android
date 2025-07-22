@@ -482,6 +482,7 @@ internal class LaunchRulesConsequence(
                 logTag,
                 "Event History operation for id ${consequence.id} - event hash is 0"
             )
+            return
         }
 
         // For INSERT_IF_NOT_EXISTS, check if the event exists first

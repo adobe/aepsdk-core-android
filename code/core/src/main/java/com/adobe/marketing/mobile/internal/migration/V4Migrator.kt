@@ -102,50 +102,7 @@ internal class V4Migrator {
     private fun migrateLocalStorage() {
         val v4DataStore = v4SharedPreferences ?: return
         val v4DataStoreEditor = v4DataStore.edit()
-
-        // mobile services
-        val mobileServicesV5DataStore =
-            ServiceProvider.getInstance().dataStoreService.getNamedCollection(V5.MobileServices.DATASTORE_NAME)
         val installDateMillis = v4DataStore.getLong(V4.Lifecycle.INSTALL_DATE, 0L)
-        if (installDateMillis > 0) {
-            // convert milliseconds to seconds as it is handled in v5
-            mobileServicesV5DataStore.setLong(
-                V5.MobileServices.DEFAULTS_KEY_INSTALLDATE,
-                convertMsToSec(installDateMillis)
-            )
-        }
-        mobileServicesV5DataStore.setString(
-            V5.MobileServices.REFERRER_DATA_JSON_STRING,
-            v4DataStore.getString(V4.Acquisition.REFERRER_DATA, null)
-        )
-        mobileServicesV5DataStore.setString(
-            V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_SOURCE,
-            v4DataStore.getString(V4.Acquisition.DEFAULTS_KEY_REFERRER_UTM_SOURCE, null)
-        )
-        mobileServicesV5DataStore.setString(
-            V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_MEDIUM,
-            v4DataStore.getString(V4.Acquisition.DEFAULTS_KEY_REFERRER_UTM_MEDIUM, null)
-        )
-        mobileServicesV5DataStore.setString(
-            V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_TERM,
-            v4DataStore.getString(V4.Acquisition.DEFAULTS_KEY_REFERRER_UTM_TERM, null)
-        )
-        mobileServicesV5DataStore.setString(
-            V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_CONTENT,
-            v4DataStore.getString(V4.Acquisition.DEFAULTS_KEY_REFERRER_UTM_CONTENT, null)
-        )
-        mobileServicesV5DataStore.setString(
-            V5.MobileServices.DEFAULTS_KEY_REFERRER_UTM_CAMPAIGN,
-            v4DataStore.getString(V4.Acquisition.DEFAULTS_KEY_REFERRER_UTM_CAMPAIGN, null)
-        )
-        mobileServicesV5DataStore.setString(
-            V5.MobileServices.DEFAULTS_KEY_REFERRER_TRACKINGCODE,
-            v4DataStore.getString(V4.Acquisition.DEFAULTS_KEY_REFERRER_TRACKINGCODE, null)
-        )
-        mobileServicesV5DataStore.setString(
-            V5.MobileServices.SHARED_PREFERENCES_BLACK_LIST,
-            v4DataStore.getString(V4.Messages.SHARED_PREFERENCES_BLACK_LIST, null)
-        )
 
         // don't remove V4.Acquisition.REFERRER_DATA at here, it will be removed by the acquisition
         // extension

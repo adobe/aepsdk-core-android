@@ -15,6 +15,11 @@ name: Publish Snapshot
 on: 
   workflow_dispatch:
     inputs:
+      ref:
+        description: "Git reference (branch, tag, or SHA) to check out when publishing the snapshot. Defaults to 'staging'."
+        required: false
+        default: 'staging'
+
       release-core:
         description: Release Core snapshot
         type: boolean
@@ -40,34 +45,42 @@ jobs:
     if: ${{ github.event.inputs.release-core == 'true' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.2
     with:
       release-variant: core
+      ref: ${{ github.event.inputs.ref }}
+      staging-dir: code/core/build/staging-deploy
     secrets: inherit
 
   publish-identity:
     if: ${{ github.event.inputs.release-identity == 'true' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.2
     with:
       release-variant: identity
+      ref: ${{ github.event.inputs.ref }}
+      staging-dir: code/identity/build/staging-deploy
     secrets: inherit
 
   publish-lifecycle:
     if: ${{ github.event.inputs.release-lifecycle == 'true' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.2
     with:
       release-variant: lifecycle
+      ref: ${{ github.event.inputs.ref }}
+      staging-dir: code/lifecycle/build/staging-deploy
     secrets: inherit
 
   publish-signal:
     if: ${{ github.event.inputs.release-signal == 'true' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-snapshot.yml@gha-android-3.4.2
     with:
       release-variant: signal
+      ref: ${{ github.event.inputs.ref }}
+      staging-dir: code/signal/build/staging-deploy
     secrets: inherit

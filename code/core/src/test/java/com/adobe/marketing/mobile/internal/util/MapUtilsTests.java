@@ -482,4 +482,26 @@ public class MapUtilsTests {
         final long expectedHash = 3344627991L;
         assertEquals(expectedHash, hash);
     }
+
+    @Test
+    public void testGetFnv1aHash_EmptyMap() {
+        // setup
+        final Map<String, Object> map = new HashMap<>();
+        // test
+        final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
+        // verify empty map returns 0 hash
+        final long expectedHash = 0L;
+        assertEquals(expectedHash, hash);
+    }
+
+    @Test
+    public void testGetFnv1aHash_NullMap() {
+        // setup
+        final Map<String, Object> map = null;
+        // test
+        final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
+        // verify null map returns 0 hash
+        final long expectedHash = 0L;
+        assertEquals(expectedHash, hash);
+    }
 }

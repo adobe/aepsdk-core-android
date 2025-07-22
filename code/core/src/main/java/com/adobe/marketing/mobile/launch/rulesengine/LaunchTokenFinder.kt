@@ -147,7 +147,6 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             return EMPTY_STRING
         }
         val eventDataMap = event.eventData.flattening()
-        val value = eventDataMap[key]
-        return value
+        return eventDataMap[key]
     }
 }

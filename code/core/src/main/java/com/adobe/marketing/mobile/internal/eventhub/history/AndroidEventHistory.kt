@@ -90,7 +90,7 @@ internal class AndroidEventHistory : EventHistory {
                 val adjustedFromDate = if (enforceOrder) request.adjustedFromDate(previousEventOldestOccurrence) else request.fromDate
                 val res = androidEventHistoryDatabase.query(eventHash, adjustedFromDate, request.adjustedToDate)
 
-                Log.debug(
+                Log.trace(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
                     "EventHistoryRequest[%d] - (%d of %d) for hash(%d) from %d to %d" +

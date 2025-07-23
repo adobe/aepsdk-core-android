@@ -11,7 +11,13 @@
 
 package com.adobe.marketing.mobile;
 
-/** Interface defining a callback which contains the result of event history database operations. */
+/**
+ * Interface defining a callback which contains the result of event history database operations.
+ *
+ * @deprecated Use {@link EventHistoryResult} instead.
+ * @see EventHistoryResult
+ */
+@Deprecated
 public interface EventHistoryResultHandler<T> {
     void call(final T value);
 }

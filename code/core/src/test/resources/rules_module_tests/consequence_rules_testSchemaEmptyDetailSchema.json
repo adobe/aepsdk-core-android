@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "condition": {
+        "type": "group",
+        "definition": {
+          "logic": "and",
+          "conditions": [
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~type",
+                "matcher": "eq",
+                "values": [
+                  "com.adobe.eventType.generic"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "consequences": [
+        {
+          "id": "test-id",
+          "type": "schema",
+          "detail": {
+            "id": "test-id",
+            "schema": "",
+            "data": {
+              "operation": "insert",
+              "content": {
+                "key1": "value1"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

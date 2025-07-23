@@ -14,8 +14,12 @@ package com.adobe.marketing.mobile.internal.eventhub;
 import static org.junit.Assert.assertThrows;
 
 import androidx.annotation.NonNull;
+import com.adobe.marketing.mobile.AdobeCallbackWithError;
+import com.adobe.marketing.mobile.AdobeError;
 import com.adobe.marketing.mobile.Event;
 import com.adobe.marketing.mobile.EventHistoryRequest;
+import com.adobe.marketing.mobile.EventHistoryResult;
+import com.adobe.marketing.mobile.EventHistoryResultHandler;
 import com.adobe.marketing.mobile.Extension;
 import com.adobe.marketing.mobile.ExtensionApi;
 import com.adobe.marketing.mobile.SharedStateResolution;
@@ -151,6 +155,57 @@ public class ExtensionContainerJavaTests {
                 () ->
                         testExtensionInstance
                                 .getExtensionApi()
-                                .getHistoricalEvents(new EventHistoryRequest[0], true, null));
+                                .getHistoricalEvents(
+                                        new EventHistoryRequest[0],
+                                        true,
+                                        (EventHistoryResultHandler<Integer>) null));
+
+        assertThrows(
+                NullPointerException.class,
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .getHistoricalEvents(
+                                        null,
+                                        true,
+                                        new AdobeCallbackWithError<EventHistoryResult[]>() {
+                                            @Override
+                                            public void fail(AdobeError error) {}
+
+                                            @Override
+                                            public void call(EventHistoryResult[] value) {}
+                                        }));
+        assertThrows(
+                NullPointerException.class,
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .getHistoricalEvents(
+                                        new EventHistoryRequest[0],
+                                        true,
+                                        (AdobeCallbackWithError<EventHistoryResult[]>) null));
+
+        // Record Historical events
+        assertThrows(
+                NullPointerException.class,
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .recordHistoricalEvent(
+                                        null,
+                                        new AdobeCallbackWithError<Boolean>() {
+                                            @Override
+                                            public void fail(AdobeError error) {}
+
+                                            @Override
+                                            public void call(Boolean value) {}
+                                        }));
+
+        assertThrows(
+                NullPointerException.class,
+                () ->
+                        testExtensionInstance
+                                .getExtensionApi()
+                                .recordHistoricalEvent(testEvent, null));
     }
 }

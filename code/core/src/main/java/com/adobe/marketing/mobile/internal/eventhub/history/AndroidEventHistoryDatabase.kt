@@ -13,7 +13,9 @@ package com.adobe.marketing.mobile.internal.eventhub.history
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import com.adobe.marketing.mobile.EventHistoryResult
 import com.adobe.marketing.mobile.internal.CoreConstants
+import com.adobe.marketing.mobile.internal.eventhub.history.EventHistoryConstants.EVENT_HISTORY_ERROR
 import com.adobe.marketing.mobile.internal.util.FileUtils.moveFile
 import com.adobe.marketing.mobile.internal.util.SQLiteDatabaseHelper
 import com.adobe.marketing.mobile.services.Log
@@ -97,7 +99,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                     put(COLUMN_HASH, hash)
                     put(COLUMN_TIMESTAMP, timestampMS)
                 }
-                val res = database?.insert(TABLE_NAME, null, contentValues) ?: -1
+                val res = database?.insert(TABLE_NAME, null, contentValues) ?: EVENT_HISTORY_ERROR.toLong()
                 return res > 0
             } catch (e: Exception) {
                 Log.warning(
@@ -121,22 +123,27 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
      * @param hash `long` containing the 32-bit FNV-1a hashed representation of an Event's data
      * @param from `long` a timestamp representing the lower bounds of the date range to use when searching for the hash
      * @param to `long` a timestamp representing the upper bounds of the date range to use when searching for the hash
-     * @return a `QueryResult` object containing details of the matching records. If no database connection is available, returns null
+     * @return an [EventHistoryResult] object containing details of the matching records.
+     * If no database connection is available or error occurs, returns `EventHistoryResult` with count of -1.
      */
-    override fun query(hash: Long, from: Long, to: Long): EventHistoryDatabase.QueryResult? {
+    override fun query(hash: Long, from: Long, to: Long): EventHistoryResult {
         synchronized(dbMutex) {
             try {
                 openDatabase()
                 val rawQuery =
                     "SELECT COUNT(*) as $QUERY_COUNT, min($COLUMN_TIMESTAMP) as $QUERY_OLDEST, max($COLUMN_TIMESTAMP) as $QUERY_NEWEST FROM $TABLE_NAME WHERE $COLUMN_HASH = ? AND $COLUMN_TIMESTAMP >= ? AND $COLUMN_TIMESTAMP <= ?"
                 val whereArgs = arrayOf(hash.toString(), from.toString(), to.toString())
-                val cursor = database?.rawQuery(rawQuery, whereArgs) ?: return null
+                val cursor = database?.rawQuery(rawQuery, whereArgs) ?: return EventHistoryResult(EVENT_HISTORY_ERROR)
                 cursor.use {
                     cursor.moveToFirst()
                     val count = cursor.getInt(QUERY_COUNT_INDEX)
-                    val oldest = cursor.getLong(QUERY_OLDEST_INDEX)
-                    val newest = cursor.getLong(QUERY_NEWEST_INDEX)
-                    return EventHistoryDatabase.QueryResult(count, oldest, newest)
+                    if (count == 0) {
+                        return EventHistoryResult(0)
+                    } else {
+                        val oldest = cursor.getLong(QUERY_OLDEST_INDEX)
+                        val newest = cursor.getLong(QUERY_NEWEST_INDEX)
+                        return EventHistoryResult(count, oldest, newest)
+                    }
                 }
             } catch (e: Exception) {
                 Log.warning(
@@ -145,7 +152,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                     "Failed to execute query (%s)",
                     if (e.localizedMessage != null) e.localizedMessage else e.message
                 )
-                return null
+                return EventHistoryResult(EVENT_HISTORY_ERROR)
             } finally {
                 closeDatabase()
             }
@@ -158,7 +165,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
      * @param hash `long` containing the 32-bit FNV-1a hashed representation of an Event's data
      * @param from `long` representing the lower bounds of the date range to use when searching for the hash
      * @param to `long` representing the upper bounds of the date range to use when searching for the hash
-     * @return `int` which will contain the number of rows deleted.
+     * @return `int` which will contain the number of rows deleted. Returns -1 if no database connection is available or error occurs.
      */
     override fun delete(hash: Long, from: Long, to: Long): Int {
         synchronized(dbMutex) {
@@ -167,7 +174,7 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                 val whereClause =
                     "$COLUMN_HASH = ? AND $COLUMN_TIMESTAMP >= ? AND $COLUMN_TIMESTAMP <= ?"
                 val whereArgs = arrayOf(hash.toString(), from.toString(), to.toString())
-                val affectedRowsCount = database?.delete(TABLE_NAME, whereClause, whereArgs) ?: 0
+                val affectedRowsCount = database?.delete(TABLE_NAME, whereClause, whereArgs) ?: EVENT_HISTORY_ERROR
                 Log.trace(
                     CoreConstants.LOG_TAG,
                     LOG_TAG,
@@ -181,10 +188,10 @@ internal class AndroidEventHistoryDatabase : EventHistoryDatabase {
                     "Failed to delete table rows (%s)",
                     if (e.localizedMessage != null) e.localizedMessage else e.message
                 )
+                return EVENT_HISTORY_ERROR
             } finally {
                 closeDatabase()
             }
-            return 0
         }
     }
 

@@ -647,7 +647,7 @@ class MessageScreenTests {
             validateViewSize(
                 contentBounds,
                 messageContentHeightDp,
-                contentViewWidthDp * (widthPercentage / 100f)
+                messageContentWidthDp
             )
         } else {
             validateViewSize(
@@ -1132,7 +1132,7 @@ class MessageScreenTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
-        val offsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
+        val offsetDp = contentViewHeightDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom bounds are offset downwards by the inset value from the top
         validateBounds(
@@ -1204,7 +1204,7 @@ class MessageScreenTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
-        val offsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
+        val offsetDp = contentViewHeightDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom bounds are offset upwards by the inset value from the top
         validateBounds(
@@ -1276,7 +1276,7 @@ class MessageScreenTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
-        val offsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
+        val offsetDp = contentViewHeightDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom bounds are offset upwards by the inset value from the bottom
         validateBounds(
@@ -1348,7 +1348,7 @@ class MessageScreenTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val horizontalContentPaddingDp = (contentViewWidthDp * (100 - widthPercent).toFloat() / 100f) / 2
-        val offsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
+        val offsetDp = contentViewHeightDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom bounds are offset downwards by the inset value from the bottom
         validateBounds(
@@ -1422,7 +1422,7 @@ class MessageScreenTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val verticalContentPaddingDp = (contentViewHeightDp - messageContentHeightDp) / 2
-        val offsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
+        val offsetDp = contentViewWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame left and right bounds are offset leftwards by the inset value from the left
         validateBounds(
@@ -1496,7 +1496,7 @@ class MessageScreenTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val verticalContentPaddingDp = (contentViewHeightDp - messageContentHeightDp) / 2
-        val offsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
+        val offsetDp = contentViewWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame left and right bounds are offset rightwards by the inset value from the left
         validateBounds(
@@ -1570,7 +1570,7 @@ class MessageScreenTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val verticalContentPaddingDp = (contentViewHeightDp - messageContentHeightDp) / 2
-        val offsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
+        val offsetDp = contentViewWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame left and right bounds are offset leftwards by the inset value from the right
         validateBounds(
@@ -1644,7 +1644,7 @@ class MessageScreenTests {
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
         val verticalContentPaddingDp = (contentViewHeightDp - messageContentHeightDp) / 2
-        val offsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
+        val offsetDp = contentViewWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame left and right bounds are offset rightwards by the inset value from the right
         validateBounds(
@@ -1719,8 +1719,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val heightOffsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
-        val widthOffsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
+        val heightOffsetDp = contentViewHeightDp * offsetPercent.toFloat() / 100f
+        val widthOffsetDp = contentViewWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom  bounds are offset upwards by the inset from the bottom
         // left and right bounds are offset rightwards by the inset value from the right
@@ -1760,12 +1760,14 @@ class MessageScreenTests {
             .build()
 
         var contentViewHeightDp = 0.dp
+        var contentViewWidthDp = 0.dp
         var messageContentHeightDp = 0.dp
         var messageContentWidthDp = 0.dp
         composeTestRule.setContent { // setting our composable as content for test
             val activity = LocalContext.current as Activity
             val contentView = activity.findViewById<View>(android.R.id.content)
             contentViewHeightDp = with(LocalDensity.current) { contentView.height.toDp() }
+            contentViewWidthDp = with(LocalDensity.current) { contentView.width.toDp() }
             messageContentHeightDp = ((contentViewHeightDp * settings.height) / 100)
             messageContentWidthDp = with(LocalDensity.current) { maxWidthPx.toDp() }
 
@@ -1796,8 +1798,8 @@ class MessageScreenTests {
             composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_FRAME).getUnclippedBoundsInRoot()
         val contentBounds = composeTestRule.onNodeWithTag(MessageTestTags.MESSAGE_CONTENT)
             .getUnclippedBoundsInRoot()
-        val heightOffsetDp = messageContentHeightDp * offsetPercent.toFloat() / 100f
-        val widthOffsetDp = messageContentWidthDp * offsetPercent.toFloat() / 100f
+        val heightOffsetDp = contentViewHeightDp * offsetPercent.toFloat() / 100f
+        val widthOffsetDp = contentViewWidthDp * offsetPercent.toFloat() / 100f
 
         // Frame top and bottom  bounds are offset upwards by the inset from the bottom
         // left and right bounds are offset rightwards by the inset value from the right

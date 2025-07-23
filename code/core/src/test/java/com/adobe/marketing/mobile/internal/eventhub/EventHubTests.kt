@@ -24,7 +24,14 @@ import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.SharedStateResult
 import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.WrapperType
+import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.eventhub.history.EventHistory
+import com.adobe.marketing.mobile.services.Log
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.slot
+import io.mockk.unmockkStatic
 import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
@@ -47,6 +54,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import io.mockk.verify as mockkVerify
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 internal class EventHubTests {
@@ -1654,7 +1662,8 @@ internal class EventHubTests {
         val testEvent = Event.Builder("Test event", eventType, eventSource).build()
         val testEvent1 = Event.Builder("Test event 2", "customEventType", "customEventSource").build()
 
-        eventHub.registerListener(eventType, eventSource) {
+        val extensionContainer = eventHub.getExtensionContainer(TestExtension::class.java)
+        extensionContainer?.registerEventListener(eventType, eventSource) {
             assertTrue { it == testEvent }
             latch.countDown()
         }
@@ -2103,5 +2112,128 @@ internal class EventHubTests {
         eventCaptor = ArgumentCaptor.forClass(Event::class.java)
         verify(eventHub.eventHistory, times(2))?.recordEvent(capture(eventCaptor), any())
         assertEquals(listOf(event, event2), eventCaptor.allValues)
+    }
+
+    @Test
+    fun testEventHistory_recordEventRecorded() {
+        mockkStatic(Log::class)
+        try {
+            // Setup
+            val eventHub = EventHub()
+            val mockEventHistory = mockk<EventHistory>()
+            eventHub.eventHistory = mockEventHistory
+            val latch = CountDownLatch(1)
+
+            // Configure mock behavior
+            val callbackSlot = slot<AdobeCallbackWithError<Boolean>>()
+            every {
+                mockEventHistory.recordEvent(any(), capture(callbackSlot))
+            } answers {
+                callbackSlot.captured.call(true)
+                latch.countDown()
+            }
+
+            // Execute
+            eventHub.start()
+            eventHub.dispatch(
+                Event.Builder("name", "type", "source", arrayOf("key"))
+                    .setEventData(mapOf("key" to "value"))
+                    .build()
+            )
+
+            // Verify
+            assertTrue(latch.await(5, TimeUnit.SECONDS))
+            mockkVerify(exactly = 0) {
+                Log.debug(
+                    CoreConstants.LOG_TAG,
+                    "EventHub",
+                    match<String> { it.contains("Failed to insert Event") }
+                )
+            }
+        } finally {
+            unmockkStatic(Log::class)
+        }
+    }
+
+    @Test
+    fun testEventHistory_recordEventNotRecorded() {
+        mockkStatic(Log::class)
+        try {
+            // Setup
+            val eventHub = EventHub()
+            val mockEventHistory = mockk<EventHistory>()
+            eventHub.eventHistory = mockEventHistory
+            val latch = CountDownLatch(1)
+
+            // Configure mock behavior
+            val callbackSlot = slot<AdobeCallbackWithError<Boolean>>()
+            every {
+                mockEventHistory.recordEvent(any(), capture(callbackSlot))
+            } answers {
+                callbackSlot.captured.call(false)
+                latch.countDown()
+            }
+
+            // Execute
+            eventHub.start()
+            eventHub.dispatch(
+                Event.Builder("name", "type", "source", arrayOf("key"))
+                    .setEventData(mapOf("key" to "value"))
+                    .build()
+            )
+
+            // Verify
+            assertTrue(latch.await(5, TimeUnit.SECONDS))
+            mockkVerify {
+                Log.debug(
+                    CoreConstants.LOG_TAG,
+                    "EventHub",
+                    match<String> { it.contains("Failed to insert Event") }
+                )
+            }
+        } finally {
+            unmockkStatic(Log::class)
+        }
+    }
+
+    @Test
+    fun testEventHistory_recordEventFailure() {
+        mockkStatic(Log::class)
+        try {
+            // Setup
+            val eventHub = EventHub()
+            val mockEventHistory = mockk<EventHistory>()
+            eventHub.eventHistory = mockEventHistory
+            val latch = CountDownLatch(1)
+
+            // Configure mock behavior
+            val callbackSlot = slot<AdobeCallbackWithError<Boolean>>()
+            every {
+                mockEventHistory.recordEvent(any(), capture(callbackSlot))
+            } answers {
+                callbackSlot.captured.fail(AdobeError.DATABASE_ERROR)
+                latch.countDown()
+            }
+
+            val event = Event.Builder("name", "type", "source", arrayOf("key"))
+                .setEventData(mapOf("key" to "value"))
+                .build()
+
+            // Execute
+            eventHub.start()
+            eventHub.dispatch(event)
+
+            // Verify
+            assertTrue(latch.await(5, TimeUnit.SECONDS))
+            mockkVerify {
+                Log.debug(
+                    CoreConstants.LOG_TAG,
+                    "EventHub",
+                    match<String> { it.contains(AdobeError.DATABASE_ERROR.errorName) }
+                )
+            }
+        } finally {
+            unmockkStatic(Log::class)
+        }
     }
 }

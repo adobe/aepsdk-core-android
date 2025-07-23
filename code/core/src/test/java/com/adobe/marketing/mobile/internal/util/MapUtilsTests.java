@@ -156,8 +156,8 @@ public class MapUtilsTests {
                 };
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
-        // verify flattened map string "key:[{aaa=1, zzz=true}, {number=123, double=1.5}]"
-        final long expectedHash = 2052811266L;
+        // verify flattened map string "key.0.aaa:1key.0.zzz:truekey.1.double:1.5key.1.number:123"
+        final long expectedHash = 2410759527L;
         assertEquals(expectedHash, hash);
     }
 
@@ -189,8 +189,8 @@ public class MapUtilsTests {
                 };
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
-        // verify flattened map string "key:[[aaa, zzz, 111], [2]]"
-        final long expectedHash = 390515610L;
+        // verify flattened map string "key.0.0:aaakey.0.1:zzzkey.0.2:111key.1.0:2"
+        final long expectedHash = 2441202563L;
         assertEquals(expectedHash, hash);
     }
 
@@ -266,7 +266,7 @@ public class MapUtilsTests {
         // test
         final long hash = MapUtilsKt.convertMapToFnv1aHash(map, new String[] {});
         // verify flattened map string "a:1b:2"
-        final long expectedHash = 3371500665L;
+        final long expectedHash = 0L;
         assertEquals(expectedHash, hash);
     }
 
@@ -480,6 +480,28 @@ public class MapUtilsTests {
                         map, new String[] {"A", "a", "ba", "Ba", "bc", "Bc", "1"});
         // verify flattened map string "1:1A:2Ba:4Bc:10a:1ba:3bc:9"
         final long expectedHash = 3344627991L;
+        assertEquals(expectedHash, hash);
+    }
+
+    @Test
+    public void testGetFnv1aHash_EmptyMap() {
+        // setup
+        final Map<String, Object> map = new HashMap<>();
+        // test
+        final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
+        // verify empty map returns 0 hash
+        final long expectedHash = 0L;
+        assertEquals(expectedHash, hash);
+    }
+
+    @Test
+    public void testGetFnv1aHash_NullMap() {
+        // setup
+        final Map<String, Object> map = null;
+        // test
+        final long hash = MapUtilsKt.convertMapToFnv1aHash(map, null);
+        // verify null map returns 0 hash
+        final long expectedHash = 0L;
         assertEquals(expectedHash, hash);
     }
 }

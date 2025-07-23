@@ -39,6 +39,9 @@ public class AdobeError implements Serializable {
     /** when an invalid response is received. */
     public static final AdobeError INVALID_RESPONSE = new AdobeError("general.response.invalid", 7);
 
+    /** when a database error occurs * */
+    public static final AdobeError DATABASE_ERROR = new AdobeError("general.database.error", 8);
+
     /** when a extension is not initialized. */
     public static final AdobeError EXTENSION_NOT_INITIALIZED =
             new AdobeError("general.extension.not.initialized", 11);

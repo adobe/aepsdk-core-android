@@ -14,7 +14,9 @@ package com.adobe.marketing.mobile.launch.rulesengine.json
 import com.adobe.marketing.mobile.EventHistoryRequest
 import com.adobe.marketing.mobile.ExtensionApi
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRulesEngineConstants
-import com.adobe.marketing.mobile.launch.rulesengine.historicalEventsQuerying
+import com.adobe.marketing.mobile.launch.rulesengine.SEARCH_TYPE_MOST_RECENT
+import com.adobe.marketing.mobile.launch.rulesengine.getHistoricalEventCount
+import com.adobe.marketing.mobile.launch.rulesengine.getMostRecentHistoricalEvent
 import com.adobe.marketing.mobile.rulesengine.ComparisonExpression
 import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.OperandFunction
@@ -50,25 +52,46 @@ internal class HistoricalCondition(
         val requestEvents = definition.events.map {
             EventHistoryRequest(it, fromDate, toDate)
         }
-        return ComparisonExpression(
-            OperandFunction(
-                {
-                    try {
-                        @Suppress("UNCHECKED_CAST")
-                        historicalEventsQuerying(
-                            it[0] as List<EventHistoryRequest>,
-                            it[1] as String,
-                            extensionApi
-                        )
-                    } catch (e: Exception) {
-                        0
-                    }
-                },
-                requestEvents,
-                searchType
-            ),
-            operationName,
-            OperandLiteral(valueAsInt)
-        )
+        if (searchType == SEARCH_TYPE_MOST_RECENT) {
+            return ComparisonExpression(
+                OperandFunction(
+                    {
+                        try {
+                            @Suppress("UNCHECKED_CAST")
+                            getMostRecentHistoricalEvent(
+                                it[0] as List<EventHistoryRequest>,
+                                extensionApi
+                            )
+                        } catch (e: Exception) {
+                            0
+                        }
+                    },
+                    requestEvents
+                ),
+                operationName,
+                OperandLiteral(valueAsInt)
+            )
+        } else {
+            return ComparisonExpression(
+                OperandFunction(
+                    {
+                        try {
+                            @Suppress("UNCHECKED_CAST")
+                            getHistoricalEventCount(
+                                it[0] as List<EventHistoryRequest>,
+                                it[1] as String,
+                                extensionApi
+                            )
+                        } catch (e: Exception) {
+                            0
+                        }
+                    },
+                    requestEvents,
+                    searchType
+                ),
+                operationName,
+                OperandLiteral(valueAsInt)
+            )
+        }
     }
 }

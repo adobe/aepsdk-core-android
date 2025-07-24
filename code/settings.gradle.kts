@@ -13,7 +13,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         mavenLocal()
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots/") }
+        maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
         maven { url = uri("https://jitpack.io") }
     }
 }

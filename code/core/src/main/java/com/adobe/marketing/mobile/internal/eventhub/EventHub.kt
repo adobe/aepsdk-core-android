@@ -141,15 +141,28 @@ internal class EventHub {
 
             // Record event history
             processedEvent.mask?.let {
-                eventHistory?.recordEvent(processedEvent) { result ->
-                    if (!result) {
-                        Log.debug(
-                            CoreConstants.LOG_TAG,
-                            LOG_TAG,
-                            "Failed to insert Event(${processedEvent.uniqueIdentifier}) into EventHistory database"
-                        )
+                eventHistory?.recordEvent(
+                    processedEvent,
+                    object : AdobeCallbackWithError<Boolean> {
+                        override fun call(result: Boolean) {
+                            if (!result) {
+                                Log.debug(
+                                    CoreConstants.LOG_TAG,
+                                    LOG_TAG,
+                                    "Failed to insert Event(${processedEvent.uniqueIdentifier}) into EventHistory database"
+                                )
+                            }
+                        }
+
+                        override fun fail(error: AdobeError) {
+                            Log.debug(
+                                CoreConstants.LOG_TAG,
+                                LOG_TAG,
+                                "Failed to insert Event(${processedEvent.uniqueIdentifier}) into EventHistory database with error ${error.errorName}"
+                            )
+                        }
                     }
-                }
+                )
             }
             true
         }

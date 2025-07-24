@@ -1,0 +1,37 @@
+{
+    "version": 1,
+    "rules": [
+        {
+            "condition": {
+                "type": "historical",
+                "definition": {
+                    "events": [
+                        {
+                            "key1": "value1",
+                            "key2": 1
+                        },
+                        {
+                            "key3": "value2",
+                            "key4": 2
+                        }
+                    ],
+                    "searchType": "ordered",
+                    "from": 123456789,
+                    "to": 234567890,
+                    "matcher": "eq",
+                    "value": 1
+                }
+            },
+            "consequences": [
+                {
+                    "id": "RC2500e6b0140744d49e6fd503a55a66d4",
+                    "type": "pb",
+                    "detail": {
+                        "timeout": 0,
+                        "templateurl": "http://www.adobe.com"
+                    }
+                }
+            ]
+        }
+    ]
+}

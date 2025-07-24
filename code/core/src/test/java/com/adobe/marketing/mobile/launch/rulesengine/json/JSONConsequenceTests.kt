@@ -15,6 +15,7 @@ import com.adobe.marketing.mobile.test.util.buildJSONObject
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 class JSONConsequenceTests {
     @Test
@@ -44,10 +45,197 @@ class JSONConsequenceTests {
         val eventdata = consequence?.detail?.get("eventdata") as? Map<*, *>
         assertNotNull(eventdata)
         assertEquals(1, eventdata.size)
-        val attachedData = eventdata.get("attached_data") as? Map<*, *>
+        val attachedData = eventdata["attached_data"] as? Map<*, *>
         assertNotNull(attachedData)
         assertEquals(2, attachedData.size)
         assertEquals("value1", attachedData["key1"] as? String)
         assertEquals("{%~state.com.adobe.module.lifecycle/lifecyclecontextdata.launches%}", attachedData["launches"] as? String)
+    }
+
+    @Test
+    fun testToRuleConsequence_NullId_ReturnsNull() {
+        val jsonString = """
+        {
+          "id": null,
+          "type": "add",
+          "detail": {
+            "eventdata": {
+              "key": "value"
+            }
+          }
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_MissingId_ReturnsNull() {
+        val jsonString = """
+        {
+          "type": "add",
+          "detail": {
+            "eventdata": {
+              "key": "value"
+            }
+          }
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_EmptyId_ReturnsNull() {
+        val jsonString = """
+        {
+          "id": "",
+          "type": "add",
+          "detail": {
+            "eventdata": {
+              "key": "value"
+            }
+          }
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_NullType_ReturnsNull() {
+        val jsonString = """
+        {
+          "id": "valid-id",
+          "type": null,
+          "detail": {
+            "eventdata": {
+              "key": "value"
+            }
+          }
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_MissingType_ReturnsNull() {
+        val jsonString = """
+        {
+          "id": "valid-id",
+          "detail": {
+            "eventdata": {
+              "key": "value"
+            }
+          }
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_EmptyType_ReturnsNull() {
+        val jsonString = """
+        {
+          "id": "valid-id",
+          "type": "",
+          "detail": {
+            "eventdata": {
+              "key": "value"
+            }
+          }
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_NullDetail_ReturnsNull() {
+        val jsonString = """
+        {
+          "id": "valid-id",
+          "type": "add",
+          "detail": null
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_MissingDetail_ReturnsNull() {
+        val jsonString = """
+        {
+          "id": "valid-id",
+          "type": "add"
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_EmptyDetail_ReturnsNull() {
+        val jsonString = """
+        {
+          "id": "valid-id",
+          "type": "add",
+          "detail": {}
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_AllFieldsInvalid_ReturnsNull() {
+        val jsonString = """
+        {
+          "id": null,
+          "type": null,
+          "detail": null
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+        assertNull(consequence)
+    }
+
+    @Test
+    fun testToRuleConsequence_ValidInputs_ReturnsRuleConsequence() {
+        val jsonString = """
+        {
+          "id": "test-consequence-id",
+          "type": "dispatch",
+          "detail": {
+            "type": "com.adobe.eventType.edge",
+            "source": "com.adobe.eventSource.requestContent",
+            "eventdataaction": "copy"
+          }
+        }
+        """
+        val jsonObject = buildJSONObject(jsonString)
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+
+        assertNotNull(consequence)
+        assertEquals("test-consequence-id", consequence.id)
+        assertEquals("dispatch", consequence.type)
+        assertNotNull(consequence.detail)
+        assertEquals(3, consequence.detail.size)
+        assertEquals("com.adobe.eventType.edge", consequence.detail["type"])
+        assertEquals("com.adobe.eventSource.requestContent", consequence.detail["source"])
+        assertEquals("copy", consequence.detail["eventdataaction"])
     }
 }

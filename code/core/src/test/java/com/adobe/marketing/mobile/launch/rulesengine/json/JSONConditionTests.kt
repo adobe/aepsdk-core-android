@@ -23,6 +23,8 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @RunWith(MockitoJUnitRunner.Silent::class)
@@ -215,7 +217,7 @@ class JSONConditionTests {
         assertTrue(evaluable is ComparisonExpression<*, *>)
         val lhs = evaluable.getLhs() as OperandFunction<Object>
         val parameters = lhs.getFunctionParameters() as Array<Any>
-        assertEquals("any", parameters.get(1))
+        assertEquals("any", parameters[1])
     }
 
     @Test
@@ -250,6 +252,324 @@ class JSONConditionTests {
         assertTrue(evaluable is ComparisonExpression<*, *>)
         val lhs = evaluable.getLhs() as OperandFunction<Object>
         val parameters = lhs.getFunctionParameters() as Array<Any>
-        assertEquals("ordered", parameters.get(1))
+        assertEquals("ordered", parameters[1])
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndSearchTypeIsMostRecent() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "events" : [
+                {
+                    "key1": "value1",
+                    "key2": "value2",
+                    "key3": true,
+                },
+                {
+                    "key4": "value3",
+                    "key5": "value4"
+                }
+            ],
+            "searchType": "mostRecent",
+            "from": 123456789,
+            "to": 234567890,
+            "matcher" : "ge",
+            "value" : 1
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertTrue(evaluable is Evaluable)
+        assertTrue(evaluable is ComparisonExpression<*, *>)
+        val lhs = evaluable.getLhs() as OperandFunction<Object>
+        val parameters = lhs.getFunctionParameters() as Array<Any>
+        assertEquals(1, parameters.size)
+        assertTrue(parameters[0] is List<*>)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndNoDefinition() {
+        val jsonConditionString = """
+        {
+          "type": "historical"
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertFalse(jsonCondition is HistoricalCondition)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndEmptyDefinition() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertNull(evaluable)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndNoValue() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "events" : [
+                {
+                    "key1": "value1",
+                    "key2": "value2",
+                    "key3": true,
+                },
+                {
+                    "key4": "value3",
+                    "key5": "value4"
+                }
+            ],
+            "searchType": "mostRecent",
+            "from": 123456789,
+            "to": 234567890,
+            "matcher" : "ge",
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertNull(evaluable)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndInvalidValue() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "events" : [
+                {
+                    "key1": "value1",
+                    "key2": "value2",
+                    "key3": true,
+                },
+                {
+                    "key4": "value3",
+                    "key5": "value4"
+                }
+            ],
+            "searchType": "mostRecent",
+            "from": 123456789,
+            "to": 234567890,
+            "matcher" : "ge",
+            "value" : "invalid"
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertNull(evaluable)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndNoMatcher() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "events" : [
+                {
+                    "key1": "value1",
+                    "key2": "value2",
+                    "key3": true,
+                },
+                {
+                    "key4": "value3",
+                    "key5": "value4"
+                }
+            ],
+            "searchType": "mostRecent",
+            "from": 123456789,
+            "to": 234567890,
+            "value" : 1
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertNull(evaluable)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndInvalidMatcher() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "events" : [
+                {
+                    "key1": "value1",
+                    "key2": "value2",
+                    "key3": true,
+                },
+                {
+                    "key4": "value3",
+                    "key5": "value4"
+                }
+            ],
+            "searchType": "mostRecent",
+            "from": 123456789,
+            "to": 234567890,
+            "matcher" : "invalid",
+            "value" : 1
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertNull(evaluable)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndNoEvents() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "searchType": "mostRecent",
+            "from": 123456789,
+            "to": 234567890,
+            "matcher" : "ge",
+            "value" : 1
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertNull(evaluable)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndInvalidEvents() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "events" : "invalid",
+            "searchType": "mostRecent",
+            "from": 123456789,
+            "to": 234567890,
+            "matcher" : "ge",
+            "value" : 1
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertNull(evaluable)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndEmptyEvents() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "events" : [],
+            "searchType": "any",
+            "from": 123456789,
+            "to": 234567890,
+            "matcher" : "ge",
+            "value" : 1
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertTrue(evaluable is Evaluable)
+        assertTrue(evaluable is ComparisonExpression<*, *>)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndNoFromAndTo() {
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "events" : [
+                {
+                    "key1": "value1",
+                    "key2": "value2",
+                    "key3": true,
+                },
+                {
+                    "key4": "value3",
+                    "key5": "value4"
+                }
+            ],
+            "searchType": "mostRecent",
+            "matcher" : "ge",
+            "value" : 1
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertTrue(evaluable is Evaluable)
+        assertTrue(evaluable is ComparisonExpression<*, *>)
+        val lhs = evaluable.getLhs() as OperandFunction<Object>
+        val parameters = lhs.getFunctionParameters() as Array<Any>
+        assertEquals(1, parameters.size)
+        assertTrue(parameters[0] is List<*>)
+    }
+
+    @Test
+    fun testMatcherWithHistoricalTypeAndInvalidFromAndTo() {
+        // from and to is used as 0 in this case so it should pass
+        val jsonConditionString = """
+        {
+          "type": "historical",
+          "definition" : {
+            "events" : [
+                {
+                    "key1": "value1",
+                    "key2": "value2",
+                    "key3": true,
+                },
+                {
+                    "key4": "value3",
+                    "key5": "value4"
+                }
+            ],
+            "searchType": "mostRecent",
+            "from": "invalid",
+            "to": "invalid",
+            "matcher" : "ge",
+            "value" : 1
+          }  
+        }
+        """.trimIndent()
+        val jsonCondition = JSONCondition.build(buildJSONObject(jsonConditionString), extensionApi)
+        assertTrue(jsonCondition is HistoricalCondition)
+        val evaluable = jsonCondition.toEvaluable()
+        assertTrue(evaluable is Evaluable)
+        assertTrue(evaluable is ComparisonExpression<*, *>)
+        val lhs = evaluable.getLhs() as OperandFunction<Object>
+        val parameters = lhs.getFunctionParameters() as Array<Any>
+        assertEquals(1, parameters.size)
+        assertTrue(parameters[0] is List<*>)
     }
 }

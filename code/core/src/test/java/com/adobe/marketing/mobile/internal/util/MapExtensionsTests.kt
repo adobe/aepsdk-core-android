@@ -38,7 +38,284 @@ class MapExtensionsTests {
     }
 
     @Test
-    fun testNullValueMapFlattening() {
+    fun testSimpleMapFlatteningWithAllPrimitiveTypes() {
+        val map = mapOf(
+            "outerKey" to mapOf(
+                "a" to "string_value",
+                "b" to 123,
+                "c" to 45.67,
+                "d" to false,
+                "e" to null
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "outerKey.a" to "string_value",
+            "outerKey.b" to 123,
+            "outerKey.c" to 45.67,
+            "outerKey.d" to false,
+            "outerKey.e" to null
+        )
+        assertEquals(5, flattenedMap.size)
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithList() {
+        val map = mapOf(
+            "a" to mapOf(
+                "b" to mapOf(
+                    "c" to "a_b_c_value"
+                )
+            ),
+            "d" to mapOf(
+                "e" to listOf(
+                    mapOf(
+                        "value1" to "d_e_value1"
+                    ),
+                    mapOf(
+                        "value2" to "d_e_value2"
+                    )
+                ),
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.b.c" to "a_b_c_value",
+            "d.e.0.value1" to "d_e_value1",
+            "d.e.1.value2" to "d_e_value2"
+        )
+        assertEquals(3, flattenedMap.size)
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithListOfAllPrimitiveTypes() {
+        val map = mapOf(
+            "a" to mapOf(
+                "b" to mapOf(
+                    "c" to "a_b_c_value"
+                )
+            ),
+            "d" to mapOf(
+                "e" to listOf(
+                    "stringInArray", 123, 4.56, false, null
+                )
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.b.c" to "a_b_c_value",
+            "d.e.0" to "stringInArray",
+            "d.e.1" to 123,
+            "d.e.2" to 4.56,
+            "d.e.3" to false,
+            "d.e.4" to null
+        )
+        assertEquals(6, flattenedMap.size)
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithListFlatteningDisabled() {
+        val map = mapOf(
+            "a" to mapOf(
+                "b" to mapOf(
+                    "c" to "a_b_c_value"
+                )
+            ),
+            "d" to mapOf(
+                "e" to listOf(
+                    mapOf(
+                        "value1" to "d_e_value1"
+                    ),
+                    mapOf(
+                        "value2" to "d_e_value2"
+                    )
+                ),
+            )
+        )
+        val flattenedMap = map.flattening(flattenListAndArray = false)
+        assertEquals(2, flattenedMap.size)
+        assertEquals("a_b_c_value", flattenedMap["a.b.c"])
+        assertTrue(flattenedMap["d.e"] is List<*>)
+    }
+
+    @Test
+    fun testMapFlatteningWithNestedLists() {
+        val map = mapOf(
+            "a" to listOf(
+                listOf("nested1", "nested2"),
+                listOf("nested3", "nested4")
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0.0" to "nested1",
+            "a.0.1" to "nested2",
+            "a.1.0" to "nested3",
+            "a.1.1" to "nested4"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithMapsInsideLists() {
+        val map = mapOf(
+            "a" to listOf(
+                mapOf("key1" to "value1", "key2" to "value2"),
+                mapOf("key3" to "value3", "key4" to "value4")
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0.key1" to "value1",
+            "a.0.key2" to "value2",
+            "a.1.key3" to "value3",
+            "a.1.key4" to "value4"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithComplexNestedStructures() {
+        val map = mapOf(
+            "root" to mapOf(
+                "list1" to listOf(
+                    mapOf(
+                        "nestedList" to listOf("a", "b"),
+                        "nestedMap" to mapOf("x" to "y")
+                    ),
+                    mapOf(
+                        "nestedList" to listOf("c", "d"),
+                        "nestedMap" to mapOf("z" to "w")
+                    )
+                ),
+                "map1" to mapOf(
+                    "list2" to listOf(
+                        mapOf("p" to "q"),
+                        mapOf("r" to "s")
+                    )
+                )
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "root.list1.0.nestedList.0" to "a",
+            "root.list1.0.nestedList.1" to "b",
+            "root.list1.0.nestedMap.x" to "y",
+            "root.list1.1.nestedList.0" to "c",
+            "root.list1.1.nestedList.1" to "d",
+            "root.list1.1.nestedMap.z" to "w",
+            "root.map1.list2.0.p" to "q",
+            "root.map1.list2.1.r" to "s"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithArrays() {
+        val map = mapOf(
+            "a" to arrayOf(
+                arrayOf("nested1", "nested2"),
+                arrayOf("nested3", "nested4")
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0.0" to "nested1",
+            "a.0.1" to "nested2",
+            "a.1.0" to "nested3",
+            "a.1.1" to "nested4"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithArraysOfAllPrimitiveTypes() {
+        val map = mapOf(
+            "a" to arrayOf(
+                "string_value",
+                123,
+                45.67,
+                false,
+                null
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0" to "string_value",
+            "a.1" to 123,
+            "a.2" to 45.67,
+            "a.3" to false,
+            "a.4" to null
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithArraysFlatteningDisabled() {
+        val map = mapOf(
+            "a" to mapOf(
+                "b" to mapOf(
+                    "c" to "a_b_c_value"
+                )
+            ),
+            "d" to mapOf(
+                "e" to arrayOf(
+                    mapOf(
+                        "value1" to "d_e_value1"
+                    ),
+                    mapOf(
+                        "value2" to "d_e_value2"
+                    )
+                ),
+            )
+        )
+        val flattenedMap = map.flattening(flattenListAndArray = false)
+        assertEquals(2, flattenedMap.size)
+        assertEquals("a_b_c_value", flattenedMap["a.b.c"])
+        assertTrue(flattenedMap["d.e"] is Array<*>)
+    }
+
+    @Test
+    fun testMapFlatteningWithMapsInsideArrays() {
+        val map = mapOf(
+            "a" to arrayOf(
+                mapOf("key1" to "value1", "key2" to "value2"),
+                mapOf("key3" to "value3", "key4" to "value4")
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0.key1" to "value1",
+            "a.0.key2" to "value2",
+            "a.1.key3" to "value3",
+            "a.1.key4" to "value4"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithMixedArraysAndLists() {
+        val map = mapOf(
+            "a" to listOf(
+                arrayOf("nested1", "nested2"),
+                listOf("nested3", "nested4")
+            )
+        )
+        val flattenedMap = map.flattening()
+        val expectedMap = mapOf(
+            "a.0.0" to "nested1",
+            "a.0.1" to "nested2",
+            "a.1.0" to "nested3",
+            "a.1.1" to "nested4"
+        )
+        assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningNullValueMap() {
         val map = mapOf(
             "a" to mapOf(
                 "b1" to mapOf(
@@ -59,7 +336,7 @@ class MapExtensionsTests {
     }
 
     @Test
-    fun testMultipleNestedKeysMapFlattening() {
+    fun testMapFlatteningMultipleNestedKeys() {
         val map = mapOf(
             "a" to mapOf(
                 "b1" to mapOf(
@@ -90,7 +367,7 @@ class MapExtensionsTests {
     }
 
     @Test
-    fun testContainsNonStringKeysMapFlattening() {
+    fun testMapFlatteningContainsNonStringKeys() {
         val map = mapOf(
             "a" to mapOf(
                 "b1" to mapOf(
@@ -122,6 +399,26 @@ class MapExtensionsTests {
             "d" to "d_value"
         )
         assertEquals(expectedMap, flattenedMap)
+    }
+
+    @Test
+    fun testMapFlatteningWithDotInKey() {
+        val map = mapOf(
+            "a.b" to 1,
+            "a" to mapOf(
+                "b" to 2
+            )
+        )
+        val flattenedMap = map.flattening()
+        assertEquals(1, flattenedMap.size)
+        assertEquals("a.b", flattenedMap.keys.first())
+    }
+
+    @Test
+    fun testFlatteningWithEmptyMap() {
+        val map = emptyMap<String, Any>()
+        val flattenedMap = map.flattening()
+        assertTrue(flattenedMap.isEmpty())
     }
 
     @Test
@@ -305,6 +602,49 @@ class MapExtensionsTests {
             "key" to "value"
         )
         val hashCode = eventData.fnv1a32(arrayOf("404"))
+        assertEquals(0, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - mask is null`() {
+        val eventData = mapOf(
+            "key" to "value"
+        )
+        val hashCode = eventData.fnv1a32(null)
+        assertEquals(4007910315, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - mask is empty`() {
+        val eventData = mapOf(
+            "key" to "value"
+        )
+        val hashCode = eventData.fnv1a32(emptyArray())
+        assertEquals(0, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - event data is empty`() {
+        val eventData = emptyMap<String, Any>()
+        val hashCode = eventData.fnv1a32(emptyArray())
+        assertEquals(0, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - event data has null value`() {
+        val eventData = mapOf(
+            "key" to null
+        )
+        val hashCode = eventData.fnv1a32(emptyArray())
+        assertEquals(0, hashCode)
+    }
+
+    @Test
+    fun `test fnv1a32 - event data has empty value`() {
+        val eventData = mapOf(
+            "key" to ""
+        )
+        val hashCode = eventData.fnv1a32(emptyArray())
         assertEquals(0, hashCode)
     }
 

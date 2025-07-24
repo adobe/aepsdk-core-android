@@ -45,13 +45,14 @@ jobs:
     if: ${{ github.event.inputs.extension == 'core' }}
     permissions:
         contents: write
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.4.2
     with:
       tag: ${{ github.event.inputs.tag }}
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
       release-variant: ${{ github.event.inputs.extension }}
       version-validation-name: ${{ github.event.inputs.extension }}
       version-validation-paths: code/gradle.properties:properties_multi_module, code/core/src/main/java/com/adobe/marketing/mobile/internal/CoreConstants.kt
+      staging-dir: code/core/build/staging-deploy
     secrets: inherit
 
   compute-version-path:
@@ -87,7 +88,7 @@ jobs:
     permissions:
         contents: write
     needs: compute-version-path
-    uses: adobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.3.0
+    uses: adobe/aepsdk-commons/.github/workflows/android-maven-release.yml@gha-android-3.4.2
     with:
       tag: ${{ github.event.inputs.tag }}
       create-github-release: ${{ github.event.inputs.create-github-release == 'true' }}
@@ -95,4 +96,5 @@ jobs:
       version-validation-name: ${{ github.event.inputs.extension }}
       version-validation-paths: code/gradle.properties:properties_multi_module, ${{ needs.compute-version-path.outputs.version_path }}
       version-validation-dependencies: Core ${{ github.event.inputs.core-dependency }}
+      staging-dir: code/${{ github.event.inputs.extension }}/build/staging-deploy
     secrets: inherit

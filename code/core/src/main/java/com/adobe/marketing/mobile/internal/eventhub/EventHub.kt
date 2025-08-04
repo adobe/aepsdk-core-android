@@ -70,7 +70,8 @@ internal class EventHub {
     /**
      * Concurrent list which stores the event listeners for response events.
      */
-    private val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> =
+    @VisibleForTesting
+    internal val responseEventListeners: ConcurrentLinkedQueue<ResponseListenerContainer> =
         ConcurrentLinkedQueue()
 
     /**
@@ -140,15 +141,28 @@ internal class EventHub {
 
             // Record event history
             processedEvent.mask?.let {
-                eventHistory?.recordEvent(processedEvent) { result ->
-                    if (!result) {
-                        Log.debug(
-                            CoreConstants.LOG_TAG,
-                            LOG_TAG,
-                            "Failed to insert Event(${processedEvent.uniqueIdentifier}) into EventHistory database"
-                        )
+                eventHistory?.recordEvent(
+                    processedEvent,
+                    object : AdobeCallbackWithError<Boolean> {
+                        override fun call(result: Boolean) {
+                            if (!result) {
+                                Log.debug(
+                                    CoreConstants.LOG_TAG,
+                                    LOG_TAG,
+                                    "Failed to insert Event(${processedEvent.uniqueIdentifier}) into EventHistory database"
+                                )
+                            }
+                        }
+
+                        override fun fail(error: AdobeError) {
+                            Log.debug(
+                                CoreConstants.LOG_TAG,
+                                LOG_TAG,
+                                "Failed to insert Event(${processedEvent.uniqueIdentifier}) into EventHistory database with error ${error.errorName}"
+                            )
+                        }
                     }
-                }
+                )
             }
             true
         }
@@ -377,10 +391,12 @@ internal class EventHub {
     }
 
     /**
-     * Registers an event listener which will be invoked when the response event to trigger event is dispatched
-     * @param triggerEvent An [Event] which will trigger a response event
-     * @param timeoutMS A timeout in milliseconds, if the response listener is not invoked within the timeout, then the `EventHub` invokes the fail method.
-     * @param listener An [AdobeCallbackWithError] which will be invoked whenever the `EventHub` receives the response event for trigger event
+     * Registers an event listener that will be invoked when the response event corresponding to the trigger event is dispatched.
+     * If the response listener is not invoked within the specified timeout, the `EventHub` triggers the fail method.
+     *
+     * @param triggerEvent An [Event] that triggers the response event.
+     * @param timeoutMS A timeout in milliseconds. Use `Long.MAX_DURATION` to wait indefinitely without triggering a timeout.
+     * @param listener An [AdobeCallbackWithError] that will be invoked when the `EventHub` receives the response event for the trigger event.
      */
     fun registerResponseListener(
         triggerEvent: Event,
@@ -389,6 +405,18 @@ internal class EventHub {
     ) {
         eventHubExecutor.submit {
             val triggerEventId = triggerEvent.uniqueIdentifier
+
+            if (timeoutMS == Long.MAX_VALUE) {
+                responseEventListeners.add(
+                    ResponseListenerContainer(
+                        triggerEventId,
+                        null,
+                        listener
+                    )
+                )
+                return@submit
+            }
+
             val timeoutCallable: Callable<Unit> = Callable {
                 responseEventListeners.filterRemove { it.triggerEventId == triggerEventId }
                 try {

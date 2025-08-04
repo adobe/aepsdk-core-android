@@ -9,6 +9,7 @@ public abstract interface class com/adobe/marketing/mobile/AdobeCallbackWithErro
 public class com/adobe/marketing/mobile/AdobeError : java/io/Serializable {
 	public static final field CALLBACK_NULL Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field CALLBACK_TIMEOUT Lcom/adobe/marketing/mobile/AdobeError;
+	public static final field DATABASE_ERROR Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field EXTENSION_NOT_INITIALIZED Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field INVALID_REQUEST Lcom/adobe/marketing/mobile/AdobeError;
 	public static final field INVALID_RESPONSE Lcom/adobe/marketing/mobile/AdobeError;
@@ -54,6 +55,23 @@ public class com/adobe/marketing/mobile/EventHistoryRequest {
 	public fun getFromDate ()J
 	public fun getMaskAsDecimalHash ()J
 	public fun getToDate ()J
+}
+
+public final class com/adobe/marketing/mobile/EventHistoryResult {
+	public static final field $stable I
+	public final field count I
+	public final field newestOccurrence Ljava/lang/Long;
+	public final field oldestOccurrence Ljava/lang/Long;
+	public fun <init> (ILjava/lang/Long;Ljava/lang/Long;)V
+	public synthetic fun <init> (ILjava/lang/Long;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/Long;
+	public final fun component3 ()Ljava/lang/Long;
+	public final fun copy (ILjava/lang/Long;Ljava/lang/Long;)Lcom/adobe/marketing/mobile/EventHistoryResult;
+	public static synthetic fun copy$default (Lcom/adobe/marketing/mobile/EventHistoryResult;ILjava/lang/Long;Ljava/lang/Long;ILjava/lang/Object;)Lcom/adobe/marketing/mobile/EventHistoryResult;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class com/adobe/marketing/mobile/EventHistoryResultHandler {
@@ -138,9 +156,11 @@ public abstract class com/adobe/marketing/mobile/ExtensionApi {
 	public abstract fun createSharedState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;)V
 	public abstract fun createXDMSharedState (Ljava/util/Map;Lcom/adobe/marketing/mobile/Event;)V
 	public abstract fun dispatch (Lcom/adobe/marketing/mobile/Event;)V
+	public abstract fun getHistoricalEvents ([Lcom/adobe/marketing/mobile/EventHistoryRequest;ZLcom/adobe/marketing/mobile/AdobeCallbackWithError;)V
 	public abstract fun getHistoricalEvents ([Lcom/adobe/marketing/mobile/EventHistoryRequest;ZLcom/adobe/marketing/mobile/EventHistoryResultHandler;)V
 	public abstract fun getSharedState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;ZLcom/adobe/marketing/mobile/SharedStateResolution;)Lcom/adobe/marketing/mobile/SharedStateResult;
 	public abstract fun getXDMSharedState (Ljava/lang/String;Lcom/adobe/marketing/mobile/Event;ZLcom/adobe/marketing/mobile/SharedStateResolution;)Lcom/adobe/marketing/mobile/SharedStateResult;
+	public abstract fun recordHistoricalEvent (Lcom/adobe/marketing/mobile/Event;Lcom/adobe/marketing/mobile/AdobeCallbackWithError;)V
 	public abstract fun registerEventListener (Ljava/lang/String;Ljava/lang/String;Lcom/adobe/marketing/mobile/ExtensionEventListener;)V
 	public abstract fun startEvents ()V
 	public abstract fun stopEvents ()V
@@ -996,7 +1016,7 @@ public abstract interface class com/adobe/marketing/mobile/services/ui/message/I
 
 public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSettings {
 	public static final field $stable I
-	public synthetic fun <init> (Ljava/lang/String;IIIILcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Ljava/lang/String;FFZLjava/util/Map;Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;IIIIILcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;Ljava/lang/String;FFZLjava/util/Map;Ljava/util/Map;ZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAssetMap ()Ljava/util/Map;
 	public final fun getBackdropColor ()Ljava/lang/String;
 	public final fun getBackdropOpacity ()F
@@ -1004,10 +1024,12 @@ public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSe
 	public final fun getCornerRadius ()F
 	public final fun getDismissAnimation ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
 	public final fun getDisplayAnimation ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAnimation;
+	public final fun getFitToContent ()Z
 	public final fun getGestureMap ()Ljava/util/Map;
 	public final fun getHeight ()I
 	public final fun getHorizontalAlignment ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
 	public final fun getHorizontalInset ()I
+	public final fun getMaxWidth ()I
 	public final fun getShouldTakeOverUi ()Z
 	public final fun getVerticalAlignment ()Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;
 	public final fun getVerticalInset ()I
@@ -1029,6 +1051,8 @@ public final class com/adobe/marketing/mobile/services/ui/message/InAppMessageSe
 	public final fun height (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun horizontalAlignment (Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun horizontalInset (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun maxWidth (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
+	public final fun shouldFitToContent (Z)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun shouldTakeOverUi (Z)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun verticalAlignment (Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$MessageAlignment;)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;
 	public final fun verticalInset (I)Lcom/adobe/marketing/mobile/services/ui/message/InAppMessageSettings$Builder;

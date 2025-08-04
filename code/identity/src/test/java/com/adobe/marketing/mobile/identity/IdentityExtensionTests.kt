@@ -152,6 +152,22 @@ class IdentityExtensionTests {
     }
 
     @Test
+    fun `readyForEvent() should not check for configuration shared state after forceSync for unrelated events`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onRegistered()
+        identityExtension.setHasSynced(true)
+
+        val result = identityExtension.readyForEvent(
+            Event.Builder("event", "type", "source").build()
+        )
+        assertTrue(result)
+
+        // Verify that getSharedState is never called during readyForEvent()
+        Mockito.verify(mockedExtensionApi, never())
+            .getSharedState(any(), anyOrNull(), any(), any())
+    }
+
+    @Test
     fun `readyForEvent() should return false if configuration is not registered`() {
         val identityExtension = initializeSpiedIdentityExtension()
         identityExtension.onRegistered()

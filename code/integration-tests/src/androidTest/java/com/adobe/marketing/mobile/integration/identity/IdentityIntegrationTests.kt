@@ -266,6 +266,56 @@ class IdentityIntegrationTests {
         assertTrue("Timeout waiting for force sync network request after updating configuration with valid org id.", countDownLatchSecondNetworkMonitor.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
     }
 
+    @Test(timeout = 10_000)
+    fun testIdentityBehavior_whenInitialConfigurationSharedStateChange_isEmptyDictionary() {
+        //PLATIR-52517
+        var countDownLatchNetworkMonitor = CountDownLatch(1)
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/id")) {
+                countDownLatchNetworkMonitor.countDown()
+            }
+        }
+
+        // This publishes the first configuration shared state as empty dictionary.
+        MobileCore.updateConfiguration(
+            emptyMap()
+        )
+        val configurationLatch = CountDownLatch(1)
+        configurationAwareness { configurationLatch.countDown() }
+        configurationLatch.await()
+
+        // No  sync request is sent on empty configuration
+        assertFalse(countDownLatchNetworkMonitor.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
+
+        // Verify ECID retrieval fails when Configuration Shared State is `{}` (empty).
+        val result = getExperienceCouldId(TEST_TIMEOUT)
+        assertFalse(result.first)
+
+        countDownLatchNetworkMonitor = CountDownLatch(1)
+        networkMonitor = { url ->
+            if (url.contains("https://test.com/id")) {
+                assertTrue(url.contains("d_orgid=orgid"))
+                assertTrue(url.contains("d_mid="))
+                countDownLatchNetworkMonitor.countDown()
+            }
+        }
+
+        // Set valid configuration
+        MobileCore.updateConfiguration(
+            mapOf(
+                "experienceCloud.org" to "orgid",
+                "experienceCloud.server" to "test.com",
+                "global.privacy" to "optedin"
+            )
+        )
+
+        // Sync request should be sent now that the required configuration keys are present
+        assertTrue(countDownLatchNetworkMonitor.await(TEST_TIMEOUT, TimeUnit.MILLISECONDS))
+
+        // ECID retrieval should succeed as Identity extension has generated ECID.
+        assertEquals(Pair(true, loadStoreMid()), getExperienceCouldId(TEST_TIMEOUT))
+    }
+
     @Test(timeout = TEST_TIMEOUT)
     fun testOptedout() {
         val countDownLatch = CountDownLatch(1)
@@ -617,6 +667,31 @@ class IdentityIntegrationTests {
 
     private fun configurationAwareness(callback: ConfigurationMonitor) {
         MonitorExtension.configurationAwareness(callback)
+    }
+
+    private fun getExperienceCouldId(timeoutMillis: Long = 1000): Pair<Boolean, String?> {
+        val latch = CountDownLatch(1)
+        var ecid: String? = null
+        var success = false
+
+        Identity.getExperienceCloudId(object : AdobeCallbackWithError<String> {
+            override fun call(value: String?) {
+                ecid = value
+                success = true
+                latch.countDown()
+            }
+
+            override fun fail(error: AdobeError?) {
+                success = false
+                latch.countDown()
+            }
+        })
+
+        return if (latch.await(timeoutMillis, TimeUnit.MILLISECONDS)) {
+            Pair(success, ecid)
+        } else {
+            Pair(false, null)
+        }
     }
 
 }

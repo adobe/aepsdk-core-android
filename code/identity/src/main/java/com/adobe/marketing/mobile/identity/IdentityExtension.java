@@ -231,18 +231,7 @@ public final class IdentityExtension extends Extension {
             }
         }
 
-        if (!hasValidSharedState(
-                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
-            Log.trace(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "Waiting for the Configuration shared state to get required configuration"
-                            + " fields before processing [event: %s].",
-                    event.getName());
-            return false;
-        } else {
-            return true;
-        }
+        return true;
     }
 
     @VisibleForTesting
@@ -305,17 +294,6 @@ public final class IdentityExtension extends Extension {
         }
 
         return hasSynced;
-    }
-
-    private boolean hasValidSharedState(final String extensionName, final Event event) {
-        SharedStateResult sharedStateResult =
-                getApi().getSharedState(
-                                extensionName, event, false, SharedStateResolution.LAST_SET);
-        if (sharedStateResult == null || sharedStateResult.getStatus() != SharedStateStatus.SET) {
-            return false;
-        }
-        Map<String, Object> sharedStateValue = sharedStateResult.getValue();
-        return !MapUtils.isNullOrEmpty(sharedStateValue);
     }
 
     private void boot() {

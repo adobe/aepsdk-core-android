@@ -211,6 +211,30 @@ class IdentityExtensionTests {
     }
 
     @Test
+    fun `readyForEvent() should return false for appendUrl and urlVars events if Configuration shared state is pending`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onRegistered()
+        identityExtension.setHasSynced(true)
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.PENDING,
+                    null
+                )
+            }
+            if ("com.adobe.module.analytics" === extension) {
+                return@thenAnswer null
+            }
+            return@thenAnswer null
+        }
+        assertFalse(identityExtension.readyForEvent(appendToUrlEvent))
+        assertFalse(identityExtension.readyForEvent(urlVariablesEvent))
+    }
+
+    @Test
     fun `readyForEvent() should return true for appendUrl and urlVars events if Analytics extension is not registered`() {
         val identityExtension = initializeSpiedIdentityExtension()
         identityExtension.onRegistered()

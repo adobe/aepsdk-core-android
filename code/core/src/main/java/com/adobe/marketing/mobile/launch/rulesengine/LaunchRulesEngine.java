@@ -107,9 +107,10 @@ public class LaunchRulesEngine {
 
         // if initial rule set has not been received, cache the event to be processed
         // when rules are set
-        if (!initialRulesReceived) {
-            handleCaching(event);
+        if (!initialRulesReceived && handleCaching(event)) {
+            return event;
         }
+
         return launchRulesConsequence.process(event, matchedRules);
     }
 
@@ -152,15 +153,28 @@ public class LaunchRulesEngine {
         initialRulesReceived = true;
     }
 
-    private void handleCaching(final Event event) {
+    /**
+     * Handles caching of events when the initial set of rules has not yet been received.
+     *
+     * <p>If the supplied event is a reset request for this LaunchRulesEngine, it will trigger
+     * processing of all cached events. Otherwise, the event
+     * is added to the cache to be processed later when rules are available.
+     *
+     * @param event the {@link Event} to be evaluated or cached
+     * @return {@code true} if the event was added to the cache, {@code false} if it triggered
+     *     processing of cached events
+     */
+    private boolean handleCaching(final Event event) {
         // If this is an event to start processing of cachedEvents reprocess cached events
         // otherwise, add the event to cachedEvents till rules are set
         if (EventType.RULES_ENGINE.equals(event.getType())
                 && EventSource.REQUEST_RESET.equals(event.getSource())
                 && name.equals(DataReader.optString(event.getEventData(), RULES_ENGINE_NAME, ""))) {
             reprocessCachedEvents();
+            return false;
         } else {
             cachedEvents.add(event);
+            return true;
         }
     }
 }

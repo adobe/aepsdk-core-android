@@ -211,16 +211,32 @@ public final class IdentityExtension extends Extension {
         }
 
         if (isAppendUrlEvent(event) || isGetUrlVarsEvent(event)) {
+            SharedStateResult configState =
+                    getApi().getSharedState(
+                                    IdentityConstants.EventDataKeys.Configuration.MODULE_NAME,
+                                    event,
+                                    false,
+                                    SharedStateResolution.LAST_SET);
+            if (configState == null || configState.getStatus() != SharedStateStatus.SET) {
+                Log.trace(
+                        IdentityConstants.LOG_TAG,
+                        LOG_SOURCE,
+                        "Waiting for the Configuration shared state to be set before processing"
+                                + " [event: %s].",
+                        event.getName());
+                return false;
+            }
+
             // analytics shared state will be null if analytics extension is not registered. Wait
-            // for analytics shared only if the status is pending or none
-            SharedStateResult sharedStateResult =
+            // for analytics shared state only if the extension is registered and the status is not
+            // set.
+            SharedStateResult analyticsState =
                     getApi().getSharedState(
                                     IdentityConstants.EventDataKeys.Analytics.MODULE_NAME,
                                     event,
                                     false,
                                     SharedStateResolution.LAST_SET);
-            if (sharedStateResult != null
-                    && sharedStateResult.getStatus() != SharedStateStatus.SET) {
+            if (analyticsState != null && analyticsState.getStatus() != SharedStateStatus.SET) {
                 Log.trace(
                         IdentityConstants.LOG_TAG,
                         LOG_SOURCE,
@@ -231,18 +247,7 @@ public final class IdentityExtension extends Extension {
             }
         }
 
-        if (!hasValidSharedState(
-                IdentityConstants.EventDataKeys.Configuration.MODULE_NAME, event)) {
-            Log.trace(
-                    IdentityConstants.LOG_TAG,
-                    LOG_SOURCE,
-                    "Waiting for the Configuration shared state to get required configuration"
-                            + " fields before processing [event: %s].",
-                    event.getName());
-            return false;
-        } else {
-            return true;
-        }
+        return true;
     }
 
     @VisibleForTesting
@@ -305,17 +310,6 @@ public final class IdentityExtension extends Extension {
         }
 
         return hasSynced;
-    }
-
-    private boolean hasValidSharedState(final String extensionName, final Event event) {
-        SharedStateResult sharedStateResult =
-                getApi().getSharedState(
-                                extensionName, event, false, SharedStateResolution.LAST_SET);
-        if (sharedStateResult == null || sharedStateResult.getStatus() != SharedStateStatus.SET) {
-            return false;
-        }
-        Map<String, Object> sharedStateValue = sharedStateResult.getValue();
-        return !MapUtils.isNullOrEmpty(sharedStateValue);
     }
 
     private void boot() {

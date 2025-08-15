@@ -152,6 +152,22 @@ class IdentityExtensionTests {
     }
 
     @Test
+    fun `readyForEvent() should not check for configuration shared state after forceSync for unrelated events`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onRegistered()
+        identityExtension.setHasSynced(true)
+
+        val result = identityExtension.readyForEvent(
+            Event.Builder("event", "type", "source").build()
+        )
+        assertTrue(result)
+
+        // Verify that getSharedState is never called during readyForEvent()
+        Mockito.verify(mockedExtensionApi, never())
+            .getSharedState(any(), anyOrNull(), any(), any())
+    }
+
+    @Test
     fun `readyForEvent() should return false if configuration is not registered`() {
         val identityExtension = initializeSpiedIdentityExtension()
         identityExtension.onRegistered()
@@ -192,6 +208,30 @@ class IdentityExtensionTests {
                 Event.Builder("event", "com.adobe.eventType.identity", "com.adobe.eventSource.requestIdentity").build()
             )
         )
+    }
+
+    @Test
+    fun `readyForEvent() should return false for appendUrl and urlVars events if Configuration shared state is pending`() {
+        val identityExtension = initializeSpiedIdentityExtension()
+        identityExtension.onRegistered()
+        identityExtension.setHasSynced(true)
+        Mockito.`when`(
+            mockedExtensionApi.getSharedState(any(), anyOrNull(), any(), any())
+        ).thenAnswer { invocation ->
+            val extension = invocation.arguments[0] as? String
+            if ("com.adobe.module.configuration" === extension) {
+                return@thenAnswer SharedStateResult(
+                    SharedStateStatus.PENDING,
+                    null
+                )
+            }
+            if ("com.adobe.module.analytics" === extension) {
+                return@thenAnswer null
+            }
+            return@thenAnswer null
+        }
+        assertFalse(identityExtension.readyForEvent(appendToUrlEvent))
+        assertFalse(identityExtension.readyForEvent(urlVariablesEvent))
     }
 
     @Test

@@ -932,6 +932,70 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
+    fun `Do not reprocess cached events multiple times`() {
+        val mockRulesEngine: RulesEngine<LaunchRule> = mock(RulesEngine::class.java) as RulesEngine<LaunchRule>
+        val mockLaunchRulesConsequence = mock(LaunchRulesConsequence::class.java)
+        val launchRulesEngine = LaunchRulesEngine(
+            "TestLaunchRulesEngine",
+            extensionApi,
+            mockRulesEngine,
+            mockLaunchRulesConsequence
+        )
+
+        // Dispatch events before replaceRules is called for the first time.
+        for (i in 0 until 5) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$i", "type", "source").build()
+            )
+        }
+        assertEquals(5, launchRulesEngine.cachedEventCount)
+
+        Mockito.reset(mockLaunchRulesConsequence)
+
+        // Replace the rules
+        launchRulesEngine.replaceRules(listOf())
+
+        val resetEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(extensionApi, Mockito.times(1)).dispatch(resetEventCaptor.capture())
+        val capturedResetRulesEvent = resetEventCaptor.firstValue
+        assertNotNull(capturedResetRulesEvent)
+        assertEquals(EventType.RULES_ENGINE, capturedResetRulesEvent.type)
+        assertEquals(EventSource.REQUEST_RESET, capturedResetRulesEvent.source)
+        assertEquals(
+            "TestLaunchRulesEngine",
+            DataReader.optString(capturedResetRulesEvent.eventData, LaunchRulesEngine.RULES_ENGINE_NAME, "")
+        )
+
+        // Dispatch more events before RulesEngine:RequestReset event is processed by this rules engine
+        for (i in 5 until 10) {
+            launchRulesEngine.processEvent(
+                Event.Builder("event-$i", "type", "source").build()
+            )
+        }
+
+        assertEquals(10, launchRulesEngine.cachedEventCount)
+
+        // The rules engine receives RequestReset event
+        launchRulesEngine.processEvent(capturedResetRulesEvent)
+
+        // Verify cached events are only processed once
+        val processedEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockLaunchRulesConsequence, Mockito.times(11))
+            .process(processedEventCaptor.capture(), org.mockito.kotlin.any())
+        assertEquals(11, processedEventCaptor.allValues.size)
+
+        // 0 - 10 events to be processed are cached events in order
+        for (index in 0 until processedEventCaptor.allValues.size - 1) {
+            assertEquals("event-$index", processedEventCaptor.allValues[index].name)
+        }
+        // final 11 th event to be processed is the reset event
+        assertEquals(capturedResetRulesEvent, processedEventCaptor.allValues[10])
+
+        // verify that all cached events are cleared
+        assertEquals(0, launchRulesEngine.cachedEventCount)
+    }
+
+    @Test
     fun `Test evaluateConsequence when consequences are present`() {
         val json = readTestResources("rules_module_tests/rules_testEvaluateConsequenceWithValidConsequences.json")
         assertNotNull(json)

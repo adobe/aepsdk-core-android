@@ -102,15 +102,14 @@ public class LaunchRulesEngine {
             throw new IllegalArgumentException("Cannot evaluate null event.");
         }
 
-        final List<LaunchRule> matchedRules =
-                ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
-
-        // if initial rule set has not been received, cache the event to be processed
-        // when rules are set
+        // If the initial rule set hasn't been received yet, cache the event for later processing
+        // once the rules are available
         if (!initialRulesReceived && handleCaching(event)) {
             return event;
         }
 
+        final List<LaunchRule> matchedRules =
+                ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
         return launchRulesConsequence.process(event, matchedRules);
     }
 
@@ -157,8 +156,8 @@ public class LaunchRulesEngine {
      * Handles caching of events when the initial set of rules has not yet been received.
      *
      * <p>If the supplied event is a reset request for this LaunchRulesEngine, it will trigger
-     * processing of all cached events. Otherwise, the event
-     * is added to the cache to be processed later when rules are available.
+     * processing of all cached events. Otherwise, the event is added to the cache to be processed
+     * later when rules are available.
      *
      * @param event the {@link Event} to be evaluated or cached
      * @return {@code true} if the event was added to the cache, {@code false} if it triggered

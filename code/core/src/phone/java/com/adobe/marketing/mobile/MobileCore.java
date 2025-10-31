@@ -56,11 +56,13 @@ public final class MobileCore {
             @Nullable final AdobeCallback<?> completionCallback) {
         if (application == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "initialize failed - application is null.");
+            completionCallback.call(null);
             return;
         }
 
         if (initOptions == null) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "initialize failed - initOptions is null.");
+            completionCallback.call(null);
             return;
         }
 

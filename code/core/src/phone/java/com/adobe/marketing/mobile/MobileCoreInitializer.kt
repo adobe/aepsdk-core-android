@@ -90,6 +90,7 @@ internal class MobileCoreInitializer(
         completionCallback: AdobeCallback<*>?
     ) {
         if (initializeCalled.getAndSet(true)) {
+            completionCallback?.call(null)
             Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "initialize failed - ignoring as it was already called.")
             return
         }
@@ -186,6 +187,7 @@ internal class MobileCoreInitializer(
                 LOG_TAG,
                 "Failed to registerExtensions - setApplication not called"
             )
+            completionCallback?.call(null)
             return
         }
 

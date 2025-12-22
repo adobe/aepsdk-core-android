@@ -27,6 +27,25 @@ import java.util.List;
 
 public class LaunchRulesEngine {
 
+    /** A callback that should be invoked when the asynchronous work is complete. */
+    public interface CompletionCallback {
+        void onComplete();
+    }
+
+    /**
+     * An interface for an interceptor that is triggered when a {@link LaunchRule} with the re-evaluation
+     * flag is triggered. The interceptor is responsible for updating the rules and invoking the {@link
+     * CompletionCallback} when complete.
+     */
+    public interface RuleReevaluationInterceptor {
+        void onReevaluationTriggered(
+                final Event event,
+                final List<LaunchRule> revaluableRules,
+                final CompletionCallback callback);
+    }
+
+    private RuleReevaluationInterceptor reevaluationInterceptor;
+
     @VisibleForTesting static final String RULES_ENGINE_NAME = "name";
     private final String name;
     private final RulesEngine<LaunchRule> ruleRulesEngine;
@@ -62,6 +81,15 @@ public class LaunchRulesEngine {
     }
 
     /**
+     * Sets the {@link RuleReevaluationInterceptor} for this {@link LaunchRulesEngine}.
+     *
+     * @param interceptor the interceptor to be set.
+     */
+    public void setRuleReevaluationInterceptor(final RuleReevaluationInterceptor interceptor) {
+        this.reevaluationInterceptor = interceptor;
+    }
+
+    /**
      * Set a new set of rules, the new rules replace the current rules.
      *
      * @param rules a list of {@link LaunchRule}s
@@ -91,8 +119,8 @@ public class LaunchRulesEngine {
 
     /**
      * Processes the supplied event with all the rules that match it. This processing may result in
-     * dispatch of the supplied event after attachment, modification of its data or dispatch of a
-     * new event from the supplied event.
+     * dispatch of the supplied event after attachment, modification of its data or dispatch of a new
+     * event from the supplied event.
      *
      * @param event the event to be evaluated
      * @return the processed [Event] after token replacement.
@@ -102,20 +130,20 @@ public class LaunchRulesEngine {
             throw new IllegalArgumentException("Cannot evaluate null event.");
         }
 
-        final List<LaunchRule> matchedRules =
-                ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
-
-        // if initial rule set has not been received, cache the event to be processed
-        // when rules are set
         if (!initialRulesReceived) {
             handleCaching(event);
+            // If the event was cached, don't process it now. It will be processed later.
+            // If it was a reset event, it triggered reprocessing of other events. Don't process it.
+            return event;
         }
-        return launchRulesConsequence.process(event, matchedRules);
+
+        return processAndIntercept(event);
     }
 
     /**
      * Evaluates the supplied event against the all current rules and returns the {@link
-     * RuleConsequence}'s from the rules that matched the supplied event.
+     * RuleConsequence}'s from the rules that matched the supplied event. This method is synchronous
+     * and does not trigger any re-evaluation interceptors.
      *
      * @param event the event to be evaluated
      * @return a {@code List<RuleConsequence>} that match the supplied event.
@@ -125,11 +153,52 @@ public class LaunchRulesEngine {
             throw new IllegalArgumentException("Cannot evaluate null event.");
         }
 
-        final List<LaunchRule> matchedRules =
-                ruleRulesEngine.evaluate(new LaunchTokenFinder(event, extensionApi));
+        final LaunchTokenFinder tokenFinder = new LaunchTokenFinder(event, extensionApi);
+        final List<LaunchRule> matchedRules = ruleRulesEngine.evaluate(tokenFinder);
 
         // get token replaced consequences
         return launchRulesConsequence.evaluate(event, matchedRules);
+    }
+
+    private Event processAndIntercept(final Event event) {
+        final LaunchTokenFinder tokenFinder = new LaunchTokenFinder(event, extensionApi);
+        final List<LaunchRule> matchedRules = ruleRulesEngine.evaluate(tokenFinder);
+
+        // If no interceptor is set, process consequences immediately.
+        if (reevaluationInterceptor == null) {
+            return launchRulesConsequence.process(event, matchedRules);
+        }
+
+        final List<LaunchRule> revaluableRules = getRevaluableRules(matchedRules);
+
+        // If there are revaluable rules, defer processing until the interceptor completes.
+        if (!revaluableRules.isEmpty()) {
+            reevaluationInterceptor.onReevaluationTriggered(
+                    event,
+                    revaluableRules,
+                    () -> {
+                        // After the interceptor has updated the rules, re-evaluate and process
+                        // consequences
+                        final List<LaunchRule> newlyMatchedRules =
+                                ruleRulesEngine.evaluate(tokenFinder);
+                        launchRulesConsequence.process(event, newlyMatchedRules);
+                    });
+            // Return the original event; consequences will be processed asynchronously.
+            return event;
+        } else {
+            // No re-evaluation needed, so process the consequences immediately.
+            return launchRulesConsequence.process(event, matchedRules);
+        }
+    }
+
+    private List<LaunchRule> getRevaluableRules(final List<LaunchRule> rules) {
+        final List<LaunchRule> revaluableRules = new ArrayList<>();
+        for (final LaunchRule rule : rules) {
+            if (rule.getReevaluable()) {
+                revaluableRules.add(rule);
+            }
+        }
+        return revaluableRules;
     }
 
     List<LaunchRule> getRules() {
@@ -142,14 +211,14 @@ public class LaunchRulesEngine {
     }
 
     private void reprocessCachedEvents() {
-        for (Event cachedEvent : cachedEvents) {
-            final List<LaunchRule> matchedRules =
-                    ruleRulesEngine.evaluate(new LaunchTokenFinder(cachedEvent, extensionApi));
-            launchRulesConsequence.process(cachedEvent, matchedRules);
-        }
-        // clear cached events and set the flag to indicate that rules were set at least once
+        // To avoid ConcurrentModificationException, we process a copy of the cached events.
+        final List<Event> eventsToReprocess = new ArrayList<>(cachedEvents);
         cachedEvents.clear();
-        initialRulesReceived = true;
+        initialRulesReceived = true; // Set before processing to prevent re-caching
+
+        for (final Event cachedEvent : eventsToReprocess) {
+            processEvent(cachedEvent);
+        }
     }
 
     private void handleCaching(final Event event) {

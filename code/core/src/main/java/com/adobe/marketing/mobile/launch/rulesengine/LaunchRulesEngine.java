@@ -130,11 +130,10 @@ public class LaunchRulesEngine {
             throw new IllegalArgumentException("Cannot evaluate null event.");
         }
 
+        // if initial rule set has not been received, cache the event to be processed
+        // when rules are set
         if (!initialRulesReceived) {
             handleCaching(event);
-            // If the event was cached, don't process it now. It will be processed later.
-            // If it was a reset event, it triggered reprocessing of other events. Don't process it.
-            return event;
         }
 
         return processAndIntercept(event);
@@ -162,32 +161,44 @@ public class LaunchRulesEngine {
 
     private Event processAndIntercept(final Event event) {
         final LaunchTokenFinder tokenFinder = new LaunchTokenFinder(event, extensionApi);
-        final List<LaunchRule> matchedRules = ruleRulesEngine.evaluate(tokenFinder);
+        final ArrayList<LaunchRule> matchedRules = new ArrayList<>(ruleRulesEngine.evaluate(tokenFinder));
+
+        //If there are no matching events, nothing to do further
+        if(matchedRules.isEmpty()) {
+            return event;
+        }
 
         // If no interceptor is set, process consequences immediately.
         if (reevaluationInterceptor == null) {
             return launchRulesConsequence.process(event, matchedRules);
-        }
+        } else {
+            final ArrayList<LaunchRule> revaluableRules = new ArrayList<>(getRevaluableRules(matchedRules));
+            final List<LaunchRule> nonRevaluableRules = new ArrayList<>(matchedRules);
+            nonRevaluableRules.removeAll(revaluableRules);
 
-        final List<LaunchRule> revaluableRules = getRevaluableRules(matchedRules);
-
-        // If there are revaluable rules, defer processing until the interceptor completes.
-        if (!revaluableRules.isEmpty()) {
-            reevaluationInterceptor.onReevaluationTriggered(
-                    event,
-                    revaluableRules,
-                    () -> {
-                        // After the interceptor has updated the rules, re-evaluate and process
-                        // consequences
-                        final List<LaunchRule> newlyMatchedRules =
-                                ruleRulesEngine.evaluate(tokenFinder);
-                        launchRulesConsequence.process(event, newlyMatchedRules);
-                    });
+            // If there are revaluable rules, defer processing until the interceptor completes.
+            if (!revaluableRules.isEmpty()) {
+                //trigger reevaluation for revaluable rules
+                reevaluationInterceptor.onReevaluationTriggered(
+                        event,
+                        revaluableRules,
+                        () -> {
+                            // After the interceptor has updated the rules, re-evaluate and process
+                            // consequences
+                            final List<LaunchRule> newlyMatchedRules =
+                                    ruleRulesEngine.evaluate(tokenFinder);
+                            for (final LaunchRule triggeredRule : nonRevaluableRules) {
+                                newlyMatchedRules.remove(triggeredRule);
+                            }
+                            launchRulesConsequence.process(event, newlyMatchedRules);
+                        });
+            }
+            if(!nonRevaluableRules.isEmpty()) {
+                // No re-evaluation needed, so process the consequences immediately.
+                return launchRulesConsequence.process(event, nonRevaluableRules);
+            }
             // Return the original event; consequences will be processed asynchronously.
             return event;
-        } else {
-            // No re-evaluation needed, so process the consequences immediately.
-            return launchRulesConsequence.process(event, matchedRules);
         }
     }
 

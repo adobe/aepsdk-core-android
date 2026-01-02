@@ -61,7 +61,7 @@ internal class JSONRule private constructor(
      * @return an object of [LaunchRule]
      */
     @JvmSynthetic
-    internal fun toLaunchRule(extensionApi: ExtensionApi): LaunchRule? {
+    internal fun toLaunchRule(extensionApi: ExtensionApi, reEvaluable: Boolean): LaunchRule? {
         val evaluable = JSONCondition.build(condition, extensionApi)?.toEvaluable()
         if (evaluable !is Evaluable) {
             Log.error(
@@ -74,6 +74,6 @@ internal class JSONRule private constructor(
         val consequenceList = consequences.map {
             JSONConsequence(it as? JSONObject)?.toRuleConsequence() ?: throw Exception()
         }
-        return LaunchRule(evaluable, consequenceList)
+        return LaunchRule(evaluable, consequenceList, reEvaluable)
     }
 }

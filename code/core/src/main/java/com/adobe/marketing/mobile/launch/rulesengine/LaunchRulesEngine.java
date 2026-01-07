@@ -161,10 +161,10 @@ public class LaunchRulesEngine {
 
     private Event processAndIntercept(final Event event) {
         final LaunchTokenFinder tokenFinder = new LaunchTokenFinder(event, extensionApi);
-        final ArrayList<LaunchRule> matchedRules = new ArrayList<>(ruleRulesEngine.evaluate(tokenFinder));
+        final List<LaunchRule> matchedRules = ruleRulesEngine.evaluate(tokenFinder);
 
         //If there are no matching events, nothing to do further
-        if(matchedRules.isEmpty()) {
+        if (matchedRules.isEmpty()) {
             return event;
         }
 
@@ -172,44 +172,28 @@ public class LaunchRulesEngine {
         if (reevaluationInterceptor == null) {
             return launchRulesConsequence.process(event, matchedRules);
         } else {
-            final ArrayList<LaunchRule> revaluableRules = new ArrayList<>(getRevaluableRules(matchedRules));
-            final List<LaunchRule> nonRevaluableRules = new ArrayList<>(matchedRules);
-            nonRevaluableRules.removeAll(revaluableRules);
+            final List<LaunchRule> revaluableRules = launchRulesConsequence.getReevaluableRules(matchedRules);
+            if (revaluableRules.isEmpty()) {
+                return launchRulesConsequence.process(event, matchedRules);
+            } else {
+                final List<LaunchRule> rulesToHold = launchRulesConsequence.getRulesToHoldForReevaluation(matchedRules);
+                final ArrayList<LaunchRule> rulesToProcess = new ArrayList<>(matchedRules);
+                rulesToProcess.removeAll(rulesToHold);
 
-            // If there are revaluable rules, defer processing until the interceptor completes.
-            if (!revaluableRules.isEmpty()) {
-                //trigger reevaluation for revaluable rules
                 reevaluationInterceptor.onReevaluationTriggered(
                         event,
                         revaluableRules,
                         () -> {
                             // After the interceptor has updated the rules, re-evaluate and process
                             // consequences
-                            final List<LaunchRule> newlyMatchedRules =
-                                    ruleRulesEngine.evaluate(tokenFinder);
-                            for (final LaunchRule triggeredRule : nonRevaluableRules) {
-                                newlyMatchedRules.remove(triggeredRule);
-                            }
+                            final ArrayList<LaunchRule> newlyMatchedRules =
+                                    new ArrayList<>(ruleRulesEngine.evaluate(tokenFinder));
+                            newlyMatchedRules.removeAll(rulesToProcess);
                             launchRulesConsequence.process(event, newlyMatchedRules);
                         });
-            }
-            if(!nonRevaluableRules.isEmpty()) {
-                // No re-evaluation needed, so process the consequences immediately.
-                return launchRulesConsequence.process(event, nonRevaluableRules);
-            }
-            // Return the original event; consequences will be processed asynchronously.
-            return event;
-        }
-    }
-
-    private List<LaunchRule> getRevaluableRules(final List<LaunchRule> rules) {
-        final List<LaunchRule> revaluableRules = new ArrayList<>();
-        for (final LaunchRule rule : rules) {
-            if (rule.getReevaluable()) {
-                revaluableRules.add(rule);
+                return launchRulesConsequence.process(event, rulesToProcess);
             }
         }
-        return revaluableRules;
     }
 
     List<LaunchRule> getRules() {

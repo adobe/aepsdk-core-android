@@ -163,11 +163,6 @@ public class LaunchRulesEngine {
         final LaunchTokenFinder tokenFinder = new LaunchTokenFinder(event, extensionApi);
         final List<LaunchRule> matchedRules = ruleRulesEngine.evaluate(tokenFinder);
 
-        //If there are no matching events, nothing to do further
-        if (matchedRules.isEmpty()) {
-            return event;
-        }
-
         // If no interceptor is set, process consequences immediately.
         if (reevaluationInterceptor == null) {
             return launchRulesConsequence.process(event, matchedRules);

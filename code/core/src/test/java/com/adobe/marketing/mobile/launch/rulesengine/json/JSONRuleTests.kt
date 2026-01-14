@@ -24,6 +24,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.test.assertFalse
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class JSONRuleTests {
@@ -63,11 +64,12 @@ class JSONRuleTests {
         """.trimIndent()
         val jsonRule = JSONRule(buildJSONObject(jsonString))
         assertTrue(jsonRule is JSONRule)
-        val launchRule = jsonRule.toLaunchRule(extensionApi)
+        val launchRule = jsonRule.toLaunchRule(extensionApi, false)
         assertTrue(launchRule is LaunchRule)
         assertEquals(1, launchRule.consequenceList.size)
         assertEquals("pb", launchRule.consequenceList[0].type)
         assertTrue(launchRule.condition is ComparisonExpression<*, *>)
+        assertFalse(launchRule.reevaluable)
     }
 
     @Test

@@ -174,9 +174,9 @@ public class LaunchRulesEngine {
                 final List<LaunchRule> rulesToHold = launchRulesConsequence.getRulesToHoldForReevaluation(matchedRules);
                 final ArrayList<LaunchRule> rulesToProcess = new ArrayList<>(matchedRules);
                 rulesToProcess.removeAll(rulesToHold);
-
+                Event processedEvent = launchRulesConsequence.process(event, rulesToProcess);
                 reevaluationInterceptor.onReevaluationTriggered(
-                        event,
+                        processedEvent,
                         revaluableRules,
                         () -> {
                             // After the interceptor has updated the rules, re-evaluate and process
@@ -184,9 +184,9 @@ public class LaunchRulesEngine {
                             final ArrayList<LaunchRule> newlyMatchedRules =
                                     new ArrayList<>(ruleRulesEngine.evaluate(tokenFinder));
                             newlyMatchedRules.removeAll(rulesToProcess);
-                            launchRulesConsequence.process(event, newlyMatchedRules);
+                            launchRulesConsequence.process(processedEvent, newlyMatchedRules);
                         });
-                return launchRulesConsequence.process(event, rulesToProcess);
+                return processedEvent;
             }
         }
     }

@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "reEvaluable": true,
+  "rules": [
+    {
+      "condition": {
+        "type": "group",
+        "definition": {
+          "logic": "and",
+          "conditions": [
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~type",
+                "matcher": "eq",
+                "values": [
+                  "com.adobe.eventType.generic"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "consequences": [
+        {
+          "id": "modify-event-add",
+          "type": "add",
+          "detail": {
+            "eventdata": {
+              "modifiedKey": "modifiedValue",
+              "timestamp": "12345"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "condition": {
+        "type": "group",
+        "definition": {
+          "logic": "and",
+          "conditions": [
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~type",
+                "matcher": "eq",
+                "values": [
+                  "com.adobe.eventType.generic"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "consequences": [
+        {
+          "id": "held-schema-consequence",
+          "type": "schema",
+          "detail": {
+            "id": "test-schema-id",
+            "schema": "https://ns.adobe.com/personalization/message",
+            "data": {
+              "content": "schema-content"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "reEvaluable": true,
+  "rules": [
+    {
+      "condition": {
+        "type": "group",
+        "definition": {
+          "logic": "and",
+          "conditions": [
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~type",
+                "matcher": "eq",
+                "values": [
+                  "com.adobe.eventType.generic"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "consequences": [
+        {
+          "id": "reevaluable-schema-mixed",
+          "type": "schema",
+          "detail": {
+            "id": "test-schema-id",
+            "schema": "https://ns.adobe.com/personalization/message",
+            "data": {
+              "content": "schema-content"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "condition": {
+        "type": "group",
+        "definition": {
+          "logic": "and",
+          "conditions": [
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~type",
+                "matcher": "eq",
+                "values": [
+                  "com.adobe.eventType.generic"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "consequences": [
+        {
+          "id": "non-reevaluable-add-mixed",
+          "type": "add",
+          "detail": {
+            "eventdata": {
+              "attached_data": {
+                "addedKey": "addedValue"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "condition": {
+        "type": "group",
+        "definition": {
+          "logic": "and",
+          "conditions": [
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~type",
+                "matcher": "eq",
+                "values": [
+                  "com.adobe.eventType.generic"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "consequences": [
+        {
+          "id": "non-reevaluable-schema-mixed",
+          "type": "schema",
+          "detail": {
+            "id": "test-schema-id-2",
+            "schema": "https://ns.adobe.com/personalization/message",
+            "data": {
+              "content": "non-reevaluable-schema"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

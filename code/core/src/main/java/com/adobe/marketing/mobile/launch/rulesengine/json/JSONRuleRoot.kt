@@ -22,16 +22,14 @@ import org.json.JSONObject
 /**
  * The class representing a set of Rules
  */
-internal class JSONRuleRoot private constructor(val version: String, val jsonArray: JSONArray, val reEvaluable: Boolean) {
+internal class JSONRuleRoot private constructor(val version: String, val jsonArray: JSONArray) {
     companion object {
         private const val LOG_TAG = "JSONRuleRoot"
         private const val KEY_VERSION = "version"
         private const val KEY_RULES = "rules"
-        private const val KEY_REEVALUABLE = "reEvaluable"
         operator fun invoke(jsonObject: JSONObject): JSONRuleRoot? {
             val version = jsonObject.optString(KEY_VERSION, "0")
             val rules = jsonObject.optJSONArray(KEY_RULES)
-            val reeValuable = jsonObject.optBoolean(KEY_REEVALUABLE, false)
             if (rules !is JSONArray) {
                 Log.error(
                     LaunchRulesEngineConstants.LOG_TAG,
@@ -40,7 +38,7 @@ internal class JSONRuleRoot private constructor(val version: String, val jsonArr
                 )
                 return null
             }
-            return JSONRuleRoot(version, rules, reeValuable)
+            return JSONRuleRoot(version, rules)
         }
     }
 
@@ -52,7 +50,7 @@ internal class JSONRuleRoot private constructor(val version: String, val jsonArr
     @JvmSynthetic
     fun toLaunchRules(extensionApi: ExtensionApi): List<LaunchRule> {
         return jsonArray.map {
-            JSONRule(it as? JSONObject)?.toLaunchRule(extensionApi, reEvaluable) ?: throw Exception()
+            JSONRule(it as? JSONObject)?.toLaunchRule(extensionApi) ?: throw Exception()
         }
     }
 }

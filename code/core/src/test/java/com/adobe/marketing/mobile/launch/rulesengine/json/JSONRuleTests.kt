@@ -64,12 +64,12 @@ class JSONRuleTests {
         """.trimIndent()
         val jsonRule = JSONRule(buildJSONObject(jsonString))
         assertTrue(jsonRule is JSONRule)
-        val launchRule = jsonRule.toLaunchRule(extensionApi, false)
+        val launchRule = jsonRule.toLaunchRule(extensionApi)
         assertTrue(launchRule is LaunchRule)
         assertEquals(1, launchRule.consequenceList.size)
         assertEquals("pb", launchRule.consequenceList[0].type)
         assertTrue(launchRule.condition is ComparisonExpression<*, *>)
-        assertFalse(launchRule.reevaluable)
+        assertFalse(launchRule.meta.reEvaluable)
     }
 
     @Test

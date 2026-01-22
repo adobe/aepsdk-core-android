@@ -15,21 +15,21 @@ class LaunchRuleTests {
     @Test
     fun `test LaunchRule creation without revaluable parameter`() {
         val rule = LaunchRule(mockEvaluable, listOf(mockConsequence))
-        assertFalse(rule.reevaluable)
+        assertFalse(rule.meta.reEvaluable)
         assertEquals(mockEvaluable, rule.evaluable)
     }
 
     @Test
     fun `test LaunchRule creation with revaluable as false`() {
-        val rule = LaunchRule(mockEvaluable, listOf(mockConsequence), false)
-        assertFalse(rule.reevaluable)
+        val rule = LaunchRule(mockEvaluable, listOf(mockConsequence))
+        assertFalse(rule.meta.reEvaluable)
         assertEquals(mockEvaluable, rule.evaluable)
     }
 
     @Test
     fun `test LaunchRule creation with revaluable as true`() {
-        val rule = LaunchRule(mockEvaluable, listOf(mockConsequence), true)
-        assertTrue(rule.reevaluable)
+        val rule = LaunchRule(mockEvaluable, listOf(mockConsequence), RuleMeta(true))
+        assertTrue(rule.meta.reEvaluable)
         assertEquals(mockEvaluable, rule.evaluable)
     }
 }

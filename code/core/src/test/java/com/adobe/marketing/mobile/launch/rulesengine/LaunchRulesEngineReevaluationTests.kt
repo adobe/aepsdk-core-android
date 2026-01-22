@@ -83,7 +83,7 @@ class LaunchRulesEngineReevaluationTests {
 
         assertEquals(testEvent.uniqueIdentifier, eventCaptor.firstValue.uniqueIdentifier)
         assertEquals(1, rulesCaptor.firstValue.size)
-        assertTrue(rulesCaptor.firstValue[0].reevaluable)
+        assertTrue(rulesCaptor.firstValue[0].meta.reEvaluable)
         assertEquals("schema", rulesCaptor.firstValue[0].consequenceList[0].type)
     }
 
@@ -237,9 +237,8 @@ class LaunchRulesEngineReevaluationTests {
 
         // Only the 2 reevaluable schema rules should be passed to interceptor
         // The add rules (both reevaluable and non-reevaluable) should NOT be in the list
-        assertEquals(2, rulesCaptor.firstValue.size)
-        assertTrue(rulesCaptor.firstValue[0].reevaluable)
-        assertTrue(rulesCaptor.firstValue[1].reevaluable)
+        assertEquals(1, rulesCaptor.firstValue.size)
+        assertTrue(rulesCaptor.firstValue[0].meta.reEvaluable)
 
         // Verify that BOTH add rule consequences were processed immediately
         // (Even the reevaluable one, because add is not a reevaluable-supported consequence type)
@@ -283,7 +282,7 @@ class LaunchRulesEngineReevaluationTests {
 
         // The single reevaluable rule should be passed to interceptor
         assertEquals(1, rulesCaptor.firstValue.size)
-        assertTrue(rulesCaptor.firstValue[0].reevaluable)
+        assertTrue(rulesCaptor.firstValue[0].meta.reEvaluable)
         // Verify the rule has both consequences
         assertEquals(2, rulesCaptor.firstValue[0].consequenceList.size)
 
@@ -355,7 +354,7 @@ class LaunchRulesEngineReevaluationTests {
 
         // Both reevaluable rules should be passed
         assertEquals(2, rulesCaptor.firstValue.size)
-        assertTrue(rulesCaptor.firstValue.all { it.reevaluable })
+        assertTrue(rulesCaptor.firstValue.all { it.meta.reEvaluable })
     }
 
     // ========================================
@@ -578,7 +577,7 @@ class LaunchRulesEngineReevaluationTests {
         val reevaluableRules = rulesCaptor.firstValue
         // Only the reevaluable schema rule should be in the list
         assertEquals(2, reevaluableRules.size)
-        assertTrue(reevaluableRules[0].reevaluable)
+        assertTrue(reevaluableRules[0].meta.reEvaluable)
         assertTrue(reevaluableRules[0].consequenceList.any { it.type == "schema" })
     }
 

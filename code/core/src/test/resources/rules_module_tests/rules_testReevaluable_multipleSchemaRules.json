@@ -1,6 +1,5 @@
 {
   "version": 1,
-  "reEvaluable": true,
   "rules": [
     {
       "condition": {
@@ -33,7 +32,10 @@
             }
           }
         }
-      ]
+      ],
+      "meta": {
+        "reEvaluable": true
+      }
     },
     {
       "condition": {
@@ -66,7 +68,10 @@
             }
           }
         }
-      ]
+      ],
+      "meta": {
+        "reEvaluable": true
+      }
     }
   ]
 }

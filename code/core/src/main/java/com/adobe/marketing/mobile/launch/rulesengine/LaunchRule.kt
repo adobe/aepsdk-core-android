@@ -25,7 +25,7 @@ import com.adobe.marketing.mobile.rulesengine.Rule
 data class LaunchRule @JvmOverloads constructor(
     val condition: Evaluable,
     val consequenceList: List<RuleConsequence>,
-    val meta: RuleMeta = RuleMeta(false)
+    val meta: RuleMeta = RuleMeta()
 ) : Rule {
     override fun getEvaluable(): Evaluable {
         return condition

@@ -19,5 +19,5 @@ package com.adobe.marketing.mobile.launch.rulesengine
  */
 
 data class RuleMeta(
-    val reEvaluable: Boolean,
+    val reEvaluable: Boolean = false,
 )

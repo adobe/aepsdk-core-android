@@ -32,7 +32,7 @@
         }
       ],
       "meta": {
-        "reEvaluable": true
+        "reEvaluate": true
       }
     }
   ]

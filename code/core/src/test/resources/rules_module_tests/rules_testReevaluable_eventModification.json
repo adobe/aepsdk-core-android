@@ -33,7 +33,7 @@
         }
       ],
       "meta": {
-        "reEvaluable": false
+        "reEvaluate": false
       }
     },
     {
@@ -69,7 +69,7 @@
         }
       ],
       "meta": {
-        "reEvaluable": true
+        "reEvaluate": true
       }
     }
   ]

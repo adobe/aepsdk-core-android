@@ -83,12 +83,12 @@ class LaunchRulesEngineReevaluationTests {
 
         assertEquals(testEvent.uniqueIdentifier, eventCaptor.firstValue.uniqueIdentifier)
         assertEquals(1, rulesCaptor.firstValue.size)
-        assertTrue(rulesCaptor.firstValue[0].meta.reEvaluable)
+        assertTrue(rulesCaptor.firstValue[0].meta.reEvaluate)
         assertEquals("schema", rulesCaptor.firstValue[0].consequenceList[0].type)
     }
 
     @Test
-    fun `Test reevaluation interceptor is NOT triggered when reevaluable is false`() {
+    fun `Test reevaluation interceptor is NOT triggered when reEvaluate is false`() {
         val json = readTestResources("rules_module_tests/rules_testNonReevaluable_schemaConsequence.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json, extensionApi)
@@ -198,10 +198,10 @@ class LaunchRulesEngineReevaluationTests {
         // 2. Reevaluable rules with add consequences -> processed immediately (add is not a reevaluable-supported type)
         // 3. Non-reevaluable rules with add consequences -> processed immediately
         
-        val reEvaluableRuleFile = readTestResources("rules_module_tests/rules_testReevaluable_mixedRules.json")
-        assertNotNull(reEvaluableRuleFile)
-        val reEvaluableRules = JSONRulesParser.parse(reEvaluableRuleFile, extensionApi)
-        // This file has 3 rules (all with reEvaluable=true):
+        val reEvaluateRuleFile = readTestResources("rules_module_tests/rules_testReevaluable_mixedRules.json")
+        assertNotNull(reEvaluateRuleFile)
+        val reEvaluateRules = JSONRulesParser.parse(reEvaluateRuleFile, extensionApi)
+        // This file has 3 rules (all with reEvaluate=true):
         // - Rule 1: schema consequence (will be held)
         // - Rule 2: add consequence (will process immediately - add is not a reevaluable-supported type)
         // - Rule 3: schema consequence (will be held)
@@ -212,7 +212,7 @@ class LaunchRulesEngineReevaluationTests {
         val addRule = JSONRulesParser.parse(addRuleFile, extensionApi)
         assertNotNull(addRule)
         
-        launchRulesEngine.replaceRules(reEvaluableRules)
+        launchRulesEngine.replaceRules(reEvaluateRules)
         launchRulesEngine.addRules(addRule)
 
         val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
@@ -238,7 +238,7 @@ class LaunchRulesEngineReevaluationTests {
         // Only the 2 reevaluable schema rules should be passed to interceptor
         // The add rules (both reevaluable and non-reevaluable) should NOT be in the list
         assertEquals(1, rulesCaptor.firstValue.size)
-        assertTrue(rulesCaptor.firstValue[0].meta.reEvaluable)
+        assertTrue(rulesCaptor.firstValue[0].meta.reEvaluate)
 
         // Verify that BOTH add rule consequences were processed immediately
         // (Even the reevaluable one, because add is not a reevaluable-supported consequence type)
@@ -282,7 +282,7 @@ class LaunchRulesEngineReevaluationTests {
 
         // The single reevaluable rule should be passed to interceptor
         assertEquals(1, rulesCaptor.firstValue.size)
-        assertTrue(rulesCaptor.firstValue[0].meta.reEvaluable)
+        assertTrue(rulesCaptor.firstValue[0].meta.reEvaluate)
         // Verify the rule has both consequences
         assertEquals(2, rulesCaptor.firstValue[0].consequenceList.size)
 
@@ -354,7 +354,7 @@ class LaunchRulesEngineReevaluationTests {
 
         // Both reevaluable rules should be passed
         assertEquals(2, rulesCaptor.firstValue.size)
-        assertTrue(rulesCaptor.firstValue.all { it.meta.reEvaluable })
+        assertTrue(rulesCaptor.firstValue.all { it.meta.reEvaluate })
     }
 
     // ========================================
@@ -577,7 +577,7 @@ class LaunchRulesEngineReevaluationTests {
         val reevaluableRules = rulesCaptor.firstValue
         // Only the reevaluable schema rule should be in the list
         assertEquals(2, reevaluableRules.size)
-        assertTrue(reevaluableRules[0].meta.reEvaluable)
+        assertTrue(reevaluableRules[0].meta.reEvaluate)
         assertTrue(reevaluableRules[0].consequenceList.any { it.type == "schema" })
     }
 

@@ -34,7 +34,7 @@
         }
       ],
       "meta": {
-        "reEvaluable": false
+        "reEvaluate": false
       }
     }
   ]

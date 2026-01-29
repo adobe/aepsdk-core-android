@@ -11,24 +11,20 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine.json
 
-import com.adobe.marketing.mobile.internal.CoreConstants
-import com.adobe.marketing.mobile.internal.util.toMap
-import com.adobe.marketing.mobile.launch.rulesengine.RuleConsequence
 import com.adobe.marketing.mobile.launch.rulesengine.RuleMeta
-import com.adobe.marketing.mobile.services.Log
 import org.json.JSONObject
 
 /**
  * The class representing a Rule's consequence
  */
 internal class JSONMeta private constructor(
-    private val reEvaluable: Boolean,
+    private val reEvaluate: Boolean,
 ) {
     companion object {
-        private const val KEY_REEVALUABLE = "reEvaluable"
+        private const val KEY_REEVALUATE = "reEvaluate"
         operator fun invoke(jsonObject: JSONObject?): JSONMeta {
             return JSONMeta(
-                jsonObject?.optBoolean(KEY_REEVALUABLE, false) ?: false
+                jsonObject?.optBoolean(KEY_REEVALUATE, false) ?: false
             )
         }
     }
@@ -40,6 +36,6 @@ internal class JSONMeta private constructor(
      */
     @JvmSynthetic
     internal fun toMeta(): RuleMeta {
-        return RuleMeta(reEvaluable)
+        return RuleMeta(reEvaluate)
     }
 }

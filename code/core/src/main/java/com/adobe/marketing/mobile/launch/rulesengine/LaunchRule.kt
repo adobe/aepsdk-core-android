@@ -19,7 +19,7 @@ import com.adobe.marketing.mobile.rulesengine.Rule
  *
  * @property condition an object of [Evaluable]
  * @property consequenceList a list of [RuleConsequence] objects
- * @property reevaluable a boolean indicating if the rule should be reevaluated
+ * @property meta an object containing relevant meta data regarding the rule
  * @constructor Constructs a new [LaunchRule]
  */
 data class LaunchRule @JvmOverloads constructor(

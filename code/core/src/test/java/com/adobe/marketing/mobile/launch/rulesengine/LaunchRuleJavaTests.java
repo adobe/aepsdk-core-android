@@ -18,21 +18,21 @@ public class LaunchRuleJavaTests {
     @Test
     public void testLaunchRuleCreationWithoutRevaluable() {
         final LaunchRule rule = new LaunchRule(mockEvaluable, Collections.singletonList(mockConsequence));
-        assertFalse(rule.getMeta().getReEvaluable());
+        assertFalse(rule.getMeta().getReEvaluate());
         assertEquals(mockEvaluable, rule.getEvaluable());
     }
 
     @Test
     public void testLaunchRuleCreationWithRevaluableFalse() {
         final LaunchRule rule = new LaunchRule(mockEvaluable, Collections.singletonList(mockConsequence));
-        assertFalse(rule.getMeta().getReEvaluable());
+        assertFalse(rule.getMeta().getReEvaluate());
         assertEquals(mockEvaluable, rule.getEvaluable());
     }
 
     @Test
     public void testLaunchRuleCreationWithRevaluableTrue() {
         final LaunchRule rule = new LaunchRule(mockEvaluable, Collections.singletonList(mockConsequence), new RuleMeta(true));
-        assertTrue(rule.getMeta().getReEvaluable());
+        assertTrue(rule.getMeta().getReEvaluate());
         assertEquals(mockEvaluable, rule.getEvaluable());
     }
 }

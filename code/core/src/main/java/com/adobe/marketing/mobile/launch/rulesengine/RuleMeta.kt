@@ -14,10 +14,10 @@ package com.adobe.marketing.mobile.launch.rulesengine
 /**
  * The data class representing a rule's consequence object
  *
- * @property reEvaluable the flag reEvaluable for sensitive rules
+ * @property reEvaluate the flag reEvaluate for sensitive rules
  * @constructor Constructs a new [RuleMeta]
  */
 
 data class RuleMeta(
-    val reEvaluable: Boolean = false,
+    val reEvaluate: Boolean = false,
 )

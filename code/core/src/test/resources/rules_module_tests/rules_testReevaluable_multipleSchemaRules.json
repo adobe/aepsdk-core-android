@@ -34,7 +34,7 @@
         }
       ],
       "meta": {
-        "reEvaluable": true
+        "reEvaluate": true
       }
     },
     {
@@ -70,7 +70,7 @@
         }
       ],
       "meta": {
-        "reEvaluable": true
+        "reEvaluate": true
       }
     }
   ]

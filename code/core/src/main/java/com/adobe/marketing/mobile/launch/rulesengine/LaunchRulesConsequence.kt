@@ -175,7 +175,7 @@ internal class LaunchRulesConsequence(
     fun getReevaluableRules(rules: MutableList<LaunchRule>): MutableList<LaunchRule?> {
         val revaluableRules: MutableList<LaunchRule?> = java.util.ArrayList<LaunchRule?>()
         for (rule in rules) {
-            if (rule.meta.reEvaluable && rule.hasReevaluableSupportedConsequence) {
+            if (rule.meta.reEvaluate && rule.hasReevaluableSupportedConsequence) {
                 revaluableRules.add(rule)
             }
         }

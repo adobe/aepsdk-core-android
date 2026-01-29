@@ -69,7 +69,7 @@ class JSONRuleTests {
         assertEquals(1, launchRule.consequenceList.size)
         assertEquals("pb", launchRule.consequenceList[0].type)
         assertTrue(launchRule.condition is ComparisonExpression<*, *>)
-        assertFalse(launchRule.meta.reEvaluable)
+        assertFalse(launchRule.meta.reEvaluate)
     }
 
     @Test

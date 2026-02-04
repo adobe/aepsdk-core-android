@@ -576,7 +576,7 @@ class LaunchRulesEngineReevaluationTests {
 
         val reevaluableRules = rulesCaptor.firstValue
         // Only the reevaluable schema rule should be in the list
-        assertEquals(2, reevaluableRules.size)
+        assertEquals(1, reevaluableRules.size)
         assertTrue(reevaluableRules[0].meta.reEvaluate)
         assertTrue(reevaluableRules[0].consequenceList.any { it.type == "schema" })
     }

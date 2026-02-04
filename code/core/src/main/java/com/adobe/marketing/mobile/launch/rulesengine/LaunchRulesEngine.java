@@ -33,9 +33,9 @@ public class LaunchRulesEngine {
     }
 
     /**
-     * An interface for an interceptor that is triggered when a {@link LaunchRule} with the re-evaluation
-     * flag is triggered. The interceptor is responsible for updating the rules and invoking the {@link
-     * CompletionCallback} when complete.
+     * An interface for an interceptor that is triggered when a {@link LaunchRule} with the
+     * re-evaluation flag is triggered. The interceptor is responsible for updating the rules and
+     * invoking the {@link CompletionCallback} when complete.
      */
     public interface RuleReevaluationInterceptor {
         void onReevaluationTriggered(
@@ -119,8 +119,8 @@ public class LaunchRulesEngine {
 
     /**
      * Processes the supplied event with all the rules that match it. This processing may result in
-     * dispatch of the supplied event after attachment, modification of its data or dispatch of a new
-     * event from the supplied event.
+     * dispatch of the supplied event after attachment, modification of its data or dispatch of a
+     * new event from the supplied event.
      *
      * @param event the event to be evaluated
      * @return the processed [Event] after token replacement.
@@ -167,11 +167,13 @@ public class LaunchRulesEngine {
         if (reevaluationInterceptor == null) {
             return launchRulesConsequence.process(event, matchedRules);
         } else {
-            final List<LaunchRule> revaluableRules = launchRulesConsequence.getReevaluableRules(matchedRules);
+            final List<LaunchRule> revaluableRules =
+                    launchRulesConsequence.getReevaluableRules(matchedRules);
             if (revaluableRules.isEmpty()) {
                 return launchRulesConsequence.process(event, matchedRules);
             } else {
-                final List<LaunchRule> rulesToHold = launchRulesConsequence.getRulesToHoldForReevaluation(matchedRules);
+                final List<LaunchRule> rulesToHold =
+                        launchRulesConsequence.getRulesToHoldForReevaluation(matchedRules);
                 final ArrayList<LaunchRule> rulesToProcess = new ArrayList<>(matchedRules);
                 rulesToProcess.removeAll(rulesToHold);
                 Event processedEvent = launchRulesConsequence.process(event, rulesToProcess);

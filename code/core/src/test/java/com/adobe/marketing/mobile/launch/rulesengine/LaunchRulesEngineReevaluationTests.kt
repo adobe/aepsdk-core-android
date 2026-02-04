@@ -33,7 +33,7 @@ import kotlin.test.assertTrue
 
 /**
  * Unit tests for LaunchRulesEngine reevaluation interceptor functionality.
- * 
+ *
  * These tests cover the reevaluation feature which allows rules with schema consequences
  * to be held back while an interceptor fetches updated rules before processing.
  */
@@ -178,11 +178,11 @@ class LaunchRulesEngineReevaluationTests {
 
         // Should dispatch consequence event normally
         verify(extensionApi, Mockito.atLeastOnce()).dispatch(eventCaptor.capture())
-        
+
         // Verify a consequence event was dispatched
         val dispatchedEvents = eventCaptor.allValues
-        val consequenceEvents = dispatchedEvents.filter { 
-            it.type == EventType.RULES_ENGINE && it.source == EventSource.RESPONSE_CONTENT 
+        val consequenceEvents = dispatchedEvents.filter {
+            it.type == EventType.RULES_ENGINE && it.source == EventSource.RESPONSE_CONTENT
         }
         assertTrue(consequenceEvents.isNotEmpty())
     }
@@ -197,7 +197,7 @@ class LaunchRulesEngineReevaluationTests {
         // 1. Reevaluable rules with schema consequences -> held
         // 2. Reevaluable rules with add consequences -> processed immediately (add is not a reevaluable-supported type)
         // 3. Non-reevaluable rules with add consequences -> processed immediately
-        
+
         val reEvaluateRuleFile = readTestResources("rules_module_tests/rules_testReevaluable_mixedRules.json")
         assertNotNull(reEvaluateRuleFile)
         val reEvaluateRules = JSONRulesParser.parse(reEvaluateRuleFile, extensionApi)
@@ -205,13 +205,13 @@ class LaunchRulesEngineReevaluationTests {
         // - Rule 1: schema consequence (will be held)
         // - Rule 2: add consequence (will process immediately - add is not a reevaluable-supported type)
         // - Rule 3: schema consequence (will be held)
-        
+
         // Load an additional NON-reevaluable add rule
         val addRuleFile = readTestResources("rules_module_tests/rules_testNonReevaluable_addConsequence.json")
         assertNotNull(addRuleFile)
         val addRule = JSONRulesParser.parse(addRuleFile, extensionApi)
         assertNotNull(addRule)
-        
+
         launchRulesEngine.replaceRules(reEvaluateRules)
         launchRulesEngine.addRules(addRule)
 
@@ -254,7 +254,7 @@ class LaunchRulesEngineReevaluationTests {
     fun `Test single rule with mixed consequences - all consequences held together`() {
         // This test verifies that if a SINGLE RULE has BOTH schema and non-schema consequences,
         // the ENTIRE RULE is held (including the non-schema consequences)
-        
+
         val json = readTestResources("rules_module_tests/rules_testReevaluable_singleRuleMixedConsequences.json")
         assertNotNull(json)
         val rules = JSONRulesParser.parse(json, extensionApi)
@@ -344,7 +344,7 @@ class LaunchRulesEngineReevaluationTests {
         launchRulesEngine.processEvent(testEvent)
 
         val rulesCaptor: KArgumentCaptor<List<LaunchRule>> = argumentCaptor()
-        
+
         // Interceptor should be called exactly once
         verify(mockInterceptor, Mockito.times(1)).onReevaluationTriggered(
             any(),
@@ -394,10 +394,10 @@ class LaunchRulesEngineReevaluationTests {
 
         // Verify that consequence event was dispatched after callback
         verify(extensionApi, Mockito.atLeastOnce()).dispatch(eventCaptor.capture())
-        
+
         val dispatchedEvents = eventCaptor.allValues
-        val consequenceEvents = dispatchedEvents.filter { 
-            it.type == EventType.RULES_ENGINE && it.source == EventSource.RESPONSE_CONTENT 
+        val consequenceEvents = dispatchedEvents.filter {
+            it.type == EventType.RULES_ENGINE && it.source == EventSource.RESPONSE_CONTENT
         }
         assertTrue(consequenceEvents.isNotEmpty())
     }
@@ -649,7 +649,7 @@ class LaunchRulesEngineReevaluationTests {
 
         // Second interceptor should be called
         verify(mockInterceptor2, Mockito.times(1)).onReevaluationTriggered(any(), any(), any())
-        
+
         // First interceptor should not be called again
         verify(mockInterceptor1, Mockito.times(1)).onReevaluationTriggered(any(), any(), any())
     }

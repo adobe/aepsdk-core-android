@@ -26,7 +26,6 @@ import com.adobe.marketing.mobile.internal.util.fnv1a32
 import com.adobe.marketing.mobile.internal.util.prettify
 import com.adobe.marketing.mobile.internal.util.toEventHistoryRequest
 import com.adobe.marketing.mobile.rulesengine.DelimiterPair
-import com.adobe.marketing.mobile.rulesengine.Rule
 import com.adobe.marketing.mobile.rulesengine.Template
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
 import com.adobe.marketing.mobile.services.Log
@@ -185,7 +184,7 @@ internal class LaunchRulesConsequence(
     fun getRulesToHoldForReevaluation(rules: MutableList<LaunchRule>): MutableList<LaunchRule?> {
         val rulesToHold: MutableList<LaunchRule?> = ArrayList()
         for (rule in rules) {
-            if(rule.hasReevaluableSupportedConsequence){
+            if (rule.hasReevaluableSupportedConsequence) {
                 rulesToHold.add(rule)
             }
         }

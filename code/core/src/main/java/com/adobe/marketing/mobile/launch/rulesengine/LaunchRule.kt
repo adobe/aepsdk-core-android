@@ -20,7 +20,7 @@ import com.adobe.marketing.mobile.rulesengine.Rule
  * @property condition an object of [Evaluable]
  * @property consequenceList a list of [RuleConsequence] objects
  * @property meta an object containing relevant meta data regarding the rule
- * @constructor Constructs a new [LaunchRule]
+ * @constructor Constructs a new [LaunchRule] (Optional)
  */
 data class LaunchRule @JvmOverloads constructor(
     val condition: Evaluable,

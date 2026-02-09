@@ -15,7 +15,20 @@ import com.adobe.marketing.mobile.launch.rulesengine.RuleMeta
 import org.json.JSONObject
 
 /**
- * The class representing a Rule's consequence
+ * Generic utility to parse a meta object from JSON for rules engine.
+ *
+ * This class is responsible for extracting meta information from a JSON object.
+ * Currently, it only parses the `reEvaluate` flag, but it is designed to be extended
+ * in the future to support additional meta keys as needed.
+ *
+ * Example of a meta JSON object:
+ * ```json
+ * {
+ *   "reEvaluate": true
+ * }
+ * ```
+ *
+ * Future meta keys can be added to this class as requirements evolve.
  */
 internal class JSONMeta private constructor(
     private val reEvaluate: Boolean,

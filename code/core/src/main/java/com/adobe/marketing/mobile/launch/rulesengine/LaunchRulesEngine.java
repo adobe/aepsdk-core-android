@@ -27,23 +27,6 @@ import java.util.List;
 
 public class LaunchRulesEngine {
 
-    /** A callback that should be invoked when the asynchronous work is complete. */
-    public interface CompletionCallback {
-        void onComplete();
-    }
-
-    /**
-     * An interface for an interceptor that is triggered when a {@link LaunchRule} with the
-     * re-evaluation flag is triggered. The interceptor is responsible for updating the rules and
-     * invoking the {@link CompletionCallback} when complete.
-     */
-    public interface RuleReevaluationInterceptor {
-        void onReevaluationTriggered(
-                final Event event,
-                final List<LaunchRule> revaluableRules,
-                final CompletionCallback callback);
-    }
-
     private RuleReevaluationInterceptor reevaluationInterceptor;
 
     @VisibleForTesting static final String RULES_ENGINE_NAME = "name";

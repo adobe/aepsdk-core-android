@@ -165,8 +165,9 @@ public class LaunchRulesEngine {
                         revaluableRules,
                         (success) -> {
                             // After the interceptor has updated the rules, re-evaluate and process
-                            // consequences. If update is not success intercepted rules are not processed
-                            if(success) {
+                            // consequences. If update is not success intercepted rules are not
+                            // processed
+                            if (success) {
                                 final ArrayList<LaunchRule> newlyMatchedRules =
                                         new ArrayList<>(ruleRulesEngine.evaluate(tokenFinder));
                                 newlyMatchedRules.removeAll(rulesToProcess);

@@ -345,15 +345,7 @@ public class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine {
 	public fun evaluateEvent (Lcom/adobe/marketing/mobile/Event;)Ljava/util/List;
 	public fun processEvent (Lcom/adobe/marketing/mobile/Event;)Lcom/adobe/marketing/mobile/Event;
 	public fun replaceRules (Ljava/util/List;)V
-	public fun setRuleReevaluationInterceptor (Lcom/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine$RuleReevaluationInterceptor;)V
-}
-
-public abstract interface class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine$CompletionCallback {
-	public abstract fun onComplete ()V
-}
-
-public abstract interface class com/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine$RuleReevaluationInterceptor {
-	public abstract fun onReevaluationTriggered (Lcom/adobe/marketing/mobile/Event;Ljava/util/List;Lcom/adobe/marketing/mobile/launch/rulesengine/LaunchRulesEngine$CompletionCallback;)V
+	public fun setRuleReevaluationInterceptor (Lcom/adobe/marketing/mobile/launch/rulesengine/RuleReevaluationInterceptor;)V
 }
 
 public final class com/adobe/marketing/mobile/launch/rulesengine/RuleConsequence {
@@ -384,6 +376,10 @@ public final class com/adobe/marketing/mobile/launch/rulesengine/RuleMeta {
 	public final fun getReEvaluate ()Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/adobe/marketing/mobile/launch/rulesengine/RuleReevaluationInterceptor {
+	public abstract fun onReevaluationTriggered (Lcom/adobe/marketing/mobile/Event;Ljava/util/List;Lcom/adobe/marketing/mobile/AdobeCallback;)V
 }
 
 public class com/adobe/marketing/mobile/launch/rulesengine/download/RulesLoadResult {

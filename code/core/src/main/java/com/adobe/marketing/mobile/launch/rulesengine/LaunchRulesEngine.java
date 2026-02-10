@@ -149,34 +149,34 @@ public class LaunchRulesEngine {
         // If no interceptor is set, process consequences immediately.
         if (reevaluationInterceptor == null) {
             return launchRulesConsequence.process(event, matchedRules);
-        } else {
-            final List<LaunchRule> revaluableRules =
-                    launchRulesConsequence.getReevaluableRules(matchedRules);
-            if (revaluableRules.isEmpty()) {
-                return launchRulesConsequence.process(event, matchedRules);
-            } else {
-                final List<LaunchRule> rulesToHold =
-                        launchRulesConsequence.getRulesToHoldForReevaluation(matchedRules);
-                final ArrayList<LaunchRule> rulesToProcess = new ArrayList<>(matchedRules);
-                rulesToProcess.removeAll(rulesToHold);
-                Event processedEvent = launchRulesConsequence.process(event, rulesToProcess);
-                reevaluationInterceptor.onReevaluationTriggered(
-                        processedEvent,
-                        revaluableRules,
-                        (success) -> {
-                            // After the interceptor has updated the rules, re-evaluate and process
-                            // consequences. If update is not success intercepted rules are not
-                            // processed
-                            if (success) {
-                                final ArrayList<LaunchRule> newlyMatchedRules =
-                                        new ArrayList<>(ruleRulesEngine.evaluate(tokenFinder));
-                                newlyMatchedRules.removeAll(rulesToProcess);
-                                launchRulesConsequence.process(processedEvent, newlyMatchedRules);
-                            }
-                        });
-                return processedEvent;
-            }
         }
+
+        final List<LaunchRule> revaluableRules =
+                launchRulesConsequence.getReevaluableRules(matchedRules);
+        if (revaluableRules.isEmpty()) {
+            return launchRulesConsequence.process(event, matchedRules);
+        }
+
+        final List<LaunchRule> rulesToHold =
+                launchRulesConsequence.getRulesToHoldForReevaluation(matchedRules);
+        final ArrayList<LaunchRule> rulesToProcess = new ArrayList<>(matchedRules);
+        rulesToProcess.removeAll(rulesToHold);
+        Event processedEvent = launchRulesConsequence.process(event, rulesToProcess);
+        reevaluationInterceptor.onReevaluationTriggered(
+                processedEvent,
+                revaluableRules,
+                (success) -> {
+                    // After the interceptor has updated the rules, re-evaluate and process
+                    // consequences. If update is not success intercepted rules are not
+                    // processed
+                    if (success) {
+                        final ArrayList<LaunchRule> newlyMatchedRules =
+                                new ArrayList<>(ruleRulesEngine.evaluate(tokenFinder));
+                        newlyMatchedRules.removeAll(rulesToProcess);
+                        launchRulesConsequence.process(processedEvent, newlyMatchedRules);
+                    }
+                });
+        return processedEvent;
     }
 
     List<LaunchRule> getRules() {

@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.launch.rulesengine
 
+import com.adobe.marketing.mobile.AdobeCallback
 import com.adobe.marketing.mobile.Event
 import com.adobe.marketing.mobile.EventSource
 import com.adobe.marketing.mobile.EventType
@@ -60,7 +61,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -73,7 +74,7 @@ class LaunchRulesEngineReevaluationTests {
 
         val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
         val rulesCaptor: KArgumentCaptor<List<LaunchRule>> = argumentCaptor()
-        val callbackCaptor: KArgumentCaptor<LaunchRulesEngine.CompletionCallback> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<Boolean>> = argumentCaptor()
 
         verify(mockInterceptor, Mockito.times(1)).onReevaluationTriggered(
             eventCaptor.capture(),
@@ -95,7 +96,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -118,7 +119,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -141,7 +142,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         // Event with different type that won't match the rule
@@ -215,7 +216,7 @@ class LaunchRulesEngineReevaluationTests {
         launchRulesEngine.replaceRules(reEvaluateRules)
         launchRulesEngine.addRules(addRule)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -246,7 +247,7 @@ class LaunchRulesEngineReevaluationTests {
         // Check that initial data is preserved
         assertEquals("initialValue", processedEvent.eventData?.get("initialKey"))
         // Check that attached data was added
-        val attachedData = processedEvent.eventData?.get("attached_data") as? Map<String, Any>
+        val attachedData = processedEvent.eventData?.get("attached_data") as? Map<*, *>
         assertEquals("addedValue", attachedData?.get("addedKey"))
     }
 
@@ -261,7 +262,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -292,7 +293,7 @@ class LaunchRulesEngineReevaluationTests {
         // Check that initial data is preserved
         assertEquals("initialValue", processedEvent.eventData?.get("initialKey"))
         // The attached_data should NOT be present because the rule is held
-        val attachedData = processedEvent.eventData?.get("attached_data") as? Map<String, Any>
+        val attachedData = processedEvent.eventData?.get("attached_data") as? Map<*, *>
         assertEquals(null, attachedData?.get("mixedRuleKey"))
     }
 
@@ -304,7 +305,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -332,7 +333,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -369,7 +370,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -382,7 +383,7 @@ class LaunchRulesEngineReevaluationTests {
 
         launchRulesEngine.processEvent(testEvent)
 
-        val callbackCaptor: KArgumentCaptor<LaunchRulesEngine.CompletionCallback> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<Boolean>> = argumentCaptor()
         verify(mockInterceptor, Mockito.times(1)).onReevaluationTriggered(
             any(),
             any(),
@@ -390,7 +391,7 @@ class LaunchRulesEngineReevaluationTests {
         )
 
         // Invoke the callback to simulate completion
-        callbackCaptor.firstValue.onComplete()
+        callbackCaptor.firstValue.call(true)
 
         // Verify that consequence event was dispatched after callback
         verify(extensionApi, Mockito.atLeastOnce()).dispatch(eventCaptor.capture())
@@ -410,7 +411,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -421,7 +422,7 @@ class LaunchRulesEngineReevaluationTests {
 
         launchRulesEngine.processEvent(testEvent)
 
-        val callbackCaptor: KArgumentCaptor<LaunchRulesEngine.CompletionCallback> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<Boolean>> = argumentCaptor()
         verify(mockInterceptor, Mockito.times(1)).onReevaluationTriggered(
             any(),
             any(),
@@ -436,7 +437,7 @@ class LaunchRulesEngineReevaluationTests {
         launchRulesEngine.addRules(newRules)
 
         // Invoke callback - should re-evaluate with new rules
-        callbackCaptor.firstValue.onComplete()
+        callbackCaptor.firstValue.call(true)
 
         // The new rule (add consequence) should have been evaluated and event modified
         // We can't directly test this without more complex mocking, but we verified callback executes
@@ -451,7 +452,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -493,7 +494,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -525,7 +526,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -556,7 +557,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -589,7 +590,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(
@@ -600,7 +601,7 @@ class LaunchRulesEngineReevaluationTests {
 
         launchRulesEngine.processEvent(testEvent)
 
-        val callbackCaptor: KArgumentCaptor<LaunchRulesEngine.CompletionCallback> = argumentCaptor()
+        val callbackCaptor: KArgumentCaptor<AdobeCallback<Boolean>> = argumentCaptor()
         verify(mockInterceptor, Mockito.times(1)).onReevaluationTriggered(
             any(),
             any(),
@@ -610,9 +611,9 @@ class LaunchRulesEngineReevaluationTests {
         val callback = callbackCaptor.firstValue
 
         // Invoke callback multiple times
-        callback.onComplete()
-        callback.onComplete()
-        callback.onComplete()
+        callback.call(true)
+        callback.call(true)
+        callback.call(true)
 
         // Should not cause issues - just processes rules multiple times
         // This is implementation-defined behavior
@@ -627,7 +628,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor1 = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor1 = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor1)
 
         val testEvent = Event.Builder(
@@ -642,7 +643,7 @@ class LaunchRulesEngineReevaluationTests {
         verify(mockInterceptor1, Mockito.times(1)).onReevaluationTriggered(any(), any(), any())
 
         // Update interceptor
-        val mockInterceptor2 = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor2 = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor2)
 
         launchRulesEngine.processEvent(testEvent)
@@ -662,7 +663,7 @@ class LaunchRulesEngineReevaluationTests {
         assertNotNull(rules)
         launchRulesEngine.replaceRules(rules)
 
-        val mockInterceptor = mock(LaunchRulesEngine.RuleReevaluationInterceptor::class.java)
+        val mockInterceptor = mock(RuleReevaluationInterceptor::class.java)
         launchRulesEngine.setRuleReevaluationInterceptor(mockInterceptor)
 
         val testEvent = Event.Builder(

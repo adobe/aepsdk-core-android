@@ -69,6 +69,7 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_EVENT_HISTORY_OPERATION_INSERT_IF_NOT_EXISTS =
             "insertIfNotExists"
         private const val ASYNC_TIMEOUT = 1000L
+        private val REEVALUABLE_CONSEQUENCE_TYPES = setOf<String>(CONSEQUENCE_TYPE_SCHEMA)
     }
 
     /**
@@ -169,6 +170,36 @@ internal class LaunchRulesConsequence(
         }
         return processedConsequences
     }
+
+    fun getReevaluableRules(rules: MutableList<LaunchRule>): MutableList<LaunchRule?> {
+        val revaluableRules: MutableList<LaunchRule?> = java.util.ArrayList<LaunchRule?>()
+        for (rule in rules) {
+            if (rule.meta.reEvaluate && rule.hasReevaluableSupportedConsequence) {
+                revaluableRules.add(rule)
+            }
+        }
+        return revaluableRules
+    }
+
+    fun getRulesToHoldForReevaluation(rules: MutableList<LaunchRule>): MutableList<LaunchRule?> {
+        val rulesToHold: MutableList<LaunchRule?> = ArrayList()
+        for (rule in rules) {
+            if (rule.hasReevaluableSupportedConsequence) {
+                rulesToHold.add(rule)
+            }
+        }
+        return rulesToHold
+    }
+
+    private val LaunchRule.hasReevaluableSupportedConsequence: Boolean
+        get() {
+            for (consequence in this.consequenceList) {
+                if (REEVALUABLE_CONSEQUENCE_TYPES.contains(consequence.type)) {
+                    return true
+                }
+            }
+            return false
+        }
 
     /**
      * Replace tokens inside the provided [RuleConsequence] with the right value

@@ -171,35 +171,15 @@ internal class LaunchRulesConsequence(
         return processedConsequences
     }
 
-    fun getReevaluableRules(rules: MutableList<LaunchRule>): MutableList<LaunchRule?> {
-        val revaluableRules: MutableList<LaunchRule?> = java.util.ArrayList<LaunchRule?>()
-        for (rule in rules) {
-            if (rule.meta.reEvaluate && rule.hasReevaluableSupportedConsequence) {
-                revaluableRules.add(rule)
-            }
-        }
-        return revaluableRules
-    }
+    fun getReevaluableRules(rules: List<LaunchRule>): List<LaunchRule> =
+        rules.filter { it.meta.reEvaluate && it.hasReevaluableSupportedConsequence }
 
-    fun getRulesToHoldForReevaluation(rules: MutableList<LaunchRule>): MutableList<LaunchRule?> {
-        val rulesToHold: MutableList<LaunchRule?> = ArrayList()
-        for (rule in rules) {
-            if (rule.hasReevaluableSupportedConsequence) {
-                rulesToHold.add(rule)
-            }
-        }
-        return rulesToHold
-    }
+    fun getRulesToHoldForReevaluation(rules: List<LaunchRule>): List<LaunchRule> =
+        rules.filter { it.hasReevaluableSupportedConsequence }
+
 
     private val LaunchRule.hasReevaluableSupportedConsequence: Boolean
-        get() {
-            for (consequence in this.consequenceList) {
-                if (REEVALUABLE_CONSEQUENCE_TYPES.contains(consequence.type)) {
-                    return true
-                }
-            }
-            return false
-        }
+        get() = consequenceList.any { it.type in REEVALUABLE_CONSEQUENCE_TYPES }
 
     /**
      * Replace tokens inside the provided [RuleConsequence] with the right value

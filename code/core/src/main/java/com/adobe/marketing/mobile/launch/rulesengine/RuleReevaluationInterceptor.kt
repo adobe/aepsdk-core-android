@@ -21,8 +21,8 @@ import com.adobe.marketing.mobile.Event
  */
 interface RuleReevaluationInterceptor {
     fun onReevaluationTriggered(
-        event: Event?,
-        revaluableRules: List<LaunchRule?>?,
-        callback: AdobeCallback<Boolean>?
+        event: Event,
+        revaluableRules: List<LaunchRule?>,
+        callback: AdobeCallback<Boolean>
     )
 }

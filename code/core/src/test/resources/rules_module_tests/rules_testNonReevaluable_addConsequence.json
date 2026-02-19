@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "condition": {
+        "type": "group",
+        "definition": {
+          "logic": "and",
+          "conditions": [
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~type",
+                "matcher": "eq",
+                "values": [
+                  "com.adobe.eventType.generic"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "consequences": [
+        {
+          "id": "non-reevaluable-add-1",
+          "type": "add",
+          "detail": {
+            "eventdata": {
+              "attached_data": {
+                "addedKey": "addedValue"
+              }
+            }
+          }
+        }
+      ],
+      "meta": {
+        "reEvaluate": false
+      }
+    }
+  ]
+}

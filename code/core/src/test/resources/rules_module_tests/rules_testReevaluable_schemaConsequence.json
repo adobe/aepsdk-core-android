@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "condition": {
+        "type": "group",
+        "definition": {
+          "logic": "and",
+          "conditions": [
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~type",
+                "matcher": "eq",
+                "values": [
+                  "com.adobe.eventType.generic"
+                ]
+              }
+            },
+            {
+              "type": "matcher",
+              "definition": {
+                "key": "~source",
+                "matcher": "eq",
+                "values": [
+                  "com.adobe.eventSource.requestContent"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "consequences": [
+        {
+          "id": "reevaluable-schema-1",
+          "type": "schema",
+          "detail": {
+            "id": "test-schema-id",
+            "schema": "https://ns.adobe.com/personalization/message",
+            "data": {
+              "content": "test-content",
+              "key": "value"
+            }
+          }
+        }
+      ],
+      "meta": {
+        "reEvaluate": true
+      }
+    }
+  ]
+}

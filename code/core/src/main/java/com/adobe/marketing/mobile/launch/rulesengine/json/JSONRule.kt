@@ -25,13 +25,15 @@ import org.json.JSONObject
  */
 internal class JSONRule private constructor(
     val condition: JSONObject,
-    val consequences: JSONArray
+    val consequences: JSONArray,
+    val meta: JSONObject?
 ) {
     companion object {
 
         private const val LOG_TAG = "JSONRule"
         private const val KEY_CONDITION = "condition"
         private const val KEY_CONSEQUENCES = "consequences"
+        private const val KEY_META = "meta"
 
         /**
          * Optionally constructs a new [JSONRule]
@@ -43,6 +45,7 @@ internal class JSONRule private constructor(
             if (jsonObject !is JSONObject) return null
             val condition = jsonObject.getJSONObject(KEY_CONDITION)
             val consequences = jsonObject.getJSONArray(KEY_CONSEQUENCES)
+            val meta = jsonObject.optJSONObject(KEY_META)
             if (condition !is JSONObject || consequences !is JSONArray) {
                 Log.error(
                     LaunchRulesEngineConstants.LOG_TAG,
@@ -51,7 +54,7 @@ internal class JSONRule private constructor(
                 )
                 return null
             }
-            return JSONRule(condition, consequences)
+            return JSONRule(condition, consequences, meta)
         }
     }
 
@@ -74,6 +77,7 @@ internal class JSONRule private constructor(
         val consequenceList = consequences.map {
             JSONConsequence(it as? JSONObject)?.toRuleConsequence() ?: throw Exception()
         }
-        return LaunchRule(evaluable, consequenceList)
+        val metaObject = JSONMeta(meta).toMeta()
+        return LaunchRule(evaluable, consequenceList, metaObject)
     }
 }

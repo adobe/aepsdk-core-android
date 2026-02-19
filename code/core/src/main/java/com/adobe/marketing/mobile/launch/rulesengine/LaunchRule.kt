@@ -19,9 +19,14 @@ import com.adobe.marketing.mobile.rulesengine.Rule
  *
  * @property condition an object of [Evaluable]
  * @property consequenceList a list of [RuleConsequence] objects
- * @constructor Constructs a new [LaunchRule]
+ * @property meta an object containing relevant meta data regarding the rule
+ * @constructor Constructs a new [LaunchRule] (Optional)
  */
-data class LaunchRule(val condition: Evaluable, val consequenceList: List<RuleConsequence>) : Rule {
+data class LaunchRule @JvmOverloads constructor(
+    val condition: Evaluable,
+    val consequenceList: List<RuleConsequence>,
+    val meta: RuleMeta = RuleMeta()
+) : Rule {
     override fun getEvaluable(): Evaluable {
         return condition
     }

@@ -22,6 +22,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -68,6 +69,7 @@ class JSONRuleTests {
         assertEquals(1, launchRule.consequenceList.size)
         assertEquals("pb", launchRule.consequenceList[0].type)
         assertTrue(launchRule.condition is ComparisonExpression<*, *>)
+        assertFalse(launchRule.meta.reEvaluate)
     }
 
     @Test

@@ -27,8 +27,6 @@ import java.util.List;
 
 public class LaunchRulesEngine {
 
-    private RuleReevaluationInterceptor reevaluationInterceptor;
-
     @VisibleForTesting static final String RULES_ENGINE_NAME = "name";
     private final String name;
     private final RulesEngine<LaunchRule> ruleRulesEngine;
@@ -36,6 +34,7 @@ public class LaunchRulesEngine {
     private final LaunchRulesConsequence launchRulesConsequence;
     private final List<Event> cachedEvents = new ArrayList<>();
     private boolean initialRulesReceived = false;
+    private RuleReevaluationInterceptor reevaluationInterceptor;
 
     public LaunchRulesEngine(@NonNull final String name, @NonNull final ExtensionApi extensionApi) {
         this(
@@ -162,6 +161,17 @@ public class LaunchRulesEngine {
         final ArrayList<LaunchRule> rulesToProcess = new ArrayList<>(matchedRules);
         rulesToProcess.removeAll(rulesToHold);
         Event processedEvent = launchRulesConsequence.process(event, rulesToProcess);
+        triggerReEvaluation(
+                processedEvent, revaluableRules, rulesToProcess, reevaluationInterceptor);
+        return processedEvent;
+    }
+
+    private void triggerReEvaluation(
+            final Event processedEvent,
+            final List<LaunchRule> revaluableRules,
+            final List<LaunchRule> processedRules,
+            final RuleReevaluationInterceptor reevaluationInterceptor) {
+        final LaunchTokenFinder tokenFinder = new LaunchTokenFinder(processedEvent, extensionApi);
         reevaluationInterceptor.onReevaluationTriggered(
                 processedEvent,
                 revaluableRules,
@@ -172,11 +182,10 @@ public class LaunchRulesEngine {
                     if (success) {
                         final ArrayList<LaunchRule> newlyMatchedRules =
                                 new ArrayList<>(ruleRulesEngine.evaluate(tokenFinder));
-                        newlyMatchedRules.removeAll(rulesToProcess);
+                        newlyMatchedRules.removeAll(processedRules);
                         launchRulesConsequence.process(processedEvent, newlyMatchedRules);
                     }
                 });
-        return processedEvent;
     }
 
     List<LaunchRule> getRules() {

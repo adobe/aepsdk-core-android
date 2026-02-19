@@ -177,7 +177,6 @@ internal class LaunchRulesConsequence(
     fun getRulesToHoldForReevaluation(rules: List<LaunchRule>): List<LaunchRule> =
         rules.filter { it.hasReevaluableSupportedConsequence }
 
-
     private val LaunchRule.hasReevaluableSupportedConsequence: Boolean
         get() = consequenceList.any { it.type in REEVALUABLE_CONSEQUENCE_TYPES }
 

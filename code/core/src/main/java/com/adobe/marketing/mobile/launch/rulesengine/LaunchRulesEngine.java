@@ -162,11 +162,7 @@ public class LaunchRulesEngine {
         rulesToProcess.removeAll(rulesToHold);
         Event processedEvent = launchRulesConsequence.process(event, rulesToProcess);
         triggerReEvaluation(
-                processedEvent,
-                revaluableRules,
-                rulesToProcess,
-                reevaluationInterceptor
-        );
+                processedEvent, revaluableRules, rulesToProcess, reevaluationInterceptor);
         return processedEvent;
     }
 
@@ -174,8 +170,7 @@ public class LaunchRulesEngine {
             final Event processedEvent,
             final List<LaunchRule> revaluableRules,
             final List<LaunchRule> processedRules,
-            final RuleReevaluationInterceptor reevaluationInterceptor
-    ) {
+            final RuleReevaluationInterceptor reevaluationInterceptor) {
         final LaunchTokenFinder tokenFinder = new LaunchTokenFinder(processedEvent, extensionApi);
         reevaluationInterceptor.onReevaluationTriggered(
                 processedEvent,

@@ -13,6 +13,9 @@ package com.adobe.marketing.mobile.services.ui.message.views
 
 import android.view.ViewGroup
 import android.webkit.WebView
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -75,6 +78,7 @@ internal fun MessageContent(
             }
         },
         modifier = modifier
+            .windowInsetsPadding(WindowInsets.systemBars)
             .clip(RoundedCornerShape(inAppMessageSettings.cornerRadius.dp))
             .testTag(MessageTestTags.MESSAGE_CONTENT)
     )

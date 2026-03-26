@@ -19,7 +19,6 @@ import android.view.WindowManager
 import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.core.view.WindowCompat
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +26,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker

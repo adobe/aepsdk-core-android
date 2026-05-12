@@ -7,13 +7,6 @@ pluginManagement {
     }
 }
 
-includeBuild("../../aepsdk-commons/android/aepsdk-gradle-plugin") {
-    dependencySubstitution {
-        substitute(module("com.github.adobe.aepsdk-commons:aepsdk-gradle-plugin"))
-            .using(project(":aepsdk-gradle-plugin"))
-    }
-}
-
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {

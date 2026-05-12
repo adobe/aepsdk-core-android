@@ -2,6 +2,7 @@ import com.adobe.marketing.mobile.gradle.BuildConstants
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -39,9 +40,6 @@ android {
     }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = BuildConstants.Versions.COMPOSE_COMPILER
     }
     packaging {
         resources {

@@ -15,7 +15,7 @@ import com.adobe.marketing.mobile.lifecycle.LifecycleExtension;
 
 public class Lifecycle {
 
-    private static final String EXTENSION_VERSION = "3.0.2";
+    private static final String EXTENSION_VERSION = "4.0.0";
 
     public static final Class<? extends Extension> EXTENSION = LifecycleExtension.class;
 

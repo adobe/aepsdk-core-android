@@ -23,7 +23,7 @@ val jacksonVersion = "2.12.7"
 aepLibrary {
     namespace = "com.adobe.marketing.mobile.testutils"
     moduleName = "testutils"
-    moduleVersion = "3.0.0"
+    moduleVersion = "4.0.0"
     enableSpotless = true
     enableSpotlessPrettierForJava = true
     enableDokkaDoc = true

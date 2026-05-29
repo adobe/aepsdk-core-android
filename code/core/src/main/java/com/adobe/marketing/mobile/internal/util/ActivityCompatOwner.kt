@@ -45,9 +45,20 @@ internal class ActivityCompatOwnerUtils {
      */
     internal fun attachActivityCompatOwner(activityToAttach: Activity) {
         val decorView = activityToAttach.window.decorView
+        val existing = decorView.findViewTreeLifecycleOwner()
 
-        if (decorView.findViewTreeLifecycleOwner() != null) {
-            // If the activity already has a lifecycle owner, then we don't need to attach a new one
+        if (existing is ActivityCompatOwner) {
+            // Another presentable on the same plain-Activity host has already installed a proxy.
+            // Share it and retain so a later detach of the other presentable does not destroy the
+            // proxy out from under us. Without this, e.g. a FloatingButton + In-App Message shown
+            // concurrently on a non-AndroidX host (Unity) would freeze whichever presentable
+            // remains visible the moment the first one dismisses.
+            existing.retain()
+            return
+        }
+
+        if (existing != null) {
+            // Host already provides its own (non-proxy) LifecycleOwner — AndroidX activity. Do nothing.
             return
         }
 
@@ -61,6 +72,7 @@ internal class ActivityCompatOwnerUtils {
         // UI updates after the initial draw) and disables every BackHandler callback registered
         // against the proxy LifecycleOwner.
         proxyLifeCycleOwner.bindToHostLifecycle(activityToAttach)
+        proxyLifeCycleOwner.retain()
         proxyLifeCycleOwner.attachToView(decorView)
     }
 
@@ -78,8 +90,12 @@ internal class ActivityCompatOwnerUtils {
             return
         }
 
-        lifecycleOwner.detachFromView(decorView)
-        lifecycleOwner.onDestroy()
+        // Only tear the proxy down once the last attached presentable releases its retain. If
+        // another presentable on the same host is still using this proxy, leave it in place.
+        if (lifecycleOwner.release()) {
+            lifecycleOwner.detachFromView(decorView)
+            lifecycleOwner.onDestroy()
+        }
     }
 }
 
@@ -127,6 +143,32 @@ internal class ActivityCompatOwner :
     // ActivityLifecycleCallbacks instance used to mirror the host's lifecycle transitions onto
     // this proxy. Non-null only between [bindToHostLifecycle] and [onDestroy].
     private var hostLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
+
+    // Number of currently-attached presentables sharing this proxy on the same host activity.
+    // Multiple AEPPresentables (e.g. FloatingButton + InAppMessage) can be visible on the same
+    // host concurrently. On hosts that already provide a ViewTreeLifecycleOwner (AndroidX
+    // activities) this never matters, but on plain android.app.Activity hosts they share a single
+    // proxy via findViewTreeLifecycleOwner(). The first attach creates the proxy and retains it;
+    // subsequent attaches retain again. onDestroy is only invoked when the last presentable
+    // detaches and the count drops to zero. All mutations occur on the main thread (attach /
+    // detach are @MainThread on the calling AEPPresentable), so a plain Int is sufficient.
+    private var attachCount: Int = 0
+
+    /**
+     * Increment the shared-attach reference count for this proxy.
+     */
+    internal fun retain() {
+        attachCount++
+    }
+
+    /**
+     * Decrement the shared-attach reference count.
+     * @return true if no presentables remain attached and the proxy should be destroyed.
+     */
+    internal fun release(): Boolean {
+        attachCount--
+        return attachCount <= 0
+    }
 
     /**
      * Trigger the ON_CREATE lifecycle event for this [ActivityCompatOwner].

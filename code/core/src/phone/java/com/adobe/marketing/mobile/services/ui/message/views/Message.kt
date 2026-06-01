@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.services.ui.message.views
 
+import android.app.Activity
 import android.content.pm.PackageManager.NameNotFoundException
 import android.os.Build
 import android.view.ViewGroup
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
 import com.adobe.marketing.mobile.services.ui.Presentable
 import com.adobe.marketing.mobile.services.ui.common.PresentationStateManager
 import com.adobe.marketing.mobile.services.ui.message.GestureTracker
@@ -148,6 +150,15 @@ internal fun Message(
                 if (Build.VERSION.SDK_INT >= 35 && targetSdkVersion != null && targetSdkVersion >= 35) {
                     it.attributes.fitInsetsTypes = 0
                     it.attributes.fitInsetsSides = 0
+                }
+
+                // Inherit the host app's system bar appearance so the dialog's
+                // status/navigation bar icons match the app's theme
+                (context as? Activity)?.window?.let { activityWindow ->
+                    val activityController = WindowCompat.getInsetsController(activityWindow, activityWindow.decorView)
+                    val dialogController = WindowCompat.getInsetsController(it, it.decorView)
+                    dialogController.isAppearanceLightStatusBars = activityController.isAppearanceLightStatusBars
+                    dialogController.isAppearanceLightNavigationBars = activityController.isAppearanceLightNavigationBars
                 }
             }
 

@@ -162,6 +162,22 @@ class MobileCoreInitializerTests {
     }
 
     @Test
+    fun `test registerExtensions invokes callback on success`() {
+        mobileCoreInitializer.setApplication(application)
+
+        val latch = CountDownLatch(1)
+        `when`(mockedEventHub.registerExtensions(any(), any())).doAnswer { invocation ->
+            val callback = invocation.getArgument<(() -> Unit)?>(1)
+            callback?.invoke()
+            Unit
+        }
+
+        mobileCoreInitializer.registerExtensions(listOf(TestExtension1::class.java)) { latch.countDown() }
+
+        assertTrue(latch.await(1000, TimeUnit.MILLISECONDS))
+    }
+
+    @Test
     fun `test registerExtensions`() {
         mobileCoreInitializer.setApplication(application)
 
@@ -324,6 +340,47 @@ class MobileCoreInitializerTests {
 
             mockedStatic.verifyNoInteractions()
         }
+    }
+
+    @Test
+    fun `test initialize invokes callback when already initialized`() {
+        val options = InitOptions.configureWithAppID("appID")
+        mobileCoreInitializer.initialize(application, options, null)
+
+        val latch = CountDownLatch(1)
+        mobileCoreInitializer.initialize(application, options) { latch.countDown() }
+
+        assertTrue(latch.await(1000, TimeUnit.MILLISECONDS))
+    }
+
+    @Test
+    fun `test initialize null callback does not throw when called again`() {
+        val options = InitOptions.configureWithAppID("appID")
+        mobileCoreInitializer.initialize(application, options, null)
+
+        // should not throw NullPointerException
+        mobileCoreInitializer.initialize(application, options, null)
+    }
+
+    @Test
+    fun `test initialize callback invoked exactly once per call when already initialized`() {
+        val options = InitOptions.configureWithAppID("appID")
+        mobileCoreInitializer.initialize(application, options, null)
+
+        val callCount = java.util.concurrent.atomic.AtomicInteger(0)
+        val latch = CountDownLatch(2)
+
+        mobileCoreInitializer.initialize(application, options) {
+            callCount.incrementAndGet()
+            latch.countDown()
+        }
+        mobileCoreInitializer.initialize(application, options) {
+            callCount.incrementAndGet()
+            latch.countDown()
+        }
+
+        assertTrue(latch.await(1000, TimeUnit.MILLISECONDS))
+        assertEquals(2, callCount.get())
     }
 
     @Test

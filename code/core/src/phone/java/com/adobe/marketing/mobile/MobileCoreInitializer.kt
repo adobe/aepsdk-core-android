@@ -91,6 +91,7 @@ internal class MobileCoreInitializer(
     ) {
         if (initializeCalled.getAndSet(true)) {
             Log.debug(CoreConstants.LOG_TAG, LOG_TAG, "initialize failed - ignoring as it was already called.")
+            completionCallback?.call(null)
             return
         }
 

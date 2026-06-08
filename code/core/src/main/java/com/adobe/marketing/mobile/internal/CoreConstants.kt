@@ -64,7 +64,7 @@ internal object CoreConstants {
          * [com.adobe.marketing.mobile.MobileCore.updateProfileAttributes].
          */
         object ProfileAttributes {
-            const val TIMEZONE = "timezone"
+            const val TIMEZONE = "timeZone"
         }
 
         /**

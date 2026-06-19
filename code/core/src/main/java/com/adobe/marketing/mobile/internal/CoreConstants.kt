@@ -60,6 +60,14 @@ internal object CoreConstants {
         }
 
         /**
+         * Holds `EventData` keys for profile attributes synced via
+         * [com.adobe.marketing.mobile.MobileCore.updateProfileAttributes].
+         */
+        object ProfileAttributes {
+            const val TIMEZONE = "timeZone"
+        }
+
+        /**
          * Holds `EventData` keys for the `Signal` module.
          */
         object Signal {
@@ -107,5 +115,6 @@ internal object CoreConstants {
         const val SET_PUSH_IDENTIFIER = "Set Push Identifier"
         const val SET_ADVERTISING_IDENTIFIER = "Set Advertising Identifier"
         const val RESET_IDENTITIES_REQUEST = "Reset Identities Request"
+        const val UPDATE_PROFILE_ATTRIBUTES = "Update Profile Attributes"
     }
 }

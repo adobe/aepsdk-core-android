@@ -129,6 +129,7 @@ public final class com/adobe/marketing/mobile/EventType {
 	public static final field MESSAGING Ljava/lang/String;
 	public static final field PII Ljava/lang/String;
 	public static final field PLACES Ljava/lang/String;
+	public static final field PROFILE_ATTRIBUTE Ljava/lang/String;
 	public static final field RULES_ENGINE Ljava/lang/String;
 	public static final field SIGNAL Ljava/lang/String;
 	public static final field SYSTEM Ljava/lang/String;
@@ -249,6 +250,7 @@ public final class com/adobe/marketing/mobile/MobileCore {
 	public static fun trackAction (Ljava/lang/String;Ljava/util/Map;)V
 	public static fun trackState (Ljava/lang/String;Ljava/util/Map;)V
 	public static fun updateConfiguration (Ljava/util/Map;)V
+	public static fun updateProfileAttributes (Lcom/adobe/marketing/mobile/ProfileAttributes;)V
 }
 
 public final class com/adobe/marketing/mobile/MobilePrivacyStatus : java/lang/Enum {
@@ -259,6 +261,16 @@ public final class com/adobe/marketing/mobile/MobilePrivacyStatus : java/lang/En
 	public fun getValue ()Ljava/lang/String;
 	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
 	public static fun values ()[Lcom/adobe/marketing/mobile/MobilePrivacyStatus;
+}
+
+public final class com/adobe/marketing/mobile/ProfileAttributes {
+	public fun getTimeZone ()Ljava/util/TimeZone;
+}
+
+public final class com/adobe/marketing/mobile/ProfileAttributes$Builder {
+	public fun <init> ()V
+	public fun build ()Lcom/adobe/marketing/mobile/ProfileAttributes;
+	public fun setTimeZone (Ljava/util/TimeZone;)Lcom/adobe/marketing/mobile/ProfileAttributes$Builder;
 }
 
 public final class com/adobe/marketing/mobile/SharedStateResolution : java/lang/Enum {

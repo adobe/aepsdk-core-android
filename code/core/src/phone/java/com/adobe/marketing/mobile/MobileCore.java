@@ -28,6 +28,7 @@ import com.adobe.marketing.mobile.util.DataReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 public final class MobileCore {
 
@@ -378,6 +379,58 @@ public final class MobileCore {
                 new Event.Builder(
                                 CoreConstants.EventNames.SET_PUSH_IDENTIFIER,
                                 EventType.GENERIC_IDENTITY,
+                                EventSource.REQUEST_CONTENT)
+                        .setEventData(eventData)
+                        .build();
+        dispatchEvent(event);
+    }
+
+    // ========================================================
+    // Profile Attributes
+    // ========================================================
+
+    /**
+     * Syncs the supplied {@link ProfileAttributes} to the user's Adobe Experience Platform profile.
+     *
+     * <p>This method is a thin dispatcher: it dispatches a {@link EventType#PROFILE_ATTRIBUTE} /
+     * {@link EventSource#REQUEST_CONTENT} event carrying the caller-supplied attribute values. The
+     * Edge Identity extension is responsible for deduplication, persistence, and forwarding the
+     * attributes to the Edge Network. If the Edge Identity extension is not registered, the event
+     * is not processed.
+     *
+     * <p>Only attributes that were explicitly set on the {@code attributes} builder are included;
+     * if no attributes were set, no event is dispatched.
+     *
+     * @param attributes the {@link ProfileAttributes} to sync. It should not be null.
+     */
+    public static void updateProfileAttributes(@NonNull final ProfileAttributes attributes) {
+        if (attributes == null) {
+            Log.error(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to updateProfileAttributes - attributes is null");
+            return;
+        }
+
+        Map<String, Object> eventData = new HashMap<>();
+        TimeZone timeZone = attributes.getTimeZone();
+        if (timeZone != null) {
+            // Send the IANA identifier (e.g. "America/New_York"), not the TimeZone object.
+            eventData.put(CoreConstants.EventDataKeys.ProfileAttributes.TIMEZONE, timeZone.getID());
+        }
+
+        if (eventData.isEmpty()) {
+            Log.debug(
+                    CoreConstants.LOG_TAG,
+                    LOG_TAG,
+                    "Failed to updateProfileAttributes - no profile attributes were set");
+            return;
+        }
+
+        Event event =
+                new Event.Builder(
+                                CoreConstants.EventNames.UPDATE_PROFILE_ATTRIBUTES,
+                                EventType.PROFILE_ATTRIBUTE,
                                 EventSource.REQUEST_CONTENT)
                         .setEventData(eventData)
                         .build();

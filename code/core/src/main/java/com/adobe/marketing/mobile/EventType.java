@@ -47,6 +47,7 @@ public final class EventType {
     public static final String MESSAGING = "com.adobe.eventType.messaging";
     public static final String PII = "com.adobe.eventType.pii";
     public static final String PLACES = "com.adobe.eventType.places";
+    public static final String PROFILE_ATTRIBUTE = "com.adobe.eventType.profileAttribute";
     public static final String RULES_ENGINE = "com.adobe.eventType.rulesEngine";
     public static final String SIGNAL = "com.adobe.eventType.signal";
     public static final String SYSTEM = "com.adobe.eventType.system";

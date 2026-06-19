@@ -12,6 +12,8 @@
 package com.adobe.marketing.mobile.internal.util
 
 import android.app.Activity
+import android.app.Application
+import android.os.Bundle
 import android.view.View
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.OnBackPressedDispatcherOwner
@@ -43,14 +45,34 @@ internal class ActivityCompatOwnerUtils {
      */
     internal fun attachActivityCompatOwner(activityToAttach: Activity) {
         val decorView = activityToAttach.window.decorView
+        val existing = decorView.findViewTreeLifecycleOwner()
 
-        if (decorView.findViewTreeLifecycleOwner() != null) {
-            // If the activity already has a lifecycle owner, then we don't need to attach a new one
+        if (existing is ActivityCompatOwner) {
+            // Another presentable on the same plain-Activity host has already installed a proxy.
+            // Share it and retain so a later detach of the other presentable does not destroy the
+            // proxy out from under us. Without this, e.g. a FloatingButton + In-App Message shown
+            // concurrently on a non-AndroidX host (Unity) would freeze whichever presentable
+            // remains visible the moment the first one dismisses.
+            existing.retain()
+            return
+        }
+
+        if (existing != null) {
+            // Host already provides its own (non-proxy) LifecycleOwner — AndroidX activity. Do nothing.
             return
         }
 
         val proxyLifeCycleOwner = ActivityCompatOwner()
         proxyLifeCycleOwner.onCreate()
+        // Bind the proxy's lifecycle to the host activity. This advances the proxy from CREATED
+        // to RESUMED (the host's current state at attach time, since presentables are only
+        // attached to a foregrounded activity) and starts mirroring future lifecycle transitions
+        // of the host. Without this, the proxy lifecycle would remain at CREATED, which leaves
+        // Compose's WindowRecomposer suspended (no recompositions / animations / pointer-driven
+        // UI updates after the initial draw) and disables every BackHandler callback registered
+        // against the proxy LifecycleOwner.
+        proxyLifeCycleOwner.bindToHostLifecycle(activityToAttach)
+        proxyLifeCycleOwner.retain()
         proxyLifeCycleOwner.attachToView(decorView)
     }
 
@@ -68,8 +90,12 @@ internal class ActivityCompatOwnerUtils {
             return
         }
 
-        lifecycleOwner.detachFromView(decorView)
-        lifecycleOwner.onDestroy()
+        // Only tear the proxy down once the last attached presentable releases its retain. If
+        // another presentable on the same host is still using this proxy, leave it in place.
+        if (lifecycleOwner.release()) {
+            lifecycleOwner.detachFromView(decorView)
+            lifecycleOwner.onDestroy()
+        }
     }
 }
 
@@ -109,6 +135,41 @@ internal class ActivityCompatOwner :
     override val onBackPressedDispatcher: OnBackPressedDispatcher
         get() = dispatcher
 
+    // Reference to the host Activity whose lifecycle this proxy mirrors. Held only while bound
+    // so that [onDestroy] can unregister the lifecycle callbacks. Cleared on detach to avoid
+    // leaking the Activity.
+    private var hostActivity: Activity? = null
+
+    // ActivityLifecycleCallbacks instance used to mirror the host's lifecycle transitions onto
+    // this proxy. Non-null only between [bindToHostLifecycle] and [onDestroy].
+    private var hostLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
+
+    // Number of currently-attached presentables sharing this proxy on the same host activity.
+    // Multiple AEPPresentables (e.g. FloatingButton + InAppMessage) can be visible on the same
+    // host concurrently. On hosts that already provide a ViewTreeLifecycleOwner (AndroidX
+    // activities) this never matters, but on plain android.app.Activity hosts they share a single
+    // proxy via findViewTreeLifecycleOwner(). The first attach creates the proxy and retains it;
+    // subsequent attaches retain again. onDestroy is only invoked when the last presentable
+    // detaches and the count drops to zero. All mutations occur on the main thread (attach /
+    // detach are @MainThread on the calling AEPPresentable), so a plain Int is sufficient.
+    private var attachCount: Int = 0
+
+    /**
+     * Increment the shared-attach reference count for this proxy.
+     */
+    internal fun retain() {
+        attachCount++
+    }
+
+    /**
+     * Decrement the shared-attach reference count.
+     * @return true if no presentables remain attached and the proxy should be destroyed.
+     */
+    internal fun release(): Boolean {
+        attachCount--
+        return attachCount <= 0
+    }
+
     /**
      * Trigger the ON_CREATE lifecycle event for this [ActivityCompatOwner].
      */
@@ -118,9 +179,73 @@ internal class ActivityCompatOwner :
     }
 
     /**
-     * Trigger the ON_DESTROY lifecycle event for this [ActivityCompatOwner].
+     * Binds this proxy's lifecycle to [activity]. Advances the proxy through ON_START and
+     * ON_RESUME (the host's current state at attach time) and registers an
+     * [Application.ActivityLifecycleCallbacks] listener so that subsequent lifecycle
+     * transitions of the host activity are mirrored onto this proxy.
+     *
+     * Must be called on the main thread, after [onCreate] and before [attachToView].
+     *
+     * @param activity the host activity whose lifecycle this proxy should mirror
+     */
+    internal fun bindToHostLifecycle(activity: Activity) {
+        hostActivity = activity
+        // Presentables are only attached to a foregrounded activity, so the host is at RESUMED
+        // by contract at the time of attach. Advance the proxy to match.
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+
+        val callbacks = object : Application.ActivityLifecycleCallbacks {
+            override fun onActivityStarted(activity: Activity) {
+                if (activity === hostActivity) {
+                    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+                }
+            }
+
+            override fun onActivityResumed(activity: Activity) {
+                if (activity === hostActivity) {
+                    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+                }
+            }
+
+            override fun onActivityPaused(activity: Activity) {
+                if (activity === hostActivity) {
+                    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+                }
+            }
+
+            override fun onActivityStopped(activity: Activity) {
+                if (activity === hostActivity) {
+                    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+                }
+            }
+
+            // Unused — proxy ON_CREATE is driven explicitly by [onCreate], and ON_DESTROY by
+            // [onDestroy] (called from ActivityCompatOwnerUtils.detachActivityCompatOwner). The
+            // host activity being destroyed independently is already handled by AEPPresentable's
+            // own activity-lifecycle wiring, which calls detach on this proxy.
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+            override fun onActivityDestroyed(activity: Activity) {}
+        }
+        activity.application?.registerActivityLifecycleCallbacks(callbacks)
+        hostLifecycleCallbacks = callbacks
+    }
+
+    /**
+     * Trigger the ON_DESTROY lifecycle event for this [ActivityCompatOwner]. Also unregisters
+     * the host lifecycle callbacks (if any) and releases the reference to the host activity.
+     *
+     * [LifecycleRegistry.handleLifecycleEvent] with ON_DESTROY auto-traverses any intermediate
+     * states (e.g. RESUMED → STARTED → CREATED → DESTROYED), dispatching ON_PAUSE / ON_STOP /
+     * ON_DESTROY to observers in order, so we do not emit those events manually.
      */
     internal fun onDestroy() {
+        hostLifecycleCallbacks?.let { callbacks ->
+            hostActivity?.application?.unregisterActivityLifecycleCallbacks(callbacks)
+        }
+        hostLifecycleCallbacks = null
+        hostActivity = null
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         store.clear()
     }

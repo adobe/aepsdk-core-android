@@ -32,6 +32,7 @@ import org.mockito.kotlin.KArgumentCaptor
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import java.util.TimeZone
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
@@ -62,6 +63,30 @@ class MobileCoreTests {
         verify(mockedEventHub, times(1)).dispatch(eventCaptor.capture())
         assertEquals("analytics", eventCaptor.firstValue.type)
         assertEquals("requestContent", eventCaptor.firstValue.source)
+    }
+
+    @Test
+    fun testUpdateProfileAttributesWithTimeZoneDispatchesUpdateProfileAttributeEvent() {
+        val attributes =
+            ProfileAttributes.Builder().setTimeZone(TimeZone.getTimeZone("America/New_York")).build()
+        MobileCore.updateProfileAttributes(attributes)
+
+        val eventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(mockedEventHub, times(1)).dispatch(eventCaptor.capture())
+        val dispatched = eventCaptor.firstValue
+        assertEquals(CoreConstants.EventNames.UPDATE_PROFILE_ATTRIBUTES, dispatched.name)
+        assertEquals(EventType.PROFILE_ATTRIBUTE, dispatched.type)
+        assertEquals(EventSource.REQUEST_CONTENT, dispatched.source)
+        assertEquals(
+            "America/New_York",
+            dispatched.eventData[CoreConstants.EventDataKeys.ProfileAttributes.TIMEZONE]
+        )
+    }
+
+    @Test
+    fun testUpdateProfileAttributesWithNoAttributesSetDoesNotDispatch() {
+        MobileCore.updateProfileAttributes(ProfileAttributes.Builder().build())
+        verifyNoInteractions(mockedEventHub)
     }
 
     // / Tests that the response callback is invoked when the trigger event is dispatched

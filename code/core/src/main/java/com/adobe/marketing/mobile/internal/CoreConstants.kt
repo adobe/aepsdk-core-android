@@ -13,7 +13,7 @@ package com.adobe.marketing.mobile.internal
 
 internal object CoreConstants {
     const val LOG_TAG = "MobileCore"
-    const val VERSION = "3.7.1"
+    const val VERSION = "3.8.0"
 
     object EventDataKeys {
         /**
@@ -57,6 +57,14 @@ internal object CoreConstants {
             const val LIFECYCLE_ACTION_KEY = "action"
             const val LIFECYCLE_START = "start"
             const val LIFECYCLE_PAUSE = "pause"
+        }
+
+        /**
+         * Holds `EventData` keys for profile attributes synced via
+         * [com.adobe.marketing.mobile.MobileCore.updateProfileAttributes].
+         */
+        object ProfileAttributes {
+            const val TIMEZONE = "timeZone"
         }
 
         /**
@@ -107,5 +115,6 @@ internal object CoreConstants {
         const val SET_PUSH_IDENTIFIER = "Set Push Identifier"
         const val SET_ADVERTISING_IDENTIFIER = "Set Advertising Identifier"
         const val RESET_IDENTITIES_REQUEST = "Reset Identities Request"
+        const val UPDATE_PROFILE_ATTRIBUTES = "Update Profile Attributes"
     }
 }

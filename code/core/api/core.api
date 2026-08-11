@@ -436,6 +436,7 @@ public abstract interface class com/adobe/marketing/mobile/plugin/ILiveupdatePlu
 }
 
 public abstract interface class com/adobe/marketing/mobile/plugin/IUiTemplatePlugin : com/adobe/marketing/mobile/plugin/IAepPlugin {
+	public abstract fun buildPushTemplateNotification (Landroid/content/Context;Ljava/util/Map;Ljava/lang/Class;Ljava/lang/Class;)Landroid/app/Notification;
 }
 
 public class com/adobe/marketing/mobile/rulesengine/ComparisonExpression : com/adobe/marketing/mobile/rulesengine/Evaluable {

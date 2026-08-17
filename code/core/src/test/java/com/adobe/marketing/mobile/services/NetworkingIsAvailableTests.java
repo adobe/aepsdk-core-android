@@ -14,16 +14,38 @@ package com.adobe.marketing.mobile.services;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
+import android.net.ConnectivityManager;
+import com.adobe.marketing.mobile.internal.util.NetworkUtils;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Tests for the {@link Networking#isNetworkAvailable()} and {@link
- * Networking#networkConnectionInfo()} default (protocol-extension equivalent) behavior and the
- * custom-override mechanism available to callers. These are pure-JVM tests exercising the interface
- * contract itself; the device-backed production behavior is covered in {@code NetworkServiceTests}.
+ * Networking#networkConnectionInfo()} default implementations and the custom-override mechanism
+ * available to callers. The defaults delegate to the real {@code ConnectivityManager}-backed check
+ * (via {@link NetworkUtils}) for every conformer, including custom ones that don't override them -
+ * these tests prove that, rather than assuming a hardcoded fallback value.
  */
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class NetworkingIsAvailableTests {
+
+    @Mock AppContextService appContextService;
+
+    @Mock ConnectivityManager connectivityManager;
+
+    @Before
+    public void setup() {
+        ServiceProvider.getInstance().setAppContextService(appContextService);
+        when(appContextService.getConnectivityManager()).thenReturn(null);
+    }
 
     /**
      * A minimal conformer that does NOT implement the new methods. It receives the interface's
@@ -55,17 +77,55 @@ public class NetworkingIsAvailableTests {
         }
     }
 
-    // MARK: - Default implementation
+    // MARK: - Default implementation reflects the real ConnectivityManager state
 
     @Test
-    public void testDefaultImpl_conservativeInitialState_returnsFalse() {
-        // Without access to the device connectivity layer, the interface default is conservative:
-        // report unavailable rather than assume connectivity.
+    public void testDefaultImpl_reflectsConnectivityManagerAvailable_returnsTrue() {
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            when(NetworkUtils.isInternetAvailable(connectivityManager)).thenReturn(true);
+
+            assertTrue(
+                    "Default impl must reflect the real ConnectivityManager state, not a hardcoded"
+                            + " value.",
+                    new MinimalNetworkingConformer().isNetworkAvailable());
+        }
+    }
+
+    @Test
+    public void testDefaultImpl_reflectsConnectivityManagerUnavailable_returnsFalse() {
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            when(NetworkUtils.isInternetAvailable(connectivityManager)).thenReturn(false);
+
+            assertFalse(new MinimalNetworkingConformer().isNetworkAvailable());
+        }
+    }
+
+    @Test
+    public void testDefaultImpl_nullConnectivityManager_returnsFalse() {
+        // Conservative fallback only when connectivity cannot be determined at all.
         assertFalse(new MinimalNetworkingConformer().isNetworkAvailable());
     }
 
     @Test
-    public void testDefaultImpl_connectionInfo_returnsUnavailableWithUnknownType() {
+    public void testDefaultImpl_connectionInfo_reflectsConnectivityManagerState() {
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            NetworkConnectionInfo expected =
+                    new NetworkConnectionInfo(
+                            true, NetworkConnectionInfo.InterfaceType.WIFI, false, false);
+            when(NetworkUtils.getNetworkConnectionInfo(connectivityManager)).thenReturn(expected);
+
+            NetworkConnectionInfo result = new MinimalNetworkingConformer().networkConnectionInfo();
+            assertEquals(expected.isAvailable(), result.isAvailable());
+            assertEquals(expected.getInterfaceType(), result.getInterfaceType());
+        }
+    }
+
+    @Test
+    public void
+            testDefaultImpl_connectionInfo_nullConnectivityManager_returnsUnavailableWithUnknownType() {
         NetworkConnectionInfo info = new MinimalNetworkingConformer().networkConnectionInfo();
         assertFalse(info.isAvailable());
         assertEquals(NetworkConnectionInfo.InterfaceType.UNKNOWN, info.getInterfaceType());
@@ -75,18 +135,33 @@ public class NetworkingIsAvailableTests {
 
     @Test
     public void testDefaultImpl_connectionInfo_isAvailable_consistentWithIsNetworkAvailable() {
-        MinimalNetworkingConformer conformer = new MinimalNetworkingConformer();
-        assertEquals(
-                conformer.isNetworkAvailable(), conformer.networkConnectionInfo().isAvailable());
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            when(NetworkUtils.isInternetAvailable(connectivityManager)).thenReturn(true);
+            when(NetworkUtils.getNetworkConnectionInfo(connectivityManager))
+                    .thenReturn(
+                            new NetworkConnectionInfo(
+                                    true, NetworkConnectionInfo.InterfaceType.WIFI, false, false));
+
+            MinimalNetworkingConformer conformer = new MinimalNetworkingConformer();
+            assertEquals(
+                    conformer.isNetworkAvailable(),
+                    conformer.networkConnectionInfo().isAvailable());
+        }
     }
 
     @Test
     public void testDefaultImpl_repeatedReads_returnConsistentResult() {
-        MinimalNetworkingConformer conformer = new MinimalNetworkingConformer();
-        for (int i = 0; i < 1000; i++) {
-            assertFalse(
-                    "Call " + i + " returned an inconsistent result.",
-                    conformer.isNetworkAvailable());
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            when(NetworkUtils.isInternetAvailable(any())).thenReturn(true);
+
+            MinimalNetworkingConformer conformer = new MinimalNetworkingConformer();
+            for (int i = 0; i < 1000; i++) {
+                assertTrue(
+                        "Call " + i + " returned an inconsistent result.",
+                        conformer.isNetworkAvailable());
+            }
         }
     }
 

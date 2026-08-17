@@ -103,38 +103,6 @@ class NetworkService implements Networking {
         }
     }
 
-    @Override
-    public boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager =
-                ServiceProvider.getInstance().getAppContextService().getConnectivityManager();
-        if (connectivityManager == null) {
-            Log.debug(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    "ConnectivityManager instance is null. Unable to check network availability.");
-            // Conservative fallback: report unavailable when connectivity cannot be determined.
-            return false;
-        }
-        return NetworkUtils.isInternetAvailable(connectivityManager);
-    }
-
-    @Override
-    public NetworkConnectionInfo networkConnectionInfo() {
-        ConnectivityManager connectivityManager =
-                ServiceProvider.getInstance().getAppContextService().getConnectivityManager();
-        if (connectivityManager == null) {
-            Log.debug(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    "ConnectivityManager instance is null. Unable to determine network connection"
-                            + " info.");
-            // Conservative fallback: report an unavailable snapshot with an unknown interface type.
-            return new NetworkConnectionInfo(
-                    false, NetworkConnectionInfo.InterfaceType.UNKNOWN, false, false);
-        }
-        return NetworkUtils.getNetworkConnectionInfo(connectivityManager);
-    }
-
     /**
      * Performs the actual connection to the specified {@code url}.
      *

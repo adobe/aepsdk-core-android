@@ -79,6 +79,18 @@ class NetworkUtilsTest {
     }
 
     @Test
+    fun connectionInfo_whenNetworkCapabilitiesIsNull_returnsUnavailableUnknown() {
+        // activeNetwork is non-null but getNetworkCapabilities(network) returns null - a distinct
+        // null case from connectionInfo_whenActiveNetworkIsNull_returnsUnavailableUnknown.
+        `when`(mockedConnectivityManager.activeNetwork).thenReturn(mock(Network::class.java))
+        `when`(mockedConnectivityManager.getNetworkCapabilities(mockedConnectivityManager.activeNetwork)).thenReturn(null)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertFalse(info.isAvailable)
+        assertEquals(NetworkConnectionInfo.InterfaceType.UNKNOWN, info.interfaceType)
+    }
+
+    @Test
     fun connectionInfo_whenNoInternetCapability_returnsUnavailableUnknown() {
         stubCapabilities()
         `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)).thenReturn(false)
@@ -133,6 +145,21 @@ class NetworkUtilsTest {
         val info = getNetworkConnectionInfo(mockedConnectivityManager)
         assertTrue(info.isAvailable)
         assertEquals(NetworkConnectionInfo.InterfaceType.OTHER, info.interfaceType)
+    }
+
+    @Test
+    fun connectionInfo_whenDataSaverEnabled_returnsIsConstrainedTrue() {
+        stubCapabilities()
+        `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)).thenReturn(true)
+        `when`(mockedConnectivityManager.restrictBackgroundStatus)
+            .thenReturn(ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertTrue(info.isAvailable)
+        assertTrue(
+            "Data Saver ENABLED must be reflected in isConstrained.",
+            info.isConstrained
+        )
     }
 
     private fun stubCapabilities() {

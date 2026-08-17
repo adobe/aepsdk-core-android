@@ -11,7 +11,9 @@
 
 package com.adobe.marketing.mobile.services;
 
+import android.net.ConnectivityManager;
 import androidx.annotation.NonNull;
+import com.adobe.marketing.mobile.internal.util.NetworkUtils;
 
 public interface Networking {
     /**
@@ -25,44 +27,55 @@ public interface Networking {
     void connectAsync(final NetworkRequest request, final NetworkCallback callback);
 
     /**
-     * Returns whether network-bound SDK work should proceed right now. The production
-     * implementation checks device-level connectivity only (via {@code ConnectivityManager}).
-     * Override this in a custom {@link Networking} conformer (see: overriding {@code
-     * NetworkService} via {@code ServiceProvider.getInstance().setNetworkService(...)}) to
-     * implement custom logic - for example, pinging your own backend's health endpoint instead of
-     * relying on device connectivity alone.
-     *
-     * <p>This default implementation returns {@code false} - a conservative fallback for conformers
-     * that do not have access to the device connectivity layer. The default {@code NetworkService}
-     * overrides it with the real device-backed check.
+     * Returns whether network-bound SDK work should proceed right now. This default implementation
+     * checks device-level connectivity only (via {@code ConnectivityManager}) and is provided to
+     * every {@link Networking} conformer, including custom ones, so existing conformers remain
+     * source-compatible without implementing it. Override this to implement custom logic - for
+     * example, pinging your own backend's health endpoint instead of relying on device connectivity
+     * alone.
      *
      * @return {@code true} when a usable network path exists
      */
     default boolean isNetworkAvailable() {
-        return false;
+        final ConnectivityManager connectivityManager =
+                ServiceProvider.getInstance().getAppContextService().getConnectivityManager();
+        if (connectivityManager == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    "Networking",
+                    "ConnectivityManager instance is null. Unable to check network availability.");
+            // Conservative fallback: report unavailable when connectivity cannot be determined.
+            return false;
+        }
+        return NetworkUtils.isInternetAvailable(connectivityManager);
     }
 
     /**
-     * Returns a point-in-time snapshot of the device's network connection state.
-     *
-     * <p>The production implementation reads from the device {@code ConnectivityManager}
-     * synchronously - no HTTP request is made and the call returns immediately. Override this in a
-     * custom {@link Networking} conformer to supply your own values (for example, from a
-     * proprietary reachability library).
+     * Returns a point-in-time snapshot of the device's network connection state. This default
+     * implementation reads from the device {@code ConnectivityManager} synchronously - no HTTP
+     * request is made and the call returns immediately - and is provided to every {@link
+     * Networking} conformer, including custom ones. Override this to supply your own values (for
+     * example, from a proprietary reachability library).
      *
      * <p>Use {@link #isNetworkAvailable()} for a simple yes/no guard. Use {@code
      * networkConnectionInfo()} when you need richer signal - interface type, data-restriction mode,
      * or metered-link detection - to make payload-sizing or deferral decisions.
      *
-     * <p>This default implementation returns an unavailable snapshot with {@link
-     * NetworkConnectionInfo.InterfaceType#UNKNOWN} - a conservative fallback for conformers that do
-     * not have access to the device connectivity layer. The default {@code NetworkService}
-     * overrides it with the real device-backed snapshot.
-     *
      * @return the current {@link NetworkConnectionInfo}; never {@code null}
      */
     @NonNull default NetworkConnectionInfo networkConnectionInfo() {
-        return new NetworkConnectionInfo(
-                false, NetworkConnectionInfo.InterfaceType.UNKNOWN, false, false);
+        final ConnectivityManager connectivityManager =
+                ServiceProvider.getInstance().getAppContextService().getConnectivityManager();
+        if (connectivityManager == null) {
+            Log.debug(
+                    ServiceConstants.LOG_TAG,
+                    "Networking",
+                    "ConnectivityManager instance is null. Unable to determine network connection"
+                            + " info.");
+            // Conservative fallback: report an unavailable snapshot with an unknown interface type.
+            return new NetworkConnectionInfo(
+                    false, NetworkConnectionInfo.InterfaceType.UNKNOWN, false, false);
+        }
+        return NetworkUtils.getNetworkConnectionInfo(connectivityManager);
     }
 }

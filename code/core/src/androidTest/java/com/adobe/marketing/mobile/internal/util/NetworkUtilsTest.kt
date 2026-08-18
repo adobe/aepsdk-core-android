@@ -15,6 +15,8 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.adobe.marketing.mobile.services.NetworkConnectionInfo
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -63,5 +65,105 @@ class NetworkUtilsTest {
         Mockito.reset(mockedConnectivityManager)
 
         assertFalse(isInternetAvailable(mockedConnectivityManager))
+    }
+
+    @Test
+    fun connectionInfo_whenActiveNetworkIsNull_returnsUnavailableUnknown() {
+        `when`(mockedConnectivityManager.activeNetwork).thenReturn(null)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertFalse(info.isAvailable)
+        assertEquals(NetworkConnectionInfo.InterfaceType.UNKNOWN, info.interfaceType)
+        assertFalse(info.isConstrained)
+        assertFalse(info.isExpensive)
+    }
+
+    @Test
+    fun connectionInfo_whenNetworkCapabilitiesIsNull_returnsUnavailableUnknown() {
+        // activeNetwork is non-null but getNetworkCapabilities(network) returns null - a distinct
+        // null case from connectionInfo_whenActiveNetworkIsNull_returnsUnavailableUnknown.
+        `when`(mockedConnectivityManager.activeNetwork).thenReturn(mock(Network::class.java))
+        `when`(mockedConnectivityManager.getNetworkCapabilities(mockedConnectivityManager.activeNetwork)).thenReturn(null)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertFalse(info.isAvailable)
+        assertEquals(NetworkConnectionInfo.InterfaceType.UNKNOWN, info.interfaceType)
+    }
+
+    @Test
+    fun connectionInfo_whenNoInternetCapability_returnsUnavailableUnknown() {
+        stubCapabilities()
+        `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)).thenReturn(false)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertFalse(info.isAvailable)
+        assertEquals(NetworkConnectionInfo.InterfaceType.UNKNOWN, info.interfaceType)
+    }
+
+    @Test
+    fun connectionInfo_whenWifiUnmetered_returnsWifiAvailableNotExpensive() {
+        stubCapabilities()
+        `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)).thenReturn(true)
+        `when`(mockedNetworkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)).thenReturn(true)
+        `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)).thenReturn(true)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertTrue(info.isAvailable)
+        assertEquals(NetworkConnectionInfo.InterfaceType.WIFI, info.interfaceType)
+        assertFalse(info.isExpensive)
+    }
+
+    @Test
+    fun connectionInfo_whenCellularMetered_returnsCellularAvailableExpensive() {
+        stubCapabilities()
+        `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)).thenReturn(true)
+        `when`(mockedNetworkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)).thenReturn(true)
+        `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)).thenReturn(false)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertTrue(info.isAvailable)
+        assertEquals(NetworkConnectionInfo.InterfaceType.CELLULAR, info.interfaceType)
+        assertTrue(info.isExpensive)
+    }
+
+    @Test
+    fun connectionInfo_whenEthernet_returnsWiredEthernet() {
+        stubCapabilities()
+        `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)).thenReturn(true)
+        `when`(mockedNetworkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)).thenReturn(true)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertTrue(info.isAvailable)
+        assertEquals(NetworkConnectionInfo.InterfaceType.WIRED_ETHERNET, info.interfaceType)
+    }
+
+    @Test
+    fun connectionInfo_whenNoKnownTransport_returnsOther() {
+        stubCapabilities()
+        `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)).thenReturn(true)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertTrue(info.isAvailable)
+        assertEquals(NetworkConnectionInfo.InterfaceType.OTHER, info.interfaceType)
+    }
+
+    @Test
+    fun connectionInfo_whenDataSaverEnabled_returnsIsConstrainedTrue() {
+        stubCapabilities()
+        `when`(mockedNetworkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)).thenReturn(true)
+        `when`(mockedConnectivityManager.restrictBackgroundStatus)
+            .thenReturn(ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED)
+
+        val info = getNetworkConnectionInfo(mockedConnectivityManager)
+        assertTrue(info.isAvailable)
+        assertTrue(
+            "Data Saver ENABLED must be reflected in isConstrained.",
+            info.isConstrained
+        )
+    }
+
+    private fun stubCapabilities() {
+        `when`(mockedConnectivityManager.activeNetwork).thenReturn(mock(Network::class.java))
+        `when`(mockedConnectivityManager.getNetworkCapabilities(mockedConnectivityManager.activeNetwork)).thenReturn(mockedNetworkCapabilities)
     }
 }

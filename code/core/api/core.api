@@ -751,6 +751,24 @@ public abstract interface class com/adobe/marketing/mobile/services/NetworkCallb
 	public abstract fun call (Lcom/adobe/marketing/mobile/services/HttpConnecting;)V
 }
 
+public final class com/adobe/marketing/mobile/services/NetworkConnectionInfo {
+	public fun <init> (ZLcom/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType;ZZ)V
+	public fun getInterfaceType ()Lcom/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType;
+	public fun isAvailable ()Z
+	public fun isConstrained ()Z
+	public fun isExpensive ()Z
+}
+
+public final class com/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType : java/lang/Enum {
+	public static final field CELLULAR Lcom/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType;
+	public static final field OTHER Lcom/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType;
+	public static final field UNKNOWN Lcom/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType;
+	public static final field WIFI Lcom/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType;
+	public static final field WIRED_ETHERNET Lcom/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType;
+	public static fun values ()[Lcom/adobe/marketing/mobile/services/NetworkConnectionInfo$InterfaceType;
+}
+
 public class com/adobe/marketing/mobile/services/NetworkRequest {
 	public fun <init> (Ljava/lang/String;Lcom/adobe/marketing/mobile/services/HttpMethod;[BLjava/util/Map;II)V
 	public fun getBody ()[B
@@ -763,6 +781,8 @@ public class com/adobe/marketing/mobile/services/NetworkRequest {
 
 public abstract interface class com/adobe/marketing/mobile/services/Networking {
 	public abstract fun connectAsync (Lcom/adobe/marketing/mobile/services/NetworkRequest;Lcom/adobe/marketing/mobile/services/NetworkCallback;)V
+	public fun isNetworkAvailable ()Z
+	public fun networkConnectionInfo ()Lcom/adobe/marketing/mobile/services/NetworkConnectionInfo;
 }
 
 public class com/adobe/marketing/mobile/services/NetworkingConstants {

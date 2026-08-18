@@ -12,8 +12,10 @@
 package com.adobe.marketing.mobile.services;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockConstruction;
@@ -379,6 +381,72 @@ public class NetworkServiceTests {
             assertEquals(2, ((byte[]) bodyCaptor.getValue()).length);
             assertEquals(12, ((byte[]) bodyCaptor.getValue())[0]);
             assertEquals(34, ((byte[]) bodyCaptor.getValue())[1]);
+        }
+    }
+
+    @Test
+    public void testIsNetworkAvailable_delegatesToNetworkUtils_returnsTrue() {
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            when(NetworkUtils.isInternetAvailable(connectivityManager)).thenReturn(true);
+            assertTrue(networkService.isNetworkAvailable());
+        }
+    }
+
+    @Test
+    public void testIsNetworkAvailable_delegatesToNetworkUtils_returnsFalse() {
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            when(NetworkUtils.isInternetAvailable(connectivityManager)).thenReturn(false);
+            assertFalse(networkService.isNetworkAvailable());
+        }
+    }
+
+    @Test
+    public void testIsNetworkAvailable_nullConnectivityManager_returnsFalse() {
+        // Conservative fallback when connectivity cannot be determined.
+        when(appContextService.getConnectivityManager()).thenReturn(null);
+        assertFalse(networkService.isNetworkAvailable());
+    }
+
+    @Test
+    public void testNetworkConnectionInfo_delegatesToNetworkUtils() {
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            NetworkConnectionInfo expected =
+                    new NetworkConnectionInfo(
+                            true, NetworkConnectionInfo.InterfaceType.WIFI, false, false);
+            when(NetworkUtils.getNetworkConnectionInfo(connectivityManager)).thenReturn(expected);
+
+            NetworkConnectionInfo result = networkService.networkConnectionInfo();
+            assertEquals(expected, result);
+            assertTrue(result.isAvailable());
+            assertEquals(NetworkConnectionInfo.InterfaceType.WIFI, result.getInterfaceType());
+        }
+    }
+
+    @Test
+    public void testNetworkConnectionInfo_nullConnectivityManager_returnsUnavailableSnapshot() {
+        when(appContextService.getConnectivityManager()).thenReturn(null);
+        NetworkConnectionInfo result = networkService.networkConnectionInfo();
+        assertFalse(result.isAvailable());
+        assertEquals(NetworkConnectionInfo.InterfaceType.UNKNOWN, result.getInterfaceType());
+        assertFalse(result.isConstrained());
+        assertFalse(result.isExpensive());
+    }
+
+    @Test
+    public void testNetworkConnectionInfo_isAvailable_consistentWithIsNetworkAvailable() {
+        try (MockedStatic<NetworkUtils> ignored = Mockito.mockStatic(NetworkUtils.class)) {
+            when(appContextService.getConnectivityManager()).thenReturn(connectivityManager);
+            when(NetworkUtils.isInternetAvailable(connectivityManager)).thenReturn(true);
+            when(NetworkUtils.getNetworkConnectionInfo(connectivityManager))
+                    .thenReturn(
+                            new NetworkConnectionInfo(
+                                    true, NetworkConnectionInfo.InterfaceType.WIFI, false, false));
+            assertEquals(
+                    networkService.isNetworkAvailable(),
+                    networkService.networkConnectionInfo().isAvailable());
         }
     }
 

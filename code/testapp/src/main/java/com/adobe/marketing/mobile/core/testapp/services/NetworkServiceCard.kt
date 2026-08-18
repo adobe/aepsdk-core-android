@@ -46,6 +46,28 @@ fun NetworkServiceCard() {
             }) {
                 Text(text = "Internet availability")
             }
+
+            Button(onClick = {
+                val isAvailable = ServiceProvider.getInstance().networkService?.isNetworkAvailable() ?: false
+                showAlert("isNetworkAvailable: $isAvailable")
+            }) {
+                Text(text = "Check network availability")
+            }
+
+            Button(onClick = {
+                val info = ServiceProvider.getInstance().networkService?.networkConnectionInfo()
+                val message = if (info != null) {
+                    "isAvailable: ${info.isAvailable()}\n" +
+                        "interfaceType: ${info.interfaceType}\n" +
+                        "isConstrained: ${info.isConstrained()}\n" +
+                        "isExpensive: ${info.isExpensive()}"
+                } else {
+                    "null connection info"
+                }
+                showAlert(message)
+            }) {
+                Text(text = "Get network connection info")
+            }
         }
 
     }

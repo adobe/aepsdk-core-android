@@ -107,22 +107,16 @@ class HttpConnectionHandler {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format("%s is not a valid HTTP command (%s)!", command, e));
+                    "%s is not a valid HTTP command (%s)!",
+                    command,
+                    e);
         } catch (final IllegalStateException e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Cannot set command after connect (%s)!", e));
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Cannot set command after connect (%s)!", e);
         } catch (final IllegalArgumentException e) {
             Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("%s command is not supported (%s)!", command, e));
+                    ServiceConstants.LOG_TAG, TAG, "%s command is not supported (%s)!", command, e);
         } catch (final Exception | Error e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Failed to set http command (%s)!", e));
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to set http command (%s)!", e);
         }
 
         return false;
@@ -151,13 +145,12 @@ class HttpConnectionHandler {
                 Log.warning(
                         ServiceConstants.LOG_TAG,
                         TAG,
-                        String.format("Cannot set header field after connect (%s)!", e));
+                        "Cannot set header field after connect (%s)!",
+                        e);
                 return;
             } catch (final Exception | Error e) {
                 Log.warning(
-                        ServiceConstants.LOG_TAG,
-                        TAG,
-                        String.format("Failed to set request property (%s)!", e));
+                        ServiceConstants.LOG_TAG, TAG, "Failed to set request property (%s)!", e);
             }
         }
     }
@@ -175,12 +168,10 @@ class HttpConnectionHandler {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(connectTimeout + " is not valid timeout value (%s)", e));
+                    connectTimeout + " is not valid timeout value (%s)",
+                    e);
         } catch (final Exception | Error e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Failed to set connection timeout (%s)!", e));
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to set connection timeout (%s)!", e);
         }
     }
 
@@ -197,12 +188,10 @@ class HttpConnectionHandler {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(readTimeout + " is not valid timeout value (%s)", e));
+                    readTimeout + " is not valid timeout value (%s)",
+                    e);
         } catch (final Exception | Error e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Failed to set read timeout (%s)!", e));
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Failed to set read timeout (%s)!", e);
         }
     }
 
@@ -220,12 +209,9 @@ class HttpConnectionHandler {
         Log.debug(
                 ServiceConstants.LOG_TAG,
                 TAG,
-                String.format(
-                        "Connecting to URL %s (%s)",
-                        (httpsUrlConnection.getURL() == null
-                                ? ""
-                                : httpsUrlConnection.getURL().toString()),
-                        command.toString()));
+                "Connecting to URL %s (%s)",
+                (httpsUrlConnection.getURL() == null ? "" : httpsUrlConnection.getURL().toString()),
+                command.toString());
 
         // If the command to be used is POST, set the length before connection
         if (command == Command.POST && payload != null) {
@@ -246,20 +232,15 @@ class HttpConnectionHandler {
             }
         } catch (final SocketTimeoutException e) {
             Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Connection failure, socket timeout (%s)", e));
+                    ServiceConstants.LOG_TAG, TAG, "Connection failure, socket timeout (%s)", e);
         } catch (final IOException e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(
-                            "Connection failure (%s)",
-                            (e.getLocalizedMessage() != null
-                                    ? e.getLocalizedMessage()
-                                    : e.getMessage())));
+                    "Connection failure (%s)",
+                    (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage()));
         } catch (final Exception | Error e) {
-            Log.warning(ServiceConstants.LOG_TAG, TAG, String.format("Connection failure (%s)", e));
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Connection failure (%s)", e);
         }
 
         // Create a connection object here

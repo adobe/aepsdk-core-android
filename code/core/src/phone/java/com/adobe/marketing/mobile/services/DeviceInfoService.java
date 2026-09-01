@@ -300,9 +300,9 @@ class DeviceInfoService implements DeviceInforming {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     LOG_TAG,
-                    String.format(
-                            "%s (Resources), unable to read (%s) from the the assets folder.",
-                            UNEXPECTED_NULL_VALUE, fileName));
+                    "%s (Resources), unable to read (%s) from the the assets folder.",
+                    UNEXPECTED_NULL_VALUE,
+                    fileName);
             return null;
         }
 
@@ -312,9 +312,9 @@ class DeviceInfoService implements DeviceInforming {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     LOG_TAG,
-                    String.format(
-                            "%s (AssetManager), unable to read (%s) from the the assets folder.",
-                            UNEXPECTED_NULL_VALUE, fileName));
+                    "%s (AssetManager), unable to read (%s) from the the assets folder.",
+                    UNEXPECTED_NULL_VALUE,
+                    fileName);
             return null;
         }
 
@@ -324,8 +324,9 @@ class DeviceInfoService implements DeviceInforming {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     LOG_TAG,
-                    String.format(
-                            "Unable to read (%s) from the the assets folder. (%s)", fileName, e));
+                    "Unable to read (%s) from the the assets folder. (%s)",
+                    fileName,
+                    e);
         }
 
         return inputStream;
@@ -347,9 +348,9 @@ class DeviceInfoService implements DeviceInforming {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     LOG_TAG,
-                    String.format(
-                            "%s (Package Manager), unable to read property for key (%s).",
-                            UNEXPECTED_NULL_VALUE, propertyKey));
+                    "%s (Package Manager), unable to read property for key (%s).",
+                    UNEXPECTED_NULL_VALUE,
+                    propertyKey);
             return null;
         }
 
@@ -362,9 +363,9 @@ class DeviceInfoService implements DeviceInforming {
                 Log.debug(
                         ServiceConstants.LOG_TAG,
                         LOG_TAG,
-                        String.format(
-                                "%s (Application info), unable to read property for key (%s).",
-                                UNEXPECTED_NULL_VALUE, propertyKey));
+                        "%s (Application info), unable to read property for key (%s).",
+                        UNEXPECTED_NULL_VALUE,
+                        propertyKey);
                 return null;
             }
 
@@ -374,10 +375,10 @@ class DeviceInfoService implements DeviceInforming {
                 Log.debug(
                         ServiceConstants.LOG_TAG,
                         LOG_TAG,
-                        String.format(
-                                "%s (ApplicationInfo's metaData), unable to read property for key"
-                                        + " (%s).",
-                                UNEXPECTED_NULL_VALUE, propertyKey));
+                        "%s (ApplicationInfo's metaData), unable to read property for key"
+                                + " (%s).",
+                        UNEXPECTED_NULL_VALUE,
+                        propertyKey);
                 return null;
             }
 
@@ -387,9 +388,9 @@ class DeviceInfoService implements DeviceInforming {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     LOG_TAG,
-                    String.format(
-                            "Unable to read property for key (%s). Exception - (%s)",
-                            propertyKey, e));
+                    "Unable to read property for key (%s). Exception - (%s)",
+                    propertyKey,
+                    e);
         }
 
         return propertyValue;
@@ -423,7 +424,8 @@ class DeviceInfoService implements DeviceInforming {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     LOG_TAG,
-                    String.format("PackageManager couldn't find application name (%s)", e));
+                    "PackageManager couldn't find application name (%s)",
+                    e);
         }
 
         return appName;
@@ -470,7 +472,8 @@ class DeviceInfoService implements DeviceInforming {
                 Log.debug(
                         ServiceConstants.LOG_TAG,
                         LOG_TAG,
-                        String.format("Failed to get app version code, (%s)", e));
+                        "Failed to get app version code, (%s)",
+                        e);
             }
         } else {
             versionCode = packageInfo.versionCode;
@@ -579,9 +582,8 @@ class DeviceInfoService implements DeviceInforming {
             Log.debug(
                     ServiceConstants.LOG_TAG,
                     LOG_TAG,
-                    String.format(
-                            "PackageManager couldn't find application version (%s)",
-                            e.getLocalizedMessage()));
+                    "PackageManager couldn't find application version (%s)",
+                    e.getLocalizedMessage());
             return null;
         }
     }

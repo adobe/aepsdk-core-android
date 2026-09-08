@@ -1019,8 +1019,8 @@ public final class MobileCore {
     /**
      * Registers one or more {@link IAepPlugin} implementations with the SDK. Plugins are optional
      * capabilities (for example Live Updates) implemented in separate modules and resolved at
-     * runtime by type. Replaces capability-specific setters such as the former
-     * {@code Messaging.setLiveUpdateHandler(...)}.
+     * runtime by type. Replaces capability-specific setters such as the former {@code
+     * Messaging.setLiveUpdateHandler(...)}.
      *
      * @param plugins the plugins to register
      */

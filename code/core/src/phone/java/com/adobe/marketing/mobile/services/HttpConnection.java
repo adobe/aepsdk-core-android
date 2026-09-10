@@ -46,14 +46,10 @@ class HttpConnection implements HttpConnecting {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(
-                            "Could not get the input stream, protocol does not support input. (%s)",
-                            e));
+                    "Could not get the input stream, protocol does not support input. (%s)",
+                    e);
         } catch (final Exception | Error e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Could not get the input stream. (%s)", e));
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Could not get the input stream. (%s)", e);
         }
 
         return null;
@@ -70,10 +66,7 @@ class HttpConnection implements HttpConnecting {
         try {
             return httpUrlConnection.getErrorStream();
         } catch (final Exception | Error e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Could not get the input stream. (%s)", e));
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Could not get the input stream. (%s)", e);
         }
 
         return null;
@@ -92,10 +85,7 @@ class HttpConnection implements HttpConnecting {
         try {
             return httpUrlConnection.getResponseCode();
         } catch (final Exception | Error e) {
-            Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Could not get response code. (%s)", e));
+            Log.warning(ServiceConstants.LOG_TAG, TAG, "Could not get response code. (%s)", e);
         }
 
         return -1;
@@ -115,9 +105,7 @@ class HttpConnection implements HttpConnecting {
             return httpUrlConnection.getResponseMessage();
         } catch (final Exception | Error e) {
             Log.warning(
-                    ServiceConstants.LOG_TAG,
-                    TAG,
-                    String.format("Could not get the response message. (%s)", e));
+                    ServiceConstants.LOG_TAG, TAG, "Could not get the response message. (%s)", e);
         }
 
         return null;
@@ -155,9 +143,7 @@ class HttpConnection implements HttpConnecting {
                 inputStream.close();
             } catch (final Exception | Error e) {
                 Log.warning(
-                        ServiceConstants.LOG_TAG,
-                        TAG,
-                        String.format("Could not close the input stream. (%s)", e));
+                        ServiceConstants.LOG_TAG, TAG, "Could not close the input stream. (%s)", e);
             }
         }
         if (errorStream != null) {
@@ -165,9 +151,7 @@ class HttpConnection implements HttpConnecting {
                 errorStream.close();
             } catch (final Exception | Error e) {
                 Log.warning(
-                        ServiceConstants.LOG_TAG,
-                        TAG,
-                        String.format("Could not close the error stream. (%s)", e));
+                        ServiceConstants.LOG_TAG, TAG, "Could not close the error stream. (%s)", e);
             }
         }
 

@@ -25,10 +25,9 @@ class LocalDataStoreService implements DataStoring {
             Log.error(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(
-                            "Failed to create an instance of NamedCollection with name - %s: the"
-                                    + " collection name is null or empty.",
-                            collectionName));
+                    "Failed to create an instance of NamedCollection with name - %s: the"
+                            + " collection name is null or empty.",
+                    collectionName);
             return null;
         }
 
@@ -39,10 +38,9 @@ class LocalDataStoreService implements DataStoring {
             Log.error(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(
-                            "Failed to create an instance of NamedCollection with name - %s: the"
-                                    + " ApplicationContext is null",
-                            collectionName));
+                    "Failed to create an instance of NamedCollection with name - %s: the"
+                            + " ApplicationContext is null",
+                    collectionName);
             return null;
         }
 

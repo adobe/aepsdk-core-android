@@ -18,6 +18,8 @@ public final class StringUtils {
     /**
      * Checks if a {@code String} is null, empty or it only contains whitespaces.
      *
+     * <p>A {@code null} reference is treated the same as an empty or whitespace-only string.
+     *
      * @param str the {@link String} that we want to check
      * @return {@code boolean} with the evaluation result
      */

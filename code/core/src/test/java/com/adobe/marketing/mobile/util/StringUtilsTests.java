@@ -36,4 +36,24 @@ public class StringUtilsTests {
     public void testIsNullOrEmpty_when_whitespacesInputString() {
         assertTrue(StringUtils.isNullOrEmpty("        "));
     }
+
+    @Test
+    public void testIsNotNullOrEmpty_when_nullInputString() {
+        assertFalse(StringUtils.isNotNullOrEmpty(null));
+    }
+
+    @Test
+    public void testIsNotNullOrEmpty_when_emptyInputString() {
+        assertFalse(StringUtils.isNotNullOrEmpty(""));
+    }
+
+    @Test
+    public void testIsNotNullOrEmpty_when_whitespacesInputString() {
+        assertFalse(StringUtils.isNotNullOrEmpty("        "));
+    }
+
+    @Test
+    public void testIsNotNullOrEmpty_when_validInputString() {
+        assertTrue(StringUtils.isNotNullOrEmpty("non empty string"));
+    }
 }

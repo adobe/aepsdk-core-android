@@ -28,8 +28,8 @@ public final class StringUtils {
     }
 
     /**
-     * Checks if a {@code String} is non-null and contains at least one non-whitespace
-     * character. This is the inverse of {@link #isNullOrEmpty(String)}.
+     * Checks if a {@code String} is non-null and contains at least one non-whitespace character.
+     * This is the inverse of {@link #isNullOrEmpty(String)}.
      *
      * @param str the {@link String} that we want to check
      * @return {@code boolean} with the evaluation result

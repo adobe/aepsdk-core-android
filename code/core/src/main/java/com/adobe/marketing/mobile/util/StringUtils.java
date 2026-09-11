@@ -18,10 +18,23 @@ public final class StringUtils {
     /**
      * Checks if a {@code String} is null, empty or it only contains whitespaces.
      *
+     * <p>A {@code null} reference is treated the same as an empty or whitespace-only string.
+     *
      * @param str the {@link String} that we want to check
      * @return {@code boolean} with the evaluation result
      */
     public static boolean isNullOrEmpty(final String str) {
         return str == null || str.trim().isEmpty();
+    }
+
+    /**
+     * Checks if a {@code String} is non-null and contains at least one non-whitespace character.
+     * This is the inverse of {@link #isNullOrEmpty(String)}.
+     *
+     * @param str the {@link String} that we want to check
+     * @return {@code boolean} with the evaluation result
+     */
+    static boolean isNotNullOrEmpty(final String str) {
+        return !isNullOrEmpty(str);
     }
 }

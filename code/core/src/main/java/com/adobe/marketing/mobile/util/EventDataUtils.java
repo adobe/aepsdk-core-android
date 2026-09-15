@@ -59,6 +59,19 @@ public class EventDataUtils {
         immutableClasses.add(UUID.class);
     }
 
+    /**
+     * True if {@code value} is {@code null} or its runtime type is one of the types treated
+     * as immutable leaf values by {@link #clone} / {@link #immutableClone} (copied as-is
+     * rather than recursed into). Exposed so callers needing a pre-check (e.g.
+     * {@code DataMarshaller}) can reuse this type list instead of duplicating it. See #791.
+     *
+     * @param value value to check, may be null
+     * @return true if value is null or supported as an immutable leaf type
+     */
+    public static boolean isImmutableType(final Object value) {
+        return value == null || immutableClasses.contains(value.getClass());
+    }
+
     private EventDataUtils() {}
 
     private static Object cloneObject(final Object obj, final CloneMode mode, final int depth)

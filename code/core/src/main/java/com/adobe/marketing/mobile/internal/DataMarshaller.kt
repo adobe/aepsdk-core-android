@@ -17,6 +17,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.util.EventDataUtils
 
 /** The util class to marshal data from [Activity].  */
 internal object DataMarshaller {
@@ -90,7 +91,7 @@ internal object DataMarshaller {
                         return@forEach
                     }
                     val value = extraBundle[key]
-                    if (value?.toString()?.isNotEmpty() == true) {
+                    if (value != null && isMarshallable(value)) {
                         marshalledData[key] = value
                     }
                 } catch (e: Exception) {
@@ -100,6 +101,53 @@ internal object DataMarshaller {
         } catch (e: Exception) {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data from Activity, error is: ${e.message}")
         }
+    }
+
+    /**
+     * True if [value] should be carried forward into marshalled Intent data: it must be
+     * representable in Event data (see [isEventDataCompatible]) and not effectively empty
+     * (see [isEffectivelyEmpty]). Combining both checks in one place means a type added to
+     * one side of the check doesn't require a second matching change elsewhere.
+     */
+    private fun isMarshallable(value: Any): Boolean =
+        isEventDataCompatible(value) && !isEffectivelyEmpty(value)
+
+    /**
+     * True if [value] is representable in Event data, i.e. would survive the deep-clone
+     * performed by EventDataUtils when this data is attached to an Event / shared state.
+     * Filtering at marshal time avoids holding references to (and stringifying) extras
+     * that would otherwise be silently dropped downstream anyway. See #791.
+     */
+    private fun isEventDataCompatible(value: Any?): Boolean = when {
+        EventDataUtils.isImmutableType(value) -> true
+        value is Map<*, *> -> value.keys.all { it is String } &&
+            value.values.all { isEventDataCompatible(it) }
+        value is Collection<*> -> value.all { isEventDataCompatible(it) }
+        value != null && value.javaClass.isArray ->
+            (0 until java.lang.reflect.Array.getLength(value))
+                .all { isEventDataCompatible(java.lang.reflect.Array.get(value, it)) }
+        else -> false
+    }
+
+    /**
+     * Cheap, non-allocating check for "no meaningful data," replacing the previous
+     * `toString().isNotEmpty()` check which could force full stringification of large
+     * Parcelables/collections (see #791).
+     */
+    private fun isEffectivelyEmpty(value: Any): Boolean = when (value) {
+        is CharSequence -> value.isEmpty()
+        is Collection<*> -> value.isEmpty()
+        is Map<*, *> -> value.isEmpty()
+        is Array<*> -> value.isEmpty()
+        is BooleanArray -> value.isEmpty()
+        is ByteArray -> value.isEmpty()
+        is CharArray -> value.isEmpty()
+        is ShortArray -> value.isEmpty()
+        is IntArray -> value.isEmpty()
+        is LongArray -> value.isEmpty()
+        is FloatArray -> value.isEmpty()
+        is DoubleArray -> value.isEmpty()
+        else -> false // Parcelable, Serializable, boxed primitives, etc. — never "empty"
     }
 
     /**

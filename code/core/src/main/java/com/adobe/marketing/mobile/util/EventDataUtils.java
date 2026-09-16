@@ -72,6 +72,77 @@ public class EventDataUtils {
         return value == null || immutableClasses.contains(value.getClass());
     }
 
+    /**
+     * True if {@code value} is representable in Event data, i.e. would survive the deep-clone
+     * performed by {@link #clone} / {@link #immutableClone} when this data is attached to an
+     * Event / shared state. Mirrors the same type dispatch as {@link #cloneObject}, without
+     * doing any cloning, so callers needing a pre-check (e.g. {@code DataMarshaller}) can avoid
+     * holding references to (and stringifying) values that would otherwise be silently dropped
+     * downstream anyway. See #791.
+     *
+     * @param value value to check, may be null
+     * @return true if value is null or a supported Event data type
+     */
+    public static boolean isEventDataCompatible(final Object value) {
+        if (isImmutableType(value)) {
+            return true;
+        }
+
+        if (value instanceof Map) {
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                if (!(entry.getKey() instanceof String) || !isEventDataCompatible(entry.getValue())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if (value instanceof Collection) {
+            for (Object element : (Collection<?>) value) {
+                if (!isEventDataCompatible(element)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if (value.getClass().isArray()) {
+            final int length = Array.getLength(value);
+            for (int i = 0; i < length; i++) {
+                if (!isEventDataCompatible(Array.get(value, i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Cheap, non-allocating check for "no meaningful data." Replaces stringifying a value
+     * (e.g. via {@code toString().isEmpty()}) just to test emptiness, which can force full
+     * stringification of large Parcelables/collections. See #791.
+     *
+     * @param value value to check, must not be null
+     * @return true if value is an empty String/Collection/Map/array; false otherwise
+     */
+    public static boolean isEffectivelyEmpty(final Object value) {
+        if (value instanceof CharSequence) {
+            return ((CharSequence) value).length() == 0;
+        }
+        if (value instanceof Collection) {
+            return ((Collection<?>) value).isEmpty();
+        }
+        if (value instanceof Map) {
+            return ((Map<?, ?>) value).isEmpty();
+        }
+        if (value.getClass().isArray()) {
+            return Array.getLength(value) == 0;
+        }
+        return false;
+    }
+
     private EventDataUtils() {}
 
     private static Object cloneObject(final Object obj, final CloneMode mode, final int depth)

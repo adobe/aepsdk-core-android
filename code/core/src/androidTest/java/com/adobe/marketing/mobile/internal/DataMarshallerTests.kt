@@ -19,6 +19,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -214,6 +215,40 @@ class DataMarshallerTests {
     }
 
     @Test
+    fun marshalIntentExtras_largeCollectionExtra_doesNotCallToString() {
+        val largeList = ArrayList<String>(LARGE_COLLECTION_SIZE).apply {
+            repeat(LARGE_COLLECTION_SIZE) { add("item_$it") }
+        }
+        val spy = ToStringSpy(largeList)
+
+        val intent = Intent().apply {
+            putExtra("largePayloadKey", spy)
+        }
+
+        val result = mutableMapOf<String, Any>()
+        DataMarshaller.marshalIntentExtras(intent, result)
+
+        assertEquals(0, spy.toStringCallCount)
+        assertEquals(spy, result["largePayloadKey"])
+    }
+
+    @Test
+    fun marshalIntentExtras_unsupportedTypeExtra_isFilteredOut() {
+        val unsupportedValue = UnsupportedTypePayload(42)
+
+        val intent = Intent().apply {
+            putExtra("unsupportedKey", unsupportedValue)
+        }
+
+        val result = mutableMapOf<String, Any>()
+        DataMarshaller.marshalIntentExtras(intent, result)
+
+        // isEventDataCompatible filters this out here, before it ever leaves DataMarshaller,
+        // instead of only being dropped later downstream by EventDataUtils.immutableClone().
+        assertFalse(result.containsKey("unsupportedKey"))
+    }
+
+    @Test
     fun marshal_whenBundleThrowException_NoCrash() {
         val intent =
             Intent(ApplicationProvider.getApplicationContext(), TestActivity::class.java).apply {
@@ -297,6 +332,21 @@ class DataMarshallerTests {
             throw IllegalStateException("This is a test exception")
         }
     }
+
+    /** A supported (Event-data-compatible) collection type that counts toString() calls,
+     *  so the large-payload test exercises the size/emptiness path, not the type-filter path. */
+    private class ToStringSpy(elements: List<String>) : ArrayList<String>(elements) {
+        var toStringCallCount = 0
+            private set
+
+        override fun toString(): String {
+            toStringCallCount++
+            return super.toString()
+        }
+    }
+
+    private data class UnsupportedTypePayload(val id: Int) : Serializable
+
     companion object {
         const val LEGACY_PUSH_MESSAGE_ID = "adb_m_id"
         const val PUSH_MESSAGE_ID_KEY = "pushmessageid"
@@ -304,5 +354,7 @@ class DataMarshallerTests {
         const val LOCAL_NOTIFICATION_ID_KEY = "notificationid"
 
         const val DEEPLINK_KEY = "deeplink"
+
+        const val LARGE_COLLECTION_SIZE = 200_000
     }
 }

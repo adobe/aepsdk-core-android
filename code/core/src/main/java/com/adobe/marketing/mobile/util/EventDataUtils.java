@@ -60,10 +60,10 @@ public class EventDataUtils {
     }
 
     /**
-     * True if {@code value} is {@code null} or its runtime type is one of the types treated
-     * as immutable leaf values by {@link #clone} / {@link #immutableClone} (copied as-is
-     * rather than recursed into). Exposed so callers needing a pre-check (e.g.
-     * {@code DataMarshaller}) can reuse this type list instead of duplicating it. See #791.
+     * True if {@code value} is {@code null} or its runtime type is one of the types treated as
+     * immutable leaf values by {@link #clone} / {@link #immutableClone} (copied as-is rather than
+     * recursed into). Exposed so callers needing a pre-check (e.g. {@code DataMarshaller}) can
+     * reuse this type list instead of duplicating it. See #791.
      *
      * @param value value to check, may be null
      * @return true if value is null or supported as an immutable leaf type
@@ -74,11 +74,11 @@ public class EventDataUtils {
 
     /**
      * True if {@code value} is representable in Event data, i.e. would survive the deep-clone
-     * performed by {@link #clone} / {@link #immutableClone} when this data is attached to an
-     * Event / shared state. Mirrors the same type dispatch as {@link #cloneObject}, without
-     * doing any cloning, so callers needing a pre-check (e.g. {@code DataMarshaller}) can avoid
-     * holding references to (and stringifying) values that would otherwise be silently dropped
-     * downstream anyway. See #791.
+     * performed by {@link #clone} / {@link #immutableClone} when this data is attached to an Event
+     * / shared state. Mirrors the same type dispatch as {@link #cloneObject}, without doing any
+     * cloning, so callers needing a pre-check (e.g. {@code DataMarshaller}) can avoid holding
+     * references to (and stringifying) values that would otherwise be silently dropped downstream
+     * anyway. See #791.
      *
      * @param value value to check, may be null
      * @return true if value is null or a supported Event data type
@@ -90,7 +90,8 @@ public class EventDataUtils {
 
         if (value instanceof Map) {
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                if (!(entry.getKey() instanceof String) || !isEventDataCompatible(entry.getValue())) {
+                if (!(entry.getKey() instanceof String)
+                        || !isEventDataCompatible(entry.getValue())) {
                     return false;
                 }
             }
@@ -120,9 +121,9 @@ public class EventDataUtils {
     }
 
     /**
-     * Cheap, non-allocating check for "no meaningful data." Replaces stringifying a value
-     * (e.g. via {@code toString().isEmpty()}) just to test emptiness, which can force full
-     * stringification of large Parcelables/collections. See #791.
+     * Cheap, non-allocating check for "no meaningful data." Replaces stringifying a value (e.g. via
+     * {@code toString().isEmpty()}) just to test emptiness, which can force full stringification of
+     * large Parcelables/collections. See #791.
      *
      * @param value value to check, must not be null
      * @return true if value is an empty String/Collection/Map/array; false otherwise

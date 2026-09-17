@@ -43,10 +43,10 @@ public class SQLiteDatabaseHelper {
             Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_PREFIX,
-                    String.format(
-                            "createTableIfNotExists - Error in creating/accessing database (%s)."
-                                    + "Error: (%s)",
-                            dbPath, e.getMessage()));
+                    "createTableIfNotExists - Error in creating/accessing database (%s)."
+                            + "Error: (%s)",
+                    dbPath,
+                    e.getMessage());
             return false;
         } finally {
             closeDatabase(database);
@@ -72,10 +72,11 @@ public class SQLiteDatabaseHelper {
             Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_PREFIX,
-                    String.format(
-                            "getTableSize - Error in querying table(%s) size from database(%s)."
-                                    + "Returning 0. Error: (%s)",
-                            tableName, dbPath, e.getMessage()));
+                    "getTableSize - Error in querying table(%s) size from database(%s)."
+                            + "Returning 0. Error: (%s)",
+                    tableName,
+                    dbPath,
+                    e.getMessage());
             return 0;
         } finally {
             closeDatabase(database);
@@ -100,10 +101,11 @@ public class SQLiteDatabaseHelper {
             Log.warning(
                     CoreConstants.LOG_TAG,
                     LOG_PREFIX,
-                    String.format(
-                            "clearTable - Error in clearing table(%s) from database(%s)."
-                                    + "Returning false. Error: (%s)",
-                            tableName, dbPath, e.getMessage()));
+                    "clearTable - Error in clearing table(%s) from database(%s)."
+                            + "Returning false. Error: (%s)",
+                    tableName,
+                    dbPath,
+                    e.getMessage());
             return false;
         } finally {
             closeDatabase(database);
@@ -161,8 +163,8 @@ public class SQLiteDatabaseHelper {
         Log.trace(
                 CoreConstants.LOG_TAG,
                 LOG_PREFIX,
-                String.format(
-                        "openDatabase - Successfully opened the database at path (%s)", filePath));
+                "openDatabase - Successfully opened the database at path (%s)",
+                filePath);
         return database;
     }
 

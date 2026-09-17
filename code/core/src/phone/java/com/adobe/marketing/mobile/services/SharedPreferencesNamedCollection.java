@@ -139,18 +139,18 @@ class SharedPreferencesNamedCollection implements NamedCollection {
                     Log.error(
                             ServiceConstants.LOG_TAG,
                             TAG,
-                            String.format(
-                                    "Unable to convert jsonObject key %s into map, %s",
-                                    keyName, jsonException.getLocalizedMessage()));
+                            "Unable to convert jsonObject key %s into map, %s",
+                            keyName,
+                            jsonException.getLocalizedMessage());
                 }
             }
         } catch (Exception e) {
             Log.error(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(
-                            "Failed to convert [%s] to String Map, %s",
-                            mapJsonString, e.getLocalizedMessage()));
+                    "Failed to convert [%s] to String Map, %s",
+                    mapJsonString,
+                    e.getLocalizedMessage());
             map = null;
         }
 

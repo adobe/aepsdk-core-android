@@ -90,12 +90,9 @@ class NetworkService implements Networking {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(
-                            "Failed to send request for (%s) [%s]",
-                            request.getUrl(),
-                            (e.getLocalizedMessage() != null
-                                    ? e.getLocalizedMessage()
-                                    : e.getMessage())));
+                    "Failed to send request for (%s) [%s]",
+                    request.getUrl(),
+                    (e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getMessage()));
 
             if (callback != null) {
                 callback.call(null);
@@ -122,9 +119,8 @@ class NetworkService implements Networking {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(
-                            "Invalid URL (%s), only HTTPS protocol is supported",
-                            request.getUrl()));
+                    "Invalid URL (%s), only HTTPS protocol is supported",
+                    request.getUrl());
             return null;
         }
 
@@ -159,20 +155,20 @@ class NetworkService implements Networking {
                     Log.warning(
                             ServiceConstants.LOG_TAG,
                             TAG,
-                            String.format(
-                                    "Could not create a connection to URL (%s) [%s]",
-                                    request.getUrl(),
-                                    (e.getLocalizedMessage() != null
-                                            ? e.getLocalizedMessage()
-                                            : e.getMessage())));
+                            "Could not create a connection to URL (%s) [%s]",
+                            request.getUrl(),
+                            (e.getLocalizedMessage() != null
+                                    ? e.getLocalizedMessage()
+                                    : e.getMessage()));
                 }
             }
         } catch (final MalformedURLException e) {
             Log.warning(
                     ServiceConstants.LOG_TAG,
                     TAG,
-                    String.format(
-                            "Could not connect, invalid URL (%s) [%s]!!", request.getUrl(), e));
+                    "Could not connect, invalid URL (%s) [%s]!!",
+                    request.getUrl(),
+                    e);
         }
 
         return connection;

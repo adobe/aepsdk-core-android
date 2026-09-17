@@ -121,18 +121,15 @@ final class SQLiteDataQueue implements DataQueue {
                             Log.trace(
                                     ServiceConstants.LOG_TAG,
                                     LOG_PREFIX,
-                                    String.format(
-                                            "query - Successfully read %d rows from table.",
-                                            rows.size()));
+                                    "query - Successfully read %d rows from table.",
+                                    rows.size());
                             return true;
                         } catch (final SQLiteException e) {
                             Log.warning(
                                     ServiceConstants.LOG_TAG,
                                     LOG_PREFIX,
-                                    String.format(
-                                            "query - Error in querying database table. Error:"
-                                                    + " (%s)",
-                                            e.getLocalizedMessage()));
+                                    "query - Error in querying database table. Error:" + " (%s)",
+                                    e.getLocalizedMessage());
                             return false;
                         }
                     });
@@ -151,8 +148,8 @@ final class SQLiteDataQueue implements DataQueue {
         Log.trace(
                 ServiceConstants.LOG_TAG,
                 LOG_PREFIX,
-                String.format(
-                        "peek n - Successfully returned %d DataEntities", dataEntitiesList.size()));
+                "peek n - Successfully returned %d DataEntities",
+                dataEntitiesList.size());
         return dataEntitiesList;
     }
 
@@ -179,9 +176,8 @@ final class SQLiteDataQueue implements DataQueue {
         Log.trace(
                 ServiceConstants.LOG_TAG,
                 LOG_PREFIX,
-                String.format(
-                        "peek - Successfully returned DataEntity (%s)",
-                        dataEntities.get(0).toString()));
+                "peek - Successfully returned DataEntity (%s)",
+                dataEntities.get(0));
         return dataEntities.get(0);
     }
 
@@ -225,18 +221,16 @@ final class SQLiteDataQueue implements DataQueue {
                                     Log.trace(
                                             ServiceConstants.LOG_TAG,
                                             LOG_PREFIX,
-                                            String.format(
-                                                    "remove n - Removed %d DataEntities",
-                                                    deletedRowsCount));
+                                            "remove n - Removed %d DataEntities",
+                                            deletedRowsCount);
                                     return deletedRowsCount > -1;
                                 } catch (final SQLiteException e) {
                                     Log.warning(
                                             ServiceConstants.LOG_TAG,
                                             LOG_PREFIX,
-                                            String.format(
-                                                    "removeRows - Error in deleting rows from"
-                                                            + " table. Returning 0. Error: (%s)",
-                                                    e.getMessage()));
+                                            "removeRows - Error in deleting rows from"
+                                                    + " table. Returning 0. Error: (%s)",
+                                            e.getMessage());
                                     return false;
                                 }
                             });
@@ -269,8 +263,8 @@ final class SQLiteDataQueue implements DataQueue {
             Log.trace(
                     ServiceConstants.LOG_TAG,
                     LOG_PREFIX,
-                    String.format(
-                            "clear - %s in clearing table", (result ? "Successful" : "Failed")));
+                    "clear - %s in clearing table",
+                    (result ? "Successful" : "Failed"));
 
             if (!result) {
                 resetDatabase();

@@ -11,6 +11,7 @@
 
 package com.adobe.marketing.mobile.internal
 
+import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.plugin.IAepPlugin
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -39,5 +40,11 @@ object PluginRegistry {
             }
         }
         return null
+    }
+
+    /** Clears all registered plugins. */
+    @VisibleForTesting
+    fun clear() {
+        plugins.clear()
     }
 }

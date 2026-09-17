@@ -12,10 +12,15 @@
 package com.adobe.marketing.mobile
 
 import android.app.Activity
+import android.app.Notification
+import android.content.Context
 import com.adobe.marketing.mobile.internal.CoreConstants
 import com.adobe.marketing.mobile.internal.DataMarshaller
 import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants
+import com.adobe.marketing.mobile.plugin.IAepPlugin
+import com.adobe.marketing.mobile.plugin.ILiveupdatePlugin
+import com.adobe.marketing.mobile.plugin.IUiTemplatePlugin
 import com.adobe.marketing.mobile.services.internal.context.App
 import org.junit.After
 import org.junit.Before
@@ -36,7 +41,33 @@ import java.util.TimeZone
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
+
+// Reused by several tests below (not moved into individual test bodies as local classes) because
+// each represents a real, named plugin contract shared across multiple test cases; a throwaway,
+// single-use fake would be declared locally inside its one test instead.
+private class FakeLiveupdatePlugin : ILiveupdatePlugin {
+    var lastContext: Context? = null
+    var lastMessage: Any? = null
+
+    override fun handleLiveUpdatePush(context: Context, message: Any) {
+        lastContext = context
+        lastMessage = message
+    }
+}
+
+private class FakeUiTemplatePlugin(private val notificationToReturn: Notification?) : IUiTemplatePlugin {
+    override fun buildPushTemplateNotification(
+        context: Context,
+        messageData: Map<String, String>,
+        trackerActivityClass: Class<out Activity>?,
+        broadcastReceiverClass: Class<out android.content.BroadcastReceiver>?
+    ): Notification? {
+        return notificationToReturn
+    }
+}
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class MobileCoreTests {
@@ -625,5 +656,100 @@ class MobileCoreTests {
             CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_ACTION_KEY to CoreConstants.EventDataKeys.Lifecycle.LIFECYCLE_PAUSE
         )
         assertEquals(expectedData, eventCaptor.firstValue.eventData)
+    }
+
+    // Plugins
+    // MobileCore.resetSDK() (called in setup() above) now clears PluginRegistry before every test,
+    // so these can freely reuse the real ILiveupdatePlugin/IUiTemplatePlugin contracts without any
+    // test leaking a registration into another.
+
+    @Test
+    fun testAddPlugins_multiplePluginsInOneCall_allRegisteredUnderTheirOwnContracts() {
+        val liveupdatePlugin = FakeLiveupdatePlugin()
+        val uiTemplatePlugin = FakeUiTemplatePlugin(null)
+
+        MobileCore.addPlugins(liveupdatePlugin, uiTemplatePlugin)
+
+        assertSame(liveupdatePlugin, MobileCore.getPlugin(ILiveupdatePlugin::class.java))
+        assertSame(uiTemplatePlugin, MobileCore.getPlugin(IUiTemplatePlugin::class.java))
+    }
+
+    @Test
+    fun testAddPlugins_zeroArgs_doesNotThrow() {
+        MobileCore.addPlugins()
+    }
+
+    @Test
+    fun testAddPlugins_nullElementMixedWithValid_nullSkippedValidRegistered() {
+        val plugin = FakeLiveupdatePlugin()
+        val pluginsWithNull: Array<IAepPlugin?> = arrayOf(plugin, null)
+
+        @Suppress("UNCHECKED_CAST")
+        MobileCore.addPlugins(*(pluginsWithNull as Array<IAepPlugin>))
+
+        assertSame(plugin, MobileCore.getPlugin(ILiveupdatePlugin::class.java))
+    }
+
+    @Test
+    fun testGetPlugin_nullType_returnsNull() {
+        // Reflection bypasses Kotlin's compile-time null-checks so a literal null can reach the
+        // Java method exactly as it would from a Java caller ignoring the @NonNull annotation.
+        val method = MobileCore::class.java.getMethod("getPlugin", Class::class.java)
+
+        assertNull(method.invoke(null, null))
+    }
+
+    @Test
+    fun testGetPlugin_typeNotRegistered_returnsNull() {
+        assertNull(MobileCore.getPlugin(ILiveupdatePlugin::class.java))
+    }
+
+    @Test
+    fun testGetPlugin_liveupdatePlugin_roundTripsAndInvokesHandler() {
+        val context = mock(Context::class.java)
+        val message = Any()
+        val fake = FakeLiveupdatePlugin()
+
+        MobileCore.addPlugins(fake)
+        val resolved = MobileCore.getPlugin(ILiveupdatePlugin::class.java)
+        resolved?.handleLiveUpdatePush(context, message)
+
+        assertSame(fake, resolved)
+        assertSame(context, fake.lastContext)
+        assertSame(message, fake.lastMessage)
+    }
+
+    @Test
+    fun testGetPlugin_uiTemplatePlugin_returnsBuiltNotification() {
+        val notification = mock(Notification::class.java)
+        val fake = FakeUiTemplatePlugin(notification)
+
+        MobileCore.addPlugins(fake)
+        val result = MobileCore.getPlugin(IUiTemplatePlugin::class.java)
+            ?.buildPushTemplateNotification(mock(Context::class.java), emptyMap(), null, null)
+
+        assertSame(notification, result)
+    }
+
+    @Test
+    fun testGetPlugin_uiTemplatePluginReturnsNull_callerReceivesNull() {
+        val fake = FakeUiTemplatePlugin(null)
+
+        MobileCore.addPlugins(fake)
+        val result = MobileCore.getPlugin(IUiTemplatePlugin::class.java)
+            ?.buildPushTemplateNotification(mock(Context::class.java), emptyMap(), null, null)
+
+        assertNull(result)
+    }
+
+    @Test
+    fun testResetSDK_clearsPreviouslyRegisteredPlugins() {
+        val plugin = FakeLiveupdatePlugin()
+        MobileCore.addPlugins(plugin)
+        assertSame(plugin, MobileCore.getPlugin(ILiveupdatePlugin::class.java))
+
+        MobileCore.resetSDK()
+
+        assertNull(MobileCore.getPlugin(ILiveupdatePlugin::class.java))
     }
 }

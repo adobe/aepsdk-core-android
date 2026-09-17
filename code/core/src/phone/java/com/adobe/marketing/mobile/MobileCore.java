@@ -1055,5 +1055,6 @@ public final class MobileCore {
         EventHub.Companion.getShared().shutdown();
         EventHub.Companion.setShared(new EventHub());
         MobileCoreInitializer.INSTANCE.reset();
+        PluginRegistry.INSTANCE.clear();
     }
 }

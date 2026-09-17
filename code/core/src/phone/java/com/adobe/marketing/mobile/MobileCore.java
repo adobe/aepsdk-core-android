@@ -20,8 +20,10 @@ import androidx.annotation.VisibleForTesting;
 import com.adobe.marketing.mobile.internal.AppResourceStore;
 import com.adobe.marketing.mobile.internal.CoreConstants;
 import com.adobe.marketing.mobile.internal.DataMarshaller;
+import com.adobe.marketing.mobile.internal.PluginRegistry;
 import com.adobe.marketing.mobile.internal.eventhub.EventHub;
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants;
+import com.adobe.marketing.mobile.plugin.IAepPlugin;
 import com.adobe.marketing.mobile.services.Log;
 import com.adobe.marketing.mobile.services.ServiceProvider;
 import com.adobe.marketing.mobile.util.DataReader;
@@ -1008,6 +1010,44 @@ public final class MobileCore {
                         .setEventData(eventData)
                         .build();
         dispatchEvent(event);
+    }
+
+    // ========================================================
+    // Plugins
+    // ========================================================
+
+    /**
+     * Registers one or more {@link IAepPlugin} implementations with the SDK. Plugins are optional
+     * capabilities (for example Live Updates) implemented in separate modules and resolved at
+     * runtime by type. Replaces capability-specific setters such as the former {@code
+     * Messaging.setLiveUpdateHandler(...)}.
+     *
+     * @param plugins the plugins to register
+     */
+    public static void addPlugins(@NonNull final IAepPlugin... plugins) {
+        if (plugins == null) {
+            return;
+        }
+        for (final IAepPlugin plugin : plugins) {
+            if (plugin != null) {
+                PluginRegistry.INSTANCE.addPlugin(plugin);
+            }
+        }
+    }
+
+    /**
+     * Returns the registered plugin assignable to the given contract type, or {@code null} if none
+     * is registered.
+     *
+     * @param type the plugin contract type (for example {@code ILiveupdatePlugin.class})
+     * @param <T> the plugin contract type
+     * @return the registered plugin, or {@code null}
+     */
+    @Nullable public static <T extends IAepPlugin> T getPlugin(@NonNull final Class<T> type) {
+        if (type == null) {
+            return null;
+        }
+        return PluginRegistry.INSTANCE.getPlugin(type);
     }
 
     @VisibleForTesting

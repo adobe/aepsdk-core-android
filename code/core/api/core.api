@@ -1195,6 +1195,9 @@ public class com/adobe/marketing/mobile/util/EventDataUtils {
 	public static fun castFromGenericType (Ljava/util/Map;)Ljava/util/Map;
 	public static fun clone (Ljava/util/Map;)Ljava/util/Map;
 	public static fun immutableClone (Ljava/util/Map;)Ljava/util/Map;
+	public static fun isEffectivelyEmpty (Ljava/lang/Object;)Z
+	public static fun isEventDataCompatible (Ljava/lang/Object;)Z
+	public static fun isImmutableType (Ljava/lang/Object;)Z
 }
 
 public final class com/adobe/marketing/mobile/util/EventUtils {

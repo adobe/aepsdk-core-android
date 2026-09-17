@@ -17,6 +17,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.VisibleForTesting
 import com.adobe.marketing.mobile.services.Log
+import com.adobe.marketing.mobile.util.EventDataUtils
 
 /** The util class to marshal data from [Activity].  */
 internal object DataMarshaller {
@@ -90,7 +91,7 @@ internal object DataMarshaller {
                         return@forEach
                     }
                     val value = extraBundle[key]
-                    if (value?.toString()?.isNotEmpty() == true) {
+                    if (value != null && isMarshallable(value)) {
                         marshalledData[key] = value
                     }
                 } catch (e: Exception) {
@@ -101,6 +102,16 @@ internal object DataMarshaller {
             Log.error(CoreConstants.LOG_TAG, LOG_TAG, "Failed to retrieve data from Activity, error is: ${e.message}")
         }
     }
+
+    /**
+     * True if [value] should be carried forward into marshalled Intent data: it must be
+     * representable in Event data and not effectively empty. Both checks live in
+     * [EventDataUtils] so the same logic and supported-type set is used everywhere a
+     * value's Event-data compatibility matters, instead of DataMarshaller keeping its
+     * own copy that could drift out of sync. See #791.
+     */
+    private fun isMarshallable(value: Any): Boolean =
+        EventDataUtils.isEventDataCompatible(value) && !EventDataUtils.isEffectivelyEmpty(value)
 
     /**
      * Processes a known key from the bundle by reading its value and adding it to the marshalled data,

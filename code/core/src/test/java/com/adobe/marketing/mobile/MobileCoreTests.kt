@@ -20,6 +20,7 @@ import com.adobe.marketing.mobile.internal.eventhub.EventHub
 import com.adobe.marketing.mobile.internal.eventhub.EventHubConstants
 import com.adobe.marketing.mobile.plugin.IAepPlugin
 import com.adobe.marketing.mobile.plugin.ILiveupdatePlugin
+import com.adobe.marketing.mobile.plugin.IPushTemplateTrackingProvider
 import com.adobe.marketing.mobile.plugin.IUiTemplatePlugin
 import com.adobe.marketing.mobile.services.internal.context.App
 import org.junit.After
@@ -60,10 +61,8 @@ private class FakeLiveupdatePlugin : ILiveupdatePlugin {
 
 private class FakeUiTemplatePlugin(private val notificationToReturn: Notification?) : IUiTemplatePlugin {
     override fun buildPushTemplateNotification(
-        context: Context,
         messageData: Map<String, String>,
-        trackerActivityClass: Class<out Activity>?,
-        broadcastReceiverClass: Class<out android.content.BroadcastReceiver>?
+        trackingProvider: IPushTemplateTrackingProvider
     ): Notification? {
         return notificationToReturn
     }
@@ -726,7 +725,7 @@ class MobileCoreTests {
 
         MobileCore.addPlugins(fake)
         val result = MobileCore.getPlugin(IUiTemplatePlugin::class.java)
-            ?.buildPushTemplateNotification(mock(Context::class.java), emptyMap(), null, null)
+            ?.buildPushTemplateNotification(emptyMap(), mock(IPushTemplateTrackingProvider::class.java))
 
         assertSame(notification, result)
     }
@@ -737,7 +736,7 @@ class MobileCoreTests {
 
         MobileCore.addPlugins(fake)
         val result = MobileCore.getPlugin(IUiTemplatePlugin::class.java)
-            ?.buildPushTemplateNotification(mock(Context::class.java), emptyMap(), null, null)
+            ?.buildPushTemplateNotification(emptyMap(), mock(IPushTemplateTrackingProvider::class.java))
 
         assertNull(result)
     }

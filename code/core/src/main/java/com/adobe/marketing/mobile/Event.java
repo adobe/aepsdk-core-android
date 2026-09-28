@@ -102,8 +102,11 @@ public final class Event {
          * <p>The accepted value types are:
          *
          * <ul>
+         *   <li>{@code BigDecimal}
+         *   <li>{@code BigInteger}
          *   <li>{@code Boolean}
          *   <li>{@code Byte}
+         *   <li>{@code Character}
          *   <li>{@code Collection<Object>}
          *   <li>{@code Double}
          *   <li>{@code Float}
@@ -113,6 +116,8 @@ public final class Event {
          *   <li>{@code Long}
          *   <li>{@code Map<String, Object>}
          *   <li>{@code Short}
+         *   <li>{@code UUID}
+         *   <li>arrays of the above types
          *   <li>null
          * </ul>
          *

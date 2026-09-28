@@ -11,41 +11,50 @@
 
 package com.adobe.marketing.mobile.plugin
 
-import android.app.Activity
 import android.app.Notification
-import android.content.BroadcastReceiver
-import android.content.Context
 
 /**
- * Plugin contract for rendering an out-of-the-box push-template notification (carousel, basic,
- * input-box, timer, etc.).
+ * Plugin contract for rendering an out-of-the-box push-template notification.
  *
- * The contract uses only platform-framework types ([Context], [Notification], [Activity],
- * [BroadcastReceiver], [Map]) so a host SDK on the floor toolchain can hold this reference while the
- * implementing add-on (for example {@code aepsdk-ui-android}'s {@code notificationbuilder}) lives in
- * its own module and depends only on Core. No androidx or Firebase type appears in Core's API.
+ * The contract uses only platform-framework types plus the neutral Core types
+ * [IPushTemplateTrackingProvider] / [PushInteraction], so a host SDK (for example Messaging) can use the
+ * implementing add-on (for example `aepsdk-ui-android`'s `notificationbuilder`) with neither depending
+ * on the other.
  *
- * Unlike the live-activity plugin, the template plugin only **builds** the notification and returns
- * it; the host SDK owns posting and tracking. This keeps the UI add-on free of any dependency on the
- * host SDK.
+ * Ownership split: the UI add-on **renders** the notification; the **host** owns posting, tracking and
+ * intent handling. The UI add-on obtains every [android.app.PendingIntent] from the host-supplied
+ * [IPushTemplateTrackingProvider].
+ *
+ * **Re-render.** Interactive templates request `"rerender"` interactions (see [PushInteraction]). The
+ * host delivers them to its own receiver, merges the state back into the message data and calls
+ * [buildPushTemplateNotification] again, posting the result under the same notification id. So first
+ * render and re-render use this one method.
+ *
+ * **Reserved message-data keys** (fixed; the rest of the map is the push payload as received):
+ * - `"messageId"` - the push message id, added by the host
+ * - `"notificationId"` - the id (as a decimal string) the host posts the notification with, added by the
+ *   host. The UI add-on uses it when it must cancel the notification itself (for example remind-later)
+ *
+ * On re-render the host builds the map in a fixed order: push payload, then the interaction's
+ * [PushInteraction.templateExtras], then any RemoteInput results (later entries win).
  */
 interface IUiTemplatePlugin : IAepPlugin {
 
     /**
-     * Builds a push-template notification from the FCM data map.
+     * Builds a push-template notification from the message data. Called for the first render and for
+     * every re-render.
      *
-     * @param context the application [Context]
-     * @param messageData the push message data (from {@code RemoteMessage.getData()}); the template
-     *     type is read from the app-defined template-type key within it
-     * @param trackerActivityClass the host's tracker [Activity] used for tap/click intents, if any
-     * @param broadcastReceiverClass the host's [BroadcastReceiver] used for action/dismiss intents, if any
-     * @return the built [Notification], or {@code null} if the payload cannot be rendered (the caller
-     *     falls back to a basic notification)
+     * The implementation resolves the application `Context` from Core's `ServiceProvider`. It must not
+     * post the notification; the host posts it.
+     *
+     * @param messageData the push message data plus the reserved keys (and, on re-render, the template
+     *     state and input results)
+     * @param trackingProvider the host's [IPushTemplateTrackingProvider] used to build every PendingIntent
+     * @return the built [Notification], or `null` if nothing should be posted. On first render the host
+     *     falls back to a basic notification; on re-render it posts nothing
      */
     fun buildPushTemplateNotification(
-        context: Context,
         messageData: Map<String, String>,
-        trackerActivityClass: Class<out Activity>?,
-        broadcastReceiverClass: Class<out BroadcastReceiver>?
+        trackingProvider: IPushTemplateTrackingProvider
     ): Notification?
 }

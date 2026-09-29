@@ -47,6 +47,7 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_TYPE_ADD = "add"
         private const val CONSEQUENCE_TYPE_MOD = "mod"
         private const val CONSEQUENCE_TYPE_DISPATCH = "dispatch"
+        private const val CONSEQUENCE_TYPE_FORWARD_OPERATIONAL_DATA = "forward-operational-data"
         private const val CONSEQUENCE_DETAIL_ACTION_COPY = "copy"
         private const val CONSEQUENCE_DETAIL_ACTION_NEW = "new"
         private const val CONSEQUENCE_TYPE_SCHEMA = "schema"
@@ -54,6 +55,7 @@ internal class LaunchRulesConsequence(
         // Do not process Dispatch consequence if chained event count is greater than max
         private const val MAX_CHAINED_CONSEQUENCE_COUNT = 1
         private const val CONSEQUENCE_DISPATCH_EVENT_NAME = "Dispatch Consequence Result"
+        private const val FORWARD_OPERATIONAL_DATA_EVENT_NAME = "Forward operational data"
         private const val CONSEQUENCE_EVENT_DATA_KEY_ID = "id"
         private const val CONSEQUENCE_EVENT_DATA_KEY_TYPE = "type"
         private const val CONSEQUENCE_EVENT_DATA_KEY_DETAIL = "detail"
@@ -129,6 +131,19 @@ internal class LaunchRulesConsequence(
                         extensionApi.dispatch(dispatchEvent)
                         dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] =
                             dispatchChainCount + 1
+                    }
+
+                    CONSEQUENCE_TYPE_FORWARD_OPERATIONAL_DATA -> {
+                        val forwardEvent = processForwardOperationalDataConsequence(
+                            consequenceWithConcreteValue,
+                            processedEvent
+                        ) ?: continue
+                        Log.trace(
+                            LaunchRulesEngineConstants.LOG_TAG,
+                            logTag,
+                            "Dispatching forward-operational-data event ${forwardEvent.uniqueIdentifier}"
+                        )
+                        extensionApi.dispatch(forwardEvent)
                     }
 
                     CONSEQUENCE_TYPE_SCHEMA -> {
@@ -210,9 +225,54 @@ internal class LaunchRulesConsequence(
     ): Map<String, Any?> {
         val mutableDetail = detail.toMutableMap()
         for ((key, value) in detail) {
+            if (value is String) {
+                val tokenKey = wholeValueTokenKey(value)
+                if (tokenKey != null) {
+                    val resolvedValue = tokenFinder.get(tokenKey)
+                    when {
+                        resolvedValue == null -> {
+                            mutableDetail.remove(key)
+                            continue
+                        }
+
+                        resolvedValue is Map<*, *> || resolvedValue is List<*> || resolvedValue is Array<*> -> {
+                            mutableDetail[key] = resolvedValue
+                            continue
+                        }
+                    }
+                }
+            }
             mutableDetail[key] = replaceToken(value, tokenFinder)
         }
         return mutableDetail
+    }
+
+    /**
+     * Returns the key for a single, whole-value Launch token. Embedded, multi-token, and
+     * transformer expressions remain on the regular string-rendering path.
+     */
+    private fun wholeValueTokenKey(value: String): String? {
+        val trimmed = value.trim()
+        if (!trimmed.startsWith(LAUNCH_RULE_TOKEN_LEFT_DELIMITER) ||
+            !trimmed.endsWith(LAUNCH_RULE_TOKEN_RIGHT_DELIMITER) ||
+            trimmed.length <= LAUNCH_RULE_TOKEN_LEFT_DELIMITER.length + LAUNCH_RULE_TOKEN_RIGHT_DELIMITER.length
+        ) {
+            return null
+        }
+
+        val tokenKey = trimmed.substring(
+            LAUNCH_RULE_TOKEN_LEFT_DELIMITER.length,
+            trimmed.length - LAUNCH_RULE_TOKEN_RIGHT_DELIMITER.length
+        ).trim()
+        if (tokenKey.isEmpty() ||
+            tokenKey.contains(LAUNCH_RULE_TOKEN_LEFT_DELIMITER) ||
+            tokenKey.contains(LAUNCH_RULE_TOKEN_RIGHT_DELIMITER) ||
+            tokenKey.contains("(")
+        ) {
+            return null
+        }
+
+        return tokenKey
     }
 
     private fun replaceToken(value: List<Any?>, tokenFinder: TokenFinder): List<Any?> {
@@ -366,6 +426,65 @@ internal class LaunchRulesConsequence(
         }
         return Event.Builder(CONSEQUENCE_DISPATCH_EVENT_NAME, type, source)
             .setEventData(dispatchEventData)
+            .chainToParentEvent(parentEvent)
+            .build()
+    }
+
+    /**
+     * Creates an event from a forward-operational-data consequence. This consequence uses the
+     * declared type/source and resolved event data without applying policy or consent checks.
+     */
+    private fun processForwardOperationalDataConsequence(
+        consequence: RuleConsequence,
+        parentEvent: Event
+    ): Event? {
+        val type = consequence.eventType ?: run {
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Unable to process a forward-operational-data consequence, 'type' is missing from 'details'"
+            )
+            return null
+        }
+        val source = consequence.eventSource ?: run {
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Unable to process a forward-operational-data consequence, 'source' is missing from 'details'"
+            )
+            return null
+        }
+        val action = consequence.eventDataAction ?: CONSEQUENCE_DETAIL_ACTION_NEW
+        val eventData: Map<String, Any?>?
+        when (action) {
+            CONSEQUENCE_DETAIL_ACTION_COPY -> {
+                eventData = parentEvent.eventData ?: emptyMap()
+            }
+
+            CONSEQUENCE_DETAIL_ACTION_NEW -> {
+                val data = EventDataUtils.castFromGenericType(consequence.eventData) ?: run {
+                    Log.error(
+                        LaunchRulesEngineConstants.LOG_TAG,
+                        logTag,
+                        "Unable to process a forward-operational-data consequence, 'eventdata' is missing from 'details'"
+                    )
+                    return null
+                }
+                eventData = data.filterValues { it != null }
+            }
+
+            else -> {
+                Log.error(
+                    LaunchRulesEngineConstants.LOG_TAG,
+                    logTag,
+                    "Unable to process a forward-operational-data consequence, unsupported 'eventdataaction' '$action', expected copy/new"
+                )
+                return null
+            }
+        }
+
+        return Event.Builder(FORWARD_OPERATIONAL_DATA_EVENT_NAME, type, source)
+            .setEventData(eventData)
             .chainToParentEvent(parentEvent)
             .build()
     }

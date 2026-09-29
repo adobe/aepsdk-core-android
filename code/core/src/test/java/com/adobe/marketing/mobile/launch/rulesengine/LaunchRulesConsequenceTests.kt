@@ -21,6 +21,7 @@ import com.adobe.marketing.mobile.SharedStateStatus
 import com.adobe.marketing.mobile.launch.rulesengine.LaunchRuleTransformer.createTransforming
 import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
 import com.adobe.marketing.mobile.rulesengine.ConditionEvaluator
+import com.adobe.marketing.mobile.rulesengine.Evaluable
 import com.adobe.marketing.mobile.rulesengine.RulesEngine
 import com.adobe.marketing.mobile.test.util.readTestResources
 import org.junit.Before
@@ -38,6 +39,7 @@ import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.reset
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -118,8 +120,8 @@ class LaunchRulesConsequenceTests {
         // / Then: ["key1": "value1"] should be attached to above launch event
         assertEquals("value1", attachedData["key1"])
 
-        // / Then: should not get "launches" value from (lifecycle) shared state
-        assertEquals("", attachedData["launches"])
+        // Whole-value tokens whose attributes are unavailable are omitted from the resolved data.
+        assertFalse("launches" in attachedData)
     }
 
     @Test
@@ -300,6 +302,148 @@ class LaunchRulesConsequenceTests {
             processedEvent.eventData?.get("lifecyclecontextdata") as Map<*, *>
         assertNotNull(lifecycleContextData["launchevent"])
         assertNull(lifecycleContextData["launches"])
+    }
+
+    @Test
+    fun `Forward operational data consequence preserves whole-value collections and renders strings`() {
+        val triggeringEvent = Event.Builder(
+            "Device attributes source",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        )
+            .setEventData(
+                mapOf(
+                    "app" to mapOf("id" to "com.example.app"),
+                    "tokens" to mapOf(
+                        "liveActivityStart" to listOf(
+                            mapOf("attributeType" to "GameScore", "value" to "token-1")
+                        )
+                    ),
+                    "timezone" to "Asia/Kolkata",
+                    "number" to 42
+                )
+            )
+            .build()
+        val consequence = RuleConsequence(
+            "forward-id",
+            "forward-operational-data",
+            mapOf(
+                "type" to "com.adobe.eventType.edgeBypassConsent",
+                "source" to "com.adobe.eventSource.requestContent",
+                "eventdataaction" to "new",
+                "eventdata" to mapOf(
+                    "application" to "{%app%}",
+                    "liveActivities" to "{%tokens.liveActivityStart%}",
+                    "timezone" to "{%timezone%}",
+                    "count" to "{%number%}",
+                    "description" to "zone-{%timezone%}",
+                    "integer" to "{%int(number)%}",
+                    "optional" to "{%missingAttribute%}"
+                )
+            )
+        )
+        val rule = LaunchRule(Mockito.mock(Evaluable::class.java), listOf(consequence))
+
+        launchRulesConsequence.process(triggeringEvent, listOf(rule))
+
+        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(dispatchedEventCaptor.capture())
+        val dispatchedEvent = dispatchedEventCaptor.value
+        assertEquals("com.adobe.eventType.edgeBypassConsent", dispatchedEvent.type)
+        assertEquals("com.adobe.eventSource.requestContent", dispatchedEvent.source)
+        assertEquals(triggeringEvent.uniqueIdentifier, dispatchedEvent.parentID)
+        assertEquals(mapOf("id" to "com.example.app"), dispatchedEvent.eventData["application"])
+        assertEquals(
+            listOf(mapOf("attributeType" to "GameScore", "value" to "token-1")),
+            dispatchedEvent.eventData["liveActivities"]
+        )
+        assertEquals("Asia/Kolkata", dispatchedEvent.eventData["timezone"])
+        assertEquals("42", dispatchedEvent.eventData["count"])
+        assertTrue(dispatchedEvent.eventData["count"] is String)
+        assertEquals("zone-Asia/Kolkata", dispatchedEvent.eventData["description"])
+        assertEquals("42", dispatchedEvent.eventData["integer"])
+        assertTrue("optional" !in dispatchedEvent.eventData)
+    }
+
+    @Test
+    fun `Forward operational data consequence defaults to new event data action`() {
+        val triggeringEvent = Event.Builder(
+            "Source",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).setEventData(mapOf("value" to "source")).build()
+        val consequence = RuleConsequence(
+            "forward-id",
+            "forward-operational-data",
+            mapOf(
+                "type" to "custom.event",
+                "source" to "custom.source",
+                "eventdata" to mapOf("value" to "new-value")
+            )
+        )
+        val rule = LaunchRule(Mockito.mock(Evaluable::class.java), listOf(consequence))
+
+        launchRulesConsequence.process(triggeringEvent, listOf(rule))
+
+        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(dispatchedEventCaptor.capture())
+        assertEquals("custom.event", dispatchedEventCaptor.value.type)
+        assertEquals("custom.source", dispatchedEventCaptor.value.source)
+        assertEquals(mapOf("value" to "new-value"), dispatchedEventCaptor.value.eventData)
+    }
+
+    @Test
+    fun `Forward operational data consequence can copy triggering event data`() {
+        val eventData = mapOf("value" to "source")
+        val triggeringEvent = Event.Builder(
+            "Source",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).setEventData(eventData).build()
+        val consequence = RuleConsequence(
+            "forward-id",
+            "forward-operational-data",
+            mapOf(
+                "type" to "custom.event",
+                "source" to "custom.source",
+                "eventdataaction" to "copy"
+            )
+        )
+        val rule = LaunchRule(Mockito.mock(Evaluable::class.java), listOf(consequence))
+
+        launchRulesConsequence.process(triggeringEvent, listOf(rule))
+
+        val dispatchedEventCaptor: ArgumentCaptor<Event> = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(dispatchedEventCaptor.capture())
+        assertEquals(eventData, dispatchedEventCaptor.value.eventData)
+    }
+
+    @Test
+    fun `Forward operational data consequence does not dispatch when required type or source is missing`() {
+        val triggeringEvent = Event.Builder(
+            "Source",
+            "com.adobe.eventType.generic",
+            "com.adobe.eventSource.requestContent"
+        ).setEventData(emptyMap()).build()
+        val missingType = RuleConsequence(
+            "missing-type",
+            "forward-operational-data",
+            mapOf("source" to "custom.source", "eventdataaction" to "new", "eventdata" to emptyMap<String, Any?>())
+        )
+        val missingSource = RuleConsequence(
+            "missing-source",
+            "forward-operational-data",
+            mapOf("type" to "custom.event", "eventdataaction" to "new", "eventdata" to emptyMap<String, Any?>())
+        )
+
+        launchRulesConsequence.process(
+            triggeringEvent,
+            listOf(
+                LaunchRule(Mockito.mock(Evaluable::class.java), listOf(missingType, missingSource))
+            )
+        )
+
+        verify(extensionApi, never()).dispatch(any())
     }
 
     @Test

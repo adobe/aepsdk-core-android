@@ -89,6 +89,89 @@ class LaunchRulesEngineModuleTests {
     }
 
     @Test
+    fun `Forward operational data is dispatched only for matching event type and source`() {
+        val json = """
+            {
+              "version": 1,
+              "rules": [{
+                "condition": {
+                  "type": "group",
+                  "definition": {
+                    "logic": "and",
+                    "conditions": [
+                      {
+                        "type": "matcher",
+                        "definition": {
+                          "key": "~type",
+                          "matcher": "eq",
+                          "values": ["com.adobe.eventType.generic.operationalData"]
+                        }
+                      },
+                      {
+                        "type": "matcher",
+                        "definition": {
+                          "key": "~source",
+                          "matcher": "eq",
+                          "values": ["com.adobe.eventSource.requestContent"]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "consequences": [{
+                  "id": "forward-operational-data",
+                  "type": "forward-operational-data",
+                  "detail": {
+                    "type": "com.adobe.eventType.edgeBypassConsent",
+                    "source": "com.adobe.eventSource.requestContent",
+                    "attributes": [
+                      {"path": ["timezone"], "enabled": true}
+                    ]
+                  }
+                }]
+              }]
+            }
+        """.trimIndent()
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+        Mockito.clearInvocations(extensionApi)
+
+        launchRulesEngine.processEvent(
+            Event.Builder(
+                "not-operational-data",
+                "com.adobe.eventType.generic",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(mapOf("timezone" to "Asia/Kolkata")).build()
+        )
+        verify(extensionApi, Mockito.never()).dispatch(any())
+
+        launchRulesEngine.processEvent(
+            Event.Builder(
+                "not-request-content",
+                "com.adobe.eventType.generic.operationalData",
+                "com.adobe.eventSource.responseContent"
+            ).setEventData(mapOf("timezone" to "Asia/Kolkata")).build()
+        )
+        verify(extensionApi, Mockito.never()).dispatch(any())
+
+        val triggeringEvent = Event.Builder(
+            "operational-data",
+            "com.adobe.eventType.generic.operationalData",
+            "com.adobe.eventSource.requestContent"
+        ).setEventData(mapOf("timezone" to "Asia/Kolkata")).build()
+        launchRulesEngine.processEvent(triggeringEvent)
+
+        val forwardedEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(extensionApi, Mockito.times(1)).dispatch(forwardedEventCaptor.capture())
+        val forwardedEvent = forwardedEventCaptor.firstValue
+        assertEquals("com.adobe.eventType.edgeBypassConsent", forwardedEvent.type)
+        assertEquals("com.adobe.eventSource.requestContent", forwardedEvent.source)
+        assertEquals(triggeringEvent.uniqueIdentifier, forwardedEvent.parentID)
+        assertEquals(mapOf("timezone" to "Asia/Kolkata"), forwardedEvent.eventData)
+    }
+
+    @Test
     fun `Test group condition with key embedded inside list`() {
         val json = readTestResources("rules_module_tests/rules_testGroupLogicalOperatorsWithKeysEmbeddedInList.json")
         assertNotNull(json)

@@ -458,7 +458,7 @@ class LaunchTokenFinderTest {
     }
 
     @Test
-    fun `get should return null on top level key`() {
+    fun `get should return null when top level value is a non-empty map`() {
         // setup
         val testEventData = mapOf("key1" to mapOf("innerKey1" to "inner val1"))
         val testEvent = getDefaultEvent(testEventData)

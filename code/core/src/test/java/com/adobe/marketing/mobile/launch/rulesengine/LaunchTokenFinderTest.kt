@@ -458,7 +458,7 @@ class LaunchTokenFinderTest {
     }
 
     @Test
-    fun `get should return raw map value on top level key`() {
+    fun `get should return null when top level value is a non-empty map`() {
         // setup
         val testEventData = mapOf("key1" to mapOf("innerKey1" to "inner val1"))
         val testEvent = getDefaultEvent(testEventData)
@@ -466,7 +466,7 @@ class LaunchTokenFinderTest {
         // test
         val result = launchTokenFinder.get("key1")
         // verify
-        assertEquals(mapOf("innerKey1" to "inner val1"), result)
+        assertNull(result)
     }
 
     @Test
@@ -484,23 +484,6 @@ class LaunchTokenFinderTest {
         val result = launchTokenFinder.get("key7.innerKey1")
         // verify
         assertEquals("inner val1", result)
-    }
-
-    @Test
-    fun `get should return raw list for whole nested list key`() {
-        val testEventData = mapOf(
-            "tokens" to mapOf(
-                "liveActivityStart" to listOf(
-                    mapOf("attributeType" to "GameScore", "value" to "token")
-                )
-            )
-        )
-        val launchTokenFinder = LaunchTokenFinder(getDefaultEvent(testEventData), extensionApi)
-
-        assertEquals(
-            listOf(mapOf("attributeType" to "GameScore", "value" to "token")),
-            launchTokenFinder.get("tokens.liveActivityStart")
-        )
     }
 
     private fun getDefaultEvent(eventData: Map<String, Any?>?): Event {

@@ -232,27 +232,6 @@ class MapExtensionsTests {
     }
 
     @Test
-    fun testValueForPathPreservesNestedValuesAndSupportsArrayIndexes() {
-        val nestedObject = mapOf("name" to "example")
-        val nestedList = listOf(nestedObject, mapOf("name" to "second"))
-        val map = mapOf("root" to mapOf("items" to nestedList))
-
-        assertEquals(nestedList, map.valueForPath("root.items"))
-        assertEquals(nestedObject, map.valueForPath("root.items.0"))
-        assertEquals("second", map.valueForPath("root.items.1.name"))
-        assertEquals(null, map.valueForPath("root.items.2"))
-        assertEquals(null, map.valueForPath("root.missing"))
-    }
-
-    @Test
-    fun testValueForPathSupportsArrays() {
-        val map = mapOf("items" to arrayOf("first", "second"))
-
-        assertEquals("second", map.valueForPath("items.1"))
-        assertEquals(null, map.valueForPath("items.2"))
-    }
-
-    @Test
     fun testMapFlatteningWithArraysOfAllPrimitiveTypes() {
         val map = mapOf(
             "a" to arrayOf(

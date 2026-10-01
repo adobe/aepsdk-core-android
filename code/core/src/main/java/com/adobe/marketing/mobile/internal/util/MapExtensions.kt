@@ -88,32 +88,6 @@ internal fun Map<String, Any?>.flattening(prefix: String = "", flattenListAndArr
 }
 
 /**
- * Resolves a dot-separated path from a map without flattening the returned value.
- *
- * Numeric segments can index into lists or arrays. This allows callers to resolve a complete
- * nested map/list as well as individual scalar values.
- *
- * @param path dot-separated map keys and optional numeric list/array indexes
- * @return the value at [path], or null if the path cannot be resolved
- */
-internal fun Map<String, Any?>.valueForPath(path: String): Any? {
-    if (path.isEmpty()) {
-        return null
-    }
-
-    var current: Any? = this
-    for (segment in path.split(".")) {
-        current = when (val value = current) {
-            is Map<*, *> -> value[segment]
-            is List<*> -> segment.toIntOrNull()?.let(value::getOrNull)
-            is Array<*> -> segment.toIntOrNull()?.takeIf { it >= 0 && it < value.size }?.let(value::get)
-            else -> return null
-        } ?: return null
-    }
-    return current
-}
-
-/**
  * Serializes a map to key value pairs for url string.
  * This method is recursive to handle the nested data objects.
  *

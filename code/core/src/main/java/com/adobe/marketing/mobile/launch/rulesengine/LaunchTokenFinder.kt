@@ -17,7 +17,6 @@ import com.adobe.marketing.mobile.MobileCore
 import com.adobe.marketing.mobile.SharedStateResolution
 import com.adobe.marketing.mobile.internal.util.flattening
 import com.adobe.marketing.mobile.internal.util.serializeToQueryString
-import com.adobe.marketing.mobile.internal.util.valueForPath
 import com.adobe.marketing.mobile.rulesengine.TokenFinder
 import com.adobe.marketing.mobile.services.Log
 import com.adobe.marketing.mobile.util.TimeUtils
@@ -148,10 +147,6 @@ internal class LaunchTokenFinder(val event: Event, val extensionApi: ExtensionAp
             return EMPTY_STRING
         }
         val eventDataMap = event.eventData.flattening()
-        return if (eventDataMap.containsKey(key)) {
-            eventDataMap[key]
-        } else {
-            event.eventData.valueForPath(key)
-        }
+        return eventDataMap[key]
     }
 }

@@ -142,5 +142,6 @@ override fun onPause() {
 ## Next Steps
 
 - Get familiar with the various APIs offered by the AEP SDK by checking out the [Mobile Core API reference](./api-reference.md).
+- Some extensions, such as Adobe Journey Optimizer, use optional [Plugins](./plugins.md) for capabilities like Live Updates and push templates.
 - Validate SDK implementation with [Assurance](../Debugging.md).
 - To build an extension on-top of the AEP SDK, check out the [Building Extensions documentation](../EventHub/BuildingExtensions.md).

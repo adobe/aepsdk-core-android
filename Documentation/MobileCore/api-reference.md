@@ -255,6 +255,46 @@ MobileCore.registerExtensions(Arrays.asList(Identity.EXTENSION, Signal.EXTENSION
 ```
 
 
+#### Registering plugins
+
+Plugins are optional capabilities, for example Live Updates or push templates, that are implemented in separate modules and resolved at runtime by type. Register plugins with the `MobileCore.addPlugins` api in the `onCreate` method of your `Application` class, before you initialize the SDK. Registering the same plugin instance more than once has no effect. For more information, see [Mobile Core plugins](./plugins.md).
+
+##### Java
+
+```java
+MobileCore.addPlugins(
+    new NotificationBuilderPlugin(),
+    new LiveUpdatePlugin(new MyLiveUpdateStyleProvider())
+);
+```
+
+##### Kotlin
+
+```kotlin
+MobileCore.addPlugins(
+    NotificationBuilderPlugin(),
+    LiveUpdatePlugin(MyLiveUpdateStyleProvider())
+)
+```
+
+
+#### Retrieving a registered plugin
+
+Extensions use the `MobileCore.getPlugin` api to look up the plugin registered for a given contract type, or `null` if no matching plugin is registered. Apps typically do not need to call this api directly.
+
+##### Java
+
+```java
+ILiveupdatePlugin plugin = MobileCore.getPlugin(ILiveupdatePlugin.class);
+```
+
+##### Kotlin
+
+```kotlin
+val plugin = MobileCore.getPlugin(ILiveupdatePlugin::class.java)
+```
+
+
 ####  Registering an EventListener
 
 ##### Java

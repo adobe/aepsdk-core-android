@@ -438,7 +438,7 @@ internal class LaunchRulesConsequence(
             eventData,
             attributes,
             requireEnabled = true,
-            consequence.id
+            consequenceId = consequence.id
         )
         if (forwardedData.isEmpty()) {
             Log.trace(
@@ -455,7 +455,7 @@ internal class LaunchRulesConsequence(
                 eventData,
                 context,
                 requireEnabled = false,
-                consequence.id
+                consequenceId = consequence.id
             )
             forwardedData = EventDataMerger.merge(contextData, forwardedData, false)
         }
@@ -489,18 +489,23 @@ internal class LaunchRulesConsequence(
             if (requireEnabled && entry[FORWARD_DETAIL_ENABLED] != true) {
                 continue
             }
-            val value = valueAtPath(path, eventData) ?: continue
-            setValueAtPath(value, path, result)
+            copyValueAtPath(path, eventData, result)
         }
         return result
     }
 
-    private fun valueAtPath(path: List<String>, eventData: Map<String, Any?>): Any? {
-        var current: Any? = eventData
+    private fun copyValueAtPath(
+        path: List<String>,
+        source: Map<String, Any?>,
+        destination: MutableMap<String, Any?>
+    ) {
+        var current: Any? = source
         for (key in path) {
-            current = (current as? Map<*, *>)?.get(key) ?: return null
+            val map = current as? Map<*, *> ?: return
+            if (!map.containsKey(key)) return
+            current = map[key]
         }
-        return current
+        setValueAtPath(current, path, destination)
     }
 
     private fun setValueAtPath(value: Any?, path: List<String>, eventData: MutableMap<String, Any?>) {

@@ -38,6 +38,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.verify
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchRulesEngineModuleTests {
@@ -122,8 +123,8 @@ class LaunchRulesEngineModuleTests {
                   "id": "forward-operational-data",
                   "type": "forward-operational-data",
                   "detail": {
-                    "type": "com.adobe.eventType.edgeBypassConsent",
-                    "source": "com.adobe.eventSource.requestContent",
+                    "type": "com.adobe.eventType.edgeIdentity",
+                    "source": "com.adobe.eventSource.responseOperationalData",
                     "attributes": [
                       {"path": ["timezone"], "enabled": true}
                     ]
@@ -165,9 +166,10 @@ class LaunchRulesEngineModuleTests {
         val forwardedEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
         verify(extensionApi, Mockito.times(1)).dispatch(forwardedEventCaptor.capture())
         val forwardedEvent = forwardedEventCaptor.firstValue
-        assertEquals("com.adobe.eventType.edgeBypassConsent", forwardedEvent.type)
-        assertEquals("com.adobe.eventSource.requestContent", forwardedEvent.source)
+        assertEquals("com.adobe.eventType.edgeIdentity", forwardedEvent.type)
+        assertEquals("com.adobe.eventSource.responseOperationalData", forwardedEvent.source)
         assertEquals(triggeringEvent.uniqueIdentifier, forwardedEvent.parentID)
+        assertNull(forwardedEvent.responseID)
         assertEquals(mapOf("timezone" to "Asia/Kolkata"), forwardedEvent.eventData)
     }
 

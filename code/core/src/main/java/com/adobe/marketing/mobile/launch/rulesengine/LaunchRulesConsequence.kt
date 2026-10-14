@@ -407,7 +407,7 @@ internal class LaunchRulesConsequence(
      */
     private fun processForwardOperationalDataConsequence(
         consequence: RuleConsequence,
-        parentEvent: Event
+        processedEvent: Event
     ): Event? {
         val type = consequence.eventType ?: run {
             Log.error(
@@ -433,18 +433,18 @@ internal class LaunchRulesConsequence(
             )
             return null
         }
-        val eventData = parentEvent.eventData ?: emptyMap()
-        var forwardedData = copyPaths(
+        val eventData = processedEvent.eventData ?: emptyMap()
+        var forwardData = copyPaths(
             eventData,
             attributes,
             requireEnabled = true,
             consequenceId = consequence.id
         )
-        if (forwardedData.isEmpty()) {
+        if (forwardData.isEmpty()) {
             Log.trace(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
-                "No enabled attribute found in event ${parentEvent.uniqueIdentifier} for " +
+                "No enabled attribute found in event ${processedEvent.uniqueIdentifier} for " +
                     "forward-operational-data consequence ${consequence.id}, nothing to forward"
             )
             return null
@@ -457,12 +457,12 @@ internal class LaunchRulesConsequence(
                 requireEnabled = false,
                 consequenceId = consequence.id
             )
-            forwardedData = EventDataMerger.merge(contextData, forwardedData, false)
+            forwardData = EventDataMerger.merge(contextData, forwardData, false)
         }
 
         return Event.Builder(FORWARD_OPERATIONAL_DATA_EVENT_NAME, type, source)
-            .setEventData(forwardedData)
-            .chainToParentEvent(parentEvent)
+            .setEventData(forwardData)
+            .chainToParentEvent(processedEvent)
             .build()
     }
 
@@ -505,23 +505,23 @@ internal class LaunchRulesConsequence(
             if (!map.containsKey(key)) return
             current = map[key]
         }
-        setValueAtPath(current, path, destination)
+        set(current, path, destination)
     }
 
-    private fun setValueAtPath(value: Any?, path: List<String>, eventData: MutableMap<String, Any?>) {
+    private fun set(value: Any?, path: List<String>, data: MutableMap<String, Any?>) {
         val key = path.firstOrNull() ?: return
         if (path.size == 1) {
-            eventData[key] = value
+            data[key] = value
             return
         }
-        val child = (eventData[key] as? Map<*, *>)
+        val child = (data[key] as? Map<*, *>)
             ?.entries
             ?.filter { it.key is String }
             ?.associate { it.key as String to it.value }
             ?.toMutableMap()
             ?: mutableMapOf()
-        setValueAtPath(value, path.drop(1), child)
-        eventData[key] = child
+        set(value, path.drop(1), child)
+        data[key] = child
     }
 
     /**

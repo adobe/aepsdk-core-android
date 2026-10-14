@@ -127,6 +127,9 @@ class LaunchRulesEngineModuleTests {
                     "source": "com.adobe.eventSource.responseOperationalData",
                     "attributes": [
                       {"path": ["timezone"], "enabled": true}
+                    ],
+                    "context": [
+                      {"path": ["app"]}
                     ]
                   }
                 }]
@@ -143,7 +146,7 @@ class LaunchRulesEngineModuleTests {
                 "not-operational-data",
                 "com.adobe.eventType.generic",
                 "com.adobe.eventSource.requestContent"
-            ).setEventData(mapOf("timezone" to "Asia/Kolkata")).build()
+            ).setEventData(mapOf("timezone" to "Asia/Kolkata", "app" to mapOf("id" to "test"))).build()
         )
         verify(extensionApi, Mockito.never()).dispatch(any())
 
@@ -160,7 +163,7 @@ class LaunchRulesEngineModuleTests {
             "operational-data",
             "com.adobe.eventType.generic.operationalData",
             "com.adobe.eventSource.requestContent"
-        ).setEventData(mapOf("timezone" to "Asia/Kolkata")).build()
+        ).setEventData(mapOf("timezone" to "Asia/Kolkata", "app" to mapOf("id" to "test"))).build()
         launchRulesEngine.processEvent(triggeringEvent)
 
         val forwardedEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
@@ -171,6 +174,30 @@ class LaunchRulesEngineModuleTests {
         assertEquals(triggeringEvent.uniqueIdentifier, forwardedEvent.parentID)
         assertNull(forwardedEvent.responseID)
         assertEquals(mapOf("timezone" to "Asia/Kolkata"), forwardedEvent.eventData)
+
+        val emptyEvents = listOf(
+            Event.Builder(
+                "missing selected path",
+                "com.adobe.eventType.generic.operationalData",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(mapOf("app" to mapOf("id" to "test"))).build(),
+            Event.Builder(
+                "null selected value",
+                "com.adobe.eventType.generic.operationalData",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(mapOf("timezone" to null)).build()
+        )
+        Mockito.clearInvocations(extensionApi)
+        emptyEvents.forEach { launchRulesEngine.processEvent(it) }
+        val emptyEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(extensionApi, Mockito.times(emptyEvents.size)).dispatch(emptyEventCaptor.capture())
+        emptyEventCaptor.allValues.forEachIndexed { index, event ->
+            assertEquals(emptyMap(), event.eventData)
+            assertEquals(emptyEvents[index].uniqueIdentifier, event.parentID)
+            assertNull(event.responseID)
+            assertEquals("com.adobe.eventType.edgeIdentity", event.type)
+            assertEquals("com.adobe.eventSource.responseOperationalData", event.source)
+        }
     }
 
     @Test

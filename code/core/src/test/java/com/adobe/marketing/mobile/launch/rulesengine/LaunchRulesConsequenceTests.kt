@@ -303,7 +303,7 @@ class LaunchRulesConsequenceTests {
     }
 
     @Test
-    fun `Forward operational data copies enabled paths as-is with context`() {
+    fun `Forward operational data copies enabled paths as-is and ignores context`() {
         val eventData = mapOf(
             "app" to mapOf("id" to "com.adobe.ajo.MobileTestApp", "platform" to "apnsSandbox"),
             "timezone" to "America/Los_Angeles",
@@ -344,7 +344,6 @@ class LaunchRulesConsequenceTests {
         assertNull(forwarded.responseID)
         assertEquals(
             mapOf(
-                "app" to mapOf("id" to "com.adobe.ajo.MobileTestApp", "platform" to "apnsSandbox"),
                 "timezone" to "America/Los_Angeles",
                 "tokens" to mapOf(
                     "pushNotification" to listOf("804EB6EDB22D"),
@@ -356,10 +355,11 @@ class LaunchRulesConsequenceTests {
             ),
             forwarded.eventData
         )
+        assertEquals(eventData, triggeringEvent.eventData)
     }
 
     @Test
-    fun `Forward operational data skips missing paths and forwards context when an attribute matches`() {
+    fun `Forward operational data skips missing paths without copying context`() {
         val rule = forwardRule(
             mapOf(
                 "type" to "custom.event",
@@ -379,11 +379,10 @@ class LaunchRulesConsequenceTests {
 
         val dispatchedEventCaptor = ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi).dispatch(dispatchedEventCaptor.capture())
+        assertEquals("custom.event", dispatchedEventCaptor.value.type)
+        assertEquals("custom.source", dispatchedEventCaptor.value.source)
         assertEquals(
-            mapOf(
-                "timezone" to "Asia/Kolkata",
-                "app" to mapOf("id" to "com.example")
-            ),
+            mapOf("timezone" to "Asia/Kolkata"),
             dispatchedEventCaptor.value.eventData
         )
     }
@@ -405,7 +404,11 @@ class LaunchRulesConsequenceTests {
 
         launchRulesConsequence.process(event, listOf(rule))
 
-        verify(extensionApi, never()).dispatch(any())
+        val captor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(captor.capture())
+        assertEquals(emptyMap(), captor.value.eventData)
+        assertEquals(event.uniqueIdentifier, captor.value.parentID)
+        assertNull(captor.value.responseID)
     }
 
     @Test
@@ -425,7 +428,9 @@ class LaunchRulesConsequenceTests {
             listOf(rule)
         )
 
-        verify(extensionApi, never()).dispatch(any())
+        val captor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(captor.capture())
+        assertEquals(emptyMap(), captor.value.eventData)
     }
 
     @Test
@@ -473,13 +478,15 @@ class LaunchRulesConsequenceTests {
                 "attributes" to listOf(
                     mapOf("path" to listOf("count"), "enabled" to true),
                     mapOf("path" to listOf("flag"), "enabled" to true),
+                    mapOf("path" to listOf("zero"), "enabled" to true),
+                    mapOf("path" to listOf("false"), "enabled" to true),
                     mapOf("path" to listOf("nested"), "enabled" to true)
                 )
             )
         )
         val nestedValue = mapOf("a" to mapOf("b" to 1))
         launchRulesConsequence.process(
-            operationalEvent(mapOf("count" to 3, "flag" to true, "nested" to nestedValue)),
+            operationalEvent(mapOf("count" to 3, "flag" to true, "zero" to 0, "false" to false, "nested" to nestedValue)),
             listOf(rule)
         )
 
@@ -487,6 +494,8 @@ class LaunchRulesConsequenceTests {
         verify(extensionApi).dispatch(dispatchedEventCaptor.capture())
         assertEquals(3, dispatchedEventCaptor.value.eventData["count"])
         assertEquals(true, dispatchedEventCaptor.value.eventData["flag"])
+        assertEquals(0, dispatchedEventCaptor.value.eventData["zero"])
+        assertEquals(false, dispatchedEventCaptor.value.eventData["false"])
         assertEquals(nestedValue, dispatchedEventCaptor.value.eventData["nested"])
     }
 
@@ -494,12 +503,6 @@ class LaunchRulesConsequenceTests {
     fun `Forward operational data does not dispatch when required detail fields are invalid`() {
         val event = operationalEvent(mapOf("timezone" to "Asia/Kolkata"))
         val invalidDetails = listOf(
-            mapOf("type" to "custom.event", "source" to "custom.source"),
-            mapOf(
-                "type" to "custom.event",
-                "source" to "custom.source",
-                "attributes" to "timezone"
-            ),
             mapOf(
                 "source" to "custom.source",
                 "attributes" to listOf(mapOf("path" to listOf("timezone"), "enabled" to true))
@@ -555,7 +558,7 @@ class LaunchRulesConsequenceTests {
     }
 
     @Test
-    fun `Forward operational data preserves explicit null but skips absent and null intermediate paths`() {
+    fun `Forward operational data skips explicit null absent and null intermediate paths`() {
         val event = operationalEvent(
             mapOf("timezone" to null, "tokens" to mapOf("pushNotification" to null), "app" to null)
         )
@@ -575,14 +578,8 @@ class LaunchRulesConsequenceTests {
         val captor = ArgumentCaptor.forClass(Event::class.java)
         verify(extensionApi).dispatch(captor.capture())
         assertEquals(event.uniqueIdentifier, captor.value.parentID)
-        assertEquals(
-            mapOf(
-                "timezone" to null,
-                "tokens" to mapOf("pushNotification" to null),
-                "app" to null
-            ),
-            captor.value.eventData
-        )
+        assertEquals(emptyMap(), captor.value.eventData)
+        assertNull(captor.value.responseID)
     }
 
     @Test
@@ -592,13 +589,15 @@ class LaunchRulesConsequenceTests {
             "source" to "com.adobe.eventSource.responseOperationalData",
             "attributes" to listOf(
                 mapOf("path" to listOf("tokens", "pushNotification"), "enabled" to true),
-                mapOf("path" to listOf("empty"), "enabled" to true)
+                mapOf("path" to listOf("empty"), "enabled" to true),
+                mapOf("path" to listOf("emptyString"), "enabled" to true)
             )
         )
         val event = operationalEvent(
             mapOf(
                 "tokens" to mapOf("pushNotification" to emptyList<String>()),
-                "empty" to emptyMap<String, Any?>()
+                "empty" to emptyMap<String, Any?>(),
+                "emptyString" to ""
             )
         )
         launchRulesConsequence.process(event, listOf(forwardRule(detail)))
@@ -607,7 +606,8 @@ class LaunchRulesConsequenceTests {
         assertEquals(
             mapOf(
                 "tokens" to mapOf("pushNotification" to emptyList<String>()),
-                "empty" to emptyMap<String, Any?>()
+                "empty" to emptyMap<String, Any?>(),
+                "emptyString" to ""
             ),
             captor.value.eventData
         )
@@ -632,15 +632,131 @@ class LaunchRulesConsequenceTests {
     }
 
     @Test
-    fun `Forward operational data does not dispatch when no attribute is enabled`() {
+    fun `Forward operational data dispatches empty data when no attribute is enabled`() {
         val detail = mapOf(
             "type" to "com.adobe.eventType.edgeIdentity",
             "source" to "com.adobe.eventSource.responseOperationalData",
             "attributes" to emptyList<Any>(),
             "context" to listOf(mapOf("path" to listOf("app")))
         )
-        launchRulesConsequence.process(operationalEvent(mapOf("app" to mapOf("id" to "x"))), listOf(forwardRule(detail)))
-        verify(extensionApi, never()).dispatch(any())
+        val event = operationalEvent(mapOf("app" to mapOf("id" to "x")))
+        launchRulesConsequence.process(event, listOf(forwardRule(detail)))
+        val captor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(captor.capture())
+        assertEquals(emptyMap(), captor.value.eventData)
+        assertEquals(event.uniqueIdentifier, captor.value.parentID)
+        assertNull(captor.value.responseID)
+    }
+
+    @Test
+    fun `Forward operational data dispatches empty data for missing or invalid attributes`() {
+        val routing = mapOf("type" to "custom.event", "source" to "custom.source")
+        val details = listOf(
+            routing,
+            routing + ("attributes" to null),
+            routing + ("attributes" to "timezone"),
+            routing + ("attributes" to mapOf("path" to listOf("timezone"))),
+            routing + ("attributes" to listOf(mapOf("path" to listOf("timezone"), "enabled" to false)))
+        )
+        val event = operationalEvent(mapOf("timezone" to "Asia/Kolkata"))
+        launchRulesConsequence.process(event, details.map { forwardRule(it) })
+        val captor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi, times(details.size)).dispatch(captor.capture())
+        for (forwarded in captor.allValues) {
+            assertEquals(emptyMap(), forwarded.eventData)
+            assertEquals("custom.event", forwarded.type)
+            assertEquals("custom.source", forwarded.source)
+            assertEquals("Forward operational data", forwarded.name)
+            assertEquals(event.uniqueIdentifier, forwarded.parentID)
+            assertNull(forwarded.responseID)
+        }
+    }
+
+    @Test
+    fun `Forward operational data dispatches empty data for null event data`() {
+        val event = Event.Builder(
+            "Device attributes",
+            "com.adobe.eventType.generic.operationalData",
+            "com.adobe.eventSource.requestContent"
+        ).build()
+        val rule = forwardRule(
+            mapOf(
+                "type" to "custom.event",
+                "source" to "custom.source",
+                "attributes" to listOf(mapOf("path" to listOf("timezone"), "enabled" to true))
+            )
+        )
+        launchRulesConsequence.process(event, listOf(rule))
+        val captor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(captor.capture())
+        assertEquals(emptyMap(), captor.value.eventData)
+        assertEquals(event.uniqueIdentifier, captor.value.parentID)
+        assertNull(captor.value.responseID)
+    }
+
+    @Test
+    fun `Forward operational data skips null leaves without dropping non-null siblings`() {
+        val event = operationalEvent(
+            mapOf("timezone" to "Europe/London", "tokens" to mapOf("pushNotification" to null))
+        )
+        val rule = forwardRule(
+            mapOf(
+                "type" to "custom.event",
+                "source" to "custom.source",
+                "attributes" to listOf(
+                    mapOf("path" to listOf("timezone"), "enabled" to true),
+                    mapOf("path" to listOf("tokens", "pushNotification"), "enabled" to true)
+                )
+            )
+        )
+        launchRulesConsequence.process(event, listOf(rule))
+        val captor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(captor.capture())
+        assertEquals(mapOf("timezone" to "Europe/London"), captor.value.eventData)
+        assertEquals(mapOf("pushNotification" to null), event.eventData["tokens"])
+    }
+
+    @Test
+    fun `Forward operational data copies a selected parent without filtering its children`() {
+        val tokens = mapOf("pushNotification" to null, "liveActivityStart" to listOf("token"))
+        val event = operationalEvent(mapOf("tokens" to tokens))
+        val rule = forwardRule(
+            mapOf(
+                "type" to "custom.event",
+                "source" to "custom.source",
+                "attributes" to listOf(
+                    mapOf("path" to listOf("tokens"), "enabled" to true),
+                    mapOf("path" to listOf("tokens"), "enabled" to true)
+                )
+            )
+        )
+        launchRulesConsequence.process(event, listOf(rule))
+        val captor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(captor.capture())
+        assertEquals(mapOf("tokens" to tokens), captor.value.eventData)
+        assertEquals(tokens, event.eventData["tokens"])
+    }
+
+    @Test
+    fun `Forward operational data can select app as an attribute while ignoring legacy context`() {
+        val eventData = mapOf("tokens" to "scalar", "app" to mapOf("id" to "test"), "notAllowed" to "secret")
+        val event = operationalEvent(eventData)
+        val rule = forwardRule(
+            mapOf(
+                "type" to "custom.event",
+                "source" to "custom.source",
+                "attributes" to listOf(
+                    mapOf("path" to listOf("tokens"), "enabled" to true),
+                    mapOf("path" to listOf("app"), "enabled" to true)
+                ),
+                "context" to listOf(mapOf("path" to listOf("notAllowed")))
+            )
+        )
+        launchRulesConsequence.process(event, listOf(rule))
+        val captor = ArgumentCaptor.forClass(Event::class.java)
+        verify(extensionApi).dispatch(captor.capture())
+        assertEquals(mapOf("tokens" to "scalar", "app" to mapOf("id" to "test")), captor.value.eventData)
+        assertEquals(eventData, event.eventData)
     }
 
     private fun operationalEvent(eventData: Map<String, Any?>): Event =

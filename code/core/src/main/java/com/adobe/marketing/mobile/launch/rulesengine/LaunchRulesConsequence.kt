@@ -52,7 +52,6 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_DETAIL_ACTION_NEW = "new"
         private const val CONSEQUENCE_TYPE_SCHEMA = "schema"
         private const val FORWARD_DETAIL_ATTRIBUTES = "attributes"
-        private const val FORWARD_DETAIL_CONTEXT = "context"
         private const val FORWARD_DETAIL_PATH = "path"
         private const val FORWARD_DETAIL_ENABLED = "enabled"
 
@@ -404,6 +403,7 @@ internal class LaunchRulesConsequence(
 
     /**
      * Creates an event from the enabled event-data paths in a forward-operational-data consequence.
+     * Null values are omitted; a valid consequence dispatches even when no attributes are selected.
      */
     private fun processForwardOperationalDataConsequence(
         consequence: RuleConsequence,
@@ -425,40 +425,27 @@ internal class LaunchRulesConsequence(
             )
             return null
         }
-        val attributes = consequence.detail[FORWARD_DETAIL_ATTRIBUTES] as? List<*> ?: run {
-            Log.error(
+        val attributes = consequence.detail[FORWARD_DETAIL_ATTRIBUTES] as? List<*> ?: emptyList<Any>()
+        if (attributes.isEmpty()) {
+            Log.warning(
                 LaunchRulesEngineConstants.LOG_TAG,
                 logTag,
-                "Unable to process a forward-operational-data consequence, 'attributes' is missing from 'details'"
+                "forward-operational-data consequence ${consequence.id} has no valid " +
+                    "'attributes', no attribute will be forwarded"
             )
-            return null
         }
         val eventData = processedEvent.eventData ?: emptyMap()
-        var forwardData = copyPaths(
-            eventData,
-            attributes,
-            requireEnabled = true,
-            consequenceId = consequence.id
+        val forwardData = mutableMapOf<String, Any?>()
+        for (path in paths(attributes, consequence.id)) {
+            val value = value(path, eventData) ?: continue
+            set(value, path, forwardData)
+        }
+
+        Log.trace(
+            LaunchRulesEngineConstants.LOG_TAG,
+            logTag,
+            "Forwarding allowed operational data ($type/$source) for consequence ${consequence.id}"
         )
-        if (forwardData.isEmpty()) {
-            Log.trace(
-                LaunchRulesEngineConstants.LOG_TAG,
-                logTag,
-                "No enabled attribute found in event ${processedEvent.uniqueIdentifier} for " +
-                    "forward-operational-data consequence ${consequence.id}, nothing to forward"
-            )
-            return null
-        }
-        val context = consequence.detail[FORWARD_DETAIL_CONTEXT] as? List<*>
-        if (context != null) {
-            val contextData = copyPaths(
-                eventData,
-                context,
-                requireEnabled = false,
-                consequenceId = consequence.id
-            )
-            forwardData = EventDataMerger.merge(contextData, forwardData, false)
-        }
 
         return Event.Builder(FORWARD_OPERATIONAL_DATA_EVENT_NAME, type, source)
             .setEventData(forwardData)
@@ -466,13 +453,11 @@ internal class LaunchRulesConsequence(
             .build()
     }
 
-    private fun copyPaths(
-        eventData: Map<String, Any?>,
+    private fun paths(
         entries: List<*>,
-        requireEnabled: Boolean,
         consequenceId: String
-    ): Map<String, Any?> {
-        val result = mutableMapOf<String, Any?>()
+    ): List<List<String>> {
+        val paths = mutableListOf<List<String>>()
         for (rawEntry in entries) {
             val entry = rawEntry as? Map<*, *>
             val path = (entry?.get(FORWARD_DETAIL_PATH) as? List<*>)
@@ -486,29 +471,25 @@ internal class LaunchRulesConsequence(
                 )
                 continue
             }
-            if (requireEnabled && entry[FORWARD_DETAIL_ENABLED] != true) {
+            if (entry[FORWARD_DETAIL_ENABLED] != true) {
                 continue
             }
-            copyValueAtPath(path, eventData, result)
+            paths.add(path)
         }
-        return result
+        return paths
     }
 
-    private fun copyValueAtPath(
-        path: List<String>,
-        source: Map<String, Any?>,
-        destination: MutableMap<String, Any?>
-    ) {
-        var current: Any? = source
+    private fun value(path: List<String>, data: Map<String, Any?>): Any? {
+        var current: Any? = data
         for (key in path) {
-            val map = current as? Map<*, *> ?: return
-            if (!map.containsKey(key)) return
-            current = map[key]
+            val dict = current as? Map<*, *> ?: return null
+            val next = dict[key] ?: return null
+            current = next
         }
-        set(current, path, destination)
+        return current
     }
 
-    private fun set(value: Any?, path: List<String>, data: MutableMap<String, Any?>) {
+    private fun set(value: Any, path: List<String>, data: MutableMap<String, Any?>) {
         val key = path.firstOrNull() ?: return
         if (path.size == 1) {
             data[key] = value

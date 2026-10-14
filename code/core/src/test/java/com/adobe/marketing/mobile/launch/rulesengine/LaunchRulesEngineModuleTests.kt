@@ -24,6 +24,7 @@ import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
 import com.adobe.marketing.mobile.rulesengine.RulesEngine
 import com.adobe.marketing.mobile.test.util.readTestResources
 import com.adobe.marketing.mobile.util.DataReader
+import com.adobe.marketing.mobile.util.TimeUtils
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -1062,11 +1063,16 @@ class LaunchRulesEngineModuleTests {
                 )
             )
 
-        val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateEvent(defaultEvent)
-        assertEquals(3, matchedConsequences.size)
-        for (consequence in matchedConsequences) {
-            assertEquals("ajoInbound", consequence.type)
-            assertEquals("ajoFeedItem", consequence.detail["type"])
+        Mockito.mockStatic(TimeUtils::class.java).use { mockedTimeUtils ->
+            // Keep evaluation within the fixture's timestamp window regardless of the system date.
+            mockedTimeUtils.`when`<Long> { TimeUtils.getUnixTimeInSeconds() }.thenReturn(1700000000L)
+
+            val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateEvent(defaultEvent)
+            assertEquals(3, matchedConsequences.size)
+            for (consequence in matchedConsequences) {
+                assertEquals("ajoInbound", consequence.type)
+                assertEquals("ajoFeedItem", consequence.detail["type"])
+            }
         }
     }
 

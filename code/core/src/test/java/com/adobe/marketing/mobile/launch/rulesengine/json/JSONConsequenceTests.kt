@@ -88,7 +88,7 @@ class JSONConsequenceTests {
     }
 
     @Test
-    fun testToRuleConsequence_EmptyId_ReturnsNull() {
+    fun testToRuleConsequence_EmptyId_ReturnsRuleConsequence() {
         val jsonString = """
         {
           "id": "",
@@ -102,7 +102,48 @@ class JSONConsequenceTests {
         """
         val jsonObject = buildJSONObject(jsonString)
         val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
-        assertNull(consequence)
+        assertNotNull(consequence)
+        assertEquals("", consequence.id)
+        assertEquals("add", consequence.type)
+        assertEquals(mapOf("key" to "value"), consequence.detail["eventdata"])
+    }
+
+    @Test
+    fun testToRuleConsequence_NonStringId_ReturnsNull() {
+        for (id in listOf("123", "true", "[]", "{}")) {
+            val jsonObject = buildJSONObject(
+                """{"id": $id, "type": "add", "detail": {"eventdata": {"key": "value"}}}"""
+            )
+            assertNull(JSONConsequence(jsonObject)?.toRuleConsequence())
+        }
+    }
+
+    @Test
+    fun testToRuleConsequence_EmptyId_ForwardOperationalData() {
+        val jsonObject = buildJSONObject(
+            """
+            {
+              "id": "",
+              "type": "forward-operational-data",
+              "detail": {
+                "type": "com.adobe.eventType.edgeIdentity",
+                "source": "com.adobe.eventSource.responseOperationalData",
+                "attributes": [{"path": ["timezone"], "enabled": true}]
+              }
+            }
+            """
+        )
+        val consequence = JSONConsequence(jsonObject)?.toRuleConsequence()
+
+        assertNotNull(consequence)
+        assertEquals("", consequence.id)
+        assertEquals("forward-operational-data", consequence.type)
+        assertEquals("com.adobe.eventType.edgeIdentity", consequence.detail["type"])
+        assertEquals("com.adobe.eventSource.responseOperationalData", consequence.detail["source"])
+        assertEquals(
+            listOf(mapOf("path" to listOf("timezone"), "enabled" to true)),
+            consequence.detail["attributes"]
+        )
     }
 
     @Test

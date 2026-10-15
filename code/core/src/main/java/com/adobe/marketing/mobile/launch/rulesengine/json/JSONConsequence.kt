@@ -21,7 +21,7 @@ import org.json.JSONObject
  * The class representing a Rule's consequence
  */
 internal class JSONConsequence private constructor(
-    private val id: String,
+    private val id: String?,
     private val type: String,
     private val detail: Map<String, Any?>?
 ) {
@@ -32,7 +32,7 @@ internal class JSONConsequence private constructor(
         operator fun invoke(jsonObject: JSONObject?): JSONConsequence? {
             if (jsonObject !is JSONObject) return null
             return JSONConsequence(
-                jsonObject.optString(KEY_ID),
+                jsonObject.opt(KEY_ID) as? String,
                 jsonObject.optString(KEY_TYPE),
                 jsonObject.optJSONObject(KEY_DETAIL)?.toMap()
             )
@@ -47,7 +47,7 @@ internal class JSONConsequence private constructor(
     @JvmSynthetic
     internal fun toRuleConsequence(): RuleConsequence? {
         val LOG_SOURCE = "JSONConsequence"
-        if (id.isEmpty()) {
+        if (id == null) {
             Log.warning(CoreConstants.LOG_TAG, LOG_SOURCE, "Unable to find required field \"id\" in rules consequence.")
             return null
         }

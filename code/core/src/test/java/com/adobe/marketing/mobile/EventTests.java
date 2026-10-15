@@ -233,6 +233,49 @@ public class EventTests {
     }
 
     @Test
+    public void Event_cloneWithEventData_preservesParentWithoutResponse() {
+        Event parentEvent = new Event.Builder("ParentEvent", "type", "source").build();
+        Event event =
+                new Event.Builder(mockEventName, mockEventType, mockEventSource)
+                        .chainToParentEvent(parentEvent)
+                        .setTimestamp(mockTimestamp)
+                        .build();
+
+        Event clonedEvent = event.cloneWithEventData(mockEventData);
+
+        assertEquals(parentEvent.getUniqueIdentifier(), clonedEvent.getParentID());
+        assertNull(clonedEvent.getResponseID());
+        assertEquals(event.getUniqueIdentifier(), clonedEvent.getUniqueIdentifier());
+        assertEquals(mockTimestamp, clonedEvent.getTimestamp());
+        assertEquals(mockEventData, clonedEvent.getEventData());
+        assertNull(event.getEventData());
+    }
+
+    @Test
+    public void Event_cloneWithEventData_preservesResponseAndParent() {
+        Event triggerEvent = new Event.Builder("TriggerEvent", "type", "source").build();
+        Event event =
+                new Event.Builder(mockEventName, mockEventType, mockEventSource)
+                        .inResponseToEvent(triggerEvent)
+                        .build();
+
+        Event clonedEvent = event.cloneWithEventData(mockEventData);
+
+        assertEquals(triggerEvent.getUniqueIdentifier(), clonedEvent.getParentID());
+        assertEquals(triggerEvent.getUniqueIdentifier(), clonedEvent.getResponseID());
+    }
+
+    @Test
+    public void Event_cloneWithEventData_preservesNullParent() {
+        Event event = new Event.Builder(mockEventName, mockEventType, mockEventSource).build();
+
+        Event clonedEvent = event.cloneWithEventData(mockEventData);
+
+        assertNull(clonedEvent.getParentID());
+        assertNull(clonedEvent.getResponseID());
+    }
+
+    @Test
     public void Event_builderWorksProperly() {
         Event triggerEvent =
                 new Event.Builder("TriggerEvent", "responseType", "responseSource").build();

@@ -47,13 +47,18 @@ internal class LaunchRulesConsequence(
         private const val CONSEQUENCE_TYPE_ADD = "add"
         private const val CONSEQUENCE_TYPE_MOD = "mod"
         private const val CONSEQUENCE_TYPE_DISPATCH = "dispatch"
+        private const val CONSEQUENCE_TYPE_FORWARD_OPERATIONAL_DATA = "forward-operational-data"
         private const val CONSEQUENCE_DETAIL_ACTION_COPY = "copy"
         private const val CONSEQUENCE_DETAIL_ACTION_NEW = "new"
         private const val CONSEQUENCE_TYPE_SCHEMA = "schema"
+        private const val FORWARD_DETAIL_ATTRIBUTES = "attributes"
+        private const val FORWARD_DETAIL_PATH = "path"
+        private const val FORWARD_DETAIL_ENABLED = "enabled"
 
         // Do not process Dispatch consequence if chained event count is greater than max
         private const val MAX_CHAINED_CONSEQUENCE_COUNT = 1
         private const val CONSEQUENCE_DISPATCH_EVENT_NAME = "Dispatch Consequence Result"
+        private const val FORWARD_OPERATIONAL_DATA_EVENT_NAME = "Forward operational data"
         private const val CONSEQUENCE_EVENT_DATA_KEY_ID = "id"
         private const val CONSEQUENCE_EVENT_DATA_KEY_TYPE = "type"
         private const val CONSEQUENCE_EVENT_DATA_KEY_DETAIL = "detail"
@@ -128,6 +133,32 @@ internal class LaunchRulesConsequence(
                         )
                         extensionApi.dispatch(dispatchEvent)
                         dispatchChainedEventsCount[dispatchEvent.uniqueIdentifier] =
+                            dispatchChainCount + 1
+                    }
+
+                    CONSEQUENCE_TYPE_FORWARD_OPERATIONAL_DATA -> {
+                        if (dispatchChainCount >= MAX_CHAINED_CONSEQUENCE_COUNT) {
+                            Log.trace(
+                                LaunchRulesEngineConstants.LOG_TAG,
+                                logTag,
+                                "Unable to process forward-operational-data consequence, " +
+                                    "max chained dispatch consequences limit of " +
+                                    "$MAX_CHAINED_CONSEQUENCE_COUNT met for this event uuid " +
+                                    event.uniqueIdentifier
+                            )
+                            continue
+                        }
+                        val forwardEvent = processForwardOperationalDataConsequence(
+                            consequenceWithConcreteValue,
+                            processedEvent
+                        ) ?: continue
+                        Log.trace(
+                            LaunchRulesEngineConstants.LOG_TAG,
+                            logTag,
+                            "Dispatching forward-operational-data event ${forwardEvent.uniqueIdentifier}"
+                        )
+                        extensionApi.dispatch(forwardEvent)
+                        dispatchChainedEventsCount[forwardEvent.uniqueIdentifier] =
                             dispatchChainCount + 1
                     }
 
@@ -368,6 +399,110 @@ internal class LaunchRulesConsequence(
             .setEventData(dispatchEventData)
             .chainToParentEvent(parentEvent)
             .build()
+    }
+
+    /**
+     * Creates an event from the enabled event-data paths in a forward-operational-data consequence.
+     * Null values are omitted; a valid consequence dispatches even when no attributes are selected.
+     */
+    private fun processForwardOperationalDataConsequence(
+        consequence: RuleConsequence,
+        processedEvent: Event
+    ): Event? {
+        val type = consequence.eventType ?: run {
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Unable to process a forward-operational-data consequence, 'type' is missing from 'details'"
+            )
+            return null
+        }
+        val source = consequence.eventSource ?: run {
+            Log.error(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "Unable to process a forward-operational-data consequence, 'source' is missing from 'details'"
+            )
+            return null
+        }
+        val attributes = consequence.detail[FORWARD_DETAIL_ATTRIBUTES] as? List<*> ?: emptyList<Any>()
+        if (attributes.isEmpty()) {
+            Log.warning(
+                LaunchRulesEngineConstants.LOG_TAG,
+                logTag,
+                "forward-operational-data consequence ${consequence.id} has no valid " +
+                    "'attributes', no attribute will be forwarded"
+            )
+        }
+        val eventData = processedEvent.eventData ?: emptyMap()
+        val forwardData = mutableMapOf<String, Any?>()
+        for (path in paths(attributes, consequence.id)) {
+            val value = value(path, eventData) ?: continue
+            set(value, path, forwardData)
+        }
+
+        Log.trace(
+            LaunchRulesEngineConstants.LOG_TAG,
+            logTag,
+            "Forwarding allowed operational data ($type/$source) for consequence ${consequence.id}"
+        )
+
+        return Event.Builder(FORWARD_OPERATIONAL_DATA_EVENT_NAME, type, source)
+            .setEventData(forwardData)
+            .chainToParentEvent(processedEvent)
+            .build()
+    }
+
+    private fun paths(
+        entries: List<*>,
+        consequenceId: String
+    ): List<List<String>> {
+        val paths = mutableListOf<List<String>>()
+        for (rawEntry in entries) {
+            val entry = rawEntry as? Map<*, *>
+            val path = (entry?.get(FORWARD_DETAIL_PATH) as? List<*>)
+                ?.takeIf { it.isNotEmpty() && it.all { segment -> segment is String } }
+                ?.map { it as String }
+            if (path == null) {
+                Log.warning(
+                    LaunchRulesEngineConstants.LOG_TAG,
+                    logTag,
+                    "Skipping malformed path entry in forward-operational-data consequence $consequenceId"
+                )
+                continue
+            }
+            if (entry[FORWARD_DETAIL_ENABLED] != true) {
+                continue
+            }
+            paths.add(path)
+        }
+        return paths
+    }
+
+    private fun value(path: List<String>, data: Map<String, Any?>): Any? {
+        var current: Any? = data
+        for (key in path) {
+            val dict = current as? Map<*, *> ?: return null
+            val next = dict[key] ?: return null
+            current = next
+        }
+        return current
+    }
+
+    private fun set(value: Any, path: List<String>, data: MutableMap<String, Any?>) {
+        val key = path.firstOrNull() ?: return
+        if (path.size == 1) {
+            data[key] = value
+            return
+        }
+        val child = (data[key] as? Map<*, *>)
+            ?.entries
+            ?.filter { it.key is String }
+            ?.associate { it.key as String to it.value }
+            ?.toMutableMap()
+            ?: mutableMapOf()
+        set(value, path.drop(1), child)
+        data[key] = child
     }
 
     /**

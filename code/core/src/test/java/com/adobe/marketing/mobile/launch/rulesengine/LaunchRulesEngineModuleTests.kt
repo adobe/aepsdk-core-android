@@ -24,6 +24,7 @@ import com.adobe.marketing.mobile.launch.rulesengine.json.JSONRulesParser
 import com.adobe.marketing.mobile.rulesengine.RulesEngine
 import com.adobe.marketing.mobile.test.util.readTestResources
 import com.adobe.marketing.mobile.util.DataReader
+import com.adobe.marketing.mobile.util.TimeUtils
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,6 +39,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.verify
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @RunWith(MockitoJUnitRunner.Silent::class)
 class LaunchRulesEngineModuleTests {
@@ -86,6 +88,117 @@ class LaunchRulesEngineModuleTests {
         // val matchedRules = launchRulesEngine.process(defaultEvent)
         assertEquals(1, matchedConsequence.size)
         assertEquals("pb", matchedConsequence[0].type)
+    }
+
+    @Test
+    fun `Forward operational data is dispatched only for matching event type and source`() {
+        val json = """
+            {
+              "version": 1,
+              "rules": [{
+                "condition": {
+                  "type": "group",
+                  "definition": {
+                    "logic": "and",
+                    "conditions": [
+                      {
+                        "type": "matcher",
+                        "definition": {
+                          "key": "~type",
+                          "matcher": "eq",
+                          "values": ["com.adobe.eventType.generic.operationalData"]
+                        }
+                      },
+                      {
+                        "type": "matcher",
+                        "definition": {
+                          "key": "~source",
+                          "matcher": "eq",
+                          "values": ["com.adobe.eventSource.requestContent"]
+                        }
+                      }
+                    ]
+                  }
+                },
+                "consequences": [{
+                  "id": "forward-operational-data",
+                  "type": "forward-operational-data",
+                  "detail": {
+                    "type": "com.adobe.eventType.edgeIdentity",
+                    "source": "com.adobe.eventSource.responseOperationalData",
+                    "attributes": [
+                      {"path": ["timezone"], "enabled": true}
+                    ],
+                    "context": [
+                      {"path": ["app"]}
+                    ]
+                  }
+                }]
+              }]
+            }
+        """.trimIndent()
+        val rules = JSONRulesParser.parse(json, extensionApi)
+        assertNotNull(rules)
+        launchRulesEngine.replaceRules(rules)
+        Mockito.clearInvocations(extensionApi)
+
+        launchRulesEngine.processEvent(
+            Event.Builder(
+                "not-operational-data",
+                "com.adobe.eventType.generic",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(mapOf("timezone" to "Asia/Kolkata", "app" to mapOf("id" to "test"))).build()
+        )
+        verify(extensionApi, Mockito.never()).dispatch(any())
+
+        launchRulesEngine.processEvent(
+            Event.Builder(
+                "not-request-content",
+                "com.adobe.eventType.generic.operationalData",
+                "com.adobe.eventSource.responseContent"
+            ).setEventData(mapOf("timezone" to "Asia/Kolkata")).build()
+        )
+        verify(extensionApi, Mockito.never()).dispatch(any())
+
+        val triggeringEvent = Event.Builder(
+            "operational-data",
+            "com.adobe.eventType.generic.operationalData",
+            "com.adobe.eventSource.requestContent"
+        ).setEventData(mapOf("timezone" to "Asia/Kolkata", "app" to mapOf("id" to "test"))).build()
+        launchRulesEngine.processEvent(triggeringEvent)
+
+        val forwardedEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(extensionApi, Mockito.times(1)).dispatch(forwardedEventCaptor.capture())
+        val forwardedEvent = forwardedEventCaptor.firstValue
+        assertEquals("com.adobe.eventType.edgeIdentity", forwardedEvent.type)
+        assertEquals("com.adobe.eventSource.responseOperationalData", forwardedEvent.source)
+        assertEquals(triggeringEvent.uniqueIdentifier, forwardedEvent.parentID)
+        assertNull(forwardedEvent.responseID)
+        assertEquals(mapOf("timezone" to "Asia/Kolkata"), forwardedEvent.eventData)
+
+        val emptyEvents = listOf(
+            Event.Builder(
+                "missing selected path",
+                "com.adobe.eventType.generic.operationalData",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(mapOf("app" to mapOf("id" to "test"))).build(),
+            Event.Builder(
+                "null selected value",
+                "com.adobe.eventType.generic.operationalData",
+                "com.adobe.eventSource.requestContent"
+            ).setEventData(mapOf("timezone" to null)).build()
+        )
+        Mockito.clearInvocations(extensionApi)
+        emptyEvents.forEach { launchRulesEngine.processEvent(it) }
+        val emptyEventCaptor: KArgumentCaptor<Event> = argumentCaptor()
+        verify(extensionApi, Mockito.times(emptyEvents.size)).dispatch(emptyEventCaptor.capture())
+        emptyEventCaptor.allValues.forEachIndexed { index, event ->
+            assertEquals(emptyMap(), event.eventData)
+            assertEquals(emptyEvents[index].uniqueIdentifier, event.parentID)
+            assertNull(event.responseID)
+            assertEquals("com.adobe.eventType.edgeIdentity", event.type)
+            assertEquals("com.adobe.eventSource.responseOperationalData", event.source)
+        }
     }
 
     @Test
@@ -950,11 +1063,16 @@ class LaunchRulesEngineModuleTests {
                 )
             )
 
-        val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateEvent(defaultEvent)
-        assertEquals(3, matchedConsequences.size)
-        for (consequence in matchedConsequences) {
-            assertEquals("ajoInbound", consequence.type)
-            assertEquals("ajoFeedItem", consequence.detail["type"])
+        Mockito.mockStatic(TimeUtils::class.java).use { mockedTimeUtils ->
+            // Keep evaluation within the fixture's timestamp window regardless of the system date.
+            mockedTimeUtils.`when`<Long> { TimeUtils.getUnixTimeInSeconds() }.thenReturn(1700000000L)
+
+            val matchedConsequences: List<RuleConsequence> = launchRulesEngine.evaluateEvent(defaultEvent)
+            assertEquals(3, matchedConsequences.size)
+            for (consequence in matchedConsequences) {
+                assertEquals("ajoInbound", consequence.type)
+                assertEquals("ajoFeedItem", consequence.detail["type"])
+            }
         }
     }
 

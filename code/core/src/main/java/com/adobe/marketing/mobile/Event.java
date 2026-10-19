@@ -295,6 +295,7 @@ public final class Event {
         newEvent.uniqueIdentifier = this.uniqueIdentifier;
         newEvent.timestamp = this.timestamp;
         newEvent.responseID = this.responseID;
+        newEvent.parentID = this.parentID;
         return newEvent;
     }
 

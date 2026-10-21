@@ -6,6 +6,7 @@
     * [Getting Started](./MobileCore/getting-started.md)
     * [Managing Gradle Dependencies](./MobileCore/gradle-dependencies.md)
     * [API Usage](./MobileCore/api-reference.md)
+    * [Plugins](./MobileCore/plugins.md)
     * [Validation via Assurance](./Debugging.md)
 * [Architecture](./Architecture.md)
     * [EventHub](./EventHub/README.md)

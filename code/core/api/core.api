@@ -443,6 +443,20 @@ public abstract interface class com/adobe/marketing/mobile/plugin/IUiTemplatePlu
 	public abstract fun buildPushTemplateNotification (Ljava/util/Map;Lcom/adobe/marketing/mobile/plugin/IPushTemplateTrackingProvider;)Landroid/app/Notification;
 }
 
+public abstract interface class com/adobe/marketing/mobile/plugin/IVoicePlugin : com/adobe/marketing/mobile/plugin/IAepPlugin {
+	public abstract fun startSession (Ljava/util/Map;Lcom/adobe/marketing/mobile/plugin/IVoiceSessionListener;)Lcom/adobe/marketing/mobile/plugin/IVoiceSession;
+}
+
+public abstract interface class com/adobe/marketing/mobile/plugin/IVoiceSession {
+	public abstract fun getState ()Lcom/adobe/marketing/mobile/plugin/VoiceSessionState;
+	public abstract fun stop ()V
+}
+
+public abstract interface class com/adobe/marketing/mobile/plugin/IVoiceSessionListener {
+	public abstract fun onStateChanged (Lcom/adobe/marketing/mobile/plugin/IVoiceSession;Lcom/adobe/marketing/mobile/plugin/VoiceSessionState;)V
+	public abstract fun onTranscriptUpdated (Lcom/adobe/marketing/mobile/plugin/IVoiceSession;Ljava/lang/String;Lcom/adobe/marketing/mobile/plugin/VoiceTranscriptRole;Z)V
+}
+
 public final class com/adobe/marketing/mobile/plugin/PushInteraction {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/String;)V
@@ -457,6 +471,45 @@ public final class com/adobe/marketing/mobile/plugin/PushInteraction {
 	public final fun getTemplateExtras ()Ljava/util/Map;
 	public final fun getType ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class com/adobe/marketing/mobile/plugin/VoiceSessionState {
+	public static final field $stable I
+	public final fun isTerminal ()Z
+}
+
+public final class com/adobe/marketing/mobile/plugin/VoiceSessionState$Connecting : com/adobe/marketing/mobile/plugin/VoiceSessionState {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/plugin/VoiceSessionState$Connecting;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/plugin/VoiceSessionState$Ended : com/adobe/marketing/mobile/plugin/VoiceSessionState {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/plugin/VoiceSessionState$Ended;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/plugin/VoiceSessionState$Failed : com/adobe/marketing/mobile/plugin/VoiceSessionState {
+	public static final field $stable I
+	public fun <init> (Ljava/lang/String;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/plugin/VoiceSessionState$Listening : com/adobe/marketing/mobile/plugin/VoiceSessionState {
+	public static final field $stable I
+	public static final field INSTANCE Lcom/adobe/marketing/mobile/plugin/VoiceSessionState$Listening;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/adobe/marketing/mobile/plugin/VoiceTranscriptRole : java/lang/Enum {
+	public static final field ASSISTANT Lcom/adobe/marketing/mobile/plugin/VoiceTranscriptRole;
+	public static final field USER Lcom/adobe/marketing/mobile/plugin/VoiceTranscriptRole;
+	public static fun valueOf (Ljava/lang/String;)Lcom/adobe/marketing/mobile/plugin/VoiceTranscriptRole;
+	public static fun values ()[Lcom/adobe/marketing/mobile/plugin/VoiceTranscriptRole;
 }
 
 public class com/adobe/marketing/mobile/rulesengine/ComparisonExpression : com/adobe/marketing/mobile/rulesengine/Evaluable {

@@ -241,6 +241,23 @@ internal class LifecycleTracker(private val additionalContextData: Map<String, S
  */
 internal class LaunchInfoCollector : App.ActivityLifecycleCallbacks {
     override fun onActivityResumed(activity: Activity) {
-        MobileCore.collectLaunchInfo(activity)
+        // This runs inside the host app's lifecycle callback, so a failure here must never crash the app.
+        try {
+            MobileCore.collectLaunchInfo(activity)
+        } catch (e: Exception) {
+            logCollectionFailure(e)
+        } catch (e: OutOfMemoryError) {
+            logCollectionFailure(e)
+        } catch (e: StackOverflowError) {
+            logCollectionFailure(e)
+        }
+    }
+
+    private fun logCollectionFailure(throwable: Throwable) {
+        Log.error(
+            CoreConstants.LOG_TAG,
+            MobileCoreInitializer.LOG_TAG,
+            "Failed to collect launch info, skipping. Error: ${throwable.javaClass.simpleName} - ${throwable.message}"
+        )
     }
 }

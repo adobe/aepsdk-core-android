@@ -48,6 +48,7 @@ import org.mockito.kotlin.verify
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -129,6 +130,45 @@ class MobileCoreInitializerTests {
         val activity = mock(Activity::class.java)
 
         Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
+            launchInfoCollector.onActivityResumed(activity)
+            mockedStatic.verify({ MobileCore.collectLaunchInfo(activity) }, Mockito.times(1))
+        }
+    }
+
+    @Test
+    fun `test launch info collector does not propagate OutOfMemoryError`() {
+        assertLaunchInfoCollectorSwallows(OutOfMemoryError("test"))
+    }
+
+    @Test
+    fun `test launch info collector does not propagate StackOverflowError`() {
+        assertLaunchInfoCollectorSwallows(StackOverflowError("test"))
+    }
+
+    @Test
+    fun `test launch info collector does not propagate RuntimeException`() {
+        assertLaunchInfoCollectorSwallows(RuntimeException("test"))
+    }
+
+    @Test
+    fun `test launch info collector does not swallow other errors`() {
+        val launchInfoCollector = LaunchInfoCollector()
+        val activity = mock(Activity::class.java)
+
+        Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
+            mockedStatic.`when`<Any> { MobileCore.collectLaunchInfo(activity) }
+                .thenThrow(InternalError("test"))
+            assertFailsWith<InternalError> { launchInfoCollector.onActivityResumed(activity) }
+        }
+    }
+
+    private fun assertLaunchInfoCollectorSwallows(throwable: Throwable) {
+        val launchInfoCollector = LaunchInfoCollector()
+        val activity = mock(Activity::class.java)
+
+        Mockito.mockStatic(MobileCore::class.java).use { mockedStatic ->
+            mockedStatic.`when`<Any> { MobileCore.collectLaunchInfo(activity) }
+                .thenThrow(throwable)
             launchInfoCollector.onActivityResumed(activity)
             mockedStatic.verify({ MobileCore.collectLaunchInfo(activity) }, Mockito.times(1))
         }
